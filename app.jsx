@@ -42,6 +42,8 @@ export default function App() {
   
   // Track which input field the user is currently typing in
   const [focusedField, setFocusedField] = useState(null);
+  // Track which item in the dropdown is currently highlighted via keyboard
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   // Track the current picks
   const [picks, setPicks] = useState({
@@ -216,9 +218,7 @@ export default function App() {
                 { label: "Encore", id: "enc" },
                 { label: "Wildcard (>1 yr)", id: "wild" },
               ].map(f => {
-                // Determine if we should show the custom dropdown for this specific field
                 const showDropdown = focusedField === f.id && picks[f.id].length > 0;
-                // Filter the songs based on what the user typed
                 const filteredSongs = PHISH_SONGS.filter(song => 
                   song.toLowerCase().includes(picks[f.id].toLowerCase())
                 );
@@ -229,23 +229,52 @@ export default function App() {
                     <input 
                       placeholder="Start typing a song..."
                       value={picks[f.id]}
-                      onChange={(e) => setPicks({ ...picks, [f.id]: e.target.value })}
-                      onFocus={() => setFocusedField(f.id)}
+                      onChange={(e) => {
+                        setPicks({ ...picks, [f.id]: e.target.value });
+                        setHighlightedIndex(-1); // Reset keyboard selection on new typing
+                      }}
+                      onFocus={() => {
+                        setFocusedField(f.id);
+                        setHighlightedIndex(-1);
+                      }}
                       onBlur={() => setTimeout(() => setFocusedField(null), 150)}
+                      onKeyDown={(e) => {
+                        if (!showDropdown || filteredSongs.length === 0) return;
+                        
+                        // Handle Keyboard Navigation
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault(); // Stop cursor from moving
+                          setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev));
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
+                        } else if (e.key === 'Enter') {
+                          e.preventDefault(); // Stop form submission
+                          if (highlightedIndex >= 0 && highlightedIndex < filteredSongs.length) {
+                            setPicks({ ...picks, [f.id]: filteredSongs[highlightedIndex] });
+                            setFocusedField(null);
+                            setHighlightedIndex(-1);
+                          }
+                        }
+                      }}
                       className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
                     />
                     
                     {/* CUSTOM AUTOCOMPLETE DROPDOWN */}
                     {showDropdown && filteredSongs.length > 0 && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto overflow-hidden">
-                        {filteredSongs.map(song => (
+                        {filteredSongs.map((song, index) => (
                           <div 
                             key={song} 
                             onClick={() => {
                               setPicks({ ...picks, [f.id]: song });
                               setFocusedField(null);
+                              setHighlightedIndex(-1);
                             }}
-                            className="p-4 text-sm font-bold border-b border-slate-700/50 hover:bg-slate-700 cursor-pointer last:border-0"
+                            // If this item is highlighted via keyboard, turn it blue. Otherwise, normal hover states apply.
+                            className={`p-4 text-sm font-bold border-b border-slate-700/50 cursor-pointer last:border-0 transition-colors ${
+                              highlightedIndex === index ? 'bg-blue-600 text-white' : 'hover:bg-slate-700'
+                            }`}
                           >
                             {song}
                           </div>
