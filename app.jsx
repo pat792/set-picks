@@ -23,10 +23,15 @@ import {
 // 1. FIREBASE SETUP
 // ==========================================
 // PASTE YOUR FIREBASE CONFIG HERE
-const firebaseConfig = {
-  // ... your keys here
+ const firebaseConfig = {
+  apiKey: "AIzaSyAJskQFM62Fyr-EjxlGJD3svAhf9gp9CHI",
+  authDomain: "set-picks.firebaseapp.com",
+  projectId: "set-picks",
+  storageBucket: "set-picks.firebasestorage.app",
+  messagingSenderId: "927420107250",
+  appId: "1:927420107250:web:1b9f52a72ef8dd9096836b",
+  measurementId: "G-K3YZ8FNM3V"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
