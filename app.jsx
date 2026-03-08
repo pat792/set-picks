@@ -215,4 +215,96 @@ export default function App() {
                 { label: "Set 2 Closer", id: "s2c" },
                 { label: "Encore", id: "enc" },
                 { label: "Wildcard (>1 yr)", id: "wild" },
-              ].map(f
+              ].map(f => {
+                // Determine if we should show the custom dropdown for this specific field
+                const showDropdown = focusedField === f.id && picks[f.id].length > 0;
+                // Filter the songs based on what the user typed
+                const filteredSongs = PHISH_SONGS.filter(song => 
+                  song.toLowerCase().includes(picks[f.id].toLowerCase())
+                );
+
+                return (
+                  <div key={f.id} className="relative">
+                    <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
+                    <input 
+                      placeholder="Start typing a song..."
+                      value={picks[f.id]}
+                      onChange={(e) => setPicks({ ...picks, [f.id]: e.target.value })}
+                      onFocus={() => setFocusedField(f.id)}
+                      onBlur={() => setTimeout(() => setFocusedField(null), 150)}
+                      className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
+                    />
+                    
+                    {/* CUSTOM AUTOCOMPLETE DROPDOWN */}
+                    {showDropdown && filteredSongs.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto overflow-hidden">
+                        {filteredSongs.map(song => (
+                          <div 
+                            key={song} 
+                            onClick={() => {
+                              setPicks({ ...picks, [f.id]: song });
+                              setFocusedField(null);
+                            }}
+                            className="p-4 text-sm font-bold border-b border-slate-700/50 hover:bg-slate-700 cursor-pointer last:border-0"
+                          >
+                            {song}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              
+              <button 
+                onClick={handleSavePicks}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-transform mt-4">
+                {saveStatus || "LOCK IN PICKS"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "leaderboard" && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-black italic px-2">LEADERBOARD</h2>
+            <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 overflow-hidden">
+               <div className="p-8 text-center text-slate-500 italic text-sm font-bold">No results for {selectedDate} yet.</div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "pools" && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-black italic px-2">MY POOLS</h2>
+            <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 p-8 text-center">
+              <div className="text-4xl mb-4">🤝</div>
+              <p className="text-slate-400 text-sm font-bold">You are currently in the GLOBAL pool.</p>
+              <p className="text-slate-500 text-xs mt-2">Private pool creation coming soon!</p>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* BOTTOM NAV */}
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex gap-1 shadow-2xl z-40">
+        {[
+          { id: "picks", label: "Picks", icon: "🎟️" },
+          { id: "leaderboard", label: "Rankings", icon: "🏆" },
+          { id: "pools", label: "Pools", icon: "🤝" },
+        ].map(t => (
+          <button 
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`px-8 py-3 rounded-full flex items-center gap-2 transition-all ${activeTab === t.id ? "bg-white text-black font-black" : "text-slate-400 hover:text-white"}`}
+          >
+            <span className="text-lg">{t.icon}</span>
+            <span className="text-[10px] uppercase font-bold tracking-tighter">{t.label}</span>
+          </button>
+        ))}
+      </nav>
+
+    </div>
+  );
+}
