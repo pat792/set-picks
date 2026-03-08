@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 
 // --- FIREBASE CONFIG ---
 const firebaseConfig = {
@@ -40,15 +40,16 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
   
-  // Track which input field the user is currently typing in
   const [focusedField, setFocusedField] = useState(null);
-  // Track which item in the dropdown is currently highlighted via keyboard
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  // Track the current picks
+  // Track the current user's picks
   const [picks, setPicks] = useState({
     s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: ""
   });
+  
+  // Track ALL picks for the selected date (for the pool)
+  const [poolPicks, setPoolPicks] = useState([]);
 
   // --- AUTH & PROFILE LOAD ---
   useEffect(() => {
@@ -64,6 +65,26 @@ export default function App() {
       setLoading(false);
     });
   }, []);
+
+  // --- FETCH LIVE POOL PICKS ---
+  useEffect(() => {
+    if (!db) return;
+    
+    // Create a query for picks that match the currently selected date
+    const q = query(collection(db, "picks"), where("date", "==", selectedDate));
+    
+    // onSnapshot listens for real-time updates
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedPicks = [];
+      snapshot.forEach((doc) => {
+        fetchedPicks.push({ id: doc.id, ...doc.data() });
+      });
+      setPoolPicks(fetchedPicks);
+    });
+
+    // Cleanup the listener when the component unmounts or date changes
+    return () => unsubscribe();
+  }, [selectedDate]);
 
   // --- SAVE NEW USER HANDLE ---
   const saveHandle = async (handle) => {
@@ -218,15 +239,10 @@ export default function App() {
                 { label: "Encore", id: "enc" },
                 { label: "Wildcard (>1 yr)", id: "wild" },
               ].map(f => {
-                // Determine if we should show the custom dropdown
                 const showDropdown = focusedField === f.id && picks[f.id].length > 0;
-                
-                // Filter songs based on input
                 const filteredSongs = PHISH_SONGS.filter(song => 
                   song.toLowerCase().includes(picks[f.id].toLowerCase())
                 );
-
-                // Hide dropdown if they typed the exact correct song name already
                 const exactMatch = filteredSongs.length === 1 && filteredSongs[0].toLowerCase() === picks[f.id].toLowerCase();
 
                 return (
@@ -237,26 +253,23 @@ export default function App() {
                       value={picks[f.id]}
                       onChange={(e) => {
                         setPicks({ ...picks, [f.id]: e.target.value });
-                        setHighlightedIndex(-1); // Reset keyboard selection on new typing
+                        setHighlightedIndex(-1);
                       }}
                       onFocus={() => {
                         setFocusedField(f.id);
                         setHighlightedIndex(-1);
                       }}
-                      onBlur={() => setFocusedField(null)} // Removed the timeout delay
+                      onBlur={() => setFocusedField(null)}
                       onKeyDown={(e) => {
                         if (!showDropdown || filteredSongs.length === 0) return;
-                        
-                        // Handle Keyboard Navigation
                         if (e.key === 'ArrowDown') {
-                          e.preventDefault(); // Stop cursor from moving
+                          e.preventDefault();
                           setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev));
                         } else if (e.key === 'ArrowUp') {
                           e.preventDefault();
                           setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
                         } else if (e.key === 'Enter') {
-                          e.preventDefault(); // Stop form submission
-                          // If they haven't highlighted a specific item, grab the top one.
+                          e.preventDefault();
                           const indexToSelect = highlightedIndex >= 0 ? highlightedIndex : 0;
                           setPicks({ ...picks, [f.id]: filteredSongs[indexToSelect] });
                           setFocusedField(null);
@@ -266,15 +279,13 @@ export default function App() {
                       className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
                     />
                     
-                    {/* CUSTOM AUTOCOMPLETE DROPDOWN */}
                     {showDropdown && filteredSongs.length > 0 && !exactMatch && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto overflow-hidden">
                         {filteredSongs.map((song, index) => (
                           <div 
                             key={song} 
-                            // Changed to onMouseDown to beat the onBlur race condition
                             onMouseDown={(e) => {
-                              e.preventDefault(); // Prevents the input box from losing focus prematurely
+                              e.preventDefault();
                               setPicks({ ...picks, [f.id]: song });
                               setFocusedField(null);
                               setHighlightedIndex(-1);
@@ -310,14 +321,55 @@ export default function App() {
           </div>
         )}
 
+        {/* POOLS TAB: DISPLAY EVERYONE'S PICKS */}
         {activeTab === "pools" && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-black italic px-2">MY POOLS</h2>
-            <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 p-8 text-center">
-              <div className="text-4xl mb-4">🤝</div>
-              <p className="text-slate-400 text-sm font-bold">You are currently in the GLOBAL pool.</p>
-              <p className="text-slate-500 text-xs mt-2">Private pool creation coming soon!</p>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center px-2">
+              <h2 className="text-xl font-black italic uppercase">GLOBAL POOL PICKS</h2>
+              <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full">{poolPicks.length} PLAYERS</span>
             </div>
+
+            {poolPicks.length === 0 ? (
+              <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 p-8 text-center">
+                <div className="text-4xl mb-4">🤷‍♂️</div>
+                <p className="text-slate-400 text-sm font-bold">No picks locked in for {selectedDate} yet.</p>
+                <p className="text-slate-500 text-xs mt-2">Be the first to make a prediction!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {poolPicks.map(p => (
+                  <div key={p.id} className="bg-slate-800/80 rounded-[2rem] border border-slate-700 p-6 shadow-lg relative overflow-hidden">
+                    {/* User Handle Header */}
+                    <div className="flex items-center gap-3 mb-5 border-b border-slate-700/50 pb-4">
+                      <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full flex items-center justify-center text-lg shadow-inner">
+                        👤
+                      </div>
+                      <div>
+                        <h3 className="font-black text-white text-lg tracking-tight">{p.handle}</h3>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Picks Locked</p>
+                      </div>
+                    </div>
+
+                    {/* The 6 Picks Grid */}
+                    <div className="grid grid-cols-2 gap-3 text-xs font-bold">
+                      {[
+                        { label: "Set 1 Opener", val: p.s1o },
+                        { label: "Set 1 Closer", val: p.s1c },
+                        { label: "Set 2 Opener", val: p.s2o },
+                        { label: "Set 2 Closer", val: p.s2c },
+                        { label: "Encore", val: p.enc },
+                        { label: "Wildcard", val: p.wild },
+                      ].map((item, i) => (
+                        <div key={i} className="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/50 flex flex-col justify-center">
+                          <span className="text-[9px] text-slate-500 uppercase block mb-1">{item.label}</span>
+                          <span className="text-blue-100 truncate">{item.val || "—"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
