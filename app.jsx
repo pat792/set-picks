@@ -18,6 +18,15 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+const PHISH_SONGS = [
+  "2001", "46 Days", "AC/DC Bag", "Antelope", "Bathtub Gin", "Blaze On", "Cavern", 
+  "Carini", "Character Zero", "Chalk Dust Torture", "Divided Sky", "Down with Disease", 
+  "Everything's Right", "Fluffhead", "Free", "Ghost", "Gotta Jibboo", "Guyute", 
+  "Harry Hood", "I Am Hydrogen", "Llama", "Maze", "Mike's Song", "No Men In No Man's Land", 
+  "Piper", "Possum", "Prince Caspian", "Reba", "Runaway Jim", "Sand", "Say It To Me S.A.N.T.O.S.", 
+  "Slave to the Traffic Light", "Stash", "The Moma Dance", "Tweezer", "Tweezer Reprise", 
+  "Twist", "Weekapaug Groove", "Wolfman's Brother", "You Enjoy Myself"
+].sort();
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -152,8 +161,7 @@ export default function App() {
               ].map(f => (
                 <div key={f.id}>
                   <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
-                  <input placeholder="e.g. Tweezer" className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold" />
-                </div>
+<input list="song-list" placeholder="e.g. Tweezer" className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold" />                </div>
               ))}
               <button className="w-full bg-gradient-to-r from-blue-600 to-blue-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-transform">LOCK IN PICKS</button>
             </div>
@@ -188,6 +196,12 @@ export default function App() {
           </button>
         ))}
       </nav>
+{/* THE DATA SOURCE FOR PREDICTIVE TEXT */}
+      <datalist id="song-list">
+        {PHISH_SONGS.map(song => (
+          <option key={song} value={song} />
+        ))}
+      </datalist>
     </div>
   );
 }
