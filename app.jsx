@@ -45,8 +45,6 @@ export default function App() {
   
   const [focusedField, setFocusedField] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  
-  // Track which user's accordion is currently open in the Pools tab
   const [expandedUser, setExpandedUser] = useState(null);
 
   const [picks, setPicks] = useState({
@@ -140,7 +138,6 @@ export default function App() {
   // --- MOCK API FETCH FOR SCAFFOLDING ---
   const handleFetchFromPhishNet = () => {
     setSaveStatus("Fetching from Phish.net...");
-    // Future API Logic goes here!
     setTimeout(() => {
       setSaveStatus("📡 API Integration Coming Soon!");
       setTimeout(() => setSaveStatus(""), 3000);
@@ -202,7 +199,8 @@ export default function App() {
 
   // --- MAIN APP DASHBOARD ---
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-blue-500/30">
+    // Added overflow-x-hidden and overscroll-none here to lock the viewport
+    <div className="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-blue-500/30 overflow-x-hidden w-full overscroll-none">
       
       {/* SIDEBAR / HAMBURGER MENU */}
       <div className={`fixed inset-y-0 right-0 w-80 bg-slate-800 shadow-2xl z-50 transform transition-transform duration-300 border-l border-slate-700 ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
@@ -237,12 +235,14 @@ export default function App() {
           <div className="grid grid-cols-2 gap-6 items-end">
             <div>
               <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-2 block tracking-widest">Select Concert Date</label>
-              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" />
+              {/* text-base prevents iOS zoom */}
+              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-base font-bold focus:border-blue-500 outline-none transition-colors" />
             </div>
             <div>
               <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-2 block tracking-widest">Active Pool</label>
               <div className="flex gap-2">
-                <input placeholder="Code..." className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold uppercase focus:border-blue-500 outline-none" />
+                {/* text-base prevents iOS zoom */}
+                <input placeholder="Code..." className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-base font-bold uppercase focus:border-blue-500 outline-none" />
                 <button className="bg-blue-600 px-4 rounded-2xl font-black text-xs">JOIN</button>
               </div>
             </div>
@@ -265,6 +265,7 @@ export default function App() {
                 return (
                   <div key={f.id} className="relative">
                     <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
+                    {/* Changed to text-base to stop iOS Safari zoom */}
                     <input 
                       placeholder="Start typing a song..." value={picks[f.id]}
                       onChange={(e) => { setPicks({ ...picks, [f.id]: e.target.value }); setHighlightedIndex(-1); }}
@@ -276,7 +277,7 @@ export default function App() {
                         else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1)); }
                         else if (e.key === 'Enter') { e.preventDefault(); setPicks({ ...picks, [f.id]: filteredSongs[highlightedIndex >= 0 ? highlightedIndex : 0] }); setFocusedField(null); setHighlightedIndex(-1); }
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
+                      className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-base font-bold focus:border-blue-500 outline-none transition-colors" 
                     />
                     {showDropdown && filteredSongs.length > 0 && !exactMatch && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto overflow-hidden">
@@ -323,7 +324,6 @@ export default function App() {
                   return (
                     <div key={p.id} className="bg-slate-800/80 rounded-[1.5rem] border border-slate-700 overflow-hidden shadow-lg transition-all">
                       
-                      {/* ACCORDION HEADER (Always Visible) */}
                       <button 
                         onClick={() => setExpandedUser(isExpanded ? null : p.id)}
                         className="w-full flex items-center justify-between p-4 hover:bg-slate-700/50 transition-colors"
@@ -343,7 +343,6 @@ export default function App() {
                         </div>
                       </button>
 
-                      {/* ACCORDION BODY (Grid of Picks - Expands on click) */}
                       {isExpanded && (
                         <div className="p-4 border-t border-slate-700/50 bg-slate-900/30">
                           <div className="grid grid-cols-2 gap-3 text-xs font-bold">
@@ -415,6 +414,7 @@ export default function App() {
                 return (
                   <div key={`admin_${f.id}`} className="relative">
                     <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
+                    {/* Changed to text-base to stop iOS Safari zoom */}
                     <input 
                       placeholder="Actual song played..." value={adminResults[f.id]}
                       onChange={(e) => { setAdminResults({ ...adminResults, [f.id]: e.target.value }); setHighlightedIndex(-1); }}
@@ -426,7 +426,7 @@ export default function App() {
                         else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1)); }
                         else if (e.key === 'Enter') { e.preventDefault(); setAdminResults({ ...adminResults, [f.id]: filteredSongs[highlightedIndex >= 0 ? highlightedIndex : 0] }); setFocusedField(null); setHighlightedIndex(-1); }
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none transition-colors" 
+                      className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-base font-bold focus:border-emerald-500 outline-none transition-colors" 
                     />
                     {showDropdown && filteredSongs.length > 0 && !exactMatch && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto overflow-hidden">
