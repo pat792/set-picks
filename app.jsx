@@ -39,6 +39,9 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
+  
+  // Track which input field the user is currently typing in
+  const [focusedField, setFocusedField] = useState(null);
 
   // Track the current picks
   const [picks, setPicks] = useState({
@@ -77,9 +80,7 @@ export default function App() {
   const handleSavePicks = async () => {
     setSaveStatus("Saving...");
     try {
-      // Create a unique ID for this user's picks on this specific date
       const pickId = `${selectedDate}_${user.uid}`;
-      
       await setDoc(doc(db, "picks", pickId), {
         ...picks,
         uid: user.uid,
@@ -87,9 +88,8 @@ export default function App() {
         date: selectedDate,
         updatedAt: new Date().toISOString()
       });
-      
       setSaveStatus("✅ Picks Locked In!");
-      setTimeout(() => setSaveStatus(""), 3000); // Clear message after 3 seconds
+      setTimeout(() => setSaveStatus(""), 3000);
     } catch (error) {
       console.error("Error saving picks:", error);
       setSaveStatus("❌ Error saving picks.");
@@ -215,75 +215,4 @@ export default function App() {
                 { label: "Set 2 Closer", id: "s2c" },
                 { label: "Encore", id: "enc" },
                 { label: "Wildcard (>1 yr)", id: "wild" },
-              ].map(f => (
-                <div key={f.id}>
-                  <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
-                  <input 
-                    list="song-list"
-                    placeholder="Start typing a song..."
-                    value={picks[f.id]}
-                    onChange={(e) => setPicks({ ...picks, [f.id]: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
-                  />
-                </div>
-              ))}
-              
-              <button 
-                onClick={handleSavePicks}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-transform">
-                {saveStatus || "LOCK IN PICKS"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "leaderboard" && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-black italic px-2">LEADERBOARD</h2>
-            <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 overflow-hidden">
-               <div className="p-8 text-center text-slate-500 italic text-sm font-bold">No results for {selectedDate} yet.</div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "pools" && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-black italic px-2">MY POOLS</h2>
-            <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 p-8 text-center">
-              <div className="text-4xl mb-4">🤝</div>
-              <p className="text-slate-400 text-sm font-bold">You are currently in the GLOBAL pool.</p>
-              <p className="text-slate-500 text-xs mt-2">Private pool creation coming soon!</p>
-            </div>
-          </div>
-        )}
-
-      </main>
-
-      {/* BOTTOM NAV */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex gap-1 shadow-2xl z-40">
-        {[
-          { id: "picks", label: "Picks", icon: "🎟️" },
-          { id: "leaderboard", label: "Rankings", icon: "🏆" },
-          { id: "pools", label: "Pools", icon: "🤝" },
-        ].map(t => (
-          <button 
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`px-8 py-3 rounded-full flex items-center gap-2 transition-all ${activeTab === t.id ? "bg-white text-black font-black" : "text-slate-400 hover:text-white"}`}
-          >
-            <span className="text-lg">{t.icon}</span>
-            <span className="text-[10px] uppercase font-bold tracking-tighter">{t.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      {/* THE DATA SOURCE FOR PREDICTIVE TEXT */}
-      <datalist id="song-list">
-        {PHISH_SONGS.map(song => (
-          <option key={song} value={song} />
-        ))}
-      </datalist>
-
-    </div>
-  );
-}
+              ].map(f
