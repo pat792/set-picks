@@ -19,6 +19,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// 🚨 CHANGE THIS TO YOUR GOOGLE EMAIL TO UNLOCK THE ADMIN PANEL 🚨
+const ADMIN_EMAIL = "pat@road2media.com";
+
 // --- SONG LIST FOR PREDICTIVE TEXT ---
 const PHISH_SONGS = [
   "2001", "46 Days", "AC/DC Bag", "Antelope", "Bathtub Gin", "Blaze On", "Cavern", 
@@ -43,13 +46,16 @@ export default function App() {
   const [focusedField, setFocusedField] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  // Track the current user's picks
   const [picks, setPicks] = useState({
     s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: ""
   });
   
-  // Track ALL picks for the selected date (for the pool)
+  const [adminResults, setAdminResults] = useState({
+    s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: ""
+  });
+
   const [poolPicks, setPoolPicks] = useState([]);
+  const [actualSetlist, setActualSetlist] = useState(null);
 
   // --- AUTH & PROFILE LOAD ---
   useEffect(() => {
@@ -66,15 +72,12 @@ export default function App() {
     });
   }, []);
 
-  // --- FETCH LIVE POOL PICKS ---
+  // --- FETCH LIVE POOL PICKS & MASTER SETLIST ---
   useEffect(() => {
     if (!db) return;
     
-    // Create a query for picks that match the currently selected date
     const q = query(collection(db, "picks"), where("date", "==", selectedDate));
-    
-    // onSnapshot listens for real-time updates
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribePicks = onSnapshot(q, (snapshot) => {
       const fetchedPicks = [];
       snapshot.forEach((doc) => {
         fetchedPicks.push({ id: doc.id, ...doc.data() });
@@ -82,47 +85,87 @@ export default function App() {
       setPoolPicks(fetchedPicks);
     });
 
-    // Cleanup the listener when the component unmounts or date changes
-    return () => unsubscribe();
+    const unsubscribeResults = onSnapshot(doc(db, "results", selectedDate), (docSnap) => {
+      if (docSnap.exists()) {
+        setActualSetlist(docSnap.data());
+        setAdminResults(docSnap.data());
+      } else {
+        setActualSetlist(null);
+        setAdminResults({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
+      }
+    });
+
+    return () => {
+      unsubscribePicks();
+      unsubscribeResults();
+    };
   }, [selectedDate]);
 
   // --- SAVE NEW USER HANDLE ---
   const saveHandle = async (handle) => {
     if (!handle.trim()) return;
-    const profile = { 
-      handle, 
-      email: user.email, 
-      stats: { totalPoints: 0, showsPlayed: 0 },
-      pools: ["GLOBAL"] 
-    };
+    const profile = { handle, email: user.email, stats: { totalPoints: 0, showsPlayed: 0 }, pools: ["GLOBAL"] };
     await setDoc(doc(db, "users", user.uid), profile);
     setUserProfile(profile);
   };
 
-  // --- SAVE PICKS TO DATABASE ---
+  // --- SAVE USER PICKS TO DATABASE ---
   const handleSavePicks = async () => {
     setSaveStatus("Saving...");
     try {
       const pickId = `${selectedDate}_${user.uid}`;
-      await setDoc(doc(db, "picks", pickId), {
-        ...picks,
-        uid: user.uid,
-        handle: userProfile.handle,
-        date: selectedDate,
-        updatedAt: new Date().toISOString()
-      });
+      await setDoc(doc(db, "picks", pickId), { ...picks, uid: user.uid, handle: userProfile.handle, date: selectedDate, updatedAt: new Date().toISOString() });
       setSaveStatus("✅ Picks Locked In!");
       setTimeout(() => setSaveStatus(""), 3000);
     } catch (error) {
-      console.error("Error saving picks:", error);
       setSaveStatus("❌ Error saving picks.");
     }
   };
 
-  // --- LOADING SCREEN ---
+  // --- SAVE ADMIN MASTER SETLIST TO DATABASE ---
+  const handleSaveResults = async () => {
+    setSaveStatus("Publishing Results...");
+    try {
+      await setDoc(doc(db, "results", selectedDate), { ...adminResults, date: selectedDate, updatedAt: new Date().toISOString() });
+      setSaveStatus("🏆 Setlist Published!");
+      setTimeout(() => setSaveStatus(""), 3000);
+    } catch (error) {
+      setSaveStatus("❌ Error saving results.");
+    }
+  };
+
+  // --- MOCK API FETCH FOR SCAFFOLDING ---
+  const handleFetchFromPhishNet = () => {
+    setSaveStatus("Fetching from Phish.net...");
+    // Future API Logic goes here!
+    setTimeout(() => {
+      setSaveStatus("📡 API Integration Coming Soon!");
+      setTimeout(() => setSaveStatus(""), 3000);
+    }, 1500);
+  };
+
+  // --- SCORING ENGINE ---
+  const getPointValue = (fieldId, guessedSong) => {
+    if (!actualSetlist || !guessedSong) return null;
+    if (actualSetlist[fieldId].toLowerCase() === guessedSong.toLowerCase()) return 1;
+    const allPlayedSongs = [actualSetlist.s1o, actualSetlist.s1c, actualSetlist.s2o, actualSetlist.s2c, actualSetlist.enc, actualSetlist.wild].map(s => s.toLowerCase());
+    if (allPlayedSongs.includes(guessedSong.toLowerCase())) return 0.5;
+    return 0;
+  };
+
+  const getTotalScore = (userPicks) => {
+    if (!actualSetlist) return null;
+    let total = 0;
+    ['s1o', 's1c', 's2o', 's2c', 'enc', 'wild'].forEach(f => {
+      const pts = getPointValue(f, userPicks[f]);
+      if (pts) total += pts;
+    });
+    return total;
+  };
+
+  // --- LOADING & LOGIN ---
   if (loading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white font-black italic">LOADING...</div>;
 
-  // --- LOGIN SCREEN ---
   if (!user) return (
     <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 text-center">
       <div className="mb-8 scale-150">⭕</div>
@@ -135,24 +178,24 @@ export default function App() {
     </div>
   );
 
-  // --- CHOOSE HANDLE SCREEN ---
   if (!userProfile) return (
     <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6">
       <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700 w-full max-w-sm text-center space-y-4">
         <h2 className="text-2xl font-bold">Pick your Handle</h2>
-        <input 
-          id="handleInput"
-          className="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center text-xl font-bold"
-          placeholder="Username..."
-        />
-        <button 
-          onClick={() => saveHandle(document.getElementById('handleInput').value)} 
-          className="w-full bg-blue-600 py-4 rounded-xl font-black">
-          START PLAYING
-        </button>
+        <input id="handleInput" className="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center text-xl font-bold" placeholder="Username..." />
+        <button onClick={() => saveHandle(document.getElementById('handleInput').value)} className="w-full bg-blue-600 py-4 rounded-xl font-black">START PLAYING</button>
       </div>
     </div>
   );
+
+  const formFields = [
+    { label: "S1 Opener", id: "s1o" },
+    { label: "S1 Closer", id: "s1c" },
+    { label: "S2 Opener", id: "s2o" },
+    { label: "S2 Closer", id: "s2c" },
+    { label: "Encore", id: "enc" },
+    { label: "Wildcard", id: "wild" },
+  ];
 
   // --- MAIN APP DASHBOARD ---
   return (
@@ -162,55 +205,36 @@ export default function App() {
       <div className={`fixed inset-y-0 right-0 w-80 bg-slate-800 shadow-2xl z-50 transform transition-transform duration-300 border-l border-slate-700 ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
         <div className="p-8 h-full flex flex-col">
           <button onClick={() => setIsMenuOpen(false)} className="self-end text-slate-400 text-2xl font-light">✕</button>
-          
           <div className="mt-8 text-center">
             <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full mx-auto flex items-center justify-center text-3xl shadow-lg shadow-blue-500/20">👤</div>
             <h2 className="text-2xl font-black mt-4">{userProfile?.handle || "Phan"}</h2>
             <p className="text-xs font-bold text-blue-400 tracking-widest uppercase mt-1">Veteran Player</p>
           </div>
-
           <div className="mt-12 space-y-4 flex-grow">
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
               <span className="text-[10px] font-black uppercase text-slate-500">Total Points</span>
               <span className="text-xl font-black text-emerald-400">{userProfile?.stats?.totalPoints || 0}</span>
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-              <span className="text-[10px] font-black uppercase text-slate-500">Shows Played</span>
-              <span className="text-xl font-black text-blue-400">{userProfile?.stats?.showsPlayed || 0}</span>
-            </div>
           </div>
-
           <button onClick={() => signOut(auth)} className="w-full py-4 bg-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest text-red-400 border border-red-900/20">Sign Out</button>
         </div>
       </div>
 
       {/* TOP NAV */}
       <header className="px-6 py-8 flex justify-between items-center max-w-4xl mx-auto">
-        <div>
-          <h1 className="text-2xl font-black italic tracking-tighter text-blue-400 flex items-center gap-2">
-            <span className="text-blue-500">⭕</span> PHISH POOL
-          </h1>
-        </div>
+        <div><h1 className="text-2xl font-black italic tracking-tighter text-blue-400 flex items-center gap-2"><span className="text-blue-500">⭕</span> PHISH POOL</h1></div>
         <button onClick={() => setIsMenuOpen(true)} className="w-10 h-10 flex flex-col justify-center items-center gap-1 bg-slate-800 rounded-xl border border-slate-700">
-          <div className="w-5 h-0.5 bg-white"></div>
-          <div className="w-5 h-0.5 bg-white"></div>
-          <div className="w-3 h-0.5 bg-white self-start ml-2.5"></div>
+          <div className="w-5 h-0.5 bg-white"></div><div className="w-5 h-0.5 bg-white"></div><div className="w-3 h-0.5 bg-white self-start ml-2.5"></div>
         </button>
       </header>
 
       <main className="max-w-xl mx-auto px-6 pb-32">
-        
         {/* DATE PICKER & POOL SELECTOR */}
         <section className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-[2.5rem] mb-8">
           <div className="grid grid-cols-2 gap-6 items-end">
             <div>
               <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-2 block tracking-widest">Select Concert Date</label>
-              <input 
-                type="date" 
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors"
-              />
+              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" />
             </div>
             <div>
               <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-2 block tracking-widest">Active Pool</label>
@@ -222,106 +246,53 @@ export default function App() {
           </div>
         </section>
 
-        {/* TABS CONTENT */}
+        {/* 1. MY PICKS TAB */}
         {activeTab === "picks" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center px-2">
               <h2 className="text-xl font-black italic">MY PICKS</h2>
               <p className="text-[10px] font-bold text-slate-500 uppercase">1pt Spot / 0.5pt Anywhere</p>
             </div>
-            
             <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5">
-              {[
-                { label: "Set 1 Opener", id: "s1o" },
-                { label: "Set 1 Closer", id: "s1c" },
-                { label: "Set 2 Opener", id: "s2o" },
-                { label: "Set 2 Closer", id: "s2c" },
-                { label: "Encore", id: "enc" },
-                { label: "Wildcard (>1 yr)", id: "wild" },
-              ].map(f => {
+              {formFields.map(f => {
                 const showDropdown = focusedField === f.id && picks[f.id].length > 0;
-                const filteredSongs = PHISH_SONGS.filter(song => 
-                  song.toLowerCase().includes(picks[f.id].toLowerCase())
-                );
+                const filteredSongs = PHISH_SONGS.filter(song => song.toLowerCase().includes(picks[f.id].toLowerCase()));
                 const exactMatch = filteredSongs.length === 1 && filteredSongs[0].toLowerCase() === picks[f.id].toLowerCase();
 
                 return (
                   <div key={f.id} className="relative">
                     <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
                     <input 
-                      placeholder="Start typing a song..."
-                      value={picks[f.id]}
-                      onChange={(e) => {
-                        setPicks({ ...picks, [f.id]: e.target.value });
-                        setHighlightedIndex(-1);
-                      }}
-                      onFocus={() => {
-                        setFocusedField(f.id);
-                        setHighlightedIndex(-1);
-                      }}
+                      placeholder="Start typing a song..." value={picks[f.id]}
+                      onChange={(e) => { setPicks({ ...picks, [f.id]: e.target.value }); setHighlightedIndex(-1); }}
+                      onFocus={() => { setFocusedField(f.id); setHighlightedIndex(-1); }}
                       onBlur={() => setFocusedField(null)}
                       onKeyDown={(e) => {
                         if (!showDropdown || filteredSongs.length === 0) return;
-                        if (e.key === 'ArrowDown') {
-                          e.preventDefault();
-                          setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev));
-                        } else if (e.key === 'ArrowUp') {
-                          e.preventDefault();
-                          setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
-                        } else if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const indexToSelect = highlightedIndex >= 0 ? highlightedIndex : 0;
-                          setPicks({ ...picks, [f.id]: filteredSongs[indexToSelect] });
-                          setFocusedField(null);
-                          setHighlightedIndex(-1);
-                        }
+                        if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev)); }
+                        else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1)); }
+                        else if (e.key === 'Enter') { e.preventDefault(); setPicks({ ...picks, [f.id]: filteredSongs[highlightedIndex >= 0 ? highlightedIndex : 0] }); setFocusedField(null); setHighlightedIndex(-1); }
                       }}
                       className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
                     />
-                    
                     {showDropdown && filteredSongs.length > 0 && !exactMatch && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto overflow-hidden">
                         {filteredSongs.map((song, index) => (
-                          <div 
-                            key={song} 
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              setPicks({ ...picks, [f.id]: song });
-                              setFocusedField(null);
-                              setHighlightedIndex(-1);
-                            }}
-                            className={`p-4 text-sm font-bold border-b border-slate-700/50 cursor-pointer last:border-0 transition-colors ${
-                              highlightedIndex === index ? 'bg-blue-600 text-white' : 'hover:bg-slate-700'
-                            }`}
-                          >
-                            {song}
-                          </div>
+                          <div key={song} onMouseDown={(e) => { e.preventDefault(); setPicks({ ...picks, [f.id]: song }); setFocusedField(null); setHighlightedIndex(-1); }} className={`p-4 text-sm font-bold border-b border-slate-700/50 cursor-pointer transition-colors ${highlightedIndex === index ? 'bg-blue-600 text-white' : 'hover:bg-slate-700'}`}>{song}</div>
                         ))}
                       </div>
                     )}
                   </div>
                 );
               })}
-              
-              <button 
-                onClick={handleSavePicks}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-transform mt-4">
+              <button onClick={handleSavePicks} className="w-full bg-gradient-to-r from-blue-600 to-blue-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-transform mt-4">
                 {saveStatus || "LOCK IN PICKS"}
               </button>
             </div>
           </div>
         )}
 
-        {activeTab === "leaderboard" && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-black italic px-2">LEADERBOARD</h2>
-            <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 overflow-hidden">
-               <div className="p-8 text-center text-slate-500 italic text-sm font-bold">No results for {selectedDate} yet.</div>
-            </div>
-          </div>
-        )}
-
-        {/* POOLS TAB: DISPLAY EVERYONE'S PICKS */}
+        {/* 2. POOLS TAB (HORIZONTAL ROW DESIGN) */}
         {activeTab === "pools" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center px-2">
@@ -329,47 +300,129 @@ export default function App() {
               <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full">{poolPicks.length} PLAYERS</span>
             </div>
 
+            {!actualSetlist && poolPicks.length > 0 && (
+              <div className="bg-blue-900/30 border border-blue-500/30 rounded-2xl p-4 text-center">
+                <p className="text-blue-400 text-xs font-bold uppercase tracking-widest">Awaiting Show Results...</p>
+              </div>
+            )}
+
             {poolPicks.length === 0 ? (
               <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 p-8 text-center">
                 <div className="text-4xl mb-4">🤷‍♂️</div>
                 <p className="text-slate-400 text-sm font-bold">No picks locked in for {selectedDate} yet.</p>
-                <p className="text-slate-500 text-xs mt-2">Be the first to make a prediction!</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {poolPicks.map(p => (
-                  <div key={p.id} className="bg-slate-800/80 rounded-[2rem] border border-slate-700 p-6 shadow-lg relative overflow-hidden">
-                    {/* User Handle Header */}
-                    <div className="flex items-center gap-3 mb-5 border-b border-slate-700/50 pb-4">
-                      <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full flex items-center justify-center text-lg shadow-inner">
-                        👤
-                      </div>
-                      <div>
-                        <h3 className="font-black text-white text-lg tracking-tight">{p.handle}</h3>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Picks Locked</p>
-                      </div>
-                    </div>
-
-                    {/* The 6 Picks Grid */}
-                    <div className="grid grid-cols-2 gap-3 text-xs font-bold">
-                      {[
-                        { label: "Set 1 Opener", val: p.s1o },
-                        { label: "Set 1 Closer", val: p.s1c },
-                        { label: "Set 2 Opener", val: p.s2o },
-                        { label: "Set 2 Closer", val: p.s2c },
-                        { label: "Encore", val: p.enc },
-                        { label: "Wildcard", val: p.wild },
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/50 flex flex-col justify-center">
-                          <span className="text-[9px] text-slate-500 uppercase block mb-1">{item.label}</span>
-                          <span className="text-blue-100 truncate">{item.val || "—"}</span>
-                        </div>
-                      ))}
-                    </div>
+              // Horizontal Scroll Container
+              <div className="overflow-x-auto pb-4 hide-scrollbar">
+                <div className="min-w-max flex flex-col gap-3">
+                  
+                  {/* Table Header Row */}
+                  <div className="flex items-center text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 border-b border-slate-700/50 pb-2">
+                    <div className="w-32 flex-shrink-0">Player</div>
+                    <div className="w-16 flex-shrink-0 text-center">Pts</div>
+                    {formFields.map(f => <div key={f.id} className="w-36 flex-shrink-0 pl-4">{f.label}</div>)}
                   </div>
-                ))}
+
+                  {/* Player Rows */}
+                  {poolPicks.map(p => {
+                    const totalScore = getTotalScore(p);
+                    return (
+                      <div key={p.id} className="flex items-center bg-slate-800/80 rounded-2xl p-3 border border-slate-700 hover:bg-slate-700/50 transition-colors">
+                        
+                        {/* Player Handle */}
+                        <div className="w-32 flex-shrink-0 flex items-center gap-2">
+                          <div className="w-6 h-6 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full flex items-center justify-center text-[10px]">👤</div>
+                          <span className="font-bold text-sm text-white truncate pr-2">{p.handle}</span>
+                        </div>
+                        
+                        {/* Total Points */}
+                        <div className="w-16 flex-shrink-0 text-center font-black text-emerald-400 text-lg">
+                          {actualSetlist ? totalScore : '-'}
+                        </div>
+
+                        {/* Song Picks & Individual Points */}
+                        {formFields.map(item => {
+                          const guessedVal = p[item.id];
+                          const pts = getPointValue(item.id, guessedVal);
+                          
+                          let badge = null;
+                          let textColor = "text-blue-100";
+                          if (pts === 1) { badge = <span className="text-emerald-400 font-black">+1</span>; textColor = "text-emerald-300"; }
+                          else if (pts === 0.5) { badge = <span className="text-blue-400 font-black">+0.5</span>; textColor = "text-blue-300"; }
+                          else if (actualSetlist && pts === 0) { badge = <span className="text-red-500/50 font-black">X</span>; textColor = "text-slate-500 line-through"; }
+
+                          return (
+                            <div key={item.id} className="w-36 flex-shrink-0 pl-4 border-l border-slate-700/50 flex flex-col justify-center">
+                               <span className={`text-xs font-bold truncate ${textColor}`}>{guessedVal || "—"}</span>
+                               {actualSetlist && guessedVal && <span className="text-[10px] mt-0.5">{badge}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* 3. ADMIN TAB (MASTER SETLIST / API SCAFFOLDING) */}
+        {activeTab === "admin" && user.email === ADMIN_EMAIL && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center px-2">
+              <h2 className="text-xl font-black italic text-emerald-400">👑 MASTER SETLIST</h2>
+              <p className="text-[10px] font-bold text-slate-500 uppercase">Publish Actual Results</p>
+            </div>
+            
+            <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-emerald-500/30 space-y-5">
+              
+              {/* PHISH.NET API SCAFFOLDING BUTTON */}
+              <button onClick={handleFetchFromPhishNet} className="w-full bg-slate-900 border border-blue-500/50 text-blue-400 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-900/20 transition-colors flex items-center justify-center gap-2">
+                📡 {saveStatus.includes("API") ? saveStatus : "Auto-Fetch from Phish.net"}
+              </button>
+
+              <div className="relative flex items-center py-2">
+                <div className="flex-grow border-t border-slate-700"></div>
+                <span className="flex-shrink-0 mx-4 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Or Enter Manually</span>
+                <div className="flex-grow border-t border-slate-700"></div>
+              </div>
+
+              {formFields.map(f => {
+                const showDropdown = focusedField === `admin_${f.id}` && adminResults[f.id].length > 0;
+                const filteredSongs = PHISH_SONGS.filter(song => song.toLowerCase().includes(adminResults[f.id].toLowerCase()));
+                const exactMatch = filteredSongs.length === 1 && filteredSongs[0].toLowerCase() === adminResults[f.id].toLowerCase();
+
+                return (
+                  <div key={`admin_${f.id}`} className="relative">
+                    <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
+                    <input 
+                      placeholder="Actual song played..." value={adminResults[f.id]}
+                      onChange={(e) => { setAdminResults({ ...adminResults, [f.id]: e.target.value }); setHighlightedIndex(-1); }}
+                      onFocus={() => { setFocusedField(`admin_${f.id}`); setHighlightedIndex(-1); }}
+                      onBlur={() => setFocusedField(null)}
+                      onKeyDown={(e) => {
+                        if (!showDropdown || filteredSongs.length === 0) return;
+                        if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev)); }
+                        else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1)); }
+                        else if (e.key === 'Enter') { e.preventDefault(); setAdminResults({ ...adminResults, [f.id]: filteredSongs[highlightedIndex >= 0 ? highlightedIndex : 0] }); setFocusedField(null); setHighlightedIndex(-1); }
+                      }}
+                      className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none transition-colors" 
+                    />
+                    {showDropdown && filteredSongs.length > 0 && !exactMatch && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto overflow-hidden">
+                        {filteredSongs.map((song, index) => (
+                          <div key={song} onMouseDown={(e) => { e.preventDefault(); setAdminResults({ ...adminResults, [f.id]: song }); setFocusedField(null); setHighlightedIndex(-1); }} className={`p-4 text-sm font-bold border-b border-slate-700/50 cursor-pointer transition-colors ${highlightedIndex === index ? 'bg-emerald-600 text-white' : 'hover:bg-slate-700'}`}>{song}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <button onClick={handleSaveResults} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-emerald-600/20 active:scale-95 transition-transform mt-4 text-black">
+                {saveStatus.includes("Publishing") || saveStatus.includes("Published") ? saveStatus : "PUBLISH RESULTS"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -379,13 +432,13 @@ export default function App() {
       <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex gap-1 shadow-2xl z-40">
         {[
           { id: "picks", label: "Picks", icon: "🎟️" },
-          { id: "leaderboard", label: "Rankings", icon: "🏆" },
           { id: "pools", label: "Pools", icon: "🤝" },
+          ...(user.email === ADMIN_EMAIL ? [{ id: "admin", label: "Admin", icon: "👑" }] : [])
         ].map(t => (
           <button 
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-8 py-3 rounded-full flex items-center gap-2 transition-all ${activeTab === t.id ? "bg-white text-black font-black" : "text-slate-400 hover:text-white"}`}
+            className={`px-6 py-3 rounded-full flex items-center gap-2 transition-all ${activeTab === t.id ? "bg-white text-black font-black" : "text-slate-400 hover:text-white"}`}
           >
             <span className="text-lg">{t.icon}</span>
             <span className="text-[10px] uppercase font-bold tracking-tighter">{t.label}</span>
