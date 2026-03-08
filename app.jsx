@@ -45,6 +45,9 @@ export default function App() {
   
   const [focusedField, setFocusedField] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  
+  // Track which user's accordion is currently open in the Pools tab
+  const [expandedUser, setExpandedUser] = useState(null);
 
   const [picks, setPicks] = useState({
     s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: ""
@@ -292,7 +295,7 @@ export default function App() {
           </div>
         )}
 
-        {/* 2. POOLS TAB (HORIZONTAL ROW DESIGN) */}
+        {/* 2. POOLS TAB (ACCORDION DESIGN) */}
         {activeTab === "pools" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center px-2">
@@ -312,56 +315,73 @@ export default function App() {
                 <p className="text-slate-400 text-sm font-bold">No picks locked in for {selectedDate} yet.</p>
               </div>
             ) : (
-              // Horizontal Scroll Container
-              <div className="overflow-x-auto pb-4 hide-scrollbar">
-                <div className="min-w-max flex flex-col gap-3">
-                  
-                  {/* Table Header Row */}
-                  <div className="flex items-center text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 border-b border-slate-700/50 pb-2">
-                    <div className="w-32 flex-shrink-0">Player</div>
-                    <div className="w-16 flex-shrink-0 text-center">Pts</div>
-                    {formFields.map(f => <div key={f.id} className="w-36 flex-shrink-0 pl-4">{f.label}</div>)}
-                  </div>
+              <div className="space-y-3">
+                {poolPicks.map(p => {
+                  const totalScore = getTotalScore(p);
+                  const isExpanded = expandedUser === p.id;
 
-                  {/* Player Rows */}
-                  {poolPicks.map(p => {
-                    const totalScore = getTotalScore(p);
-                    return (
-                      <div key={p.id} className="flex items-center bg-slate-800/80 rounded-2xl p-3 border border-slate-700 hover:bg-slate-700/50 transition-colors">
-                        
-                        {/* Player Handle */}
-                        <div className="w-32 flex-shrink-0 flex items-center gap-2">
-                          <div className="w-6 h-6 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full flex items-center justify-center text-[10px]">👤</div>
-                          <span className="font-bold text-sm text-white truncate pr-2">{p.handle}</span>
+                  return (
+                    <div key={p.id} className="bg-slate-800/80 rounded-[1.5rem] border border-slate-700 overflow-hidden shadow-lg transition-all">
+                      
+                      {/* ACCORDION HEADER (Always Visible) */}
+                      <button 
+                        onClick={() => setExpandedUser(isExpanded ? null : p.id)}
+                        className="w-full flex items-center justify-between p-4 hover:bg-slate-700/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full flex items-center justify-center text-lg shadow-inner">👤</div>
+                          <span className="font-black text-white text-base tracking-tight">{p.handle}</span>
                         </div>
-                        
-                        {/* Total Points */}
-                        <div className="w-16 flex-shrink-0 text-center font-black text-emerald-400 text-lg">
-                          {actualSetlist ? totalScore : '-'}
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <span className="font-black text-emerald-400 text-xl block leading-none">{actualSetlist ? totalScore : '-'}</span>
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Pts</span>
+                          </div>
+                          <div className={`text-slate-500 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                            ▼
+                          </div>
                         </div>
+                      </button>
 
-                        {/* Song Picks & Individual Points */}
-                        {formFields.map(item => {
-                          const guessedVal = p[item.id];
-                          const pts = getPointValue(item.id, guessedVal);
-                          
-                          let badge = null;
-                          let textColor = "text-blue-100";
-                          if (pts === 1) { badge = <span className="text-emerald-400 font-black">+1</span>; textColor = "text-emerald-300"; }
-                          else if (pts === 0.5) { badge = <span className="text-blue-400 font-black">+0.5</span>; textColor = "text-blue-300"; }
-                          else if (actualSetlist && pts === 0) { badge = <span className="text-red-500/50 font-black">X</span>; textColor = "text-slate-500 line-through"; }
+                      {/* ACCORDION BODY (Grid of Picks - Expands on click) */}
+                      {isExpanded && (
+                        <div className="p-4 border-t border-slate-700/50 bg-slate-900/30">
+                          <div className="grid grid-cols-2 gap-3 text-xs font-bold">
+                            {formFields.map(item => {
+                              const guessedVal = p[item.id];
+                              const pts = getPointValue(item.id, guessedVal);
+                              
+                              let bgStyle = "bg-slate-900/50 border-slate-700/50";
+                              let badge = null;
 
-                          return (
-                            <div key={item.id} className="w-36 flex-shrink-0 pl-4 border-l border-slate-700/50 flex flex-col justify-center">
-                               <span className={`text-xs font-bold truncate ${textColor}`}>{guessedVal || "—"}</span>
-                               {actualSetlist && guessedVal && <span className="text-[10px] mt-0.5">{badge}</span>}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
+                              if (pts === 1) {
+                                bgStyle = "bg-emerald-900/20 border-emerald-500/30";
+                                badge = <span className="bg-emerald-500/20 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded font-black">+1</span>;
+                              } else if (pts === 0.5) {
+                                bgStyle = "bg-blue-900/20 border-blue-500/30";
+                                badge = <span className="bg-blue-500/20 text-blue-400 text-[9px] px-1.5 py-0.5 rounded font-black">+0.5</span>;
+                              } else if (actualSetlist && pts === 0) {
+                                bgStyle = "bg-red-900/10 border-red-500/20 opacity-60";
+                                badge = <span className="text-red-500/50 text-[9px] px-1.5 py-0.5 rounded font-black">X</span>;
+                              }
+
+                              return (
+                                <div key={item.id} className={`${bgStyle} p-3 rounded-xl border flex flex-col justify-center transition-colors`}>
+                                  <div className="flex justify-between items-start mb-1">
+                                    <span className="text-[9px] text-slate-500 uppercase block">{item.label}</span>
+                                    {badge}
+                                  </div>
+                                  <span className="text-blue-100 truncate">{guessedVal || "—"}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -377,7 +397,6 @@ export default function App() {
             
             <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-emerald-500/30 space-y-5">
               
-              {/* PHISH.NET API SCAFFOLDING BUTTON */}
               <button onClick={handleFetchFromPhishNet} className="w-full bg-slate-900 border border-blue-500/50 text-blue-400 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-900/20 transition-colors flex items-center justify-center gap-2">
                 📡 {saveStatus.includes("API") ? saveStatus : "Auto-Fetch from Phish.net"}
               </button>
