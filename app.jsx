@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
-// PASTE YOUR CONFIG HERE
+// --- FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyAJskQFM62Fyr-EjxlGJD3svAhf9gp9CHI",
   authDomain: "set-picks.firebaseapp.com",
@@ -18,6 +18,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+// --- SONG LIST FOR PREDICTIVE TEXT ---
 const PHISH_SONGS = [
   "2001", "46 Days", "AC/DC Bag", "Antelope", "Bathtub Gin", "Blaze On", "Cavern", 
   "Carini", "Character Zero", "Chalk Dust Torture", "Divided Sky", "Down with Disease", 
@@ -29,13 +31,21 @@ const PHISH_SONGS = [
 ].sort();
 
 export default function App() {
+  // --- STATE MANAGEMENT ---
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [activeTab, setActiveTab] = useState("picks");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
+  const [saveStatus, setSaveStatus] = useState("");
 
+  // Track the current picks
+  const [picks, setPicks] = useState({
+    s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: ""
+  });
+
+  // --- AUTH & PROFILE LOAD ---
   useEffect(() => {
     return onAuthStateChanged(auth, async (u) => {
       if (u) {
@@ -50,7 +60,9 @@ export default function App() {
     });
   }, []);
 
+  // --- SAVE NEW USER HANDLE ---
   const saveHandle = async (handle) => {
+    if (!handle.trim()) return;
     const profile = { 
       handle, 
       email: user.email, 
@@ -61,8 +73,33 @@ export default function App() {
     setUserProfile(profile);
   };
 
+  // --- SAVE PICKS TO DATABASE ---
+  const handleSavePicks = async () => {
+    setSaveStatus("Saving...");
+    try {
+      // Create a unique ID for this user's picks on this specific date
+      const pickId = `${selectedDate}_${user.uid}`;
+      
+      await setDoc(doc(db, "picks", pickId), {
+        ...picks,
+        uid: user.uid,
+        handle: userProfile.handle,
+        date: selectedDate,
+        updatedAt: new Date().toISOString()
+      });
+      
+      setSaveStatus("✅ Picks Locked In!");
+      setTimeout(() => setSaveStatus(""), 3000); // Clear message after 3 seconds
+    } catch (error) {
+      console.error("Error saving picks:", error);
+      setSaveStatus("❌ Error saving picks.");
+    }
+  };
+
+  // --- LOADING SCREEN ---
   if (loading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white font-black italic">LOADING...</div>;
 
+  // --- LOGIN SCREEN ---
   if (!user) return (
     <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 text-center">
       <div className="mb-8 scale-150">⭕</div>
@@ -75,6 +112,26 @@ export default function App() {
     </div>
   );
 
+  // --- CHOOSE HANDLE SCREEN ---
+  if (!userProfile) return (
+    <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6">
+      <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700 w-full max-w-sm text-center space-y-4">
+        <h2 className="text-2xl font-bold">Pick your Handle</h2>
+        <input 
+          id="handleInput"
+          className="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center text-xl font-bold"
+          placeholder="Username..."
+        />
+        <button 
+          onClick={() => saveHandle(document.getElementById('handleInput').value)} 
+          className="w-full bg-blue-600 py-4 rounded-xl font-black">
+          START PLAYING
+        </button>
+      </div>
+    </div>
+  );
+
+  // --- MAIN APP DASHBOARD ---
   return (
     <div className="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-blue-500/30">
       
@@ -129,13 +186,13 @@ export default function App() {
                 type="date" 
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold"
+                className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors"
               />
             </div>
             <div>
               <label className="text-[10px] font-black uppercase text-slate-500 ml-1 mb-2 block tracking-widest">Active Pool</label>
               <div className="flex gap-2">
-                <input placeholder="Code..." className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold uppercase" />
+                <input placeholder="Code..." className="w-full bg-slate-900 border border-slate-700 p-3 rounded-2xl text-sm font-bold uppercase focus:border-blue-500 outline-none" />
                 <button className="bg-blue-600 px-4 rounded-2xl font-black text-xs">JOIN</button>
               </div>
             </div>
@@ -161,9 +218,21 @@ export default function App() {
               ].map(f => (
                 <div key={f.id}>
                   <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
-<input list="song-list" placeholder="e.g. Tweezer" className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold" />                </div>
+                  <input 
+                    list="song-list"
+                    placeholder="Start typing a song..."
+                    value={picks[f.id]}
+                    onChange={(e) => setPicks({ ...picks, [f.id]: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
+                  />
+                </div>
               ))}
-              <button className="w-full bg-gradient-to-r from-blue-600 to-blue-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-transform">LOCK IN PICKS</button>
+              
+              <button 
+                onClick={handleSavePicks}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 py-5 rounded-3xl font-black tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-transform">
+                {saveStatus || "LOCK IN PICKS"}
+              </button>
             </div>
           </div>
         )}
@@ -173,6 +242,17 @@ export default function App() {
             <h2 className="text-xl font-black italic px-2">LEADERBOARD</h2>
             <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 overflow-hidden">
                <div className="p-8 text-center text-slate-500 italic text-sm font-bold">No results for {selectedDate} yet.</div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "pools" && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-black italic px-2">MY POOLS</h2>
+            <div className="bg-slate-800/80 rounded-[2.5rem] border border-slate-700 p-8 text-center">
+              <div className="text-4xl mb-4">🤝</div>
+              <p className="text-slate-400 text-sm font-bold">You are currently in the GLOBAL pool.</p>
+              <p className="text-slate-500 text-xs mt-2">Private pool creation coming soon!</p>
             </div>
           </div>
         )}
@@ -196,12 +276,14 @@ export default function App() {
           </button>
         ))}
       </nav>
-{/* THE DATA SOURCE FOR PREDICTIVE TEXT */}
+
+      {/* THE DATA SOURCE FOR PREDICTIVE TEXT */}
       <datalist id="song-list">
         {PHISH_SONGS.map(song => (
           <option key={song} value={song} />
         ))}
       </datalist>
+
     </div>
   );
 }
