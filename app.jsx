@@ -222,7 +222,11 @@ export default function App() {
       </div>
 
       {/* TOP NAV */}
-      <Header selectedDate={selectedDate} setSelectedDate={setSelectedDate} activePoolName={userProfile?.pools?.[0]} />
+     <Header 
+  selectedDate={selectedDate} 
+  setSelectedDate={setSelectedDate} 
+  activePoolName="Global Pool" 
+/>
       {/* NOTE: Massive bottom padding (pb-64) keeps the floating nav from blocking laptop inputs */}
       <main className="max-w-xl mx-auto px-6 pb-64">
         
