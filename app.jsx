@@ -63,10 +63,14 @@ export default function App() {
             const userData = userSnap.data();
             setUserProfile(userData);
 
-            // SILENT GUARD: Auto-joins Global Pool if missing
+            // SILENT GUARD: Auto-joins Global Pool if missing in Firestore
             if (!userData.joinedPools || !userData.joinedPools.includes(GLOBAL_POOL_ID)) {
-              await updateDoc(userRef, { joinedPools: arrayUnion(GLOBAL_POOL_ID) });
-              await updateDoc(doc(db, "pools", GLOBAL_POOL_ID), { members: arrayUnion(u.uid) });
+              await updateDoc(userRef, { 
+                joinedPools: arrayUnion(GLOBAL_POOL_ID) 
+              });
+              await updateDoc(doc(db, "pools", GLOBAL_POOL_ID), { 
+                members: arrayUnion(u.uid) 
+              });
             }
           }
         } else {
@@ -74,7 +78,7 @@ export default function App() {
           setUserProfile(null);
         }
       } catch (err) {
-        console.error("Auth process error:", err);
+        console.error("Auth error:", err);
       } finally {
         setLoading(false);
       }
@@ -126,7 +130,7 @@ export default function App() {
       await setDoc(doc(db, "picks", pickId), { ...picks, uid: user.uid, handle: userProfile.handle, date: selectedDate, updatedAt: new Date().toISOString() });
       setSaveStatus("✅ Picks Locked In!");
       setTimeout(() => setSaveStatus(""), 3000);
-    } catch (e) { setSaveStatus("❌ Error saving."); }
+    } catch (e) { setSaveStatus("❌ Error."); }
   };
 
   const handleSaveResults = async () => {
@@ -163,7 +167,17 @@ export default function App() {
       <div className="mb-8 scale-150">⭕</div>
       <h1 className="text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">PHISH POOL</h1>
       <p className="text-slate-500 font-bold tracking-[0.3em] text-[10px] mb-12 uppercase">Predict the Jams. Win the Glory.</p>
-      <button onClick={() => signInWithPopup(auth, googleProvider)} className="bg-white text-black px-10 py-4 rounded-full font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
+      <button 
+        onClick={async () => {
+          try {
+            await signInWithPopup(auth, googleProvider);
+          } catch (e) {
+            console.error("Popup error:", e);
+            alert("Login failed. Check if popups are blocked.");
+          }
+        }} 
+        className="bg-white text-black px-10 py-4 rounded-full font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl"
+      >
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="G" />
         SIGN IN WITH GOOGLE
       </button>
@@ -210,7 +224,7 @@ export default function App() {
       <Header selectedDate={selectedDate} setSelectedDate={setSelectedDate} activePoolName="Global Pool" />
 
       <main className="max-w-xl mx-auto px-6 pb-64">
-        {/* POOL JOINER */}
+        {/* DATE & POOL SELECTOR */}
         <section className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-[2.5rem] mb-8 mt-8">
           <div className="grid grid-cols-2 gap-6 items-end">
             <div>
@@ -227,11 +241,11 @@ export default function App() {
           </div>
         </section>
 
-        {/* PICKS TAB */}
+        {/* CONTENT TABS */}
         {activeTab === "picks" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center px-2">
-              <h2 className="text-xl font-black italic">MY PICKS</h2>
+              <h2 className="text-xl font-black italic uppercase">My Picks</h2>
             </div>
             <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5">
               {formFields.map(f => {
@@ -264,11 +278,10 @@ export default function App() {
           </div>
         )}
 
-        {/* POOLS TAB */}
         {activeTab === "pools" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center px-2">
-              <h2 className="text-xl font-black italic uppercase">POOL PICKS</h2>
+              <h2 className="text-xl font-black italic uppercase">Pool Picks</h2>
             </div>
             {poolPicks.map(p => (
               <div key={p.id} className="bg-slate-800/80 rounded-[1.5rem] border border-slate-700 p-4 mb-3">
