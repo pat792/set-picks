@@ -66,11 +66,11 @@ const Header = ({
           </button>
         </div>
 
-        {/* BOTTOM ROW: THE "PREVIOUS STYLE" MENU */}
-        <div className="flex bg-slate-950/80 p-1 rounded-2xl border border-slate-800 shadow-2xl">
+        {/* BOTTOM ROW: THE "PREVIOUS STYLE" MENU (FIXED WIDTHS) */}
+        <div className="w-full flex bg-slate-950/80 p-1 rounded-2xl border border-slate-800 shadow-2xl">
           <button 
             onClick={() => setActiveTab("picks")} 
-            className={`flex-1 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
+            className={`flex-1 py-3 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-widest transition-all duration-200 flex items-center justify-center ${
               activeTab === 'picks' 
               ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] scale-[1.02]' 
               : 'text-slate-500 hover:text-slate-300'
@@ -81,7 +81,7 @@ const Header = ({
           
           <button 
             onClick={() => setActiveTab("pools")} 
-            className={`flex-1 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
+            className={`flex-1 py-3 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-widest transition-all duration-200 flex items-center justify-center ${
               activeTab === 'pools' 
               ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] scale-[1.02]' 
               : 'text-slate-500 hover:text-slate-300'
@@ -93,7 +93,7 @@ const Header = ({
           {isAdmin && (
             <button 
               onClick={() => setActiveTab("admin")} 
-              className={`flex-1 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
+              className={`flex-1 py-3 px-2 rounded-xl font-black text-[10px] sm:text-[11px] uppercase tracking-widest transition-all duration-200 flex items-center justify-center ${
                 activeTab === 'admin' 
                 ? 'bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.2)] scale-[1.02]' 
                 : 'text-slate-500 hover:text-slate-300'
