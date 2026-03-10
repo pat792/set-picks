@@ -222,13 +222,7 @@ export default function App() {
       </div>
 
       {/* TOP NAV */}
-      <header className="px-6 py-8 flex justify-between items-center max-w-4xl mx-auto">
-        <div><h1 className="text-2xl font-black italic tracking-tighter text-blue-400 flex items-center gap-2"><span className="text-blue-500">⭕</span> PHISH POOL</h1></div>
-        <button onClick={() => setIsMenuOpen(true)} className="w-10 h-10 flex flex-col justify-center items-center gap-1 bg-slate-800 rounded-xl border border-slate-700">
-          <div className="w-5 h-0.5 bg-white"></div><div className="w-5 h-0.5 bg-white"></div><div className="w-3 h-0.5 bg-white self-start ml-2.5"></div>
-        </button>
-      </header>
-
+      <Header selectedDate={selectedDate} setSelectedDate={setSelectedDate} activePoolName={userProfile?.pools?.[0]} />
       {/* NOTE: Massive bottom padding (pb-64) keeps the floating nav from blocking laptop inputs */}
       <main className="max-w-xl mx-auto px-6 pb-64">
         
