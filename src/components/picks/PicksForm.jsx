@@ -5,72 +5,71 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <div className="flex justify-between items-center px-2">
         <h2 className="text-xl font-black italic uppercase">My Picks</h2>
       </div>
-      <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5">
+      
+      <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5 shadow-2xl">
         {formFields.map(f => {
           const isFocused = focusedField === f.id;
+          
+          // FILTER LOGIC: Find matches based on current input text
+          const currentInput = picks[f.id] || "";
           const filteredSongs = PHISH_SONGS.filter(song => 
-            song.toLowerCase().includes(picks[f.id].toLowerCase())
-          );
-          const showDropdown = isFocused && picks[f.id].length > 0 && filteredSongs.length > 0;
+            song.toLowerCase().includes(currentInput.toLowerCase())
+          ).slice(0, 8); // Limit to 8 for cleaner UI
+
+          const showDropdown = isFocused && currentInput.length > 0 && filteredSongs.length > 0;
 
           return (
-            <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-0'}`}>
-              <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
+            <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-10'}`}>
+              <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">
+                {f.label}
+              </label>
+              
               <input 
-                placeholder="Type a song..." 
+                type="text"
+                autoComplete="off" // Prevents browser from covering our dropdown
+                placeholder="Type a song..."
                 value={picks[f.id]}
                 onChange={(e) => {
                   setPicks({ ...picks, [f.id]: e.target.value });
-                  setHighlightedIndex(-1); // Reset highlight when typing
-                }}
-                onFocus={() => {
-                  setFocusedField(f.id);
                   setHighlightedIndex(-1);
                 }}
+                onFocus={() => setFocusedField(f.id)}
                 onBlur={() => {
-                  // Small delay to allow click selection to register
+                  // Small delay to allow clicking a suggestion before dropdown closes
                   setTimeout(() => setFocusedField(null), 200);
                 }}
                 onKeyDown={(e) => {
                   if (!showDropdown) return;
-
+                  
                   if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    setHighlightedIndex(prev => 
-                      prev < filteredSongs.length - 1 ? prev + 1 : prev
-                    );
+                    setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev));
                   } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
-                  } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const selectedSong = highlightedIndex >= 0 ? filteredSongs[highlightedIndex] : filteredSongs[0];
-                    if (selectedSong) {
-                      setPicks({ ...picks, [f.id]: selectedSong });
-                      setFocusedField(null);
-                      setHighlightedIndex(-1);
-                    }
+                    setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                  } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+                    setPicks({ ...picks, [f.id]: filteredSongs[highlightedIndex] });
+                    setFocusedField(null);
                   }
                 }}
-                className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
+                className="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-sm font-bold text-white outline-none focus:border-blue-500 focus:bg-slate-900 transition-all shadow-inner"
               />
-              
+
+              {/* THE PREDICTIVE DROPDOWN */}
               {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl z-[100] max-h-48 overflow-y-auto shadow-2xl">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                   {filteredSongs.map((song, index) => (
                     <div 
-                      key={song} 
-                      onMouseDown={(e) => {
-                        e.preventDefault(); // Prevent blur before selection
+                      key={song}
+                      onMouseDown={() => {
+                        // Using onMouseDown instead of onClick to beat the onBlur event
                         setPicks({ ...picks, [f.id]: song });
                         setFocusedField(null);
-                      }} 
-                      className={`p-4 text-sm font-bold border-b border-slate-700/50 cursor-pointer transition-colors ${
-                        highlightedIndex === index ? 'bg-blue-600 text-white' : 'hover:bg-slate-700 text-slate-300'
+                      }}
+                      className={`px-5 py-3 text-sm font-bold cursor-pointer transition-colors border-b border-slate-800 last:border-0 ${
+                        index === highlightedIndex ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
                       {song}
@@ -81,11 +80,12 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
             </div>
           );
         })}
+
         <button 
-          onClick={handleSavePicks} 
-          className="w-full bg-blue-600 py-5 rounded-3xl font-black tracking-widest shadow-xl active:scale-95 transition-transform mt-4"
+          onClick={handleSavePicks}
+          className="w-full bg-white text-black py-5 rounded-3xl font-black text-sm uppercase tracking-widest hover:bg-blue-400 transition-all active:scale-95 shadow-xl mt-4"
         >
-          {saveStatus || "LOCK IN PICKS"}
+          {saveStatus || "Lock In Picks"}
         </button>
       </div>
     </div>
