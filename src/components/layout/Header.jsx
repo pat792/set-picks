@@ -13,7 +13,7 @@ const Header = ({
     <header className="bg-[#0f172a] border-b border-slate-800 p-4 sticky top-0 z-[60] w-full shadow-2xl">
       <div className="max-w-xl mx-auto flex flex-col gap-6">
         
-        {/* TOP ROW: LOGO & MENU */}
+        {/* LOGO & MENU ROW */}
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
             <h1 className="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 leading-none">
@@ -32,7 +32,7 @@ const Header = ({
           </button>
         </div>
 
-        {/* MIDDLE ROW: DATE PICKER */}
+        {/* DATE PICKER ROW */}
         <div className="flex justify-center items-center gap-6">
           <button 
             onClick={() => {
@@ -50,7 +50,7 @@ const Header = ({
               type="date" 
               value={selectedDate} 
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-white font-mono font-bold text-base outline-none cursor-pointer [color-scheme:dark]"
+              className="bg-transparent text-white font-mono font-bold text-lg outline-none cursor-pointer [color-scheme:dark]"
             />
           </div>
 
@@ -66,11 +66,11 @@ const Header = ({
           </button>
         </div>
 
-        {/* BOTTOM ROW: CLEAN, CENTERED, BOLD TABS (NO ICONS) */}
-        <div className="w-full flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/10 shadow-2xl">
+        {/* RESTORED: LARGE, BOLD, CENTERED TABS (NO ICONS) */}
+        <div className="flex w-full bg-slate-900/80 p-1.5 rounded-2xl border border-white/10 shadow-2xl">
           <button 
             onClick={() => setActiveTab("picks")} 
-            className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all ${
+            className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all text-center ${
               activeTab === 'picks' 
               ? 'bg-white text-black shadow-lg scale-[1.02]' 
               : 'text-slate-500 hover:text-slate-300'
@@ -81,7 +81,7 @@ const Header = ({
           
           <button 
             onClick={() => setActiveTab("pools")} 
-            className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all ${
+            className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all text-center ${
               activeTab === 'pools' 
               ? 'bg-white text-black shadow-lg scale-[1.02]' 
               : 'text-slate-500 hover:text-slate-300'
@@ -93,7 +93,7 @@ const Header = ({
           {isAdmin && (
             <button 
               onClick={() => setActiveTab("admin")} 
-              className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all ${
+              className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all text-center ${
                 activeTab === 'admin' 
                 ? 'bg-emerald-400 text-black shadow-lg scale-[1.02]' 
                 : 'text-slate-500 hover:text-slate-300'
