@@ -60,7 +60,7 @@ export default function App() {
   const [actualSetlist, setActualSetlist] = useState(null);
 
   // --- AUTH & PROFILE LOAD ---
-  useEffect(() => {
+useEffect(() => {
     return onAuthStateChanged(auth, async (u) => {
       if (u) {
         setUser(u);
@@ -71,19 +71,27 @@ export default function App() {
           const userData = userDoc.data();
           setUserProfile(userData);
 
-          // SILENT GUARD: If they have no pools, auto-join Global
-          if (!userData.pools || userData.pools.length === 0) {
-            const globalPoolId = "xfD7pgXWSh2yhoI3rcdT";
-            await updateDoc(userRef, { pools: ["GLOBAL"] });
+          // --- SILENT GUARD ---
+          const globalPoolId = "xfD7pgXWSh2yhoI3rcdT";
+          if (!userData.joinedPools || !userData.joinedPools.includes(globalPoolId)) {
+            // 1. Update User Profile with the Global Pool ID
+            await updateDoc(userRef, { 
+              joinedPools: arrayUnion(globalPoolId) 
+            });
             
+            // 2. Add User ID to the Pool's member list
             const poolRef = doc(db, "pools", globalPoolId);
-            await updateDoc(poolRef, { members: arrayUnion(u.uid) });
+            await updateDoc(poolRef, { 
+              members: arrayUnion(u.uid) 
+            });
           }
         }
       } else {
+        // No user is logged in
         setUser(null);
         setUserProfile(null);
       }
+      // This MUST be outside the if(u) block so it runs for everyone
       setLoading(false);
     });
   }, []);
