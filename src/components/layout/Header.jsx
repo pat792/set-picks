@@ -1,6 +1,14 @@
 import React from 'react';
 
-const Header = ({ selectedDate, setSelectedDate, activePoolName, onOpenMenu }) => {
+const Header = ({ 
+  selectedDate, 
+  setSelectedDate, 
+  activePoolName, 
+  onOpenMenu, 
+  activeTab, 
+  setActiveTab, 
+  isAdmin 
+}) => {
   return (
     <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-4 sticky top-0 z-[60] w-full shadow-xl">
       <div className="max-w-4xl mx-auto flex flex-col gap-4">
@@ -23,7 +31,7 @@ const Header = ({ selectedDate, setSelectedDate, activePoolName, onOpenMenu }) =
           </div>
         </div>
 
-        {/* Date Row */}
+        {/* Middle Row: Date Picker */}
         <div className="flex justify-center items-center gap-2">
           <button 
             onClick={() => {
@@ -31,17 +39,17 @@ const Header = ({ selectedDate, setSelectedDate, activePoolName, onOpenMenu }) =
               date.setDate(date.getDate() - 1);
               setSelectedDate(date.toISOString().split('T')[0]);
             }}
-            className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-white transition-colors text-xl"
+            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
           >
             ◀
           </button>
           
-          <div className="relative flex items-center bg-slate-800 px-3 py-2 rounded-xl border border-slate-700 min-w-[160px] justify-center">
+          <div className="relative flex items-center bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
             <input 
               type="date" 
               value={selectedDate} 
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-white font-mono font-bold text-sm outline-none cursor-pointer [color-scheme:dark]"
+              className="bg-transparent text-white font-mono font-bold text-xs outline-none cursor-pointer [color-scheme:dark]"
             />
           </div>
 
@@ -51,10 +59,34 @@ const Header = ({ selectedDate, setSelectedDate, activePoolName, onOpenMenu }) =
               date.setDate(date.getDate() + 1);
               setSelectedDate(date.toISOString().split('T')[0]);
             }}
-            className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-white transition-colors text-xl"
+            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
           >
             ▶
           </button>
+        </div>
+
+        {/* Bottom Row: Integrated Tab Switcher */}
+        <div className="flex bg-slate-950/50 p-1 rounded-xl border border-slate-800">
+          <button 
+            onClick={() => setActiveTab("picks")} 
+            className={`flex-1 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'picks' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500'}`}
+          >
+            Picks
+          </button>
+          <button 
+            onClick={() => setActiveTab("pools")} 
+            className={`flex-1 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'pools' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500'}`}
+          >
+            Leaderboard
+          </button>
+          {isAdmin && (
+            <button 
+              onClick={() => setActiveTab("admin")} 
+              className={`flex-1 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'admin' ? 'bg-emerald-600 text-black shadow-lg' : 'text-slate-500'}`}
+            >
+              Admin
+            </button>
+          )}
         </div>
       </div>
     </header>
