@@ -4,14 +4,14 @@ const Header = ({ selectedDate, setSelectedDate, activePoolName, onOpenMenu }) =
   return (
     <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-4 sticky top-0 z-[60] w-full shadow-xl">
       <div className="max-w-4xl mx-auto flex flex-col gap-4">
-        {/* Top Row */}
+        {/* Top Row: Logo and Menu */}
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">
             PHISH POOL
           </h1>
           
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600/20 border border-blue-500/50 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+            <div className="bg-blue-600/20 border border-blue-500/50 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest hidden sm:block">
                {activePoolName || 'Global Pool'}
             </div>
             <button 
@@ -23,7 +23,7 @@ const Header = ({ selectedDate, setSelectedDate, activePoolName, onOpenMenu }) =
           </div>
         </div>
 
-        {/* Date Picker Row - FIXED SPACING */}
+        {/* Date Row */}
         <div className="flex justify-center items-center gap-2">
           <button 
             onClick={() => {
