@@ -2,7 +2,7 @@ import Header from './src/components/layout/Header';
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, collection, query, where, onSnapshot } from "firebase/firestore";
 
 // --- FIREBASE CONFIG ---
 const firebaseConfig = {
@@ -64,8 +64,22 @@ export default function App() {
     return onAuthStateChanged(auth, async (u) => {
       if (u) {
         setUser(u);
-        const userDoc = await getDoc(doc(db, "users", u.uid));
-        if (userDoc.exists()) setUserProfile(userDoc.data());
+        const userRef = doc(db, "users", u.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserProfile(userData);
+
+          // SILENT GUARD: If they have no pools, auto-join Global
+          if (!userData.pools || userData.pools.length === 0) {
+            const globalPoolId = "xfD7pgXWSh2yhoI3rcdT";
+            await updateDoc(userRef, { pools: ["GLOBAL"] });
+            
+            const poolRef = doc(db, "pools", globalPoolId);
+            await updateDoc(poolRef, { members: arrayUnion(u.uid) });
+          }
+        }
       } else {
         setUser(null);
         setUserProfile(null);
