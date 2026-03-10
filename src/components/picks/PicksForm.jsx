@@ -10,11 +10,13 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
       </div>
       <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5">
         {formFields.map(f => {
-          const showDropdown = focusedField === f.id && picks[f.id].length > 0;
+          const isFocused = focusedField === f.id;
+          const showDropdown = isFocused && picks[f.id].length > 0;
           const filtered = PHISH_SONGS.filter(s => s.toLowerCase().includes(picks[f.id].toLowerCase()));
           
           return (
-            <div key={f.id} className="relative">
+            /* The fix: Dynamic Z-index on the wrapper */
+            <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-0'}`}>
               <label className="text-[9px] font-black uppercase text-slate-500 ml-4 mb-1 block">{f.label}</label>
               <input 
                 placeholder="Type a song..." 
@@ -25,7 +27,7 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
                 className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
               />
               {showDropdown && filtered.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl z-50 max-h-48 overflow-y-auto shadow-2xl">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-2xl z-[100] max-h-48 overflow-y-auto shadow-2xl">
                   {filtered.map(s => (
                     <div 
                       key={s} 
