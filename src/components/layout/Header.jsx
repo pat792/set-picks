@@ -10,41 +10,41 @@ const Header = ({
   isAdmin 
 }) => {
   return (
-    <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-4 sticky top-0 z-[60] w-full shadow-xl">
-      <div className="max-w-4xl mx-auto flex flex-col gap-4">
+    <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-3 sticky top-0 z-[60] w-full shadow-xl">
+      <div className="max-w-4xl mx-auto flex flex-col gap-3">
         {/* Top Row: Logo and Menu */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">
+        <div className="flex justify-between items-center px-1">
+          <h1 className="text-lg font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">
             PHISH POOL
           </h1>
           
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600/20 border border-blue-500/50 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest hidden sm:block">
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-600/20 border border-blue-500/50 text-blue-400 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest hidden xs:block">
                {activePoolName || 'Global Pool'}
             </div>
             <button 
               onClick={onOpenMenu}
-              className="bg-slate-800 p-2 rounded-lg border border-slate-700 hover:bg-slate-700 transition-colors"
+              className="bg-slate-800 p-1.5 rounded-lg border border-slate-700 hover:bg-slate-700 transition-colors"
             >
-              <span className="text-white text-lg leading-none">☰</span>
+              <span className="text-white text-base leading-none">☰</span>
             </button>
           </div>
         </div>
 
-        {/* Middle Row: Date Picker */}
-        <div className="flex justify-center items-center gap-2">
+        {/* Date Row */}
+        <div className="flex justify-center items-center gap-3">
           <button 
             onClick={() => {
               const date = new Date(selectedDate);
               date.setDate(date.getDate() - 1);
               setSelectedDate(date.toISOString().split('T')[0]);
             }}
-            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
+            className="text-slate-500 hover:text-white transition-colors px-2"
           >
             ◀
           </button>
           
-          <div className="relative flex items-center bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+          <div className="bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">
             <input 
               type="date" 
               value={selectedDate} 
@@ -59,30 +59,30 @@ const Header = ({
               date.setDate(date.getDate() + 1);
               setSelectedDate(date.toISOString().split('T')[0]);
             }}
-            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
+            className="text-slate-500 hover:text-white transition-colors px-2"
           >
             ▶
           </button>
         </div>
 
-        {/* Bottom Row: Integrated Tab Switcher */}
-        <div className="flex bg-slate-950/50 p-1 rounded-xl border border-slate-800">
+        {/* Integrated Tab Switcher - Fixed Grid */}
+        <div className={`grid ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'} gap-1 bg-slate-950/50 p-1 rounded-xl border border-slate-800`}>
           <button 
             onClick={() => setActiveTab("picks")} 
-            className={`flex-1 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'picks' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500'}`}
+            className={`py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all truncate ${activeTab === 'picks' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500'}`}
           >
             Picks
           </button>
           <button 
             onClick={() => setActiveTab("pools")} 
-            className={`flex-1 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'pools' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500'}`}
+            className={`py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all truncate ${activeTab === 'pools' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500'}`}
           >
             Leaderboard
           </button>
           {isAdmin && (
             <button 
               onClick={() => setActiveTab("admin")} 
-              className={`flex-1 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'admin' ? 'bg-emerald-600 text-black shadow-lg' : 'text-slate-500'}`}
+              className={`py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all truncate ${activeTab === 'admin' ? 'bg-emerald-600 text-black shadow-lg' : 'text-slate-500'}`}
             >
               Admin
             </button>
