@@ -13,10 +13,10 @@ const Header = ({
     <header className="bg-[#0f172a] border-b border-slate-800 p-4 sticky top-0 z-[60] w-full shadow-2xl">
       <div className="max-w-xl mx-auto flex flex-col gap-6">
         
-        {/* TOP ROW: LOGO & PROFILE */}
+        {/* TOP ROW: LOGO & MENU */}
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
-            <h1 className="text-xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 leading-none">
+            <h1 className="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 leading-none">
               PHISH POOL
             </h1>
             <span className="text-[10px] font-black uppercase text-slate-500 tracking-[0.3em] mt-1 ml-0.5">
@@ -40,7 +40,7 @@ const Header = ({
               date.setDate(date.getDate() - 1);
               setSelectedDate(date.toISOString().split('T')[0]);
             }}
-            className="text-slate-500 hover:text-white text-2xl"
+            className="text-slate-500 hover:text-white text-2xl p-2"
           >
             ◀
           </button>
@@ -50,7 +50,7 @@ const Header = ({
               type="date" 
               value={selectedDate} 
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-white font-mono font-bold text-sm outline-none cursor-pointer [color-scheme:dark]"
+              className="bg-transparent text-white font-mono font-bold text-base outline-none cursor-pointer [color-scheme:dark]"
             />
           </div>
 
@@ -60,49 +60,46 @@ const Header = ({
               date.setDate(date.getDate() + 1);
               setSelectedDate(date.toISOString().split('T')[0]);
             }}
-            className="text-slate-500 hover:text-white text-2xl"
+            className="text-slate-500 hover:text-white text-2xl p-2"
           >
             ▶
           </button>
         </div>
 
-        {/* BOTTOM ROW: RESTORED "PERFECT" TAB SWITCHER */}
-        <div className="w-full flex bg-slate-900/80 p-1.5 rounded-full border border-white/10 gap-1 shadow-2xl">
+        {/* BOTTOM ROW: CLEAN, CENTERED, BOLD TABS (NO ICONS) */}
+        <div className="w-full flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/10 shadow-2xl">
           <button 
             onClick={() => setActiveTab("picks")} 
-            className={`flex-1 py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all ${
               activeTab === 'picks' 
-              ? 'bg-white text-black font-black shadow-lg scale-[1.02]' 
-              : 'text-slate-400 hover:text-white font-bold'
+              ? 'bg-white text-black shadow-lg scale-[1.02]' 
+              : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            <span className="text-lg">🎟️</span>
-            <span className="text-[10px] uppercase tracking-tighter">Picks</span>
+            Picks
           </button>
           
           <button 
             onClick={() => setActiveTab("pools")} 
-            className={`flex-1 py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all ${
               activeTab === 'pools' 
-              ? 'bg-white text-black font-black shadow-lg scale-[1.02]' 
-              : 'text-slate-400 hover:text-white font-bold'
+              ? 'bg-white text-black shadow-lg scale-[1.02]' 
+              : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            <span className="text-lg">🤝</span>
-            <span className="text-[10px] uppercase tracking-tighter">Pools</span>
+            Leaderboard
           </button>
 
           {isAdmin && (
             <button 
               onClick={() => setActiveTab("admin")} 
-              className={`flex-1 py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-[0.15em] transition-all ${
                 activeTab === 'admin' 
-                ? 'bg-emerald-400 text-black font-black shadow-lg scale-[1.02]' 
-                : 'text-slate-400 hover:text-white font-bold'
+                ? 'bg-emerald-400 text-black shadow-lg scale-[1.02]' 
+                : 'text-slate-500 hover:text-slate-300'
               }`}
             >
-              <span className="text-lg">👑</span>
-              <span className="text-[10px] uppercase tracking-tighter">Admin</span>
+              Admin
             </button>
           )}
         </div>
