@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, saveStatus }) => {
   const [focusedField, setFocusedField] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const blurTimeoutRef = useRef(null);
+
+  const handleFocus = (fieldId) => {
+    // Cancel any pending blur/close actions from previous fields
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+    }
+    setFocusedField(fieldId);
+  };
+
+  const handleBlur = () => {
+    // Delay closing so the user can actually click a song
+    blurTimeoutRef.current = setTimeout(() => {
+      setFocusedField(null);
+    }, 200);
+  };
 
   return (
     <div className="space-y-6 pb-20">
@@ -13,12 +29,11 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
       <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5 shadow-2xl">
         {formFields.map(f => {
           const isFocused = focusedField === f.id;
-          
-          // FILTER LOGIC: Find matches based on current input text
           const currentInput = picks[f.id] || "";
+          
           const filteredSongs = PHISH_SONGS.filter(song => 
             song.toLowerCase().includes(currentInput.toLowerCase())
-          ).slice(0, 8); // Limit to 8 for cleaner UI
+          ).slice(0, 8);
 
           const showDropdown = isFocused && currentInput.length > 0 && filteredSongs.length > 0;
 
@@ -30,21 +45,17 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
               
               <input 
                 type="text"
-                autoComplete="off" // Prevents browser from covering our dropdown
+                autoComplete="off"
                 placeholder="Type a song..."
                 value={picks[f.id]}
                 onChange={(e) => {
                   setPicks({ ...picks, [f.id]: e.target.value });
                   setHighlightedIndex(-1);
                 }}
-                onFocus={() => setFocusedField(f.id)}
-                onBlur={() => {
-                  // Small delay to allow clicking a suggestion before dropdown closes
-                  setTimeout(() => setFocusedField(null), 200);
-                }}
+                onFocus={() => handleFocus(f.id)}
+                onBlur={handleBlur}
                 onKeyDown={(e) => {
                   if (!showDropdown) return;
-                  
                   if (e.key === 'ArrowDown') {
                     setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev));
                   } else if (e.key === 'ArrowUp') {
@@ -57,14 +68,12 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
                 className="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-sm font-bold text-white outline-none focus:border-blue-500 focus:bg-slate-900 transition-all shadow-inner"
               />
 
-              {/* THE PREDICTIVE DROPDOWN */}
               {showDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                   {filteredSongs.map((song, index) => (
                     <div 
                       key={song}
                       onMouseDown={() => {
-                        // Using onMouseDown instead of onClick to beat the onBlur event
                         setPicks({ ...picks, [f.id]: song });
                         setFocusedField(null);
                       }}
