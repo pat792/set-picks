@@ -41,7 +41,7 @@ const Header = ({ selectedDate, setSelectedDate, activePoolName, onOpenMenu }) =
               type="date" 
               value={selectedDate} 
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-white font-mono font-bold text-sm outline-none cursor-pointer scheme-dark"
+              className="bg-transparent text-white font-mono font-bold text-sm outline-none cursor-pointer [color-scheme:dark]"
             />
           </div>
 
