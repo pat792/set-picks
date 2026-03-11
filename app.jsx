@@ -23,7 +23,6 @@ const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
 const ADMIN_EMAIL = "pat@road2media.com";
-const GLOBAL_POOL_ID = "xfD7pgXWSh2yhoI3rcdT";
 
 const PHISH_SONGS = [
   "2001", "46 Days", "AC/DC Bag", "Antelope", "Bathtub Gin", "Blaze On", "Cavern", 
@@ -160,7 +159,7 @@ export default function App() {
         )}
       </main>
       
-      {/* SIDEBAR */}
+      {/* SIDEBAR MENU */}
       <div className={`fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[100] transition-opacity duration-300 ${isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`} onClick={() => setIsMenuOpen(false)}>
         <div className={`absolute right-0 top-0 h-full w-80 bg-slate-800 p-8 flex flex-col transform transition-transform duration-300 shadow-2xl ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`} onClick={(e) => e.stopPropagation()}>
           <button onClick={() => setIsMenuOpen(false)} className="self-end text-slate-400 text-2xl mb-8">✕</button>
