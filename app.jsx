@@ -1,7 +1,7 @@
 import Header from './src/components/layout/Header';
 import PicksForm from './src/components/picks/PicksForm';
 import Leaderboard from './src/components/pools/Leaderboard';
-import AdminForm from './src/components/admin/AdminForm'; // NEW IMPORT
+import AdminForm from './src/components/admin/AdminForm.jsx';
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
@@ -50,22 +50,13 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      try {
-        if (u) {
-          setUser(u);
-          const userRef = doc(db, "users", u.uid);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-            setUserProfile(userData);
-            if (!userData.joinedPools || !userData.joinedPools.includes(GLOBAL_POOL_ID)) {
-              await updateDoc(userRef, { joinedPools: arrayUnion(GLOBAL_POOL_ID) });
-              await updateDoc(doc(db, "pools", GLOBAL_POOL_ID), { members: arrayUnion(u.uid) });
-            }
-          }
-        } else { setUser(null); setUserProfile(null); }
-      } catch (err) { console.error("Auth error:", err); } 
-      finally { setLoading(false); }
+      if (u) {
+        setUser(u);
+        const userRef = doc(db, "users", u.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) setUserProfile(userSnap.data());
+      } else { setUser(null); setUserProfile(null); }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -120,13 +111,12 @@ export default function App() {
     { label: "Encore", id: "enc" }, { label: "Wildcard", id: "wild" },
   ];
 
-  if (loading) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-white font-black italic text-2xl">LOADING...</div>;
+  if (loading) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-white font-black italic text-2xl uppercase tracking-tighter">Loading Phish Pool...</div>;
 
   if (!user) return (
     <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 text-center">
-      <div className="mb-8 scale-150">⭕</div>
-      <h1 className="text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">PHISH POOL</h1>
-      <button onClick={() => signInWithPopup(auth, googleProvider)} className="bg-white text-black px-10 py-4 rounded-full font-black mt-8 shadow-xl">
+      <h1 className="text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-8">PHISH POOL</h1>
+      <button onClick={() => signInWithPopup(auth, googleProvider)} className="bg-white text-black px-10 py-4 rounded-full font-black shadow-xl">
         SIGN IN WITH GOOGLE
       </button>
     </div>
@@ -137,16 +127,24 @@ export default function App() {
       <Header 
         selectedDate={selectedDate} 
         setSelectedDate={setSelectedDate} 
-        activePoolName="Global Pool" 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         onOpenMenu={() => setIsMenuOpen(true)}
       />
       
-      <main className="max-w-xl mx-auto px-6 pb-48 pt-8">
+      <main className="max-w-xl mx-auto px-6 pb-24 pt-8">
         {activeTab === "picks" && (
           <PicksForm picks={picks} setPicks={setPicks} formFields={formFields} PHISH_SONGS={PHISH_SONGS} handleSavePicks={handleSavePicks} saveStatus={saveStatus} />
         )}
 
         {activeTab === "pools" && (
+          <div className="text-center py-20 bg-slate-800/50 rounded-[2.5rem] border border-white/5">
+            <h2 className="text-2xl font-black italic uppercase text-slate-500">Pools Coming Soon</h2>
+            <p className="text-slate-600 text-xs mt-2 font-bold uppercase tracking-widest">Global Pool is currently the only active room.</p>
+          </div>
+        )}
+
+        {activeTab === "leaderboard" && (
           <Leaderboard poolPicks={poolPicks} actualSetlist={actualSetlist} getTotalScore={getTotalScore} formFields={formFields} />
         )}
 
@@ -161,34 +159,27 @@ export default function App() {
           />
         )}
       </main>
-
-      {/* FLOATING NAVIGATION */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-full p-2 flex gap-1 z-[70] shadow-2xl">
-        {[
-          { id: "picks", label: "Picks", icon: "🎟️" },
-          { id: "pools", label: "Pools", icon: "🤝" },
-          ...(user?.email === ADMIN_EMAIL ? [{ id: "admin", label: "Admin", icon: "👑" }] : [])
-        ].map(t => (
-          <button 
-            key={t.id} 
-            onClick={() => setActiveTab(t.id)} 
-            className={`px-6 py-3 rounded-full flex items-center gap-2 transition-all ${activeTab === t.id ? "bg-white text-black font-black" : "text-slate-400 hover:text-white"}`}
-          >
-            <span className="text-lg">{t.icon}</span>
-            <span className="text-[10px] uppercase font-bold tracking-tighter">{t.label}</span>
-          </button>
-        ))}
-      </nav>
       
       {/* SIDEBAR */}
       <div className={`fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[100] transition-opacity duration-300 ${isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`} onClick={() => setIsMenuOpen(false)}>
         <div className={`absolute right-0 top-0 h-full w-80 bg-slate-800 p-8 flex flex-col transform transition-transform duration-300 shadow-2xl ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`} onClick={(e) => e.stopPropagation()}>
-          <button onClick={() => setIsMenuOpen(false)} className="self-end text-slate-400 text-2xl">✕</button>
-          <div className="mt-8 text-center flex-grow">
-            <div className="w-24 h-24 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full mx-auto flex items-center justify-center text-4xl mb-6 shadow-xl">👤</div>
+          <button onClick={() => setIsMenuOpen(false)} className="self-end text-slate-400 text-2xl mb-8">✕</button>
+          
+          <div className="text-center flex-grow">
+            <div className="w-24 h-24 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full mx-auto flex items-center justify-center text-4xl mb-6 shadow-xl border-4 border-slate-700">👤</div>
             <h2 className="text-2xl font-black text-white">{userProfile?.handle || "Phan"}</h2>
             <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest mt-2">{userProfile?.email}</p>
+            
+            {user?.email === ADMIN_EMAIL && (
+              <button 
+                onClick={() => { setActiveTab("admin"); setIsMenuOpen(false); }}
+                className={`w-full mt-12 py-4 rounded-2xl font-black uppercase tracking-tighter transition-all border-2 ${activeTab === 'admin' ? 'bg-emerald-500 text-black border-emerald-400' : 'bg-slate-900 text-emerald-500 border-emerald-500/20'}`}
+              >
+                👑 Admin Control
+              </button>
+            )}
           </div>
+
           <button onClick={() => signOut(auth)} className="w-full py-5 bg-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest text-red-400 border border-red-900/20">Sign Out</button>
         </div>
       </div>
