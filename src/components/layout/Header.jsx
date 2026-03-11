@@ -19,11 +19,14 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
               type="date" 
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-white text-xs font-bold outline-none [color-scheme:dark]"
+              className="bg-transparent text-white text-xs font-bold outline-none [color-scheme:dark] cursor-pointer"
             />
           </div>
           
-          <button onClick={onOpenMenu} className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center border border-white/10 transition-colors">
+          <button 
+            onClick={onOpenMenu} 
+            className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center border border-white/10 transition-colors text-white"
+          >
             <span className="text-xl">☰</span>
           </button>
         </div>
