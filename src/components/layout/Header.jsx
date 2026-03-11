@@ -3,7 +3,7 @@ import React from 'react';
 const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenMenu }) => {
   return (
     <header className="bg-[#0f172a] border-b border-white/10 sticky top-0 z-[60] px-6 py-4 text-white">
-      {/* Top Row: Branding and Date/Menu */}
+      {/* Top Branding Row */}
       <div className="max-w-xl mx-auto flex items-center justify-between">
         <div className="flex flex-col">
           <h1 className="text-xl font-black italic tracking-tighter uppercase">PHISH POOL</h1>
@@ -14,7 +14,6 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Calendar Pill */}
           <div className="bg-slate-800 rounded-xl border border-white/10 px-3 py-2 flex items-center">
             <input 
               type="date" 
@@ -33,9 +32,9 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
         </div>
       </div>
 
-      {/* Navigation Row: Fixed 1/3 Width Grid */}
+      {/* Navigation Row - The Horizontal Fix */}
       <div className="max-w-xl mx-auto mt-8">
-        <nav className="bg-slate-900/80 p-1.5 rounded-2xl grid grid-cols-3 gap-1 border border-white/5 shadow-2xl">
+        <nav className="bg-slate-900/80 p-1.5 rounded-2xl grid grid-cols-3 gap-1 border border-white/5 shadow-2xl w-full">
           {[
             { id: 'picks', label: 'Picks' },
             { id: 'pools', label: 'Pools' },
@@ -44,10 +43,10 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`py-4 rounded-xl text-lg font-black uppercase tracking-tighter transition-all duration-200 text-center ${
+              className={`py-4 rounded-xl text-lg font-black uppercase tracking-tighter transition-all duration-200 text-center flex items-center justify-center ${
                 activeTab === tab.id 
                   ? 'bg-blue-600 text-white shadow-xl' 
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-white hover:bg-white/5'
               }`}
             >
               {tab.label}
