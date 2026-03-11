@@ -32,9 +32,9 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
         </div>
       </div>
 
-      {/* Bottom Row: The Tab Navigation */}
-      <div className="max-w-xl mx-auto mt-6">
-        <nav className="bg-slate-900 p-1 rounded-2xl flex gap-1 border border-white/5 shadow-inner">
+      {/* Navigation Row: Full Width of Content Card & Prominent Tabs */}
+      <div className="max-w-xl mx-auto mt-8">
+        <nav className="bg-slate-900/50 p-1.5 rounded-2xl flex gap-1 border border-white/5 shadow-2xl">
           {[
             { id: 'picks', label: 'Picks' },
             { id: 'pools', label: 'Pools' },
@@ -43,10 +43,10 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${
+              className={`flex-1 py-4 rounded-xl text-lg font-black uppercase tracking-tighter transition-all duration-200 ${
                 activeTab === tab.id 
-                  ? 'bg-blue-600 text-white shadow-lg scale-[1.02]' 
-                  : 'text-slate-300 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-xl scale-[1.02]' 
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               {tab.label}
