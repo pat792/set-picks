@@ -32,9 +32,9 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
         </div>
       </div>
 
-      {/* Navigation Row - The Grid Force Fix */}
-      <div className="max-w-xl mx-auto mt-8">
-        <nav className="bg-slate-900/80 p-1 rounded-2xl border border-white/5 shadow-2xl w-full grid grid-cols-3 gap-1">
+      {/* Navigation Row - The Font Size Fix */}
+      <div className="max-w-xl mx-auto mt-8 px-2">
+        <nav className="bg-slate-900/80 p-1.5 rounded-2xl flex flex-row w-full border border-white/5 shadow-2xl">
           {[
             { id: 'picks', label: 'Picks' },
             { id: 'pools', label: 'Pools' },
@@ -43,13 +43,14 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`w-full py-4 rounded-xl text-lg font-black uppercase tracking-tighter transition-all duration-200 text-center flex items-center justify-center min-w-0 ${
+              /* THE FIX: Changed to text-xs sm:text-sm and added px-1 */
+              className={`flex-1 py-4 px-1 rounded-xl text-xs sm:text-sm font-black uppercase tracking-tight transition-all duration-200 text-center ${
                 activeTab === tab.id 
                   ? 'bg-blue-600 text-white shadow-xl' 
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <span className="truncate">{tab.label}</span>
+              {tab.label}
             </button>
           ))}
         </nav>
