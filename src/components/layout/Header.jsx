@@ -3,7 +3,7 @@ import React from 'react';
 const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenMenu }) => {
   return (
     <header className="bg-[#0f172a] border-b border-white/10 sticky top-0 z-[60] px-6 py-4 text-white">
-      {/* Top Row: Logo, Date, and Menu Toggle */}
+      {/* Top Row: Branding and Date/Menu */}
       <div className="max-w-xl mx-auto flex items-center justify-between">
         <div className="flex flex-col">
           <h1 className="text-xl font-black italic tracking-tighter uppercase">PHISH POOL</h1>
@@ -14,12 +14,13 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Calendar Pill */}
           <div className="bg-slate-800 rounded-xl border border-white/10 px-3 py-2 flex items-center">
             <input 
               type="date" 
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-white text-xs font-bold outline-none [color-scheme:dark] cursor-pointer"
+              className="bg-transparent text-white text-[11px] font-bold outline-none [color-scheme:dark] cursor-pointer"
             />
           </div>
           
@@ -32,9 +33,9 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
         </div>
       </div>
 
-      {/* Navigation Row: Full Width of Content Card & Prominent Tabs */}
+      {/* Navigation Row: Fixed 1/3 Width Grid */}
       <div className="max-w-xl mx-auto mt-8">
-        <nav className="bg-slate-900/50 p-1.5 rounded-2xl flex gap-1 border border-white/5 shadow-2xl">
+        <nav className="bg-slate-900/80 p-1.5 rounded-2xl grid grid-cols-3 gap-1 border border-white/5 shadow-2xl">
           {[
             { id: 'picks', label: 'Picks' },
             { id: 'pools', label: 'Pools' },
@@ -43,9 +44,9 @@ const Header = ({ selectedDate, setSelectedDate, activeTab, onTabChange, onOpenM
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex-1 py-4 rounded-xl text-lg font-black uppercase tracking-tighter transition-all duration-200 ${
+              className={`py-4 rounded-xl text-lg font-black uppercase tracking-tighter transition-all duration-200 text-center ${
                 activeTab === tab.id 
-                  ? 'bg-blue-600 text-white shadow-xl scale-[1.02]' 
+                  ? 'bg-blue-600 text-white shadow-xl' 
                   : 'text-slate-400 hover:text-white'
               }`}
             >
