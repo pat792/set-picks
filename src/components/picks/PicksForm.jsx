@@ -17,9 +17,9 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 text-white">
       <div className="flex justify-between items-center px-2">
-        <h2 className="text-xl font-black italic uppercase text-white">My Picks</h2>
+        <h2 className="text-xl font-black italic uppercase">My Picks</h2>
       </div>
       
       <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5 shadow-2xl">
@@ -60,9 +60,7 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
                         setPicks({ ...picks, [f.id]: song });
                         setFocusedField(null);
                       }}
-                      className={`px-5 py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
-                        index === highlightedIndex ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
-                      }`}
+                      className="px-5 py-3 text-sm font-bold cursor-pointer text-slate-300 hover:bg-blue-600 hover:text-white border-b border-slate-800 last:border-0"
                     >
                       {song}
                     </div>
