@@ -6,15 +6,11 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
   const blurTimeoutRef = useRef(null);
 
   const handleFocus = (fieldId) => {
-    // Cancel any pending blur/close actions from previous fields
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-    }
+    if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     setFocusedField(fieldId);
   };
 
   const handleBlur = () => {
-    // Delay closing so the user can actually click a song
     blurTimeoutRef.current = setTimeout(() => {
       setFocusedField(null);
     }, 200);
@@ -23,18 +19,16 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
   return (
     <div className="space-y-6 pb-20">
       <div className="flex justify-between items-center px-2">
-        <h2 className="text-xl font-black italic uppercase">My Picks</h2>
+        <h2 className="text-xl font-black italic uppercase text-white">My Picks</h2>
       </div>
       
       <div className="bg-slate-800/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-slate-700 space-y-5 shadow-2xl">
         {formFields.map(f => {
           const isFocused = focusedField === f.id;
           const currentInput = picks[f.id] || "";
-          
           const filteredSongs = PHISH_SONGS.filter(song => 
             song.toLowerCase().includes(currentInput.toLowerCase())
           ).slice(0, 8);
-
           const showDropdown = isFocused && currentInput.length > 0 && filteredSongs.length > 0;
 
           return (
@@ -54,22 +48,11 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
                 }}
                 onFocus={() => handleFocus(f.id)}
                 onBlur={handleBlur}
-                onKeyDown={(e) => {
-                  if (!showDropdown) return;
-                  if (e.key === 'ArrowDown') {
-                    setHighlightedIndex(prev => (prev < filteredSongs.length - 1 ? prev + 1 : prev));
-                  } else if (e.key === 'ArrowUp') {
-                    setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
-                  } else if (e.key === 'Enter' && highlightedIndex >= 0) {
-                    setPicks({ ...picks, [f.id]: filteredSongs[highlightedIndex] });
-                    setFocusedField(null);
-                  }
-                }}
-                className="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-sm font-bold text-white outline-none focus:border-blue-500 focus:bg-slate-900 transition-all shadow-inner"
+                className="w-full bg-white border border-slate-300 p-4 rounded-2xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-inner placeholder:text-slate-400"
               />
 
               {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl z-[100]">
                   {filteredSongs.map((song, index) => (
                     <div 
                       key={song}
@@ -77,7 +60,7 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
                         setPicks({ ...picks, [f.id]: song });
                         setFocusedField(null);
                       }}
-                      className={`px-5 py-3 text-sm font-bold cursor-pointer transition-colors border-b border-slate-800 last:border-0 ${
+                      className={`px-5 py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
                         index === highlightedIndex ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
