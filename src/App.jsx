@@ -1,7 +1,7 @@
-import Header from './src/components/layout/Header';
-import PicksForm from './src/components/picks/PicksForm';
-import Leaderboard from './src/components/pools/Leaderboard';
-import AdminForm from './src/components/admin/AdminForm.jsx';
+import Header from './components/layout/Header';
+import PicksForm from './components/picks/PicksForm';
+import Leaderboard from './components/pools/Leaderboard';
+import AdminForm from './components/admin/AdminForm.jsx';
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
