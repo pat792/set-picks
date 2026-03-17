@@ -7,13 +7,12 @@ import Splash from './features/landing/Splash';
 
 import React, { useState } from 'react';
 import { signInWithPopup } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore"; // <-- Look how few Firestore imports we need now!
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import { auth, db, googleProvider } from './lib/firebase';
+import { auth, googleProvider } from './lib/firebase';
 import { useAuth } from './features/auth/useAuth';
-import { usePoolData } from './features/pools/usePoolData'; // <-- NEW IMPORT
+import { usePoolData } from './features/pools/usePoolData';
 
 const ADMIN_EMAIL = "pat@road2media.com";
 
@@ -35,30 +34,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("picks");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [saveStatus, setSaveStatus] = useState("");
-  const [picks, setPicks] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
 
-  // 🧠 OUR NEW DATA HOOK IN ACTION:
-  const { poolPicks, actualSetlist, adminResults, setAdminResults } = usePoolData(selectedDate);
-
-  const handleSavePicks = async () => {
-    setSaveStatus("Saving...");
-    try {
-      const pickId = `${selectedDate}_${user.uid}`;
-      await setDoc(doc(db, "picks", pickId), { ...picks, uid: user.uid, handle: userProfile.handle, date: selectedDate, updatedAt: new Date().toISOString() });
-      setSaveStatus("✅ Picks Locked In!");
-      setTimeout(() => setSaveStatus(""), 3000);
-    } catch (e) { setSaveStatus("❌ Error."); }
-  };
-
-  const handleSaveResults = async () => {
-    setSaveStatus("Publishing...");
-    try {
-      await setDoc(doc(db, "results", selectedDate), { ...adminResults, date: selectedDate, updatedAt: new Date().toISOString() });
-      setSaveStatus("🏆 Results Published!");
-      setTimeout(() => setSaveStatus(""), 3000);
-    } catch (e) { setSaveStatus("❌ Error."); }
-  };
+  // The Brain & Data Fetcher
+  const { poolPicks, actualSetlist, adminResults } = usePoolData(selectedDate);
 
   const getTotalScore = (uPicks) => {
     if (!actualSetlist) return null;
@@ -95,7 +73,8 @@ export default function App() {
                   <Header selectedDate={selectedDate} setSelectedDate={setSelectedDate} activeTab={activeTab} onTabChange={setActiveTab} onOpenMenu={() => setIsMenuOpen(true)} />
                   
                   <main className="max-w-xl mx-auto px-6 pb-24 pt-8">
-                    {activeTab === "picks" && <PicksForm picks={picks} setPicks={setPicks} formFields={formFields} PHISH_SONGS={PHISH_SONGS} handleSavePicks={handleSavePicks} saveStatus={saveStatus} />}
+                    {/* Notice how clean these component calls are now! */}
+                    {activeTab === "picks" && <PicksForm selectedDate={selectedDate} user={user} userProfile={userProfile} formFields={formFields} PHISH_SONGS={PHISH_SONGS} />}
                     
                     {activeTab === "pools" && (
                       <div className="text-center py-20 bg-slate-800/50 rounded-[2.5rem] border border-white/5">
@@ -106,7 +85,7 @@ export default function App() {
 
                     {activeTab === "leaderboard" && <Leaderboard poolPicks={poolPicks} actualSetlist={actualSetlist} getTotalScore={getTotalScore} formFields={formFields} />}
                     
-                    {activeTab === "admin" && user.email === ADMIN_EMAIL && <AdminForm adminResults={adminResults} setAdminResults={setAdminResults} formFields={formFields} handleSaveResults={handleSaveResults} saveStatus={saveStatus} PHISH_SONGS={PHISH_SONGS} />}
+                    {activeTab === "admin" && user.email === ADMIN_EMAIL && <AdminForm selectedDate={selectedDate} initialResults={adminResults} formFields={formFields} PHISH_SONGS={PHISH_SONGS} />}
                   </main>
                   
                   <SidebarMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} userProfile={userProfile} user={user} ADMIN_EMAIL={ADMIN_EMAIL} activeTab={activeTab} setActiveTab={setActiveTab} auth={auth} />

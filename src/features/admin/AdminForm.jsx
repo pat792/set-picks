@@ -1,9 +1,22 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { doc, setDoc } from "firebase/firestore";
+import { db } from '../../lib/firebase';
 
-const AdminForm = ({ adminResults, setAdminResults, formFields, handleSaveResults, saveStatus, PHISH_SONGS }) => {
+const AdminForm = ({ selectedDate, initialResults, formFields, PHISH_SONGS }) => {
+  const [adminResults, setAdminResults] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
+  const [saveStatus, setSaveStatus] = useState("");
   const [focusedField, setFocusedField] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const blurTimeoutRef = useRef(null);
+
+  // Sync with actual results if they exist
+  useEffect(() => {
+    if (initialResults) {
+      setAdminResults(initialResults);
+    } else {
+      setAdminResults({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
+    }
+  }, [initialResults, selectedDate]);
 
   const handleFocus = (fieldId) => {
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
@@ -14,6 +27,21 @@ const AdminForm = ({ adminResults, setAdminResults, formFields, handleSaveResult
     blurTimeoutRef.current = setTimeout(() => {
       setFocusedField(null);
     }, 200);
+  };
+
+  const handleSaveResults = async () => {
+    setSaveStatus("Publishing...");
+    try {
+      await setDoc(doc(db, "results", selectedDate), { 
+        ...adminResults, 
+        date: selectedDate, 
+        updatedAt: new Date().toISOString() 
+      });
+      setSaveStatus("🏆 Results Published!");
+      setTimeout(() => setSaveStatus(""), 3000);
+    } catch (e) { 
+      setSaveStatus("❌ Error."); 
+    }
   };
 
   return (
@@ -56,7 +84,7 @@ const AdminForm = ({ adminResults, setAdminResults, formFields, handleSaveResult
 
               {showDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-emerald-500/30 rounded-2xl overflow-hidden shadow-2xl z-[100]">
-                  {filteredSongs.map((song, index) => (
+                  {filteredSongs.map((song) => (
                     <div 
                       key={song}
                       onMouseDown={() => {
