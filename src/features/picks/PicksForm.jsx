@@ -1,6 +1,10 @@
 import React, { useState, useRef } from 'react';
+import { doc, setDoc } from "firebase/firestore";
+import { db } from '../../lib/firebase';
 
-const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, saveStatus }) => {
+const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS }) => {
+  const [picks, setPicks] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
+  const [saveStatus, setSaveStatus] = useState("");
   const [focusedField, setFocusedField] = useState(null);
   const blurTimeoutRef = useRef(null);
 
@@ -11,6 +15,26 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
 
   const handleBlur = () => {
     blurTimeoutRef.current = setTimeout(() => setFocusedField(null), 200);
+  };
+
+  const handleSavePicks = async () => {
+    if (!user || !userProfile) return;
+    
+    setSaveStatus("Saving...");
+    try {
+      const pickId = `${selectedDate}_${user.uid}`;
+      await setDoc(doc(db, "picks", pickId), { 
+        ...picks, 
+        uid: user.uid, 
+        handle: userProfile.handle, 
+        date: selectedDate, 
+        updatedAt: new Date().toISOString() 
+      });
+      setSaveStatus("✅ Picks Locked In!");
+      setTimeout(() => setSaveStatus(""), 3000);
+    } catch (e) { 
+      setSaveStatus("❌ Error."); 
+    }
   };
 
   return (
@@ -63,7 +87,6 @@ const PicksForm = ({ picks, setPicks, formFields, PHISH_SONGS, handleSavePicks, 
           );
         })}
 
-        {/* THE NEW INTERESTING BUTTON */}
         <button 
           onClick={handleSavePicks}
           className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-5 rounded-3xl font-black text-base uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 mt-6 border border-white/10"
