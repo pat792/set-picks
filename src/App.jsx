@@ -5,15 +5,15 @@ import Leaderboard from './features/pools/Leaderboard';
 import AdminForm from './features/admin/AdminForm.jsx';
 import Splash from './features/landing/Splash'; 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { signInWithPopup } from "firebase/auth";
-import { doc, setDoc, collection, query, where, onSnapshot } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore"; // <-- Look how few Firestore imports we need now!
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// 🧠 IMPORT YOUR NEW "BRAIN" FILES HERE:
 import { auth, db, googleProvider } from './lib/firebase';
 import { useAuth } from './features/auth/useAuth';
+import { usePoolData } from './features/pools/usePoolData'; // <-- NEW IMPORT
 
 const ADMIN_EMAIL = "pat@road2media.com";
 
@@ -30,32 +30,16 @@ const PHISH_SONGS = [
 const queryClient = new QueryClient();
 
 export default function App() {
-  // 🧠 THE BRAIN TAKES OVER USER STATE:
   const { user, userProfile, loading } = useAuth();
   
   const [activeTab, setActiveTab] = useState("picks");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [saveStatus, setSaveStatus] = useState("");
-  const [poolPicks, setPoolPicks] = useState([]);
-  const [actualSetlist, setActualSetlist] = useState(null);
   const [picks, setPicks] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
-  const [adminResults, setAdminResults] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
 
-  useEffect(() => {
-    if (!db) return;
-    const q = query(collection(db, "picks"), where("date", "==", selectedDate));
-    const unsubscribePicks = onSnapshot(q, (snapshot) => {
-      const fetched = [];
-      snapshot.forEach((d) => fetched.push({ id: d.id, ...d.data() }));
-      setPoolPicks(fetched);
-    });
-    const unsubscribeResults = onSnapshot(doc(db, "results", selectedDate), (docSnap) => {
-      if (docSnap.exists()) { setActualSetlist(docSnap.data()); setAdminResults(docSnap.data()); }
-      else { setActualSetlist(null); setAdminResults({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" }); }
-    });
-    return () => { unsubscribePicks(); unsubscribeResults(); };
-  }, [selectedDate]);
+  // 🧠 OUR NEW DATA HOOK IN ACTION:
+  const { poolPicks, actualSetlist, adminResults, setAdminResults } = usePoolData(selectedDate);
 
   const handleSavePicks = async () => {
     setSaveStatus("Saving...");
@@ -108,13 +92,7 @@ export default function App() {
             element={
               user ? (
                 <div className="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-blue-500/30">
-                  <Header 
-                    selectedDate={selectedDate} 
-                    setSelectedDate={setSelectedDate} 
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                    onOpenMenu={() => setIsMenuOpen(true)}
-                  />
+                  <Header selectedDate={selectedDate} setSelectedDate={setSelectedDate} activeTab={activeTab} onTabChange={setActiveTab} onOpenMenu={() => setIsMenuOpen(true)} />
                   
                   <main className="max-w-xl mx-auto px-6 pb-24 pt-8">
                     {activeTab === "picks" && <PicksForm picks={picks} setPicks={setPicks} formFields={formFields} PHISH_SONGS={PHISH_SONGS} handleSavePicks={handleSavePicks} saveStatus={saveStatus} />}
@@ -131,16 +109,7 @@ export default function App() {
                     {activeTab === "admin" && user.email === ADMIN_EMAIL && <AdminForm adminResults={adminResults} setAdminResults={setAdminResults} formFields={formFields} handleSaveResults={handleSaveResults} saveStatus={saveStatus} PHISH_SONGS={PHISH_SONGS} />}
                   </main>
                   
-                  <SidebarMenu 
-                    isMenuOpen={isMenuOpen} 
-                    setIsMenuOpen={setIsMenuOpen} 
-                    userProfile={userProfile} 
-                    user={user} 
-                    ADMIN_EMAIL={ADMIN_EMAIL} 
-                    activeTab={activeTab} 
-                    setActiveTab={setActiveTab} 
-                    auth={auth} 
-                  />
+                  <SidebarMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} userProfile={userProfile} user={user} ADMIN_EMAIL={ADMIN_EMAIL} activeTab={activeTab} setActiveTab={setActiveTab} auth={auth} />
                 </div>
               ) : (
                 <Navigate to="/" replace />
