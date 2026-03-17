@@ -6,7 +6,7 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
   const [picks, setPicks] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
   const [saveStatus, setSaveStatus] = useState("");
   const [focusedField, setFocusedField] = useState(null);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1); // <-- Added for keyboard nav
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const blurTimeoutRef = useRef(null);
 
   const handleFocus = (fieldId) => {
@@ -60,11 +60,12 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
   };
 
   return (
-    <div className="space-y-4 pb-20 text-white">
-      <h2 className="text-xl font-black italic uppercase px-2">My Picks</h2>
+    // Replaced space-y-4 with space-y-2 on mobile, space-y-4 on sm screens
+    <div className="space-y-2 sm:space-y-4 pb-24 text-white">
+      <h2 className="text-lg sm:text-xl font-black italic uppercase px-2">My Picks</h2>
       
-      {/* Reduced padding and gap (space-y-3 instead of 6) to fit on one screen */}
-      <div className="bg-slate-800/80 backdrop-blur-md p-4 sm:p-6 rounded-[2rem] border border-slate-700 space-y-3 shadow-2xl">
+      {/* Reduced padding and gap for mobile */}
+      <div className="bg-slate-800/80 backdrop-blur-md p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 space-y-2 sm:space-y-3 shadow-2xl">
         {formFields.map(f => {
           const isFocused = focusedField === f.id;
           const currentInput = picks[f.id] || "";
@@ -75,8 +76,8 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
 
           return (
             <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-10'}`}>
-              {/* Increased label size from text-[10px] to text-xs, reduced bottom margin */}
-              <label className="text-xs font-black uppercase text-slate-400 ml-3 mb-1 block">
+              {/* Labels are now tiny on mobile (text-[10px]) and tighter to the input */}
+              <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 ml-2 sm:ml-3 mb-0.5 sm:mb-1 block">
                 {f.label}
               </label>
               
@@ -91,9 +92,9 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                 }}
                 onFocus={() => handleFocus(f.id)}
                 onBlur={handleBlur}
-                onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)} // <-- Added keyboard listener
-                // Reduced padding (p-3) and text size (text-sm)
-                className="w-full bg-white border-2 border-slate-300 p-3 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
+                onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
+                // Inputs are shorter on mobile (p-2.5) vs desktop (p-3)
+                className="w-full bg-white border-2 border-slate-300 p-2.5 sm:p-3 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
               />
 
               {showDropdown && (
@@ -106,8 +107,7 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                         setFocusedField(null);
                         setHighlightedIndex(-1);
                       }}
-                      // Added dynamic background color if arrow keys are highlighting it
-                      className={`px-4 py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
+                      className={`px-4 py-2.5 sm:py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
                         highlightedIndex === index ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
@@ -120,10 +120,10 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
           );
         })}
 
-        {/* Reduced button height to save vertical space */}
         <button 
           onClick={handleSavePicks}
-          className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 mt-4 border border-white/10"
+          // Button is slightly shorter on mobile
+          className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-3 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 mt-3 sm:mt-4 border border-white/10"
         >
           {saveStatus || "Lock In Picks"}
         </button>
