@@ -79,9 +79,9 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
               </label>
               
               <input 
-                type="search" 
-                name={`phish-song-search-${f.id}`} 
-                autoComplete="new-password" 
+                type="text" 
+                name={`phish-song-entry-${f.id}`} 
+                autoComplete="nope" 
                 autoCorrect="off"
                 spellCheck="false"
                 data-lpignore="true"
@@ -95,7 +95,8 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                 onFocus={() => handleFocus(f.id)}
                 onBlur={handleBlur}
                 onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
-                className="w-full bg-white border-2 border-slate-300 p-2.5 sm:p-3 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400 touch-none"
+                /* Changed text-sm to text-base (16px) to stop mobile auto-zoom, removed touch-none to fix scrolling */
+                className="w-full bg-white border-2 border-slate-300 p-2.5 sm:p-3 rounded-xl text-base font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
               />
 
               {showDropdown && (
