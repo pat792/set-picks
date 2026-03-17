@@ -1,4 +1,5 @@
 import Header from './features/layout/Header';
+import SidebarMenu from './features/layout/SidebarMenu'; // <-- NEW IMPORT
 import PicksForm from './features/picks/PicksForm';
 import Leaderboard from './features/pools/Leaderboard';
 import AdminForm from './features/admin/AdminForm.jsx';
@@ -6,7 +7,7 @@ import Splash from './features/landing/Splash';
 
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -122,20 +123,11 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          
-          {/* ROUTE 1: THE SPLASH PAGE */}
           <Route 
             path="/" 
-            element={
-              !user ? (
-                <Splash onLogin={() => signInWithPopup(auth, googleProvider)} />
-              ) : (
-                <Navigate to="/dashboard" replace />
-              )
-            } 
+            element={!user ? <Splash onLogin={() => signInWithPopup(auth, googleProvider)} /> : <Navigate to="/dashboard" replace />} 
           />
 
-          {/* ROUTE 2: THE MAIN DASHBOARD */}
           <Route 
             path="/dashboard" 
             element={
@@ -150,10 +142,8 @@ export default function App() {
                   />
                   
                   <main className="max-w-xl mx-auto px-6 pb-24 pt-8">
-                    {activeTab === "picks" && (
-                      <PicksForm picks={picks} setPicks={setPicks} formFields={formFields} PHISH_SONGS={PHISH_SONGS} handleSavePicks={handleSavePicks} saveStatus={saveStatus} />
-                    )}
-
+                    {activeTab === "picks" && <PicksForm picks={picks} setPicks={setPicks} formFields={formFields} PHISH_SONGS={PHISH_SONGS} handleSavePicks={handleSavePicks} saveStatus={saveStatus} />}
+                    
                     {activeTab === "pools" && (
                       <div className="text-center py-20 bg-slate-800/50 rounded-[2.5rem] border border-white/5">
                         <h2 className="text-2xl font-black italic uppercase text-slate-500">Pools Coming Soon</h2>
@@ -161,45 +151,22 @@ export default function App() {
                       </div>
                     )}
 
-                    {activeTab === "leaderboard" && (
-                      <Leaderboard poolPicks={poolPicks} actualSetlist={actualSetlist} getTotalScore={getTotalScore} formFields={formFields} />
-                    )}
-
-                    {activeTab === "admin" && user.email === ADMIN_EMAIL && (
-                      <AdminForm 
-                        adminResults={adminResults} 
-                        setAdminResults={setAdminResults} 
-                        formFields={formFields} 
-                        handleSaveResults={handleSaveResults} 
-                        saveStatus={saveStatus}
-                        PHISH_SONGS={PHISH_SONGS}
-                      />
-                    )}
+                    {activeTab === "leaderboard" && <Leaderboard poolPicks={poolPicks} actualSetlist={actualSetlist} getTotalScore={getTotalScore} formFields={formFields} />}
+                    
+                    {activeTab === "admin" && user.email === ADMIN_EMAIL && <AdminForm adminResults={adminResults} setAdminResults={setAdminResults} formFields={formFields} handleSaveResults={handleSaveResults} saveStatus={saveStatus} PHISH_SONGS={PHISH_SONGS} />}
                   </main>
                   
-                  {/* SIDEBAR MENU */}
-                  <div className={`fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[100] transition-opacity duration-300 ${isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`} onClick={() => setIsMenuOpen(false)}>
-                    <div className={`absolute right-0 top-0 h-full w-80 bg-slate-800 p-8 flex flex-col transform transition-transform duration-300 shadow-2xl ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`} onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => setIsMenuOpen(false)} className="self-end text-slate-400 text-2xl mb-8">✕</button>
-                      
-                      <div className="text-center flex-grow">
-                        <div className="w-24 h-24 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full mx-auto flex items-center justify-center text-4xl mb-6 shadow-xl border-4 border-slate-700">👤</div>
-                        <h2 className="text-2xl font-black text-white">{userProfile?.handle || "Phan"}</h2>
-                        <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest mt-2">{userProfile?.email}</p>
-                        
-                        {user?.email === ADMIN_EMAIL && (
-                          <button 
-                            onClick={() => { setActiveTab("admin"); setIsMenuOpen(false); }}
-                            className={`w-full mt-12 py-4 rounded-2xl font-black uppercase tracking-tighter transition-all border-2 ${activeTab === 'admin' ? 'bg-emerald-500 text-black border-emerald-400' : 'bg-slate-900 text-emerald-500 border-emerald-500/20'}`}
-                          >
-                            👑 Admin Control
-                          </button>
-                        )}
-                      </div>
-
-                      <button onClick={() => signOut(auth)} className="w-full py-5 bg-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest text-red-400 border border-red-900/20">Sign Out</button>
-                    </div>
-                  </div>
+                  {/* BRAND NEW SIDEBAR COMPONENT */}
+                  <SidebarMenu 
+                    isMenuOpen={isMenuOpen} 
+                    setIsMenuOpen={setIsMenuOpen} 
+                    userProfile={userProfile} 
+                    user={user} 
+                    ADMIN_EMAIL={ADMIN_EMAIL} 
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab} 
+                    auth={auth} 
+                  />
                 </div>
               ) : (
                 <Navigate to="/" replace />
