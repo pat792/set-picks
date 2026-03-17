@@ -35,7 +35,6 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // The Brain & Data Fetcher
   const { poolPicks, actualSetlist, adminResults } = usePoolData(selectedDate);
 
   const getTotalScore = (uPicks) => {
@@ -54,8 +53,8 @@ export default function App() {
     { label: "Encore", id: "enc" }, { label: "Wildcard", id: "wild" },
   ];
 
-  // Notice the min-h-[100dvh] here!
-  if (loading) return <div className="min-h-[100dvh] bg-[#0f172a] flex items-center justify-center text-white font-black italic text-2xl uppercase tracking-tighter">Loading Phish Pool...</div>;
+  // Applied 'fixed inset-0' to lock the background in place
+  if (loading) return <div className="fixed inset-0 bg-[#0f172a] flex items-center justify-center text-white font-black italic text-2xl uppercase tracking-tighter">Loading Phish Pool...</div>;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -70,8 +69,8 @@ export default function App() {
             path="/dashboard" 
             element={
               user ? (
-                // Notice the min-h-[100dvh] here too!
-                <div className="min-h-[100dvh] bg-[#0f172a] text-white font-sans selection:bg-blue-500/30">
+                // Applied 'fixed inset-0 overflow-y-auto overscroll-none' to make it feel like a true native app
+                <div className="fixed inset-0 bg-[#0f172a] text-white font-sans selection:bg-blue-500/30 overflow-y-auto overscroll-none">
                   <Header selectedDate={selectedDate} setSelectedDate={setSelectedDate} activeTab={activeTab} onTabChange={setActiveTab} onOpenMenu={() => setIsMenuOpen(true)} />
                   
                   <main className="max-w-xl mx-auto px-6 pb-24 pt-8">
