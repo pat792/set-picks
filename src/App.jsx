@@ -54,7 +54,8 @@ export default function App() {
     { label: "Encore", id: "enc" }, { label: "Wildcard", id: "wild" },
   ];
 
-  if (loading) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-white font-black italic text-2xl uppercase tracking-tighter">Loading Phish Pool...</div>;
+  // Notice the min-h-[100dvh] here!
+  if (loading) return <div className="min-h-[100dvh] bg-[#0f172a] flex items-center justify-center text-white font-black italic text-2xl uppercase tracking-tighter">Loading Phish Pool...</div>;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -69,11 +70,11 @@ export default function App() {
             path="/dashboard" 
             element={
               user ? (
-                <div className="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-blue-500/30">
+                // Notice the min-h-[100dvh] here too!
+                <div className="min-h-[100dvh] bg-[#0f172a] text-white font-sans selection:bg-blue-500/30">
                   <Header selectedDate={selectedDate} setSelectedDate={setSelectedDate} activeTab={activeTab} onTabChange={setActiveTab} onOpenMenu={() => setIsMenuOpen(true)} />
                   
                   <main className="max-w-xl mx-auto px-6 pb-24 pt-8">
-                    {/* Notice how clean these component calls are now! */}
                     {activeTab === "picks" && <PicksForm selectedDate={selectedDate} user={user} userProfile={userProfile} formFields={formFields} PHISH_SONGS={PHISH_SONGS} />}
                     
                     {activeTab === "pools" && (
