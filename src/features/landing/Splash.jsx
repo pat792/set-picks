@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default function Splash({ onLogin }) {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 text-center">
