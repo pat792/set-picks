@@ -2,12 +2,12 @@ import Header from './features/layout/Header';
 import PicksForm from './features/picks/PicksForm';
 import Leaderboard from './features/pools/Leaderboard';
 import AdminForm from './features/admin/AdminForm.jsx';
+import Splash from './features/landing/Splash'; 
+
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot } from "firebase/firestore";
-
-// --- 1. IMPORT REACT QUERY & REACT ROUTER ---
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -128,12 +128,7 @@ export default function App() {
             path="/" 
             element={
               !user ? (
-                <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 text-center">
-                  <h1 className="text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-8">PHISH POOL</h1>
-                  <button onClick={() => signInWithPopup(auth, googleProvider)} className="bg-white text-black px-10 py-4 rounded-full font-black shadow-xl">
-                    SIGN IN WITH GOOGLE
-                  </button>
-                </div>
+                <Splash onLogin={() => signInWithPopup(auth, googleProvider)} />
               ) : (
                 <Navigate to="/dashboard" replace />
               )
