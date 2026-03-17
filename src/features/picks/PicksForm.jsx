@@ -60,75 +60,88 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
   };
 
   return (
-    <div className="space-y-1 sm:space-y-4 pb-24 text-white">
-      <h2 className="text-lg sm:text-xl font-black italic uppercase px-2">My Picks</h2>
+    <div className="pb-24 text-white">
+      <h2 className="text-lg sm:text-xl font-black italic uppercase px-2 mb-2 sm:mb-4">My Picks</h2>
       
-      <div className="bg-slate-800/80 backdrop-blur-md p-2 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 space-y-1.5 sm:space-y-3 shadow-2xl">
-        {formFields.map(f => {
-          const isFocused = focusedField === f.id;
-          const currentInput = picks[f.id] || "";
-          const filteredSongs = PHISH_SONGS.filter(song => 
-            song.toLowerCase().includes(currentInput.toLowerCase())
-          ).slice(0, 8);
-          const showDropdown = isFocused && currentInput.length > 0 && filteredSongs.length > 0;
+      <div className="bg-slate-800/80 backdrop-blur-md p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 shadow-2xl">
+        
+        {/* THE HONEYPOT: Invisible fields to trick Chrome's Wallet/Password Manager */}
+        <div style={{ display: 'none' }} aria-hidden="true">
+          <input type="text" name="fake_email" autoComplete="email" />
+          <input type="password" name="fake_password" autoComplete="current-password" />
+          <input type="text" name="fake_cc" autoComplete="cc-number" />
+        </div>
 
-          return (
-            <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-10'}`}>
-              <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 ml-2 sm:ml-3 mb-0 sm:mb-1 block">
-                {f.label}
-              </label>
-              
-              <input 
-                type="text" 
-                /* The Data Starvation Hack: Removed name entirely, kept standard off-switches */
-                autoComplete="off" 
-                autoCorrect="off"
-                spellCheck="false"
-                autoCapitalize="words"
-                data-lpignore="true"
-                data-1p-ignore="true"
-                placeholder="Type a song..."
-                value={picks[f.id]}
-                onChange={(e) => {
-                  setPicks({ ...picks, [f.id]: e.target.value });
-                  setHighlightedIndex(-1);
-                }}
-                onFocus={() => handleFocus(f.id)}
-                onBlur={handleBlur}
-                onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
-                className="w-full bg-white border-2 border-slate-300 py-1.5 px-3 sm:p-3 rounded-xl text-base font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
-              />
+        {/* The Inputs Container: Using flex and gap for perfectly even spacing */}
+        <div className="flex flex-col gap-2.5 sm:gap-4">
+          {formFields.map(f => {
+            const isFocused = focusedField === f.id;
+            const currentInput = picks[f.id] || "";
+            const filteredSongs = PHISH_SONGS.filter(song => 
+              song.toLowerCase().includes(currentInput.toLowerCase())
+            ).slice(0, 8);
+            const showDropdown = isFocused && currentInput.length > 0 && filteredSongs.length > 0;
 
-              {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl z-[100]">
-                  {filteredSongs.map((song, index) => (
-                    <div 
-                      key={song}
-                      onMouseDown={() => {
-                        setPicks({ ...picks, [f.id]: song });
-                        setFocusedField(null);
-                        setHighlightedIndex(-1);
-                      }}
-                      className={`px-4 py-2 sm:py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
-                        highlightedIndex === index ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
-                      }`}
-                    >
-                      {song}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            return (
+              <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-10'}`}>
+                <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 ml-2 sm:ml-3 mb-0.5 sm:mb-1 block">
+                  {f.label}
+                </label>
+                
+                <input 
+                  type="text" 
+                  name={`phish-song-query-${f.id}`}
+                  inputMode="search" /* Forces mobile keyboards to treat this like a search bar, not a form */
+                  autoComplete="off" 
+                  autoCorrect="off"
+                  spellCheck="false"
+                  autoCapitalize="words"
+                  placeholder="Type a song..."
+                  value={picks[f.id]}
+                  onChange={(e) => {
+                    setPicks({ ...picks, [f.id]: e.target.value });
+                    setHighlightedIndex(-1);
+                  }}
+                  onFocus={() => handleFocus(f.id)}
+                  onBlur={handleBlur}
+                  onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
+                  className="w-full bg-white border-2 border-slate-300 py-1.5 px-3 sm:p-3 rounded-xl text-base font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
+                />
 
-        {/* Increased mt-2 to mt-4 to match the vertical spacing of the inputs */}
-        <button 
-          onClick={handleSavePicks}
-          className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-2 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 mt-4 sm:mt-6 border border-white/10"
-        >
-          {saveStatus || "Lock In Picks"}
-        </button>
+                {showDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl z-[100]">
+                    {filteredSongs.map((song, index) => (
+                      <div 
+                        key={song}
+                        onMouseDown={() => {
+                          setPicks({ ...picks, [f.id]: song });
+                          setFocusedField(null);
+                          setHighlightedIndex(-1);
+                        }}
+                        className={`px-4 py-2 sm:py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
+                          highlightedIndex === index ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                        }`}
+                      >
+                        {song}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* The Button Container: Explicitly wider margin (mt-5) to separate it from the inputs */}
+        <div className="mt-5 sm:mt-7">
+          <button 
+            onClick={handleSavePicks}
+            className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-2.5 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 border border-white/10"
+          >
+            {saveStatus || "Lock In Picks"}
+          </button>
+        </div>
+
       </div>
     </div>
   );
