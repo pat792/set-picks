@@ -79,13 +79,13 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
               </label>
               
               <input 
-                type="text"
-                autoComplete="off"
+                type="search" 
+                name={`phish-song-search-${f.id}`} 
+                autoComplete="new-password" 
                 autoCorrect="off"
                 spellCheck="false"
                 data-lpignore="true"
                 data-1p-ignore="true"
-                data-form-type="other"
                 placeholder="Type a song..."
                 value={picks[f.id]}
                 onChange={(e) => {
@@ -95,7 +95,7 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                 onFocus={() => handleFocus(f.id)}
                 onBlur={handleBlur}
                 onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
-                className="w-full bg-white border-2 border-slate-300 p-2.5 sm:p-3 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-300 p-2.5 sm:p-3 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400 touch-none"
               />
 
               {showDropdown && (
