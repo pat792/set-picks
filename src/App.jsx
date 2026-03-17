@@ -1,31 +1,19 @@
 import Header from './features/layout/Header';
-import SidebarMenu from './features/layout/SidebarMenu'; // <-- NEW IMPORT
+import SidebarMenu from './features/layout/SidebarMenu';
 import PicksForm from './features/picks/PicksForm';
 import Leaderboard from './features/pools/Leaderboard';
 import AdminForm from './features/admin/AdminForm.jsx';
 import Splash from './features/landing/Splash'; 
 
 import React, { useState, useEffect } from 'react';
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot } from "firebase/firestore";
+import { signInWithPopup } from "firebase/auth";
+import { doc, setDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAJskQFM62Fyr-EjxlGJD3svAhf9gp9CHI",
-  authDomain: "set-picks.firebaseapp.com",
-  projectId: "set-picks",
-  storageBucket: "set-picks.firebasestorage.app",
-  messagingSenderId: "927420107250",
-  appId: "1:927420107250:web:1b9f52a72ef8dd9096836b",
-  measurementId: "G-K3YZ8FNM3V"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+// 🧠 IMPORT YOUR NEW "BRAIN" FILES HERE:
+import { auth, db, googleProvider } from './lib/firebase';
+import { useAuth } from './features/auth/useAuth';
 
 const ADMIN_EMAIL = "pat@road2media.com";
 
@@ -42,30 +30,17 @@ const PHISH_SONGS = [
 const queryClient = new QueryClient();
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+  // 🧠 THE BRAIN TAKES OVER USER STATE:
+  const { user, userProfile, loading } = useAuth();
+  
   const [activeTab, setActiveTab] = useState("picks");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
   const [poolPicks, setPoolPicks] = useState([]);
   const [actualSetlist, setActualSetlist] = useState(null);
   const [picks, setPicks] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
   const [adminResults, setAdminResults] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        setUser(u);
-        const userRef = doc(db, "users", u.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) setUserProfile(userSnap.data());
-      } else { setUser(null); setUserProfile(null); }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!db) return;
@@ -156,7 +131,6 @@ export default function App() {
                     {activeTab === "admin" && user.email === ADMIN_EMAIL && <AdminForm adminResults={adminResults} setAdminResults={setAdminResults} formFields={formFields} handleSaveResults={handleSaveResults} saveStatus={saveStatus} PHISH_SONGS={PHISH_SONGS} />}
                   </main>
                   
-                  {/* BRAND NEW SIDEBAR COMPONENT */}
                   <SidebarMenu 
                     isMenuOpen={isMenuOpen} 
                     setIsMenuOpen={setIsMenuOpen} 
