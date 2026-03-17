@@ -60,11 +60,9 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
   };
 
   return (
-    // Replaced space-y-4 with space-y-2 on mobile, space-y-4 on sm screens
     <div className="space-y-2 sm:space-y-4 pb-24 text-white">
       <h2 className="text-lg sm:text-xl font-black italic uppercase px-2">My Picks</h2>
       
-      {/* Reduced padding and gap for mobile */}
       <div className="bg-slate-800/80 backdrop-blur-md p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 space-y-2 sm:space-y-3 shadow-2xl">
         {formFields.map(f => {
           const isFocused = focusedField === f.id;
@@ -76,7 +74,6 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
 
           return (
             <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-10'}`}>
-              {/* Labels are now tiny on mobile (text-[10px]) and tighter to the input */}
               <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 ml-2 sm:ml-3 mb-0.5 sm:mb-1 block">
                 {f.label}
               </label>
@@ -84,6 +81,11 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
               <input 
                 type="text"
                 autoComplete="off"
+                autoCorrect="off"
+                spellCheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-form-type="other"
                 placeholder="Type a song..."
                 value={picks[f.id]}
                 onChange={(e) => {
@@ -93,7 +95,6 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                 onFocus={() => handleFocus(f.id)}
                 onBlur={handleBlur}
                 onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
-                // Inputs are shorter on mobile (p-2.5) vs desktop (p-3)
                 className="w-full bg-white border-2 border-slate-300 p-2.5 sm:p-3 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
               />
 
@@ -122,7 +123,6 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
 
         <button 
           onClick={handleSavePicks}
-          // Button is slightly shorter on mobile
           className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-3 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 mt-3 sm:mt-4 border border-white/10"
         >
           {saveStatus || "Lock In Picks"}
