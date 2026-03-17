@@ -60,10 +60,12 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
   };
 
   return (
-    <div className="space-y-2 sm:space-y-4 pb-24 text-white">
+    // Tightened the main vertical spacing for mobile
+    <div className="space-y-1 sm:space-y-4 pb-24 text-white">
       <h2 className="text-lg sm:text-xl font-black italic uppercase px-2">My Picks</h2>
       
-      <div className="bg-slate-800/80 backdrop-blur-md p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 space-y-2 sm:space-y-3 shadow-2xl">
+      {/* Aggressively reduced mobile padding (p-2) and gaps (space-y-1.5) */}
+      <div className="bg-slate-800/80 backdrop-blur-md p-2 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 space-y-1.5 sm:space-y-3 shadow-2xl">
         {formFields.map(f => {
           const isFocused = focusedField === f.id;
           const currentInput = picks[f.id] || "";
@@ -74,14 +76,19 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
 
           return (
             <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-10'}`}>
-              <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 ml-2 sm:ml-3 mb-0.5 sm:mb-1 block">
+              {/* Removed bottom margin on mobile to pull input closer to label */}
+              <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 ml-2 sm:ml-3 mb-0 sm:mb-1 block">
                 {f.label}
               </label>
               
               <input 
                 type="text" 
                 name={`phish-song-entry-${f.id}`} 
-                autoComplete="nope" 
+                // The Combobox Hack to defeat Chrome's password manager
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={showDropdown}
+                autoComplete="off" 
                 autoCorrect="off"
                 spellCheck="false"
                 data-lpignore="true"
@@ -95,8 +102,8 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                 onFocus={() => handleFocus(f.id)}
                 onBlur={handleBlur}
                 onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
-                /* Changed text-sm to text-base (16px) to stop mobile auto-zoom, removed touch-none to fix scrolling */
-                className="w-full bg-white border-2 border-slate-300 p-2.5 sm:p-3 rounded-xl text-base font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
+                /* Significantly reduced vertical padding (py-1.5) on mobile to save height, kept text-base to prevent zoom */
+                className="w-full bg-white border-2 border-slate-300 py-1.5 px-3 sm:p-3 rounded-xl text-base font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
               />
 
               {showDropdown && (
@@ -109,7 +116,7 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                         setFocusedField(null);
                         setHighlightedIndex(-1);
                       }}
-                      className={`px-4 py-2.5 sm:py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
+                      className={`px-4 py-2 sm:py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
                         highlightedIndex === index ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
@@ -122,9 +129,10 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
           );
         })}
 
+        {/* Shrunk the button height slightly on mobile and reduced top margin */}
         <button 
           onClick={handleSavePicks}
-          className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-3 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 mt-3 sm:mt-4 border border-white/10"
+          className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-2 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 mt-2 sm:mt-4 border border-white/10"
         >
           {saveStatus || "Lock In Picks"}
         </button>
