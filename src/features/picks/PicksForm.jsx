@@ -3,7 +3,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
-import { PHISH_SONGS } from '../../data/PhishSongs.js';
+import { PHISH_SONGS } from '../../data/phishSongs.js';
 
 // --- CUSTOM AUTOCOMPLETE COMPONENT ---
 const SongAutocomplete = ({ value, onChange, placeholder }) => {
