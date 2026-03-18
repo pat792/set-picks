@@ -1,3 +1,4 @@
+export const PHISH_SONGS = [
 "Alumni Blues",
 "And So To Bed",
 "You Enjoy Myself",
@@ -1080,4 +1081,4 @@
 "Marijuana Hot Chocolate",
 "Hall in Solace",
 "Carolina in the Morning",
-"The Divided Sky",
+"The Divided Sky",];
