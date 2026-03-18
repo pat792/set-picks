@@ -6,7 +6,11 @@ import { useAuth } from './features/auth/useAuth'; // Adjust path if needed
 import Splash from './features/landing/Splash';
 import ProfileSetup from './features/auth/ProfileSetup';
 // We will replace this div with your actual Dashboard Layout in the next step
-const TempDashboard = () => <div className="text-white text-center mt-20 text-3xl font-bold">Welcome to the Dashboard!</div>; 
+const TempDashboard = () => (
+  <div className="min-h-screen bg-[#0f172a] text-white flex items-center justify-center text-3xl font-bold">
+    Welcome to the Dashboard!
+  </div>
+);
 
 function App() {
   const { user, userProfile, loading } = useAuth();
