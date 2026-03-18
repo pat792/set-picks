@@ -8,7 +8,7 @@ import AdminForm from '../admin/AdminForm';
 
 export default function DashboardLayout() {
   const location = useLocation();
-  const { user } = useAuth(); // Pulling user to check for Admin status
+  const { user } = useAuth(); // Pulling user to pass to forms AND check for Admin status
 
   // 2. Admin Check (Make sure this matches your actual email!)
   const isAdmin = user?.email === 'pat@road2media.com';
@@ -63,9 +63,9 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-y-auto pb-24 md:pb-8 relative">
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           <Routes>
-            {/* The Restored Core Forms */}
-            <Route path="/" element={<PicksForm />} />
-            <Route path="/admin" element={<AdminForm />} />
+            {/* The Restored Core Forms WITH USER PROP PASSED */}
+            <Route path="/" element={<PicksForm user={user} />} />
+            <Route path="/admin" element={<AdminForm user={user} />} />
 
             {/* The Pages We Are Building Next */}
             <Route path="/pools" element={<h2 className="text-3xl font-bold mt-10 text-center">Pools Page (Coming Soon)</h2>} />
