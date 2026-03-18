@@ -166,4 +166,50 @@ export default function PicksForm({ user, selectedDate }) {
               <p className="text-slate-400 text-sm font-bold leading-relaxed">
                 {showStatus === 'PAST' 
                   ? "This show has already happened! Practice Mode is coming soon."
-                  : "Picks for this show will
+                  : "Picks for this show will open after the previous show ends."}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <form 
+          onSubmit={handleSave}
+          className={`space-y-4 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 transition-all duration-300 ${
+            showStatus !== 'NEXT' ? 'opacity-30 pointer-events-none blur-[1px]' : ''
+          }`}
+        >
+          {FORM_FIELDS.map((field) => (
+            <div key={field.id} className="flex flex-col">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                {field.label}
+              </label>
+              
+              <SongAutocomplete
+                value={picks[field.id] || ''}
+                onChange={(val) => handleInputChange(field.id, val)}
+                placeholder="Type a song..."
+              />
+
+            </div>
+          ))}
+
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
+            >
+              {isSaving ? 'Saving...' : 'Lock In Picks'}
+            </button>
+          </div>
+
+          {saveMessage && (
+            <div className={`text-center font-bold text-sm mt-4 ${saveMessage.includes('Error') ? 'text-red-400' : 'text-emerald-400'}`}>
+              {saveMessage}
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
