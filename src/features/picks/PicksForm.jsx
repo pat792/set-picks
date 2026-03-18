@@ -4,15 +4,17 @@ import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
 
+// NEW: Import your song list! 
+// (Make sure the variable name PHISH_SONGS matches exactly what you exported from that file)
+import { PHISH_SONGS } from '../../data/PhishSongs'; 
+
 export default function PicksForm({ user, selectedDate }) {
   const [picks, setPicks] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
-  // Ask the referee what the status of the selected date is
   const showStatus = getShowStatus(selectedDate);
 
-  // When the date changes, check if the user already saved picks for this show
   useEffect(() => {
     const loadExistingPicks = async () => {
       if (!user?.uid || !selectedDate) return;
@@ -24,7 +26,7 @@ export default function PicksForm({ user, selectedDate }) {
       if (docSnap.exists()) {
         setPicks(docSnap.data());
       } else {
-        setPicks({}); // Clear form if it's a fresh date
+        setPicks({}); 
       }
     };
 
@@ -46,7 +48,6 @@ export default function PicksForm({ user, selectedDate }) {
     setSaveMessage('');
 
     try {
-      // Creates a unique ID so they can only submit once per show
       const pickId = `${selectedDate}_${user.uid}`;
       
       await setDoc(doc(db, "picks", pickId), {
@@ -73,10 +74,8 @@ export default function PicksForm({ user, selectedDate }) {
         Make Your Picks
       </h2>
 
-      {/* THE TIME MACHINE WRAPPER */}
       <div className="relative">
         
-        {/* THE LOCK OVERLAY (Only shows if the show isn't 'NEXT') */}
         {showStatus !== 'NEXT' && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-3xl border border-slate-700/50">
             <div className="bg-slate-800 p-6 rounded-2xl shadow-2xl text-center max-w-sm border border-slate-600 transform transition-all">
@@ -95,13 +94,19 @@ export default function PicksForm({ user, selectedDate }) {
           </div>
         )}
 
-        {/* THE FORM */}
         <form 
           onSubmit={handleSave}
           className={`space-y-4 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 transition-all duration-300 ${
             showStatus !== 'NEXT' ? 'opacity-30 pointer-events-none blur-[1px]' : ''
           }`}
         >
+          {/* NEW: The hidden Datalist dictionary for Autocomplete */}
+          <datalist id="phish-song-list">
+            {PHISH_SONGS.map((song, index) => (
+              <option key={index} value={typeof song === 'string' ? song : song.name} />
+            ))}
+          </datalist>
+
           {FORM_FIELDS.map((field) => (
             <div key={field.id} className="flex flex-col">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
@@ -109,6 +114,7 @@ export default function PicksForm({ user, selectedDate }) {
               </label>
               <input
                 type="text"
+                list="phish-song-list" /* NEW: Connects this input to the datalist */
                 value={picks[field.id] || ''}
                 onChange={(e) => handleInputChange(field.id, e.target.value)}
                 placeholder="Type a song..."
