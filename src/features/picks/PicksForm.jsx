@@ -4,9 +4,7 @@ import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
 
-// NEW: Import your song list! 
-// (Make sure the variable name PHISH_SONGS matches exactly what you exported from that file)
-import { PHISH_SONGS } from '../../data/PhishSongs'; 
+import { PHISH_SONGS } from '../../data/phishSongs.js'; 
 
 export default function PicksForm({ user, selectedDate }) {
   const [picks, setPicks] = useState({});
