@@ -18,9 +18,9 @@ export default function AutocompleteInput({ label, id, value, onChange, options 
     }, 200);
   };
 
-  // Safely filter the options based on what the user types
+  // UPDATED: Now filters by checking 'opt.name' instead of just 'opt'
   const filteredOptions = options
-    ?.filter(opt => opt?.toLowerCase().includes(value.toLowerCase()))
+    ?.filter(opt => opt?.name?.toLowerCase().includes(value.toLowerCase()))
     .slice(0, 8) || [];
 
   const showDropdown = isFocused && value.length > 0 && filteredOptions.length > 0;
@@ -36,7 +36,8 @@ export default function AutocompleteInput({ label, id, value, onChange, options 
       setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
     } else if (e.key === "Enter" && highlightedIndex >= 0) {
       e.preventDefault();
-      onChange(id, filteredOptions[highlightedIndex]);
+      // UPDATED: Pass the song NAME back to the form, not the whole object
+      onChange(id, filteredOptions[highlightedIndex].name);
       setIsFocused(false);
       setHighlightedIndex(-1);
     }
@@ -68,17 +69,27 @@ export default function AutocompleteInput({ label, id, value, onChange, options 
         <div className="absolute top-full left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl z-[100]">
           {filteredOptions.map((song, index) => (
             <div 
-              key={song}
+              key={song.name}
               onMouseDown={() => {
-                onChange(id, song);
+                // UPDATED: Pass the song NAME back to the form
+                onChange(id, song.name);
                 setIsFocused(false);
                 setHighlightedIndex(-1);
               }}
-              className={`px-4 py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
+              className={`px-4 py-3 cursor-pointer border-b border-slate-800 last:border-0 flex justify-between items-center ${
                 highlightedIndex === index ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              {song}
+              <span className="text-sm font-bold">{song.name}</span>
+              
+              {/* NEW: Display the Gap data right in the dropdown! */}
+              {song.gap !== "—" && (
+                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  highlightedIndex === index ? 'bg-white/20' : 'bg-slate-700 text-slate-400'
+                }`}>
+                  Gap: {song.gap}
+                </span>
+              )}
             </div>
           ))}
         </div>
