@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FORM_FIELDS } from '../../data/gameConfig';
-import { calculateSlotScore, calculateTotalScore } from '../../utils/scoring';
+import { FORM_FIELDS } from '../data/gameConfig';
+import { calculateSlotScore, calculateTotalScore } from '../utils/scoring';
 
 const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
   const [expandedUser, setExpandedUser] = useState(null);
