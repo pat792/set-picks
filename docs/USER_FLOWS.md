@@ -1,53 +1,58 @@
-# Phish Pool - Core User Flows
+# Setlist Pick 'em - Core User Flows
 
 ## Scenario 1: Organic First-Time User
-*User discovers the site on their own and wants to join the public pool.*
+*User discovers the site and wants to play.*
 1. User lands on `/` (Splash Page).
-2. User clicks "Sign In With Google".
-3. App authenticates via Firebase Auth.
+2. User selects Authentication Method (Google, Apple, or Email/Password).
+3. App authenticates via Firebase Auth (handling email verification if necessary).
 4. App checks Firestore `users` collection.
 5. **Condition:** No profile document found.
 6. App routes user to `/setup` (Profile Setup).
 7. User enters desired handle and submits.
 8. App creates Firestore profile document.
-9. App routes user to `/dashboard`.
-10. User is automatically placed in the Global Pool view.
+9. App routes user to the main app layout.
+10. User defaults to the **Picks** tab (Upcoming Show).
 
-## Scenario 2: First-Time User via Invite Link
-*User receives a link to a private pool from a friend.*
-1. User clicks link: e.g., `/invite/pool_abc123`.
-2. App detects user is not authenticated.
-3. App caches the intended destination (`pool_abc123`) in local storage/session state.
-4. App routes user to `/` to authenticate via Google.
-5. App checks Firestore; no profile found.
-6. App routes user to `/setup` (Profile Setup).
-7. User creates handle.
-8. App creates Firestore profile document.
-9. App retrieves cached invite destination.
-10. App adds user to the specific Private Pool.
-11. App routes user to `/dashboard`, defaulting to that Private Pool tab.
+## Scenario 2: Joining a Private Pool (Link vs. Code)
+*User joins a friend's private pool.*
+* **Path A (The Link):**
+    1. User clicks link: e.g., `/invite/pool_abc123`.
+    2. App caches destination, forces Auth (if logged out), checks profile, and automatically adds user to the Pool.
+* **Path B (The 6-Digit Code):**
+    1. Authenticated user navigates to the **Pools** tab.
+    2. User enters a 6-digit alphanumeric code (e.g., `YEM420`) into the "Join Pool" input.
+    3. App queries Firestore for matching pool code.
+    4. App adds user to that Private Pool.
 
 ## Scenario 3: Returning User (Standard Login)
 *Existing user comes back to make picks.*
 1. User lands on `/`.
-2. User clicks "Sign In With Google".
-3. App authenticates and checks Firestore.
+2. User authenticates (Google/Apple/Email).
+3. App checks Firestore.
 4. **Condition:** Profile document IS found.
 5. App bypasses `/setup` entirely.
-6. App routes user directly to `/dashboard`.
+6. App routes user directly to the **Picks** tab.
 
-## Scenario 4: Authenticated User Creates a Private Pool
+## Scenario 4: The Core Gameplay Loop (Making Picks)
+*User locks in their predictions for the next show.*
+1. User navigates to the **Picks** tab.
+2. User utilizes the sub-navigation toggle: `[ Upcoming Show ] | [ Past Shows ]`.
+3. **If Upcoming:** App displays the master prediction form for *only* the next scheduled show (driven by Phish.net API). 
+4. User fills out the form and clicks "Lock In".
+5. App saves the master pick sheet to the database (applying to all joined pools).
+6. **If Past:** App displays read-only scorecards of previous shows the user participated in.
+
+## Scenario 5: Authenticated User Creates a Private Pool
 *Existing user wants to host their own room.*
-1. User is on `/dashboard` and navigates to the "Pools" tab.
+1. User navigates to the **Pools** tab.
 2. User clicks "Create Private Pool".
 3. User names the pool and submits.
-4. App creates pool document in Firestore (assigning user as Admin of that pool).
-5. App generates a unique shareable invite link.
-6. User copies link to send to friends (which triggers Scenario 2 for them).
+4. App creates pool document in Firestore.
+5. App generates both a shareable invite link AND a unique 6-digit access code.
 
-## Scenario 5: Global Admin Flow
+## Scenario 6: Global Admin Flow
 *Site owner logs in to post actual setlist results.*
-1. User logs in with `pat@road2media.com`.
+1. User logs in with designated admin email.
 2. App recognizes email matches `ADMIN_EMAIL` constant.
-3. Sidebar renders the "Admin Control" button.
+3. Master navigation renders the hidden **Admin** tab.
 4. User navigates to Admin tab to input live show results.
