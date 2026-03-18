@@ -18,7 +18,6 @@ export default function AutocompleteInput({ label, id, value, onChange, options 
     }, 200);
   };
 
-  // UPDATED: Now filters by checking 'opt.name' instead of just 'opt'
   const filteredOptions = options
     ?.filter(opt => opt?.name?.toLowerCase().includes(value.toLowerCase()))
     .slice(0, 8) || [];
@@ -36,7 +35,6 @@ export default function AutocompleteInput({ label, id, value, onChange, options 
       setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0));
     } else if (e.key === "Enter" && highlightedIndex >= 0) {
       e.preventDefault();
-      // UPDATED: Pass the song NAME back to the form, not the whole object
       onChange(id, filteredOptions[highlightedIndex].name);
       setIsFocused(false);
       setHighlightedIndex(-1);
@@ -71,25 +69,33 @@ export default function AutocompleteInput({ label, id, value, onChange, options 
             <div 
               key={song.name}
               onMouseDown={() => {
-                // UPDATED: Pass the song NAME back to the form
                 onChange(id, song.name);
                 setIsFocused(false);
                 setHighlightedIndex(-1);
               }}
-              className={`px-4 py-3 cursor-pointer border-b border-slate-800 last:border-0 flex justify-between items-center ${
+              className={`px-4 py-2 sm:py-3 cursor-pointer border-b border-slate-800 last:border-0 flex justify-between items-center ${
                 highlightedIndex === index ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <span className="text-sm font-bold">{song.name}</span>
+              <span className="text-sm font-bold pr-4">{song.name}</span>
               
-              {/* NEW: Display the Gap data right in the dropdown! */}
-              {song.gap !== "—" && (
-                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  highlightedIndex === index ? 'bg-white/20' : 'bg-slate-700 text-slate-400'
-                }`}>
-                  Gap: {song.gap}
-                </span>
-              )}
+              {/* NEW: Display both the Gap and Last Played stacked on the right */}
+              <div className="flex flex-col items-end gap-1">
+                {song.gap !== "—" && (
+                  <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    highlightedIndex === index ? 'bg-white/20' : 'bg-slate-700 text-slate-400'
+                  }`}>
+                    Gap: {song.gap}
+                  </span>
+                )}
+                {song.last !== "—" && (
+                  <span className={`text-[9px] sm:text-[10px] font-bold ${
+                    highlightedIndex === index ? 'text-emerald-100' : 'text-slate-500'
+                  }`}>
+                    Last: {song.last}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
