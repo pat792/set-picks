@@ -3,12 +3,13 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
-import { PHISH_SONGS } from '../../data/phishSongs.js';
+import { PHISH_SONGS } from '../../data/phishSongs.js'; // Fixed lowercase 'p'
 
 // --- CUSTOM AUTOCOMPLETE COMPONENT ---
 const SongAutocomplete = ({ value, onChange, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSongs, setFilteredSongs] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(-1); // Tracks keyboard highlight
   const wrapperRef = useRef(null);
 
   useEffect(() => {
@@ -32,14 +33,45 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
       
       setFilteredSongs(matches);
       setIsOpen(true);
+      setActiveIndex(-1); // Reset keyboard highlight when typing
     } else {
       setIsOpen(false);
+      setActiveIndex(-1);
     }
   };
 
   const handleSelect = (songName) => {
     onChange(songName);
     setIsOpen(false);
+    setActiveIndex(-1);
+  };
+
+  // NEW: The Keyboard Listener
+  const handleKeyDown = (e) => {
+    if (!isOpen) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault(); // Stops cursor from jumping to the end of the input
+      if (activeIndex < filteredSongs.length - 1) {
+        setActiveIndex((prev) => prev + 1);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (activeIndex > 0) {
+        setActiveIndex((prev) => prev - 1);
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault(); // CRITICAL: Stops the form from submitting!
+      if (activeIndex >= 0 && filteredSongs[activeIndex]) {
+        const songToSelect = typeof filteredSongs[activeIndex] === 'string' 
+          ? filteredSongs[activeIndex] 
+          : filteredSongs[activeIndex].name;
+        handleSelect(songToSelect);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      setActiveIndex(-1);
+    }
   };
 
   return (
@@ -48,6 +80,7 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
         type="text"
         value={value}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown} // Attached the keyboard listener
         onFocus={() => value.length > 1 && setIsOpen(true)}
         placeholder={placeholder}
         autoComplete="off"
@@ -65,7 +98,10 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
               <li 
                 key={index}
                 onClick={() => handleSelect(songName)}
-                className="px-4 py-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700/50 last:border-b-0 transition-colors flex justify-between items-center"
+                // NEW: Applies the bg-slate-700 highlight if this is the activeIndex
+                className={`px-4 py-3 cursor-pointer border-b border-slate-700/50 last:border-b-0 transition-colors flex justify-between items-center ${
+                  index === activeIndex ? 'bg-slate-700' : 'hover:bg-slate-700'
+                }`}
               >
                 <div className="font-bold text-white text-base truncate pr-4">{songName}</div>
                 
