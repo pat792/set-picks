@@ -1,150 +1,139 @@
-import React, { useState, useRef } from 'react';
-import { doc, setDoc } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { FORM_FIELDS } from '../../data/gameConfig';
+import { getShowStatus } from '../../utils/timeLogic';
 
-const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS }) => {
-  const [picks, setPicks] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
-  const [saveStatus, setSaveStatus] = useState("");
-  const [focusedField, setFocusedField] = useState(null);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const blurTimeoutRef = useRef(null);
+export default function PicksForm({ user, selectedDate }) {
+  const [picks, setPicks] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
-  const handleFocus = (fieldId) => {
-    if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
-    setFocusedField(fieldId);
-    setHighlightedIndex(-1);
-  };
+  // Ask the referee what the status of the selected date is
+  const showStatus = getShowStatus(selectedDate);
 
-  const handleBlur = () => {
-    blurTimeoutRef.current = setTimeout(() => {
-      setFocusedField(null);
-      setHighlightedIndex(-1);
-    }, 200);
-  };
-
-  const handleKeyDown = (e, fieldId, filteredSongs) => {
-    if (!focusedField || filteredSongs.length === 0) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlightedIndex((prev) => (prev < filteredSongs.length - 1 ? prev + 1 : prev));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-    } else if (e.key === "Enter" && highlightedIndex >= 0) {
-      e.preventDefault();
-      setPicks({ ...picks, [fieldId]: filteredSongs[highlightedIndex] });
-      setFocusedField(null);
-      setHighlightedIndex(-1);
-    }
-  };
-
-  const handleSavePicks = async () => {
-    if (!user || !userProfile) return;
-    
-    setSaveStatus("Saving...");
-    try {
+  // When the date changes, check if the user already saved picks for this show
+  useEffect(() => {
+    const loadExistingPicks = async () => {
+      if (!user?.uid || !selectedDate) return;
+      
       const pickId = `${selectedDate}_${user.uid}`;
-      await setDoc(doc(db, "picks", pickId), { 
-        ...picks, 
-        uid: user.uid, 
-        handle: userProfile.handle, 
-        date: selectedDate, 
-        updatedAt: new Date().toISOString() 
+      const docRef = doc(db, "picks", pickId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setPicks(docSnap.data());
+      } else {
+        setPicks({}); // Clear form if it's a fresh date
+      }
+    };
+
+    loadExistingPicks();
+  }, [selectedDate, user]);
+
+  const handleInputChange = (fieldId, value) => {
+    setPicks(prev => ({ ...prev, [fieldId]: value }));
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!user?.uid) {
+      setSaveMessage('Error: You must be logged in to save picks.');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveMessage('');
+
+    try {
+      // Creates a unique ID so they can only submit once per show
+      const pickId = `${selectedDate}_${user.uid}`;
+      
+      await setDoc(doc(db, "picks", pickId), {
+        ...picks,
+        userId: user.uid,
+        handle: user.displayName || user.email?.split('@')[0] || "Anonymous",
+        date: selectedDate,
+        updatedAt: new Date().toISOString()
       });
-      setSaveStatus("✅ Picks Locked In!");
-      setTimeout(() => setSaveStatus(""), 3000);
-    } catch (e) { 
-      setSaveStatus("❌ Error."); 
+      
+      setSaveMessage('Picks locked in successfully! 🎸');
+    } catch (error) {
+      console.error("Error saving picks:", error);
+      setSaveMessage('Error saving picks. Please try again.');
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage(''), 3000);
     }
   };
 
   return (
-    <div className="pb-24 text-white">
-      <h2 className="text-lg sm:text-xl font-black italic uppercase px-2 mb-2 sm:mb-4">My Picks</h2>
-      
-      <div className="bg-slate-800/80 backdrop-blur-md p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 shadow-2xl">
+    <div className="max-w-xl mx-auto mt-4">
+      <h2 className="text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
+        Make Your Picks
+      </h2>
+
+      {/* THE TIME MACHINE WRAPPER */}
+      <div className="relative">
         
-        {/* THE HONEYPOT: Invisible fields to trick Chrome's Wallet/Password Manager */}
-        <div style={{ display: 'none' }} aria-hidden="true">
-          <input type="text" name="fake_email" autoComplete="email" />
-          <input type="password" name="fake_password" autoComplete="current-password" />
-          <input type="text" name="fake_cc" autoComplete="cc-number" />
-        </div>
+        {/* THE LOCK OVERLAY (Only shows if the show isn't 'NEXT') */}
+        {showStatus !== 'NEXT' && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-3xl border border-slate-700/50">
+            <div className="bg-slate-800 p-6 rounded-2xl shadow-2xl text-center max-w-sm border border-slate-600 transform transition-all">
+              <span className="text-5xl block mb-4">
+                {showStatus === 'PAST' ? '🔒' : '⏳'}
+              </span>
+              <h3 className="text-xl font-black italic text-white mb-2">
+                {showStatus === 'PAST' ? 'PICKS LOCKED' : 'TOO EARLY'}
+              </h3>
+              <p className="text-slate-400 text-sm font-bold leading-relaxed">
+                {showStatus === 'PAST' 
+                  ? "This show has already happened! Practice Mode is coming soon."
+                  : "Picks for this show will open after the previous show ends."}
+              </p>
+            </div>
+          </div>
+        )}
 
-        {/* The Inputs Container: Using flex and gap for perfectly even spacing */}
-        <div className="flex flex-col gap-2.5 sm:gap-4">
-          {formFields.map(f => {
-            const isFocused = focusedField === f.id;
-            const currentInput = picks[f.id] || "";
-            const filteredSongs = PHISH_SONGS.filter(song => 
-              song.toLowerCase().includes(currentInput.toLowerCase())
-            ).slice(0, 8);
-            const showDropdown = isFocused && currentInput.length > 0 && filteredSongs.length > 0;
+        {/* THE FORM */}
+        <form 
+          onSubmit={handleSave}
+          className={`space-y-4 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 transition-all duration-300 ${
+            showStatus !== 'NEXT' ? 'opacity-30 pointer-events-none blur-[1px]' : ''
+          }`}
+        >
+          {FORM_FIELDS.map((field) => (
+            <div key={field.id} className="flex flex-col">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                {field.label}
+              </label>
+              <input
+                type="text"
+                value={picks[field.id] || ''}
+                onChange={(e) => handleInputChange(field.id, e.target.value)}
+                placeholder="Type a song..."
+                className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors w-full"
+              />
+            </div>
+          ))}
 
-            return (
-              <div key={f.id} className={`relative ${isFocused ? 'z-50' : 'z-10'}`}>
-                <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 ml-2 sm:ml-3 mb-0.5 sm:mb-1 block">
-                  {f.label}
-                </label>
-                
-                <input 
-                  type="text" 
-                  name={`phish-song-query-${f.id}`}
-                  inputMode="search" /* Forces mobile keyboards to treat this like a search bar, not a form */
-                  autoComplete="off" 
-                  autoCorrect="off"
-                  spellCheck="false"
-                  autoCapitalize="words"
-                  placeholder="Type a song..."
-                  value={picks[f.id]}
-                  onChange={(e) => {
-                    setPicks({ ...picks, [f.id]: e.target.value });
-                    setHighlightedIndex(-1);
-                  }}
-                  onFocus={() => handleFocus(f.id)}
-                  onBlur={handleBlur}
-                  onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
-                  className="w-full bg-white border-2 border-slate-300 py-1.5 px-3 sm:p-3 rounded-xl text-base font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
-                />
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
+            >
+              {isSaving ? 'Saving...' : 'Lock In Picks'}
+            </button>
+          </div>
 
-                {showDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl z-[100]">
-                    {filteredSongs.map((song, index) => (
-                      <div 
-                        key={song}
-                        onMouseDown={() => {
-                          setPicks({ ...picks, [f.id]: song });
-                          setFocusedField(null);
-                          setHighlightedIndex(-1);
-                        }}
-                        className={`px-4 py-2 sm:py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
-                          highlightedIndex === index ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
-                        }`}
-                      >
-                        {song}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* The Button Container: Explicitly wider margin (mt-5) to separate it from the inputs */}
-        <div className="mt-5 sm:mt-7">
-          <button 
-            onClick={handleSavePicks}
-            className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-2.5 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 border border-white/10"
-          >
-            {saveStatus || "Lock In Picks"}
-          </button>
-        </div>
-
+          {saveMessage && (
+            <div className={`text-center font-bold text-sm mt-4 ${saveMessage.includes('Error') ? 'text-red-400' : 'text-emerald-400'}`}>
+              {saveMessage}
+            </div>
+          )}
+        </form>
       </div>
     </div>
   );
-};
-
-export default PicksForm;
+}
