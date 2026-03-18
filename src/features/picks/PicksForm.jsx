@@ -3,16 +3,14 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
-import { PHISH_SONGS } from '../../data/phishSongs.js';
+import { PHISH_SONGS } from '../../data/PhishSongs.js';
 
 // --- CUSTOM AUTOCOMPLETE COMPONENT ---
-// We build this right here so it can be perfectly styled for your app
 const SongAutocomplete = ({ value, onChange, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSongs, setFilteredSongs] = useState([]);
   const wrapperRef = useRef(null);
 
-  // Closes the dropdown if the user clicks anywhere else on the screen
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -27,12 +25,10 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
     const val = e.target.value;
     onChange(val);
 
-    // Only start searching if they typed at least 2 characters
     if (val.length > 1) {
       const matches = PHISH_SONGS.filter(song => 
-        // Handles both strings or rich objects just in case
         (typeof song === 'string' ? song : song.name).toLowerCase().includes(val.toLowerCase())
-      ).slice(0, 10); // Only show top 10 so it doesn't lag the screen
+      ).slice(0, 10);
       
       setFilteredSongs(matches);
       setIsOpen(true);
@@ -54,11 +50,10 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
         onChange={handleInputChange}
         onFocus={() => value.length > 1 && setIsOpen(true)}
         placeholder={placeholder}
-        autoComplete="off" /* Kills the ugly browser default */
+        autoComplete="off"
         className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors w-full"
       />
       
-      {/* THE CUSTOM FLOATING DROPDOWN */}
       {isOpen && filteredSongs.length > 0 && (
         <ul className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden">
           {filteredSongs.map((song, index) => {
@@ -70,13 +65,11 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
               <li 
                 key={index}
                 onClick={() => handleSelect(songName)}
-                /* NEW: Added flex, items-center, and justify-between to push data to the right */
                 className="px-4 py-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700/50 last:border-b-0 transition-colors flex justify-between items-center"
               >
                 <div className="font-bold text-white text-base truncate pr-4">{songName}</div>
                 
                 {typeof song !== 'string' && (
-                  /* NEW: Text aligned right, preventing it from wrapping */
                   <div className="text-[11px] text-emerald-400 font-bold uppercase tracking-widest whitespace-nowrap text-right shrink-0">
                     <span className="text-slate-500">Gap:</span> {songGap} 
                     <span className="text-slate-600 mx-2">|</span> 
@@ -88,6 +81,9 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
           })}
         </ul>
       )}
+    </div>
+  );
+};
 
 // --- MAIN PICKS FORM COMPONENT ---
 export default function PicksForm({ user, selectedDate }) {
@@ -158,7 +154,6 @@ export default function PicksForm({ user, selectedDate }) {
 
       <div className="relative">
         
-        {/* THE TIME MACHINE LOCK */}
         {showStatus !== 'NEXT' && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-3xl border border-slate-700/50">
             <div className="bg-slate-800 p-6 rounded-2xl shadow-2xl text-center max-w-sm border border-slate-600 transform transition-all">
@@ -171,51 +166,4 @@ export default function PicksForm({ user, selectedDate }) {
               <p className="text-slate-400 text-sm font-bold leading-relaxed">
                 {showStatus === 'PAST' 
                   ? "This show has already happened! Practice Mode is coming soon."
-                  : "Picks for this show will open after the previous show ends."}
-              </p>
-            </div>
-          </div>
-        )}
-
-        <form 
-          onSubmit={handleSave}
-          className={`space-y-4 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 transition-all duration-300 ${
-            showStatus !== 'NEXT' ? 'opacity-30 pointer-events-none blur-[1px]' : ''
-          }`}
-        >
-          {FORM_FIELDS.map((field) => (
-            <div key={field.id} className="flex flex-col">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
-                {field.label}
-              </label>
-              
-              {/* WE REPLACED THE HTML INPUT WITH OUR CUSTOM COMPONENT! */}
-              <SongAutocomplete
-                value={picks[field.id] || ''}
-                onChange={(val) => handleInputChange(field.id, val)}
-                placeholder="Type a song..."
-              />
-
-            </div>
-          ))}
-
-          <div className="pt-4">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
-            >
-              {isSaving ? 'Saving...' : 'Lock In Picks'}
-            </button>
-          </div>
-
-          {saveMessage && (
-            <div className={`text-center font-bold text-sm mt-4 ${saveMessage.includes('Error') ? 'text-red-400' : 'text-emerald-400'}`}>
-              {saveMessage}
-            </div>
-          )}
-        </form>
-      </div>
-    </div>
-  );
-}
+                  : "Picks for this show will
