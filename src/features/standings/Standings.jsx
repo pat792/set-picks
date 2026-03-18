@@ -1,20 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+// NEW: We imported 'query' and 'where' to filter the database!
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Leaderboard from '../../components/Leaderboard.jsx';
 
-export default function Standings() {
+// NEW: It now accepts 'selectedDate' as a prop from the layout
+export default function Standings({ selectedDate }) {
   const [picks, setPicks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPicks = async () => {
+      setLoading(true); // Restart loading spinner when date changes
       try {
-        const querySnapshot = await getDocs(collection(db, "picks"));
+        // NEW: The smart query! Only fetch picks for the selected date.
+        const q = query(
+          collection(db, "picks"), 
+          where("date", "==", selectedDate)
+        );
+        
+        const querySnapshot = await getDocs(q);
         const fetchedPicks = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
+        
         setPicks(fetchedPicks);
       } catch (error) {
         console.error("Error fetching picks:", error);
@@ -23,15 +33,17 @@ export default function Standings() {
       }
     };
 
-    fetchPicks();
-  }, []);
+    if (selectedDate) {
+      fetchPicks();
+    }
+  }, [selectedDate]); // Re-run this exact function any time the date changes!
 
-  const actualSetlist = null; // No show has happened yet!
+  const actualSetlist = null; // Still null for now
 
   if (loading) {
     return (
       <div className="flex justify-center items-center mt-20 text-emerald-400 font-bold animate-pulse">
-        Loading Global Standings...
+        Loading Standings for {selectedDate}...
       </div>
     );
   }
