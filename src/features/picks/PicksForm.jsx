@@ -1,8 +1,24 @@
 import React, { useState, useRef } from 'react';
 import { doc, setDoc } from "firebase/firestore";
 import { db } from '../../lib/firebase';
+import { useAuth } from '../auth/useAuth'; // We pull auth directly into the form now!
 
-const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS }) => {
+// 1. We define the form fields directly here so they can never go missing
+const FORM_FIELDS = [
+  { id: "s1o", label: "Set 1 Opener" },
+  { id: "s1c", label: "Set 1 Closer" },
+  { id: "s2o", label: "Set 2 Opener" },
+  { id: "s2c", label: "Set 2 Closer" },
+  { id: "enc", label: "Encore" },
+  { id: "wild", label: "Wildcard" }
+];
+
+// 2. A fallback song list just in case your main list isn't connected yet
+const FALLBACK_SONGS = ["You Enjoy Myself", "Tweezer", "Chalk Dust Torture", "Harry Hood", "Fluffhead"];
+
+const PicksForm = ({ selectedDate = "next_show", PHISH_SONGS = FALLBACK_SONGS }) => {
+  const { user, userProfile } = useAuth(); // Automatically grabs the user!
+  
   const [picks, setPicks] = useState({ s1o: "", s1c: "", s2o: "", s2c: "", enc: "", wild: "" });
   const [saveStatus, setSaveStatus] = useState("");
   const [focusedField, setFocusedField] = useState(null);
@@ -65,21 +81,22 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
       
       <div className="bg-slate-800/80 backdrop-blur-md p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-700 shadow-2xl">
         
-        {/* THE HONEYPOT: Invisible fields to trick Chrome's Wallet/Password Manager */}
+        {/* THE HONEYPOT */}
         <div style={{ display: 'none' }} aria-hidden="true">
           <input type="text" name="fake_email" autoComplete="email" />
           <input type="password" name="fake_password" autoComplete="current-password" />
           <input type="text" name="fake_cc" autoComplete="cc-number" />
         </div>
 
-        {/* The Inputs Container: Using flex and gap for perfectly even spacing */}
         <div className="flex flex-col gap-2.5 sm:gap-4">
-          {formFields.map(f => {
+          {FORM_FIELDS.map(f => {
             const isFocused = focusedField === f.id;
             const currentInput = picks[f.id] || "";
-            const filteredSongs = PHISH_SONGS.filter(song => 
-              song.toLowerCase().includes(currentInput.toLowerCase())
-            ).slice(0, 8);
+            // Added ? safety checks so .filter never crashes
+            const filteredSongs = PHISH_SONGS?.filter(song => 
+              song?.toLowerCase().includes(currentInput.toLowerCase())
+            ).slice(0, 8) || [];
+            
             const showDropdown = isFocused && currentInput.length > 0 && filteredSongs.length > 0;
 
             return (
@@ -91,7 +108,7 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                 <input 
                   type="text" 
                   name={`phish-song-query-${f.id}`}
-                  inputMode="search" /* Forces mobile keyboards to treat this like a search bar, not a form */
+                  inputMode="search"
                   autoComplete="off" 
                   autoCorrect="off"
                   spellCheck="false"
@@ -105,7 +122,7 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                   onFocus={() => handleFocus(f.id)}
                   onBlur={handleBlur}
                   onKeyDown={(e) => handleKeyDown(e, f.id, filteredSongs)}
-                  className="w-full bg-white border-2 border-slate-300 py-1.5 px-3 sm:p-3 rounded-xl text-base font-black text-slate-900 outline-none focus:border-blue-500 transition-all shadow-md placeholder:text-slate-400"
+                  className="w-full bg-slate-900 border-2 border-slate-700 py-2.5 px-4 rounded-xl text-base font-bold text-white outline-none focus:border-emerald-500 transition-all shadow-md placeholder:text-slate-500"
                 />
 
                 {showDropdown && (
@@ -118,8 +135,8 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
                           setFocusedField(null);
                           setHighlightedIndex(-1);
                         }}
-                        className={`px-4 py-2 sm:py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
-                          highlightedIndex === index ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                        className={`px-4 py-3 text-sm font-bold cursor-pointer border-b border-slate-800 last:border-0 ${
+                          highlightedIndex === index ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                         }`}
                       >
                         {song}
@@ -132,11 +149,10 @@ const PicksForm = ({ selectedDate, user, userProfile, formFields, PHISH_SONGS })
           })}
         </div>
 
-        {/* The Button Container: Explicitly wider margin (mt-5) to separate it from the inputs */}
-        <div className="mt-5 sm:mt-7">
+        <div className="mt-6 sm:mt-8">
           <button 
             onClick={handleSavePicks}
-            className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-2.5 sm:py-3.5 rounded-xl font-black text-sm uppercase tracking-widest hover:from-blue-400 hover:to-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20 border border-white/10"
+            className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white py-3 sm:py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg shadow-emerald-500/20"
           >
             {saveStatus || "Lock In Picks"}
           </button>
