@@ -2,15 +2,16 @@ import React from 'react';
 import { Link, useLocation, Routes, Route } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 
-// 1. Importing your restored components!
+// 1. Importing your actual page components!
 import PicksForm from '../picks/PicksForm';
 import AdminForm from '../admin/AdminForm';
+import Standings from '../standings/Standings';
 
 export default function DashboardLayout() {
   const location = useLocation();
-  const { user } = useAuth(); // Pulling user to pass to forms AND check for Admin status
+  const { user } = useAuth();
 
-  // 2. Admin Check (Make sure this matches your actual email!)
+  // 2. Admin Check
   const isAdmin = user?.email === 'pat@road2media.com';
 
   // 3. Our core tabs
@@ -21,7 +22,7 @@ export default function DashboardLayout() {
     { name: 'Profile', path: '/dashboard/profile', icon: '👤' },
   ];
 
-  // 4. Dynamically add the Admin tab ONLY if the user is Pat
+  // 4. Dynamically add Admin tab
   if (isAdmin) {
     navItems.push({ name: 'Admin', path: '/dashboard/admin', icon: '⚙️' });
   }
@@ -39,7 +40,6 @@ export default function DashboardLayout() {
         
         <div className="flex flex-col gap-2 flex-1">
           {navItems.map((item) => {
-            // Need to exact match '/dashboard' for Picks so it doesn't highlight on every page
             const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/dashboard/');
             return (
               <Link 
@@ -63,14 +63,16 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-y-auto pb-24 md:pb-8 relative">
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           <Routes>
-            {/* The Restored Core Forms WITH USER PROP PASSED */}
+            {/* The Restored Core Forms */}
             <Route path="/" element={<PicksForm user={user} />} />
             <Route path="/admin" element={<AdminForm user={user} />} />
 
-            {/* The Pages We Are Building Next */}
-            <Route path="/pools" element={<h2 className="text-3xl font-bold mt-10 text-center">Pools Page (Coming Soon)</h2>} />
-            <Route path="/standings" element={<h2 className="text-3xl font-bold mt-10 text-center">Standings Page (Coming Soon)</h2>} />
-            <Route path="/profile" element={<h2 className="text-3xl font-bold mt-10 text-center">Profile Page (Coming Soon)</h2>} />
+            {/* The Real Standings Page! */}
+            <Route path="/standings" element={<Standings />} />
+
+            {/* Clean placeholders for unbuilt pages so the app doesn't crash when clicked */}
+            <Route path="/pools" element={<div className="flex justify-center items-center mt-32 text-slate-500 font-bold uppercase tracking-widest">Pools Loading...</div>} />
+            <Route path="/profile" element={<div className="flex justify-center items-center mt-32 text-slate-500 font-bold uppercase tracking-widest">Profile Loading...</div>} />
           </Routes>
         </div>
       </main>
