@@ -1,8 +1,7 @@
-// src/features/standings/Standings.jsx
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import Leaderboard from '../../components/Leaderboard'; // Connecting the shared Lego block!
+import Leaderboard from '../../components/Leaderboard.jsx';
 
 export default function Standings() {
   const [picks, setPicks] = useState([]);
