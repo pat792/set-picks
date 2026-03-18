@@ -64,18 +64,23 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
           {filteredSongs.map((song, index) => {
             const songName = typeof song === 'string' ? song : song.name;
             const songGap = song.gap && song.gap !== '—' ? song.gap : 'N/A';
-            const songLast = song.last && song.last !== '—' ? song.last : 'Never/Alias';
+            const songLast = song.last && song.last !== '—' ? song.last : 'Never';
 
             return (
               <li 
                 key={index}
                 onClick={() => handleSelect(songName)}
-                className="px-4 py-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700/50 last:border-b-0 transition-colors"
+                /* NEW: Added flex, items-center, and justify-between to push data to the right */
+                className="px-4 py-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700/50 last:border-b-0 transition-colors flex justify-between items-center"
               >
-                <div className="font-bold text-white text-base truncate">{songName}</div>
+                <div className="font-bold text-white text-base truncate pr-4">{songName}</div>
+                
                 {typeof song !== 'string' && (
-                  <div className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mt-0.5">
-                    Gap: {songGap} <span className="text-slate-500 px-1">•</span> Last: {songLast}
+                  /* NEW: Text aligned right, preventing it from wrapping */
+                  <div className="text-[11px] text-emerald-400 font-bold uppercase tracking-widest whitespace-nowrap text-right shrink-0">
+                    <span className="text-slate-500">Gap:</span> {songGap} 
+                    <span className="text-slate-600 mx-2">|</span> 
+                    <span className="text-slate-500">Last:</span> {songLast}
                   </div>
                 )}
               </li>
@@ -83,9 +88,6 @@ const SongAutocomplete = ({ value, onChange, placeholder }) => {
           })}
         </ul>
       )}
-    </div>
-  );
-};
 
 // --- MAIN PICKS FORM COMPONENT ---
 export default function PicksForm({ user, selectedDate }) {
