@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore'; // ADDED doc, getDoc
 import { db } from '../../lib/firebase';
-import Leaderboard from '../../components/Leaderboard.jsx';
-import { useAuth } from '../auth/useAuth'; // NEW: To know who is logged in
-
+import Leaderboard from '../../components/Leaderboard';
+import { useAuth } from '../auth/useAuth';
 import { getShowStatus } from '../../utils/timeLogic.js';
 
 export default function Standings({ selectedDate }) {
-  const { user } = useAuth(); // Get the current user
+  const { user } = useAuth(); 
   
-  const [allPicks, setAllPicks] = useState([]); // Stores EVERYONE'S picks
-  const [userPools, setUserPools] = useState([]); // Stores the user's private groups
-  const [activeFilter, setActiveFilter] = useState('global'); // 'global' or 'pool_id'
+  const [allPicks, setAllPicks] = useState([]); 
+  const [userPools, setUserPools] = useState([]); 
+  const [activeFilter, setActiveFilter] = useState('global'); 
+  const [actualSetlist, setActualSetlist] = useState(null); // NEW: State for official setlist
   
   const [loading, setLoading] = useState(true);
   const showStatus = getShowStatus(selectedDate);
 
-  // 1. Fetch the User's Pools (So we know what tabs to show)
+  // 1. Fetch the User's Pools 
   useEffect(() => {
     const fetchPools = async () => {
       if (!user?.uid) return;
@@ -32,47 +32,57 @@ export default function Standings({ selectedDate }) {
     fetchPools();
   }, [user]);
 
-  // 2. Fetch ALL Picks for the Selected Date
+  // 2. Fetch ALL Picks AND the Official Setlist for the Selected Date
   useEffect(() => {
-    const fetchPicks = async () => {
+    const fetchData = async () => {
       if (showStatus === 'FUTURE') {
         setAllPicks([]);
+        setActualSetlist(null);
         setLoading(false);
         return;
       }
 
       setLoading(true);
       try {
+        // A. Fetch the Picks
         const q = query(collection(db, "picks"), where("date", "==", selectedDate));
         const querySnapshot = await getDocs(q);
         const fetchedPicks = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-        
         setAllPicks(fetchedPicks);
+
+        // B. Fetch the Official Setlist (Saved by Admin)
+        const setlistRef = doc(db, 'official_setlists', selectedDate);
+        const setlistSnap = await getDoc(setlistRef);
+        
+        if (setlistSnap.exists()) {
+          setActualSetlist(setlistSnap.data());
+        } else {
+          setActualSetlist(null); // No official setlist yet
+        }
+
       } catch (error) {
-        console.error("Error fetching picks:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (selectedDate) fetchPicks();
+    if (selectedDate) fetchData();
   }, [selectedDate, showStatus]); 
 
-  // 3. IN-MEMORY FILTER: Instantly swap between Global and Pool views without DB reads!
+  // 3. IN-MEMORY FILTER: Instantly swap between Global and Pool views
   const displayedPicks = useMemo(() => {
     if (activeFilter === 'global') return allPicks;
     
     const selectedPool = userPools.find(p => p.id === activeFilter);
     if (!selectedPool) return allPicks;
 
-    // Only return picks where the pick's userId is in this pool's member array
     return allPicks.filter(pick => selectedPool.members.includes(pick.userId));
   }, [allPicks, activeFilter, userPools]);
 
-  const actualSetlist = null; // Still null for now
 
   if (loading) {
     return (
@@ -104,10 +114,7 @@ export default function Standings({ selectedDate }) {
           Leaderboard Filter:
         </h3>
         
-        {/* Horizontal Scrolling container for mobile */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-1">
-          
-          {/* Global Pill */}
           <button
             onClick={() => setActiveFilter('global')}
             className={`px-5 py-2.5 rounded-full font-black text-sm uppercase tracking-widest whitespace-nowrap transition-all shadow-lg ${
@@ -119,7 +126,6 @@ export default function Standings({ selectedDate }) {
             Global
           </button>
 
-          {/* User's Pools Pills */}
           {userPools.map(pool => (
             <button
               key={pool.id}
@@ -136,15 +142,30 @@ export default function Standings({ selectedDate }) {
         </div>
       </div>
 
+      {/* ALERT BANNER: Shows if the game is locked but Admin hasn't saved the setlist yet */}
+      {!actualSetlist && allPicks.length > 0 && (
+        <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+          <p className="text-amber-400 font-bold text-sm">
+            Waiting for official setlist. Stay tuned...
+          </p>
+        </div>
+      )}
+
       {/* THE LEADERBOARD */}
       {displayedPicks.length === 0 ? (
         <div className="flex flex-col items-center justify-center mt-12 bg-slate-800/50 p-8 rounded-3xl border border-slate-700/50 text-center">
-          <span className="text-5xl mb-4">🎸</span>
-          <h3 className="text-xl font-black italic text-white mb-2">NO PICKS YET</h3>
+          <span className="text-5xl mb-4">{showStatus === 'PAST' ? '👻' : '🎸'}</span>
+          <h3 className="text-xl font-black italic text-white mb-2">
+            {showStatus === 'PAST' ? 'GHOST TOWN' : 'NO PICKS YET'}
+          </h3>
           <p className="text-slate-400 font-bold max-w-sm">
-            {activeFilter === 'global' 
-              ? "Be the first to lock in your picks for tonight's show!" 
-              : `None of your friends in this pool have made picks yet!`}
+            {showStatus === 'PAST' 
+              ? (activeFilter === 'global' 
+                  ? "Nobody made any picks for this show!" 
+                  : "None of your friends in this pool made picks for this show!")
+              : (activeFilter === 'global' 
+                  ? "Be the first to lock in your picks for tonight's show!" 
+                  : "None of your friends in this pool have made picks yet!")}
           </p>
         </div>
       ) : (

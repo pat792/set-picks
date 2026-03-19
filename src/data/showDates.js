@@ -2,10 +2,10 @@
 
 export const SHOW_DATES = [
   // --- PAST SHOWS ---
-  { date: "2026-02-26", venue: "Moon Palace, Cancun, MX" },
-  { date: "2026-02-27", venue: "Moon Palace, Cancun, MX" },
-  { date: "2026-02-28", venue: "Moon Palace, Cancun, MX" },
-  { date: "2026-03-01", venue: "Moon Palace, Cancun, MX" },
+  { date: "2026-01-28", venue: "Moon Palace, Cancun, MX" },
+  { date: "2026-01-29", venue: "Moon Palace, Cancun, MX" },
+  { date: "2026-01-30", venue: "Moon Palace, Cancun, MX" },
+  { date: "2026-01-31", venue: "Moon Palace, Cancun, MX" },
   
   // --- SPHERE RUN ---
   { date: "2026-04-16", venue: "Sphere, Las Vegas, NV" },

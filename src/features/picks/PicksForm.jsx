@@ -5,7 +5,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
-import SongAutocomplete from '../../components/SongAutocomplete'; // NEW IMPORT!
+import SongAutocomplete from '../../components/SongAutocomplete';
 
 export default function PicksForm({ user, selectedDate }) {
   const [picks, setPicks] = useState({});
