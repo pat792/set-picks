@@ -1,5 +1,3 @@
-// src/features/picks/PicksForm.jsx
-
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -47,12 +45,25 @@ export default function PicksForm({ user, selectedDate }) {
     setSaveMessage('');
 
     try {
+      // 1. Fetch the custom handle from your users table
+      const userDocRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userDocRef);
+      
+      // Default to Google name/email if they haven't set up a profile yet
+      let customHandle = user.displayName || user.email?.split('@')[0] || "Anonymous";
+      
+      // Override with custom handle if it exists in the database
+      if (userSnap.exists() && userSnap.data().handle) {
+        customHandle = userSnap.data().handle;
+      }
+
       const pickId = `${selectedDate}_${user.uid}`;
       
+      // 2. Save the picks using the true custom handle
       await setDoc(doc(db, "picks", pickId), {
         ...picks,
         userId: user.uid,
-        handle: user.displayName || user.email?.split('@')[0] || "Anonymous",
+        handle: customHandle, // <-- Now using the custom handle!
         date: selectedDate,
         updatedAt: new Date().toISOString()
       });
