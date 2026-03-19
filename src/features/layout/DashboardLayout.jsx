@@ -82,7 +82,7 @@ export default function DashboardLayout() {
             {/* We pass selectedDate down into the pages! */}
             <Route path="/" element={<PicksForm user={user} selectedDate={selectedDate} />} />
             <Route path="/standings" element={<Standings selectedDate={selectedDate} />} />
-            <Route path="/admin" element={<AdminForm user={user} />} />
+            <Route path="/admin" element={<AdminForm user={user} selectedDate={selectedDate} />} />
             <Route path="/profile" element={<Profile user={user} />} />
             
             {/* NEW: Pools is successfully wired in! */}
