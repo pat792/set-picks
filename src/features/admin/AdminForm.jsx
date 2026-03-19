@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { FORM_FIELDS } from '../../data/gameConfig'; // <-- THE SINGLE SOURCE OF TRUTH
 
 export default function AdminForm({ user, selectedDate }) {
-  const [setOneOpener, setSetOneOpener] = useState('');
-  const [setTwoOpener, setSetTwoOpener] = useState('');
-  const [encore, setEncore] = useState('');
+  // Dynamically create our initial state based on whatever is in gameConfig.js
+  const [setlistData, setSetlistData] = useState(() => {
+    const initialState = {};
+    FORM_FIELDS.forEach(field => {
+      initialState[field.id] = '';
+    });
+    return initialState;
+  });
   
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  // Security Check: Double-verify this is you
+  // Security Check
   const isAdmin = user?.email === 'pat@road2media.com';
 
-  // Load the existing official setlist if you already saved it
+  // 1. Load the existing official setlist if already saved
   useEffect(() => {
     const fetchOfficialSetlist = async () => {
       if (!selectedDate || !isAdmin) return;
@@ -24,14 +30,13 @@ export default function AdminForm({ user, selectedDate }) {
         
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setSetOneOpener(data.setOneOpener || '');
-          setSetTwoOpener(data.setTwoOpener || '');
-          setEncore(data.encore || '');
+          // Merge fetched data with our blank template to ensure no fields are missing
+          setSetlistData(prev => ({ ...prev, ...data }));
         } else {
-          // Reset if no data for this date
-          setSetOneOpener('');
-          setSetTwoOpener('');
-          setEncore('');
+          // Reset to blank if no data for this date
+          const resetState = {};
+          FORM_FIELDS.forEach(f => resetState[f.id] = '');
+          setSetlistData(resetState);
         }
       } catch (error) {
         console.error("Error fetching setlist:", error);
@@ -41,6 +46,15 @@ export default function AdminForm({ user, selectedDate }) {
     fetchOfficialSetlist();
   }, [selectedDate, isAdmin]);
 
+  // 2. Handle dynamic input changes
+  const handleInputChange = (fieldId, value) => {
+    setSetlistData(prev => ({
+      ...prev,
+      [fieldId]: value
+    }));
+  };
+
+  // 3. Save to Firestore
   const handleSave = async (e) => {
     e.preventDefault();
     if (!isAdmin) return;
@@ -49,13 +63,16 @@ export default function AdminForm({ user, selectedDate }) {
     setMessage({ text: '', type: '' });
 
     try {
-      // We use the date (e.g., '2026-04-18') as the document ID!
+      // Clean up the data (trim whitespace) before saving
+      const cleanedData = {};
+      Object.keys(setlistData).forEach(key => {
+        cleanedData[key] = typeof setlistData[key] === 'string' ? setlistData[key].trim() : setlistData[key];
+      });
+
       const docRef = doc(db, 'setlists', selectedDate);
       await setDoc(docRef, {
+        ...cleanedData,
         date: selectedDate,
-        setOneOpener: setOneOpener.trim(),
-        setTwoOpener: setTwoOpener.trim(),
-        encore: encore.trim(),
         updatedAt: new Date().toISOString(),
         updatedBy: user.email
       });
@@ -81,7 +98,7 @@ export default function AdminForm({ user, selectedDate }) {
           <span>⚠️</span> ADMIN WAR ROOM
         </h2>
         <p className="text-xs text-red-300/80 font-bold uppercase tracking-wider mt-1">
-          You are updating the master scorecard. This will calculate points for all users.
+          Locking the official setlist for {selectedDate}. This will trigger scoring.
         </p>
       </div>
 
@@ -89,47 +106,21 @@ export default function AdminForm({ user, selectedDate }) {
         onSubmit={handleSave}
         className="space-y-6 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50"
       >
-        {/* Set 1 Opener */}
-        <div className="flex flex-col">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
-            Official Set 1 Opener
-          </label>
-          <input
-            type="text"
-            value={setOneOpener}
-            onChange={(e) => setSetOneOpener(e.target.value)}
-            placeholder="e.g., Chalk Dust Torture"
-            className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-blue-500 transition-colors w-full"
-          />
-        </div>
-
-        {/* Set 2 Opener */}
-        <div className="flex flex-col">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
-            Official Set 2 Opener
-          </label>
-          <input
-            type="text"
-            value={setTwoOpener}
-            onChange={(e) => setSetTwoOpener(e.target.value)}
-            placeholder="e.g., Down with Disease"
-            className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-blue-500 transition-colors w-full"
-          />
-        </div>
-
-        {/* Encore */}
-        <div className="flex flex-col">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
-            Official Encore
-          </label>
-          <input
-            type="text"
-            value={encore}
-            onChange={(e) => setEncore(e.target.value)}
-            placeholder="e.g., Character Zero"
-            className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-blue-500 transition-colors w-full"
-          />
-        </div>
+        {/* DYNAMICALLY RENDERED INPUTS FROM gameConfig.js */}
+        {FORM_FIELDS.map((field) => (
+          <div key={field.id} className="flex flex-col">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
+              Official {field.label}
+            </label>
+            <input
+              type="text"
+              value={setlistData[field.id] || ''}
+              onChange={(e) => handleInputChange(field.id, e.target.value)}
+              placeholder={`e.g., ${field.placeholder || 'Song Name'}`}
+              className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-red-500 transition-colors w-full"
+            />
+          </div>
+        ))}
 
         {/* Save Button */}
         <div className="pt-2">
