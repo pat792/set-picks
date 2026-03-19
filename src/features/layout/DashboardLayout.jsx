@@ -5,6 +5,7 @@ import { useAuth } from '../auth/useAuth';
 import PicksForm from '../picks/PicksForm';
 import AdminForm from '../admin/AdminForm';
 import Standings from '../standings/Standings';
+import Profile from '../profile/Profile'; // NEW: Imported Profile UI
 
 // NEW: Import our Time Machine!
 import { SHOW_DATES } from '../../data/showDates.js';
@@ -56,7 +57,7 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-y-auto pb-24 md:pb-8 relative">
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           
-          {/* NEW: THE GLOBAL DATE PICKER */}
+          {/* THE GLOBAL DATE PICKER */}
           <div className="mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Select Show:</span>
             <select
@@ -76,13 +77,15 @@ export default function DashboardLayout() {
           </div>
 
           <Routes>
-            {/* NEW: We pass selectedDate down into the pages! */}
+            {/* We pass selectedDate down into the pages! */}
             <Route path="/" element={<PicksForm user={user} selectedDate={selectedDate} />} />
             <Route path="/standings" element={<Standings selectedDate={selectedDate} />} />
-            
             <Route path="/admin" element={<AdminForm user={user} />} />
+            
+            {/* NEW: Profile is successfully wired in! */}
+            <Route path="/profile" element={<Profile user={user} />} />
+            
             <Route path="/pools" element={<div className="flex justify-center mt-32 text-slate-500 font-bold uppercase">Pools Loading...</div>} />
-            <Route path="/profile" element={<div className="flex justify-center mt-32 text-slate-500 font-bold uppercase">Profile Loading...</div>} />
           </Routes>
         </div>
       </main>
