@@ -171,4 +171,7 @@ export default function Standings({ selectedDate }) {
       ) : (
         <Leaderboard poolPicks={displayedPicks} actualSetlist={actualSetlist} />
       )}
+      
+    </div>
+  );
 }
