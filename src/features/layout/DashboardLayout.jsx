@@ -57,13 +57,25 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-y-auto pb-24 md:pb-8 relative">
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           
-          {/* THE GLOBAL DATE PICKER */}
-          <div className="mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
-            <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Select Show:</span>
-            <select
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-slate-900 border-2 border-slate-700 text-white text-sm sm:text-base font-bold py-2.5 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer w-full sm:w-auto"
+         {/* THE GLOBAL DATE PICKER (Hidden on Profile Page) */}
+{location.pathname !== '/dashboard/profile' && (
+  <div className="mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+    <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Select Show:</span>
+    <select
+      value={selectedDate}
+      onChange={(e) => setSelectedDate(e.target.value)}
+      className="bg-slate-900 border-2 border-slate-700 text-white text-sm sm:text-base font-bold py-2.5 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer w-full sm:w-auto"
+    >
+      {SHOW_DATES.map(show => {
+        return (
+          <option key={show.date} value={show.date}>
+            {show.date} — {show.venue.split(',')[0]}
+          </option>
+        );
+      })}
+    </select>
+  </div>
+)}
             >
               {SHOW_DATES.map(show => {
                 // Formatting the date nicely (e.g., "2026-04-18 - Sphere")
