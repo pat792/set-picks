@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db, auth } from '../../lib/firebase'; // Added auth
+import { signOut } from 'firebase/auth'; // Added signOut
+import { useNavigate } from 'react-router-dom'; // Added useNavigate
 
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');
   const [favoriteSong, setFavoriteSong] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  
+  const navigate = useNavigate(); // Initialize the router navigation
 
   // Fetch existing user data on load
   useEffect(() => {
@@ -54,6 +58,16 @@ export default function Profile({ user }) {
     } finally {
       setIsSaving(false);
       setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+    }
+  };
+
+  // The new Logout function
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/'); // Redirect back to the login screen
+    } catch (error) {
+      console.error("Error logging out: ", error);
     }
   };
 
@@ -116,6 +130,18 @@ export default function Profile({ user }) {
           </div>
         )}
       </form>
+
+      {/* NEW: Logout Section */}
+      <div className="mt-8 pt-6 border-t border-slate-700/50">
+        <button
+          onClick={handleLogout}
+          type="button"
+          className="w-full bg-transparent hover:bg-red-500/10 border-2 border-red-500/30 hover:border-red-500 text-red-400 font-black text-sm py-4 rounded-xl uppercase tracking-widest transition-all"
+        >
+          Log Out
+        </button>
+      </div>
+
     </div>
   );
 }
