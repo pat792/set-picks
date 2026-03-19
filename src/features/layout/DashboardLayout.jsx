@@ -5,7 +5,7 @@ import { useAuth } from '../auth/useAuth';
 import PicksForm from '../picks/PicksForm';
 import AdminForm from '../admin/AdminForm';
 import Standings from '../standings/Standings';
-import Profile from '../profile/Profile'; // NEW: Imported Profile UI
+import Profile from '../profile/Profile';
 
 // NEW: Import our Time Machine!
 import { SHOW_DATES } from '../../data/showDates.js';
@@ -57,34 +57,32 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-y-auto pb-24 md:pb-8 relative">
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           
-          {/* THE GLOBAL DATE PICKER */}
-          <div className="mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
-            <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Select Show:</span>
-            <select
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-slate-900 border-2 border-slate-700 text-white text-sm sm:text-base font-bold py-2.5 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer w-full sm:w-auto"
-            >
-              {SHOW_DATES.map(show => {
-                // Formatting the date nicely (e.g., "2026-04-18 - Sphere")
-                return (
-                  <option key={show.date} value={show.date}>
-                    {show.date} — {show.venue.split(',')[0]}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
+          {/* THE GLOBAL DATE PICKER (Hidden on Profile Page) */}
+          {location.pathname !== '/dashboard/profile' && (
+            <div className="mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Select Show:</span>
+              <select
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="bg-slate-900 border-2 border-slate-700 text-white text-sm sm:text-base font-bold py-2.5 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer w-full sm:w-auto"
+              >
+                {SHOW_DATES.map(show => {
+                  return (
+                    <option key={show.date} value={show.date}>
+                      {show.date} — {show.venue.split(',')[0]}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
 
           <Routes>
             {/* We pass selectedDate down into the pages! */}
             <Route path="/" element={<PicksForm user={user} selectedDate={selectedDate} />} />
             <Route path="/standings" element={<Standings selectedDate={selectedDate} />} />
             <Route path="/admin" element={<AdminForm user={user} />} />
-            
-            {/* NEW: Profile is successfully wired in! */}
             <Route path="/profile" element={<Profile user={user} />} />
-            
             <Route path="/pools" element={<div className="flex justify-center mt-32 text-slate-500 font-bold uppercase">Pools Loading...</div>} />
           </Routes>
         </div>
