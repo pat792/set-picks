@@ -6,8 +6,9 @@ import PicksForm from '../picks/PicksForm';
 import AdminForm from '../admin/AdminForm';
 import Standings from '../standings/Standings';
 import Profile from '../profile/Profile';
+import Pools from '../pools/Pools'; // NEW: Imported Pools UI
 
-// NEW: Import our Time Machine!
+// Import our Time Machine!
 import { SHOW_DATES } from '../../data/showDates.js';
 import { getNextShow } from '../../utils/timeLogic.js';
 
@@ -16,7 +17,7 @@ export default function DashboardLayout() {
   const { user } = useAuth();
   const isAdmin = user?.email === 'pat@road2media.com';
 
-  // NEW: The Global State! It defaults to whatever the "Next Show" is.
+  // The Global State! It defaults to whatever the "Next Show" is.
   const [selectedDate, setSelectedDate] = useState(getNextShow().date);
 
   const navItems = [
@@ -83,7 +84,9 @@ export default function DashboardLayout() {
             <Route path="/standings" element={<Standings selectedDate={selectedDate} />} />
             <Route path="/admin" element={<AdminForm user={user} />} />
             <Route path="/profile" element={<Profile user={user} />} />
-            <Route path="/pools" element={<div className="flex justify-center mt-32 text-slate-500 font-bold uppercase">Pools Loading...</div>} />
+            
+            {/* NEW: Pools is successfully wired in! */}
+            <Route path="/pools" element={<Pools user={user} />} />
           </Routes>
         </div>
       </main>
