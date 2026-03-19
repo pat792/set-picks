@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import Leaderboard from '../../shared/components/Leaderboard.jsx';
+import Leaderboard from '../../components/Leaderboard';
 import { useAuth } from '../auth/useAuth'; // NEW: To know who is logged in
 
 import { getShowStatus } from '../../utils/timeLogic.js';
