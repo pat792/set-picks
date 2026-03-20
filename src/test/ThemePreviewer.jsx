@@ -8,8 +8,8 @@ export default function ThemePreviewer() {
       <div className="w-72 bg-indigo-950 border border-indigo-800 p-6 rounded-3xl shadow-[0_0_30px_rgba(34,211,238,0.1)]">
         <h3 className="text-cyan-400 font-black italic text-xl mb-2">The Kuroda</h3>
         <p className="text-indigo-200/70 text-sm font-bold mb-6">Deep venue purple with glowing neon cyan and magenta accents.</p>
-        <button className="w-full bg-amber-500 hover:bg-amber-400 text-amber-950 font-black py-3 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all">
-          LOCK PICKS
+        <button className="w-full bg-green-400 hover:bg-green-300 text-green-950 font-black py-3 rounded-xl shadow-[0_0_15px_rgba(74,222,128,0.4)] transition-all">
+        LOCK PICKS
         </button>
         </div>
 
