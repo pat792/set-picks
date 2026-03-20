@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../../lib/firebase'; 
 import { signOut } from 'firebase/auth'; 
 import { useNavigate } from 'react-router-dom'; 
+import ThemePreviewer from '../../components/ThemePreviewer'; // <-- Added Import
 
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');
@@ -140,6 +141,11 @@ export default function Profile({ user }) {
         >
           Log Out
         </button>
+      </div>
+
+      {/* TEMPORARY: THEME PREVIEWER */}
+      <div className="mt-12">
+         <ThemePreviewer />
       </div>
 
     </div>
