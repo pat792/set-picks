@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default function ThemePreviewer() {
   return (
     <div className="flex flex-col md:flex-row gap-6 p-8 bg-black min-h-screen items-center justify-center">
