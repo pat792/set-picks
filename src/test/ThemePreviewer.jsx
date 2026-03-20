@@ -4,13 +4,15 @@ export default function ThemePreviewer() {
   return (
     <div className="flex flex-col md:flex-row gap-6 p-8 bg-black min-h-screen items-center justify-center">
       
-      {/* THEME A: The Kuroda (Neon Phish) */}
-      <div className="w-72 bg-indigo-950 border border-indigo-800 p-6 rounded-3xl shadow-[0_0_30px_rgba(34,211,238,0.1)]">
-        <h3 className="text-cyan-400 font-black italic text-xl mb-2">The Kuroda</h3>
-        <p className="text-indigo-200/70 text-sm font-bold mb-6">Deep venue purple with glowing neon cyan and magenta accents.</p>
-        <button className="w-full bg-green-500 hover:bg-green-400 text-green-950 font-black py-3 rounded-xl shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all">
-          LOCK PICKS
-        </button>
+      {/* THEME A: The Kuroda */}
+        <div className="w-full bg-indigo-950 border border-indigo-800 p-6 rounded-3xl shadow-[0_0_30px_rgba(34,211,238,0.1)]">
+          <h3 className="text-cyan-400 font-black italic text-xl mb-2">The Kuroda</h3>
+          
+          <div className="flex flex-col gap-3 mt-4">
+             <button className="w-full bg-lime-400 hover:bg-lime-300 text-lime-950 font-black py-3 rounded-xl shadow-[0_0_15px_rgba(163,230,53,0.4)] transition-all">ACID GREEN</button>
+             <button className="w-full bg-green-400 hover:bg-green-300 text-green-950 font-black py-3 rounded-xl shadow-[0_0_15px_rgba(74,222,128,0.4)] transition-all">TRUE NEON GREEN</button>
+             <button className="w-full bg-green-500 hover:bg-green-400 text-green-950 font-black py-3 rounded-xl shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all">DEEP MATRIX GREEN</button>
+          </div>
         </div>
 
       {/* THEME B: Gamehendge Earth */}
