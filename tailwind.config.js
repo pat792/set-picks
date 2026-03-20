@@ -6,8 +6,14 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}", 
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        // Inter becomes the default font for the whole app
+        sans: ['Inter', 'sans-serif'],
+        // Space Grotesk becomes available via the 'font-display' class
+        display: ['"Space Grotesk"', 'sans-serif'], 
+      },
+    },
   },
   plugins: [],
 }
-
