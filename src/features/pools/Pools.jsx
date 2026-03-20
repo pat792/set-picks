@@ -114,7 +114,8 @@ export default function Pools({ user }) {
     <div className="max-w-xl mx-auto mt-4 pb-12">
       
       {/* SECTION 1: MY POOLS */}
-      <h2 className="text-2xl font-black italic uppercase mb-4 text-white tracking-tight">
+      {/* HIDDEN ON MOBILE */}
+      <h2 className="hidden md:block text-2xl font-black italic uppercase mb-4 text-white tracking-tight">
         Your Pools
       </h2>
       

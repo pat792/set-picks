@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db, auth } from '../../lib/firebase'; // Added auth
-import { signOut } from 'firebase/auth'; // Added signOut
-import { useNavigate } from 'react-router-dom'; // Added useNavigate
+import { db, auth } from '../../lib/firebase'; 
+import { signOut } from 'firebase/auth'; 
+import { useNavigate } from 'react-router-dom'; 
 
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');
@@ -10,7 +10,7 @@ export default function Profile({ user }) {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   
-  const navigate = useNavigate(); // Initialize the router navigation
+  const navigate = useNavigate(); 
 
   // Fetch existing user data on load
   useEffect(() => {
@@ -61,11 +61,10 @@ export default function Profile({ user }) {
     }
   };
 
-  // The new Logout function
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/'); // Redirect back to the login screen
+      navigate('/'); 
     } catch (error) {
       console.error("Error logging out: ", error);
     }
@@ -73,7 +72,8 @@ export default function Profile({ user }) {
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
-      <h2 className="text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
+      {/* HIDDEN ON MOBILE */}
+      <h2 className="hidden md:block text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
         Your Profile
       </h2>
 
@@ -131,7 +131,7 @@ export default function Profile({ user }) {
         )}
       </form>
 
-      {/* NEW: Logout Section */}
+      {/* Logout Section */}
       <div className="mt-8 pt-6 border-t border-slate-700/50">
         <button
           onClick={handleLogout}

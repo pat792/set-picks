@@ -80,7 +80,8 @@ export default function PicksForm({ user, selectedDate }) {
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
-      <h2 className="text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
+      {/* HIDDEN ON MOBILE */}
+      <h2 className="hidden md:block text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
         Make Your Picks
       </h2>
 
