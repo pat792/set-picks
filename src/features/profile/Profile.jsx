@@ -3,7 +3,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../../lib/firebase'; 
 import { signOut } from 'firebase/auth'; 
 import { useNavigate } from 'react-router-dom'; 
-import ThemePreviewer from '../../components/ThemePreviewer'; // <-- Added Import
+import ThemePreviewer from '../../test/ThemePreviewer'; // <-- Added Import
 
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');
