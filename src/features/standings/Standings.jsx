@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore'; // ADDED doc, getDoc
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore'; 
 import { db } from '../../lib/firebase';
 import Leaderboard from '../../components/Leaderboard';
 import { useAuth } from '../auth/useAuth';
@@ -11,7 +11,7 @@ export default function Standings({ selectedDate }) {
   const [allPicks, setAllPicks] = useState([]); 
   const [userPools, setUserPools] = useState([]); 
   const [activeFilter, setActiveFilter] = useState('global'); 
-  const [actualSetlist, setActualSetlist] = useState(null); // NEW: State for official setlist
+  const [actualSetlist, setActualSetlist] = useState(null); 
   
   const [loading, setLoading] = useState(true);
   const showStatus = getShowStatus(selectedDate);
@@ -108,6 +108,11 @@ export default function Standings({ selectedDate }) {
   return (
     <div className="w-full">
       
+      {/* HIDDEN ON MOBILE: Desktop Page Title */}
+      <h2 className="hidden md:block text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
+        Standings
+      </h2>
+
       {/* THE POOL FILTER TABS */}
       <div className="mb-6">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 mb-3">
