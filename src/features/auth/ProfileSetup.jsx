@@ -16,17 +16,14 @@ export default function ProfileSetup({ user }) {
     setError("");
 
     try {
-      // Create their full profile document
       await setDoc(doc(db, "users", user.uid), {
         handle: handle.trim(),
         email: user.email,
         favoriteSong: favoriteSong.trim() || "Unknown",
         createdAt: new Date().toISOString(),
-        totalPoints: 0 // Great to initialize stats here!
+        totalPoints: 0 
       });
       
-      // Force a window reload. This triggers your useAuth hook to fetch the new 
-      // profile and automatically drop them into the Dashboard!
       window.location.href = '/dashboard';
     } catch (err) {
       console.error(err);
@@ -36,11 +33,13 @@ export default function ProfileSetup({ user }) {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="min-h-screen w-full bg-indigo-950 text-white flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md w-full bg-slate-800/50 p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
-        <h2 className="text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">
+        
+                <h2 className="text-3xl font-display font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">
           ALMOST THERE
         </h2>
+        
         <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-8">
           Complete your profile to enter the pool.
         </p>
@@ -72,10 +71,11 @@ export default function ProfileSetup({ user }) {
           
           {error && <p className="text-red-400 text-xs font-bold uppercase">{error}</p>}
           
+          {/* UPDATED: The Kuroda Neon Green Button */}
           <button 
             type="submit" 
             disabled={isSaving || !handle.trim()}
-            className="w-full bg-gradient-to-r from-blue-500 to-emerald-500 text-white p-4 rounded-2xl font-black uppercase tracking-widest shadow-lg disabled:opacity-50 transition-all hover:scale-[1.02] mt-4"
+            className="w-full bg-green-400 hover:bg-green-300 text-green-950 p-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_15px_rgba(74,222,128,0.4)] disabled:opacity-50 transition-all hover:scale-[1.02] mt-4"
           >
             {isSaving ? "Saving..." : "Lock Profile In"}
           </button>

@@ -16,7 +16,7 @@ export default function Profile({ user }) {
   useEffect(() => {
     const loadProfile = async () => {
       if (!user?.uid) return;
-      
+       
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
@@ -142,6 +142,8 @@ export default function Profile({ user }) {
         </button>
       </div>
 
-    </div>
+    
+      </div>
+
   );
 }
