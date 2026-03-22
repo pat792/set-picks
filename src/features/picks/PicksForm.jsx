@@ -81,31 +81,11 @@ export default function PicksForm({ user, selectedDate }) {
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
       {/* HIDDEN ON MOBILE */}
-      <h2 className="hidden md:block text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
-        Make Your Picks
+      <h2 className="hidden md:block text-2xl font-black mb-6 text-white tracking-tight">
+        Make Picks
       </h2>
 
       <div className="relative">
-        
-        {/* THE TIME MACHINE LOCK */}
-        {showStatus !== 'NEXT' && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-3xl border border-slate-700/50">
-            <div className="bg-slate-800 p-6 rounded-2xl shadow-2xl text-center max-w-sm border border-slate-600 transform transition-all">
-              <span className="text-5xl block mb-4">
-                {showStatus === 'PAST' ? '🔒' : '⏳'}
-              </span>
-              <h3 className="text-xl font-black italic text-white mb-2">
-                {showStatus === 'PAST' ? 'PICKS LOCKED' : 'TOO EARLY'}
-              </h3>
-              <p className="text-slate-400 text-sm font-bold leading-relaxed">
-                {showStatus === 'PAST' 
-                  ? "This show has already happened! Practice Mode is coming soon."
-                  : "Picks for this show will open after the previous show ends."}
-              </p>
-            </div>
-          </div>
-        )}
-
         <form 
           onSubmit={handleSave}
           className={`space-y-4 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 transition-all duration-300 ${

@@ -10,7 +10,9 @@ import Profile from '../profile/Profile';
 import Pools from '../pools/Pools';
 
 import { SHOW_DATES_BY_TOUR } from '../../data/showDates.js';
-import { getNextShow } from '../../utils/timeLogic.js';
+import { getNextShow, getShowStatus } from '../../utils/timeLogic.js';
+import PastShowLockBanner from '../../components/PastShowLockBanner';
+import TooEarlyBanner from '../../components/TooEarlyBanner';
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -36,10 +38,17 @@ export default function DashboardLayout() {
   const getPageTitle = () => {
     if (location.pathname === '/dashboard/standings') return 'Standings';
     if (location.pathname === '/dashboard/pools') return 'Your Pools';
-    if (location.pathname === '/dashboard/profile') return 'Profile Settings';
+    if (location.pathname === '/dashboard/profile') return 'My Profile';
     if (location.pathname === '/dashboard/admin') return 'War Room';
-    return 'Make Your Picks';
+    return 'Make Picks';
   };
+
+  const showDatePicker = location.pathname !== '/dashboard/profile';
+  const datePickerStatus = getShowStatus(selectedDate);
+  const showDatePickerUserBanners =
+    showDatePicker && location.pathname !== '/dashboard/admin';
+  const showPastShowLock = showDatePickerUserBanners && datePickerStatus === 'PAST';
+  const showTooEarlyBanner = showDatePickerUserBanners && datePickerStatus === 'FUTURE';
 
   return (
     <div className="flex h-screen w-full bg-[#0f172a] text-white overflow-hidden">
@@ -83,9 +92,9 @@ export default function DashboardLayout() {
             scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
           }`}
         >
-          <span className="min-w-0 flex-1 basis-0 font-bold text-slate-200 truncate">{getPageTitle()}</span>
+          <span className="min-w-0 flex-1 basis-0 text-sm font-bold text-slate-200 truncate">{getPageTitle()}</span>
           
-          {location.pathname !== '/dashboard/profile' && (
+          {showDatePicker && (
             <div className="flex shrink-0 flex-row flex-nowrap items-center gap-1.5 min-w-0">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap leading-none">
                 Select Show:
@@ -115,27 +124,32 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-y-auto pt-32 pb-24 md:pt-8 md:pb-8 relative">
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           
-          {/* DESKTOP Global Date Picker (Hidden on Mobile) */}
-          <div className="hidden md:flex mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 items-center justify-between gap-4 min-w-0 shadow-lg">
-            <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 shrink-0">Select Show:</span>
-            <div className="min-w-0 w-64 max-w-full shrink">
-              <select
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="show-date-select w-full min-w-0 max-w-full appearance-none bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
-              >
-                {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
-                  <optgroup key={tour} label={tour} className="tour-optgroup">
-                    {shows.map((show) => (
-                      <option key={show.date} value={show.date}>
-                        {show.date} — {show.venue.split(',')[0]}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+          {/* DESKTOP Global Date Picker (Hidden on Mobile; hidden on Profile) */}
+          {showDatePicker && (
+            <div className="hidden md:flex mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 items-center justify-between gap-4 min-w-0 shadow-lg">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 shrink-0">Select Show:</span>
+              <div className="min-w-0 w-64 max-w-full shrink">
+                <select
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+                >
+                  {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
+                    <optgroup key={tour} label={tour} className="tour-optgroup">
+                      {shows.map((show) => (
+                        <option key={show.date} value={show.date}>
+                          {show.date} — {show.venue.split(',')[0]}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+          )}
+
+          {showPastShowLock && <PastShowLockBanner />}
+          {showTooEarlyBanner && <TooEarlyBanner />}
 
           <Routes>
             <Route path="/" element={<PicksForm user={user} selectedDate={selectedDate} />} />
@@ -156,7 +170,7 @@ export default function DashboardLayout() {
             return (
               <Link key={item.name} to={item.path} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}>
                 <span className="text-xl">{item.icon}</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
+                <span className="text-[10px] font-bold tracking-wider">{item.name}</span>
               </Link>
             );
           })}

@@ -90,8 +90,8 @@ export default function Profile({ user }) {
     <div className="max-w-xl mx-auto mt-4 pb-12">
       {/* HEADER SECTION */}
       <div className="mb-6 text-center md:text-left">
-        <h2 className="text-2xl font-black italic uppercase text-white tracking-tight">
-          Your Profile
+        <h2 className="text-2xl font-black text-white tracking-tight">
+          My Profile
         </h2>
         {/* NEW: Playing Since Badge */}
         {joinDate && (

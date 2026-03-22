@@ -92,24 +92,17 @@ export default function Standings({ selectedDate }) {
     );
   }
 
-  // The Empty State for Future Shows
+  // FUTURE: "Too early" copy is universal in DashboardLayout (TooEarlyBanner).
   if (showStatus === 'FUTURE') {
-    return (
-      <div className="flex flex-col items-center justify-center mt-20 bg-slate-800/50 p-8 rounded-3xl border border-slate-700/50 text-center">
-        <span className="text-5xl mb-4">⏳</span>
-        <h3 className="text-xl font-black italic text-white mb-2">TOO EARLY</h3>
-        <p className="text-slate-400 font-bold max-w-sm">
-          No picks yet! The window to make picks for this show hasn't opened.
-        </p>
-      </div>
-    );
+    return null;
+    
   }
 
   return (
     <div className="w-full">
       
       {/* HIDDEN ON MOBILE: Desktop Page Title */}
-      <h2 className="hidden md:block text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
+      <h2 className="hidden md:block text-2xl font-black mb-6 text-white tracking-tight">
         Standings
       </h2>
 
@@ -159,19 +152,27 @@ export default function Standings({ selectedDate }) {
       {/* THE LEADERBOARD */}
       {displayedPicks.length === 0 ? (
         <div className="flex flex-col items-center justify-center mt-12 bg-slate-800/50 p-8 rounded-3xl border border-slate-700/50 text-center">
-          <span className="text-5xl mb-4">{showStatus === 'PAST' ? '👻' : '🎸'}</span>
-          <h3 className="text-xl font-black italic text-white mb-2">
-            {showStatus === 'PAST' ? 'GHOST TOWN' : 'NO PICKS YET'}
-          </h3>
-          <p className="text-slate-400 font-bold max-w-sm">
-            {showStatus === 'PAST' 
-              ? (activeFilter === 'global' 
-                  ? "Nobody made any picks for this show!" 
-                  : "None of your friends in this pool made picks for this show!")
-              : (activeFilter === 'global' 
-                  ? "Be the first to lock in your picks for tonight's show!" 
-                  : "None of your friends in this pool have made picks yet!")}
-          </p>
+          {showStatus === 'PAST' ? (
+            <>
+              <span className="text-5xl mb-4" aria-hidden>📭</span>
+              <h3 className="text-xl font-black italic text-white mb-2">No picks for this show</h3>
+              <p className="text-slate-400 font-bold max-w-sm">
+                {activeFilter === 'global'
+                  ? 'Nobody submitted picks for this date.'
+                  : 'None of your friends in this pool submitted picks for this date.'}
+              </p>
+            </>
+          ) : (
+            <>
+              <span className="text-5xl mb-4">🎸</span>
+              <h3 className="text-xl font-black italic text-white mb-2">NO PICKS YET</h3>
+              <p className="text-slate-400 font-bold max-w-sm">
+                {activeFilter === 'global'
+                  ? "Be the first to lock in your picks for tonight's show!"
+                  : 'None of your friends in this pool have made picks yet!'}
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <Leaderboard poolPicks={displayedPicks} actualSetlist={actualSetlist} />
