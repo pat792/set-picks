@@ -9,7 +9,7 @@ import Standings from '../standings/Standings';
 import Profile from '../profile/Profile';
 import Pools from '../pools/Pools';
 
-import { SHOW_DATES } from '../../data/showDates.js';
+import { SHOW_DATES_BY_TOUR } from '../../data/showDates.js';
 import { getNextShow } from '../../utils/timeLogic.js';
 
 export default function DashboardLayout() {
@@ -90,12 +90,16 @@ export default function DashboardLayout() {
             <select
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-slate-900 border border-slate-600 text-white text-xs font-bold py-1.5 px-2 rounded-lg outline-none focus:border-emerald-500 transition-colors cursor-pointer max-w-[140px] truncate"
+              className="show-date-select bg-slate-900 border border-slate-600 text-white text-xs font-bold py-1.5 px-2 rounded-lg outline-none focus:border-emerald-500 transition-colors cursor-pointer max-w-[140px] truncate"
             >
-              {SHOW_DATES.map(show => (
-                <option key={show.date} value={show.date}>
-                  {show.date} {show.venue.split(',')[0]}
-                </option>
+              {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
+                <optgroup key={tour} label={tour} className="tour-optgroup">
+                  {shows.map((show) => (
+                    <option key={show.date} value={show.date}>
+                      {show.date} {show.venue.split(',')[0]}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           )}
@@ -113,12 +117,16 @@ export default function DashboardLayout() {
             <select
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+              className="show-date-select bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
             >
-              {SHOW_DATES.map(show => (
-                <option key={show.date} value={show.date}>
-                  {show.date} — {show.venue.split(',')[0]}
-                </option>
+              {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
+                <optgroup key={tour} label={tour} className="tour-optgroup">
+                  {shows.map((show) => (
+                    <option key={show.date} value={show.date}>
+                      {show.date} — {show.venue.split(',')[0]}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
