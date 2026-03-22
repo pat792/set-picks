@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');
   const [favoriteSong, setFavoriteSong] = useState('');
+  const [joinDate, setJoinDate] = useState(''); // NEW: State to hold the formatted date
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   
@@ -19,6 +20,21 @@ export default function Profile({ user }) {
        
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
+        
+        // Calculate "Playing Since" date
+        // Tries database timestamp first, falls back to Firebase Auth creation time
+        const accountCreated = userDoc.exists() ? userDoc.data().createdAt : null;
+        const creationTime = accountCreated?.toDate?.() || user?.metadata?.creationTime;
+        
+        if (creationTime) {
+          const date = new Date(creationTime);
+          const formattedDate = date.toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          });
+          setJoinDate(formattedDate);
+        }
+
         if (userDoc.exists()) {
           const data = userDoc.data();
           setHandle(data.handle || '');
@@ -72,10 +88,18 @@ export default function Profile({ user }) {
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
-      {/* HIDDEN ON MOBILE */}
-      <h2 className="hidden md:block text-2xl font-black italic uppercase mb-6 text-white tracking-tight">
-        Your Profile
-      </h2>
+      {/* HEADER SECTION */}
+      <div className="mb-6 text-center md:text-left">
+        <h2 className="text-2xl font-black text-white tracking-tight">
+          My Profile
+        </h2>
+        {/* NEW: Playing Since Badge */}
+        {joinDate && (
+          <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mt-1">
+            Playing Since {joinDate}
+          </p>
+        )}
+      </div>
 
       <form 
         onSubmit={handleSave}
@@ -141,9 +165,6 @@ export default function Profile({ user }) {
           Log Out
         </button>
       </div>
-
-    
-      </div>
-
+    </div>
   );
 }

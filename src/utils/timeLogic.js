@@ -11,6 +11,11 @@ export const getNextShow = () => {
   return nextShow || SHOW_DATES[SHOW_DATES.length - 1]; 
 };
 
+/**
+ * NEXT — only date users can enter picks (the upcoming show from today).
+ * PAST — calendar date before today (show already happened).
+ * FUTURE — any other listed date (e.g. later tour nights): too early until that show becomes "next".
+ */
 export const getShowStatus = (selectedDate) => {
   const today = new Date().toISOString().split('T')[0];
   const nextShow = getNextShow();

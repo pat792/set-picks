@@ -95,8 +95,8 @@ export default function AdminForm({ user, selectedDate }) {
     <div className="max-w-xl mx-auto mt-4 pb-12">
       <div className="bg-red-500/10 border border-red-500/50 p-4 rounded-2xl mb-6">
         {/* HIDDEN ON MOBILE, FLEX ON DESKTOP */}
-        <h2 className="hidden md:flex text-xl font-black italic uppercase text-red-400 tracking-tight items-center gap-2">
-          <span>⚠️</span> ADMIN WAR ROOM
+        <h2 className="hidden md:flex text-xl font-black text-red-400 tracking-tight items-center gap-2">
+          <span>⚠️</span> War Room
         </h2>
         <p className="text-xs text-red-300/80 font-bold uppercase tracking-wider mt-1">
           Locking the official setlist for {selectedDate}. This will trigger scoring.
