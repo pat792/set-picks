@@ -11,6 +11,7 @@ import Pools from '../pools/Pools';
 
 import { SHOW_DATES_BY_TOUR } from '../../data/showDates.js';
 import { getNextShow, getShowStatus } from '../../utils/timeLogic.js';
+import { showOptionLabelCompact, showOptionLabelDesktop, showOptionTitle } from '../../utils/showOptionLabel.js';
 import PastShowLockBanner from '../../components/PastShowLockBanner';
 import TooEarlyBanner from '../../components/TooEarlyBanner';
 
@@ -107,8 +108,8 @@ export default function DashboardLayout() {
                 {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
                   <optgroup key={tour} label={tour} className="tour-optgroup">
                     {shows.map((show) => (
-                      <option key={show.date} value={show.date}>
-                        {show.date} {show.venue.split(',')[0]}
+                      <option key={show.date} value={show.date} title={showOptionTitle(show)}>
+                        {showOptionLabelCompact(show)}
                       </option>
                     ))}
                   </optgroup>
@@ -137,8 +138,8 @@ export default function DashboardLayout() {
                   {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
                     <optgroup key={tour} label={tour} className="tour-optgroup">
                       {shows.map((show) => (
-                        <option key={show.date} value={show.date}>
-                          {show.date} — {show.venue.split(',')[0]}
+                        <option key={show.date} value={show.date} title={showOptionTitle(show)}>
+                          {showOptionLabelDesktop(show)}
                         </option>
                       ))}
                     </optgroup>

@@ -15,5 +15,6 @@
     color: #e2e8f0;
     font-weight: 600;
     font-style: normal;
+    white-space: nowrap;
   }
 }
