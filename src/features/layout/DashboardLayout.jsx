@@ -79,29 +79,33 @@ export default function DashboardLayout() {
 
         {/* Layer 2: Collapsible Context Title Bar */}
         <div 
-          className={`absolute left-0 w-full bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between transition-transform duration-300 ease-in-out z-10 ${
+          className={`absolute left-0 w-full bg-slate-800 border-b border-slate-700 px-4 py-3 flex flex-row flex-nowrap items-center justify-between gap-2 min-w-0 transition-transform duration-300 ease-in-out z-10 ${
             scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
           }`}
         >
-          <span className="font-bold text-slate-200">{getPageTitle()}</span>
+          <span className="min-w-0 flex-1 basis-0 font-bold text-slate-200 truncate">{getPageTitle()}</span>
           
-          {/* We moved the Date Picker into the header for mobile! */}
           {location.pathname !== '/dashboard/profile' && (
-            <select
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="show-date-select bg-slate-900 border border-slate-600 text-white text-xs font-bold py-1.5 px-2 rounded-lg outline-none focus:border-emerald-500 transition-colors cursor-pointer max-w-[140px] truncate"
-            >
-              {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
-                <optgroup key={tour} label={tour} className="tour-optgroup">
-                  {shows.map((show) => (
-                    <option key={show.date} value={show.date}>
-                      {show.date} {show.venue.split(',')[0]}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+            <div className="flex shrink-0 flex-row flex-nowrap items-center gap-1.5 min-w-0">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap leading-none">
+                Select Show:
+              </span>
+              <select
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="show-date-select shrink-0 max-w-[180px] min-w-0 appearance-none bg-slate-900 border border-slate-600 text-white text-xs font-bold py-1.5 px-2.5 rounded-lg outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+              >
+                {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
+                  <optgroup key={tour} label={tour} className="tour-optgroup">
+                    {shows.map((show) => (
+                      <option key={show.date} value={show.date}>
+                        {show.date} {show.venue.split(',')[0]}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
           )}
         </div>
       </div>
@@ -112,23 +116,25 @@ export default function DashboardLayout() {
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           
           {/* DESKTOP Global Date Picker (Hidden on Mobile) */}
-          <div className="hidden md:flex mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 items-center justify-between shadow-lg">
-            <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Select Show:</span>
-            <select
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="show-date-select bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
-            >
-              {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
-                <optgroup key={tour} label={tour} className="tour-optgroup">
-                  {shows.map((show) => (
-                    <option key={show.date} value={show.date}>
-                      {show.date} — {show.venue.split(',')[0]}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+          <div className="hidden md:flex mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 items-center justify-between gap-4 min-w-0 shadow-lg">
+            <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 shrink-0">Select Show:</span>
+            <div className="min-w-0 w-64 max-w-full shrink">
+              <select
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="show-date-select w-full min-w-0 max-w-full appearance-none bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+              >
+                {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
+                  <optgroup key={tour} label={tour} className="tour-optgroup">
+                    {shows.map((show) => (
+                      <option key={show.date} value={show.date}>
+                        {show.date} — {show.venue.split(',')[0]}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
           </div>
 
           <Routes>
