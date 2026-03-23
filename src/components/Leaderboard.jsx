@@ -4,11 +4,22 @@ import { calculateSlotScore, calculateTotalScore } from '../utils/scoring.js';
 
 const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
   const [expandedUser, setExpandedUser] = useState(null);
+  const getPickPayload = (pickEntry) => {
+    if (pickEntry?.picks && typeof pickEntry.picks === 'object') {
+      return pickEntry.picks;
+    }
+
+    // Backward compatibility for legacy docs where picks lived at the root.
+    return FORM_FIELDS.reduce((acc, field) => {
+      acc[field.id] = pickEntry?.[field.id] || '';
+      return acc;
+    }, {});
+  };
 
   // Automatically sort players by highest score!
   const sortedPicks = [...poolPicks].sort((a, b) => {
-    const scoreA = calculateTotalScore(a, actualSetlist);
-    const scoreB = calculateTotalScore(b, actualSetlist);
+    const scoreA = calculateTotalScore(getPickPayload(a), actualSetlist);
+    const scoreB = calculateTotalScore(getPickPayload(b), actualSetlist);
     return scoreB - scoreA; // Highest score at the top
   });
 
@@ -29,7 +40,8 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
         // Use p.uid or p.id depending on how Firebase returned it
         const uniqueId = p.uid || p.id; 
         const isExpanded = expandedUser === uniqueId;
-        const score = calculateTotalScore(p, actualSetlist);
+        const userPicks = getPickPayload(p);
+        const score = calculateTotalScore(userPicks, actualSetlist);
 
         return (
           <div key={uniqueId} className="bg-slate-800/80 rounded-2xl border border-slate-700 overflow-hidden shadow-lg transition-all">
@@ -56,7 +68,9 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
               <div className="p-4 border-t border-slate-700/50 bg-slate-900/30">
                 <div className="grid grid-cols-2 gap-3">
                   {FORM_FIELDS.map(field => {
-                    const pts = calculateSlotScore(field.id, p[field.id], actualSetlist);
+                    const userGuess = userPicks[field.id] || '';
+                    const pts = calculateSlotScore(field.id, userGuess, actualSetlist);
+                    
                     let borderStyle = "border-slate-700/50";
                     let textColor = "text-slate-300";
 
@@ -68,7 +82,7 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
                     return (
                       <div key={field.id} className={`p-3 rounded-xl border ${borderStyle} flex flex-col`}>
                         <span className="text-[8px] uppercase text-slate-500 font-bold mb-1">{field.label}</span>
-                        <span className={`text-xs font-bold truncate ${textColor}`}>{p[field.id] || "—"}</span>
+                        <span className={`text-xs font-bold truncate ${textColor}`}>{userGuess || "—"}</span>
                       </div>
                     );
                   })}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig'; // <-- THE SINGLE SOURCE OF TRUTH
+import SongAutocomplete from '../../components/SongAutocomplete';
 
 export default function AdminForm({ user, selectedDate }) {
   // Dynamically create our initial state based on whatever is in gameConfig.js
@@ -25,13 +26,14 @@ export default function AdminForm({ user, selectedDate }) {
       if (!selectedDate || !isAdmin) return;
       
       try {
-        const docRef = doc(db, 'setlists', selectedDate);
+        // CHANGED: Pointing to the new collection
+        const docRef = doc(db, 'official_setlists', selectedDate);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
           const data = docSnap.data();
-          // Merge fetched data with our blank template to ensure no fields are missing
-          setSetlistData(prev => ({ ...prev, ...data }));
+          // CHANGED: We now look inside data.setlist to populate the form
+          setSetlistData(prev => ({ ...prev, ...(data.setlist || {}) }));
         } else {
           // Reset to blank if no data for this date
           const resetState = {};
@@ -69,12 +71,17 @@ export default function AdminForm({ user, selectedDate }) {
         cleanedData[key] = typeof setlistData[key] === 'string' ? setlistData[key].trim() : setlistData[key];
       });
 
-      const docRef = doc(db, 'setlists', selectedDate);
+      // CHANGED: Pointing to the new collection
+      const docRef = doc(db, 'official_setlists', selectedDate);
+      
+      // CHANGED: Writing the exact Issue #66 Schema
       await setDoc(docRef, {
-        ...cleanedData,
-        date: selectedDate,
+        showDate: selectedDate,
+        status: "COMPLETED", // Triggers the future Cloud Function
+        isScored: false,     // Tells the Cloud Function this needs grading
         updatedAt: new Date().toISOString(),
-        updatedBy: user.email
+        updatedBy: user.email,
+        setlist: cleanedData // Our perfectly flat object of songs
       });
 
       setMessage({ text: 'OFFICIAL SETLIST LOCKED 🔒', type: 'success' });
@@ -113,13 +120,14 @@ export default function AdminForm({ user, selectedDate }) {
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
               Official {field.label}
             </label>
-            <input
-              type="text"
+            
+            {/* THIS IS THE FIX: Using the predictive text component instead of <input> */}
+            <SongAutocomplete
               value={setlistData[field.id] || ''}
-              onChange={(e) => handleInputChange(field.id, e.target.value)}
+              onChange={(val) => handleInputChange(field.id, val)}
               placeholder={`e.g., ${field.placeholder || 'Song Name'}`}
-              className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-red-500 transition-colors w-full"
             />
+            
           </div>
         ))}
 
