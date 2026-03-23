@@ -45,7 +45,8 @@ export default function Standings({ selectedDate }) {
       setLoading(true);
       try {
         // A. Fetch the Picks
-        const q = query(collection(db, "picks"), where("date", "==", selectedDate));
+        // CHANGED: Query by our new schema field 'showDate' instead of 'date'
+        const q = query(collection(db, "picks"), where("showDate", "==", selectedDate));
         const querySnapshot = await getDocs(q);
         const fetchedPicks = querySnapshot.docs.map(doc => ({
           id: doc.id,
@@ -58,7 +59,9 @@ export default function Standings({ selectedDate }) {
         const setlistSnap = await getDoc(setlistRef);
         
         if (setlistSnap.exists()) {
-          setActualSetlist(setlistSnap.data());
+          const data = setlistSnap.data();
+          // CHANGED: We only want to pass the flat 'setlist' object to the Leaderboard
+          setActualSetlist(data.setlist || null); 
         } else {
           setActualSetlist(null); // No official setlist yet
         }

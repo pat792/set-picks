@@ -7,8 +7,9 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
 
   // Automatically sort players by highest score!
   const sortedPicks = [...poolPicks].sort((a, b) => {
-    const scoreA = calculateTotalScore(a, actualSetlist);
-    const scoreB = calculateTotalScore(b, actualSetlist);
+    // CHANGED: We now pass the nested .picks object to the scoring engine
+    const scoreA = calculateTotalScore(a.picks || {}, actualSetlist);
+    const scoreB = calculateTotalScore(b.picks || {}, actualSetlist);
     return scoreB - scoreA; // Highest score at the top
   });
 
@@ -29,7 +30,8 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
         // Use p.uid or p.id depending on how Firebase returned it
         const uniqueId = p.uid || p.id; 
         const isExpanded = expandedUser === uniqueId;
-        const score = calculateTotalScore(p, actualSetlist);
+        // CHANGED: Pass the nested .picks object
+        const score = calculateTotalScore(p.picks || {}, actualSetlist);
 
         return (
           <div key={uniqueId} className="bg-slate-800/80 rounded-2xl border border-slate-700 overflow-hidden shadow-lg transition-all">
@@ -56,7 +58,10 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
               <div className="p-4 border-t border-slate-700/50 bg-slate-900/30">
                 <div className="grid grid-cols-2 gap-3">
                   {FORM_FIELDS.map(field => {
-                    const pts = calculateSlotScore(field.id, p[field.id], actualSetlist);
+                    // CHANGED: Look inside p.picks for the song guess
+                    const userGuess = p.picks?.[field.id] || "";
+                    const pts = calculateSlotScore(field.id, userGuess, actualSetlist);
+                    
                     let borderStyle = "border-slate-700/50";
                     let textColor = "text-slate-300";
 
@@ -68,7 +73,8 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
                     return (
                       <div key={field.id} className={`p-3 rounded-xl border ${borderStyle} flex flex-col`}>
                         <span className="text-[8px] uppercase text-slate-500 font-bold mb-1">{field.label}</span>
-                        <span className={`text-xs font-bold truncate ${textColor}`}>{p[field.id] || "—"}</span>
+                        {/* CHANGED: Render the song from the p.picks object */}
+                        <span className={`text-xs font-bold truncate ${textColor}`}>{userGuess || "—"}</span>
                       </div>
                     );
                   })}

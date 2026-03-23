@@ -9,19 +9,20 @@ export default function PicksForm({ user, selectedDate }) {
   const [picks, setPicks] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
-
   const showStatus = getShowStatus(selectedDate);
 
   useEffect(() => {
     const loadExistingPicks = async () => {
       if (!user?.uid || !selectedDate) return;
       
-      const pickId = `${selectedDate}_${user.uid}`;
+      // FLIPPED: Date comes first now for database grouping!
+      const pickId = `${selectedDate}_${user.uid}`; 
       const docRef = doc(db, "picks", pickId);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
-        setPicks(docSnap.data());
+        const data = docSnap.data();
+        setPicks(data.picks || {});
       } else {
         setPicks({}); 
       }
@@ -45,27 +46,26 @@ export default function PicksForm({ user, selectedDate }) {
     setSaveMessage('');
 
     try {
-      // 1. Fetch the custom handle from your users table
       const userDocRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userDocRef);
       
-      // Default to Google name/email if they haven't set up a profile yet
       let customHandle = user.displayName || user.email?.split('@')[0] || "Anonymous";
       
-      // Override with custom handle if it exists in the database
       if (userSnap.exists() && userSnap.data().handle) {
         customHandle = userSnap.data().handle;
       }
 
-      const pickId = `${selectedDate}_${user.uid}`;
+      // FLIPPED: Date comes first now for database grouping!
+      const pickId = `${selectedDate}_${user.uid}`; 
       
-      // 2. Save the picks using the true custom handle
       await setDoc(doc(db, "picks", pickId), {
-        ...picks,
         userId: user.uid,
-        handle: customHandle, // <-- Now using the custom handle!
-        date: selectedDate,
-        updatedAt: new Date().toISOString()
+        handle: customHandle,
+        showDate: selectedDate, 
+        updatedAt: new Date().toISOString(),
+        score: 0,               
+        isGraded: false,        
+        picks: picks            
       });
       
       setSaveMessage('Picks locked in successfully! 🎸');
