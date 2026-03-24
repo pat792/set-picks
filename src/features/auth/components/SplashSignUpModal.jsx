@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 
 export default function SplashSignUpModal({
   isOpen,
@@ -14,6 +14,13 @@ export default function SplashSignUpModal({
   setConfirmPassword,
   error,
 }) {
+  const emailInputRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    emailInputRef.current?.focus({ preventScroll: true });
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -61,6 +68,7 @@ export default function SplashSignUpModal({
               Email
             </label>
             <input
+              ref={emailInputRef}
               id="su-email"
               type="email"
               autoComplete="email"

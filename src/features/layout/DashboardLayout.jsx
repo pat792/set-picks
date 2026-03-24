@@ -91,7 +91,7 @@ export default function DashboardLayout() {
         
         {/* Layer 1: Glassmorphism Brand Bar (Always Fixed) */}
         <div className="relative z-20 h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-4">
-          <h1 className="text-lg font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+          <h1 className="whitespace-nowrap pr-1 text-lg font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
             SETLIST PICK 'EM
           </h1>
           <div className="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs">
@@ -177,9 +177,8 @@ export default function DashboardLayout() {
 
       {/* MOBILE BOTTOM BAR (Layer 4) */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-slate-900 border-t border-slate-800 z-50 pb-safe">
-        <div className="flex justify-around items-center h-16 px-2">
+        <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-2`}>
           {navItems.map((item) => {
-            if (item.name === 'Admin') return null; // Hide admin from mobile bottom nav to save space
             const isProfileSection =
               item.path === '/dashboard/profile' &&
               (location.pathname === '/dashboard/profile' ||
