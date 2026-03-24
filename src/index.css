@@ -1,7 +1,21 @@
 
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    @apply font-sans antialiased;
+  }
+}
 
 /* Tour section headers in show date <select> (optgroup labels — gold; support varies slightly by browser/OS) */
 @layer components {

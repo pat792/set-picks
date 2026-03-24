@@ -9,10 +9,10 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
     <section className="relative z-10 w-full flex items-center py-10 md:py-12 lg:py-14 md:min-h-[80vh] lg:min-h-[88vh]">
       <div className="w-full max-w-5xl mx-auto px-1">
         <div className="rounded-[2.5rem] border border-white/10 bg-slate-800/40 backdrop-blur-sm p-6 md:p-8 lg:p-10 text-center shadow-2xl">
-          <h1 className="text-5xl md:text-7xl font-black italic tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+          <h1 className="font-display text-display-hero-splash md:text-display-hero-splash-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
             SETLIST PICK &apos;EM
           </h1>
-          <p className="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-slate-300 font-medium">
+          <p className="mt-6 max-w-3xl mx-auto text-base md:text-lg text-slate-300 font-medium leading-relaxed">
             Draft your dream setlist. Compete against the global community or your own tour crew.
             Prove who truly knows the band.
           </p>

@@ -57,8 +57,8 @@ export default function AccountSecurity({ user }) {
         ← Back to profile
       </Link>
 
-      <div className="mb-6 text-center md:text-left">
-        <h2 className="text-2xl font-black text-white tracking-tight">
+      <div className="mb-6 text-left">
+        <h2 className="hidden md:block font-display text-display-page md:text-display-page-lg font-bold text-white">
           Change sign-in email &amp; password
         </h2>
         <p className="mt-2 text-sm text-slate-400 leading-relaxed">

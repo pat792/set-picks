@@ -11,7 +11,7 @@ export default function PastShowLockBanner() {
         🔒
       </span>
       <div className="min-w-0">
-        <h3 className="text-lg font-black italic tracking-tight text-white">Picks Locked</h3>
+        <h3 className="font-display text-display-sm font-bold text-white">Picks Locked</h3>
         <p className="mt-1 text-sm font-bold leading-relaxed text-slate-400">
           This show has already happened! Practice Mode is coming soon.
         </p>

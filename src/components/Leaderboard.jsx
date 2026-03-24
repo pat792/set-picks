@@ -30,7 +30,7 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
   return (
     <div className="space-y-4 pb-24 text-white">
       <div className="flex justify-between items-center px-2">
-        <h2 className="text-xl font-black italic uppercase">Leaderboard</h2>
+        <h2 className="font-display text-display-md-lg font-bold uppercase">Leaderboard</h2>
         <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full">
           {poolPicks.length} Players
         </span>
@@ -51,7 +51,7 @@ const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
             >
               <div className="flex items-center gap-3 text-left">
                 <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full flex items-center justify-center font-bold text-lg shadow-inner">👤</div>
-                <span className="font-black text-white text-base tracking-tight">{p.handle || "Anonymous"}</span>
+                <span className="font-bold text-white text-base tracking-tight">{p.handle || "Anonymous"}</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
