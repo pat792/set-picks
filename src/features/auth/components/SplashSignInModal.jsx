@@ -26,7 +26,7 @@ export default function SplashSignInModal({
     >
       <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-slate-900 p-8 shadow-2xl">
         <div className="flex justify-between items-start mb-6">
-          <h3 id="signin-title" className="text-xl font-black text-white">
+          <h3 id="signin-title" className="font-display text-display-md md:text-display-md-lg font-bold text-white">
             Sign in
           </h3>
           <button

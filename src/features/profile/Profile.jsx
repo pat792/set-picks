@@ -88,8 +88,10 @@ export default function Profile({ user }) {
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
-      <div className="mb-6 text-center md:text-left">
-        <h2 className="text-2xl font-black text-white tracking-tight">My Profile</h2>
+      <div className="mb-6 text-left">
+        <h2 className="hidden md:block font-display text-display-page md:text-display-page-lg font-bold text-white">
+          My Profile
+        </h2>
         {joinDate && (
           <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mt-1">
             Playing Since {joinDate}

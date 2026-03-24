@@ -7,7 +7,7 @@ export default function SplashAuthEntryCard({ onOpenSignUp, onOpenSignIn, headin
         <h2
           ref={headingRef}
           tabIndex={-1}
-          className="text-lg font-black text-slate-200 mb-1 outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md"
+          className="font-display text-display-sm font-bold text-slate-200 mb-1 outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md"
         >
           Get started
         </h2>

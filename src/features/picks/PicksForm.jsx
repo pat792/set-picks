@@ -80,11 +80,6 @@ export default function PicksForm({ user, selectedDate }) {
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
-      {/* HIDDEN ON MOBILE */}
-      <h2 className="hidden md:block text-2xl font-black mb-6 text-white tracking-tight">
-        Make Picks
-      </h2>
-
       <div className="relative">
         <form 
           onSubmit={handleSave}

@@ -114,11 +114,6 @@ export default function Pools({ user }) {
     <div className="max-w-xl mx-auto mt-4 pb-12">
       
       {/* SECTION 1: MY POOLS */}
-      {/* HIDDEN ON MOBILE */}
-      <h2 className="hidden md:block text-2xl font-black mb-4 text-white tracking-tight">
-        Your Pools
-      </h2>
-      
       {userPools.length === 0 ? (
         <div className="bg-slate-800/30 border border-slate-700 border-dashed rounded-3xl p-8 text-center mb-8">
           <p className="text-slate-400 font-bold">You aren't in any pools yet.</p>

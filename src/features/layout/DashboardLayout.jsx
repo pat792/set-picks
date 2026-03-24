@@ -12,9 +12,14 @@ import Pools from '../pools/Pools';
 
 import { SHOW_DATES_BY_TOUR } from '../../data/showDates.js';
 import { getNextShow, getShowStatus } from '../../utils/timeLogic.js';
-import { showOptionLabelCompact, showOptionLabelDesktop, showOptionTitle } from '../../utils/showOptionLabel.js';
+import { showOptionLabelDesktop, showOptionTitle } from '../../utils/showOptionLabel.js';
 import PastShowLockBanner from '../../components/PastShowLockBanner';
 import TooEarlyBanner from '../../components/TooEarlyBanner';
+
+import { getDashboardPageMeta } from './model/dashboardPageMeta';
+import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
+import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
+import DashboardPageHeading from './ui/DashboardPageHeading';
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -36,24 +41,13 @@ export default function DashboardLayout() {
     navItems.push({ name: 'Admin', path: '/dashboard/admin', icon: '⚙️' });
   }
 
-  // Helper to dynamically name the Context Bar based on URL
-  const getPageTitle = () => {
-    if (location.pathname === '/dashboard/standings') return 'Standings';
-    if (location.pathname === '/dashboard/pools') return 'Your Pools';
-    if (location.pathname === '/dashboard/profile') return 'My Profile';
-    if (location.pathname === '/dashboard/account-security') return 'Sign-in & password';
-    if (location.pathname === '/dashboard/admin') return 'War Room';
-    return 'Make Picks';
-  };
-
-  const showDatePicker =
-    location.pathname !== '/dashboard/profile' &&
-    location.pathname !== '/dashboard/account-security';
+  const meta = getDashboardPageMeta(location.pathname);
   const datePickerStatus = getShowStatus(selectedDate);
-  const showDatePickerUserBanners =
-    showDatePicker && location.pathname !== '/dashboard/admin';
+  const showDatePickerUserBanners = meta.showDatePicker && location.pathname !== '/dashboard/admin';
   const showPastShowLock = showDatePickerUserBanners && datePickerStatus === 'PAST';
   const showTooEarlyBanner = showDatePickerUserBanners && datePickerStatus === 'FUTURE';
+
+  const isWarRoomRoute = meta.desktopHeadingTone === 'warRoom';
 
   return (
     <div className="flex h-screen w-full bg-[#0f172a] text-white overflow-hidden">
@@ -61,7 +55,7 @@ export default function DashboardLayout() {
       {/* DESKTOP SIDEBAR (Unchanged) */}
       <nav className="hidden md:flex flex-col w-64 bg-slate-800/50 border-r border-slate-700/50 p-4 z-10">
         <div className="mb-8 px-4 py-2">
-          <h1 className="text-xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+          <h1 className="font-display text-display-brand-sidebar md:text-display-brand-sidebar-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
             SETLIST PICK 'EM
           </h1>
         </div>
@@ -89,56 +83,23 @@ export default function DashboardLayout() {
       {/* MOBILE TOP HEADERS (Layers 1 & 2) */}
       <div className="md:hidden fixed top-0 left-0 w-full z-50">
         
-        {/* Layer 1: Glassmorphism Brand Bar (Always Fixed) */}
-        <div className="relative z-20 h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-4">
-          <h1 className="whitespace-nowrap pr-1 text-lg font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            SETLIST PICK 'EM
-          </h1>
-          <div className="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs">
-            {user?.email?.charAt(0).toUpperCase() || '👤'}
-          </div>
-        </div>
-
-        {/* Layer 2: Collapsible Context Title Bar */}
-        <div 
-          className={`absolute left-0 w-full bg-slate-800 border-b border-slate-700 px-4 py-3 flex flex-row flex-nowrap items-center justify-between gap-2 min-w-0 transition-transform duration-300 ease-in-out z-10 ${
-            scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
-          }`}
-        >
-          <span className="min-w-0 flex-1 basis-0 text-sm font-bold text-slate-200 truncate">{getPageTitle()}</span>
-          
-          {showDatePicker && (
-            <div className="flex shrink-0 flex-row flex-nowrap items-center gap-1.5 min-w-0">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide whitespace-nowrap leading-none">
-                Select Show:
-              </span>
-              <select
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="show-date-select shrink-0 max-w-[180px] min-w-0 appearance-none bg-slate-900 border border-slate-600 text-white text-xs font-bold py-1.5 px-2.5 rounded-lg outline-none focus:border-emerald-500 transition-colors cursor-pointer"
-              >
-                {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
-                  <optgroup key={tour} label={tour} className="tour-optgroup">
-                    {shows.map((show) => (
-                      <option key={show.date} value={show.date} title={showOptionTitle(show)}>
-                        {showOptionLabelCompact(show)}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+        <DashboardMobileBrandBar user={user} />
+        <DashboardMobileContextBar
+          scrollDirection={scrollDirection}
+          contextTitle={meta.contextTitle}
+          showDatePicker={meta.showDatePicker}
+          selectedDate={selectedDate}
+          onSelectedDateChange={setSelectedDate}
+        />
       </div>
 
       {/* MAIN CONTENT AREA (Layer 3) */}
       {/* Note the pt-28 on mobile to push content below the headers, and pb-20 for bottom nav! */}
-      <main className="flex-1 overflow-y-auto pt-32 pb-24 md:pt-8 md:pb-8 relative">
-        <div className="max-w-4xl mx-auto p-4 md:p-8">
+      <main className="flex-1 overflow-y-auto pt-[8.75rem] pb-24 md:pt-8 md:pb-8 relative">
+        <div className="max-w-xl mx-auto p-4 md:p-8">
           
           {/* DESKTOP Global Date Picker (Hidden on Mobile; hidden on Profile) */}
-          {showDatePicker && (
+          {meta.showDatePicker && (
             <div className="hidden md:flex mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 items-center justify-between gap-4 min-w-0 shadow-lg">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 shrink-0">Select Show:</span>
               <div className="min-w-0 w-64 max-w-full shrink">
@@ -163,6 +124,10 @@ export default function DashboardLayout() {
 
           {showPastShowLock && <PastShowLockBanner />}
           {showTooEarlyBanner && <TooEarlyBanner />}
+
+          {meta.layoutDesktopHeading && (
+            <DashboardPageHeading title={meta.layoutDesktopHeading} tone={isWarRoomRoute ? 'warRoom' : 'default'} />
+          )}
 
           <Routes>
             <Route path="/" element={<PicksForm user={user} selectedDate={selectedDate} />} />

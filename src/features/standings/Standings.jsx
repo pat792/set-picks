@@ -103,12 +103,6 @@ export default function Standings({ selectedDate }) {
 
   return (
     <div className="w-full">
-      
-      {/* HIDDEN ON MOBILE: Desktop Page Title */}
-      <h2 className="hidden md:block text-2xl font-black mb-6 text-white tracking-tight">
-        Standings
-      </h2>
-
       {/* THE POOL FILTER TABS */}
       <div className="mb-6">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 mb-3">
@@ -158,7 +152,7 @@ export default function Standings({ selectedDate }) {
           {showStatus === 'PAST' ? (
             <>
               <span className="text-5xl mb-4" aria-hidden>📭</span>
-              <h3 className="text-xl font-black italic text-white mb-2">No picks for this show</h3>
+              <h3 className="font-display text-display-md font-bold text-white mb-2">No picks for this show</h3>
               <p className="text-slate-400 font-bold max-w-sm">
                 {activeFilter === 'global'
                   ? 'Nobody submitted picks for this date.'
@@ -168,7 +162,7 @@ export default function Standings({ selectedDate }) {
           ) : (
             <>
               <span className="text-5xl mb-4">🎸</span>
-              <h3 className="text-xl font-black italic text-white mb-2">NO PICKS YET</h3>
+              <h3 className="font-display text-display-md font-bold text-white mb-2">NO PICKS YET</h3>
               <p className="text-slate-400 font-bold max-w-sm">
                 {activeFilter === 'global'
                   ? "Be the first to lock in your picks for tonight's show!"

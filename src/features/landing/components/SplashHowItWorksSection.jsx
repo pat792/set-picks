@@ -11,7 +11,7 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
           <h2
             ref={headingRef}
             tabIndex={-1}
-            className="text-2xl md:text-3xl font-black text-white mb-6 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md"
+            className="font-display text-display-lg md:text-display-lg-lg font-bold text-white mb-6 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md"
           >
             How It Works
           </h2>

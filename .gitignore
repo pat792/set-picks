@@ -2,3 +2,4 @@ node_modules
 .env
 .DS_Store
 dist
+.cursor/debug-2b48e0.log

@@ -19,11 +19,11 @@ export default function SplashAboutSection({
           <h2
             ref={headingRef}
             tabIndex={-1}
-            className="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-4 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md"
+            className="font-display text-display-lg md:text-display-lg-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-4 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md"
           >
             About Setlist Pick &apos;Em
           </h2>
-          <div className="text-slate-300 leading-relaxed space-y-4 text-sm md:text-base max-w-3xl mx-auto">
+          <div className="text-slate-300 font-normal leading-relaxed space-y-4 text-sm md:text-base max-w-3xl mx-auto">
             <p>
               In <strong className="text-white">2001</strong>, on{' '}
               <strong className="text-white">Phish tour</strong> that summer,{' '}
