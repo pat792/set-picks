@@ -1,36 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db, auth } from '../../lib/firebase'; 
-import { signOut } from 'firebase/auth'; 
-import { useNavigate } from 'react-router-dom'; 
+import { db, auth } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');
   const [favoriteSong, setFavoriteSong] = useState('');
-  const [joinDate, setJoinDate] = useState(''); // NEW: State to hold the formatted date
+  const [joinDate, setJoinDate] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
-  
-  const navigate = useNavigate(); 
 
-  // Fetch existing user data on load
+  const navigate = useNavigate();
+
+  const hasEmailPasswordProvider =
+    user?.providerData?.some((p) => p.providerId === 'password') ?? false;
+
   useEffect(() => {
     const loadProfile = async () => {
       if (!user?.uid) return;
-       
+
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
-        
-        // Calculate "Playing Since" date
-        // Tries database timestamp first, falls back to Firebase Auth creation time
+
         const accountCreated = userDoc.exists() ? userDoc.data().createdAt : null;
         const creationTime = accountCreated?.toDate?.() || user?.metadata?.creationTime;
-        
+
         if (creationTime) {
           const date = new Date(creationTime);
-          const formattedDate = date.toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
+          const formattedDate = date.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric',
           });
           setJoinDate(formattedDate);
         }
@@ -41,7 +41,7 @@ export default function Profile({ user }) {
           setFavoriteSong(data.favoriteSong || '');
         }
       } catch (error) {
-        console.error("Error loading profile:", error);
+        console.error('Error loading profile:', error);
       }
     };
 
@@ -64,12 +64,12 @@ export default function Profile({ user }) {
       await updateDoc(userRef, {
         handle: handle.trim(),
         favoriteSong: favoriteSong.trim() || 'Unknown',
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
-      
+
       setMessage({ text: 'Profile updated successfully! 🎸', type: 'success' });
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error('Error updating profile:', error);
       setMessage({ text: 'Error saving profile. Try again.', type: 'error' });
     } finally {
       setIsSaving(false);
@@ -80,20 +80,16 @@ export default function Profile({ user }) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/'); 
+      navigate('/');
     } catch (error) {
-      console.error("Error logging out: ", error);
+      console.error('Error logging out: ', error);
     }
   };
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
-      {/* HEADER SECTION */}
       <div className="mb-6 text-center md:text-left">
-        <h2 className="text-2xl font-black text-white tracking-tight">
-          My Profile
-        </h2>
-        {/* NEW: Playing Since Badge */}
+        <h2 className="text-2xl font-black text-white tracking-tight">My Profile</h2>
         {joinDate && (
           <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mt-1">
             Playing Since {joinDate}
@@ -101,11 +97,10 @@ export default function Profile({ user }) {
         )}
       </div>
 
-      <form 
+      <form
         onSubmit={handleSave}
         className="space-y-6 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50"
       >
-        {/* Handle Input */}
         <div className="flex flex-col">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
             Display Name / Handle
@@ -122,7 +117,6 @@ export default function Profile({ user }) {
           </p>
         </div>
 
-        {/* Favorite Song Input */}
         <div className="flex flex-col">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
             Favorite Phish Song
@@ -136,7 +130,6 @@ export default function Profile({ user }) {
           />
         </div>
 
-        {/* Save Button */}
         <div className="pt-2">
           <button
             type="submit"
@@ -147,15 +140,36 @@ export default function Profile({ user }) {
           </button>
         </div>
 
-        {/* Success/Error Message */}
         {message.text && (
-          <div className={`text-center font-bold text-sm mt-4 ${message.type === 'error' ? 'text-red-400' : 'text-emerald-400'}`}>
+          <div
+            className={`text-center font-bold text-sm mt-4 ${
+              message.type === 'error' ? 'text-red-400' : 'text-emerald-400'
+            }`}
+          >
             {message.text}
           </div>
         )}
       </form>
 
-      {/* Logout Section */}
+      {hasEmailPasswordProvider && user?.email && (
+        <div className="mt-8 rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6">
+          <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
+            Sign-in email &amp; password
+          </h3>
+          <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+            <strong className="text-slate-300">Change your email or password</strong> for logging in
+            (your sign-in user ID is your email). You&apos;ll need your current password, or you can
+            request a reset link if you forgot it — all on the next screen.
+          </p>
+          <Link
+            to="/dashboard/account-security"
+            className="mt-4 flex w-full items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-900/80 py-3.5 font-black text-sm uppercase tracking-widest text-white transition-colors hover:border-emerald-500/50 hover:bg-slate-800"
+          >
+            Change email or password
+          </Link>
+        </div>
+      )}
+
       <div className="mt-8 pt-6 border-t border-slate-700/50">
         <button
           onClick={handleLogout}

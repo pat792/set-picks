@@ -5,6 +5,7 @@ import { useAuth } from './features/auth/useAuth';
 // Components
 import Splash from './features/landing/Splash';
 import ProfileSetup from './features/auth/ProfileSetup';
+import PasswordResetComplete from './features/auth/PasswordResetComplete';
 import DashboardLayout from './features/layout/DashboardLayout'; // <-- NEW IMPORT
 
 function App() {
@@ -16,6 +17,9 @@ function App() {
 
   return (
     <Routes>
+      {/* After email password reset — Firebase continueUrl (must stay public) */}
+      <Route path="/password-reset-complete" element={<PasswordResetComplete />} />
+
       {/* Route 1: The Public Splash Page */}
       <Route 
         path="/" 

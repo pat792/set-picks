@@ -7,6 +7,7 @@ import PicksForm from '../picks/PicksForm';
 import AdminForm from '../admin/AdminForm';
 import Standings from '../standings/Standings';
 import Profile from '../profile/Profile';
+import AccountSecurity from '../profile/AccountSecurity';
 import Pools from '../pools/Pools';
 
 import { SHOW_DATES_BY_TOUR } from '../../data/showDates.js';
@@ -40,11 +41,14 @@ export default function DashboardLayout() {
     if (location.pathname === '/dashboard/standings') return 'Standings';
     if (location.pathname === '/dashboard/pools') return 'Your Pools';
     if (location.pathname === '/dashboard/profile') return 'My Profile';
+    if (location.pathname === '/dashboard/account-security') return 'Sign-in & password';
     if (location.pathname === '/dashboard/admin') return 'War Room';
     return 'Make Picks';
   };
 
-  const showDatePicker = location.pathname !== '/dashboard/profile';
+  const showDatePicker =
+    location.pathname !== '/dashboard/profile' &&
+    location.pathname !== '/dashboard/account-security';
   const datePickerStatus = getShowStatus(selectedDate);
   const showDatePickerUserBanners =
     showDatePicker && location.pathname !== '/dashboard/admin';
@@ -63,7 +67,15 @@ export default function DashboardLayout() {
         </div>
         <div className="flex flex-col gap-2 flex-1">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/dashboard/');
+            const isProfileSection =
+              item.path === '/dashboard/profile' &&
+              (location.pathname === '/dashboard/profile' ||
+                location.pathname === '/dashboard/account-security');
+            const isActive =
+              isProfileSection ||
+              (!isProfileSection &&
+                (location.pathname === item.path ||
+                  (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
               <Link key={item.name} to={item.path} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${isActive ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
                 <span className="text-xl">{item.icon}</span>
@@ -157,6 +169,7 @@ export default function DashboardLayout() {
             <Route path="/standings" element={<Standings selectedDate={selectedDate} />} />
             <Route path="/admin" element={<AdminForm user={user} selectedDate={selectedDate} />} />
             <Route path="/profile" element={<Profile user={user} />} />
+            <Route path="/account-security" element={<AccountSecurity user={user} />} />
             <Route path="/pools" element={<Pools user={user} />} />
           </Routes>
         </div>
@@ -167,7 +180,15 @@ export default function DashboardLayout() {
         <div className="flex justify-around items-center h-16 px-2">
           {navItems.map((item) => {
             if (item.name === 'Admin') return null; // Hide admin from mobile bottom nav to save space
-            const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/dashboard/');
+            const isProfileSection =
+              item.path === '/dashboard/profile' &&
+              (location.pathname === '/dashboard/profile' ||
+                location.pathname === '/dashboard/account-security');
+            const isActive =
+              isProfileSection ||
+              (!isProfileSection &&
+                (location.pathname === item.path ||
+                  (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
               <Link key={item.name} to={item.path} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}>
                 <span className="text-xl">{item.icon}</span>
