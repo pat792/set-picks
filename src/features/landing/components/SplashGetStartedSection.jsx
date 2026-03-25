@@ -10,9 +10,13 @@ export default function SplashGetStartedSection({
   return (
     <section
       ref={sectionRef}
-      className="relative z-10 w-full flex items-center py-10 md:py-12 lg:py-14 md:min-h-[80vh] lg:min-h-[88vh]"
+      className="relative z-10 w-full bg-gradient-to-b from-[#0f172a] to-emerald-950 py-20 md:py-32 border-t border-white/5 overflow-hidden"
     >
-      <div className="w-full max-w-5xl mx-auto px-1 flex justify-center">
+      <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+        <div className="w-[600px] h-[300px] bg-emerald-500/10 blur-[100px] rounded-full"></div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
         <SplashAuthEntryCard
           headingRef={headingRef}
           onOpenSignUp={onOpenSignUp}

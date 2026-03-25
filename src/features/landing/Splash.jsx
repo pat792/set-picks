@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { useSplashAuth } from '../auth/useSplashAuth';
 import SplashSignUpModal from '../auth/components/SplashSignUpModal';
 import SplashSignInModal from '../auth/components/SplashSignInModal';
+import SplashHeader from './components/SplashHeader';
 import SplashHeroSection from './components/SplashHeroSection';
 import SplashHowItWorksSection from './components/SplashHowItWorksSection';
 import SplashGetStartedSection from './components/SplashGetStartedSection';
@@ -81,8 +82,14 @@ export default function Splash() {
   }, [openSignUpModal]);
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col items-center p-6 relative overflow-hidden pb-16">
+    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col relative overflow-hidden">
+      
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/20 blur-[120px] rounded-full pointer-events-none" />
+
+      <SplashHeader 
+        onPlayNowClick={handleScrollToGetStarted}
+        onSignInClick={openSignInModal}
+      />
 
       <SplashHeroSection
         onHowItWorksClick={handleScrollToHowItWorks}
@@ -116,7 +123,6 @@ export default function Splash() {
         email={email}
         setEmail={setEmail}
         password={password}
-        setPassword={setPassword}
         confirmPassword={confirmPassword}
         setConfirmPassword={setConfirmPassword}
         error={error}

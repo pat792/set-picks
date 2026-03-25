@@ -7,23 +7,34 @@ export default function SplashAboutSection({
   onGetStartedClick,
 }) {
   const linkButtonClassName =
-    'text-sm font-bold text-slate-400 hover:text-white underline underline-offset-2 decoration-slate-500 hover:decoration-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-sm';
+    'text-sm font-bold text-slate-400 hover:text-white underline underline-offset-2 decoration-slate-500 hover:decoration-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] rounded-sm';
 
   return (
     <section
       ref={sectionRef}
-      className="relative z-10 w-full flex items-center py-10 md:py-12 lg:py-14 md:min-h-[80vh] lg:min-h-[88vh]"
+      className="relative z-10 w-full bg-[#0f172a] py-20 md:py-24 lg:py-32"
     >
-      <div className="w-full max-w-5xl mx-auto px-1">
-        <div className="rounded-[2.5rem] border border-white/10 bg-slate-800/40 p-6 md:p-8 lg:p-10 shadow-2xl">
-          <h2
-            ref={headingRef}
-            tabIndex={-1}
-            className="font-display text-display-lg md:text-display-lg-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-4 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md"
-          >
-            About Setlist Pick &apos;Em
-          </h2>
-          <div className="text-slate-300 font-normal leading-relaxed space-y-4 text-sm md:text-base max-w-3xl mx-auto">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+          
+          <div className="lg:col-span-5 lg:sticky lg:top-32">
+            <h2
+              ref={headingRef}
+              tabIndex={-1}
+              className="font-display text-[6.5vw] sm:text-4xl md:text-5xl lg:text-6xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-8 outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md leading-tight whitespace-nowrap sm:whitespace-normal"
+            >
+              About Setlist Pick &apos;Em
+            </h2>
+            
+            <div className="hidden lg:block mt-12">
+              <p className="text-xl text-slate-300 italic border-l-4 border-emerald-500/50 pl-6 leading-relaxed">
+                "Lock your picks, ride the scores, run with your crew—one show at a time."
+              </p>
+            </div>
+          </div>
+
+          <div className="lg:col-span-7 text-slate-300 font-normal leading-relaxed space-y-6 text-base md:text-lg">
             <p>
               In <strong className="text-white">2001</strong>, on{' '}
               <strong className="text-white">Phish tour</strong> that summer,{' '}
@@ -59,25 +70,29 @@ export default function SplashAboutSection({
               <strong className="text-white">show stats</strong>, and{' '}
               <strong className="text-white">fun with friends</strong>.
             </p>
-            <p className="text-slate-400 italic border-l-4 border-emerald-500/50 pl-4">
-              Lock your picks, ride the scores, run with your crew—one show at a time.
-            </p>
+            
+            <div className="block lg:hidden mt-10">
+              <p className="text-lg text-slate-300 italic border-l-4 border-emerald-500/50 pl-5 leading-relaxed">
+                "Lock your picks, ride the scores, run with your crew—one show at a time."
+              </p>
+            </div>
           </div>
-          <nav
-            className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center justify-center gap-x-1 gap-y-2 text-center"
-            aria-label="Jump to How it works or Get started"
-          >
-            <button type="button" onClick={onHowItWorksClick} className={linkButtonClassName}>
-              How it works
-            </button>
-            <span className="mx-2 text-slate-600 select-none" aria-hidden>
-              ·
-            </span>
-            <button type="button" onClick={onGetStartedClick} className={linkButtonClassName}>
-              Get started
-            </button>
-          </nav>
         </div>
+
+        <nav
+          className="mt-16 pt-8 border-t border-slate-800 flex flex-wrap items-center justify-start lg:justify-end gap-x-2 gap-y-2 text-center"
+          aria-label="Jump to How it works or Get started"
+        >
+          <button type="button" onClick={onHowItWorksClick} className={linkButtonClassName}>
+            How it works
+          </button>
+          <span className="mx-2 text-slate-700 select-none" aria-hidden>
+            ·
+          </span>
+          <button type="button" onClick={onGetStartedClick} className={linkButtonClassName}>
+            Get started
+          </button>
+        </nav>
       </div>
     </section>
   );
