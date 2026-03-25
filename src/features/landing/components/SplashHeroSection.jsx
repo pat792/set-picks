@@ -9,8 +9,8 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-[2px]"></div>
 
-      {/* THE FIX: pt-32 on mobile to clear the header, md:pt-0 md:mt-[-10vh] to keep desktop centered */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-32 md:pt-0 md:mt-[-10vh]">
+      {/* REVERTED: Back to the original centering with just mt-[-10vh] */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-[-10vh]">
         
         <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 drop-shadow-xl pr-2 md:pr-4">
           SETLIST PICK &apos;EM
