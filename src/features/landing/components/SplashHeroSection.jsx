@@ -10,7 +10,7 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center -translate-y-8 sm:-translate-y-12">
         
         {/* TITLE: Responsive line break forces "SETLIST" and "PICK 'EM" onto their own lines on mobile */}
-        <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-blue-500 drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
+        <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
           SETLIST <br className="md:hidden" /> PICK &apos;EM
         </h1>
         

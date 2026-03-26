@@ -70,7 +70,7 @@ export default function SplashAboutSection({
               Pat had always wished it could be <strong className="text-white">more automated</strong>{' '}
               and <strong className="text-white">more interesting</strong>.{' '}
               {/* UPDATED: text-teal-400 */}
-              <strong className="text-teal-400">Setlist Pick &apos;Em</strong> is that vision taken
+              <strong className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500">Setlist Pick &apos;Em</strong> is that vision taken
               to its logical conclusion: an <strong className="text-white">interactive</strong> home
               for passionate fans who crave <strong className="text-white">competition</strong>,{' '}
               <strong className="text-white">show stats</strong>, and{' '}
