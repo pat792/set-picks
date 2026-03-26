@@ -82,7 +82,7 @@ export default function Splash() {
   }, [openSignUpModal]);
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col relative overflow-x-hidden">
       
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/20 blur-[120px] rounded-full pointer-events-none" />
 
