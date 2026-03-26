@@ -79,41 +79,49 @@ export default function Splash() {
     window.setTimeout(() => {
       openSignUpModal();
     }, delay);
-  }, [openSignUpModal]);
+  }, [openSignUpModal, scrollToSectionFocus]);
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col relative overflow-x-hidden">
+    // REMOVED: overflow-x-hidden from this absolute root wrapper
+    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col relative">
       
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/20 blur-[120px] rounded-full pointer-events-none" />
-
+      {/* HEADER: Placed at the root, completely free of overflow traps so it stays sticky on iOS */}
       <SplashHeader 
         onPlayNowClick={handleScrollToGetStarted}
         onSignInClick={openSignInModal}
       />
 
-      <SplashHeroSection
-        onHowItWorksClick={handleScrollToHowItWorks}
-        onPlayNowClick={handleScrollToGetStarted}
-        onAboutClick={handleScrollToAbout}
-      />
-      <SplashHowItWorksSection
-        sectionRef={howItWorksSectionRef}
-        headingRef={howItWorksHeadingRef}
-        onCreateAccountClick={handleCreateAccountFromHowItWorks}
-      />
-      <SplashGetStartedSection
-        sectionRef={getStartedSectionRef}
-        headingRef={getStartedHeadingRef}
-        onOpenSignUp={openSignUpModal}
-        onOpenSignIn={openSignInModal}
-      />
-      <SplashAboutSection
-        sectionRef={aboutSectionRef}
-        headingRef={aboutHeadingRef}
-        onHowItWorksClick={handleScrollToHowItWorks}
-        onGetStartedClick={handleScrollToGetStarted}
-      />
+      {/* MAIN: Wrapped the rest of the page content WITH the overflow protection */}
+      <main className="flex-1 w-full relative overflow-x-hidden">
+        
+        {/* UPDATED: Changed emerald-500/20 to teal-400/20 to match the new brand glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-teal-400/20 blur-[120px] rounded-full pointer-events-none" />
 
+        <SplashHeroSection
+          onHowItWorksClick={handleScrollToHowItWorks}
+          onPlayNowClick={handleScrollToGetStarted}
+          onAboutClick={handleScrollToAbout}
+        />
+        <SplashHowItWorksSection
+          sectionRef={howItWorksSectionRef}
+          headingRef={howItWorksHeadingRef}
+          onCreateAccountClick={handleCreateAccountFromHowItWorks}
+        />
+        <SplashGetStartedSection
+          sectionRef={getStartedSectionRef}
+          headingRef={getStartedHeadingRef}
+          onOpenSignUp={openSignUpModal}
+          onOpenSignIn={openSignInModal}
+        />
+        <SplashAboutSection
+          sectionRef={aboutSectionRef}
+          headingRef={aboutHeadingRef}
+          onHowItWorksClick={handleScrollToHowItWorks}
+          onGetStartedClick={handleScrollToGetStarted}
+        />
+      </main>
+
+      {/* MODALS: Safely at the root level so they overlay everything correctly */}
       <SplashSignUpModal
         isOpen={authModal === 'signup'}
         closeModal={closeModal}
