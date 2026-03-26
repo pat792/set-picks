@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function SplashHeader({
+  onHowItWorksClick,
+  onAboutClick,
   onPlayNowClick,
   onSignInClick,
 }) {
@@ -12,20 +14,35 @@ export default function SplashHeader({
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-2"
-           
+          className="font-display font-bold italic text-lg sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-2"
         >
           SETLIST PICK &apos;EM
         </button>
 
-        {/* Right: CTA Buttons */}
+        {/* Middle: Desktop Navigation (Hidden on mobile) */}
+        <nav className="hidden md:flex items-center gap-8">
+          <button 
+            type="button" 
+            onClick={onHowItWorksClick} 
+            className="text-sm font-medium text-slate-300 hover:text-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm"
+          >
+            How it works
+          </button>
+          <button 
+            type="button" 
+            onClick={onAboutClick} 
+            className="text-sm font-medium text-slate-300 hover:text-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm"
+          >
+            About
+          </button>
+        </nav>
+
         {/* Right: CTA Buttons */}
         <div className="flex items-center gap-2 sm:gap-4">
           <button
             type="button"
             onClick={onSignInClick}
-            // Removed hidden sm:block, added text-xs for mobile
-            className="text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-sm"
+            className="text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm"
           >
             Log in
           </button>
