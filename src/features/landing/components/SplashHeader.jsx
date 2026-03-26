@@ -13,18 +13,18 @@ export default function SplashHeader({
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="font-display font-bold italic text-2xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-2 shrink-0 whitespace-nowrap"
+          className="font-display font-bold italic text-[clamp(1.05rem,4.6vw,1.5rem)] sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-1 min-w-0 whitespace-nowrap leading-none inline-block"
         >
           SETLIST PICK &apos;EM
         </button>
 
         {/* Right: CTA Buttons - Dropped gap-3 to gap-1.5 for a tighter mobile layout! */}
-        <div className="flex items-center gap-0.25 sm:gap-4 shrink-0 mr-3 sm:mr-0">
+        <div className="flex items-center gap-0.25 sm:gap-4 min-w-0">
           <Button
             variant="text"
             size="none"
             onClick={onSignInClick}
-            className="text-sm sm:text-sm"
+            className="text-sm sm:text-sm whitespace-nowrap"
           >
             Log in
           </Button>
@@ -33,7 +33,7 @@ export default function SplashHeader({
             variant="primary"
             size="sm"
             onClick={onPlayNowClick}
-            className="py-2.5 text-sm"
+            className="py-2.5"
           >
             Jump on Tour
           </Button>
