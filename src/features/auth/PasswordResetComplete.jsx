@@ -14,7 +14,11 @@ export default function PasswordResetComplete() {
           Password updated
         </h1>
         <p className="text-slate-300 font-medium leading-relaxed">
-          You&apos;re all set. Head back to Setlist Pick &apos;Em and sign in with your email and new
+          You&apos;re all set. Head back to{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500">
+            Setlist Pick &apos;Em
+          </span>{' '}
+          and sign in with your email and new
           password.
         </p>
         <Link
