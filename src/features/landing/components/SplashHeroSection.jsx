@@ -4,7 +4,7 @@ import Button from '../../../components/ui/Button';
 export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, onAboutClick }) {
   return (
     // Padding pt-[4.25rem] sm:pt-20 clears the fixed header on all screen sizes
-    <section className="relative w-full min-h-screen flex items-center justify-center bg-[#0f172a] overflow-hidden pt-[4.25rem] sm:pt-20">
+    <section className="relative w-full min-h-screen flex items-center justify-center bg-[#0f172a] overflow-hidden pt-[3.5rem] sm:pt-20">
       
       {/* ADDED: -translate-y-8 sm:-translate-y-12 for optical centering to close the gap */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center -translate-y-8 sm:-translate-y-12">
