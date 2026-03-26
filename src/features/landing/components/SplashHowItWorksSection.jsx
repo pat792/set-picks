@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from '../../../components/ui/Button';
 
 export default function SplashHowItWorksSection({ sectionRef, headingRef, onCreateAccountClick }) {
   return (
@@ -49,13 +50,14 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
         </div>
 
         <div className="mt-14 flex justify-center">
-          <button
+          <Button
+            variant="primary"
             type="button"
             onClick={onCreateAccountClick}
-            className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-10 py-4 font-black text-slate-900 shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] hover:shadow-[0_15px_30px_-15px_rgba(16,185,129,0.6)] hover:-translate-y-0.5 transition-all duration-300"
+            className="w-full sm:w-auto px-10 shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] hover:shadow-[0_15px_30px_-15px_rgba(16,185,129,0.6)]"
           >
             Create Account
-          </button>
+          </Button>
         </div>
       </div>
     </section>

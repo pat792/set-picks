@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from '../../../components/ui/Button';
 
 export default function SplashSignInModal({
   isOpen,
@@ -29,25 +30,27 @@ export default function SplashSignInModal({
           <h3 id="signin-title" className="font-display text-display-md md:text-display-md-lg font-bold text-white">
             Sign in
           </h3>
-          <button
+          <Button
+            variant="text"
             type="button"
             onClick={closeModal}
-            className="text-slate-400 hover:text-white text-2xl leading-none px-2"
+            className="text-slate-400 hover:text-white text-2xl leading-none px-2 py-0"
             aria-label="Close"
           >
             ×
-          </button>
+          </Button>
         </div>
 
-        <button
+        <Button
+          variant="text"
           type="button"
           onClick={handleGoogle}
           disabled={busy}
-          className="w-full bg-white text-slate-900 font-bold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-colors disabled:opacity-50 mb-6"
+          className="w-full bg-white text-slate-900 py-3.5 rounded-xl gap-3 hover:bg-slate-100 transition-colors mb-6"
         >
           <img src="https://www.google.com/favicon.ico" alt="" className="w-5 h-5" />
           Sign in with Google
-        </button>
+        </Button>
 
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 h-px bg-slate-700" />
@@ -85,14 +88,15 @@ export default function SplashSignInModal({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <button
+            <Button
+              variant="link"
               type="button"
               onClick={handleSendPasswordResetEmail}
               disabled={busy}
-              className="text-left text-sm font-bold text-amber-400/90 hover:text-amber-300 underline underline-offset-2 disabled:opacity-50"
+              className="w-fit px-0 py-0 text-left text-sm text-amber-400/90 hover:text-amber-300 decoration-amber-400/90 hover:decoration-amber-300 disabled:opacity-50"
             >
               Forgot password? Send reset link to your email
-            </button>
+            </Button>
             {resetLinkNotice.text && (
               <p
                 className={`text-sm font-bold ${
@@ -104,13 +108,14 @@ export default function SplashSignInModal({
             )}
           </div>
           {error && <p className="text-red-400 text-sm font-bold">{error}</p>}
-          <button
+          <Button
+            variant="primary"
             type="submit"
             disabled={busy}
-            className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black py-3.5 rounded-xl uppercase tracking-widest disabled:opacity-50"
+            className="w-full py-3.5 rounded-xl uppercase tracking-widest"
           >
             {busy ? 'Signing in…' : 'Sign in'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>
