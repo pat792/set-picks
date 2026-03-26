@@ -16,7 +16,7 @@ const variantStyles = {
 
 // 3. NEW: Added a dedicated sizes dictionary for padding, text size, and rounding
 const sizeStyles = {
-  sm: 'px-3 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm rounded-lg sm:rounded-xl', // For Navbars
+  sm: 'px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm rounded-lg sm:rounded-xl', // For Navbars
   md: 'px-8 py-4 text-base sm:text-lg rounded-2xl', // For Hero CTAs
   none: '', // For pure text buttons without padding
 };

@@ -13,13 +13,13 @@ export default function SplashHeader({
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="font-display font-bold italic text-base min-[375px]:text-lg sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-2 shrink-0 whitespace-nowrap"
+          className="font-display font-bold italic text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-2 shrink-0 whitespace-nowrap"
         >
           SETLIST PICK &apos;EM
         </button>
 
         {/* Right: CTA Buttons - Dropped gap-3 to gap-1.5 for a tighter mobile layout! */}
-        <div className="flex items-center gap-1.0 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-0.5 sm:gap-4 shrink-0 mr-2 sm:mr-0">
           <Button
             variant="text"
             size="none"
