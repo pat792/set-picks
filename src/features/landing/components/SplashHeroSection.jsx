@@ -2,18 +2,16 @@ import React from 'react';
 import Button from '../../../components/ui/Button';
 
 export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, onAboutClick }) {
-  const glassCtaClassName =
-    'w-full sm:w-auto inline-flex items-center justify-center rounded-2xl border border-white/25 bg-slate-950/30 backdrop-blur-xl px-8 py-4 font-black text-white shadow-lg ring-1 ring-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] hover:bg-slate-950/45 outline-none focus-visible:ring-2 focus-visible:ring-teal-400 transition-colors';
-
   return (
     // Padding pt-16 sm:pt-20 clears the fixed header on all screen sizes
     <section className="relative w-full min-h-screen flex items-center justify-center bg-[#0f172a] overflow-hidden pt-16 sm:pt-20">
       
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* ADDED: -translate-y-8 sm:-translate-y-12 for optical centering to close the gap */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center -translate-y-8 sm:-translate-y-12">
         
-        {/* TITLE: Locked to one line globally by dropping size to text-4xl on tiny phones */}
-        <h1 className="mx-auto max-w-full font-display text-4xl min-[400px]:text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-blue-500 drop-shadow-xl pr-2 md:pr-4 whitespace-nowrap">
-          SETLIST PICK &apos;EM
+        {/* TITLE: Responsive line break forces "SETLIST" and "PICK 'EM" onto their own lines on mobile */}
+        <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-blue-500 drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
+          SETLIST <br className="md:hidden" /> PICK &apos;EM
         </h1>
         
         {/* THE NEON KICKER (Teal-400) & NEW COPY BLOCK */}
@@ -27,13 +25,12 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
           </p>
         </div>
         
-        {/* BUTTONS (Primary updated to match neon Teal-400) */}
+        {/* BUTTONS: Now using pure React components, no messy Tailwind strings! */}
         <div className="mt-10 flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4 w-full max-w-[280px] sm:max-w-none mx-auto">
           <Button
             variant="primary"
             type="button"
             onClick={onHowItWorksClick}
-            // UPDATED: from-teal-400 to-teal-500 with updated teal drop shadow (rgba(45,212,191,0.5))
             className="w-full sm:w-auto"
           >
             Game Format
@@ -44,8 +41,7 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
             type="button"
             onClick={onPlayNowClick}
             aria-label="Play now: go to sign in or create an account"
-            // glassCtaClassName above updated to have teal focus ring
-            className={glassCtaClassName}
+            className="w-full sm:w-auto"
           >
             Make Picks Now
           </Button>
@@ -55,8 +51,7 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
             type="button"
             onClick={onAboutClick}
             aria-label={"About Setlist Pick 'Em"}
-            // glassCtaClassName above updated to have teal focus ring
-            className={glassCtaClassName}
+            className="w-full sm:w-auto"
           >
             About
           </Button>
