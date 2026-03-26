@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, Routes, Route } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import { useScrollDirection } from '../../hooks/useScrollDirection'; 
-// NEW LUCIDE IMPORTS
+
 import { ListMusic, Users, Trophy, User as UserIcon, Settings } from 'lucide-react'; 
 
 import PicksForm from '../picks/PicksForm';
@@ -32,8 +32,7 @@ export default function DashboardLayout() {
 
   const [selectedDate, setSelectedDate] = useState(getNextShow().date);
 
-  // UPDATED: Swapped Emojis for Lucide Icon Components
-  const navItems = [
+    const navItems = [
     { name: 'Picks', path: '/dashboard', icon: ListMusic },
     { name: 'Pools', path: '/dashboard/pools', icon: Users },
     { name: 'Standings', path: '/dashboard/standings', icon: Trophy },
@@ -57,9 +56,14 @@ export default function DashboardLayout() {
       
       {/* DESKTOP SIDEBAR */}
       <nav className="hidden md:flex flex-col w-64 bg-slate-800/50 border-r border-slate-700/50 p-4 z-10">
-        <div className="mb-8 px-4 py-2">
-          <h1 className="font-display text-display-brand-sidebar md:text-display-brand-sidebar-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            SETLIST PICK 'EM
+      <div className="mb-8 px-4 py-2">
+          <h1 className="font-display text-display-brand-sidebar md:text-display-brand-sidebar-lg font-bold italic leading-none outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity flex flex-col items-start">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 pr-2">
+              SETLIST
+            </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 pr-2">
+              PICK 'EM
+            </span>
           </h1>
         </div>
         <div className="flex flex-col gap-2 flex-1">

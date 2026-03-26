@@ -12,14 +12,21 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
       {/* REVERTED: Back to the original centering with just mt-[-10vh] */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-[-10vh]">
         
-        <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 drop-shadow-xl pr-2 md:pr-4">
-          SETLIST PICK &apos;EM
+        <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 drop-shadow-xl pr-2 md:pr-4 whitespace-nowrap">
+          SETLIST PICK 'EM
         </h1>
         
-        <p className="mt-6 max-w-3xl mx-auto text-base md:text-xl text-slate-200 font-medium leading-relaxed drop-shadow-md">
-          Draft your dream setlist. Compete against the global community or your own tour crew.
-          Prove who truly knows the band.
-        </p>
+        <div className="mt-6 max-w-3xl mx-auto">
+  {/* The Neon Kicker */}
+  <p className="text-xl md:text-2xl text-teal-400 font-bold tracking-wide drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] mb-4">
+    The ultimate live music prediction game. Phish is just the opener.
+  </p>
+  
+  {/* The Supporting Body */}
+  <p className="text-base md:text-lg text-slate-300 font-normal leading-relaxed">
+    Stop just calling the opener to your buddy—put your picks on the record. Draft your Phish predictions, lock them in before showtime, and battle for bragging rights against the global community and your own tour crew. Prove who really knows the band's next move.
+  </p>
+</div>
         
         <div className="mt-10 flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4 w-full max-w-[280px] sm:max-w-none mx-auto">
           <button
@@ -27,7 +34,7 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
             onClick={onHowItWorksClick}
             className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-8 py-4 font-black text-slate-900 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)] hover:shadow-[0_0_60px_-15px_rgba(16,185,129,0.7)] transition-all"
           >
-            How it works
+            Game Format
           </button>
           
           <button
@@ -36,7 +43,7 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
             aria-label="Play now: go to sign in or create an account"
             className={glassCtaClassName}
           >
-            Jump on Tour
+            Make Picks Now
           </button>
           
           <button
