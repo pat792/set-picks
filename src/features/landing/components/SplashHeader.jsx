@@ -19,7 +19,7 @@ export default function SplashHeader({
         </button>
 
         {/* Right: CTA Buttons - Dropped gap-3 to gap-1.5 for a tighter mobile layout! */}
-        <div className="flex items-center gap-0.5 sm:gap-4 shrink-0 mr-2 sm:mr-0">
+        <div className="flex items-center gap-0.25 sm:gap-4 shrink-0 mr-3 sm:mr-0">
           <Button
             variant="text"
             size="none"
