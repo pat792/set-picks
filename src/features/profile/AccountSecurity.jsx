@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAccountSecurity } from '../auth/useAccountSecurity';
+import Button from '../../components/ui/Button';
 
 export default function AccountSecurity({ user }) {
   const {
@@ -157,13 +158,14 @@ export default function AccountSecurity({ user }) {
             </p>
           )}
 
-          <button
+          <Button
+            variant="primary"
             type="submit"
             disabled={accountBusy}
-            className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 py-3.5 font-black text-sm uppercase tracking-widest text-slate-900 transition-colors disabled:opacity-50"
+            className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 py-3.5 text-sm uppercase tracking-widest text-slate-900"
           >
             {accountBusy ? 'Saving…' : 'Save sign-in changes'}
-          </button>
+          </Button>
         </form>
 
         <div className="border-t border-slate-700/50 pt-6 space-y-3">
@@ -172,14 +174,15 @@ export default function AccountSecurity({ user }) {
             a reset link to <span className="font-bold text-slate-300">{user.email}</span> — no
             current password needed.
           </p>
-          <button
+          <Button
+            variant="text"
             type="button"
             onClick={handlePasswordResetEmail}
             disabled={passwordResetSending}
-            className="w-full rounded-xl border-2 border-slate-600 bg-slate-900/80 py-3.5 font-black text-sm uppercase tracking-widest text-white transition-colors hover:border-amber-500/50 hover:bg-slate-800 disabled:opacity-50"
+            className="w-full rounded-xl border-2 border-slate-600 bg-slate-900/80 py-3.5 text-sm uppercase tracking-widest text-white hover:border-amber-500/50 hover:bg-slate-800"
           >
             {passwordResetSending ? 'Sending…' : 'Send password reset email'}
-          </button>
+          </Button>
           {passwordResetNotice.text && (
             <p
               className={`text-center text-sm font-bold ${

@@ -4,6 +4,7 @@ import { db } from '../../lib/firebase';
 import Leaderboard from '../../components/Leaderboard';
 import { useAuth } from '../auth/useAuth';
 import { getShowStatus } from '../../utils/timeLogic.js';
+import Button from '../../components/ui/Button';
 
 export default function Standings({ selectedDate }) {
   const { user } = useAuth(); 
@@ -110,7 +111,8 @@ export default function Standings({ selectedDate }) {
         </h3>
         
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-1">
-          <button
+          <Button
+            variant="text"
             onClick={() => setActiveFilter('global')}
             className={`px-5 py-2.5 rounded-full font-black text-sm uppercase tracking-widest whitespace-nowrap transition-all shadow-lg ${
               activeFilter === 'global' 
@@ -119,10 +121,11 @@ export default function Standings({ selectedDate }) {
             }`}
           >
             Global
-          </button>
+          </Button>
 
           {userPools.map(pool => (
-            <button
+            <Button
+              variant="text"
               key={pool.id}
               onClick={() => setActiveFilter(pool.id)}
               className={`px-5 py-2.5 rounded-full font-black text-sm uppercase tracking-widest whitespace-nowrap transition-all shadow-lg ${
@@ -132,7 +135,7 @@ export default function Standings({ selectedDate }) {
               }`}
             >
               {pool.name}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

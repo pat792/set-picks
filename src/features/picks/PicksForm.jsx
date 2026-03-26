@@ -4,6 +4,7 @@ import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
 import SongAutocomplete from '../../components/SongAutocomplete';
+import Button from '../../components/ui/Button';
 
 export default function PicksForm({ user, selectedDate }) {
   const [picks, setPicks] = useState({});
@@ -104,13 +105,14 @@ export default function PicksForm({ user, selectedDate }) {
           ))}
 
           <div className="pt-4">
-            <button
+            <Button
+              variant="primary"
               type="submit"
               disabled={isSaving}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
+              className="w-full text-lg py-4 rounded-xl uppercase tracking-widest bg-emerald-500 hover:bg-emerald-400 shadow-lg hover:shadow-emerald-500/20"
             >
               {isSaving ? 'Saving...' : 'Lock In Picks'}
-            </button>
+            </Button>
           </div>
 
           {saveMessage && (
