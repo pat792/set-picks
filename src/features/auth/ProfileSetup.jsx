@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import Button from '../../components/ui/Button';
 
 export default function ProfileSetup({ user }) {
   const [handle, setHandle] = useState("");
@@ -72,13 +73,14 @@ export default function ProfileSetup({ user }) {
           {error && <p className="text-red-400 text-xs font-bold uppercase">{error}</p>}
           
           {/* UPDATED: The Kuroda Neon Green Button */}
-          <button 
+          <Button
+            variant="primary"
             type="submit" 
             disabled={isSaving || !handle.trim()}
-            className="w-full bg-green-400 hover:bg-green-300 text-green-950 p-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_15px_rgba(74,222,128,0.4)] disabled:opacity-50 transition-all hover:scale-[1.02] mt-4"
+            className="w-full bg-green-400 hover:bg-green-300 text-green-950 p-4 uppercase tracking-widest shadow-[0_0_15px_rgba(74,222,128,0.4)] hover:scale-[1.02] mt-4"
           >
             {isSaving ? "Saving..." : "Lock Profile In"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

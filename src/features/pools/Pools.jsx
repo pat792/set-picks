@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import Button from '../../components/ui/Button';
 
 export default function Pools({ user }) {
   const [userPools, setUserPools] = useState([]);
@@ -141,18 +142,20 @@ export default function Pools({ user }) {
         
         {/* Tabs */}
         <div className="flex border-b border-slate-700/50">
-          <button 
+          <Button
+            variant="text"
             onClick={() => { setActiveTab('join'); setMessage({text:'', type:''}); }}
             className={`flex-1 py-4 font-black text-sm uppercase tracking-widest transition-colors ${activeTab === 'join' ? 'bg-emerald-500/10 text-emerald-400 border-b-2 border-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
           >
             Join Pool
-          </button>
-          <button 
+          </Button>
+          <Button
+            variant="text"
             onClick={() => { setActiveTab('create'); setMessage({text:'', type:''}); }}
             className={`flex-1 py-4 font-black text-sm uppercase tracking-widest transition-colors ${activeTab === 'create' ? 'bg-emerald-500/10 text-emerald-400 border-b-2 border-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
           >
             Create Pool
-          </button>
+          </Button>
         </div>
 
         <div className="p-6">
@@ -176,9 +179,9 @@ export default function Pools({ user }) {
                   className="bg-slate-900 border-2 border-slate-700 text-white font-black font-mono tracking-widest py-3 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors w-full uppercase text-center text-xl"
                 />
               </div>
-              <button disabled={isLoading} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50">
+              <Button variant="primary" type="submit" disabled={isLoading} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-lg py-4 rounded-xl uppercase tracking-widest shadow-lg hover:shadow-emerald-500/20">
                 {isLoading ? 'Joining...' : 'Join Pool'}
-              </button>
+              </Button>
             </form>
           )}
 
@@ -195,9 +198,9 @@ export default function Pools({ user }) {
                   className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors w-full"
                 />
               </div>
-              <button disabled={isLoading} className="w-full bg-slate-100 hover:bg-white text-slate-900 font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all disabled:opacity-50">
+              <Button variant="text" type="submit" disabled={isLoading} className="w-full bg-slate-100 hover:bg-white text-slate-900 text-lg py-4 rounded-xl uppercase tracking-widest">
                 {isLoading ? 'Creating...' : 'Create New Pool'}
-              </button>
+              </Button>
             </form>
           )}
         </div>

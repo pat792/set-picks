@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig'; // <-- THE SINGLE SOURCE OF TRUTH
 import SongAutocomplete from '../../components/SongAutocomplete';
+import Button from '../../components/ui/Button';
 
 export default function AdminForm({ user, selectedDate }) {
   // Dynamically create our initial state based on whatever is in gameConfig.js
@@ -134,13 +135,14 @@ export default function AdminForm({ user, selectedDate }) {
 
         {/* Save Button */}
         <div className="pt-2">
-          <button
+          <Button
+            variant="primary"
             type="submit"
             disabled={isSaving}
-            className="w-full bg-red-500 hover:bg-red-400 text-white font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all shadow-lg hover:shadow-red-500/20 disabled:opacity-50"
+            className="w-full bg-red-500 hover:bg-red-400 text-white text-lg py-4 rounded-xl uppercase tracking-widest shadow-lg hover:shadow-red-500/20"
           >
             {isSaving ? 'UPDATING DB...' : 'LOCK OFFICIAL SETLIST'}
-          </button>
+          </Button>
         </div>
 
         {/* Success/Error Message */}

@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
+import Button from '../../components/ui/Button';
 
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');
@@ -133,13 +134,14 @@ export default function Profile({ user }) {
         </div>
 
         <div className="pt-2">
-          <button
+          <Button
+            variant="primary"
             type="submit"
             disabled={isSaving}
-            className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg py-4 rounded-xl uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50"
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-lg py-4 rounded-xl uppercase tracking-widest shadow-lg hover:shadow-emerald-500/20"
           >
             {isSaving ? 'Saving...' : 'Update Profile'}
-          </button>
+          </Button>
         </div>
 
         {message.text && (
@@ -173,13 +175,14 @@ export default function Profile({ user }) {
       )}
 
       <div className="mt-8 pt-6 border-t border-slate-700/50">
-        <button
+        <Button
+          variant="text"
           onClick={handleLogout}
           type="button"
-          className="w-full bg-transparent hover:bg-red-500/10 border-2 border-red-500/30 hover:border-red-500 text-red-400 font-black text-sm py-4 rounded-xl uppercase tracking-widest transition-all"
+          className="w-full bg-transparent hover:bg-red-500/10 border-2 border-red-500/30 hover:border-red-500 text-red-400 text-sm py-4 rounded-xl uppercase tracking-widest"
         >
           Log Out
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -94,14 +94,16 @@ export default function SongAutocomplete({ value, onChange, placeholder }) {
               <li 
                 key={index}
                 onClick={() => handleSelect(songName)}
-                className={`px-4 py-3 cursor-pointer border-b border-slate-700/50 last:border-b-0 transition-colors flex justify-between items-center ${
-                  index === activeIndex ? 'bg-slate-700' : 'hover:bg-slate-700'
+                className={`border-b border-slate-700/50 last:border-b-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 p-3 cursor-pointer hover:bg-slate-800 transition-colors focus:bg-slate-800 focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-400 ${
+                  index === activeIndex ? 'bg-slate-800' : ''
                 }`}
               >
-                <div className="font-bold text-white text-base truncate pr-4">{songName}</div>
+                <div className="text-base font-bold text-slate-200 whitespace-normal break-words text-left">
+                  {songName}
+                </div>
                 
                 {typeof song !== 'string' && (
-                  <div className="text-[11px] text-emerald-400 font-bold uppercase tracking-widest whitespace-nowrap text-right shrink-0">
+                  <div className="text-xs sm:text-sm font-medium text-slate-400 text-left sm:text-right">
                     <span className="text-slate-500">Gap:</span> {songGap} 
                     <span className="text-slate-600 mx-2">|</span> 
                     <span className="text-slate-500">Last:</span> {songLast}

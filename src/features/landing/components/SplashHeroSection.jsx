@@ -1,52 +1,60 @@
 import React from 'react';
+import Button from '../../../components/ui/Button';
 
 export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, onAboutClick }) {
-  const glassCtaClassName =
-    'w-full sm:w-auto inline-flex items-center justify-center rounded-2xl border border-white/25 bg-slate-950/30 backdrop-blur-xl px-8 py-4 font-black text-white shadow-lg ring-1 ring-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] hover:bg-slate-950/45 transition-colors';
-
   return (
-    <section className="relative z-10 w-full min-h-screen flex items-center justify-center bg-[#0f172a] bg-cover bg-center bg-no-repeat">
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-[2px]"></div>
-
-      {/* REVERTED: Back to the original centering with just mt-[-10vh] */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-[-10vh]">
+    // Padding pt-16 sm:pt-20 clears the fixed header on all screen sizes
+    <section className="relative w-full min-h-screen flex items-center justify-center bg-[#0f172a] overflow-hidden pt-16 sm:pt-20">
+      
+      {/* ADDED: -translate-y-8 sm:-translate-y-12 for optical centering to close the gap */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center -translate-y-8 sm:-translate-y-12">
         
-        <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 drop-shadow-xl pr-2 md:pr-4">
-          SETLIST PICK &apos;EM
+        {/* TITLE: Responsive line break forces "SETLIST" and "PICK 'EM" onto their own lines on mobile */}
+        <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-blue-500 drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
+          SETLIST <br className="md:hidden" /> PICK &apos;EM
         </h1>
         
-        <p className="mt-6 max-w-3xl mx-auto text-base md:text-xl text-slate-200 font-medium leading-relaxed drop-shadow-md">
-          Draft your dream setlist. Compete against the global community or your own tour crew.
-          Prove who truly knows the band.
-        </p>
+        {/* THE NEON KICKER (Teal-400) & NEW COPY BLOCK */}
+        <div className="mt-6 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-teal-400 font-bold tracking-wide drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] mb-4">
+            The ultimate live music prediction game. Launching on Phish Tour.
+          </p>
+          
+          <p className="text-base md:text-lg text-slate-300 font-normal leading-relaxed">
+            Join a global community of fans who live for the next song. Challenge your tour family, lock in your predictions, and share the thrill of calling a legendary show before the lights even go down.
+          </p>
+        </div>
         
+        {/* BUTTONS: Now using pure React components, no messy Tailwind strings! */}
         <div className="mt-10 flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4 w-full max-w-[280px] sm:max-w-none mx-auto">
-          <button
+          <Button
+            variant="primary"
             type="button"
             onClick={onHowItWorksClick}
-            className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-8 py-4 font-black text-slate-900 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)] hover:shadow-[0_0_60px_-15px_rgba(16,185,129,0.7)] transition-all"
+            className="w-full sm:w-auto"
           >
-            How it works
-          </button>
+            Game Format
+          </Button>
           
-          <button
+          <Button
+            variant="glass"
             type="button"
             onClick={onPlayNowClick}
             aria-label="Play now: go to sign in or create an account"
-            className={glassCtaClassName}
+            className="w-full sm:w-auto"
           >
-            Jump on Tour
-          </button>
+            Make Picks Now
+          </Button>
           
-          <button
+          <Button
+            variant="glass"
             type="button"
             onClick={onAboutClick}
             aria-label={"About Setlist Pick 'Em"}
-            className={glassCtaClassName}
+            className="w-full sm:w-auto"
           >
             About
-          </button>
+          </Button>
         </div>
       </div>
     </section>

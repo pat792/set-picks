@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from '../../../components/ui/Button';
 
 export default function SplashAboutSection({
   sectionRef,
@@ -6,8 +7,9 @@ export default function SplashAboutSection({
   onHowItWorksClick,
   onGetStartedClick,
 }) {
+  // UPDATED: focus-visible:ring-teal-400
   const linkButtonClassName =
-    'text-sm font-bold text-slate-400 hover:text-white underline underline-offset-2 decoration-slate-500 hover:decoration-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] rounded-sm';
+    'text-sm font-bold text-slate-400 hover:text-white underline underline-offset-2 decoration-slate-500 hover:decoration-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] rounded-sm';
 
   return (
     <section
@@ -19,16 +21,18 @@ export default function SplashAboutSection({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           
           <div className="lg:col-span-5 lg:sticky lg:top-32">
+            {/* UPDATED: Red-to-Blue gradient and Teal-400 focus ring */}
             <h2
               ref={headingRef}
               tabIndex={-1}
-              className="font-display text-[6.5vw] sm:text-4xl md:text-5xl lg:text-6xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-8 outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md leading-tight whitespace-nowrap sm:whitespace-normal"
+              className="font-display text-[6.5vw] sm:text-4xl md:text-5xl lg:text-6xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 mb-8 outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded-md leading-tight whitespace-nowrap sm:whitespace-normal"
             >
               About Setlist Pick &apos;Em
             </h2>
             
             <div className="hidden lg:block mt-12">
-              <p className="text-xl text-slate-300 italic border-l-4 border-emerald-500/50 pl-6 leading-relaxed">
+              {/* UPDATED: border-teal-400/50 */}
+              <p className="text-xl text-slate-300 italic border-l-4 border-teal-400/50 pl-6 leading-relaxed">
                 "Lock your picks, ride the scores, run with your crew—one show at a time."
               </p>
             </div>
@@ -39,7 +43,8 @@ export default function SplashAboutSection({
               In <strong className="text-white">2001</strong>, on{' '}
               <strong className="text-white">Phish tour</strong> that summer,{' '}
               <strong className="text-white">Ryan M</strong>—known to friends as{' '}
-              <strong className="text-emerald-400">Beaver</strong>—cooked up a game to pass the miles
+              {/* UPDATED: text-teal-400 */}
+              <strong className="text-teal-400">Beaver</strong>—cooked up a game to pass the miles
               between shows. <strong className="text-white">Glu</strong> and{' '}
               <strong className="text-white">Andy F</strong> rolled with him on the road; in those
               heady years the three of them shaped the ritual—debating picks, refining the format, and
@@ -64,7 +69,8 @@ export default function SplashAboutSection({
             <p>
               Pat had always wished it could be <strong className="text-white">more automated</strong>{' '}
               and <strong className="text-white">more interesting</strong>.{' '}
-              <strong className="text-emerald-400">Setlist Pick &apos;Em</strong> is that vision taken
+              {/* UPDATED: text-teal-400 */}
+              <strong className="text-teal-400">Setlist Pick &apos;Em</strong> is that vision taken
               to its logical conclusion: an <strong className="text-white">interactive</strong> home
               for passionate fans who crave <strong className="text-white">competition</strong>,{' '}
               <strong className="text-white">show stats</strong>, and{' '}
@@ -72,7 +78,8 @@ export default function SplashAboutSection({
             </p>
             
             <div className="block lg:hidden mt-10">
-              <p className="text-lg text-slate-300 italic border-l-4 border-emerald-500/50 pl-5 leading-relaxed">
+              {/* UPDATED: border-teal-400/50 */}
+              <p className="text-lg text-slate-300 italic border-l-4 border-teal-400/50 pl-5 leading-relaxed">
                 "Lock your picks, ride the scores, run with your crew—one show at a time."
               </p>
             </div>
@@ -83,15 +90,15 @@ export default function SplashAboutSection({
           className="mt-16 pt-8 border-t border-slate-800 flex flex-wrap items-center justify-start lg:justify-end gap-x-2 gap-y-2 text-center"
           aria-label="Jump to How it works or Get started"
         >
-          <button type="button" onClick={onHowItWorksClick} className={linkButtonClassName}>
+          <Button variant="link" type="button" onClick={onHowItWorksClick} className={linkButtonClassName}>
             How it works
-          </button>
+          </Button>
           <span className="mx-2 text-slate-700 select-none" aria-hidden>
             ·
           </span>
-          <button type="button" onClick={onGetStartedClick} className={linkButtonClassName}>
+          <Button variant="link" type="button" onClick={onGetStartedClick} className={linkButtonClassName}>
             Get started
-          </button>
+          </Button>
         </nav>
       </div>
     </section>
