@@ -23,7 +23,7 @@ export default function SongAutocomplete({ value, onChange, placeholder }) {
     const val = e.target.value;
     onChange(val);
 
-    if (val.length > 1) {
+    if (val.length > 0) {
       const matches = PHISH_SONGS.filter(song => 
         (typeof song === 'string' ? song : song.name).toLowerCase().includes(val.toLowerCase())
       ).slice(0, 10);
