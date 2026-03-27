@@ -84,18 +84,29 @@ export default function SongAutocomplete({ value, onChange, placeholder }) {
       />
       
       {isOpen && filteredSongs.length > 0 && (
-        <ul className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden">
+        <ul
+          role="listbox"
+          className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden"
+        >
           {filteredSongs.map((song, index) => {
             const songName = typeof song === 'string' ? song : song.name;
             const songGap = song.gap && song.gap !== '—' ? song.gap : 'N/A';
             const songLast = song.last && song.last !== '—' ? song.last : 'Never';
-
+            const songTotal =
+              typeof song !== 'string' && song.total && song.total !== '—'
+                ? song.total
+                : 'N/A';
+            const isKeyboardActive = index === activeIndex;
             return (
               <li 
                 key={index}
+                role="option"
+                aria-selected={isKeyboardActive}
                 onClick={() => handleSelect(songName)}
-                className={`border-b border-slate-700/50 last:border-b-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 p-3 cursor-pointer hover:bg-slate-800 transition-colors focus:bg-slate-800 focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-400 ${
-                  index === activeIndex ? 'bg-slate-800' : ''
+                className={`border-b border-slate-700/50 last:border-b-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 p-3 cursor-pointer transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-400 ${
+                  isKeyboardActive
+                    ? 'bg-slate-700 ring-1 ring-inset ring-teal-400/60'
+                    : 'md:hover:bg-slate-700/50'
                 }`}
               >
                 <div className="text-base font-bold text-slate-200 whitespace-normal break-words text-left">
@@ -103,10 +114,16 @@ export default function SongAutocomplete({ value, onChange, placeholder }) {
                 </div>
                 
                 {typeof song !== 'string' && (
-                  <div className="text-xs sm:text-sm font-medium text-slate-400 text-left sm:text-right">
-                    <span className="text-slate-500">Gap:</span> {songGap} 
-                    <span className="text-slate-600 mx-2">|</span> 
-                    <span className="text-slate-500">Last:</span> {songLast}
+                  <div className="inline-flex flex-wrap items-baseline justify-start sm:justify-end gap-x-1.5 gap-y-0.5 text-xs sm:text-sm font-medium text-slate-400 tabular-nums text-left sm:text-right">
+                    <span className="whitespace-nowrap">
+                      <span className="text-slate-500">Total:</span> {songTotal}
+                    </span>
+                    <span className="whitespace-nowrap">
+                      <span className="text-slate-500">Gap:</span> {songGap}
+                    </span>
+                    <span className="whitespace-nowrap">
+                      <span className="text-slate-500">Last:</span> {songLast}
+                    </span>
                   </div>
                 )}
               </li>
