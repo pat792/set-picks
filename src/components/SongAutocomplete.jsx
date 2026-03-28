@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PHISH_SONGS } from '../data/phishSongs.js';
 
-export default function SongAutocomplete({ value, onChange, placeholder }) {
+export default function SongAutocomplete({ value, onChange, placeholder, onSongSelected }) {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSongs, setFilteredSongs] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -39,6 +39,7 @@ export default function SongAutocomplete({ value, onChange, placeholder }) {
 
   const handleSelect = (songName) => {
     onChange(songName);
+    onSongSelected?.(songName);
     setIsOpen(false);
     setActiveIndex(-1);
   };

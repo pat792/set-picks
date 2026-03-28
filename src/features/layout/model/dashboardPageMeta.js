@@ -19,6 +19,7 @@ export function getDashboardPageMeta(pathname) {
   const isProfile = normalized === '/dashboard/profile';
   const isAccountSecurity = normalized === '/dashboard/account-security';
   const isAdmin = normalized === '/dashboard/admin';
+  const isScoringRules = normalized === '/dashboard/scoring';
 
   const contextTitle = (() => {
     if (normalized === '/dashboard/standings') return 'Standings';
@@ -26,10 +27,11 @@ export function getDashboardPageMeta(pathname) {
     if (isProfile) return 'My Profile';
     if (isAccountSecurity) return 'Sign-in & password';
     if (isAdmin) return 'War Room';
+    if (isScoringRules) return 'Scoring rules';
     return 'Make Picks';
   })();
 
-  const showDatePicker = !isProfile && !isAccountSecurity;
+  const showDatePicker = !isProfile && !isAccountSecurity && !isScoringRules;
 
   const layoutDesktopHeading = !isProfile && !isAccountSecurity ? contextTitle : null;
 

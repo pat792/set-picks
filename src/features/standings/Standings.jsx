@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore'; 
+import { Link, useSearchParams } from 'react-router-dom';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Leaderboard from '../../components/Leaderboard';
 import { useAuth } from '../auth/useAuth';
@@ -7,11 +8,37 @@ import { getShowStatus } from '../../utils/timeLogic.js';
 import Button from '../../components/ui/Button';
 
 export default function Standings({ selectedDate }) {
-  const { user } = useAuth(); 
-  
-  const [allPicks, setAllPicks] = useState([]); 
-  const [userPools, setUserPools] = useState([]); 
-  const [activeFilter, setActiveFilter] = useState('global'); 
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const poolIdFromUrl = searchParams.get('poolId')?.trim() || '';
+
+  const selectGlobalFilter = () => {
+    setActiveFilter('global');
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('poolId');
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const selectPoolFilter = (poolId) => {
+    setActiveFilter(poolId);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('poolId', poolId);
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const [allPicks, setAllPicks] = useState([]);
+  const [userPools, setUserPools] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('global');
   const [actualSetlist, setActualSetlist] = useState(null); 
   
   const [loading, setLoading] = useState(true);
@@ -32,6 +59,13 @@ export default function Standings({ selectedDate }) {
     };
     fetchPools();
   }, [user]);
+
+  // Deep-link: ?poolId=<id> selects that pool tab once it’s a member pool.
+  useEffect(() => {
+    if (!poolIdFromUrl) return;
+    if (!userPools.some((p) => p.id === poolIdFromUrl)) return;
+    setActiveFilter(poolIdFromUrl);
+  }, [poolIdFromUrl, userPools]);
 
   // 2. Fetch ALL Picks AND the Official Setlist for the Selected Date
   useEffect(() => {
@@ -61,8 +95,10 @@ export default function Standings({ selectedDate }) {
         
         if (setlistSnap.exists()) {
           const data = setlistSnap.data();
-          // CHANGED: We only want to pass the flat 'setlist' object to the Leaderboard
-          setActualSetlist(data.setlist || null); 
+          setActualSetlist({
+            ...(data.setlist || {}),
+            officialSetlist: Array.isArray(data.officialSetlist) ? data.officialSetlist : [],
+          });
         } else {
           setActualSetlist(null); // No official setlist yet
         }
@@ -104,6 +140,15 @@ export default function Standings({ selectedDate }) {
 
   return (
     <div className="w-full">
+      <div className="flex justify-end px-2 mb-4">
+        <Link
+          to="/dashboard/scoring"
+          className="text-xs font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-2"
+        >
+          Scoring rules
+        </Link>
+      </div>
+
       {/* THE POOL FILTER TABS */}
       <div className="mb-6">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 mb-3">
@@ -113,7 +158,7 @@ export default function Standings({ selectedDate }) {
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-1">
           <Button
             variant="text"
-            onClick={() => setActiveFilter('global')}
+            onClick={selectGlobalFilter}
             className={`px-5 py-2.5 rounded-full font-black text-sm uppercase tracking-widest whitespace-nowrap transition-all shadow-lg ${
               activeFilter === 'global' 
                 ? 'bg-emerald-500 text-slate-900 shadow-emerald-500/20' 
@@ -127,7 +172,7 @@ export default function Standings({ selectedDate }) {
             <Button
               variant="text"
               key={pool.id}
-              onClick={() => setActiveFilter(pool.id)}
+              onClick={() => selectPoolFilter(pool.id)}
               className={`px-5 py-2.5 rounded-full font-black text-sm uppercase tracking-widest whitespace-nowrap transition-all shadow-lg ${
                 activeFilter === pool.id 
                   ? 'bg-blue-500 text-white shadow-blue-500/20' 

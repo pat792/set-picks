@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { Link } from 'react-router-dom';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { FORM_FIELDS } from '../../data/gameConfig';
 import { getShowStatus } from '../../utils/timeLogic';
@@ -57,16 +66,33 @@ export default function PicksForm({ user, selectedDate }) {
       }
 
       // FLIPPED: Date comes first now for database grouping!
-      const pickId = `${selectedDate}_${user.uid}`; 
-      
-      await setDoc(doc(db, "picks", pickId), {
+      const pickId = `${selectedDate}_${user.uid}`;
+
+      let activePoolsSnapshot = [];
+      try {
+        const poolsQuery = query(
+          collection(db, 'pools'),
+          where('members', 'array-contains', user.uid)
+        );
+        const poolSnapshot = await getDocs(poolsQuery);
+        activePoolsSnapshot = poolSnapshot.docs.map((poolDoc) => ({
+          id: poolDoc.id,
+          name: poolDoc.data().name,
+        }));
+      } catch (poolErr) {
+        console.error('Error fetching pools for pick snapshot:', poolErr);
+        activePoolsSnapshot = [];
+      }
+
+      await setDoc(doc(db, 'picks', pickId), {
         userId: user.uid,
         handle: customHandle,
-        showDate: selectedDate, 
+        showDate: selectedDate,
         updatedAt: new Date().toISOString(),
-        score: 0,               
-        isGraded: false,        
-        picks: picks            
+        score: 0,
+        isGraded: false,
+        picks,
+        pools: activePoolsSnapshot,
       });
       
       setSaveMessage('Picks locked in successfully! 🎸');
@@ -81,6 +107,14 @@ export default function PicksForm({ user, selectedDate }) {
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
+      <div className="flex justify-end px-1 mb-3">
+        <Link
+          to="/dashboard/scoring"
+          className="text-xs font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-2"
+        >
+          Scoring rules
+        </Link>
+      </div>
       <div className="relative">
         <form 
           onSubmit={handleSave}
