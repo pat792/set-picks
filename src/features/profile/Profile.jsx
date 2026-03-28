@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  writeBatch,
+  collection,
+  query,
+  where,
+  getDocs,
+} from 'firebase/firestore';
 import { db, auth } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
@@ -61,12 +69,38 @@ export default function Profile({ user }) {
     setMessage({ text: '', type: '' });
 
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        handle: handle.trim(),
+      const newHandle = handle.trim();
+      const userPayload = {
+        handle: newHandle,
         favoriteSong: favoriteSong.trim() || 'Unknown',
         updatedAt: new Date().toISOString(),
-      });
+      };
+
+      const picksQuery = query(
+        collection(db, 'picks'),
+        where('userId', '==', user.uid)
+      );
+      const picksSnapshot = await getDocs(picksQuery);
+
+      let batch = writeBatch(db);
+      let opCount = 0;
+
+      batch.update(doc(db, 'users', user.uid), userPayload);
+      opCount++;
+
+      // Same as forEach(pick => batch.update(...)); use a loop so we can commit
+      // before hitting Firestore’s 500 writes per batch limit.
+      for (const pickDoc of picksSnapshot.docs) {
+        if (opCount >= 500) {
+          await batch.commit();
+          batch = writeBatch(db);
+          opCount = 0;
+        }
+        batch.update(pickDoc.ref, { handle: newHandle });
+        opCount++;
+      }
+
+      await batch.commit();
 
       setMessage({ text: 'Profile updated successfully! 🎸', type: 'success' });
     } catch (error) {

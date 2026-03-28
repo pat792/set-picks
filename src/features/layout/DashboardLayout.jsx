@@ -11,6 +11,7 @@ import Standings from '../standings/Standings';
 import Profile from '../profile/Profile';
 import AccountSecurity from '../profile/AccountSecurity';
 import Pools from '../pools/Pools';
+import ScoringRules from '../scoring/ScoringRules';
 
 import { SHOW_DATES_BY_TOUR } from '../../data/showDates.js';
 import { getNextShow, getShowStatus } from '../../utils/timeLogic.js';
@@ -138,6 +139,7 @@ export default function DashboardLayout() {
 
           <Routes>
             <Route path="/" element={<PicksForm user={user} selectedDate={selectedDate} />} />
+            <Route path="/scoring" element={<ScoringRules />} />
             <Route path="/standings" element={<Standings selectedDate={selectedDate} />} />
             <Route path="/admin" element={<AdminForm user={user} selectedDate={selectedDate} />} />
             <Route path="/profile" element={<Profile user={user} />} />

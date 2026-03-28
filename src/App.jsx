@@ -7,6 +7,7 @@ import Splash from './features/landing/Splash';
 import ProfileSetup from './features/auth/ProfileSetup';
 import PasswordResetComplete from './features/auth/PasswordResetComplete';
 import DashboardLayout from './features/layout/DashboardLayout'; // <-- NEW IMPORT
+import PublicProfile from './features/profile/PublicProfile';
 
 function App() {
   const { user, userProfile, loading } = useAuth();
@@ -19,6 +20,9 @@ function App() {
     <Routes>
       {/* After email password reset — Firebase continueUrl (must stay public) */}
       <Route path="/password-reset-complete" element={<PasswordResetComplete />} />
+
+      {/* Public player profile (e.g. from leaderboard links) */}
+      <Route path="/user/:userId" element={<PublicProfile />} />
 
       {/* Route 1: The Public Splash Page */}
       <Route 

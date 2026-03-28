@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc,
+  arrayUnion,
+  getDoc,
+} from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Button from '../../components/ui/Button';
 
@@ -12,6 +23,41 @@ export default function Pools({ user }) {
   
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+
+  const [rosterByPool, setRosterByPool] = useState({});
+  const rosterFetchedRef = useRef(new Set());
+
+  const loadPoolRoster = useCallback(async (poolId, memberUids) => {
+    if (rosterFetchedRef.current.has(poolId)) return;
+    rosterFetchedRef.current.add(poolId);
+    setRosterByPool((prev) => ({ ...prev, [poolId]: { status: 'loading' } }));
+    try {
+      const uids = Array.isArray(memberUids) ? memberUids : [];
+      const members = await Promise.all(
+        uids.map(async (uid) => {
+          const snap = await getDoc(doc(db, 'users', uid));
+          const handle = snap.exists()
+            ? snap.data().handle || 'Anonymous'
+            : 'Unknown user';
+          return { uid, handle };
+        })
+      );
+      members.sort((a, b) =>
+        a.handle.localeCompare(b.handle, undefined, { sensitivity: 'base' })
+      );
+      setRosterByPool((prev) => ({
+        ...prev,
+        [poolId]: { status: 'ready', members },
+      }));
+    } catch (err) {
+      console.error('Error loading pool roster:', err);
+      rosterFetchedRef.current.delete(poolId);
+      setRosterByPool((prev) => ({
+        ...prev,
+        [poolId]: { status: 'error' },
+      }));
+    }
+  }, []);
 
   // Fetch the pools the user is currently a member of
   useEffect(() => {
@@ -122,18 +168,77 @@ export default function Pools({ user }) {
         </div>
       ) : (
         <div className="space-y-3 mb-8">
-          {userPools.map(pool => (
-            <div key={pool.id} className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-bold text-white">{pool.name}</h3>
-                <p className="text-xs text-slate-400 uppercase tracking-widest">{pool.members.length} Members</p>
+          {userPools.map((pool) => {
+            const roster = rosterByPool[pool.id];
+            const memberCount = pool.members?.length ?? 0;
+            return (
+              <div
+                key={pool.id}
+                className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start"
+              >
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-bold">
+                    <Link
+                      to={`/dashboard/standings?poolId=${pool.id}`}
+                      className="text-emerald-400 hover:text-emerald-300 hover:underline decoration-emerald-400/70 underline-offset-2"
+                    >
+                      {pool.name}
+                    </Link>
+                  </h3>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest mt-1">
+                    {memberCount} Members
+                  </p>
+                  <details
+                    className="mt-3 border-t border-slate-700/50 pt-3"
+                    onToggle={(e) => {
+                      if (e.currentTarget.open) {
+                        loadPoolRoster(pool.id, pool.members || []);
+                      }
+                    }}
+                  >
+                    <summary className="cursor-pointer text-sm font-bold text-slate-300 hover:text-white hover:underline list-none [&::-webkit-details-marker]:hidden">
+                      View Members
+                    </summary>
+                    <div className="mt-3 text-sm">
+                      {roster?.status === 'loading' && (
+                        <p className="text-slate-500">Loading members…</p>
+                      )}
+                      {roster?.status === 'error' && (
+                        <p className="text-red-400">
+                          Could not load members. Close and open again to retry.
+                        </p>
+                      )}
+                      {roster?.status === 'ready' &&
+                        (roster.members.length === 0 ? (
+                          <p className="text-slate-500">No members in this pool.</p>
+                        ) : (
+                          <ul className="space-y-1.5">
+                            {roster.members.map((member) => (
+                              <li key={member.uid}>
+                                <Link
+                                  to={`/user/${member.uid}`}
+                                  className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline decoration-emerald-400/70 underline-offset-2"
+                                >
+                                  {member.handle}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ))}
+                    </div>
+                  </details>
+                </div>
+                <div className="bg-slate-900 px-3 py-1 rounded-lg border border-slate-700 shrink-0 self-start sm:self-center">
+                  <span className="text-xs text-slate-500 uppercase font-bold mr-2">
+                    Code:
+                  </span>
+                  <span className="text-emerald-400 font-mono font-black tracking-widest">
+                    {pool.inviteCode}
+                  </span>
+                </div>
               </div>
-              <div className="bg-slate-900 px-3 py-1 rounded-lg border border-slate-700">
-                <span className="text-xs text-slate-500 uppercase font-bold mr-2">Code:</span>
-                <span className="text-emerald-400 font-mono font-black tracking-widest">{pool.inviteCode}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
