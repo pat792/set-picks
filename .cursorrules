@@ -1,0 +1,24 @@
+# Project Architecture: Pragmatic Feature-Sliced Design (FSD)
+
+You are an expert React engineer adhering strictly to FSD principles. 
+Every time you generate, modify, or refactor code, you MUST follow these rules:
+
+1. THE PAGES LAYER (`src/pages/`):
+- Pages are strictly for routing, reading URL parameters, and acting as a composition root.
+- Pages MUST NOT contain direct Firebase/Firestore calls (`getDoc`, `setDoc`, etc.).
+- Pages MUST NOT contain complex Tailwind UI, forms, or layout logic.
+- Pages only fetch data via custom hooks (from `model/`) and pass props down to Feature UI components.
+
+2. THE FEATURES LAYER (`src/features/<domain>/`):
+- Features are domain-specific (e.g., `pools`, `picks`, `scoring`, `admin`).
+- ALWAYS separate a complex feature into three directories:
+  - `ui/`: Dumb presentational React components (no database logic).
+  - `model/`: Custom React hooks (e.g., `useUserPools.js`) for state, orchestration, and domain logic.
+  - `api/`: Pure asynchronous functions for Firestore database reads/writes.
+
+3. THE SHARED LAYER (`src/shared/`):
+- Strictly for domain-agnostic tools (e.g., generic `<Button>`, generic utility functions). No business logic.
+
+4. BEHAVIOR:
+- If asked to add a new UI element to a Page, extract it into a `features/<domain>/ui/` component.
+- If asked to add database logic, extract it to `features/<domain>/api/` and consume it via a hook in `features/<domain>/model/`.

@@ -18,6 +18,44 @@ export default {
   ],
   theme: {
     extend: {
+      /**
+       * Semantic design tokens (Target 0: design system foundation).
+       * Derived from Button.jsx, SplashHeroSection, and dashboard containers (Standings, Admin, forms).
+       */
+      colors: {
+        brand: {
+          bg: '#0f172a',
+          'bg-deep': '#020617',
+          primary: '#2dd4bf',
+          'primary-strong': '#14b8a6',
+          kicker: '#2dd4bf',
+          accent: {
+            red: '#ef4444',
+            blue: '#3b82f6',
+          },
+        },
+        surface: {
+          glass: 'rgb(2 6 23 / 0.3)',
+          panel: 'rgb(30 41 59 / 0.5)',
+          'panel-strong': 'rgb(30 41 59 / 0.8)',
+          inset: 'rgb(15 23 42 / 0.4)',
+          field: '#0f172a',
+        },
+        border: {
+          glass: 'rgba(255, 255, 255, 0.25)',
+          subtle: 'rgb(51 65 85 / 0.5)',
+          muted: 'rgb(71 85 105 / 0.6)',
+        },
+      },
+      boxShadow: {
+        'glow-brand': '0 0 40px -10px rgba(45, 212, 191, 0.5)',
+        'glow-brand-lg': '0 0 60px -15px rgba(45, 212, 191, 0.7)',
+        'glow-kicker': '0 0 12px rgba(45, 212, 191, 0.5)',
+        'inset-glass': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+      },
+      ringColor: {
+        brand: '#2dd4bf',
+      },
       fontFamily: {
         // Inter becomes the default font for the whole app
         sans: ['Inter', 'sans-serif'],

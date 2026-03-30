@@ -6,6 +6,9 @@ import Leaderboard from '../../features/scoring/Leaderboard';
 import { useAuth } from '../../features/auth/useAuth';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
 import Button from '../../shared/ui/Button';
+import Card from '../../shared/ui/Card';
+import PageTitle from '../../shared/ui/PageTitle';
+import { Loader2, Inbox, Music, Scale } from 'lucide-react';
 
 export default function Standings({ selectedDate }) {
   const { user } = useAuth();
@@ -126,8 +129,9 @@ export default function Standings({ selectedDate }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center mt-20 text-emerald-400 font-bold animate-pulse">
-        Loading Standings for {selectedDate}...
+      <div className="flex flex-col items-center justify-center gap-3 mt-20 text-emerald-400 font-bold">
+        <Loader2 className="h-10 w-10 animate-spin" aria-hidden />
+        <p>Loading Standings for {selectedDate}...</p>
       </div>
     );
   }
@@ -143,17 +147,18 @@ export default function Standings({ selectedDate }) {
       <div className="flex justify-end px-2 mb-4">
         <Link
           to="/dashboard/scoring"
-          className="text-xs font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-2"
+          className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-2"
         >
+          <Scale className="h-3.5 w-3.5 shrink-0" aria-hidden />
           Scoring rules
         </Link>
       </div>
 
       {/* THE POOL FILTER TABS */}
       <div className="mb-6">
-        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 mb-3">
+        <PageTitle as="h3" variant="eyebrow" className="px-2 mb-3">
           Leaderboard Filter:
-        </h3>
+        </PageTitle>
         
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-1">
           <Button
@@ -187,20 +192,26 @@ export default function Standings({ selectedDate }) {
 
       {/* ALERT BANNER: Shows if the game is locked but Admin hasn't saved the setlist yet */}
       {!actualSetlist && allPicks.length > 0 && (
-        <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+        <Card variant="alert" padding="sm" className="mb-6 text-center">
           <p className="text-amber-400 font-bold text-sm">
             Waiting for official setlist. Stay tuned...
           </p>
-        </div>
+        </Card>
       )}
 
       {/* THE LEADERBOARD */}
       {displayedPicks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center mt-12 bg-slate-800/50 p-8 rounded-3xl border border-slate-700/50 text-center">
+        <Card
+          variant="default"
+          padding="lg"
+          className="mt-12 flex flex-col items-center justify-center text-center"
+        >
           {showStatus === 'PAST' ? (
             <>
-              <span className="text-5xl mb-4" aria-hidden>📭</span>
-              <h3 className="font-display text-display-md font-bold text-white mb-2">No picks for this show</h3>
+              <Inbox className="mb-4 h-14 w-14 text-slate-500" strokeWidth={1.5} aria-hidden />
+              <PageTitle as="h3" variant="section" className="mb-2">
+                No picks for this show
+              </PageTitle>
               <p className="text-slate-400 font-bold max-w-sm">
                 {activeFilter === 'global'
                   ? 'Nobody submitted picks for this date.'
@@ -209,8 +220,10 @@ export default function Standings({ selectedDate }) {
             </>
           ) : (
             <>
-              <span className="text-5xl mb-4">🎸</span>
-              <h3 className="font-display text-display-md font-bold text-white mb-2">NO PICKS YET</h3>
+              <Music className="mb-4 h-14 w-14 text-emerald-400/80" strokeWidth={1.5} aria-hidden />
+              <PageTitle as="h3" variant="section" className="mb-2">
+                NO PICKS YET
+              </PageTitle>
               <p className="text-slate-400 font-bold max-w-sm">
                 {activeFilter === 'global'
                   ? "Be the first to lock in your picks for tonight's show!"
@@ -218,7 +231,7 @@ export default function Standings({ selectedDate }) {
               </p>
             </>
           )}
-        </div>
+        </Card>
       ) : (
         <Leaderboard poolPicks={displayedPicks} actualSetlist={actualSetlist} />
       )}
