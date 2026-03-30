@@ -9,11 +9,11 @@ import {
   where,
   getDocs,
 } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import { FORM_FIELDS } from '../../data/gameConfig';
-import { getShowStatus } from '../../utils/timeLogic';
-import SongAutocomplete from '../../components/SongAutocomplete';
-import Button from '../../components/ui/Button';
+import { db } from '../../shared/lib/firebase';
+import { FORM_FIELDS } from '../../shared/data/gameConfig';
+import { getShowStatus } from '../../shared/utils/timeLogic';
+import SongAutocomplete from '../../shared/ui/SongAutocomplete';
+import Button from '../../shared/ui/Button';
 
 export default function PicksForm({ user, selectedDate }) {
   const [picks, setPicks] = useState({});

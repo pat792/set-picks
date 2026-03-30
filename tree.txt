@@ -1,0 +1,96 @@
+.
+├── README.md
+├── docs
+│   ├── TESTING.md
+│   └── USER_FLOWS.md
+├── firebase.json
+├── functions
+│   ├── index.js
+│   ├── package-lock.json
+│   ├── package.json
+│   └── phishSongs.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── public
+│   ├── Images
+│   └── fonts
+│       └── space-grotesk
+│           ├── OFL.txt
+│           └── SpaceGrotesk-VariableFont_wght.woff2
+├── src
+│   ├── App.jsx
+│   ├── components
+│   │   ├── Leaderboard.jsx
+│   │   ├── PastShowLockBanner.jsx
+│   │   ├── SongAutocomplete.jsx
+│   │   ├── TooEarlyBanner.jsx
+│   │   └── ui
+│   │       └── Button.jsx
+│   ├── data
+│   │   ├── gameConfig.js
+│   │   ├── phishSongs.js
+│   │   └── showDates.js
+│   ├── features
+│   │   ├── admin
+│   │   │   └── AdminForm.jsx
+│   │   ├── auth
+│   │   │   ├── PasswordResetComplete.jsx
+│   │   │   ├── ProfileSetup.jsx
+│   │   │   ├── accountSecurityActions.js
+│   │   │   ├── components
+│   │   │   │   ├── SplashAuthEntryCard.jsx
+│   │   │   │   ├── SplashSignInModal.jsx
+│   │   │   │   └── SplashSignUpModal.jsx
+│   │   │   ├── firebaseAuthMessages.js
+│   │   │   ├── passwordResetActionSettings.js
+│   │   │   ├── splashAuthActions.js
+│   │   │   ├── useAccountSecurity.js
+│   │   │   ├── useAuth.js
+│   │   │   └── useSplashAuth.js
+│   │   ├── landing
+│   │   │   ├── Splash.jsx
+│   │   │   └── components
+│   │   │       ├── SplashAboutSection.jsx
+│   │   │       ├── SplashGetStartedSection.jsx
+│   │   │       ├── SplashHeader.jsx
+│   │   │       ├── SplashHeroSection.jsx
+│   │   │       └── SplashHowItWorksSection.jsx
+│   │   ├── layout
+│   │   │   ├── DashboardLayout.jsx
+│   │   │   ├── model
+│   │   │   │   └── dashboardPageMeta.js
+│   │   │   └── ui
+│   │   │       ├── DashboardMobileBrandBar.jsx
+│   │   │       ├── DashboardMobileContextBar.jsx
+│   │   │       └── DashboardPageHeading.jsx
+│   │   ├── picks
+│   │   │   └── PicksForm.jsx
+│   │   ├── pools
+│   │   │   └── Pools.jsx
+│   │   ├── profile
+│   │   │   ├── AccountSecurity.jsx
+│   │   │   ├── Profile.jsx
+│   │   │   └── PublicProfile.jsx
+│   │   ├── scoring
+│   │   │   └── ScoringRules.jsx
+│   │   └── standings
+│   │       └── Standings.jsx
+│   ├── hooks
+│   │   └── useScrollDirection.js
+│   ├── index.css
+│   ├── lib
+│   │   └── firebase.js
+│   ├── main.jsx
+│   ├── test
+│   │   └── ThemePreviewer.jsx
+│   └── utils
+│       ├── scoring.js
+│       ├── showOptionLabel.js
+│       └── timeLogic.js
+├── tailwind.config.js
+├── tree.txt
+└── vercel.json
+
+29 directories, 65 files

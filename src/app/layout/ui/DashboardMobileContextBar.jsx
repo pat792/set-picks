@@ -1,6 +1,6 @@
 import React from 'react';
-import { SHOW_DATES_BY_TOUR } from '../../../data/showDates.js';
-import { showOptionLabelCompact, showOptionTitle } from '../../../utils/showOptionLabel.js';
+import { SHOW_DATES_BY_TOUR } from '../../../shared/data/showDates.js';
+import { showOptionLabelCompact, showOptionTitle } from '../../../shared/utils/showOptionLabel.js';
 
 export default function DashboardMobileContextBar({
   scrollDirection,

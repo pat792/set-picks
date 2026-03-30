@@ -8,10 +8,10 @@ import {
   where,
   getDocs,
 } from 'firebase/firestore';
-import { db, auth } from '../../lib/firebase';
+import { db, auth } from '../../shared/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
-import Button from '../../components/ui/Button';
+import Button from '../../shared/ui/Button';
 
 export default function Profile({ user }) {
   const [handle, setHandle] = useState('');

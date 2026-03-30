@@ -1,13 +1,13 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './features/auth/useAuth';
+import { useAuth } from '../features/auth/useAuth';
 
 // Components
-import Splash from './features/landing/Splash';
-import ProfileSetup from './features/auth/ProfileSetup';
-import PasswordResetComplete from './features/auth/PasswordResetComplete';
-import DashboardLayout from './features/layout/DashboardLayout'; // <-- NEW IMPORT
-import PublicProfile from './features/profile/PublicProfile';
+import SplashPage from '../pages/landing/SplashPage';
+import ProfileSetupPage from '../pages/auth/ProfileSetupPage';
+import PasswordResetCompletePage from '../pages/auth/PasswordResetCompletePage';
+import DashboardLayout from './layout/DashboardLayout';
+import PublicProfilePage from '../pages/profile/PublicProfilePage';
 
 function App() {
   const { user, userProfile, loading } = useAuth();
@@ -19,15 +19,15 @@ function App() {
   return (
     <Routes>
       {/* After email password reset — Firebase continueUrl (must stay public) */}
-      <Route path="/password-reset-complete" element={<PasswordResetComplete />} />
+      <Route path="/password-reset-complete" element={<PasswordResetCompletePage />} />
 
       {/* Public player profile (e.g. from leaderboard links) */}
-      <Route path="/user/:userId" element={<PublicProfile />} />
+      <Route path="/user/:userId" element={<PublicProfilePage />} />
 
       {/* Route 1: The Public Splash Page */}
       <Route 
         path="/" 
-        element={!user ? <Splash /> : <Navigate to="/dashboard" replace />} 
+        element={!user ? <SplashPage /> : <Navigate to="/dashboard" replace />} 
       />
 
       {/* Route 2: The Profile Setup Gatekeeper */}
@@ -36,7 +36,7 @@ function App() {
         element={
           !user ? <Navigate to="/" replace /> : 
           userProfile ? <Navigate to="/dashboard" replace /> : 
-          <ProfileSetup user={user} />
+          <ProfileSetupPage user={user} />
         } 
       />
 

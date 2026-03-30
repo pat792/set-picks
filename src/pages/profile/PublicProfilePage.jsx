@@ -8,7 +8,7 @@ import {
   where,
   getDocs,
 } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db } from '../../shared/lib/firebase';
 
 function formatPlayingSince(createdAt) {
   if (!createdAt) return null;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { auth, googleProvider } from '../../lib/firebase';
+import { auth, googleProvider } from '../../shared/lib/firebase';
 import { getFirebaseAuthErrorMessage } from './firebaseAuthMessages';
 import {
   splashSignInWithGoogle,

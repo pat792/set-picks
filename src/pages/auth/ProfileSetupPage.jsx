@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import Button from '../../components/ui/Button';
+import { db } from '../../shared/lib/firebase';
+import Button from '../../shared/ui/Button';
 
 export default function ProfileSetup({ user }) {
   const [handle, setHandle] = useState("");
