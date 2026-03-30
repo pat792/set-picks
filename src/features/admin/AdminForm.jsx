@@ -15,6 +15,10 @@ import { calculateTotalScore } from '../../shared/utils/scoring';
 import { FORM_FIELDS } from '../../shared/data/gameConfig'; // <-- THE SINGLE SOURCE OF TRUTH
 import SongAutocomplete from '../../shared/ui/SongAutocomplete';
 import Button from '../../shared/ui/Button';
+import Card from '../../shared/ui/Card';
+import Input from '../../shared/ui/Input';
+import PageTitle from '../../shared/ui/PageTitle';
+import { AlertTriangle, X } from 'lucide-react';
 
 // Admin does not set Wildcard (`wild`); it is derived from officialSetlist. Picks UI still uses full FORM_FIELDS.
 const ADMIN_SETLIST_FIELDS = FORM_FIELDS.filter((field) => field.id !== 'wild');
@@ -193,26 +197,30 @@ export default function AdminForm({ user, selectedDate }) {
   };
 
   if (!isAdmin) {
-    return <div className="text-center mt-20 text-red-500 font-bold">UNAUTHORIZED ACCESS</div>;
+    return (
+      <div className="max-w-xl mx-auto mt-20 flex flex-col items-center gap-3 text-red-500 font-bold">
+        <AlertTriangle className="h-10 w-10 shrink-0" aria-hidden />
+        UNAUTHORIZED ACCESS
+      </div>
+    );
   }
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-12">
-      <div className="bg-red-500/10 border border-red-500/50 p-4 rounded-2xl mb-6">
+      <PageTitle as="h2" variant="page" className="mb-6 hidden md:block">
+        Official setlist
+      </PageTitle>
+
+      <Card variant="danger" padding="sm" className="mb-6">
         <p className="text-xs text-red-300/80 font-bold uppercase tracking-wider flex items-start gap-2">
-          <span aria-hidden className="shrink-0">
-            ⚠️
-          </span>
+          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
           <span>
             Locking the official setlist for {selectedDate}. This will trigger scoring.
           </span>
         </p>
-      </div>
+      </Card>
 
-      <form 
-        onSubmit={handleSave}
-        className="space-y-6 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50"
-      >
+      <Card as="form" variant="default" padding="md" onSubmit={handleSave} className="space-y-6">
         {/* Slot picks only — Wildcard is derived from officialSetlist */}
         {ADMIN_SETLIST_FIELDS.map((field) => (
           <div key={field.id} className="flex flex-col">
@@ -264,10 +272,10 @@ export default function AdminForm({ user, selectedDate }) {
                     onClick={() =>
                       setOfficialSetlist((prev) => prev.filter((_, i) => i !== index))
                     }
-                    className="shrink-0 w-9 h-9 rounded-lg border border-slate-600 text-slate-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 font-bold text-lg leading-none transition-colors"
+                    className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600 text-slate-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-colors"
                     aria-label={`Remove ${song}`}
                   >
-                    ×
+                    <X className="h-4 w-4" aria-hidden />
                   </button>
                 </li>
               ))}
@@ -275,13 +283,13 @@ export default function AdminForm({ user, selectedDate }) {
           )}
         </div>
 
-        <div className="pt-2 space-y-2 rounded-xl border border-slate-600/60 bg-slate-900/40 px-4 py-3">
+        <Card variant="nested" padding="sm" className="space-y-2">
           <label className="flex items-start gap-3 cursor-pointer">
-            <input
+            <Input
               type="checkbox"
               checked={isFinalized}
               onChange={(e) => setIsFinalized(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-slate-500 text-red-500 focus:ring-red-500/40"
+              className="mt-1 text-red-500 focus:ring-red-500/40"
             />
             <span>
               <span className="block text-sm font-bold text-slate-200">
@@ -292,7 +300,7 @@ export default function AdminForm({ user, selectedDate }) {
               </span>
             </span>
           </label>
-        </div>
+        </Card>
 
         {/* Save Button */}
         <div className="pt-2">
@@ -312,7 +320,7 @@ export default function AdminForm({ user, selectedDate }) {
             {message.text}
           </div>
         )}
-      </form>
+      </Card>
     </div>
   );
 }

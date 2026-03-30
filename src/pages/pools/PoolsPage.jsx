@@ -179,7 +179,7 @@ export default function Pools({ user }) {
                 <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-bold">
                     <Link
-                      to={`/dashboard/standings?poolId=${pool.id}`}
+                      to={`/dashboard/pool/${pool.id}`}
                       className="text-emerald-400 hover:text-emerald-300 hover:underline decoration-emerald-400/70 underline-offset-2"
                     >
                       {pool.name}

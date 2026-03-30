@@ -116,10 +116,10 @@ export default function PicksForm({ user, selectedDate }) {
         </Link>
       </div>
       <div className="relative">
-        <form 
+        <form
           onSubmit={handleSave}
           className={`space-y-4 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 transition-all duration-300 ${
-            showStatus !== 'NEXT' ? 'opacity-30 pointer-events-none blur-[1px]' : ''
+            showStatus !== 'NEXT' ? 'opacity-60' : ''
           }`}
         >
           {FORM_FIELDS.map((field) => (
@@ -133,6 +133,7 @@ export default function PicksForm({ user, selectedDate }) {
                 value={picks[field.id] || ''}
                 onChange={(val) => handleInputChange(field.id, val)}
                 placeholder="Type a song..."
+                readOnly={showStatus !== 'NEXT'}
               />
 
             </div>

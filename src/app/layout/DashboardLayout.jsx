@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useLocation, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth/useAuth';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 
@@ -11,9 +11,10 @@ import StandingsPage from '../../pages/standings/StandingsPage';
 import ProfilePage from '../../pages/profile/ProfilePage';
 import AccountSecurity from '../../features/profile/AccountSecurity';
 import PoolsPage from '../../pages/pools/PoolsPage';
+import PoolHubPage from '../../pages/pools/PoolHubPage';
 import ScoringRulesPage from '../../pages/scoring/ScoringRulesPage';
 
-import { SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
+import { SHOW_DATES, SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
 import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop, showOptionTitle } from '../../shared/utils/showOptionLabel.js';
 import PastShowLockBanner from '../../features/picks/PastShowLockBanner';
@@ -26,12 +27,21 @@ import DashboardPageHeading from './ui/DashboardPageHeading';
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const isAdmin = user?.email === 'pat@road2media.com';
   
   const scrollDirection = useScrollDirection(); 
 
   const [selectedDate, setSelectedDate] = useState(getNextShow().date);
+
+  const showDateFromStandingsUrl = searchParams.get('showDate');
+  useEffect(() => {
+    if (location.pathname !== '/dashboard/standings') return;
+    if (!showDateFromStandingsUrl) return;
+    const valid = SHOW_DATES.some((s) => s.date === showDateFromStandingsUrl);
+    if (valid) setSelectedDate(showDateFromStandingsUrl);
+  }, [location.pathname, showDateFromStandingsUrl]);
 
     const navItems = [
     { name: 'Picks', path: '/dashboard', icon: ListMusic },
@@ -74,9 +84,15 @@ export default function DashboardLayout() {
               item.path === '/dashboard/profile' &&
               (location.pathname === '/dashboard/profile' ||
                 location.pathname === '/dashboard/account-security');
+            const isPoolsSection =
+              item.path === '/dashboard/pools' &&
+              (location.pathname === '/dashboard/pools' ||
+                location.pathname.startsWith('/dashboard/pool/'));
             const isActive =
               isProfileSection ||
+              isPoolsSection ||
               (!isProfileSection &&
+                !isPoolsSection &&
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
@@ -145,6 +161,7 @@ export default function DashboardLayout() {
             <Route path="/profile" element={<ProfilePage user={user} />} />
             <Route path="/account-security" element={<AccountSecurity user={user} />} />
             <Route path="/pools" element={<PoolsPage user={user} />} />
+            <Route path="/pool/:poolId" element={<PoolHubPage user={user} />} />
           </Routes>
         </div>
       </main>
@@ -158,9 +175,15 @@ export default function DashboardLayout() {
               item.path === '/dashboard/profile' &&
               (location.pathname === '/dashboard/profile' ||
                 location.pathname === '/dashboard/account-security');
+            const isPoolsSection =
+              item.path === '/dashboard/pools' &&
+              (location.pathname === '/dashboard/pools' ||
+                location.pathname.startsWith('/dashboard/pool/'));
             const isActive =
               isProfileSection ||
+              isPoolsSection ||
               (!isProfileSection &&
+                !isPoolsSection &&
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (

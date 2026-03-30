@@ -2,12 +2,23 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PHISH_SONGS } from '../data/phishSongs.js';
+import Input from './Input';
 
-export default function SongAutocomplete({ value, onChange, placeholder, onSongSelected }) {
+export default function SongAutocomplete({
+  value,
+  onChange,
+  placeholder,
+  onSongSelected,
+  onFocus: onFocusProp,
+  onBlur,
+  readOnly = false,
+  disabled = false,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSongs, setFilteredSongs] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -21,7 +32,7 @@ export default function SongAutocomplete({ value, onChange, placeholder, onSongS
 
   const handleInputChange = (e) => {
     const val = e.target.value;
-    onChange(val);
+    onChange?.(val);
 
     if (val.length > 0) {
       const matches = PHISH_SONGS.filter(song => 
@@ -38,7 +49,7 @@ export default function SongAutocomplete({ value, onChange, placeholder, onSongS
   };
 
   const handleSelect = (songName) => {
-    onChange(songName);
+    onChange?.(songName);
     onSongSelected?.(songName);
     setIsOpen(false);
     setActiveIndex(-1);
@@ -71,17 +82,30 @@ export default function SongAutocomplete({ value, onChange, placeholder, onSongS
     }
   };
 
+  const handleFocus = (e) => {
+    onFocusProp?.(e);
+    if (readOnly || disabled) return;
+    const v = String(value ?? '');
+    if (v.length > 0) {
+      setIsOpen(true);
+    }
+  };
+
   return (
     <div className="relative w-full" ref={wrapperRef}>
-      <input
+      <Input
+        ref={inputRef}
         type="text"
-        value={value}
+        value={String(value ?? '')}
+        placeholder={placeholder ?? ''}
+        autoComplete="off"
+        spellCheck={false}
+        readOnly={readOnly}
+        disabled={disabled}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => value.length > 1 && setIsOpen(true)}
-        placeholder={placeholder}
-        autoComplete="off"
-        className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors w-full"
+        onFocus={handleFocus}
+        onBlur={onBlur}
       />
       
       {isOpen && filteredSongs.length > 0 && (
