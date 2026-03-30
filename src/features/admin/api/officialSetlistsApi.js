@@ -1,0 +1,68 @@
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../../shared/lib/firebase';
+
+const OFFICIAL_SETLISTS_COLLECTION = 'official_setlists';
+
+const normalizeSong = (value) => String(value ?? '').trim();
+
+export function sanitizeSetlistSlots(setlistData, slotFields) {
+  const cleaned = {};
+  slotFields.forEach((field) => {
+    const value = setlistData?.[field.id];
+    cleaned[field.id] = typeof value === 'string' ? value.trim() : normalizeSong(value);
+  });
+  return cleaned;
+}
+
+export function sanitizeOfficialSongList(officialSetlist) {
+  if (!Array.isArray(officialSetlist)) return [];
+  return officialSetlist.map(normalizeSong).filter(Boolean);
+}
+
+export async function fetchOfficialSetlistByDate(showDate, slotFields) {
+  const docRef = doc(db, OFFICIAL_SETLISTS_COLLECTION, showDate);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) {
+    return {
+      exists: false,
+      setlist: sanitizeSetlistSlots({}, slotFields),
+      officialSetlist: [],
+    };
+  }
+
+  const data = docSnap.data();
+  return {
+    exists: true,
+    setlist: sanitizeSetlistSlots(data.setlist || {}, slotFields),
+    officialSetlist: sanitizeOfficialSongList(data.officialSetlist),
+    raw: data,
+  };
+}
+
+export async function saveOfficialSetlistByDate({
+  showDate,
+  setlistData,
+  officialSetlist,
+  slotFields,
+  updatedBy,
+}) {
+  const cleanedSlots = sanitizeSetlistSlots(setlistData, slotFields);
+  const cleanedOfficialSetlist = sanitizeOfficialSongList(officialSetlist);
+
+  const docRef = doc(db, OFFICIAL_SETLISTS_COLLECTION, showDate);
+  await setDoc(docRef, {
+    showDate,
+    status: 'COMPLETED',
+    isScored: false,
+    updatedAt: new Date().toISOString(),
+    updatedBy,
+    setlist: cleanedSlots,
+    officialSetlist: cleanedOfficialSetlist,
+  });
+
+  return {
+    cleanedSlots,
+    cleanedOfficialSetlist,
+  };
+}
