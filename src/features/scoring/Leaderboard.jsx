@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FORM_FIELDS } from '../data/gameConfig.js';
-import { getSlotScoreBreakdown, calculateTotalScore, SCORING_RULES } from '../utils/scoring.js';
+import { FORM_FIELDS } from '../../shared/data/gameConfig.js';
+import { getSlotScoreBreakdown, calculateTotalScore, SCORING_RULES } from '../../shared/utils/scoring.js';
 
 const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
   const [expandedUser, setExpandedUser] = useState(null);

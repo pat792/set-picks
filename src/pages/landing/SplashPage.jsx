@@ -1,12 +1,12 @@
 import React, { useCallback, useRef } from 'react';
-import { useSplashAuth } from '../auth/useSplashAuth';
-import SplashSignUpModal from '../auth/components/SplashSignUpModal';
-import SplashSignInModal from '../auth/components/SplashSignInModal';
-import SplashHeader from './components/SplashHeader';
-import SplashHeroSection from './components/SplashHeroSection';
-import SplashHowItWorksSection from './components/SplashHowItWorksSection';
-import SplashGetStartedSection from './components/SplashGetStartedSection';
-import SplashAboutSection from './components/SplashAboutSection';
+import { useSplashAuth } from '../../features/auth/useSplashAuth';
+import SplashSignUpModal from '../../features/auth/components/SplashSignUpModal';
+import SplashSignInModal from '../../features/auth/components/SplashSignInModal';
+import SplashHeader from '../../features/landing/components/SplashHeader';
+import SplashHeroSection from '../../features/landing/components/SplashHeroSection';
+import SplashHowItWorksSection from '../../features/landing/components/SplashHowItWorksSection';
+import SplashGetStartedSection from '../../features/landing/components/SplashGetStartedSection';
+import SplashAboutSection from '../../features/landing/components/SplashAboutSection';
 
 function useScrollToSectionFocus() {
   return useCallback((sectionRef, focusRef) => {

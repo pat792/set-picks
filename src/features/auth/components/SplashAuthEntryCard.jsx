@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from '../../../components/ui/Button';
+import Button from '../../../shared/ui/Button';
 
 export default function SplashAuthEntryCard({ onOpenSignUp, onOpenSignIn, headingRef = null }) {
   return (

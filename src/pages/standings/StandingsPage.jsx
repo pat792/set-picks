@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import Leaderboard from '../../components/Leaderboard';
-import { useAuth } from '../auth/useAuth';
-import { getShowStatus } from '../../utils/timeLogic.js';
-import Button from '../../components/ui/Button';
+import { db } from '../../shared/lib/firebase';
+import Leaderboard from '../../features/scoring/Leaderboard';
+import { useAuth } from '../../features/auth/useAuth';
+import { getShowStatus } from '../../shared/utils/timeLogic.js';
+import Button from '../../shared/ui/Button';
 
 export default function Standings({ selectedDate }) {
   const { user } = useAuth();

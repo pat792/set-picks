@@ -11,8 +11,8 @@ import {
   arrayUnion,
   getDoc,
 } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import Button from '../../components/ui/Button';
+import { db } from '../../shared/lib/firebase';
+import Button from '../../shared/ui/Button';
 
 export default function Pools({ user }) {
   const [userPools, setUserPools] = useState([]);

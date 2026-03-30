@@ -6,7 +6,7 @@ import {
   updatePassword,
 } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../lib/firebase';
+import { auth, db } from '../../shared/lib/firebase';
 import { getPasswordResetActionCodeSettings } from './passwordResetActionSettings';
 
 export async function sendAccountPasswordResetEmail(email) {

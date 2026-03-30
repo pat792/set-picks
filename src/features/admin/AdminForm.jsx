@@ -10,11 +10,11 @@ import {
   getDocs,
   increment,
 } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import { calculateTotalScore } from '../../utils/scoring';
-import { FORM_FIELDS } from '../../data/gameConfig'; // <-- THE SINGLE SOURCE OF TRUTH
-import SongAutocomplete from '../../components/SongAutocomplete';
-import Button from '../../components/ui/Button';
+import { db } from '../../shared/lib/firebase';
+import { calculateTotalScore } from '../../shared/utils/scoring';
+import { FORM_FIELDS } from '../../shared/data/gameConfig'; // <-- THE SINGLE SOURCE OF TRUTH
+import SongAutocomplete from '../../shared/ui/SongAutocomplete';
+import Button from '../../shared/ui/Button';
 
 // Admin does not set Wildcard (`wild`); it is derived from officialSetlist. Picks UI still uses full FORM_FIELDS.
 const ADMIN_SETLIST_FIELDS = FORM_FIELDS.filter((field) => field.id !== 'wild');

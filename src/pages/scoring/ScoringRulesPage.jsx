@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { SCORING_RULES } from '../../utils/scoring.js';
+import { SCORING_RULES } from '../../shared/utils/scoring.js';
 
 const {
   EXACT_SLOT,

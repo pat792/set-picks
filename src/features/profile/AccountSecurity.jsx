@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAccountSecurity } from '../auth/useAccountSecurity';
-import Button from '../../components/ui/Button';
+import Button from '../../shared/ui/Button';
 
 export default function AccountSecurity({ user }) {
   const {

@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Routes, Route } from 'react-router-dom';
-import { useAuth } from '../auth/useAuth';
-import { useScrollDirection } from '../../hooks/useScrollDirection'; 
+import { useAuth } from '../../features/auth/useAuth';
+import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 
 import { ListMusic, Users, Trophy, User as UserIcon, Settings } from 'lucide-react'; 
 
-import PicksForm from '../picks/PicksForm';
-import AdminForm from '../admin/AdminForm';
-import Standings from '../standings/Standings';
-import Profile from '../profile/Profile';
-import AccountSecurity from '../profile/AccountSecurity';
-import Pools from '../pools/Pools';
-import ScoringRules from '../scoring/ScoringRules';
+import PicksPage from '../../pages/picks/PicksPage';
+import AdminPage from '../../pages/admin/AdminPage';
+import StandingsPage from '../../pages/standings/StandingsPage';
+import ProfilePage from '../../pages/profile/ProfilePage';
+import AccountSecurity from '../../features/profile/AccountSecurity';
+import PoolsPage from '../../pages/pools/PoolsPage';
+import ScoringRulesPage from '../../pages/scoring/ScoringRulesPage';
 
-import { SHOW_DATES_BY_TOUR } from '../../data/showDates.js';
-import { getNextShow, getShowStatus } from '../../utils/timeLogic.js';
-import { showOptionLabelDesktop, showOptionTitle } from '../../utils/showOptionLabel.js';
-import PastShowLockBanner from '../../components/PastShowLockBanner';
-import TooEarlyBanner from '../../components/TooEarlyBanner';
+import { SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
+import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
+import { showOptionLabelDesktop, showOptionTitle } from '../../shared/utils/showOptionLabel.js';
+import PastShowLockBanner from '../../features/picks/PastShowLockBanner';
+import TooEarlyBanner from '../../features/picks/TooEarlyBanner';
 
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
@@ -138,13 +138,13 @@ export default function DashboardLayout() {
           )}
 
           <Routes>
-            <Route path="/" element={<PicksForm user={user} selectedDate={selectedDate} />} />
-            <Route path="/scoring" element={<ScoringRules />} />
-            <Route path="/standings" element={<Standings selectedDate={selectedDate} />} />
-            <Route path="/admin" element={<AdminForm user={user} selectedDate={selectedDate} />} />
-            <Route path="/profile" element={<Profile user={user} />} />
+            <Route path="/" element={<PicksPage user={user} selectedDate={selectedDate} />} />
+            <Route path="/scoring" element={<ScoringRulesPage />} />
+            <Route path="/standings" element={<StandingsPage selectedDate={selectedDate} />} />
+            <Route path="/admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
+            <Route path="/profile" element={<ProfilePage user={user} />} />
             <Route path="/account-security" element={<AccountSecurity user={user} />} />
-            <Route path="/pools" element={<Pools user={user} />} />
+            <Route path="/pools" element={<PoolsPage user={user} />} />
           </Routes>
         </div>
       </main>
