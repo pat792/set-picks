@@ -19,6 +19,14 @@ export default function SongAutocomplete({
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
+  const blurCloseTimeoutRef = useRef(null);
+
+  const clearBlurCloseTimeout = () => {
+    if (blurCloseTimeoutRef.current != null) {
+      clearTimeout(blurCloseTimeoutRef.current);
+      blurCloseTimeoutRef.current = null;
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -28,6 +36,10 @@ export default function SongAutocomplete({
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    return () => clearBlurCloseTimeout();
   }, []);
 
   const handleInputChange = (e) => {
@@ -83,12 +95,25 @@ export default function SongAutocomplete({
   };
 
   const handleFocus = (e) => {
+    clearBlurCloseTimeout();
     onFocusProp?.(e);
     if (readOnly || disabled) return;
     const v = String(value ?? '');
     if (v.length > 0) {
       setIsOpen(true);
     }
+  };
+
+  const handleBlur = (e) => {
+    onBlur?.(e);
+    // Defer close so a mousedown on a suggestion (onMouseDown + preventDefault) can select
+    // before the menu unmounts; Tab/click-away still closes on the next tick.
+    clearBlurCloseTimeout();
+    blurCloseTimeoutRef.current = window.setTimeout(() => {
+      blurCloseTimeoutRef.current = null;
+      setIsOpen(false);
+      setActiveIndex(-1);
+    }, 0);
   };
 
   return (
@@ -105,7 +130,7 @@ export default function SongAutocomplete({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
-        onBlur={onBlur}
+        onBlur={handleBlur}
       />
       
       {isOpen && filteredSongs.length > 0 && (
@@ -127,7 +152,10 @@ export default function SongAutocomplete({
                 key={index}
                 role="option"
                 aria-selected={isKeyboardActive}
-                onClick={() => handleSelect(songName)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelect(songName);
+                }}
                 className={`border-b border-slate-700/50 last:border-b-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 p-3 cursor-pointer transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-400 ${
                   isKeyboardActive
                     ? 'bg-slate-700 ring-1 ring-inset ring-teal-400/60'
