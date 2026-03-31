@@ -68,6 +68,28 @@ export function usePasswordReset(oobCode) {
       setError('');
       try {
         await confirmPasswordResetWithCode(oobCode, trimmed);
+        // Browser fallback: explicitly store the updated credential when supported.
+        // This helps when password-manager heuristics miss SPA reset flows.
+        if (
+          typeof window !== 'undefined' &&
+          typeof navigator !== 'undefined' &&
+          typeof window.PasswordCredential !== 'undefined' &&
+          navigator.credentials &&
+          typeof navigator.credentials.store === 'function' &&
+          resetEmail
+        ) {
+          try {
+            const credential = new window.PasswordCredential({
+              id: resetEmail,
+              password: trimmed,
+              name: resetEmail,
+            });
+            await navigator.credentials.store(credential);
+          } catch (credentialErr) {
+            // Non-blocking: reset is already complete even if browser declines storage.
+            console.warn('Password credential store skipped:', credentialErr);
+          }
+        }
         // Some browsers/flows can land us back on this page without query params.
         // Keep a short-lived flag so we can show the success UI instead of "invalid link".
         if (typeof window !== 'undefined') {
@@ -86,7 +108,7 @@ export function usePasswordReset(oobCode) {
         setIsSubmitting(false);
       }
     },
-    [navigate, newPassword, oobCode]
+    [navigate, newPassword, oobCode, resetEmail]
   );
 
   return {
