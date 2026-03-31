@@ -1,11 +1,11 @@
 import React from 'react';
-import Card from '../../shared/ui/Card';
-import PageTitle from '../../shared/ui/PageTitle';
+import Card from '../../../shared/ui/Card';
+import PageTitle from '../../../shared/ui/PageTitle';
 import { AlertTriangle } from 'lucide-react';
-import { useAdminSetlistForm } from './model/useAdminSetlistForm';
-import AdminSetlistSlotInputs from './ui/AdminSetlistSlotInputs';
-import AdminOfficialSetlistBuilder from './ui/AdminOfficialSetlistBuilder';
-import AdminFinalizeAndSave from './ui/AdminFinalizeAndSave';
+import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
+import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
+import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
+import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 
 export default function AdminForm({ user, selectedDate }) {
   const {

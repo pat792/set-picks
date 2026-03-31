@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { fetchUserProfile, subscribeToAuthState } from './api/authApi';
+import { fetchUserProfile, subscribeToAuthState } from '../api/authApi';
 
 export function useAuth() {
   const [user, setUser] = useState(null);

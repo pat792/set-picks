@@ -1,9 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import usePicksForm from '../../features/picks/model/usePicksForm';
-import PicksFieldsForm from '../../features/picks/ui/PicksFieldsForm';
-import PicksSubmitButton from '../../features/picks/ui/PicksSubmitButton';
+import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features/picks';
 
 export default function PicksPage({ user, selectedDate }) {
   const {

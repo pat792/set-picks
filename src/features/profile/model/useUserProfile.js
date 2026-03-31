@@ -1,20 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { formatMonthYear } from '../../../shared';
 import {
   fetchUserProfileDocument,
   updateUserProfileWithPickHandles,
 } from '../api/profileApi';
-
-function formatJoinDate(creationTime) {
-  if (!creationTime) return '';
-  const date =
-    creationTime instanceof Date ? creationTime : new Date(creationTime);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  });
-}
 
 /**
  * Loads the signed-in user's profile, holds edit form state, and persists updates.
@@ -49,7 +39,7 @@ export function useUserProfile(user) {
         const accountCreated = data?.createdAt;
         const creationTime =
           accountCreated?.toDate?.() ?? user?.metadata?.creationTime;
-        setJoinDate(creationTime ? formatJoinDate(creationTime) : '');
+        setJoinDate(creationTime ? formatMonthYear(creationTime) : '');
 
         if (data) {
           setHandle(data.handle || '');
@@ -62,7 +52,7 @@ export function useUserProfile(user) {
         console.error('Error loading profile:', error);
         if (!cancelled) {
           const fallback = user?.metadata?.creationTime;
-          setJoinDate(fallback ? formatJoinDate(fallback) : '');
+          setJoinDate(fallback ? formatMonthYear(fallback) : '');
         }
       } finally {
         if (!cancelled) setIsLoading(false);

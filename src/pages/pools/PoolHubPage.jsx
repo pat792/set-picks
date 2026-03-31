@@ -2,10 +2,12 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
-import { usePoolHub } from '../../features/pools/model/usePoolHub';
-import PoolHubHeader from '../../features/pools/ui/PoolHubHeader';
-import PoolHubLeaderboard from '../../features/pools/ui/PoolHubLeaderboard';
-import PoolHubShowArchive from '../../features/pools/ui/PoolHubShowArchive';
+import {
+  PoolHubHeader,
+  PoolHubLeaderboard,
+  PoolHubShowArchive,
+  usePoolHub,
+} from '../../features/pools';
 
 export default function PoolHubPage({ user }) {
   const { poolId } = useParams();

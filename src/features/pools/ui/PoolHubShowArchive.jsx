@@ -2,25 +2,7 @@ import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { SHOW_DATES } from '../../../shared/data/showDates';
-
-function todayYmd() {
-  const n = new Date();
-  const y = n.getFullYear();
-  const m = String(n.getMonth() + 1).padStart(2, '0');
-  const d = String(n.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-export function formatShowLabel(dateStr) {
-  const d = new Date(`${dateStr}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+import { formatShowLabel, todayYmd } from '../../../shared';
 
 export default function PoolHubShowArchive({ poolId }) {
   const pastShows = useMemo(() => {

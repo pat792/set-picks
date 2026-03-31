@@ -1,7 +1,6 @@
 import React from 'react';
 
-import ProfileSetupForm from '../../features/auth/ui/ProfileSetupForm';
-import { useProfileSetup } from '../../features/auth/model/useProfileSetup';
+import { ProfileSetupForm, useProfileSetup } from '../../features/auth';
 
 export default function ProfileSetupPage({ user }) {
   const {

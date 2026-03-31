@@ -1,6 +1,6 @@
 import React from 'react';
-import { useLeaderboard } from './model/useLeaderboard';
-import LeaderboardList from './ui/LeaderboardList';
+import { useLeaderboard } from '../model/useLeaderboard';
+import LeaderboardList from './LeaderboardList';
 
 const Leaderboard = ({ poolPicks = [], actualSetlist = null }) => {
   const { sortedPicks, getPickPayload, expandedUser, toggleUserExpansion } = useLeaderboard(

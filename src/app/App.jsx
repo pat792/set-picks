@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '../features/auth/useAuth';
+import { useAuth } from '../features/auth';
 
 // Components
 import SplashPage from '../pages/landing/SplashPage';
