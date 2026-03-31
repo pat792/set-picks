@@ -1,0 +1,104 @@
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { confirmPasswordResetWithCode, verifyResetCodeAndGetEmail } from '../api/passwordResetApi';
+import { getFirebaseAuthErrorMessage } from '../firebaseAuthMessages';
+
+export function usePasswordReset(oobCode) {
+  const navigate = useNavigate();
+
+  const [userEmail, setUserEmail] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [isVerifyingCode, setIsVerifyingCode] = useState(true);
+  const [newPassword, setNewPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function verify() {
+      setIsVerifyingCode(true);
+      setError('');
+      setIsReady(false);
+      setUserEmail('');
+      setResetEmail('');
+
+      if (!oobCode) {
+        if (!cancelled) setIsVerifyingCode(false);
+        return;
+      }
+
+      try {
+        const email = await verifyResetCodeAndGetEmail(oobCode);
+        if (cancelled) return;
+        setUserEmail(email || '');
+        setResetEmail(email || '');
+        setIsReady(true);
+      } catch (err) {
+        console.error('Password reset verify error:', err);
+        if (!cancelled) {
+          setError(getFirebaseAuthErrorMessage(err.code) || 'Could not verify reset link.');
+          setIsReady(false);
+        }
+      } finally {
+        if (!cancelled) setIsVerifyingCode(false);
+      }
+    }
+
+    verify();
+    return () => {
+      cancelled = true;
+    };
+  }, [oobCode]);
+
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (!oobCode) return;
+
+      const trimmed = newPassword;
+      if (!trimmed || trimmed.length < 6) {
+        setError('New password must be at least 6 characters.');
+        return;
+      }
+
+      setIsSubmitting(true);
+      setError('');
+      try {
+        await confirmPasswordResetWithCode(oobCode, trimmed);
+        // Some browsers/flows can land us back on this page without query params.
+        // Keep a short-lived flag so we can show the success UI instead of "invalid link".
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('passwordResetDoneTs', String(Date.now()));
+        }
+        // Mark the success screen so we don't re-verify on refresh.
+        // Use a full navigation to help password managers commit the updated credential.
+        if (typeof window !== 'undefined') {
+          window.location.replace('/password-reset-complete?done=true');
+        } else {
+          navigate('/password-reset-complete?done=true', { replace: true });
+        }
+      } catch (err) {
+        console.error('Password reset confirm error:', err);
+        setError(getFirebaseAuthErrorMessage(err.code) || 'Could not reset password. Try again.');
+        setIsSubmitting(false);
+      }
+    },
+    [navigate, newPassword, oobCode]
+  );
+
+  return {
+    userEmail,
+    resetEmail,
+    isVerifyingCode,
+    newPassword,
+    setNewPassword,
+    isSubmitting,
+    error,
+    isReady,
+    handleSubmit,
+  };
+}
+
