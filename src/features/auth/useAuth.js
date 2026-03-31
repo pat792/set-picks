@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from '../../shared/lib/firebase';
+
+import { fetchUserProfile, subscribeToAuthState } from './api/authApi';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -9,21 +8,18 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+    const unsubscribe = subscribeToAuthState(async (u) => {
       if (u) {
         setUser(u);
-        const userRef = doc(db, "users", u.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          setUserProfile(userSnap.data());
-        }
-      } else { 
-        setUser(null); 
-        setUserProfile(null); 
+        const profile = await fetchUserProfile(u.uid);
+        setUserProfile(profile);
+      } else {
+        setUser(null);
+        setUserProfile(null);
       }
       setLoading(false);
     });
-    
+
     return () => unsubscribe();
   }, []);
 

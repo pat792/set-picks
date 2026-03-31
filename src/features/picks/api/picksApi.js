@@ -10,6 +10,13 @@ import {
 
 import { db } from '../../../shared/lib/firebase';
 
+/** Firestore rejects `undefined` anywhere in document data; strip from shallow objects. */
+function omitUndefinedShallow(record) {
+  return Object.fromEntries(
+    Object.entries(record || {}).filter(([, v]) => v !== undefined)
+  );
+}
+
 export function getPickDocumentId(selectedDate, userId) {
   return `${selectedDate}_${userId}`;
 }
@@ -71,14 +78,20 @@ export async function savePickDoc({
 }) {
   const pickId = getPickDocumentId(selectedDate, userId);
 
+  const safePicks = omitUndefinedShallow(picks);
+  const safePools = (pools || []).map((p) => ({
+    id: p.id,
+    name: p.name ?? '',
+  }));
+
   await setDoc(doc(db, 'picks', pickId), {
     userId,
-    handle,
+    handle: handle ?? 'Anonymous',
     showDate: selectedDate,
     updatedAt: new Date().toISOString(),
     score: 0,
     isGraded: false,
-    picks,
-    pools,
+    picks: safePicks,
+    pools: safePools,
   });
 }

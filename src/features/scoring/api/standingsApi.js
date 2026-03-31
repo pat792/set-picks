@@ -1,0 +1,38 @@
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+
+import { db } from '../../../shared/lib/firebase';
+
+/**
+ * @param {string} showDate
+ * @returns {Promise<Array<{ id: string } & Record<string, unknown>>>}
+ */
+export async function fetchPicksForShowDate(showDate) {
+  if (!showDate) return [];
+
+  const picksQuery = query(collection(db, 'picks'), where('showDate', '==', showDate));
+  const snapshot = await getDocs(picksQuery);
+
+  return snapshot.docs.map((pickDoc) => ({
+    id: pickDoc.id,
+    ...pickDoc.data(),
+  }));
+}
+
+/**
+ * @param {string} showDate
+ * @returns {Promise<null | { officialSetlist: unknown[] } & Record<string, unknown>>}
+ */
+export async function fetchOfficialSetlistForShow(showDate) {
+  if (!showDate) return null;
+
+  const setlistRef = doc(db, 'official_setlists', showDate);
+  const setlistSnap = await getDoc(setlistRef);
+
+  if (!setlistSnap.exists()) return null;
+
+  const data = setlistSnap.data();
+  return {
+    ...(data.setlist || {}),
+    officialSetlist: Array.isArray(data.officialSetlist) ? data.officialSetlist : [],
+  };
+}

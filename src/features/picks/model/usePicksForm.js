@@ -88,7 +88,14 @@ export default function usePicksForm({ user, selectedDate }) {
         setSaveMessage('Picks locked in successfully! 🎸');
       } catch (error) {
         console.error('Error saving picks:', error);
-        setSaveMessage('Error saving picks. Please try again.');
+        const code = error?.code;
+        const hint =
+          code === 'permission-denied'
+            ? ' Firestore blocked this write (check security rules for picks).'
+            : code
+              ? ` (${code})`
+              : '';
+        setSaveMessage(`Error saving picks. Please try again.${hint}`);
       } finally {
         setIsSaving(false);
         setTimeout(() => setSaveMessage(''), 3000);
