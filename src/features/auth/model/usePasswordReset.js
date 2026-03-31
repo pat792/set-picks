@@ -7,7 +7,6 @@ import { getFirebaseAuthErrorMessage } from '../firebaseAuthMessages';
 export function usePasswordReset(oobCode) {
   const navigate = useNavigate();
 
-  const [userEmail, setUserEmail] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [isVerifyingCode, setIsVerifyingCode] = useState(true);
   const [newPassword, setNewPassword] = useState('');
@@ -22,7 +21,6 @@ export function usePasswordReset(oobCode) {
       setIsVerifyingCode(true);
       setError('');
       setIsReady(false);
-      setUserEmail('');
       setResetEmail('');
 
       if (!oobCode) {
@@ -33,7 +31,6 @@ export function usePasswordReset(oobCode) {
       try {
         const email = await verifyResetCodeAndGetEmail(oobCode);
         if (cancelled) return;
-        setUserEmail(email || '');
         setResetEmail(email || '');
         setIsReady(true);
       } catch (err) {
@@ -112,7 +109,6 @@ export function usePasswordReset(oobCode) {
   );
 
   return {
-    userEmail,
     resetEmail,
     isVerifyingCode,
     newPassword,

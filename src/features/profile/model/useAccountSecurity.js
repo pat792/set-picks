@@ -1,9 +1,11 @@
 import { useState } from 'react';
+
 import {
+  applyCredentialUpdatesAfterReauth,
+  reauthenticateWithCurrentPassword,
   sendAccountPasswordResetEmail,
-  updateAccountSecurity,
-} from './accountSecurityActions';
-import { getFirebaseAuthErrorMessage } from './firebaseAuthMessages';
+} from '../api/accountSecurityApi';
+import { getFirebaseAuthErrorMessage } from '../../auth/firebaseAuthMessages';
 
 export function useAccountSecurity(user) {
   const [passwordResetSending, setPasswordResetSending] = useState(false);
@@ -87,9 +89,8 @@ export function useAccountSecurity(user) {
 
     setAccountBusy(true);
     try {
-      await updateAccountSecurity({
-        user,
-        currentPassword,
+      await reauthenticateWithCurrentPassword(user, currentPassword);
+      await applyCredentialUpdatesAfterReauth(user, {
         newEmail: wantsEmailChange ? trimmedNewEmail : '',
         newPassword: wantsPasswordChange ? newPassword : '',
       });
@@ -144,3 +145,4 @@ export function useAccountSecurity(user) {
     handleAccountSecuritySubmit,
   };
 }
+åç

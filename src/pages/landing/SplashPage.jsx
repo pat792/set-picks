@@ -1,5 +1,6 @@
-import React, { useCallback, useRef } from 'react';
-import { useSplashAuth } from '../../features/auth/useSplashAuth';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import SplashSignUpModal from '../../features/auth/components/SplashSignUpModal';
 import SplashSignInModal from '../../features/auth/components/SplashSignInModal';
 import SplashHeader from '../../features/landing/components/SplashHeader';
@@ -24,25 +25,25 @@ function useScrollToSectionFocus() {
 }
 
 export default function Splash() {
-  const {
-    authModal,
-    email,
-    setEmail,
-    password,
-    setPassword,
-    confirmPassword,
-    setConfirmPassword,
-    busy,
-    error,
-    resetLinkNotice,
-    closeModal,
-    openSignUpModal,
-    openSignInModal,
-    handleGoogle,
-    handleEmailSignUp,
-    handleEmailSignIn,
-    handleSendPasswordResetEmail,
-  } = useSplashAuth();
+  const [authModal, setAuthModal] = useState(null);
+  const closeModal = useCallback(() => setAuthModal(null), []);
+  const openSignUpModal = useCallback(() => setAuthModal('signup'), []);
+  const openSignInModal = useCallback(() => setAuthModal('signin'), []);
+
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const didHandleLoginFlagRef = useRef(false);
+
+  useEffect(() => {
+    if (didHandleLoginFlagRef.current) return;
+    const flag = searchParams.get('login');
+    if (flag !== 'true') return;
+
+    didHandleLoginFlagRef.current = true;
+    openSignInModal();
+    // Clear the flag so refresh doesn't re-open the modal.
+    navigate('/', { replace: true });
+  }, [navigate, openSignInModal, searchParams]);
 
   const howItWorksSectionRef = useRef(null);
   const howItWorksHeadingRef = useRef(null);
@@ -124,31 +125,12 @@ export default function Splash() {
       {/* MODALS: Safely at the root level so they overlay everything correctly */}
       <SplashSignUpModal
         isOpen={authModal === 'signup'}
-        closeModal={closeModal}
-        busy={busy}
-        handleGoogle={handleGoogle}
-        handleEmailSignUp={handleEmailSignUp}
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        confirmPassword={confirmPassword}
-        setConfirmPassword={setConfirmPassword}
-        error={error}
+        onClose={closeModal}
       />
 
       <SplashSignInModal
         isOpen={authModal === 'signin'}
-        closeModal={closeModal}
-        busy={busy}
-        handleGoogle={handleGoogle}
-        handleEmailSignIn={handleEmailSignIn}
-        handleSendPasswordResetEmail={handleSendPasswordResetEmail}
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        resetLinkNotice={resetLinkNotice}
-        error={error}
+        onClose={closeModal}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
+import { usePasswordResetCompleteState } from '../../features/auth/model/usePasswordResetCompleteState';
 import PasswordResetForm from '../../features/auth/ui/PasswordResetForm';
 import { usePasswordReset } from '../../features/auth/model/usePasswordReset';
 
@@ -10,24 +11,7 @@ import { usePasswordReset } from '../../features/auth/model/usePasswordReset';
  */
 export default function PasswordResetComplete() {
   const [searchParams] = useSearchParams();
-  const doneFromQuery = searchParams.get('done') === 'true';
-  const oobCode = searchParams.get('oobCode');
-
-  // If the user returns here without `oobCode` right after a successful reset,
-  // treat a short-lived localStorage flag as success to avoid the "invalid link" screen.
-  let doneFromStorage = false;
-  if (!doneFromQuery && !oobCode && typeof window !== 'undefined') {
-    const tsRaw = localStorage.getItem('passwordResetDoneTs');
-    const ts = tsRaw ? Number(tsRaw) : 0;
-    const withinWindowMs = 5 * 60 * 1000; // 5 minutes
-    doneFromStorage = !!ts && Date.now() - ts < withinWindowMs;
-    if (doneFromStorage) localStorage.removeItem('passwordResetDoneTs');
-  }
-
-  // If Firebase auto-handled the reset (e.g. existing emails created before we
-  // switched `handleCodeInApp`), the browser lands here *without* `oobCode`.
-  // In that case we should still show the success screen.
-  const shouldShowSuccess = doneFromQuery || doneFromStorage || !oobCode;
+  const { oobCode, shouldShowSuccess } = usePasswordResetCompleteState(searchParams);
 
   const {
     resetEmail,

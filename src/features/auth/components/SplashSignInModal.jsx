@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
+
 import Button from '../../../shared/ui/Button';
+import Input from '../../../shared/ui/Input';
+import { useSplashSignIn } from '../model/useSplashSignIn';
 
-export default function SplashSignInModal({
-  isOpen,
-  closeModal,
-  busy,
-  handleGoogle,
-  handleEmailSignIn,
-  handleSendPasswordResetEmail,
-  email,
-  setEmail,
-  password,
-  setPassword,
-  resetLinkNotice,
-  error,
-}) {
-  if (!isOpen) return null;
-
+export default function SplashSignInModal({ isOpen, onClose }) {
   const [showPassword, setShowPassword] = useState(false);
+
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    busy,
+    error,
+    resetLinkNotice,
+    closeModal,
+    handleGoogle,
+    handleEmailSignIn,
+    handleSendPasswordResetEmail,
+  } = useSplashSignIn(isOpen, onClose);
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -68,7 +72,7 @@ export default function SplashSignInModal({
             <label htmlFor="si-email" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Email
             </label>
-            <input
+            <Input
               id="si-email"
               type="email"
               name="email"
@@ -84,7 +88,7 @@ export default function SplashSignInModal({
               Password
             </label>
             <div className="relative mt-1">
-              <input
+              <Input
                 id="si-pass"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
@@ -94,7 +98,8 @@ export default function SplashSignInModal({
                 required
                 className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 pr-12"
               />
-              <button
+              <Button
+                variant="text"
                 type="button"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 aria-pressed={showPassword}
@@ -152,7 +157,7 @@ export default function SplashSignInModal({
                     />
                   </svg>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
           <div className="flex flex-col gap-2">

@@ -1,21 +1,24 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import Button from '../../../shared/ui/Button';
 
-export default function SplashSignUpModal({
-  isOpen,
-  closeModal,
-  busy,
-  handleGoogle,
-  handleEmailSignUp,
-  email,
-  setEmail,
-  password,
-  setPassword,
-  confirmPassword,
-  setConfirmPassword,
-  error,
-}) {
+import Button from '../../../shared/ui/Button';
+import Input from '../../../shared/ui/Input';
+import { useSplashSignUp } from '../model/useSplashSignUp';
+
+export default function SplashSignUpModal({ isOpen, onClose }) {
   const emailInputRef = useRef(null);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    busy,
+    error,
+    closeModal,
+    handleGoogle,
+    handleEmailSignUp,
+  } = useSplashSignUp(isOpen, onClose);
 
   useLayoutEffect(() => {
     if (!isOpen) return;
@@ -32,7 +35,10 @@ export default function SplashSignUpModal({
       aria-labelledby="signup-title"
       onClick={(e) => e.target === e.currentTarget && closeModal()}
     >
-      <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-slate-900 p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div
+        className="w-full max-w-md rounded-[2rem] border border-white/10 bg-slate-900 p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-start mb-6">
           <h3 id="signup-title" className="font-display text-display-md md:text-display-md-lg font-bold text-white">
             Create account
@@ -70,10 +76,11 @@ export default function SplashSignUpModal({
             <label htmlFor="su-email" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Email
             </label>
-            <input
+            <Input
               ref={emailInputRef}
               id="su-email"
               type="email"
+              name="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -85,9 +92,10 @@ export default function SplashSignUpModal({
             <label htmlFor="su-pass" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Password
             </label>
-            <input
+            <Input
               id="su-pass"
               type="password"
+              name="password"
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -100,9 +108,10 @@ export default function SplashSignUpModal({
             <label htmlFor="su-confirm" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Confirm password
             </label>
-            <input
+            <Input
               id="su-confirm"
               type="password"
+              name="confirm-password"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
