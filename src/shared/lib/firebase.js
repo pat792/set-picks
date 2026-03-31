@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -14,7 +15,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+if (import.meta.env.DEV && typeof self !== "undefined") {
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
+const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaEnterpriseProvider("6LdmOKAsAAAAACN1guy_JoAMDhjN6eljCiLLyMSJ"),
+  isTokenAutoRefreshEnabled: true,
+});
+
 // We export these so any file in the app can use them
+export { app, appCheck };
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
