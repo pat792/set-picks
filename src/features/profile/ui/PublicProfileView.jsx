@@ -1,14 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { formatMonthYear } from '../../../shared';
 
 function formatPlayingSince(createdAt) {
-  if (!createdAt) return null;
-  const d =
-    typeof createdAt?.toDate === 'function'
-      ? createdAt.toDate()
-      : new Date(createdAt);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const value = formatMonthYear(createdAt);
+  return value || null;
 }
 
 /**

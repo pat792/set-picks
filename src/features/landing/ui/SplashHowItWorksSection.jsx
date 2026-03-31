@@ -15,7 +15,7 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
         >
           How It Works
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           <div className="rounded-2xl bg-white p-6 md:p-8 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 flex flex-col items-center text-center md:items-start md:text-left transition-transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200/60 duration-300">
             <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-black shrink-0 text-xl mb-5">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../features/auth/useAuth';
+import { useAuth } from '../../features/auth';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 
 import { ListMusic, Users, Trophy, User as UserIcon, Settings } from 'lucide-react'; 
@@ -9,7 +9,7 @@ import PicksPage from '../../pages/picks/PicksPage';
 import AdminPage from '../../pages/admin/AdminPage';
 import StandingsPage from '../../pages/standings/StandingsPage';
 import ProfilePage from '../../pages/profile/ProfilePage';
-import AccountSecurity from '../../features/profile/AccountSecurity';
+import { AccountSecurity } from '../../features/profile';
 import PoolsPage from '../../pages/pools/PoolsPage';
 import PoolHubPage from '../../pages/pools/PoolHubPage';
 import ScoringRulesPage from '../../pages/scoring/ScoringRulesPage';
@@ -17,8 +17,7 @@ import ScoringRulesPage from '../../pages/scoring/ScoringRulesPage';
 import { SHOW_DATES, SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
 import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop, showOptionTitle } from '../../shared/utils/showOptionLabel.js';
-import PastShowLockBanner from '../../features/picks/PastShowLockBanner';
-import TooEarlyBanner from '../../features/picks/TooEarlyBanner';
+import { PastShowLockBanner, TooEarlyBanner } from '../../features/picks';
 
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';

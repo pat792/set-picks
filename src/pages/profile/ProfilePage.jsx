@@ -1,14 +1,13 @@
 import React from 'react';
-import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 
-import ProfileEditForm from '../../features/profile/ui/ProfileEditForm';
-import { useUserProfile } from '../../features/profile/model/useUserProfile';
-import { auth } from '../../shared/lib/firebase';
+import { useSignOut } from '../../features/auth';
+import { ProfileEditForm, useUserProfile } from '../../features/profile';
 import Button from '../../shared/ui/Button';
 
 export default function Profile({ user }) {
   const navigate = useNavigate();
+  const signOut = useSignOut();
   const {
     handle,
     favoriteSong,
@@ -26,7 +25,7 @@ export default function Profile({ user }) {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await signOut();
       navigate('/');
     } catch (error) {
       console.error('Error logging out: ', error);

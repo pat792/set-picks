@@ -5,7 +5,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 
-import { getPasswordResetActionCodeSettings } from '../passwordResetActionSettings';
+import { getPasswordResetActionCodeSettings } from '../utils/passwordResetActionSettings';
 
 export function signInWithGoogle(auth, googleProvider) {
   return signInWithPopup(auth, googleProvider);

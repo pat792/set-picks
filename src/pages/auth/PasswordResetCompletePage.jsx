@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { usePasswordResetCompleteState } from '../../features/auth/model/usePasswordResetCompleteState';
-import PasswordResetForm from '../../features/auth/ui/PasswordResetForm';
-import { usePasswordReset } from '../../features/auth/model/usePasswordReset';
+import {
+  PasswordResetForm,
+  usePasswordReset,
+  usePasswordResetCompleteState,
+} from '../../features/auth';
 
 /**
  * Landing page after Firebase password reset (continueUrl).

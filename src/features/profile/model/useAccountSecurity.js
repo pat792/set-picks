@@ -5,7 +5,7 @@ import {
   reauthenticateWithCurrentPassword,
   sendAccountPasswordResetEmail,
 } from '../api/accountSecurityApi';
-import { getFirebaseAuthErrorMessage } from '../../auth/firebaseAuthMessages';
+import { getFirebaseAuthErrorMessage } from '../../auth';
 
 export function useAccountSecurity(user) {
   const [passwordResetSending, setPasswordResetSending] = useState(false);

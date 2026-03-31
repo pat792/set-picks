@@ -1,7 +1,9 @@
 import React from 'react';
-import useUserPools from '../../features/pools/model/useUserPools';
-import PoolJoinCreateCard from '../../features/pools/ui/PoolJoinCreateCard';
-import UserPoolsSection from '../../features/pools/ui/UserPoolsSection';
+import {
+  PoolJoinCreateCard,
+  UserPoolsSection,
+  useUserPools,
+} from '../../features/pools';
 
 export default function Pools({ user }) {
   const { pools, loading, error, handleJoin, handleCreate } = useUserPools(

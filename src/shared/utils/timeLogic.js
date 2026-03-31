@@ -1,8 +1,9 @@
 // src/utils/timeLogic.js
 import { SHOW_DATES } from '../data/showDates';
+import { todayYmd } from './dateUtils';
 
 export const getNextShow = () => {
-  const today = new Date().toISOString().split('T')[0]; // Gets "YYYY-MM-DD"
+  const today = todayYmd();
   
   // Find the first show that hasn't happened yet
   const nextShow = SHOW_DATES.find(show => show.date >= today);
@@ -17,7 +18,7 @@ export const getNextShow = () => {
  * FUTURE — any other listed date (e.g. later tour nights): too early until that show becomes "next".
  */
 export const getShowStatus = (selectedDate) => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayYmd();
   const nextShow = getNextShow();
 
   if (selectedDate < today) return 'PAST';

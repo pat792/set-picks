@@ -8,7 +8,7 @@ import {
 import { doc, updateDoc } from 'firebase/firestore';
 
 import { auth, db } from '../../../shared/lib/firebase';
-import { getPasswordResetActionCodeSettings } from '../../auth/passwordResetActionSettings';
+import { getPasswordResetActionCodeSettings } from '../../auth';
 
 export async function sendAccountPasswordResetEmail(email) {
   return sendPasswordResetEmail(

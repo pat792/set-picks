@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { auth, googleProvider } from '../../../shared/lib/firebase';
-import { getFirebaseAuthErrorMessage } from '../firebaseAuthMessages';
+import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import { sendResetEmail, signInWithEmail, signInWithGoogle } from '../api/splashAuthApi';
 
 export function useSplashSignIn(isOpen, onClose) {

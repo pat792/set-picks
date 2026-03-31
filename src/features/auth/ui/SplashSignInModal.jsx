@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
+import { StatusBanner } from '../../../shared';
+import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 
 export default function SplashSignInModal({ isOpen, onClose }) {
@@ -21,52 +23,14 @@ export default function SplashSignInModal({ isOpen, onClose }) {
     handleSendPasswordResetEmail,
   } = useSplashSignIn(isOpen, onClose);
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="signin-title"
-      onClick={(e) => e.target === e.currentTarget && closeModal()}
+    <SplashAuthModalShell
+      isOpen={isOpen}
+      onClose={closeModal}
+      title="Sign in"
+      handleGoogle={handleGoogle}
+      busy={busy}
     >
-      <div
-        className="w-full max-w-md rounded-[2rem] border border-white/10 bg-slate-900 p-8 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-start mb-6">
-          <h3 id="signin-title" className="font-display text-display-md md:text-display-md-lg font-bold text-white">
-            Sign in
-          </h3>
-          <Button
-            variant="text"
-            type="button"
-            onClick={closeModal}
-            className="text-slate-400 hover:text-white text-2xl leading-none px-2 py-0"
-            aria-label="Close"
-          >
-            ×
-          </Button>
-        </div>
-
-        <Button
-          variant="text"
-          type="button"
-          onClick={handleGoogle}
-          disabled={busy}
-          className="w-full bg-white text-slate-900 py-3.5 rounded-xl gap-3 hover:bg-slate-100 transition-colors mb-6"
-        >
-          <img src="https://www.google.com/favicon.ico" alt="" className="w-5 h-5" />
-          Sign in with Google
-        </Button>
-
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 h-px bg-slate-700" />
-          <span className="text-xs font-bold text-slate-500 uppercase">or email</span>
-          <div className="flex-1 h-px bg-slate-700" />
-        </div>
-
         <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">
           <div>
             <label htmlFor="si-email" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -107,7 +71,6 @@ export default function SplashSignInModal({ isOpen, onClose }) {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 bg-slate-200/20 hover:bg-slate-200/30 px-1.5 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
               >
                 {showPassword ? (
-                  // eye-off
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3 3L21 21"
@@ -139,7 +102,6 @@ export default function SplashSignInModal({ isOpen, onClose }) {
                     />
                   </svg>
                 ) : (
-                  // eye
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M2 12C4 7 8 4 12 4C16 4 20 7 22 12C20 17 16 20 12 20C8 20 4 17 2 12Z"
@@ -170,17 +132,14 @@ export default function SplashSignInModal({ isOpen, onClose }) {
             >
               Forgot password? Send reset link to your email
             </Button>
-            {resetLinkNotice.text && (
-              <p
-                className={`text-sm font-bold ${
-                  resetLinkNotice.type === 'error' ? 'text-red-400' : 'text-emerald-400'
-                }`}
-              >
-                {resetLinkNotice.text}
-              </p>
-            )}
+            {resetLinkNotice.text ? (
+              <StatusBanner
+                type={resetLinkNotice.type === 'error' ? 'error' : 'success'}
+                message={resetLinkNotice.text}
+              />
+            ) : null}
           </div>
-          {error && <p className="text-red-400 text-sm font-bold">{error}</p>}
+          {error ? <StatusBanner type="error" message={error} /> : null}
           <Button
             variant="primary"
             type="submit"
@@ -190,7 +149,6 @@ export default function SplashSignInModal({ isOpen, onClose }) {
             {busy ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
-      </div>
-    </div>
+    </SplashAuthModalShell>
   );
 }

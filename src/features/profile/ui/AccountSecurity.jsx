@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { useAccountSecurity } from './model/useAccountSecurity';
-import AccountSecurityForm from './ui/AccountSecurityForm';
+import { useAccountSecurity } from '../model/useAccountSecurity';
+import AccountSecurityForm from './AccountSecurityForm';
 
 export default function AccountSecurity({ user }) {
   const {

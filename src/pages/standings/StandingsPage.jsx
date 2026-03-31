@@ -2,13 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Inbox, Loader2, Music, Scale } from 'lucide-react';
 
-import { useAuth } from '../../features/auth/useAuth';
-import useUserPools from '../../features/pools/model/useUserPools';
-import Leaderboard from '../../features/scoring/Leaderboard';
-import { useDisplayedPicks } from '../../features/scoring/model/useDisplayedPicks';
-import { useStandings } from '../../features/scoring/model/useStandings';
-import StandingsBannerWaitingSetlist from '../../features/scoring/ui/StandingsBannerWaitingSetlist';
-import StandingsFilterTabs from '../../features/scoring/ui/StandingsFilterTabs';
+import { useAuth } from '../../features/auth';
+import { useUserPools } from '../../features/pools';
+import {
+  Leaderboard,
+  StandingsBannerWaitingSetlist,
+  StandingsFilterTabs,
+  useDisplayedPicks,
+  useStandings,
+} from '../../features/scoring';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
 import Card from '../../shared/ui/Card';
 import PageTitle from '../../shared/ui/PageTitle';

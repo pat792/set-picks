@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { confirmPasswordResetWithCode, verifyResetCodeAndGetEmail } from '../api/passwordResetApi';
-import { getFirebaseAuthErrorMessage } from '../firebaseAuthMessages';
+import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 
 export function usePasswordReset(oobCode) {
   const navigate = useNavigate();

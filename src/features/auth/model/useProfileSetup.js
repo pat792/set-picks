@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import { fetchPublicProfileByHandle } from '../../profile/api/publicProfileApi';
+import { fetchPublicProfileByHandle } from '../../profile';
 import { createInitialUserProfile } from '../api/profileSetupApi';
 
 export function useProfileSetup(user) {
