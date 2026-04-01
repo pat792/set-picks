@@ -157,10 +157,10 @@ export default function PoolJoinCreateCard({
               />
             </div>
             <Button
-              variant="text"
+              variant="primary"
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-slate-100 py-4 text-lg uppercase tracking-widest text-slate-900 hover:bg-white"
+              className="w-full bg-emerald-500 text-lg uppercase tracking-widest text-slate-900 hover:bg-emerald-400"
             >
               {loading ? 'Creating...' : 'Create New Pool'}
             </Button>

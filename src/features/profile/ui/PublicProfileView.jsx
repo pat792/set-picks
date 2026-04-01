@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { formatMonthYear } from '../../../shared';
+import BackButton from '../../../shared/ui/BackButton';
 
 function formatPlayingSince(createdAt) {
   const value = formatMonthYear(createdAt);
@@ -27,12 +27,7 @@ export default function PublicProfileView({ profile, userPools = [] }) {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
       <div className="max-w-xl mx-auto px-4 py-10 pb-16">
-        <Link
-          to="/"
-          className="inline-block text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-emerald-400 mb-8"
-        >
-          ← Home
-        </Link>
+        <BackButton className="mb-8" />
 
         <header className="mb-2">
           <h1 className="font-display text-3xl sm:text-4xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500">

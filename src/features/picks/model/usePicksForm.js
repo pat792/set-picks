@@ -6,6 +6,7 @@ import {
   resolveHandleForPicks,
   savePickDoc,
 } from '../api/picksApi';
+import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import { getShowStatus } from '../../../shared/utils/timeLogic';
 
 export default function usePicksForm({ user, selectedDate }) {
@@ -16,6 +17,14 @@ export default function usePicksForm({ user, selectedDate }) {
 
   const showStatus = selectedDate ? getShowStatus(selectedDate) : null;
   const isLocked = showStatus !== 'NEXT';
+
+  const hasExistingPicks =
+    Boolean(selectedDate && user?.uid) &&
+    !isLoadingPicks &&
+    FORM_FIELDS.some((f) => {
+      const v = formData[f.id];
+      return v != null && String(v).trim() !== '';
+    });
 
   useEffect(() => {
     let cancelled = false;
@@ -111,6 +120,7 @@ export default function usePicksForm({ user, selectedDate }) {
     isSaving,
     isLoadingPicks,
     isLocked,
+    hasExistingPicks,
     showStatus,
     saveMessage,
   };

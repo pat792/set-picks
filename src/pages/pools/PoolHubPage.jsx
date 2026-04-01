@@ -2,12 +2,18 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
+import { useNextShowPicksStatus } from '../../features/picks';
 import {
+  PoolHubActiveShow,
   PoolHubHeader,
   PoolHubLeaderboard,
   PoolHubShowArchive,
   usePoolHub,
 } from '../../features/pools';
+import BackButton from '../../shared/ui/BackButton';
+import { todayYmd } from '../../shared/utils/dateUtils.js';
+import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
+import { showOptionLabelDesktop } from '../../shared/utils/showOptionLabel.js';
 
 export default function PoolHubPage({ user }) {
   const { poolId } = useParams();
@@ -20,6 +26,25 @@ export default function PoolHubPage({ user }) {
     handleCopyCode,
     copied,
   } = usePoolHub(poolId, user);
+  const nextShow = getNextShow();
+  const nextShowDate = nextShow.date;
+  const {
+    hasSubmittedPicksForNextShow,
+    loading: picksStatusLoading,
+    error: picksStatusError,
+  } = useNextShowPicksStatus(nextShowDate);
+  const isSecured = picksStatusLoading
+    ? false
+    : picksStatusError
+      ? false
+      : hasSubmittedPicksForNextShow;
+  const nextShowTimeStatus = getShowStatus(nextShowDate);
+  const isLocked =
+    nextShowTimeStatus === 'LIVE' ||
+    nextShowTimeStatus === 'PAST' ||
+    nextShowTimeStatus === 'FUTURE';
+  const activeShowLine = showOptionLabelDesktop(nextShow);
+  const isShowToday = nextShow.date === todayYmd();
 
   if (loading) {
     return (
@@ -66,12 +91,24 @@ export default function PoolHubPage({ user }) {
 
   return (
     <div className="max-w-xl mx-auto mt-4 pb-24 space-y-10">
+      <div className="px-1">
+        <BackButton />
+      </div>
       <PoolHubHeader
         poolName={pool.name}
         memberCount={memberCount}
         inviteCode={inviteCode}
         onCopyCode={handleCopyCode}
         copied={copied}
+      />
+      <PoolHubActiveShow
+        showLabel={activeShowLine}
+        isShowToday={isShowToday}
+        isSecured={isSecured}
+        isLocked={isLocked}
+        nextShowTimeStatus={nextShowTimeStatus}
+        picksStatusLoading={picksStatusLoading}
+        poolId={pool.id}
       />
       <PoolHubLeaderboard members={members} />
       <PoolHubShowArchive poolId={poolId} />

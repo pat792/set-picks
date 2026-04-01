@@ -2,8 +2,18 @@ import React from 'react';
 
 import Button from '../../../shared/ui/Button';
 
-export default function PicksSubmitButton({ isSaving, isLocked, saveMessage }) {
+export default function PicksSubmitButton({
+  isSaving,
+  isLocked,
+  hasExistingPicks,
+  saveMessage,
+}) {
   const submitDisabled = isSaving || isLocked;
+
+  let label = 'Lock In Picks';
+  if (isLocked) label = 'PICKS LOCKED';
+  else if (isSaving) label = 'Saving...';
+  else if (hasExistingPicks) label = 'UPDATE PICKS';
 
   return (
     <>
@@ -14,7 +24,7 @@ export default function PicksSubmitButton({ isSaving, isLocked, saveMessage }) {
           disabled={submitDisabled}
           className="w-full text-lg py-4 rounded-xl uppercase tracking-widest bg-emerald-500 hover:bg-emerald-400 shadow-lg hover:shadow-emerald-500/20"
         >
-          {isSaving ? 'Saving...' : 'Lock In Picks'}
+          {label}
         </Button>
       </div>
 

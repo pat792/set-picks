@@ -1,5 +1,8 @@
 import React from 'react';
+import { Lock } from 'lucide-react';
 import Button from '../../../shared/ui/Button';
+
+const LOCK_SUCCESS_PREFIX = 'OFFICIAL SETLIST LOCKED';
 
 export default function AdminFinalizeAndSave({
   isSaving,
@@ -34,11 +37,16 @@ export default function AdminFinalizeAndSave({
 
       {message?.text && (
         <div
-          className={`text-center font-bold text-sm mt-2 uppercase tracking-widest ${
+          className={`mt-2 flex items-center justify-center gap-2 text-center text-sm font-bold uppercase tracking-widest ${
             message.type === 'error' ? 'text-red-400' : 'text-emerald-400'
           }`}
+          role={message.type === 'error' ? 'alert' : 'status'}
         >
-          {message.text}
+          {message.type === 'success' &&
+            message.text.startsWith(LOCK_SUCCESS_PREFIX) && (
+              <Lock className="h-5 w-5 shrink-0" aria-hidden />
+            )}
+          <span>{message.text}</span>
         </div>
       )}
     </div>

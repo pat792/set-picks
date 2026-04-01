@@ -2,7 +2,11 @@ import React from 'react';
 
 import PoolCard from './PoolCard';
 
-export default function UserPoolsSection({ pools }) {
+export default function UserPoolsSection({
+  pools,
+  hasPicksForNextShow = false,
+  picksStatusLoading = false,
+}) {
   return (
     <section className="space-y-4">
       {pools.length === 0 ? (
@@ -15,7 +19,12 @@ export default function UserPoolsSection({ pools }) {
       ) : (
         <div className="flex flex-col gap-4">
           {pools.map((pool) => (
-            <PoolCard key={pool.id} pool={pool} />
+            <PoolCard
+              key={pool.id}
+              pool={pool}
+              hasPicksForNextShow={hasPicksForNextShow}
+              picksStatusLoading={picksStatusLoading}
+            />
           ))}
         </div>
       )}
