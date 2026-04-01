@@ -1,3 +1,4 @@
+export { default as LandingSeo } from './ui/LandingSeo';
 export { default as SplashAboutSection } from './ui/SplashAboutSection';
 export { default as SplashAuthModals } from './ui/SplashAuthModals';
 export { default as SplashGetStartedSection } from './ui/SplashGetStartedSection';
