@@ -106,8 +106,8 @@ export function useAdminSetlistForm({ user, selectedDate }) {
 
       setMessage({
         text: finalizeRollup
-          ? 'OFFICIAL SETLIST LOCKED — STATS ROLLED UP 🔒'
-          : 'OFFICIAL SETLIST LOCKED 🔒',
+          ? 'OFFICIAL SETLIST LOCKED — STATS ROLLED UP'
+          : 'OFFICIAL SETLIST LOCKED',
         type: 'success',
       });
     } catch (error) {

@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Inbox, Loader2, Music, Scale } from 'lucide-react';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ExternalLink, Inbox, Loader2, Music, Scale } from 'lucide-react';
 
 import { useAuth } from '../../features/auth';
 import { useUserPools } from '../../features/pools';
@@ -10,22 +10,33 @@ import {
   StandingsFilterTabs,
   useDisplayedPicks,
   useStandings,
+  ScoringRulesModal,
 } from '../../features/scoring';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
 import Card from '../../shared/ui/Card';
+import GhostPill from '../../shared/ui/GhostPill';
 import PageTitle from '../../shared/ui/PageTitle';
 
 export default function StandingsPage({ selectedDate }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const targetPoolId =
+    typeof location.state?.targetPoolId === 'string'
+      ? location.state.targetPoolId.trim()
+      : '';
+
   const { user } = useAuth();
   const { pools: userPools } = useUserPools(user?.uid);
   const { picks, actualSetlist, loading } = useStandings(selectedDate);
   const { displayedPicks, activeFilter, setActiveFilter, filterOptions } = useDisplayedPicks(
     picks,
     user,
-    userPools
+    userPools,
+    targetPoolId || undefined
   );
 
   const showStatus = getShowStatus(selectedDate);
+  const [scoringRulesOpen, setScoringRulesOpen] = useState(false);
 
   if (loading) {
     return (
@@ -43,14 +54,11 @@ export default function StandingsPage({ selectedDate }) {
   return (
     <div className="w-full">
       <div className="flex justify-end px-2 mb-4">
-        <Link
-          to="/dashboard/scoring"
-          className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-2"
-        >
-          <Scale className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          Scoring rules
-        </Link>
+        <GhostPill icon={Scale} onClick={() => setScoringRulesOpen(true)}>
+          Scoring Rules
+        </GhostPill>
       </div>
+      <ScoringRulesModal open={scoringRulesOpen} onClose={() => setScoringRulesOpen(false)} />
 
       <StandingsFilterTabs
         activeFilter={activeFilter}
@@ -93,7 +101,23 @@ export default function StandingsPage({ selectedDate }) {
           )}
         </Card>
       ) : (
-        <Leaderboard poolPicks={displayedPicks} actualSetlist={actualSetlist} />
+        <Leaderboard
+          poolPicks={displayedPicks}
+          actualSetlist={actualSetlist}
+          title={activeFilter === 'global' ? 'Global Leaderboard' : 'Pool Leaderboard'}
+          headerEnd={
+            activeFilter !== 'global' ? (
+              <GhostPill
+                type="button"
+                onClick={() => navigate(`/dashboard/pool/${activeFilter}`)}
+                className="text-xs"
+              >
+                Go to Pool Hub
+                <ExternalLink className="w-3.5 h-3.5 ml-1 shrink-0" aria-hidden />
+              </GhostPill>
+            ) : null
+          }
+        />
       )}
     </div>
   );

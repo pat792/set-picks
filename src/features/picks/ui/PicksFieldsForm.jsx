@@ -21,7 +21,7 @@ export default function PicksFieldsForm({
             onChange={(val) => onChange(field.id, val)}
             placeholder="Type a song..."
             readOnly={isLocked}
-            disabled={disabled}
+            disabled={disabled || isLocked}
           />
         </div>
       ))}

@@ -24,6 +24,15 @@ export function getPickDocumentId(selectedDate, userId) {
 /**
  * Load the user's pick map for a show (field id → song string).
  */
+function hasNonEmptyPicksObject(picks) {
+  if (picks == null || typeof picks !== 'object' || Array.isArray(picks)) {
+    return false;
+  }
+  return Object.values(picks).some(
+    (v) => v != null && String(v).trim() !== ''
+  );
+}
+
 export async function fetchPickDoc(selectedDate, userId) {
   if (!userId || !selectedDate) return {};
 
@@ -32,6 +41,20 @@ export async function fetchPickDoc(selectedDate, userId) {
 
   if (!docSnap.exists()) return {};
   return docSnap.data().picks ?? {};
+}
+
+/**
+ * True when the pick document exists for this show/user and `picks` has at least one non-empty value.
+ * (Unlike {@link fetchPickDoc}, distinguishes missing doc from empty picks map.)
+ */
+export async function hasSubmittedPicksForShow(selectedDate, userId) {
+  if (!userId || !selectedDate) return false;
+
+  const pickId = getPickDocumentId(selectedDate, userId);
+  const docSnap = await getDoc(doc(db, 'picks', pickId));
+
+  if (!docSnap.exists()) return false;
+  return hasNonEmptyPicksObject(docSnap.data().picks);
 }
 
 /**

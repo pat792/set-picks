@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { PublicProfileView, usePublicProfile } from '../../features/profile';
 import { AsyncStatus } from '../../shared';
+import BackButton from '../../shared/ui/BackButton';
 
 export default function PublicProfile() {
   const { userId } = useParams();
@@ -16,9 +17,7 @@ export default function PublicProfile() {
           error={error === 'fetch' ? 'Could not load this profile.' : null}
           loadingText="Loading profile…"
         />
-        <Link to="/" className="mt-8 text-emerald-400 font-bold hover:underline">
-          ← Back to home
-        </Link>
+        <BackButton className="mt-8" />
       </div>
     );
   }
@@ -32,12 +31,7 @@ export default function PublicProfile() {
             ? 'No user id was provided.'
             : 'There is no public profile for this link.'}
         </p>
-        <Link
-          to="/"
-          className="text-emerald-400 font-bold hover:underline"
-        >
-          ← Back to home
-        </Link>
+        <BackButton />
       </div>
     );
   }
