@@ -7,10 +7,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
-  // react-snap uses Puppeteer 1.x (older Chromium); production bundle must avoid ?? / ?. etc.
-  build: {
-    target: 'es2015',
-  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
