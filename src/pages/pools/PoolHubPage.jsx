@@ -88,30 +88,54 @@ export default function PoolHubPage({ user }) {
   const memberCount = pool.members?.length ?? 0;
   const inviteCode =
     pool.inviteCode != null ? String(pool.inviteCode) : '';
+  const ownerId = pool.ownerId;
+  const ownerMember =
+    ownerId != null ? members.find((m) => m.id === ownerId) : null;
+  const ownerHandle =
+    ownerMember?.handle != null
+      ? String(ownerMember.handle).trim()
+      : '';
+  const creatorLabel =
+    ownerHandle !== '' ? `Created by ${ownerHandle}` : null;
 
   return (
-    <div className="max-w-xl mx-auto mt-4 pb-24 space-y-10">
-      <div className="px-1">
-        <BackButton />
+    <div className="max-w-xl mx-auto pb-24 flex flex-col gap-3 md:gap-6">
+      <div className="flex flex-col gap-2">
+        <div className="px-1">
+          <BackButton />
+        </div>
+        <PoolHubHeader
+          poolName={pool.name}
+          memberCount={memberCount}
+          inviteCode={inviteCode}
+          onCopyCode={handleCopyCode}
+          copied={copied}
+          creatorLabel={creatorLabel}
+        />
       </div>
-      <PoolHubHeader
-        poolName={pool.name}
-        memberCount={memberCount}
-        inviteCode={inviteCode}
-        onCopyCode={handleCopyCode}
-        copied={copied}
-      />
-      <PoolHubActiveShow
-        showLabel={activeShowLine}
-        isShowToday={isShowToday}
-        isSecured={isSecured}
-        isLocked={isLocked}
-        nextShowTimeStatus={nextShowTimeStatus}
-        picksStatusLoading={picksStatusLoading}
-        poolId={pool.id}
-      />
-      <PoolHubLeaderboard members={members} />
-      <PoolHubShowArchive poolId={poolId} />
+      <div className="flex flex-col gap-6">
+        <section>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">
+            Game Status
+          </h2>
+          <PoolHubActiveShow
+            showLabel={activeShowLine}
+            isShowToday={isShowToday}
+            isSecured={isSecured}
+            isLocked={isLocked}
+            nextShowTimeStatus={nextShowTimeStatus}
+            picksStatusLoading={picksStatusLoading}
+            poolId={pool.id}
+          />
+        </section>
+        <PoolHubShowArchive poolId={poolId} />
+        <section>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">
+            Overall Standings
+          </h2>
+          <PoolHubLeaderboard members={members} />
+        </section>
+      </div>
     </div>
   );
 }

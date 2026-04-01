@@ -54,6 +54,7 @@ export default function DashboardLayout() {
   }
 
   const meta = getDashboardPageMeta(location.pathname);
+  const isPoolHubRoute = location.pathname.startsWith('/dashboard/pool/');
   const datePickerStatus = getShowStatus(selectedDate);
   const showDatePickerUserBanners = meta.showDatePicker && location.pathname !== '/dashboard/admin';
   const showPastShowLock = showDatePickerUserBanners && datePickerStatus === 'PAST';
@@ -119,7 +120,13 @@ export default function DashboardLayout() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 overflow-y-auto pt-[8.75rem] pb-24 md:pt-8 md:pb-8 relative">
-        <div className="max-w-xl mx-auto p-4 md:p-8">
+        <div
+          className={
+            isPoolHubRoute
+              ? 'max-w-xl mx-auto px-4 pt-2 pb-4 md:p-8'
+              : 'max-w-xl mx-auto p-4 md:p-8'
+          }
+        >
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (

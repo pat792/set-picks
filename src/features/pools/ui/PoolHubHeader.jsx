@@ -1,7 +1,7 @@
 import React from 'react';
 import { Copy } from 'lucide-react';
 
-import Button from '../../../shared/ui/Button';
+import GhostPill from '../../../shared/ui/GhostPill';
 
 export default function PoolHubHeader({
   poolName,
@@ -9,40 +9,27 @@ export default function PoolHubHeader({
   inviteCode,
   onCopyCode,
   copied,
+  creatorLabel,
 }) {
-  const codeDisplay = inviteCode || '—';
-
   return (
-    <header className="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 space-y-4">
-      <div>
-        <h1 className="font-display text-display-md font-bold text-white">
-          {poolName}
-        </h1>
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      <div className="min-w-0">
+        <h1 className="text-xl font-bold text-white truncate">{poolName}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">
           {memberCount} {memberCount === 1 ? 'member' : 'members'}
+          {creatorLabel ? ` · ${creatorLabel}` : null}
         </p>
       </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-        <div className="bg-slate-900 px-4 py-3 rounded-2xl border border-slate-700">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
-            Invite code
-          </p>
-          <span className="text-emerald-400 font-mono font-black tracking-[0.2em] text-xl">
-            {codeDisplay}
-          </span>
-        </div>
-        <Button
+      <div className="shrink-0 sm:self-center">
+        <GhostPill
           type="button"
-          variant="text"
-          size="none"
+          icon={Copy}
           onClick={onCopyCode}
           disabled={!inviteCode}
-          className="shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white font-black uppercase tracking-widest text-sm hover:bg-slate-700 disabled:opacity-40"
+          className="disabled:opacity-40 disabled:pointer-events-none disabled:hover:bg-slate-800 disabled:hover:text-slate-300"
         >
-          <Copy className="w-4 h-4" aria-hidden />
-          {copied ? 'Copied!' : 'Copy code'}
-        </Button>
+          {copied ? 'Copied!' : 'Invite Code'}
+        </GhostPill>
       </div>
     </header>
   );
