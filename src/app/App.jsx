@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth';
 
 // Components
-import SplashPage from '../pages/landing/SplashPage';
+import LandingPage from '../pages/landing/LandingPage';
 import ProfileSetupPage from '../pages/auth/ProfileSetupPage';
 import PasswordResetCompletePage from '../pages/auth/PasswordResetCompletePage';
 import DashboardLayout from './layout/DashboardLayout';
@@ -27,7 +27,7 @@ function App() {
       {/* Route 1: The Public Splash Page */}
       <Route 
         path="/" 
-        element={!user ? <SplashPage /> : <Navigate to="/dashboard" replace />} 
+        element={!user ? <LandingPage /> : <Navigate to="/dashboard" replace />} 
       />
 
       {/* Route 2: The Profile Setup Gatekeeper */}
