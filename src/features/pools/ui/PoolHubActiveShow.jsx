@@ -63,10 +63,10 @@ export default function PoolHubActiveShow({
     <Card
       as="section"
       variant="default"
-      padding="md"
-      className="border border-emerald-500/30 bg-gradient-to-br from-slate-800/90 to-slate-900/90 shadow-lg shadow-emerald-900/10"
+      padding="sm"
+      className="border border-emerald-500/30 bg-gradient-to-br from-slate-800/90 to-slate-900/90 shadow-lg shadow-emerald-900/10 md:p-6"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
           <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/90">
             {eyebrow}
