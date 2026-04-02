@@ -20,13 +20,22 @@ jobs:
             const issueBody = context.payload.issue.body || "No additional context provided.";
             
             const prompt = `You are an expert Technical Product Manager. Convert the following feature idea into a comprehensive Product Requirements Document (PRD) formatted in GitHub-Flavored Markdown. 
-            Include: 
-            1. User Story 
-            2. Acceptance Criteria 
-            3. Technical Implementation Details (React, Vite, Firebase, Tailwind). 
+            
+            CRITICAL CODEBASE CONTEXT (SETLIST PICK 'EM):
+            - Stack: React SPA built with Vite, Tailwind CSS, and Firebase (Auth, Firestore, App Check).
+            - Routing: Client-side routing (React Router).
+            - Golden Rule: Do not hallucinate file paths or databases. Do not suggest adding new backend systems (we use Firebase exclusively). 
+            - Dependencies: Do not suggest adding unnecessary npm packages if a native Firebase or React solution exists.
+            
+            REQUIREMENTS FOR THE PRD:
+            1. The Goal (User Story)
+            2. Acceptance Criteria
+            3. Technical Implementation (React/Firebase specifics)
+            4. Proposed File Changes (Guess the likely files to touch, e.g., src/pages, src/components)
+            5. Agent Guardrails (Explicitly tell the AI Agent what NOT to do, like breaking existing Auth)
             
             Feature Title: ${issueTitle}
-            Additional Context: ${issueBody}`;
+            User Input/Context: ${issueBody}`;
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
             
@@ -47,10 +56,9 @@ jobs:
             
             const prdContent = data.candidates[0].content.parts[0].text;
             
-            // Overwrite the issue with the new AI-generated PRD
             await github.rest.issues.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: prdContent + "\n\n---\n*Generated autonomously by Gemini AI*"
+              body: prdContent + "\n\n---\n*Generated autonomously by Gemini AI tailored for Setlist Pick 'Em*"
             });

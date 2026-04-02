@@ -29,3 +29,4 @@ Whenever you need to simulate a brand new user hitting the site for the very fir
 
 - **Debug token:** `38422efd-029f-45b4-b028-7cf7fcaeeffc`
 - Use this token in the Firebase Console App Check debug-token allowlist for local development.
+
