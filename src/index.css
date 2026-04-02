@@ -19,6 +19,23 @@
 
 /* Tour section headers in show date <select> (optgroup labels — gold; support varies slightly by browser/OS) */
 @layer components {
+  /**
+   * Gradient headline/wordmark: solid fallback when background-clip:text is unsupported
+   * or fails in constrained renderers (e.g. some WRS snapshots).
+   */
+  .splash-gradient-text {
+    color: #ffffff;
+    background-image: linear-gradient(to right, #ef4444, #3b82f6);
+  }
+
+  @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .splash-gradient-text {
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+  }
+
   select.show-date-select optgroup.tour-optgroup {
     color: #d4af37;
     font-weight: 800;

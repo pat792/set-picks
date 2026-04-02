@@ -11,7 +11,7 @@ export default function SplashHeader({
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="font-display font-bold italic text-[clamp(1.05rem,4.6vw,1.5rem)] sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-1 min-w-0 whitespace-nowrap leading-none inline-block"
+          className="font-display font-bold italic text-[clamp(1.05rem,4.6vw,1.5rem)] sm:text-2xl splash-gradient-text outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-1 min-w-0 whitespace-nowrap leading-none inline-block"
         >
           SETLIST PICK &apos;EM
         </button>

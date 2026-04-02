@@ -5,7 +5,7 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
   return (
     <section className="relative w-full min-h-screen flex items-center justify-center bg-[#0f172a] overflow-hidden pt-[3.5rem] sm:pt-20">
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center -translate-y-8 sm:-translate-y-12">
-        <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
+        <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic splash-gradient-text drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
           SETLIST <br className="md:hidden" /> PICK &apos;EM
         </h1>
 
