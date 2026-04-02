@@ -7,7 +7,17 @@ import {
   savePickDoc,
 } from '../api/picksApi';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+import { SHOW_DATES_BY_TOUR } from '../../../shared/data/showDates';
 import { getShowStatus } from '../../../shared/utils/timeLogic';
+import { trackEditPicks, trackSubmitPicks } from './picksAnalytics';
+
+function tourLabelForShowDate(selectedDate) {
+  if (!selectedDate) return '';
+  const group = SHOW_DATES_BY_TOUR.find((g) =>
+    g.shows.some((s) => s.date === selectedDate)
+  );
+  return group?.tour ?? '';
+}
 
 export default function usePicksForm({ user, selectedDate }) {
   const [formData, setFormData] = useState({});
@@ -75,6 +85,9 @@ export default function usePicksForm({ user, selectedDate }) {
       setIsSaving(true);
       setSaveMessage('');
 
+      const hadExistingPicks = hasExistingPicks;
+      const tourDate = tourLabelForShowDate(selectedDate);
+
       try {
         const handle = await resolveHandleForPicks(user.uid, user);
 
@@ -94,6 +107,12 @@ export default function usePicksForm({ user, selectedDate }) {
           pools,
         });
 
+        if (hadExistingPicks) {
+          trackEditPicks({ show_id: selectedDate, tour_date: tourDate });
+        } else {
+          trackSubmitPicks({ show_id: selectedDate, tour_date: tourDate });
+        }
+
         setSaveMessage('Picks locked in successfully! 🎸');
       } catch (error) {
         console.error('Error saving picks:', error);
@@ -110,7 +129,7 @@ export default function usePicksForm({ user, selectedDate }) {
         setTimeout(() => setSaveMessage(''), 3000);
       }
     },
-    [user, selectedDate, formData, isLocked, isSaving]
+    [user, selectedDate, formData, isLocked, isSaving, hasExistingPicks]
   );
 
   return {

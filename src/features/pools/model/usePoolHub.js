@@ -4,6 +4,10 @@ import {
   fetchPoolById,
   fetchPoolMemberProfiles,
 } from '../api/poolHubApi';
+import {
+  trackSharePicksInviteCode,
+  trackViewLeaderboardPoolHub,
+} from './poolsAnalytics';
 
 export function usePoolHub(poolId, currentUser) {
   const [pool, setPool] = useState(null);
@@ -56,10 +60,16 @@ export function usePoolHub(poolId, currentUser) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (loading || !pool || forbidden || !poolId?.trim()) return;
+    trackViewLeaderboardPoolHub({ pool_id: poolId.trim() });
+  }, [loading, pool, forbidden, poolId]);
+
   const handleCopyCode = async () => {
     if (!inviteCode) return;
     try {
       await navigator.clipboard.writeText(inviteCode);
+      trackSharePicksInviteCode({ pool_id: poolId?.trim() ?? '' });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {
