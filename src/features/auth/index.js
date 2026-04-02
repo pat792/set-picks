@@ -1,3 +1,4 @@
+export { default as AuthLoadingScreen } from './ui/AuthLoadingScreen';
 export { default as SplashAuthEntryCard } from './ui/SplashAuthEntryCard';
 export { default as SplashAuthModalShell } from './ui/SplashAuthModalShell';
 export { default as SplashSignInModal } from './ui/SplashSignInModal';
