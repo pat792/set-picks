@@ -1,0 +1,11 @@
+name: AI Product Manager PRD Generator
+on:
+  issues:
+    types: [opened]
+jobs:
+  generate-prd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Gemini API
+        # This step uses a script or pre-built action to pass the github.event.issue.title to Gemini
+        # and updates the issue body with the response using the GitHub API (GITHUB_TOKEN).
