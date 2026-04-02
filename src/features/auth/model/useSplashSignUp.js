@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
+import { getAdditionalUserInfo } from 'firebase/auth';
 
 import { auth, googleProvider } from '../../../shared/lib/firebase';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import { registerWithEmail, signInWithGoogle } from '../api/splashAuthApi';
+import { trackAuthError, trackAuthLogin, trackAuthSignUp } from './authAnalytics';
 
 export function useSplashSignUp(isOpen, onClose) {
   const [email, setEmail] = useState('');
@@ -44,10 +46,17 @@ export function useSplashSignUp(isOpen, onClose) {
     setError('');
     setBusy(true);
     try {
-      await signInWithGoogle(auth, googleProvider);
+      const cred = await signInWithGoogle(auth, googleProvider);
+      const extra = getAdditionalUserInfo(cred);
+      if (extra?.isNewUser) {
+        trackAuthSignUp('google');
+      } else {
+        trackAuthLogin('google');
+      }
       closeModal();
     } catch (err) {
       console.error('Google sign-in:', err);
+      trackAuthError({ method: 'google', error_code: err.code });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
       setBusy(false);
@@ -69,9 +78,11 @@ export function useSplashSignUp(isOpen, onClose) {
       setBusy(true);
       try {
         await registerWithEmail(auth, email, password);
+        trackAuthSignUp('email');
         closeModal();
       } catch (err) {
         console.error('Sign up:', err);
+        trackAuthError({ method: 'email', error_code: err.code });
         setError(getFirebaseAuthErrorMessage(err.code));
       } finally {
         setBusy(false);

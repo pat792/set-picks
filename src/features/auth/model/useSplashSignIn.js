@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { auth, googleProvider } from '../../../shared/lib/firebase';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import { sendResetEmail, signInWithEmail, signInWithGoogle } from '../api/splashAuthApi';
+import { trackAuthError, trackAuthLogin } from './authAnalytics';
 
 export function useSplashSignIn(isOpen, onClose) {
   const [email, setEmail] = useState('');
@@ -45,9 +46,11 @@ export function useSplashSignIn(isOpen, onClose) {
     setBusy(true);
     try {
       await signInWithGoogle(auth, googleProvider);
+      trackAuthLogin('google');
       closeModal();
     } catch (err) {
       console.error('Google sign-in:', err);
+      trackAuthError({ method: 'google', error_code: err.code });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
       setBusy(false);
@@ -61,9 +64,11 @@ export function useSplashSignIn(isOpen, onClose) {
       setBusy(true);
       try {
         await signInWithEmail(auth, email, password);
+        trackAuthLogin('email');
         closeModal();
       } catch (err) {
         console.error('Sign in:', err);
+        trackAuthError({ method: 'email', error_code: err.code });
         setError(getFirebaseAuthErrorMessage(err.code));
       } finally {
         setBusy(false);
@@ -90,6 +95,7 @@ export function useSplashSignIn(isOpen, onClose) {
       });
     } catch (err) {
       console.error('Password reset:', err);
+      trackAuthError({ method: 'password_reset', error_code: err.code });
       const msg =
         err.code === 'auth/too-many-requests'
           ? 'Too many attempts. Wait a few minutes and try again.'
