@@ -10,6 +10,7 @@ import {
   StandingsFilterTabs,
   useDisplayedPicks,
   useStandings,
+  useStandingsLeaderboardView,
   ScoringRulesModal,
 } from '../../features/scoring';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
@@ -37,6 +38,8 @@ export default function StandingsPage({ selectedDate }) {
 
   const showStatus = getShowStatus(selectedDate);
   const [scoringRulesOpen, setScoringRulesOpen] = useState(false);
+
+  useStandingsLeaderboardView(selectedDate, loading);
 
   if (loading) {
     return (
