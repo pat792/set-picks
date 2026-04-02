@@ -1,3 +1,51 @@
+
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    @apply font-sans antialiased;
+  }
+}
+
+/* Tour section headers in show date <select> (optgroup labels — gold; support varies slightly by browser/OS) */
+@layer components {
+  /**
+   * Gradient headline/wordmark: solid fallback when background-clip:text is unsupported
+   * or fails in constrained renderers (e.g. some WRS snapshots).
+   */
+  .splash-gradient-text {
+    color: #ffffff;
+    background-image: linear-gradient(to right, #ef4444, #3b82f6);
+  }
+
+  @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .splash-gradient-text {
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+  }
+
+  select.show-date-select optgroup.tour-optgroup {
+    color: #d4af37;
+    font-weight: 800;
+    font-style: italic;
+  }
+
+  select.show-date-select optgroup.tour-optgroup option {
+    color: #e2e8f0;
+    font-weight: 600;
+    font-style: normal;
+    white-space: nowrap;
+  }
+}

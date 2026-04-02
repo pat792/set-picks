@@ -24,3 +24,9 @@ Whenever you need to simulate a brand new user hitting the site for the very fir
    - Open a fresh **Incognito/Private Window** in your browser.
    - Navigate to the local testing URL (`http://localhost:5173`).
    - The app should treat you as a 100% unrecognized user.
+
+## Firebase App Check (Local Dev)
+
+- **Debug token:** `38422efd-029f-45b4-b028-7cf7fcaeeffc`
+- Use this token in the Firebase Console App Check debug-token allowlist for local development.
+

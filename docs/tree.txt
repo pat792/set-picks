@@ -1,0 +1,202 @@
+.
+├── .cursorrules
+├── .firebaserc
+├── .gitignore
+├── README.md
+├── docs
+│   ├── FSD_EXTRACTION_PLAN.md
+│   ├── TESTING.md
+│   ├── USER_FLOWS.md
+│   └── tree.txt
+├── eslint.config.js
+├── firebase.json
+├── functions
+│   ├── .gitignore
+│   ├── index.js
+│   ├── package-lock.json
+│   ├── package.json
+│   └── phishSongs.js
+├── index.html
+├── jsconfig.json
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── public
+│   ├── Images
+│   └── fonts
+│       └── space-grotesk
+│           ├── OFL.txt
+│           └── SpaceGrotesk-VariableFont_wght.woff2
+├── src
+│   ├── app
+│   │   ├── App.jsx
+│   │   └── layout
+│   │       ├── DashboardLayout.jsx
+│   │       ├── model
+│   │       │   └── dashboardPageMeta.js
+│   │       └── ui
+│   │           ├── DashboardMobileBrandBar.jsx
+│   │           ├── DashboardMobileContextBar.jsx
+│   │           └── DashboardPageHeading.jsx
+│   ├── features
+│   │   ├── admin
+│   │   │   ├── api
+│   │   │   │   ├── adminRollupApi.js
+│   │   │   │   └── officialSetlistsApi.js
+│   │   │   ├── index.js
+│   │   │   ├── model
+│   │   │   │   └── useAdminSetlistForm.js
+│   │   │   └── ui
+│   │   │       ├── AdminFinalizeAndSave.jsx
+│   │   │       ├── AdminForm.jsx
+│   │   │       ├── AdminOfficialSetlistBuilder.jsx
+│   │   │       └── AdminSetlistSlotInputs.jsx
+│   │   ├── auth
+│   │   │   ├── api
+│   │   │   │   ├── authApi.js
+│   │   │   │   ├── passwordResetApi.js
+│   │   │   │   ├── profileSetupApi.js
+│   │   │   │   └── splashAuthApi.js
+│   │   │   ├── index.js
+│   │   │   ├── model
+│   │   │   │   ├── useAuth.js
+│   │   │   │   ├── usePasswordReset.js
+│   │   │   │   ├── usePasswordResetCompleteState.js
+│   │   │   │   ├── useProfileSetup.js
+│   │   │   │   ├── useSignOut.js
+│   │   │   │   ├── useSplashSignIn.js
+│   │   │   │   └── useSplashSignUp.js
+│   │   │   ├── ui
+│   │   │   │   ├── PasswordResetForm.jsx
+│   │   │   │   ├── ProfileSetupForm.jsx
+│   │   │   │   ├── SplashAuthEntryCard.jsx
+│   │   │   │   ├── SplashAuthModalShell.jsx
+│   │   │   │   ├── SplashSignInModal.jsx
+│   │   │   │   └── SplashSignUpModal.jsx
+│   │   │   └── utils
+│   │   │       ├── firebaseAuthMessages.js
+│   │   │       └── passwordResetActionSettings.js
+│   │   ├── landing
+│   │   │   ├── index.js
+│   │   │   ├── model
+│   │   │   │   └── useScrollToSectionFocus.js
+│   │   │   └── ui
+│   │   │       ├── SplashAboutSection.jsx
+│   │   │       ├── SplashAuthModals.jsx
+│   │   │       ├── SplashGetStartedSection.jsx
+│   │   │       ├── SplashHeader.jsx
+│   │   │       ├── SplashHeroSection.jsx
+│   │   │       ├── SplashHowItWorksSection.jsx
+│   │   │       └── SplashPageShell.jsx
+│   │   ├── picks
+│   │   │   ├── api
+│   │   │   │   └── picksApi.js
+│   │   │   ├── index.js
+│   │   │   ├── model
+│   │   │   │   └── usePicksForm.js
+│   │   │   └── ui
+│   │   │       ├── PastShowLockBanner.jsx
+│   │   │       ├── PicksFieldsForm.jsx
+│   │   │       ├── PicksSubmitButton.jsx
+│   │   │       └── TooEarlyBanner.jsx
+│   │   ├── pools
+│   │   │   ├── api
+│   │   │   │   ├── poolHubApi.js
+│   │   │   │   └── poolsApi.js
+│   │   │   ├── index.js
+│   │   │   ├── model
+│   │   │   │   ├── usePoolHub.js
+│   │   │   │   └── useUserPools.js
+│   │   │   └── ui
+│   │   │       ├── PoolCard.jsx
+│   │   │       ├── PoolHubHeader.jsx
+│   │   │       ├── PoolHubLeaderboard.jsx
+│   │   │       ├── PoolHubShowArchive.jsx
+│   │   │       ├── PoolJoinCreateCard.jsx
+│   │   │       └── UserPoolsSection.jsx
+│   │   ├── profile
+│   │   │   ├── api
+│   │   │   │   ├── accountSecurityApi.js
+│   │   │   │   ├── profileApi.js
+│   │   │   │   └── publicProfileApi.js
+│   │   │   ├── index.js
+│   │   │   ├── model
+│   │   │   │   ├── useAccountSecurity.js
+│   │   │   │   ├── usePublicProfile.js
+│   │   │   │   └── useUserProfile.js
+│   │   │   └── ui
+│   │   │       ├── AccountSecurity.jsx
+│   │   │       ├── AccountSecurityForm.jsx
+│   │   │       ├── ProfileEditForm.jsx
+│   │   │       └── PublicProfileView.jsx
+│   │   ├── scoring
+│   │   │   ├── api
+│   │   │   │   └── standingsApi.js
+│   │   │   ├── index.js
+│   │   │   ├── model
+│   │   │   │   ├── useDisplayedPicks.js
+│   │   │   │   ├── useLeaderboard.js
+│   │   │   │   └── useStandings.js
+│   │   │   └── ui
+│   │   │       ├── Leaderboard.jsx
+│   │   │       ├── LeaderboardList.jsx
+│   │   │       ├── LeaderboardRow.jsx
+│   │   │       ├── ScoreBreakdownGrid.jsx
+│   │   │       ├── StandingsBannerWaitingSetlist.jsx
+│   │   │       └── StandingsFilterTabs.jsx
+│   ├── index.css
+│   ├── main.jsx
+│   ├── pages
+│   │   ├── admin
+│   │   │   └── AdminPage.jsx
+│   │   ├── auth
+│   │   │   ├── PasswordResetCompletePage.jsx
+│   │   │   └── ProfileSetupPage.jsx
+│   │   ├── landing
+│   │   │   └── SplashPage.jsx
+│   │   ├── picks
+│   │   │   └── PicksPage.jsx
+│   │   ├── pools
+│   │   │   ├── PoolHubPage.jsx
+│   │   │   └── PoolsPage.jsx
+│   │   ├── profile
+│   │   │   ├── ProfilePage.jsx
+│   │   │   └── PublicProfilePage.jsx
+│   │   ├── scoring
+│   │   │   └── ScoringRulesPage.jsx
+│   │   └── standings
+│   │       └── StandingsPage.jsx
+│   ├── shared
+│   │   ├── data
+│   │   │   ├── gameConfig.js
+│   │   │   ├── phishSongs.js
+│   │   │   └── showDates.js
+│   │   ├── hooks
+│   │   │   └── useScrollDirection.js
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── firebase.js
+│   │   │   └── migrations
+│   │   │       └── runPoolMigration.js
+│   │   ├── test
+│   │   │   └── ThemePreviewer.jsx
+│   │   ├── ui
+│   │   │   ├── AsyncStatus.jsx
+│   │   │   ├── Button.jsx
+│   │   │   ├── Card.jsx
+│   │   │   ├── Input.jsx
+│   │   │   ├── PageTitle.jsx
+│   │   │   ├── SongAutocomplete.jsx
+│   │   │   ├── StatusBanner.jsx
+│   │   │   └── index.js
+│   │   └── utils
+│   │       ├── dateUtils.js
+│   │       ├── index.js
+│   │       ├── scoring.js
+│   │       ├── showOptionLabel.js
+│   │       └── timeLogic.js
+├── tailwind.config.js
+├── vercel.json
+└── vite.config.js
+
+58 directories, 142 files

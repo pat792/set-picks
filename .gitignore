@@ -1,4 +1,6 @@
 node_modules
 .env
-dist/
 .DS_Store
+dist
+.cursor/debug-2b48e0.log
+mcp.json

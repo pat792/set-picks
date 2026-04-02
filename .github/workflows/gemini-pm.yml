@@ -1,0 +1,64 @@
+name: AI Product Manager PRD Generator
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  generate-prd:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Generate PRD with Gemini
+        uses: actions/github-script@v7
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          script: |
+            const issueTitle = context.payload.issue.title;
+            const issueBody = context.payload.issue.body || "No additional context provided.";
+            
+            const prompt = `You are an expert Technical Product Manager. Convert the following feature idea into a comprehensive Product Requirements Document (PRD) formatted in GitHub-Flavored Markdown. 
+            
+            CRITICAL CODEBASE CONTEXT (SETLIST PICK 'EM):
+            - Stack: React SPA built with Vite, Tailwind CSS, and Firebase (Auth, Firestore, App Check).
+            - Routing: Client-side routing (React Router).
+            - Golden Rule: Do not hallucinate file paths or databases. Do not suggest adding new backend systems (we use Firebase exclusively). 
+            - Dependencies: Do not suggest adding unnecessary npm packages if a native Firebase or React solution exists.
+            
+            REQUIREMENTS FOR THE PRD:
+            1. The Goal (User Story)
+            2. Acceptance Criteria
+            3. Technical Implementation (React/Firebase specifics)
+            4. Proposed File Changes (Guess the likely files to touch, e.g., src/pages, src/components)
+            5. Agent Guardrails (Explicitly tell the AI Agent what NOT to do, like breaking existing Auth)
+            
+            Feature Title: ${issueTitle}
+            User Input/Context: ${issueBody}`;
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+            
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+              console.error("Gemini API Error:", data.error);
+              return;
+            }
+            
+            const prdContent = data.candidates[0].content.parts[0].text;
+            
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: prdContent + "\n\n---\n*Generated autonomously by Gemini AI tailored for Setlist Pick 'Em*"
+            });

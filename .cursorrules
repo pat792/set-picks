@@ -1,0 +1,56 @@
+# Project Architecture: Strict Pragmatic FSD (Reduced)
+
+You are an expert React engineer. Every code change MUST follow these rules.
+
+## 1) Canonical Layers
+- `src/pages/`: route binding and composition only.
+- `src/features/<domain>/`: business capabilities.
+- `src/shared/`: domain-agnostic reusable primitives.
+- This repo uses **reduced FSD**: no required `entities` layer. Keep entity-specific logic inside the owning feature unless we explicitly introduce `src/entities/`.
+
+## 2) Pages Layer Rules (`src/pages/`)
+- Pages are for routing, URL params, and composing feature components.
+- Pages MUST NOT call Firebase/Firestore directly (`getDoc`, `setDoc`, etc.).
+- Pages MUST NOT contain complex forms, business orchestration, or large Tailwind-heavy UI blocks.
+- Pages consume feature hooks (`features/*/model`) and pass props into feature UI components.
+
+## 3) Features Layer Rules (`src/features/<domain>/`)
+- Each domain feature owns its business logic and data access.
+- Use this structure for non-trivial features:
+  - `ui/`: presentational components only (no direct DB/network calls).
+  - `model/`: hooks/state/orchestration/business rules.
+  - `api/`: async IO functions (Firestore/HTTP/etc.).
+- Prefer `ui/` as the canonical UI folder name. Do not create new `components/` folders under features.
+- If legacy `components/` exists, treat it as technical debt and migrate to `ui/` when touching nearby code.
+
+## 4) Import Boundaries (Strict)
+- `pages` may import from: `features`, `shared`.
+- `features` may import from: same feature internals, `shared`.
+- `shared` may import only from: `shared`.
+- Never import `pages` from any other layer.
+- Never import private internals of another feature (`features/a/model/*` from `features/b/*`).
+- Cross-feature reuse must happen through explicit public entry points (for example, feature index exports) or be moved to `shared` if truly generic.
+
+## 5) Shared Layer Guardrails (`src/shared/`)
+- `shared` contains only domain-agnostic UI kit, utilities, hooks, constants, and types.
+- No product/business rules in `shared`.
+- No feature-specific naming, data-shape coupling, or workflow logic in `shared`.
+
+## 6) Agent Behavior Requirements
+- When adding UI requested in a page, build it in `features/<domain>/ui` and compose from the page.
+- When adding data access, place IO in `features/<domain>/api` and consume via `features/<domain>/model`.
+- If a requested change conflicts with these rules, propose an FSD-compliant alternative first.
+
+## 7) Enforcement Expectations (Lint + CI)
+- Treat architectural boundaries as enforceable, not advisory.
+- Prefer and maintain lint rules such as import boundaries/path restrictions to fail PRs on layer violations.
+- If lint/enforcement is missing, do not ignore boundaries; follow this file as source of truth.
+
+## 8) Exception Protocol (Temporary Only)
+- Exceptions are allowed only when delivery is blocked and no compliant option is feasible in time.
+- Any exception MUST include:
+  - a `TODO(FSD-EXCEPTION): <reason>` comment near the code,
+  - a clear owner,
+  - a removal target (date or milestone),
+  - and a follow-up task to restore compliance.
+- Do not introduce silent or permanent rule bypasses.
