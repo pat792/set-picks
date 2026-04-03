@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { setLocalStorageItem } from '../../../shared/lib/local-storage';
+import {
+  removeLocalStorageItem,
+  setLocalStorageItem,
+} from '../../../shared/lib/local-storage';
+import { isValidPoolInviteCodeFormat } from '../lib/inviteCodeFormat';
 import { POOL_INVITE_STORAGE_KEY } from '../config';
 
 function normalizeInviteCode(raw) {
@@ -15,7 +19,9 @@ export function usePoolInviteInterceptor() {
 
   useEffect(() => {
     const code = normalizeInviteCode(rawCode);
-    if (code) {
+    if (!code || !isValidPoolInviteCodeFormat(code)) {
+      removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
+    } else {
       setLocalStorageItem(POOL_INVITE_STORAGE_KEY, code);
     }
     navigate('/', { replace: true });
