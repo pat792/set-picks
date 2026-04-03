@@ -15,7 +15,6 @@ export function usePoolHub(poolId, currentUser) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [forbidden, setForbidden] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const inviteCode = pool?.inviteCode != null ? String(pool.inviteCode) : '';
 
@@ -65,17 +64,9 @@ export function usePoolHub(poolId, currentUser) {
     trackViewLeaderboardPoolHub({ pool_id: poolId.trim() });
   }, [loading, pool, forbidden, poolId]);
 
-  const handleCopyCode = async () => {
-    if (!inviteCode) return;
-    try {
-      await navigator.clipboard.writeText(inviteCode);
-      trackSharePicksInviteCode({ pool_id: poolId?.trim() ?? '' });
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (e) {
-      console.error('Clipboard copy failed:', e);
-    }
-  };
+  const handleInviteShareSuccess = useCallback(() => {
+    trackSharePicksInviteCode({ pool_id: poolId?.trim() ?? '' });
+  }, [poolId]);
 
   return {
     pool,
@@ -83,7 +74,7 @@ export function usePoolHub(poolId, currentUser) {
     loading,
     notFound,
     forbidden,
-    handleCopyCode,
-    copied,
+    inviteCode,
+    onInviteShareSuccess: handleInviteShareSuccess,
   };
 }

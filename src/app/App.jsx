@@ -7,6 +7,7 @@ import PublicProfilePage from '../pages/profile/PublicProfilePage';
 import DashboardRoute from './routes/DashboardRoute';
 import HomeRoute from './routes/HomeRoute';
 import SetupRoute from './routes/SetupRoute';
+import PoolInvitePage from '../pages/pool-invite/PoolInvitePage';
 
 function App() {
   return (
@@ -19,6 +20,9 @@ function App() {
 
       {/* Public splash — no auth loading gate (WRS / SEO friendly) */}
       <Route path="/" element={<HomeRoute />} />
+
+      {/* Pool invite deep link — saves code and sends user through auth funnel */}
+      <Route path="/join/:code" element={<PoolInvitePage />} />
 
       <Route path="/setup" element={<SetupRoute />} />
 

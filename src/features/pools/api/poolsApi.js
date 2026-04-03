@@ -91,6 +91,16 @@ export async function joinPool({ userId, inviteCode }) {
   const poolDoc = snapshot.docs[0];
   const poolData = poolDoc.data();
 
+  if (
+    typeof poolData.maxMembers === 'number' &&
+    poolData.maxMembers > 0 &&
+    (poolData.members?.length ?? 0) >= poolData.maxMembers
+  ) {
+    const err = new Error('Pool is full.');
+    err.code = 'pool-full';
+    throw err;
+  }
+
   if (poolData.members?.includes(userId)) {
     const err = new Error('User already in pool.');
     err.code = 'already-in-pool';
