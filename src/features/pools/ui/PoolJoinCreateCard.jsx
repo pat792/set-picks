@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 
+import { createPoolInviteLink } from '../../../shared/lib/createPoolInviteLink';
 import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
 import Input from '../../../shared/ui/Input';
+import PoolInviteShareButton from './PoolInviteShareButton';
 
 export default function PoolJoinCreateCard({
   loading,
@@ -14,9 +16,11 @@ export default function PoolJoinCreateCard({
   const [joinCode, setJoinCode] = useState('');
   const [createName, setCreateName] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [createSuccess, setCreateSuccess] = useState(null);
 
   const clearFeedback = () => {
     setMessage({ text: '', type: '' });
+    setCreateSuccess(null);
   };
 
   const handleJoinSubmit = async (event) => {
@@ -53,9 +57,9 @@ export default function PoolJoinCreateCard({
     try {
       const createdPool = await onCreate(createName);
       setCreateName('');
-      setMessage({
-        text: `Pool created! Invite Code: ${createdPool.inviteCode}`,
-        type: 'success',
+      setCreateSuccess({
+        name: createdPool.name,
+        inviteCode: createdPool.inviteCode,
       });
     } catch {
       setMessage({ text: 'Error creating pool.', type: 'error' });
@@ -64,6 +68,10 @@ export default function PoolJoinCreateCard({
 
   const bannerText = message.text || (error ? 'Something went wrong with pools.' : '');
   const bannerType = message.text ? message.type : 'error';
+  const inviteUrl =
+    createSuccess?.inviteCode != null
+      ? createPoolInviteLink(createSuccess.inviteCode)
+      : '';
 
   return (
     <Card variant="default" padding="none" className="overflow-hidden">
@@ -101,7 +109,7 @@ export default function PoolJoinCreateCard({
       </div>
 
       <div className="p-6">
-        {bannerText ? (
+        {activeTab === 'join' && bannerText ? (
           <div
             className={`mb-4 rounded-xl p-3 text-center text-sm font-bold ${
               bannerType === 'error'
@@ -110,6 +118,12 @@ export default function PoolJoinCreateCard({
             }`}
           >
             {bannerText}
+          </div>
+        ) : null}
+
+        {activeTab === 'create' && message.type === 'error' && message.text ? (
+          <div className="mb-4 rounded-xl bg-red-500/10 p-3 text-center text-sm font-bold text-red-400">
+            {message.text}
           </div>
         ) : null}
 
@@ -140,6 +154,24 @@ export default function PoolJoinCreateCard({
               {loading ? 'Joining...' : 'Join Pool'}
             </Button>
           </form>
+        ) : createSuccess ? (
+          <div className="flex flex-col gap-4 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4">
+            <div>
+              <p className="text-sm font-black uppercase tracking-widest text-emerald-400">
+                Pool created!
+              </p>
+              <p className="mt-1 text-base font-bold text-white">{createSuccess.name}</p>
+              <p className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Your invite link
+              </p>
+              <p className="mt-1 break-all rounded-lg border border-slate-700/80 bg-slate-900/60 p-3 font-mono text-xs leading-relaxed text-slate-200">
+                {inviteUrl || '—'}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <PoolInviteShareButton inviteCode={createSuccess.inviteCode} />
+            </div>
+          </div>
         ) : (
           <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4">
             <div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth';
+import { usePendingPoolJoin } from '../../features/pool-invite';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 
 import { ListMusic, Users, Trophy, User as UserIcon, Settings } from 'lucide-react'; 
@@ -28,6 +29,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  usePendingPoolJoin();
   const isAdmin = user?.email === 'pat@road2media.com';
   
   const scrollDirection = useScrollDirection(); 

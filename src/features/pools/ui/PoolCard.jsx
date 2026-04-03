@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 import Card from '../../../shared/ui/Card';
 import StatusBadge from '../../../shared/ui/StatusBadge';
+import PoolInviteShareButton from './PoolInviteShareButton';
 
 export default function PoolCard({
   pool,
@@ -54,9 +55,9 @@ export default function PoolCard({
             {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
           </p>
         </div>
-        <span className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1 text-emerald-400 font-mono font-black tracking-widest text-xs shrink-0">
-          {pool?.inviteCode || '-----'}
-        </span>
+        <div className="flex shrink-0 items-start pt-0.5">
+          <PoolInviteShareButton inviteCode={pool?.inviteCode} />
+        </div>
       </div>
     </Card>
   );

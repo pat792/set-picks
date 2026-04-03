@@ -23,8 +23,8 @@ export default function PoolHubPage({ user }) {
     loading,
     notFound,
     forbidden,
-    handleCopyCode,
-    copied,
+    inviteCode,
+    onInviteShareSuccess,
   } = usePoolHub(poolId, user);
   const nextShow = getNextShow();
   const nextShowDate = nextShow.date;
@@ -86,8 +86,6 @@ export default function PoolHubPage({ user }) {
   }
 
   const memberCount = pool.members?.length ?? 0;
-  const inviteCode =
-    pool.inviteCode != null ? String(pool.inviteCode) : '';
   const ownerId = pool.ownerId;
   const ownerMember =
     ownerId != null ? members.find((m) => m.id === ownerId) : null;
@@ -108,8 +106,7 @@ export default function PoolHubPage({ user }) {
           poolName={pool.name}
           memberCount={memberCount}
           inviteCode={inviteCode}
-          onCopyCode={handleCopyCode}
-          copied={copied}
+          onInviteShareSuccess={onInviteShareSuccess}
           creatorLabel={creatorLabel}
         />
       </div>
