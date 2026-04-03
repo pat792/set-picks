@@ -1,21 +1,16 @@
 import fs from 'fs';
 import readline from 'readline/promises';
 
-// Configuration
-const REPO_OWNER = 'pat792'; // Your GitHub username
-const REPO_NAME = 'set-picks'; // Your repository name
-const GITHUB_TOKEN = process.env.GITHUB_PAT; // Your fine-grained Personal Access Token
+// --- Configuration ---
+const REPO_OWNER = 'pat792';
+const REPO_NAME = 'set-picks';
+const GITHUB_TOKEN = process.env.GITHUB_PAT;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// API Endpoints
 const GITHUB_API_BASE = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-// Setup terminal input for the Y/N prompt
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 async function runGroomer() {
   console.log('🧹 Starting Backlog Groomer...\n');
@@ -25,7 +20,8 @@ async function runGroomer() {
     process.exit(1);
   }
 
-  // 1. Read the FSD architecture rules
+  // 1. Get today's date and FSD rules
+  const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   let cursorRules = '';
   try {
     cursorRules = fs.readFileSync('.cursorrules', 'utf-8');
@@ -34,34 +30,31 @@ async function runGroomer() {
     console.warn('⚠️ Could not find .cursorrules, proceeding without it.');
   }
 
-  // 2. Fetch open issues from GitHub
+  // 2. Fetch open issues
   console.log('📥 Fetching open issues from GitHub...');
   const issuesRes = await fetch(`${GITHUB_API_BASE}/issues?state=open&per_page=50`, {
-    headers: {
-      'Authorization': `Bearer ${GITHUB_TOKEN}`,
-      'Accept': 'application/vnd.github.v3+json'
-    }
+    headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
   });
   
   const issues = await issuesRes.json();
-  // Filter out Pull Requests (GitHub API returns PRs as issues)
   const pureIssues = issues.filter(issue => !issue.pull_request);
   console.log(`Found ${pureIssues.length} open issues to review.\n`);
 
-  // 3. Loop through each issue
+  // 3. Process each issue
   for (const issue of pureIssues) {
     console.log(`\n--------------------------------------------------`);
     console.log(`🔎 Reviewing Issue #${issue.number}: ${issue.title}`);
     console.log(`--------------------------------------------------`);
 
-    // Skip if it already has the AI-PRD label
     if (issue.labels.some(label => label.name === 'AI-PRD')) {
       console.log(`⏭️  Skipping: Already has 'AI-PRD' label.`);
       continue;
     }
 
-    // 4. Ask Gemini to rewrite it
+    // 4. Prompt Gemini with dynamic date
     const prompt = `You are an expert Technical Product Manager. Convert the following old backlog issue into a modern, comprehensive Product Requirements Document (PRD) formatted in GitHub-Flavored Markdown. 
+    
+    Start the PRD with a metadata header that includes: "**Last Updated:** ${currentDate}".
 
     CRITICAL ARCHITECTURE CONTEXT:
     ${cursorRules}
@@ -91,13 +84,9 @@ async function runGroomer() {
       continue;
     }
 
-    // 5. Preview the result
-    console.log('\n✨ --- PROPOSED PRD --- ✨\n');
-    console.log(newBody);
-    console.log('\n✨ -------------------- ✨\n');
-
-    // 6. The PM Approval Loop (Y/N)
-    const answer = await rl.question(`\n❓ Do you want to update Issue #${issue.number} with this PRD? (y/n/q to quit): `);
+    // 5. Preview & Approve
+    console.log('\n✨ --- PROPOSED PRD --- ✨\n\n' + newBody + '\n\n✨ -------------------- ✨\n');
+    const answer = await rl.question(`\n❓ Update Issue #${issue.number} with this PRD? (y/n/q to quit): `);
 
     if (answer.toLowerCase() === 'q') {
       console.log('🛑 Aborting script.');
@@ -115,7 +104,7 @@ async function runGroomer() {
         },
         body: JSON.stringify({
           body: newBody + "\n\n---\n*Backlog groomed autonomously by Gemini AI*",
-          labels: [...issue.labels.map(l => l.name), 'AI-PRD'] // Add the label so the Agent knows it's ready
+          labels: [...issue.labels.map(l => l.name), 'AI-PRD']
         })
       });
       console.log(`✅ Issue #${issue.number} updated successfully!`);
