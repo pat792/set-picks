@@ -5,7 +5,7 @@ import { createPoolInviteLink } from '../../../shared/lib/createPoolInviteLink';
 import { shareOrCopyInviteUrl } from '../../../shared/lib/shareOrCopyInviteUrl';
 
 const ghostInviteClass =
-  'inline-flex items-center gap-1 rounded-md px-0 py-0 text-xs font-semibold tracking-tight text-slate-400 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 disabled:cursor-not-allowed disabled:opacity-40';
+  'inline-flex items-center gap-1.5 rounded-md px-0 py-0 text-sm font-semibold tracking-tight text-slate-400 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 disabled:cursor-not-allowed disabled:opacity-40';
 
 /**
  * Ghost-style invite control: Web Share when available, else clipboard + success toast.
@@ -41,7 +41,7 @@ export default function PoolInviteShareButton({
         ? 'Copied!'
         : status === 'error'
           ? 'Try again'
-          : 'Invite';
+          : 'Invite Friends!';
 
   return (
     <button
@@ -51,7 +51,7 @@ export default function PoolInviteShareButton({
       className={`${ghostInviteClass} ${className}`.trim()}
       title="Invite friends to this pool"
     >
-      <Share className="h-3.5 w-3.5 shrink-0" aria-hidden />
+      <Share className="h-4 w-4 shrink-0" aria-hidden />
       <span className="truncate">{label}</span>
     </button>
   );
