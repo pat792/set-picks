@@ -1,14 +1,12 @@
 import React from 'react';
-import { Copy } from 'lucide-react';
 
-import GhostPill from '../../../shared/ui/GhostPill';
+import PoolInviteShareButton from './PoolInviteShareButton';
 
 export default function PoolHubHeader({
   poolName,
   memberCount,
   inviteCode,
-  onCopyCode,
-  copied,
+  onInviteShareSuccess,
   creatorLabel,
 }) {
   return (
@@ -21,15 +19,10 @@ export default function PoolHubHeader({
         </p>
       </div>
       <div className="shrink-0 sm:self-center">
-        <GhostPill
-          type="button"
-          icon={Copy}
-          onClick={onCopyCode}
-          disabled={!inviteCode}
-          className="disabled:opacity-40 disabled:pointer-events-none disabled:hover:bg-slate-800 disabled:hover:text-slate-300"
-        >
-          {copied ? 'Copied!' : 'Invite Code'}
-        </GhostPill>
+        <PoolInviteShareButton
+          inviteCode={inviteCode}
+          onSuccess={onInviteShareSuccess}
+        />
       </div>
     </header>
   );

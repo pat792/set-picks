@@ -6,6 +6,12 @@ import {
   SplashPageShell,
   useScrollToSectionFocus,
 } from '../../features/landing';
+import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
+import { getLocalStorageItem } from '../../shared/lib/local-storage';
+import { showSuccessToast } from '../../shared/ui/toast';
+
+/** Dedupes Strict Mode double-invoke / rapid re-renders for the deferred-invite prompt. */
+let lastDeferredPoolInvitePromptAt = 0;
 
 export default function Splash() {
   const [authModal, setAuthModal] = useState(null);
@@ -39,6 +45,16 @@ export default function Splash() {
     // Clear the flag so refresh doesn't re-open the modal.
     navigate('/', { replace: true });
   }, [navigate, openSignInModal, searchParams]);
+
+  useEffect(() => {
+    const pending = getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim();
+    if (!pending) return;
+    const now = Date.now();
+    if (now - lastDeferredPoolInvitePromptAt < 600) return;
+    lastDeferredPoolInvitePromptAt = now;
+    showSuccessToast('Sign in or create an account to join the pool!');
+    openSignInModal();
+  }, [openSignInModal]);
 
   return (
     <>

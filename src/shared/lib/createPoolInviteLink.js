@@ -1,4 +1,4 @@
-import { getPublicAppBaseUrl } from '../../../shared/config/environment';
+import { getPublicAppBaseUrl } from '../config/environment';
 
 /**
  * Absolute invite URL for sharing (uses current origin or VITE_PUBLIC_APP_URL).
