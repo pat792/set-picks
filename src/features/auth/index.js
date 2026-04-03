@@ -6,6 +6,7 @@ export { default as SplashSignUpModal } from './ui/SplashSignUpModal';
 export { default as PasswordResetForm } from './ui/PasswordResetForm';
 export { default as ProfileSetupForm } from './ui/ProfileSetupForm';
 export { useAuth } from './model/useAuth';
+export { useAuthSession } from './model/useAuthSession';
 export { usePasswordReset } from './model/usePasswordReset';
 export { usePasswordResetCompleteState } from './model/usePasswordResetCompleteState';
 export { useProfileSetup } from './model/useProfileSetup';

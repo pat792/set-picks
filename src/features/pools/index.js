@@ -1,3 +1,4 @@
+export { joinPool } from './api/poolsApi';
 export { usePoolHub } from './model/usePoolHub';
 export { default as useUserPools } from './model/useUserPools';
 export { default as PoolHubActiveShow } from './ui/PoolHubActiveShow';

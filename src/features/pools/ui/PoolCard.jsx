@@ -1,7 +1,9 @@
-import React from 'react';
-import { Check, ChevronRight, CircleAlert } from 'lucide-react';
+import React, { useState } from 'react';
+import { Check, ChevronRight, CircleAlert, Link2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { createPoolInviteLink } from '../../pool-invite';
+import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
 import StatusBadge from '../../../shared/ui/StatusBadge';
 
@@ -11,6 +13,25 @@ export default function PoolCard({
   picksStatusLoading = false,
 }) {
   const memberCount = pool?.members?.length ?? 0;
+  const [copyStatus, setCopyStatus] = useState('idle');
+
+  const handleCopyInviteLink = async () => {
+    const code = pool?.inviteCode;
+    const url = createPoolInviteLink(code);
+    if (!url || typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      setCopyStatus('error');
+      window.setTimeout(() => setCopyStatus('idle'), 2000);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyStatus('copied');
+      window.setTimeout(() => setCopyStatus('idle'), 2000);
+    } catch {
+      setCopyStatus('error');
+      window.setTimeout(() => setCopyStatus('idle'), 2000);
+    }
+  };
 
   return (
     <Card
@@ -54,9 +75,27 @@ export default function PoolCard({
             {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
           </p>
         </div>
-        <span className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1 text-emerald-400 font-mono font-black tracking-widest text-xs shrink-0">
-          {pool?.inviteCode || '-----'}
-        </span>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <span className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1 text-emerald-400 font-mono font-black tracking-widest text-xs">
+            {pool?.inviteCode || '-----'}
+          </span>
+          <Button
+            type="button"
+            variant="text"
+            size="none"
+            onClick={handleCopyInviteLink}
+            disabled={!pool?.inviteCode}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:border-emerald-500/50 hover:text-emerald-400 disabled:opacity-40"
+            title="Copy invite link"
+          >
+            <Link2 className="h-3.5 w-3.5" aria-hidden />
+            {copyStatus === 'copied'
+              ? 'Copied!'
+              : copyStatus === 'error'
+                ? 'Copy failed'
+                : 'Copy link'}
+          </Button>
+        </div>
       </div>
     </Card>
   );
