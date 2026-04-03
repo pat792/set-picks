@@ -14,7 +14,7 @@ export default function PicksPage({ user, selectedDate }) {
     isLoadingPicks,
     isLocked,
     hasExistingPicks,
-    saveMessage,
+    saveFeedback,
   } = usePicksForm({ user, selectedDate });
 
   const [scoringRulesOpen, setScoringRulesOpen] = useState(false);
@@ -68,7 +68,7 @@ export default function PicksPage({ user, selectedDate }) {
             isSaving={isSaving}
             isLocked={isLocked}
             hasExistingPicks={hasExistingPicks}
-            saveMessage={saveMessage}
+            saveFeedback={saveFeedback}
           />
         </form>
       </div>
