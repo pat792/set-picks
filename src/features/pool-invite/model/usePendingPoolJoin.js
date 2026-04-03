@@ -7,6 +7,7 @@ import {
   removeLocalStorageItem,
 } from '../../../shared/lib/local-storage';
 import { showErrorToast, showSuccessToast } from '../../../shared/ui/toast';
+import { invalidateUserPools } from '../../pools';
 import { joinPoolByInviteCode } from '../api/joinPool';
 import { POOL_INVITE_STORAGE_KEY } from '../config';
 
@@ -37,11 +38,13 @@ export function usePendingPoolJoin() {
         });
 
         if (outcome === 'joined') {
+          invalidateUserPools();
           showSuccessToast('You joined the pool!');
           navigate('/dashboard/pools', { replace: true });
           return;
         }
         if (outcome === 'already-member') {
+          invalidateUserPools();
           showSuccessToast("You're already in this pool.");
           navigate('/dashboard/pools', { replace: true });
           return;
