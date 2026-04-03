@@ -33,7 +33,7 @@ export default function Profile({ user }) {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-4 pb-12">
+    <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <div className="mb-6 text-left">
         <h2 className="hidden md:block font-display text-display-page md:text-display-page-lg font-bold text-white">
           My Profile

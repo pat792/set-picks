@@ -19,7 +19,7 @@ export default function LeaderboardList({
   }
 
   return (
-    <div className="space-y-4 pb-24 text-white">
+    <div className="space-y-4 pb-6 md:pb-16 text-white">
       <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 px-2">
         <h2 className="font-display min-w-0 flex-1 text-sm font-bold uppercase leading-snug break-words sm:text-display-sm md:text-display-md-lg sm:leading-none">
           {title}

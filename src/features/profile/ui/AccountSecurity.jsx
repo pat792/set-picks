@@ -27,7 +27,7 @@ export default function AccountSecurity({ user }) {
 
   if (!hasEmailPasswordProvider || !user?.email) {
     return (
-      <div className="max-w-xl mx-auto mt-4 pb-12">
+      <div className="max-w-xl mx-auto pb-6 md:pb-12">
         <Link
           to="/dashboard/profile"
           className="inline-block text-sm font-bold text-emerald-400 hover:underline mb-6"
@@ -51,7 +51,7 @@ export default function AccountSecurity({ user }) {
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-4 pb-12">
+    <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <Link
         to="/dashboard/profile"
         className="inline-block text-sm font-bold text-emerald-400 hover:underline mb-4"

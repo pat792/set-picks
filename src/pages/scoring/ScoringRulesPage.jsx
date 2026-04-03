@@ -5,7 +5,7 @@ import { ScoringRulesContent } from '../../features/scoring';
 
 export default function ScoringRules() {
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 pb-24 text-white">
+    <div className="w-full max-w-xl mx-auto space-y-6 pb-6 md:pb-24 text-white">
       <p className="text-sm text-slate-400 font-bold px-1">
         <Link
           to="/dashboard"

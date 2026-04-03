@@ -97,7 +97,7 @@ export default function PoolHubPage({ user }) {
     ownerHandle !== '' ? `Created by ${ownerHandle}` : null;
 
   return (
-    <div className="max-w-xl mx-auto pb-24 flex flex-col gap-3 md:gap-6">
+    <div className="max-w-xl mx-auto pb-6 md:pb-16 flex flex-col gap-3 md:gap-6">
       <div className="flex flex-col gap-2">
         <div className="px-1">
           <BackButton />

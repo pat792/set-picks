@@ -20,7 +20,7 @@ export default function PicksPage({ user, selectedDate }) {
   const [scoringRulesOpen, setScoringRulesOpen] = useState(false);
 
   return (
-    <div className="max-w-xl mx-auto mt-4 pb-12">
+    <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <div className="flex justify-end px-1 mb-3">
         <GhostPill icon={Scale} onClick={() => setScoringRulesOpen(true)}>
           Scoring Rules

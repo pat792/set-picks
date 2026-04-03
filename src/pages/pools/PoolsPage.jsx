@@ -24,7 +24,7 @@ export default function Pools({ user }) {
       : hasSubmittedPicksForNextShow;
 
   return (
-    <div className="mx-auto mt-4 max-w-5xl space-y-8 pb-12">
+    <div className="mx-auto max-w-5xl space-y-8 pb-6 md:pb-12">
       <UserPoolsSection
         pools={pools}
         hasPicksForNextShow={isSecured}

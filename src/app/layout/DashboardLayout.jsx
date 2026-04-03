@@ -56,7 +56,6 @@ export default function DashboardLayout() {
   }
 
   const meta = getDashboardPageMeta(location.pathname);
-  const isPoolHubRoute = location.pathname.startsWith('/dashboard/pool/');
   const datePickerStatus = getShowStatus(selectedDate);
   const showDatePickerUserBanners = meta.showDatePicker && location.pathname !== '/dashboard/admin';
   const showPastShowLock = showDatePickerUserBanners && datePickerStatus === 'PAST';
@@ -108,27 +107,23 @@ export default function DashboardLayout() {
         </div>
       </nav>
 
-      {/* MOBILE TOP HEADERS */}
-      <div className="md:hidden fixed top-0 left-0 w-full z-50">
-        <DashboardMobileBrandBar user={user} />
-        <DashboardMobileContextBar
-          scrollDirection={scrollDirection}
-          contextTitle={meta.contextTitle}
-          showDatePicker={meta.showDatePicker}
-          selectedDate={selectedDate}
-          onSelectedDateChange={setSelectedDate}
-        />
+      {/* MOBILE TOP HEADERS — safe area + context bar anchored below brand (top-full) */}
+      <div className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]">
+        <div className="relative">
+          <DashboardMobileBrandBar user={user} />
+          <DashboardMobileContextBar
+            scrollDirection={scrollDirection}
+            contextTitle={meta.contextTitle}
+            showDatePicker={meta.showDatePicker}
+            selectedDate={selectedDate}
+            onSelectedDateChange={setSelectedDate}
+          />
+        </div>
       </div>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 overflow-y-auto pt-[8.75rem] pb-24 md:pt-8 md:pb-8 relative">
-        <div
-          className={
-            isPoolHubRoute
-              ? 'max-w-xl mx-auto px-4 pt-2 pb-4 md:p-8'
-              : 'max-w-xl mx-auto p-4 md:p-8'
-          }
-        >
+      {/* MAIN CONTENT AREA — mobile: match header stack + bottom nav + home indicator */}
+      <main className="flex-1 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+7.625rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
+        <div className="max-w-xl mx-auto px-4 pt-2 md:p-8">
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
