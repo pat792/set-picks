@@ -5,6 +5,7 @@ import {
   fetchPools,
   joinPool as joinPoolApi,
 } from '../api/poolsApi';
+import { subscribeUserPoolsInvalidate } from './userPoolsRefreshBus';
 
 export default function useUserPools(userId) {
   const [pools, setPools] = useState([]);
@@ -34,6 +35,12 @@ export default function useUserPools(userId) {
 
   useEffect(() => {
     refreshPools().catch(() => {});
+  }, [refreshPools]);
+
+  useEffect(() => {
+    return subscribeUserPoolsInvalidate(() => {
+      refreshPools().catch(() => {});
+    });
   }, [refreshPools]);
 
   const handleCreate = useCallback(

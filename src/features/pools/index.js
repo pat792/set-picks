@@ -1,5 +1,6 @@
 export { joinPool } from './api/poolsApi';
 export { usePoolHub } from './model/usePoolHub';
+export { invalidateUserPools } from './model/userPoolsRefreshBus';
 export { default as useUserPools } from './model/useUserPools';
 export { default as PoolHubActiveShow } from './ui/PoolHubActiveShow';
 export { default as PoolHubHeader } from './ui/PoolHubHeader';
