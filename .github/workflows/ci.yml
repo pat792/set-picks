@@ -1,0 +1,30 @@
+# Runs lint + dashboard IA guardrails on every push and PR.
+# See docs/DASHBOARD_IA.md and npm run verify:dashboard-meta.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master, staging]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Dashboard meta (IA drift check)
+        run: npm run verify:dashboard-meta

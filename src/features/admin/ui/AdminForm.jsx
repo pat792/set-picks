@@ -34,7 +34,7 @@ export default function AdminForm({ user, selectedDate }) {
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-4 pb-12">
+    <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <PageTitle as="h2" variant="page" className="mb-6 hidden md:block">
         Official setlist
       </PageTitle>

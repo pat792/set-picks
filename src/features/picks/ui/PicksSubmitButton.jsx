@@ -1,12 +1,18 @@
 import React from 'react';
+import { AlertCircle, Lock, PencilLine } from 'lucide-react';
 
 import Button from '../../../shared/ui/Button';
+
+const SUCCESS_ICONS = {
+  locked: Lock,
+  updated: PencilLine,
+};
 
 export default function PicksSubmitButton({
   isSaving,
   isLocked,
   hasExistingPicks,
-  saveMessage,
+  saveFeedback,
 }) {
   const submitDisabled = isSaving || isLocked;
 
@@ -14,6 +20,12 @@ export default function PicksSubmitButton({
   if (isLocked) label = 'PICKS LOCKED';
   else if (isSaving) label = 'Saving...';
   else if (hasExistingPicks) label = 'UPDATE PICKS';
+
+  const tone = saveFeedback?.tone;
+  const SuccessIcon =
+    tone === 'success' && saveFeedback.variant
+      ? SUCCESS_ICONS[saveFeedback.variant]
+      : null;
 
   return (
     <>
@@ -28,13 +40,27 @@ export default function PicksSubmitButton({
         </Button>
       </div>
 
-      {saveMessage ? (
+      {saveFeedback ? (
         <div
-          className={`text-center font-bold text-sm mt-4 ${
-            saveMessage.includes('Error') ? 'text-red-400' : 'text-emerald-400'
+          className={`mt-4 flex items-center justify-center gap-2 text-center text-sm font-bold ${
+            tone === 'error' ? 'text-red-400' : 'text-emerald-400'
           }`}
+          role="status"
         >
-          {saveMessage}
+          {tone === 'error' ? (
+            <AlertCircle
+              className="h-5 w-5 shrink-0"
+              strokeWidth={2}
+              aria-hidden
+            />
+          ) : SuccessIcon ? (
+            <SuccessIcon
+              className="h-5 w-5 shrink-0"
+              strokeWidth={2}
+              aria-hidden
+            />
+          ) : null}
+          <span>{saveFeedback.text}</span>
         </div>
       ) : null}
     </>

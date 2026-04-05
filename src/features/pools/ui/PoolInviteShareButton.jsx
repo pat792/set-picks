@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
-import { Share } from 'lucide-react';
+import React from 'react';
 
-import { createPoolInviteLink } from '../../../shared/lib/createPoolInviteLink';
-import { shareOrCopyInviteUrl } from '../../../shared/lib/shareOrCopyInviteUrl';
-
-const ghostInviteClass =
-  'inline-flex items-center gap-1 rounded-md px-0 py-0 text-xs font-semibold tracking-tight text-slate-400 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 disabled:cursor-not-allowed disabled:opacity-40';
+import { usePoolInviteShare } from '../model/usePoolInviteShare';
+import { PoolInviteShareButtonView } from './PoolInviteShareButtonView';
 
 /**
- * Ghost-style invite control: Web Share when available, else clipboard + success toast.
+ * Pool invite share control: composes {@link usePoolInviteShare} with {@link PoolInviteShareButtonView}.
  */
 export default function PoolInviteShareButton({
   inviteCode,
@@ -16,43 +12,15 @@ export default function PoolInviteShareButton({
   disabled = false,
   className = '',
 }) {
-  const [status, setStatus] = useState('idle');
-
-  const handleClick = async () => {
-    const url = createPoolInviteLink(inviteCode);
-    const result = await shareOrCopyInviteUrl(url, {
-      copyToastMessage: 'Link copied!',
-    });
-
-    if (result.ok) {
-      onSuccess?.();
-      setStatus(result.via === 'share' ? 'shared' : 'copied');
-      window.setTimeout(() => setStatus('idle'), 2000);
-    } else {
-      setStatus('error');
-      window.setTimeout(() => setStatus('idle'), 2000);
-    }
-  };
-
-  const label =
-    status === 'shared'
-      ? 'Shared!'
-      : status === 'copied'
-        ? 'Copied!'
-        : status === 'error'
-          ? 'Try again'
-          : 'Invite';
+  const share = usePoolInviteShare({ inviteCode, onSuccess, disabled });
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={disabled || !inviteCode}
-      className={`${ghostInviteClass} ${className}`.trim()}
-      title="Invite friends to this pool"
-    >
-      <Share className="h-3.5 w-3.5 shrink-0" aria-hidden />
-      <span className="truncate">{label}</span>
-    </button>
+    <PoolInviteShareButtonView
+      label={share.label}
+      onShareClick={share.onShareClick}
+      disabled={share.disabled}
+      title={share.title}
+      className={className}
+    />
   );
 }

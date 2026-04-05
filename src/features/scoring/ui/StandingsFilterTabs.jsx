@@ -15,7 +15,7 @@ export default function StandingsFilterTabs({ activeFilter, filterOptions, onTab
   return (
     <div className="mb-4">
       <PageTitle as="h3" variant="eyebrow" className="px-2 mb-2">
-        Leaderboard Filter:
+        Compare
       </PageTitle>
 
       <div className={`flex gap-1.5 px-1 pb-1 ${scrollRibbon}`}>

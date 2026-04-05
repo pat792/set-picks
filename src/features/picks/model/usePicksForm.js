@@ -19,11 +19,20 @@ function tourLabelForShowDate(selectedDate) {
   return group?.tour ?? '';
 }
 
+function picksObjectHasAnyValue(picks) {
+  return FORM_FIELDS.some((f) => {
+    const v = picks?.[f.id];
+    return v != null && String(v).trim() !== '';
+  });
+}
+
 export default function usePicksForm({ user, selectedDate }) {
   const [formData, setFormData] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingPicks, setIsLoadingPicks] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('');
+  /** True once we've loaded non-empty picks from Firestore for this show (or after first successful save). */
+  const [hadPersistedPicksOnServer, setHadPersistedPicksOnServer] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState(null);
 
   const showStatus = selectedDate ? getShowStatus(selectedDate) : null;
   const isLocked = showStatus !== 'NEXT';
@@ -42,6 +51,7 @@ export default function usePicksForm({ user, selectedDate }) {
     const load = async () => {
       if (!user?.uid || !selectedDate) {
         setFormData({});
+        setHadPersistedPicksOnServer(false);
         setIsLoadingPicks(false);
         return;
       }
@@ -49,12 +59,19 @@ export default function usePicksForm({ user, selectedDate }) {
       setIsLoadingPicks(true);
       try {
         const picks = await fetchPickDoc(selectedDate, user.uid);
-        if (!cancelled) setFormData(picks);
+        if (!cancelled) {
+          setFormData(picks);
+          setHadPersistedPicksOnServer(picksObjectHasAnyValue(picks));
+        }
       } catch (err) {
         console.error('Error loading picks:', err);
         if (!cancelled) {
           setFormData({});
-          setSaveMessage('Error loading picks. Refresh and try again.');
+          setHadPersistedPicksOnServer(false);
+          setSaveFeedback({
+            tone: 'error',
+            text: 'Error loading picks. Refresh and try again.',
+          });
         }
       } finally {
         if (!cancelled) setIsLoadingPicks(false);
@@ -78,14 +95,17 @@ export default function usePicksForm({ user, selectedDate }) {
       if (isLocked || isSaving) return;
 
       if (!user?.uid) {
-        setSaveMessage('Error: You must be logged in to save picks.');
+        setSaveFeedback({
+          tone: 'error',
+          text: 'Error: You must be logged in to save picks.',
+        });
         return;
       }
 
       setIsSaving(true);
-      setSaveMessage('');
+      setSaveFeedback(null);
 
-      const hadExistingPicks = hasExistingPicks;
+      const isUpdateSave = hadPersistedPicksOnServer;
       const tourDate = tourLabelForShowDate(selectedDate);
 
       try {
@@ -107,13 +127,22 @@ export default function usePicksForm({ user, selectedDate }) {
           pools,
         });
 
-        if (hadExistingPicks) {
+        if (isUpdateSave) {
           trackEditPicks({ show_id: selectedDate, tour_date: tourDate });
+          setSaveFeedback({
+            tone: 'success',
+            variant: 'updated',
+            text: 'Picks updated — you can still change them until showtime.',
+          });
         } else {
           trackSubmitPicks({ show_id: selectedDate, tour_date: tourDate });
+          setSaveFeedback({
+            tone: 'success',
+            variant: 'locked',
+            text: 'Picks locked in successfully!',
+          });
         }
-
-        setSaveMessage('Picks locked in successfully! 🎸');
+        setHadPersistedPicksOnServer(true);
       } catch (error) {
         console.error('Error saving picks:', error);
         const code = error?.code;
@@ -123,13 +152,23 @@ export default function usePicksForm({ user, selectedDate }) {
             : code
               ? ` (${code})`
               : '';
-        setSaveMessage(`Error saving picks. Please try again.${hint}`);
+        setSaveFeedback({
+          tone: 'error',
+          text: `Error saving picks. Please try again.${hint}`,
+        });
       } finally {
         setIsSaving(false);
-        setTimeout(() => setSaveMessage(''), 3000);
+        setTimeout(() => setSaveFeedback(null), 3000);
       }
     },
-    [user, selectedDate, formData, isLocked, isSaving, hasExistingPicks]
+    [
+      user,
+      selectedDate,
+      formData,
+      isLocked,
+      isSaving,
+      hadPersistedPicksOnServer,
+    ]
   );
 
   return {
@@ -141,6 +180,6 @@ export default function usePicksForm({ user, selectedDate }) {
     isLocked,
     hasExistingPicks,
     showStatus,
-    saveMessage,
+    saveFeedback,
   };
 }

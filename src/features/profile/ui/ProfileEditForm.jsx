@@ -33,7 +33,7 @@ export default function ProfileEditForm({
           className="bg-slate-900 border-2 border-slate-700 text-white font-bold py-3 px-4 rounded-xl outline-none focus:border-emerald-500 transition-colors w-full disabled:opacity-50"
         />
         <p className="text-[10px] text-slate-500 mt-1 ml-1">
-          This is how you will appear on the Leaderboard and in Pools.
+          This is how you appear on show standings, in pools, and on your public profile.
         </p>
       </div>
 
