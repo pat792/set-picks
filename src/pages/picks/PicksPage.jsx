@@ -3,7 +3,9 @@ import { CheckCircle2, Lock, Scale } from 'lucide-react';
 
 import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features/picks';
 import { ScoringRulesModal } from '../../features/scoring';
+import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
+import { getShowStatus } from '../../shared/utils/timeLogic.js';
 
 export default function PicksPage({ user, selectedDate }) {
   const {
@@ -18,14 +20,24 @@ export default function PicksPage({ user, selectedDate }) {
   } = usePicksForm({ user, selectedDate });
 
   const [scoringRulesOpen, setScoringRulesOpen] = useState(false);
+  const showStatus = selectedDate ? getShowStatus(selectedDate) : null;
+  const picksSummary =
+    !isLocked && showStatus === 'NEXT' ? (
+      <>
+        Picks here count toward the{' '}
+        <span className="font-semibold text-slate-300">everyone</span> leaderboard and{' '}
+        <span className="font-semibold text-slate-300">every pool you join</span>. Many people lock
+        in on show day — that&apos;s OK until showtime.
+      </>
+    ) : null;
 
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
-      <div className="flex justify-end px-1 mb-3">
+      <DashboardActionRow summary={picksSummary}>
         <GhostPill icon={Scale} onClick={() => setScoringRulesOpen(true)}>
-          Scoring Rules
+          Scoring rules
         </GhostPill>
-      </div>
+      </DashboardActionRow>
       <ScoringRulesModal open={scoringRulesOpen} onClose={() => setScoringRulesOpen(false)} />
       <div className="relative">
         {!isLocked && hasExistingPicks ? (
