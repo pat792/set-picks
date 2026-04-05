@@ -40,7 +40,7 @@ export default function Profile({ user }) {
         summary={
           <>
             Your handle and favorite song show on{' '}
-            <span className="font-semibold text-slate-300">standings</span>, in{' '}
+            <span className="font-semibold text-slate-300">show standings</span>, in{' '}
             <span className="font-semibold text-slate-300">pools</span>, and on your{' '}
             <span className="font-semibold text-slate-300">public profile</span>.
           </>

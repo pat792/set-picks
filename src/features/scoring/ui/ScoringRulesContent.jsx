@@ -23,8 +23,8 @@ export default function ScoringRulesContent() {
         Scoring rules
       </h1>
       <p className="text-slate-400 text-sm font-bold leading-relaxed mb-6">
-        As songs are played, scoring updates live. Each pick is scored per slot. Totals are summed for the
-        leaderboard.
+        As songs are played, scoring updates live. Each pick is scored per slot; your total for that
+        night feeds the show standings (Standings tab) for the date you picked.
       </p>
 
       <ul className="space-y-5">

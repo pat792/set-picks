@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { ScoringRulesContent } from '../../features/scoring';
+import { NAV_LABEL_STANDINGS } from '../../shared/config/dashboardVocabulary';
 
 export default function ScoringRules() {
   return (
@@ -18,7 +19,7 @@ export default function ScoringRules() {
           to="/dashboard/standings"
           className="text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-2"
         >
-          Standings
+          {NAV_LABEL_STANDINGS}
         </Link>
       </p>
 

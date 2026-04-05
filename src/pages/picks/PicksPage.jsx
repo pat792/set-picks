@@ -24,10 +24,10 @@ export default function PicksPage({ user, selectedDate }) {
   const picksSummary =
     !isLocked && showStatus === 'NEXT' ? (
       <>
-        Picks here count toward the{' '}
-        <span className="font-semibold text-slate-300">everyone</span> leaderboard and{' '}
-        <span className="font-semibold text-slate-300">every pool you join</span>. Many people lock
-        in on show day — that&apos;s OK until showtime.
+        Picks here feed <span className="font-semibold text-slate-300">show standings</span> for
+        that night — both the <span className="font-semibold text-slate-300">Everyone</span> list
+        and <span className="font-semibold text-slate-300">every pool you join</span>. Many people
+        lock in on show day; that&apos;s OK until showtime.
       </>
     ) : null;
 

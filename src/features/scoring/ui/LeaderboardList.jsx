@@ -1,5 +1,9 @@
 import React from 'react';
 
+import {
+  LEADING_THIS_SHOW,
+  SHOW_STANDINGS_EYEBROW,
+} from '../../../shared/config/dashboardVocabulary';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
 import LeaderboardRow from './LeaderboardRow';
 
@@ -9,13 +13,13 @@ export default function LeaderboardList({
   expandedUser,
   onToggle,
   getPickPayload,
-  title = 'Leaderboard',
+  title = 'Everyone',
   headerEnd = null,
 }) {
   if (sortedPicks.length === 0) {
     return (
       <div className="text-center text-slate-500 mt-10 font-bold">
-        No picks have been submitted yet!
+        No one is on the show standings for this date yet.
       </div>
     );
   }
@@ -37,7 +41,7 @@ export default function LeaderboardList({
           role="status"
         >
           <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500/90">
-            In the lead
+            {LEADING_THIS_SHOW}
           </p>
           <p className="mt-1 text-sm font-bold text-slate-100">
             <span className="text-emerald-400">{leader.handle || 'Anonymous'}</span>
@@ -46,7 +50,7 @@ export default function LeaderboardList({
             <span className="font-semibold text-slate-400"> pts</span>
             {sortedPicks.length > 1 ? (
               <span className="block mt-1 text-xs font-medium text-slate-500">
-                Tap a row below to compare picks and points.
+                Expand a row to compare picks and points for this show.
               </span>
             ) : null}
           </p>
@@ -56,7 +60,7 @@ export default function LeaderboardList({
       <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 px-2">
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-sm font-bold uppercase leading-snug break-words text-slate-400 sm:text-display-sm md:text-display-md-lg sm:leading-none">
-            Rankings
+            {SHOW_STANDINGS_EYEBROW}
           </h2>
           <p className="mt-0.5 font-display text-base font-bold text-white break-words sm:text-lg md:text-xl">
             {title}

@@ -3,6 +3,11 @@
  * and desktop heading ownership.
  */
 
+import {
+  NAV_LABEL_STANDINGS,
+  SHOW_STANDINGS_PAGE_HEADING,
+} from '../../../shared/config/dashboardVocabulary';
+
 export function getDashboardPageMeta(pathname) {
   const normalized = pathname?.toString?.() || '';
 
@@ -23,7 +28,7 @@ export function getDashboardPageMeta(pathname) {
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
 
   const contextTitle = (() => {
-    if (normalized === '/dashboard/standings') return 'Standings';
+    if (normalized === '/dashboard/standings') return NAV_LABEL_STANDINGS;
     if (normalized === '/dashboard/pools') return 'Your Pools';
     if (isPoolHub) return 'Pool Hub';
     if (isProfile) return 'My Profile';
@@ -37,7 +42,11 @@ export function getDashboardPageMeta(pathname) {
     !isProfile && !isAccountSecurity && !isScoringRules && !isPoolHub;
 
   const layoutDesktopHeading =
-    !isProfile && !isAccountSecurity && !isPoolHub ? contextTitle : null;
+    !isProfile && !isAccountSecurity && !isPoolHub
+      ? contextTitle === NAV_LABEL_STANDINGS
+        ? SHOW_STANDINGS_PAGE_HEADING
+        : contextTitle
+      : null;
 
   return {
     contextTitle,

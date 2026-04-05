@@ -60,7 +60,7 @@ export default function StandingsPage({ selectedDate }) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 mt-20 text-emerald-400 font-bold">
         <Loader2 className="h-10 w-10 animate-spin" aria-hidden />
-        <p>Loading standings for {showLabel}…</p>
+        <p>Loading show standings for {showLabel}…</p>
       </div>
     );
   }
@@ -69,11 +69,11 @@ export default function StandingsPage({ selectedDate }) {
     return (
       <Card variant="default" padding="lg" className="text-center">
         <PageTitle as="h2" variant="section" className="mb-2">
-          Standings aren&apos;t available yet
+          Show standings aren&apos;t up yet
         </PageTitle>
         <p className="text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">
-          This show is still coming up. Make your picks from the Picks tab, then check back here
-          after the show for live rankings and scores.
+          This date hasn&apos;t happened yet. Lock picks from the Picks tab, then come back to the
+          Standings tab after the show for live scores and the show standings order.
         </p>
       </Card>
     );

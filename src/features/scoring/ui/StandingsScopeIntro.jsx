@@ -19,19 +19,21 @@ export default function StandingsScopeIntro({
 
   const summaryLine = isEveryone ? (
     <>
-      <span className="font-semibold text-slate-300">Everyone</span>
-      {' — all players for '}
+      <span className="font-semibold text-slate-300">Show standings</span>
+      {' · '}
       <span className="text-slate-300">{showLabel}</span>
-      {'. '}
-      <span className="text-slate-500">Use tabs to filter to a pool.</span>
+      {' · '}
+      <span className="font-semibold text-slate-300">Everyone</span>
+      <span className="text-slate-500"> — all players who picked this show. Use Compare for one pool.</span>
     </>
   ) : (
     <>
-      <span className="font-semibold text-slate-300">{poolName || 'This pool'}</span>
-      {' — members only for '}
+      <span className="font-semibold text-slate-300">Show standings</span>
+      {' · '}
       <span className="text-slate-300">{showLabel}</span>
-      {'. '}
-      <span className="text-slate-500">Switch to Everyone for the full field.</span>
+      {' · '}
+      <span className="font-semibold text-slate-300">{poolName || 'This pool'}</span>
+      <span className="text-slate-500"> — pool members only. Everyone tab = full field.</span>
     </>
   );
 
@@ -63,23 +65,26 @@ export default function StandingsScopeIntro({
             className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
             aria-hidden
           />
-          How standings work
+          About show standings
         </summary>
         <div className="border-t border-slate-700/40 px-3 py-3 text-sm leading-relaxed text-slate-400">
           {isEveryone ? (
             <p>
-              <span className="font-semibold text-slate-200">Everyone</span> is the site-wide
-              leaderboard: anyone who locked in picks for this show. To compare only the people in a
-              crew you play with, pick that pool under{' '}
-              <span className="font-semibold text-slate-300">Compare</span> below.
+              <span className="font-semibold text-slate-200">Show standings</span> are the running
+              order of points for <span className="font-semibold text-slate-300">one night</span>{' '}
+              only — everyone who locked picks for that date. To see the same night scoped to a
+              crew, pick a pool under <span className="font-semibold text-slate-300">Compare</span>.
+              (Pool Hub has <span className="font-semibold text-slate-300">season totals</span>{' '}
+              across many nights — different from this screen.)
             </p>
           ) : (
             <p>
-              This list shows only people in{' '}
+              This is <span className="font-semibold text-slate-200">show standings</span> for one
+              night, limited to{' '}
               <span className="font-semibold text-slate-200">{poolName || 'this pool'}</span>. Open{' '}
-              <span className="font-semibold text-slate-200">Pool home</span> to see who joined and
-              share invites. Choose <span className="font-semibold text-slate-200">Everyone</span>{' '}
-              to see rankings across the whole app for this show.
+              <span className="font-semibold text-slate-200">Pool home</span> for invites and roster;{' '}
+              <span className="font-semibold text-slate-200">Season totals</span> there sum points
+              across every graded show in the pool.
             </p>
           )}
         </div>

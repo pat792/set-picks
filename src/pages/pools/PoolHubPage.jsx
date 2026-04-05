@@ -10,6 +10,10 @@ import {
   PoolHubShowArchive,
   usePoolHub,
 } from '../../features/pools';
+import {
+  SEASON_TOTALS_DESCRIPTION,
+  SEASON_TOTALS_HEADING,
+} from '../../shared/config/dashboardVocabulary';
 import BackButton from '../../shared/ui/BackButton';
 import { todayYmd } from '../../shared/utils/dateUtils.js';
 import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
@@ -127,9 +131,12 @@ export default function PoolHubPage({ user }) {
         </section>
         <PoolHubShowArchive poolId={poolId} />
         <section>
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">
-            Overall Standings
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
+            {SEASON_TOTALS_HEADING}
           </h2>
+          <p className="text-xs font-medium text-slate-500 leading-relaxed mb-3 ml-1 max-w-md">
+            {SEASON_TOTALS_DESCRIPTION}
+          </p>
           <PoolHubLeaderboard members={members} />
         </section>
       </div>

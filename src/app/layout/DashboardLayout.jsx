@@ -15,6 +15,7 @@ import PoolsPage from '../../pages/pools/PoolsPage';
 import PoolHubPage from '../../pages/pools/PoolHubPage';
 import ScoringRulesPage from '../../pages/scoring/ScoringRulesPage';
 
+import { NAV_LABEL_STANDINGS } from '../../shared/config/dashboardVocabulary';
 import { SHOW_DATES, SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
 import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop, showOptionTitle } from '../../shared/utils/showOptionLabel.js';
@@ -47,7 +48,7 @@ export default function DashboardLayout() {
     const navItems = [
     { name: 'Picks', path: '/dashboard', icon: ListMusic },
     { name: 'Pools', path: '/dashboard/pools', icon: Users },
-    { name: 'Standings', path: '/dashboard/standings', icon: Trophy },
+    { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Trophy },
     { name: 'Profile', path: '/dashboard/profile', icon: UserIcon },
   ];
 
