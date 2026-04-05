@@ -49,7 +49,7 @@ export default function StandingsScopeIntro({
         </Link>
         {!isEveryone && onOpenPoolHub ? (
           <GhostPill type="button" icon={Home} onClick={onOpenPoolHub}>
-            Pool home
+            Pool details
           </GhostPill>
         ) : null}
         {onOpenScoringRules ? (
@@ -74,16 +74,18 @@ export default function StandingsScopeIntro({
               order of points for <span className="font-semibold text-slate-300">one night</span>{' '}
               only — everyone who locked picks for that date. To see the same night scoped to a
               crew, pick a pool under <span className="font-semibold text-slate-300">Compare</span>.
-              (Pool Hub has <span className="font-semibold text-slate-300">season totals</span>{' '}
-              across many nights — different from this screen.)
+              (<span className="font-semibold text-slate-300">Pool details</span> has{' '}
+              <span className="font-semibold text-slate-300">season totals</span> across many nights
+              — different from this screen.)
             </p>
           ) : (
             <p>
               This is <span className="font-semibold text-slate-200">show standings</span> for one
               night, limited to{' '}
               <span className="font-semibold text-slate-200">{poolName || 'this pool'}</span>. Open{' '}
-              <span className="font-semibold text-slate-200">Pool home</span> for invites and roster;{' '}
-              <span className="font-semibold text-slate-200">Season totals</span> there sum points
+              <span className="font-semibold text-slate-200">Pool details</span> for invites and
+              roster; <span className="font-semibold text-slate-200">Season totals</span> there sum
+              points
               across every graded show in the pool.
             </p>
           )}

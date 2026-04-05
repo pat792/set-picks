@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom';
  * @param {Array<{ userId?: string } & Record<string, unknown>>} picks
  * @param {import('firebase/auth').User | null | undefined} _user
  * @param {Array<{ id: string; members?: string[]; name?: string }>} userPools
- * @param {string | undefined} navTargetPoolId — from `location.state.targetPoolId` (e.g. Pool Hub CTA)
+ * @param {string | undefined} navTargetPoolId — from `location.state.targetPoolId` (e.g. pool details CTA)
  */
 export function useDisplayedPicks(picks, _user, userPools, navTargetPoolId) {
 
@@ -23,7 +23,7 @@ export function useDisplayedPicks(picks, _user, userPools, navTargetPoolId) {
     return [{ id: 'global', label: 'Everyone' }, ...poolOptions];
   }, [userPools]);
 
-  /** One-shot: prefer router state from Pool Hub over default Global / stale URL. */
+  /** One-shot: prefer router state from pool details over default Everyone / stale URL. */
   useEffect(() => {
     if (deepLinkConsumedRef.current) return;
     if (!navTargetPoolId?.trim()) return;

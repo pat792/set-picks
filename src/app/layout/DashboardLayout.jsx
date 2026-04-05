@@ -153,6 +153,12 @@ export default function DashboardLayout() {
           {showPastShowLock && <PastShowLockBanner />}
           {showTooEarlyBanner && <TooEarlyBanner />}
 
+          {meta.layoutDetailEyebrow ? (
+            <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-slate-400 md:block">
+              {meta.layoutDetailEyebrow}
+            </p>
+          ) : null}
+
           {meta.layoutDesktopHeading && (
             <DashboardPageHeading title={meta.layoutDesktopHeading} tone={isWarRoomRoute ? 'warRoom' : 'default'} />
           )}

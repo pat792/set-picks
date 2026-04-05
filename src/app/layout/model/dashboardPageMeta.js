@@ -4,7 +4,9 @@
  */
 
 import {
+  NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_STANDINGS,
+  POOL_DETAILS_LAYOUT_EYEBROW,
   SHOW_STANDINGS_PAGE_HEADING,
 } from '../../../shared/config/dashboardVocabulary';
 
@@ -17,6 +19,7 @@ export function getDashboardPageMeta(pathname) {
       contextTitle: '',
       showDatePicker: false,
       layoutDesktopHeading: null,
+      layoutDetailEyebrow: null,
       desktopHeadingTone: 'default',
     };
   }
@@ -30,7 +33,7 @@ export function getDashboardPageMeta(pathname) {
   const contextTitle = (() => {
     if (normalized === '/dashboard/standings') return NAV_LABEL_STANDINGS;
     if (normalized === '/dashboard/pools') return 'Your Pools';
-    if (isPoolHub) return 'Pool Hub';
+    if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
     if (isProfile) return 'My Profile';
     if (isAccountSecurity) return 'Sign-in & password';
     if (isAdmin) return 'War Room';
@@ -48,10 +51,13 @@ export function getDashboardPageMeta(pathname) {
         : contextTitle
       : null;
 
+  const layoutDetailEyebrow = isPoolHub ? POOL_DETAILS_LAYOUT_EYEBROW : null;
+
   return {
     contextTitle,
     showDatePicker,
     layoutDesktopHeading,
+    layoutDetailEyebrow,
     desktopHeadingTone: isAdmin ? 'warRoom' : 'default',
   };
 }

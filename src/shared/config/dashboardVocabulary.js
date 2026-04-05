@@ -5,11 +5,22 @@
  *   for the date selected in the header.
  * - **Show standings** — Ordered points for one show date only (everyone or one pool).
  * - **Season totals** — Running points, wins, and shows played in a pool across all graded nights
- *   (Pool Hub list — not the same as a single night’s show standings).
+ *   (on pool details — not the same as a single night’s show standings).
+ *
+ * - **Pool details** — Player-facing name for `/dashboard/pool/:id` (roster, invites, season totals).
+ *   Internal code may still use “Pool Hub”; user-facing strings should say Pool details.
  */
 
 /** Short tab / mobile context label */
 export const NAV_LABEL_STANDINGS = 'Standings';
+
+/** Mobile context bar label for a specific pool’s detail route */
+export const NAV_LABEL_POOL_DETAILS = 'Pool Details';
+
+/**
+ * Desktop layout eyebrow for pool detail (matches in-page section label styling, e.g. Game Status).
+ */
+export const POOL_DETAILS_LAYOUT_EYEBROW = 'Pool details';
 
 /** One-night ordered results (main list on Standings route + desktop H1). */
 export const SHOW_STANDINGS_PHRASE = 'Show standings';

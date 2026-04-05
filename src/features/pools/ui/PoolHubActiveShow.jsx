@@ -6,7 +6,7 @@ import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
 
 /**
- * Prominent “active show” CTA above the pool hub leaderboard.
+ * Prominent “active show” CTA on pool details (above season totals).
  *
  * @param {Object} props
  * @param {string} props.showLabel — e.g. venue + date line for the next pickable show
