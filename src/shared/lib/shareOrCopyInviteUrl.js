@@ -1,9 +1,9 @@
 import { showSuccessToast } from '../ui/toast';
 
-const DEFAULT_SHARE_TITLE = 'Join my Setlist Pick Em Pool!';
+const DEFAULT_SHARE_TITLE = "Join My Setlist Pick 'Em Pool!";
 
 /**
- * Try Web Share API with title + text + url (text mirrors title for iMessage pre-fill); on unsupported share or user cancel/error, copy to clipboard and toast.
+ * Try Web Share API with title + text + url (text mirrors title for iMessage pre-fill); on unsupported share or user cancel/error, copy message + URL to clipboard and toast.
  * @param {string} url
  * @param {{ title?: string, copyToastMessage?: string }} [options]
  * @returns {Promise<{ ok: boolean, via?: 'share' | 'copy', reason?: string }>}
@@ -19,12 +19,13 @@ export async function shareOrCopyInviteUrl(url, options = {}) {
   }
 
   const trimmedUrl = url.trim();
+  const shareText = title.trim();
 
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     try {
       await navigator.share({
-        title,
-        text: title,
+        title: shareText,
+        text: shareText,
         url: trimmedUrl,
       });
       return { ok: true, via: 'share' };
@@ -42,7 +43,8 @@ export async function shareOrCopyInviteUrl(url, options = {}) {
   }
 
   try {
-    await navigator.clipboard.writeText(trimmedUrl);
+    const clipboardPayload = `${shareText}\n\n${trimmedUrl}`;
+    await navigator.clipboard.writeText(clipboardPayload);
     showSuccessToast(copyToastMessage);
     return { ok: true, via: 'copy' };
   } catch {
