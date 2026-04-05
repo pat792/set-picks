@@ -48,13 +48,30 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 - **Deep link:** `/dashboard/scoring` **redirects** to `/dashboard?scoringRules=1`; query is consumed and stripped when the modal opens.
 - **No** standalone scoring content page.
 
+### Runtime contract: `useScoringRulesModal`
+
+- **Only call** `useScoringRulesModal()` from components rendered **under** `ScoringRulesModalProvider` (today: route pages inside `DashboardLayout`).
+- Calling it from the splash screen, Storybook stories, or tests **without** wrapping the provider will **throw** by design—wrap with `<ScoringRulesModalProvider>` in those environments, or open the modal via props on a test double.
+
+## Continuous integration
+
+GitHub Actions workflow **`.github/workflows/ci.yml`** runs:
+
+1. `npm ci`
+2. `npm run lint`
+3. `npm run verify:dashboard-meta`
+
+On **pull requests** (all branches) and on **push** to `main`, `master`, or `staging`. To cover other long-lived branches with push CI, add them under `on.push.branches` in that file.
+
+**Locally:** same checks anytime with `npm run lint && npm run verify:dashboard-meta`.
+
 ## Route → meta map (engineering)
 
 Implemented in `src/app/layout/model/dashboardPageMeta.js`. When you add a `/dashboard/*` route:
 
 1. Update **`getDashboardPageMeta`** (`contextTitle`, `showDatePicker`, `layoutDesktopHeading`, `layoutDetailEyebrow` if needed).
 2. Update **`DashboardLayout`** nav **`isActive`** if the route is a **child** of Picks, Pools, Profile, or Standings (mirror **Pools / pool details** and **Profile / account security**).
-3. Add a row to **`scripts/verify-dashboard-meta.mjs`** and run **`npm run verify:dashboard-meta`** (recommended in CI alongside `npm run lint`).
+3. Add a row to **`scripts/verify-dashboard-meta.mjs`** and run **`npm run verify:dashboard-meta`** (enforced in **`.github/workflows/ci.yml`** next to `npm run lint`).
 
 ## IA diagram (high level)
 
