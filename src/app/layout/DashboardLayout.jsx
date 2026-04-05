@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth';
 import { usePendingPoolJoin } from '../../features/pool-invite';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
@@ -13,9 +13,9 @@ import ProfilePage from '../../pages/profile/ProfilePage';
 import { AccountSecurity } from '../../features/profile';
 import PoolsPage from '../../pages/pools/PoolsPage';
 import PoolHubPage from '../../pages/pools/PoolHubPage';
-import ScoringRulesPage from '../../pages/scoring/ScoringRulesPage';
 
-import { NAV_LABEL_STANDINGS } from '../../shared/config/dashboardVocabulary';
+import { ScoringRulesModalProvider } from '../../features/scoring';
+import { NAV_LABEL_PICKS, NAV_LABEL_STANDINGS } from '../../shared/config/dashboardVocabulary';
 import { SHOW_DATES, SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
 import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop, showOptionTitle } from '../../shared/utils/showOptionLabel.js';
@@ -46,7 +46,7 @@ export default function DashboardLayout() {
   }, [location.pathname, showDateFromStandingsUrl]);
 
     const navItems = [
-    { name: 'Picks', path: '/dashboard', icon: ListMusic },
+    { name: NAV_LABEL_PICKS, path: '/dashboard', icon: ListMusic },
     { name: 'Pools', path: '/dashboard/pools', icon: Users },
     { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Trophy },
     { name: 'Profile', path: '/dashboard/profile', icon: UserIcon },
@@ -65,6 +65,7 @@ export default function DashboardLayout() {
   const isWarRoomRoute = meta.desktopHeadingTone === 'warRoom';
 
   return (
+    <ScoringRulesModalProvider>
     <div className="flex h-screen w-full bg-[#0f172a] text-white overflow-hidden">
       
       {/* DESKTOP SIDEBAR */}
@@ -165,7 +166,10 @@ export default function DashboardLayout() {
 
           <Routes>
             <Route path="/" element={<PicksPage user={user} selectedDate={selectedDate} />} />
-            <Route path="/scoring" element={<ScoringRulesPage />} />
+            <Route
+              path="/scoring"
+              element={<Navigate to="/dashboard?scoringRules=1" replace />}
+            />
             <Route path="/standings" element={<StandingsPage selectedDate={selectedDate} />} />
             <Route path="/admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
             <Route path="/profile" element={<ProfilePage user={user} />} />
@@ -208,5 +212,6 @@ export default function DashboardLayout() {
       </nav>
 
     </div>
+    </ScoringRulesModalProvider>
   );
 }

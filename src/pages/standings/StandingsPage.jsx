@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Inbox, Loader2, Music } from 'lucide-react';
 
@@ -12,7 +12,7 @@ import {
   useDisplayedPicks,
   useStandings,
   useStandingsLeaderboardView,
-  ScoringRulesModal,
+  useScoringRulesModal,
 } from '../../features/scoring';
 import { SHOW_DATES } from '../../shared/data/showDates';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
@@ -39,7 +39,7 @@ export default function StandingsPage({ selectedDate }) {
   );
 
   const showStatus = getShowStatus(selectedDate);
-  const [scoringRulesOpen, setScoringRulesOpen] = useState(false);
+  const { openScoringRules } = useScoringRulesModal();
 
   useStandingsLeaderboardView(selectedDate, loading);
 
@@ -81,8 +81,6 @@ export default function StandingsPage({ selectedDate }) {
 
   return (
     <div className="w-full">
-      <ScoringRulesModal open={scoringRulesOpen} onClose={() => setScoringRulesOpen(false)} />
-
       <StandingsScopeIntro
         activeFilter={activeFilter}
         poolName={activePoolName}
@@ -92,7 +90,7 @@ export default function StandingsPage({ selectedDate }) {
             ? () => navigate(`/dashboard/pool/${activeFilter}`)
             : undefined
         }
-        onOpenScoringRules={() => setScoringRulesOpen(true)}
+        onOpenScoringRules={openScoringRules}
       />
 
       <StandingsFilterTabs

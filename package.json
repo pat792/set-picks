@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:staging": "vite build --mode staging",
     "preview": "vite preview",
-    "lint": "eslint \"src/**/*.{js,jsx}\""
+    "lint": "eslint \"src/**/*.{js,jsx}\"",
+    "verify:dashboard-meta": "node scripts/verify-dashboard-meta.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",

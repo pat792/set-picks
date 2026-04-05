@@ -11,6 +11,9 @@
  *   Internal code may still use “Pool Hub”; user-facing strings should say Pool details.
  */
 
+/** Primary tab for locking picks (`/dashboard`) — same label in context bar + desktop H1 */
+export const NAV_LABEL_PICKS = 'Picks';
+
 /** Short tab / mobile context label */
 export const NAV_LABEL_STANDINGS = 'Standings';
 

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { CheckCircle2, Lock, Scale } from 'lucide-react';
 
 import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features/picks';
-import { ScoringRulesModal } from '../../features/scoring';
+import { useScoringRulesModal } from '../../features/scoring';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
@@ -19,7 +19,7 @@ export default function PicksPage({ user, selectedDate }) {
     saveFeedback,
   } = usePicksForm({ user, selectedDate });
 
-  const [scoringRulesOpen, setScoringRulesOpen] = useState(false);
+  const { openScoringRules } = useScoringRulesModal();
   const showStatus = selectedDate ? getShowStatus(selectedDate) : null;
   const picksSummary =
     !isLocked && showStatus === 'NEXT' ? (
@@ -34,11 +34,10 @@ export default function PicksPage({ user, selectedDate }) {
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <DashboardActionRow summary={picksSummary}>
-        <GhostPill icon={Scale} onClick={() => setScoringRulesOpen(true)}>
+        <GhostPill icon={Scale} onClick={openScoringRules}>
           Scoring rules
         </GhostPill>
       </DashboardActionRow>
-      <ScoringRulesModal open={scoringRulesOpen} onClose={() => setScoringRulesOpen(false)} />
       <div className="relative">
         {!isLocked && hasExistingPicks ? (
           <div

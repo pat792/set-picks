@@ -1,17 +1,29 @@
 /**
  * Centralized dashboard route metadata for consistent mobile context bar titles
  * and desktop heading ownership.
+ *
+ * When adding a `/dashboard/*` route, update this module, nav active-state rules
+ * in `DashboardLayout.jsx`, and the verification script `scripts/verify-dashboard-meta.mjs`.
+ * See `docs/DASHBOARD_IA.md`.
  */
 
 import {
+  NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_STANDINGS,
   POOL_DETAILS_LAYOUT_EYEBROW,
   SHOW_STANDINGS_PAGE_HEADING,
-} from '../../../shared/config/dashboardVocabulary';
+} from '../../../shared/config/dashboardVocabulary.js';
+
+/** Exported for `scripts/verify-dashboard-meta.mjs` (keep in sync with route paths). */
+export function normalizeDashboardPathname(pathname) {
+  const raw = pathname?.toString?.() || '';
+  if (!raw.startsWith('/dashboard')) return raw;
+  return raw.replace(/\/+$/, '') || '/dashboard';
+}
 
 export function getDashboardPageMeta(pathname) {
-  const normalized = pathname?.toString?.() || '';
+  const normalized = normalizeDashboardPathname(pathname);
 
   // Defaults for safety (should only render within /dashboard/* routes).
   if (!normalized.startsWith('/dashboard')) {
@@ -27,7 +39,6 @@ export function getDashboardPageMeta(pathname) {
   const isProfile = normalized === '/dashboard/profile';
   const isAccountSecurity = normalized === '/dashboard/account-security';
   const isAdmin = normalized === '/dashboard/admin';
-  const isScoringRules = normalized === '/dashboard/scoring';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
 
   const contextTitle = (() => {
@@ -37,12 +48,11 @@ export function getDashboardPageMeta(pathname) {
     if (isProfile) return 'My Profile';
     if (isAccountSecurity) return 'Sign-in & password';
     if (isAdmin) return 'War Room';
-    if (isScoringRules) return 'Scoring rules';
-    return 'Make Picks';
+    return NAV_LABEL_PICKS;
   })();
 
   const showDatePicker =
-    !isProfile && !isAccountSecurity && !isScoringRules && !isPoolHub;
+    !isProfile && !isAccountSecurity && !isPoolHub;
 
   const layoutDesktopHeading =
     !isProfile && !isAccountSecurity && !isPoolHub
@@ -61,4 +71,3 @@ export function getDashboardPageMeta(pathname) {
     desktopHeadingTone: isAdmin ? 'warRoom' : 'default',
   };
 }
-

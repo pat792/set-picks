@@ -11,7 +11,7 @@ const {
 } = SCORING_RULES;
 
 /**
- * Presentational copy of scoring rules (shared between full page and modal).
+ * Presentational copy of scoring rules (used by `ScoringRulesModal`).
  */
 export default function ScoringRulesContent() {
   return (
