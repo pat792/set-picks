@@ -6,3 +6,4 @@ export { default as ScoringRulesContent } from './ui/ScoringRulesContent';
 export { default as ScoringRulesModal } from './ui/ScoringRulesModal';
 export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';
 export { default as StandingsFilterTabs } from './ui/StandingsFilterTabs';
+export { default as StandingsScopeIntro } from './ui/StandingsScopeIntro';

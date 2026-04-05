@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ExternalLink, Inbox, Loader2, Music, Scale } from 'lucide-react';
+import { Inbox, Loader2, Music } from 'lucide-react';
 
 import { useAuth } from '../../features/auth';
 import { useUserPools } from '../../features/pools';
@@ -8,14 +8,16 @@ import {
   Leaderboard,
   StandingsBannerWaitingSetlist,
   StandingsFilterTabs,
+  StandingsScopeIntro,
   useDisplayedPicks,
   useStandings,
   useStandingsLeaderboardView,
   ScoringRulesModal,
 } from '../../features/scoring';
+import { SHOW_DATES } from '../../shared/data/showDates';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
+import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel.js';
 import Card from '../../shared/ui/Card';
-import GhostPill from '../../shared/ui/GhostPill';
 import PageTitle from '../../shared/ui/PageTitle';
 
 export default function StandingsPage({ selectedDate }) {
@@ -41,27 +43,57 @@ export default function StandingsPage({ selectedDate }) {
 
   useStandingsLeaderboardView(selectedDate, loading);
 
+  const showLabel = useMemo(() => {
+    const show = SHOW_DATES.find((s) => s.date === selectedDate);
+    return show ? showOptionLabelCompact(show) : selectedDate;
+  }, [selectedDate]);
+
+  const activePoolName = useMemo(() => {
+    if (activeFilter === 'global') return null;
+    return userPools?.find((p) => p.id === activeFilter)?.name ?? null;
+  }, [activeFilter, userPools]);
+
+  const leaderboardTitle =
+    activeFilter === 'global' ? 'Everyone' : activePoolName || 'This pool';
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 mt-20 text-emerald-400 font-bold">
         <Loader2 className="h-10 w-10 animate-spin" aria-hidden />
-        <p>Loading Standings for {selectedDate}...</p>
+        <p>Loading standings for {showLabel}…</p>
       </div>
     );
   }
 
   if (showStatus === 'FUTURE') {
-    return null;
+    return (
+      <Card variant="default" padding="lg" className="text-center">
+        <PageTitle as="h2" variant="section" className="mb-2">
+          Standings aren&apos;t available yet
+        </PageTitle>
+        <p className="text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">
+          This show is still coming up. Make your picks from the Picks tab, then check back here
+          after the show for live rankings and scores.
+        </p>
+      </Card>
+    );
   }
 
   return (
     <div className="w-full">
-      <div className="flex justify-end px-2 mb-4">
-        <GhostPill icon={Scale} onClick={() => setScoringRulesOpen(true)}>
-          Scoring Rules
-        </GhostPill>
-      </div>
       <ScoringRulesModal open={scoringRulesOpen} onClose={() => setScoringRulesOpen(false)} />
+
+      <StandingsScopeIntro
+        activeFilter={activeFilter}
+        poolName={activePoolName}
+        showLabel={showLabel}
+        onOpenPoolHub={
+          activeFilter !== 'global'
+            ? () => navigate(`/dashboard/pool/${activeFilter}`)
+            : undefined
+        }
+        onOpenScoringRules={() => setScoringRulesOpen(true)}
+      />
 
       <StandingsFilterTabs
         activeFilter={activeFilter}
@@ -75,7 +107,7 @@ export default function StandingsPage({ selectedDate }) {
         <Card
           variant="default"
           padding="lg"
-          className="mt-12 flex flex-col items-center justify-center text-center"
+          className="mt-8 flex flex-col items-center justify-center text-center"
         >
           {showStatus === 'PAST' ? (
             <>
@@ -86,19 +118,19 @@ export default function StandingsPage({ selectedDate }) {
               <p className="text-slate-400 font-bold max-w-sm">
                 {activeFilter === 'global'
                   ? 'Nobody submitted picks for this date.'
-                  : 'None of your friends in this pool submitted picks for this date.'}
+                  : 'Nobody in this pool submitted picks for this date.'}
               </p>
             </>
           ) : (
             <>
               <Music className="mb-4 h-14 w-14 text-emerald-400/80" strokeWidth={1.5} aria-hidden />
               <PageTitle as="h3" variant="section" className="mb-2">
-                NO PICKS YET
+                No picks yet
               </PageTitle>
               <p className="text-slate-400 font-bold max-w-sm">
                 {activeFilter === 'global'
-                  ? "Be the first to lock in your picks for tonight's show!"
-                  : 'None of your friends in this pool have made picks yet!'}
+                  ? 'Be the first to lock in picks for this show — head to the Picks tab.'
+                  : 'Nobody in this pool has locked in yet. Invite friends from My pools.'}
               </p>
             </>
           )}
@@ -107,19 +139,7 @@ export default function StandingsPage({ selectedDate }) {
         <Leaderboard
           poolPicks={displayedPicks}
           actualSetlist={actualSetlist}
-          title={activeFilter === 'global' ? 'Global Leaderboard' : 'Pool Leaderboard'}
-          headerEnd={
-            activeFilter !== 'global' ? (
-              <GhostPill
-                type="button"
-                onClick={() => navigate(`/dashboard/pool/${activeFilter}`)}
-                className="text-xs"
-              >
-                Go to Pool Hub
-                <ExternalLink className="w-3.5 h-3.5 ml-1 shrink-0" aria-hidden />
-              </GhostPill>
-            ) : null
-          }
+          title={leaderboardTitle}
         />
       )}
     </div>

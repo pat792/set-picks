@@ -20,7 +20,7 @@ export function useDisplayedPicks(picks, _user, userPools, navTargetPoolId) {
       id: p.id,
       label: p.name || 'Pool',
     }));
-    return [{ id: 'global', label: 'Global' }, ...poolOptions];
+    return [{ id: 'global', label: 'Everyone' }, ...poolOptions];
   }, [userPools]);
 
   /** One-shot: prefer router state from Pool Hub over default Global / stale URL. */
