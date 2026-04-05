@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ExternalLink } from 'lucide-react';
 
 import { useSignOut } from '../../features/auth';
 import { ProfileEditForm, useUserProfile } from '../../features/profile';
 import Button from '../../shared/ui/Button';
+import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 
 export default function Profile({ user }) {
   const navigate = useNavigate();
@@ -33,7 +35,28 @@ export default function Profile({ user }) {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-4 pb-12">
+    <div className="max-w-xl mx-auto pb-6 md:pb-12">
+      <DashboardActionRow
+        summary={
+          <>
+            Your handle and favorite song show on{' '}
+            <span className="font-semibold text-slate-300">show standings</span>, in{' '}
+            <span className="font-semibold text-slate-300">pools</span>, and on your{' '}
+            <span className="font-semibold text-slate-300">public profile</span>.
+          </>
+        }
+      >
+        {user?.uid ? (
+          <Link
+            to={`/user/${user.uid}`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/40 hover:bg-slate-700 hover:text-emerald-400"
+          >
+            <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            Preview public view
+          </Link>
+        ) : null}
+      </DashboardActionRow>
+
       <div className="mb-6 text-left">
         <h2 className="hidden md:block font-display text-display-page md:text-display-page-lg font-bold text-white">
           My Profile

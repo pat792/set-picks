@@ -13,6 +13,7 @@ You are an expert React engineer. Every code change MUST follow these rules.
 - Pages MUST NOT call Firebase/Firestore directly (`getDoc`, `setDoc`, etc.).
 - Pages MUST NOT contain complex forms, business orchestration, or large Tailwind-heavy UI blocks.
 - Pages consume feature hooks (`features/*/model`) and pass props into feature UI components.
+- When a page accumulates non-trivial derived state, navigation callbacks, and wiring across multiple feature hooks, prefer a single feature-owned screen hook in `features/<domain>/model` (e.g. `useStandingsScreen`) so the page stays declarative. This is a **preference** for maintainability, not a hard cap on page file length.
 
 ## 3) Features Layer Rules (`src/features/<domain>/`)
 - Each domain feature owns its business logic and data access.
@@ -30,6 +31,8 @@ You are an expert React engineer. Every code change MUST follow these rules.
 - Never import `pages` from any other layer.
 - Never import private internals of another feature (`features/a/model/*` from `features/b/*`).
 - Cross-feature reuse must happen through explicit public entry points (for example, feature index exports) or be moved to `shared` if truly generic.
+- **Feature public API:** Root `index.js` (or `index.ts`) under `features/<domain>/` is the intentional outward surface. Re-export what `pages` and other features need; keep leaf UI and model modules **unexported** when they are implementation details. A growing barrel line count is normal if each export is purposeful.
+- **Splitting barrels:** If a feature’s public exports become large or fall into clear subdomains (e.g. splash-only vs dashboard-only), you may add a secondary barrel (e.g. `features/auth/splash.js`) and re-export from the root `index.js`. Do **not** split barrels preemptively while the root file remains small and readable.
 
 ## 5) Shared Layer Guardrails (`src/shared/`)
 - `shared` contains only domain-agnostic UI kit, utilities, hooks, constants, and types.
@@ -40,6 +43,7 @@ You are an expert React engineer. Every code change MUST follow these rules.
 - When adding UI requested in a page, build it in `features/<domain>/ui` and compose from the page.
 - When adding data access, place IO in `features/<domain>/api` and consume via `features/<domain>/model`.
 - If a requested change conflicts with these rules, propose an FSD-compliant alternative first.
+- **Dashboard routes:** Treat `src/app/layout/model/dashboardPageMeta.js` and nav `isActive` logic in `DashboardLayout.jsx` as part of the feature when adding or renaming `/dashboard/*` paths. For child routes, mirror **Profile + account-security** or **Pools + pool details** active-state patterns. After changing meta, extend `scripts/verify-dashboard-meta.mjs` and run `npm run verify:dashboard-meta`. Canonical IA + vocabulary: `docs/DASHBOARD_IA.md`.
 
 ## 7) Enforcement Expectations (Lint + CI)
 - Treat architectural boundaries as enforceable, not advisory.

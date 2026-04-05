@@ -27,7 +27,7 @@ export default function PoolHubShowArchive({ poolId }) {
                     to={`/dashboard/standings?showDate=${encodeURIComponent(show.date)}&poolId=${encodeURIComponent(poolId)}`}
                     className="block bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
                   >
-                    View Standings for {formatShowLabel(show.date)}
+                    Show standings · {formatShowLabel(show.date)}
                   </Link>
                 </li>
               ))}

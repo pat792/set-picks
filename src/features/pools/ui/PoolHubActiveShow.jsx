@@ -6,7 +6,7 @@ import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
 
 /**
- * Prominent “active show” CTA above the pool hub leaderboard.
+ * Prominent “active show” CTA on pool details (above season totals).
  *
  * @param {Object} props
  * @param {string} props.showLabel — e.g. venue + date line for the next pickable show
@@ -42,8 +42,8 @@ export default function PoolHubActiveShow({
     eyebrow = lockedEyebrow;
     bodyLine =
       nextShowTimeStatus === 'PAST'
-        ? 'This show has wrapped — catch how your pool finished on the board.'
-        : 'Follow the board with your pool.';
+        ? 'This show has wrapped — see that night’s show standings in the Standings tab (pool filter on).'
+        : 'Follow tonight’s show standings with your pool selected in the Standings tab.';
   } else if (picksStatusLoading) {
     eyebrow = isShowToday ? "TONIGHT'S SHOW" : 'NOW PICKING FOR';
     bodyLine = 'Checking your picks for this show…';
@@ -101,7 +101,7 @@ export default function PoolHubActiveShow({
               }
             >
               <Trophy className="mr-2 h-5 w-5 shrink-0" aria-hidden />
-              View live standings
+              View show standings
             </Button>
           ) : picksStatusLoading ? (
             <div

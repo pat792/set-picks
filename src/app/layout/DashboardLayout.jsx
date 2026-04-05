@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth';
 import { usePendingPoolJoin } from '../../features/pool-invite';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
@@ -13,8 +13,9 @@ import ProfilePage from '../../pages/profile/ProfilePage';
 import { AccountSecurity } from '../../features/profile';
 import PoolsPage from '../../pages/pools/PoolsPage';
 import PoolHubPage from '../../pages/pools/PoolHubPage';
-import ScoringRulesPage from '../../pages/scoring/ScoringRulesPage';
 
+import { ScoringRulesModalProvider } from '../../features/scoring';
+import { NAV_LABEL_PICKS, NAV_LABEL_STANDINGS } from '../../shared/config/dashboardVocabulary';
 import { SHOW_DATES, SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
 import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop, showOptionTitle } from '../../shared/utils/showOptionLabel.js';
@@ -45,9 +46,9 @@ export default function DashboardLayout() {
   }, [location.pathname, showDateFromStandingsUrl]);
 
     const navItems = [
-    { name: 'Picks', path: '/dashboard', icon: ListMusic },
+    { name: NAV_LABEL_PICKS, path: '/dashboard', icon: ListMusic },
     { name: 'Pools', path: '/dashboard/pools', icon: Users },
-    { name: 'Standings', path: '/dashboard/standings', icon: Trophy },
+    { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Trophy },
     { name: 'Profile', path: '/dashboard/profile', icon: UserIcon },
   ];
 
@@ -56,7 +57,6 @@ export default function DashboardLayout() {
   }
 
   const meta = getDashboardPageMeta(location.pathname);
-  const isPoolHubRoute = location.pathname.startsWith('/dashboard/pool/');
   const datePickerStatus = getShowStatus(selectedDate);
   const showDatePickerUserBanners = meta.showDatePicker && location.pathname !== '/dashboard/admin';
   const showPastShowLock = showDatePickerUserBanners && datePickerStatus === 'PAST';
@@ -65,6 +65,7 @@ export default function DashboardLayout() {
   const isWarRoomRoute = meta.desktopHeadingTone === 'warRoom';
 
   return (
+    <ScoringRulesModalProvider>
     <div className="flex h-screen w-full bg-[#0f172a] text-white overflow-hidden">
       
       {/* DESKTOP SIDEBAR */}
@@ -108,27 +109,23 @@ export default function DashboardLayout() {
         </div>
       </nav>
 
-      {/* MOBILE TOP HEADERS */}
-      <div className="md:hidden fixed top-0 left-0 w-full z-50">
-        <DashboardMobileBrandBar user={user} />
-        <DashboardMobileContextBar
-          scrollDirection={scrollDirection}
-          contextTitle={meta.contextTitle}
-          showDatePicker={meta.showDatePicker}
-          selectedDate={selectedDate}
-          onSelectedDateChange={setSelectedDate}
-        />
+      {/* MOBILE TOP HEADERS — safe area + context bar anchored below brand (top-full) */}
+      <div className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]">
+        <div className="relative">
+          <DashboardMobileBrandBar user={user} />
+          <DashboardMobileContextBar
+            scrollDirection={scrollDirection}
+            contextTitle={meta.contextTitle}
+            showDatePicker={meta.showDatePicker}
+            selectedDate={selectedDate}
+            onSelectedDateChange={setSelectedDate}
+          />
+        </div>
       </div>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 overflow-y-auto pt-[8.75rem] pb-24 md:pt-8 md:pb-8 relative">
-        <div
-          className={
-            isPoolHubRoute
-              ? 'max-w-xl mx-auto px-4 pt-2 pb-4 md:p-8'
-              : 'max-w-xl mx-auto p-4 md:p-8'
-          }
-        >
+      {/* MAIN CONTENT AREA — mobile: match header stack + bottom nav + home indicator */}
+      <main className="flex-1 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+7.625rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
+        <div className="max-w-xl mx-auto px-4 pt-2 md:p-8">
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
@@ -157,13 +154,22 @@ export default function DashboardLayout() {
           {showPastShowLock && <PastShowLockBanner />}
           {showTooEarlyBanner && <TooEarlyBanner />}
 
+          {meta.layoutDetailEyebrow ? (
+            <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-slate-400 md:block">
+              {meta.layoutDetailEyebrow}
+            </p>
+          ) : null}
+
           {meta.layoutDesktopHeading && (
             <DashboardPageHeading title={meta.layoutDesktopHeading} tone={isWarRoomRoute ? 'warRoom' : 'default'} />
           )}
 
           <Routes>
             <Route path="/" element={<PicksPage user={user} selectedDate={selectedDate} />} />
-            <Route path="/scoring" element={<ScoringRulesPage />} />
+            <Route
+              path="/scoring"
+              element={<Navigate to="/dashboard?scoringRules=1" replace />}
+            />
             <Route path="/standings" element={<StandingsPage selectedDate={selectedDate} />} />
             <Route path="/admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
             <Route path="/profile" element={<ProfilePage user={user} />} />
@@ -206,5 +212,6 @@ export default function DashboardLayout() {
       </nav>
 
     </div>
+    </ScoringRulesModalProvider>
   );
 }

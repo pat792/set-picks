@@ -10,7 +10,12 @@ import {
   PoolHubShowArchive,
   usePoolHub,
 } from '../../features/pools';
+import {
+  SEASON_TOTALS_DESCRIPTION,
+  SEASON_TOTALS_HEADING,
+} from '../../shared/config/dashboardVocabulary';
 import BackButton from '../../shared/ui/BackButton';
+import DashboardPoolBreadcrumb from '../../shared/ui/DashboardPoolBreadcrumb';
 import { todayYmd } from '../../shared/utils/dateUtils.js';
 import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop } from '../../shared/utils/showOptionLabel.js';
@@ -97,10 +102,11 @@ export default function PoolHubPage({ user }) {
     ownerHandle !== '' ? `Created by ${ownerHandle}` : null;
 
   return (
-    <div className="max-w-xl mx-auto pb-24 flex flex-col gap-3 md:gap-6">
+    <div className="max-w-xl mx-auto pb-6 md:pb-16 flex flex-col gap-3 md:gap-6">
       <div className="flex flex-col gap-2">
         <div className="px-1">
           <BackButton />
+          <DashboardPoolBreadcrumb poolName={pool.name} />
         </div>
         <PoolHubHeader
           poolName={pool.name}
@@ -127,9 +133,12 @@ export default function PoolHubPage({ user }) {
         </section>
         <PoolHubShowArchive poolId={poolId} />
         <section>
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">
-            Overall Standings
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
+            {SEASON_TOTALS_HEADING}
           </h2>
+          <p className="text-xs font-medium text-slate-500 leading-relaxed mb-3 ml-1 max-w-md">
+            {SEASON_TOTALS_DESCRIPTION}
+          </p>
           <PoolHubLeaderboard members={members} />
         </section>
       </div>

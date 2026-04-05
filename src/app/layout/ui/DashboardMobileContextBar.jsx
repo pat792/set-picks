@@ -11,7 +11,7 @@ export default function DashboardMobileContextBar({
 }) {
   return (
     <div
-      className={`absolute left-0 w-full bg-slate-800 border-b border-slate-700 px-4 py-3 flex flex-row flex-nowrap items-center justify-between gap-2 min-w-0 transition-transform duration-300 ease-in-out z-10 ${
+      className={`absolute top-full left-0 w-full bg-slate-800 border-b border-slate-700 px-4 py-3 flex flex-row flex-nowrap items-center justify-between gap-2 min-w-0 transition-transform duration-300 ease-in-out z-10 ${
         scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
       }`}
     >
