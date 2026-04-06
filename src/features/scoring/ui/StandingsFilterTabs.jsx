@@ -1,11 +1,11 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 import PageTitle from '../../../shared/ui/PageTitle';
 
 const scrollRibbon =
   'overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden';
 
-const DRAG_THRESHOLD_PX = 4;
+const DRAG_THRESHOLD_PX = 8;
 
 /**
  * @param {Object} props
@@ -17,46 +17,76 @@ export default function StandingsFilterTabs({ activeFilter, filterOptions, onTab
   const ribbonRef = useRef(null);
   const dragRef = useRef(null);
   const suppressClickRef = useRef(false);
+  const windowListenersRef = useRef(null);
 
-  const finishPointer = useCallback((e) => {
-    const state = dragRef.current;
-    if (!state || state.pointerId !== e.pointerId) return;
-    const el = ribbonRef.current;
-    if (el?.hasPointerCapture(e.pointerId)) {
-      el.releasePointerCapture(e.pointerId);
-    }
-    const { didDrag } = state;
-    dragRef.current = null;
-    if (didDrag) {
-      suppressClickRef.current = true;
-      window.setTimeout(() => {
-        suppressClickRef.current = false;
-      }, 0);
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      const L = windowListenersRef.current;
+      if (L) {
+        window.removeEventListener('pointermove', L.onMove);
+        window.removeEventListener('pointerup', L.onUp);
+        window.removeEventListener('pointercancel', L.onUp);
+        windowListenersRef.current = null;
+      }
+    },
+    [],
+  );
 
   const onPointerDown = useCallback((e) => {
     if (e.pointerType === 'touch') return;
     if (e.button !== 0) return;
-    const el = ribbonRef.current;
-    if (!el) return;
+    const ribbon = ribbonRef.current;
+    if (!ribbon || !ribbon.contains(e.target)) return;
+
+    if (windowListenersRef.current) {
+      const L = windowListenersRef.current;
+      window.removeEventListener('pointermove', L.onMove);
+      window.removeEventListener('pointerup', L.onUp);
+      window.removeEventListener('pointercancel', L.onUp);
+      windowListenersRef.current = null;
+    }
+
+    const pointerId = e.pointerId;
     dragRef.current = {
-      pointerId: e.pointerId,
+      pointerId,
       startX: e.clientX,
-      startScroll: el.scrollLeft,
+      startScroll: ribbon.scrollLeft,
       didDrag: false,
     };
-    el.setPointerCapture(e.pointerId);
-  }, []);
 
-  const onPointerMove = useCallback((e) => {
-    const state = dragRef.current;
-    if (!state || state.pointerId !== e.pointerId) return;
-    const el = ribbonRef.current;
-    if (!el) return;
-    const dx = e.clientX - state.startX;
-    if (Math.abs(dx) > DRAG_THRESHOLD_PX) state.didDrag = true;
-    el.scrollLeft = state.startScroll - dx;
+    const onMove = (ev) => {
+      if (ev.pointerId !== pointerId) return;
+      const state = dragRef.current;
+      if (!state || state.pointerId !== pointerId) return;
+      const el = ribbonRef.current;
+      if (!el) return;
+      const dx = ev.clientX - state.startX;
+      if (Math.abs(dx) > DRAG_THRESHOLD_PX) state.didDrag = true;
+      el.scrollLeft = state.startScroll - dx;
+    };
+
+    const onUp = (ev) => {
+      if (ev.pointerId !== pointerId) return;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      windowListenersRef.current = null;
+
+      const state = dragRef.current;
+      dragRef.current = null;
+      const didDrag = state?.didDrag ?? false;
+      if (didDrag) {
+        suppressClickRef.current = true;
+        window.setTimeout(() => {
+          suppressClickRef.current = false;
+        }, 0);
+      }
+    };
+
+    windowListenersRef.current = { onMove, onUp };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   }, []);
 
   const onClickCapture = useCallback((e) => {
@@ -76,10 +106,6 @@ export default function StandingsFilterTabs({ activeFilter, filterOptions, onTab
         ref={ribbonRef}
         className={`flex cursor-grab gap-1.5 px-1 pb-1 select-none active:cursor-grabbing ${scrollRibbon}`}
         onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={finishPointer}
-        onPointerCancel={finishPointer}
-        onLostPointerCapture={finishPointer}
         onClickCapture={onClickCapture}
       >
         {filterOptions.map((opt) => {
