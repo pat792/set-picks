@@ -13,12 +13,15 @@ export default function PoolHubShowArchive({ poolId }) {
 
   return (
     <section>
-      <details className="group">
-        <summary className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 cursor-pointer list-none flex items-center justify-between">
-          SHOW ARCHIVE{' '}
-          <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
+      <details className="group rounded-xl border border-slate-700/50 bg-slate-900/25">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-slate-500 transition-colors hover:text-slate-400 [&::-webkit-details-marker]:hidden">
+          <span className="uppercase tracking-widest">Past shows</span>
+          <ChevronDown
+            className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
+            aria-hidden
+          />
         </summary>
-        <div className="space-y-2 mt-3">
+        <div className="space-y-2 border-t border-slate-700/40 px-3 py-3">
           {pastShows.length > 0 ? (
             <ul className="space-y-2">
               {pastShows.map((show) => (

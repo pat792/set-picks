@@ -42,8 +42,8 @@ export default function PoolHubActiveShow({
     eyebrow = lockedEyebrow;
     bodyLine =
       nextShowTimeStatus === 'PAST'
-        ? 'This show has wrapped — see that night’s show standings in the Standings tab (pool filter on).'
-        : 'Follow tonight’s show standings with your pool selected in the Standings tab.';
+        ? 'This show has wrapped — open Standings, choose this pool under Compare, and pick that night’s date.'
+        : 'Open Standings, choose this pool under Compare, and follow scores for tonight.';
   } else if (picksStatusLoading) {
     eyebrow = isShowToday ? "TONIGHT'S SHOW" : 'NOW PICKING FOR';
     bodyLine = 'Checking your picks for this show…';

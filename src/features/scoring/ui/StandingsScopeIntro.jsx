@@ -1,9 +1,81 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, Home, Scale, Users } from 'lucide-react';
+import { ChevronDown, Home, MoreHorizontal, Scale, Users } from 'lucide-react';
 
 import DashboardActionRow from '../../../shared/ui/DashboardActionRow';
 import GhostPill from '../../../shared/ui/GhostPill';
+
+const MOBILE_VISIBLE_ACTIONS = 2;
+
+function StandingsTopActions({
+  isEveryone,
+  onOpenPoolHub,
+  onOpenScoringRules,
+}) {
+  const items = [
+    <Link
+      key="pools"
+      to="/dashboard/pools"
+      className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-900/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 transition-colors hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300 sm:px-4"
+    >
+      <Users className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
+      Pools
+    </Link>,
+  ];
+
+  if (!isEveryone && onOpenPoolHub) {
+    items.push(
+      <GhostPill key="pool-hub" type="button" icon={Home} onClick={onOpenPoolHub}>
+        Pool details
+      </GhostPill>,
+    );
+  }
+
+  if (onOpenScoringRules) {
+    items.push(
+      <GhostPill key="scoring-rules" type="button" icon={Scale} onClick={onOpenScoringRules}>
+        Scoring rules
+      </GhostPill>,
+    );
+  }
+
+  const overflow = items.length > MOBILE_VISIBLE_ACTIONS ? items.slice(MOBILE_VISIBLE_ACTIONS) : [];
+  const mobileHead = items.slice(0, MOBILE_VISIBLE_ACTIONS);
+
+  const overflowMenu = overflow.map((el) =>
+    React.cloneElement(el, { key: `${el.key}-menu` }),
+  );
+  const overflowRow = overflow.map((el) =>
+    React.cloneElement(el, { key: `${el.key}-row` }),
+  );
+
+  return (
+    <>
+      {mobileHead}
+      {overflow.length > 0 ? (
+        <>
+          <details className="group relative sm:hidden">
+            <summary
+              className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-emerald-400 [&::-webkit-details-marker]:hidden"
+              aria-label="More standings actions"
+            >
+              <MoreHorizontal className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              More
+              <ChevronDown
+                className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
+                aria-hidden
+              />
+            </summary>
+            <div className="absolute right-0 top-full z-20 mt-1 flex min-w-[11rem] flex-col gap-2 rounded-xl border border-slate-600 bg-slate-900 p-2 shadow-xl">
+              {overflowMenu}
+            </div>
+          </details>
+          <span className="max-sm:hidden sm:contents">{overflowRow}</span>
+        </>
+      ) : null}
+    </>
+  );
+}
 
 /**
  * Compact standings header: one-line scope + actions; long explanation in a collapsed <details>.
@@ -19,44 +91,34 @@ export default function StandingsScopeIntro({
 
   const summaryLine = isEveryone ? (
     <>
-      <span className="font-semibold text-slate-300">Show standings</span>
-      {' · '}
       <span className="text-slate-300">{showLabel}</span>
       {' · '}
       <span className="font-semibold text-slate-300">Everyone</span>
-      <span className="text-slate-500"> — all players who picked this show. Use Compare for one pool.</span>
+      <span className="text-slate-500">
+        {' '}
+        — all players who picked this show. Under Compare, pick a pool to see just that group.
+      </span>
     </>
   ) : (
     <>
-      <span className="font-semibold text-slate-300">Show standings</span>
-      {' · '}
       <span className="text-slate-300">{showLabel}</span>
       {' · '}
       <span className="font-semibold text-slate-300">{poolName || 'This pool'}</span>
-      <span className="text-slate-500"> — pool members only. Everyone tab = full field.</span>
+      <span className="text-slate-500">
+        {' '}
+        — pool members only. Open the Everyone tab to see all players.
+      </span>
     </>
   );
 
   return (
     <div className="mb-4 space-y-2">
       <DashboardActionRow summary={summaryLine}>
-        <Link
-          to="/dashboard/pools"
-          className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-900/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 transition-colors hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300 sm:px-4"
-        >
-          <Users className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
-          My pools
-        </Link>
-        {!isEveryone && onOpenPoolHub ? (
-          <GhostPill type="button" icon={Home} onClick={onOpenPoolHub}>
-            Pool details
-          </GhostPill>
-        ) : null}
-        {onOpenScoringRules ? (
-          <GhostPill type="button" icon={Scale} onClick={onOpenScoringRules}>
-            Scoring rules
-          </GhostPill>
-        ) : null}
+        <StandingsTopActions
+          isEveryone={isEveryone}
+          onOpenPoolHub={onOpenPoolHub}
+          onOpenScoringRules={onOpenScoringRules}
+        />
       </DashboardActionRow>
 
       <details className="group rounded-xl border border-slate-700/50 bg-slate-900/25">
@@ -65,7 +127,7 @@ export default function StandingsScopeIntro({
             className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
             aria-hidden
           />
-          About show standings
+          How scoring & pools work
         </summary>
         <div className="border-t border-slate-700/40 px-3 py-3 text-sm leading-relaxed text-slate-400">
           {isEveryone ? (
@@ -80,13 +142,12 @@ export default function StandingsScopeIntro({
             </p>
           ) : (
             <p>
-              This is <span className="font-semibold text-slate-200">show standings</span> for one
-              night, limited to{' '}
-              <span className="font-semibold text-slate-200">{poolName || 'this pool'}</span>. Open{' '}
+              One night of points for{' '}
+              <span className="font-semibold text-slate-200">{poolName || 'this pool'}</span> only
+              — same idea as Everyone, scoped to the pool. Open{' '}
               <span className="font-semibold text-slate-200">Pool details</span> for invites and
               roster; <span className="font-semibold text-slate-200">Season totals</span> there sum
-              points
-              across every graded show in the pool.
+              points across every graded show in the pool.
             </p>
           )}
         </div>

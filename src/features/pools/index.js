@@ -5,6 +5,7 @@ export { default as useUserPools } from './model/useUserPools';
 export { default as PoolHubActiveShow } from './ui/PoolHubActiveShow';
 export { default as PoolHubHeader } from './ui/PoolHubHeader';
 export { default as PoolHubLeaderboard } from './ui/PoolHubLeaderboard';
+export { default as PoolHubSeasonTotalsSection } from './ui/PoolHubSeasonTotalsSection';
 export { default as PoolHubShowArchive } from './ui/PoolHubShowArchive';
 export { default as PoolJoinCreateCard } from './ui/PoolJoinCreateCard';
 export { default as UserPoolsSection } from './ui/UserPoolsSection';

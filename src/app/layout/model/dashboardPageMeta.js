@@ -8,11 +8,13 @@
  */
 
 import {
+  NAV_LABEL_ACCOUNT_SECURITY,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
+  NAV_LABEL_POOLS,
+  NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
   POOL_DETAILS_LAYOUT_EYEBROW,
-  SHOW_STANDINGS_PAGE_HEADING,
 } from '../../../shared/config/dashboardVocabulary.js';
 
 /** Exported for `scripts/verify-dashboard-meta.mjs` (keep in sync with route paths). */
@@ -43,10 +45,10 @@ export function getDashboardPageMeta(pathname) {
 
   const contextTitle = (() => {
     if (normalized === '/dashboard/standings') return NAV_LABEL_STANDINGS;
-    if (normalized === '/dashboard/pools') return 'Your Pools';
+    if (normalized === '/dashboard/pools') return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
-    if (isProfile) return 'My Profile';
-    if (isAccountSecurity) return 'Sign-in & password';
+    if (isProfile) return NAV_LABEL_PROFILE;
+    if (isAccountSecurity) return NAV_LABEL_ACCOUNT_SECURITY;
     if (isAdmin) return 'War Room';
     return NAV_LABEL_PICKS;
   })();
@@ -55,11 +57,7 @@ export function getDashboardPageMeta(pathname) {
     !isProfile && !isAccountSecurity && !isPoolHub;
 
   const layoutDesktopHeading =
-    !isProfile && !isAccountSecurity && !isPoolHub
-      ? contextTitle === NAV_LABEL_STANDINGS
-        ? SHOW_STANDINGS_PAGE_HEADING
-        : contextTitle
-      : null;
+    !isProfile && !isAccountSecurity && !isPoolHub ? contextTitle : null;
 
   const layoutDetailEyebrow = isPoolHub ? POOL_DETAILS_LAYOUT_EYEBROW : null;
 

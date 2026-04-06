@@ -13,7 +13,7 @@ export default function UserPoolsSection({
         <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-800/30 p-8 text-center">
           <p className="font-bold text-slate-400">You are not in any pools yet.</p>
           <p className="mt-1 text-sm text-slate-500">
-            Join a friend&apos;s pool or create your own below.
+            Join with a code or create a pool below, then lock picks on the Picks tab.
           </p>
         </div>
       ) : (

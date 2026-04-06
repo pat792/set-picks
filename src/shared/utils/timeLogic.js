@@ -20,6 +20,13 @@ export const getNextShow = () => {
  */
 export const SHOW_DAY_LIVE_FROM_HOUR_LOCAL = 17;
 
+/** Tour ordering: show immediately before `ymd` in `SHOW_DATES`, or null. */
+export function getShowBeforeDate(ymd) {
+  const i = SHOW_DATES.findIndex((s) => s.date === ymd);
+  if (i <= 0) return null;
+  return SHOW_DATES[i - 1];
+}
+
 export const getShowStatus = (selectedDate) => {
   const today = todayYmd();
   const nextShow = getNextShow();

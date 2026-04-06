@@ -4,3 +4,6 @@ node_modules
 dist
 .cursor/debug-2b48e0.log
 mcp.json
+
+# Local credentials (GCP service accounts, etc.). Prefer ~/… or secrets/ and never commit.
+secrets/

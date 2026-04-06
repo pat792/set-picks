@@ -19,35 +19,33 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
           </p>
         </div>
 
-        <div className="mt-10 flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4 w-full max-w-[280px] sm:max-w-none mx-auto">
+        <div className="mt-10 flex w-full max-w-md flex-col items-center gap-6 mx-auto">
           <Button
             variant="primary"
             type="button"
-            onClick={onHowItWorksClick}
-            className="w-full sm:w-auto"
-          >
-            Game Format
-          </Button>
-
-          <Button
-            variant="glass"
-            type="button"
             onClick={onPlayNowClick}
             aria-label="Play now: go to sign in or create an account"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto min-w-[12rem]"
           >
-            Make Picks Now
+            Make picks now
           </Button>
-
-          <Button
-            variant="glass"
-            type="button"
-            onClick={onAboutClick}
-            aria-label={"About Setlist Pick 'Em"}
-            className="w-full sm:w-auto"
-          >
-            About
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-400">
+            <button
+              type="button"
+              className="underline decoration-slate-600 underline-offset-4 transition-colors hover:text-emerald-400"
+              onClick={onHowItWorksClick}
+            >
+              Game format
+            </button>
+            <button
+              type="button"
+              className="underline decoration-slate-600 underline-offset-4 transition-colors hover:text-emerald-400"
+              onClick={onAboutClick}
+              aria-label={"About Setlist Pick 'Em"}
+            >
+              About
+            </button>
+          </div>
         </div>
       </div>
     </section>
