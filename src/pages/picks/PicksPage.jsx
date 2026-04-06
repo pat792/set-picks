@@ -5,8 +5,6 @@ import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features
 import { useScoringRulesModal } from '../../features/scoring';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
-import { getShowStatus } from '../../shared/utils/timeLogic.js';
-
 export default function PicksPage({ user, selectedDate }) {
   const {
     formData,
@@ -20,20 +18,10 @@ export default function PicksPage({ user, selectedDate }) {
   } = usePicksForm({ user, selectedDate });
 
   const { openScoringRules } = useScoringRulesModal();
-  const showStatus = selectedDate ? getShowStatus(selectedDate) : null;
-  const picksSummary =
-    !isLocked && showStatus === 'NEXT' ? (
-      <>
-        Picks here feed <span className="font-semibold text-slate-300">show standings</span> for
-        that night — both the <span className="font-semibold text-slate-300">Everyone</span> list
-        and <span className="font-semibold text-slate-300">every pool you join</span>. Many people
-        lock in on show day; that&apos;s OK until showtime.
-      </>
-    ) : null;
 
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
-      <DashboardActionRow summary={picksSummary}>
+      <DashboardActionRow>
         <GhostPill icon={Scale} onClick={openScoringRules}>
           Scoring rules
         </GhostPill>

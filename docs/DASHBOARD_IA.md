@@ -36,10 +36,28 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | Term | Meaning |
 |------|---------|
 | **Picks** | Tab + context + desktop H1 for `/dashboard` (`NAV_LABEL_PICKS`). |
-| **Standings** | Short tab label (`NAV_LABEL_STANDINGS`); desktop H1 uses **Show standings** phrase. |
-| **Show standings** | Ordered points for **one show date** only (Standings screen). |
+| **Pools** | Tab + context + desktop H1 for `/dashboard/pools` (`NAV_LABEL_POOLS`) — same word in nav and shell. |
+| **Profile** | Tab + context for `/dashboard/profile` (`NAV_LABEL_PROFILE`); desktop in-page subheading matches. |
+| **Sign-in & password** | Account security route context (`NAV_LABEL_ACCOUNT_SECURITY`); Profile card and form use the same phrase. |
+| **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
+| **Standings** | Tab, context bar, and desktop H1 for `/dashboard/standings` (`NAV_LABEL_STANDINGS`) — aligned so the shell does not repeat two headings. |
+| **Show standings** | Ordered points for **one show date** only (Standings screen); use this phrase in glossary, help, and cross-links where the “one night” nuance matters. |
 | **Season totals** | Cumulative points / wins / shows in a pool (**pool details** screen). |
 | **Pool details** | Screen for one pool: roster, invites, game status, archive links, season totals (`NAV_LABEL_POOL_DETAILS`). |
+
+### User-visible string ownership (support / engineering)
+
+| Users see | Route / surface | Source of truth |
+|-----------|-----------------|-----------------|
+| Picks | `/dashboard` | `NAV_LABEL_PICKS` |
+| Pools | `/dashboard/pools` | `NAV_LABEL_POOLS` |
+| Pool Details (context) | `/dashboard/pool/:id` | `NAV_LABEL_POOL_DETAILS` |
+| Pool details (desktop eyebrow) | Pool hub | `POOL_DETAILS_LAYOUT_EYEBROW` |
+| Standings | `/dashboard/standings` | `NAV_LABEL_STANDINGS` |
+| Profile | `/dashboard/profile` | `NAV_LABEL_PROFILE` |
+| Sign-in & password | `/dashboard/account-security` | `NAV_LABEL_ACCOUNT_SECURITY` |
+| War Room | `/dashboard/admin` | `getDashboardPageMeta` (admin branch) |
+| Admin (tab only) | `/dashboard/admin` | `NAV_LABEL_ADMIN` in `DashboardLayout.jsx` |
 
 ## Scoring rules (single primary surface)
 
@@ -108,3 +126,7 @@ flowchart TB
 - `getDashboardPageMeta`, `normalizeDashboardPathname` — `src/app/layout/model/dashboardPageMeta.js`
 - Nav items + active rules — `src/app/layout/DashboardLayout.jsx`
 - Scoring modal provider — `src/features/scoring/ui/ScoringRulesModalProvider.jsx`
+
+## Related documentation
+
+User journeys and post-auth routing (new vs returning users, invite flows, remembered tab): [USER_ROUTING_AND_JOURNEYS.md](./USER_ROUTING_AND_JOURNEYS.md).

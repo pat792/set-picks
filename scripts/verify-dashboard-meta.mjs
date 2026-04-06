@@ -9,11 +9,13 @@ import {
   normalizeDashboardPathname,
 } from '../src/app/layout/model/dashboardPageMeta.js';
 import {
+  NAV_LABEL_ACCOUNT_SECURITY,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
+  NAV_LABEL_POOLS,
+  NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
   POOL_DETAILS_LAYOUT_EYEBROW,
-  SHOW_STANDINGS_PAGE_HEADING,
 } from '../src/shared/config/dashboardVocabulary.js';
 
 const CASES = [
@@ -40,16 +42,16 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: true,
-      layoutDesktopHeading: SHOW_STANDINGS_PAGE_HEADING,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
       layoutDetailEyebrow: null,
     },
   },
   {
     path: '/dashboard/pools',
     expect: {
-      contextTitle: 'Your Pools',
+      contextTitle: NAV_LABEL_POOLS,
       showDatePicker: true,
-      layoutDesktopHeading: 'Your Pools',
+      layoutDesktopHeading: NAV_LABEL_POOLS,
       layoutDetailEyebrow: null,
     },
   },
@@ -65,7 +67,7 @@ const CASES = [
   {
     path: '/dashboard/profile',
     expect: {
-      contextTitle: 'My Profile',
+      contextTitle: NAV_LABEL_PROFILE,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
@@ -74,7 +76,7 @@ const CASES = [
   {
     path: '/dashboard/account-security',
     expect: {
-      contextTitle: 'Sign-in & password',
+      contextTitle: NAV_LABEL_ACCOUNT_SECURITY,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,

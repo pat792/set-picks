@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import { fetchPublicProfileByHandle } from '../../profile';
+import { getDashboardEntryHref } from '../../../shared/lib/dashboardLastPath';
 import { createInitialUserProfile } from '../api/profileSetupApi';
 
 export function useProfileSetup(user) {
@@ -34,7 +35,8 @@ export function useProfileSetup(user) {
         // Force a reload so `useAuth` re-reads the Firestore users doc.
         // Otherwise `/dashboard/*` can redirect back to `/setup` because `userProfile`
         // is not live-updated after the write.
-        window.location.href = '/dashboard';
+        const isAdminUser = user?.email === 'pat@road2media.com';
+        window.location.href = getDashboardEntryHref({ isAdminUser });
       } catch (err) {
         console.error(err);
         setError('Failed to create profile. Try again.');

@@ -36,16 +36,7 @@ export default function Profile({ user }) {
 
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
-      <DashboardActionRow
-        summary={
-          <>
-            Your handle and favorite song show on{' '}
-            <span className="font-semibold text-slate-300">show standings</span>, in{' '}
-            <span className="font-semibold text-slate-300">pools</span>, and on your{' '}
-            <span className="font-semibold text-slate-300">public profile</span>.
-          </>
-        }
-      >
+      <DashboardActionRow>
         {user?.uid ? (
           <Link
             to={`/user/${user.uid}`}
@@ -59,7 +50,7 @@ export default function Profile({ user }) {
 
       <div className="mb-6 text-left">
         <h2 className="hidden md:block font-display text-display-page md:text-display-page-lg font-bold text-white">
-          My Profile
+          Profile
         </h2>
         {joinDate && (
           <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mt-1">
@@ -82,18 +73,17 @@ export default function Profile({ user }) {
       {hasEmailPasswordProvider && user?.email && (
         <div className="mt-8 rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6">
           <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
-            Sign-in email &amp; password
+            Sign-in &amp; password
           </h3>
           <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-            <strong className="text-slate-300">Change your email or password</strong> for logging in
-            (your sign-in user ID is your email). You&apos;ll need your current password, or you can
-            request a reset link if you forgot it — all on the next screen.
+            Update the email or password you use to sign in (you&apos;ll need your current password on
+            the next screen, or a reset link if you forgot it).
           </p>
           <Link
             to="/dashboard/account-security"
             className="mt-4 flex w-full items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-900/80 py-3.5 font-black text-sm uppercase tracking-widest text-white transition-colors hover:border-emerald-500/50 hover:bg-slate-800"
           >
-            Change email or password
+            Update email or password
           </Link>
         </div>
       )}
