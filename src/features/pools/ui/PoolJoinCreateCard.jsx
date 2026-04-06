@@ -41,6 +41,13 @@ export default function PoolJoinCreateCard({
         setMessage({ text: 'Invalid invite code', type: 'error' });
         return;
       }
+      if (joinError?.code === 'pool-archived') {
+        setMessage({
+          text: 'That pool is archived and no longer accepts new members.',
+          type: 'error',
+        });
+        return;
+      }
       if (joinError?.code === 'already-in-pool') {
         setMessage({ text: "You're already in this pool", type: 'error' });
         return;

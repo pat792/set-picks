@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { pickDataCountsForPool } from '../../pools';
+
 /**
  * @param {Array<{ userId?: string } & Record<string, unknown>>} picks
  * @param {import('firebase/auth').User | null | undefined} _user
@@ -83,7 +85,11 @@ export function useDisplayedPicks(picks, _user, userPools, navTargetPoolId) {
     const selectedPool = userPools?.find((p) => p.id === activeFilter);
     if (!selectedPool) return picks;
 
-    return picks.filter((pick) => selectedPool.members?.includes(pick.userId));
+    return picks.filter(
+      (pick) =>
+        selectedPool.members?.includes(pick.userId) &&
+        pickDataCountsForPool(pick, selectedPool.id)
+    );
   }, [picks, activeFilter, userPools]);
 
   return {

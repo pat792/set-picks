@@ -14,6 +14,7 @@ export function usePoolInviteShare({ inviteCode, onSuccess, disabled = false }) 
   }, [inviteCode]);
 
   const handleShareClick = useCallback(async () => {
+    if (disabled || !inviteCode) return;
     const url = createPoolInviteLink(inviteCode);
     const result = await shareOrCopyInviteUrl(url, {
       copyToastMessage: 'Link copied!',
@@ -27,7 +28,7 @@ export function usePoolInviteShare({ inviteCode, onSuccess, disabled = false }) 
       setStatus('error');
       window.setTimeout(() => setStatus('idle'), 2000);
     }
-  }, [inviteCode, onSuccess]);
+  }, [inviteCode, onSuccess, disabled]);
 
   const label =
     status === 'shared'

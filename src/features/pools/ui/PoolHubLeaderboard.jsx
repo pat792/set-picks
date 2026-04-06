@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export default function PoolHubLeaderboard({ members }) {
+export default function PoolHubLeaderboard({ members, seasonShowCount }) {
   return (
     <>
       {members.length === 0 ? (
@@ -18,6 +18,21 @@ export default function PoolHubLeaderboard({ members }) {
             const wins = typeof m.wins === 'number' ? m.wins : 0;
             const played =
               typeof m.showsPlayed === 'number' ? m.showsPlayed : 0;
+            const participated =
+              typeof m.showsParticipatedIn === 'number'
+                ? m.showsParticipatedIn
+                : played;
+            const showDenominator =
+              typeof seasonShowCount === 'number' && seasonShowCount > 0
+                ? seasonShowCount
+                : typeof m.totalShowsInPoolSeason === 'number' &&
+                    m.totalShowsInPoolSeason > 0
+                  ? m.totalShowsInPoolSeason
+                  : null;
+            const showsLabel =
+              showDenominator != null
+                ? `${participated} of ${showDenominator}`
+                : String(participated);
             return (
               <li
                 key={m.id}
@@ -53,7 +68,7 @@ export default function PoolHubLeaderboard({ members }) {
                   </div>
                   <div className="flex flex-col items-center">
                     <span className="text-base font-bold text-white tabular-nums leading-none">
-                      {played}
+                      {showsLabel}
                     </span>
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                       Shows

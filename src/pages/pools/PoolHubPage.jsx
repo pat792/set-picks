@@ -1,14 +1,17 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 import { useNextShowPicksStatus } from '../../features/picks';
 import {
+  PoolAdminControls,
   PoolHubActiveShow,
   PoolHubHeader,
   PoolHubSeasonTotalsSection,
   PoolHubShowArchive,
+  usePoolAdminControls,
   usePoolHub,
+  usePoolSeasonStandings,
 } from '../../features/pools';
 import BackButton from '../../shared/ui/BackButton';
 import DashboardPoolBreadcrumb from '../../shared/ui/DashboardPoolBreadcrumb';
@@ -18,6 +21,7 @@ import { showOptionLabelDesktop } from '../../shared/utils/showOptionLabel.js';
 
 export default function PoolHubPage({ user }) {
   const { poolId } = useParams();
+  const navigate = useNavigate();
   const {
     pool,
     members,
@@ -26,7 +30,17 @@ export default function PoolHubPage({ user }) {
     forbidden,
     inviteCode,
     onInviteShareSuccess,
+    reload,
   } = usePoolHub(poolId, user);
+  const {
+    leaderboardMembers,
+    loading: seasonLoading,
+    totalShowsInPoolSeason,
+  } = usePoolSeasonStandings(poolId, pool, members);
+  const admin = usePoolAdminControls(poolId, user, pool, {
+    navigate: (path) => navigate(path),
+    onReloadPool: () => reload(),
+  });
   const nextShow = getNextShow();
   const nextShowDate = nextShow.date;
   const {
@@ -88,6 +102,7 @@ export default function PoolHubPage({ user }) {
 
   const memberCount = pool.members?.length ?? 0;
   const ownerId = pool.ownerId;
+  const isArchived = pool.status === 'archived';
   const ownerMember =
     ownerId != null ? members.find((m) => m.id === ownerId) : null;
   const ownerHandle =
@@ -110,9 +125,26 @@ export default function PoolHubPage({ user }) {
           inviteCode={inviteCode}
           onInviteShareSuccess={onInviteShareSuccess}
           creatorLabel={creatorLabel}
+          isArchived={isArchived}
         />
       </div>
       <div className="flex flex-col gap-6">
+        <PoolAdminControls
+          canAdmin={admin.canAdmin}
+          isArchived={admin.isArchived}
+          editNameOpen={admin.editNameOpen}
+          onOpenEditName={admin.openEditName}
+          onCloseEditName={admin.closeEditName}
+          busy={admin.busy}
+          formError={admin.formError}
+          poolName={admin.poolName}
+          onSaveName={admin.handleSaveName}
+          onArchivePool={admin.openArchiveConfirm}
+          onDeletePool={admin.openDeleteConfirm}
+          confirmModalOpen={admin.confirmModalOpen}
+          onCloseConfirm={admin.closeConfirm}
+          confirmModalProps={admin.confirmModalProps}
+        />
         <section>
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">
             Game Status
@@ -127,7 +159,11 @@ export default function PoolHubPage({ user }) {
             poolId={pool.id}
           />
         </section>
-        <PoolHubSeasonTotalsSection members={members} />
+        <PoolHubSeasonTotalsSection
+          members={leaderboardMembers}
+          loading={seasonLoading}
+          seasonShowCount={totalShowsInPoolSeason}
+        />
         <PoolHubShowArchive poolId={poolId} />
       </div>
     </div>
