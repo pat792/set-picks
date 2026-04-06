@@ -23,7 +23,7 @@ export default function SplashHeader({
             onClick={onSignInClick}
             className="text-sm sm:text-sm whitespace-nowrap"
           >
-            Log in
+            Sign In
           </Button>
 
           <Button

@@ -60,7 +60,7 @@ export default function StandingsPage({ selectedDate }) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 mt-20 text-emerald-400 font-bold">
         <Loader2 className="h-10 w-10 animate-spin" aria-hidden />
-        <p>Loading show standings for {showLabel}…</p>
+        <p>Loading standings for {showLabel}…</p>
       </div>
     );
   }
@@ -69,11 +69,11 @@ export default function StandingsPage({ selectedDate }) {
     return (
       <Card variant="default" padding="lg" className="text-center">
         <PageTitle as="h2" variant="section" className="mb-2">
-          Show standings aren&apos;t up yet
+          Results aren&apos;t up yet
         </PageTitle>
         <p className="text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">
-          This date hasn&apos;t happened yet. Lock picks from the Picks tab, then come back to the
-          Standings tab after the show for live scores and the show standings order.
+          This date hasn&apos;t happened yet. Lock your picks on Picks, then check Standings after the
+          show for scores and rankings.
         </p>
       </Card>
     );
@@ -128,7 +128,7 @@ export default function StandingsPage({ selectedDate }) {
               <p className="text-slate-400 font-bold max-w-sm">
                 {activeFilter === 'global'
                   ? 'Be the first to lock in picks for this show — head to the Picks tab.'
-                  : 'Nobody in this pool has locked in yet. Invite friends from My pools.'}
+                  : 'Nobody in this pool has locked in yet. Invite friends from Pools.'}
               </p>
             </>
           )}

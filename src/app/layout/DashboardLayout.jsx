@@ -15,12 +15,23 @@ import PoolsPage from '../../pages/pools/PoolsPage';
 import PoolHubPage from '../../pages/pools/PoolHubPage';
 
 import { ScoringRulesModalProvider } from '../../features/scoring';
-import { NAV_LABEL_PICKS, NAV_LABEL_STANDINGS } from '../../shared/config/dashboardVocabulary';
+import {
+  NAV_LABEL_ADMIN,
+  NAV_LABEL_PICKS,
+  NAV_LABEL_POOLS,
+  NAV_LABEL_PROFILE,
+  NAV_LABEL_STANDINGS,
+} from '../../shared/config/dashboardVocabulary';
 import { SHOW_DATES, SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
-import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
-import { showOptionLabelDesktop, showOptionTitle } from '../../shared/utils/showOptionLabel.js';
+import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
+import {
+  showOptionLabelCompact,
+  showOptionLabelDesktop,
+  showOptionTitle,
+} from '../../shared/utils/showOptionLabel.js';
 import { PastShowLockBanner, TooEarlyBanner } from '../../features/picks';
 
+import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
@@ -45,19 +56,28 @@ export default function DashboardLayout() {
     if (valid) setSelectedDate(showDateFromStandingsUrl);
   }, [location.pathname, showDateFromStandingsUrl]);
 
+  useEffect(() => {
+    persistDashboardPath(location.pathname, location.search, {
+      isAdminUser: isAdmin,
+    });
+  }, [location.pathname, location.search, isAdmin]);
+
     const navItems = [
     { name: NAV_LABEL_PICKS, path: '/dashboard', icon: ListMusic },
-    { name: 'Pools', path: '/dashboard/pools', icon: Users },
+    { name: NAV_LABEL_POOLS, path: '/dashboard/pools', icon: Users },
     { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Trophy },
-    { name: 'Profile', path: '/dashboard/profile', icon: UserIcon },
+    { name: NAV_LABEL_PROFILE, path: '/dashboard/profile', icon: UserIcon },
   ];
 
   if (isAdmin) {
-    navItems.push({ name: 'Admin', path: '/dashboard/admin', icon: Settings });
+    navItems.push({ name: NAV_LABEL_ADMIN, path: '/dashboard/admin', icon: Settings });
   }
 
   const meta = getDashboardPageMeta(location.pathname);
   const datePickerStatus = getShowStatus(selectedDate);
+  const priorShowForTooEarly = getShowBeforeDate(selectedDate);
+  const tooEarlyPriorLabel =
+    priorShowForTooEarly != null ? showOptionLabelCompact(priorShowForTooEarly) : null;
   const showDatePickerUserBanners = meta.showDatePicker && location.pathname !== '/dashboard/admin';
   const showPastShowLock = showDatePickerUserBanners && datePickerStatus === 'PAST';
   const showTooEarlyBanner = showDatePickerUserBanners && datePickerStatus === 'FUTURE';
@@ -125,7 +145,7 @@ export default function DashboardLayout() {
 
       {/* MAIN CONTENT AREA — mobile: match header stack + bottom nav + home indicator */}
       <main className="flex-1 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+7.625rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
-        <div className="max-w-xl mx-auto px-4 pt-2 md:p-8">
+        <div className="max-w-xl mx-auto w-full px-4 pt-2 md:p-8">
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
@@ -152,7 +172,9 @@ export default function DashboardLayout() {
           )}
 
           {showPastShowLock && <PastShowLockBanner />}
-          {showTooEarlyBanner && <TooEarlyBanner />}
+          {showTooEarlyBanner && (
+            <TooEarlyBanner priorShowLabel={tooEarlyPriorLabel} />
+          )}
 
           {meta.layoutDetailEyebrow ? (
             <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-slate-400 md:block">

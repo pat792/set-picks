@@ -38,14 +38,14 @@ export default function PoolJoinCreateCard({
       });
     } catch (joinError) {
       if (joinError?.code === 'invalid-invite-code') {
-        setMessage({ text: 'Invalid Invite Code.', type: 'error' });
+        setMessage({ text: 'Invalid invite code', type: 'error' });
         return;
       }
       if (joinError?.code === 'already-in-pool') {
-        setMessage({ text: 'You are already in this pool.', type: 'error' });
+        setMessage({ text: "You're already in this pool", type: 'error' });
         return;
       }
-      setMessage({ text: 'Error joining pool.', type: 'error' });
+      setMessage({ text: 'Could not join pool', type: 'error' });
     }
   };
 
@@ -62,7 +62,7 @@ export default function PoolJoinCreateCard({
         inviteCode: createdPool.inviteCode,
       });
     } catch {
-      setMessage({ text: 'Error creating pool.', type: 'error' });
+      setMessage({ text: 'Could not create pool', type: 'error' });
     }
   };
 
@@ -134,7 +134,7 @@ export default function PoolJoinCreateCard({
                 htmlFor="pool-join-code"
                 className="ml-1 mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400"
               >
-                Enter 5-Character Code
+                Invite code (5 characters)
               </label>
               <Input
                 id="pool-join-code"
@@ -194,7 +194,7 @@ export default function PoolJoinCreateCard({
               disabled={loading}
               className="w-full bg-emerald-500 text-lg uppercase tracking-widest text-slate-900 hover:bg-emerald-400"
             >
-              {loading ? 'Creating...' : 'Create New Pool'}
+              {loading ? 'Creating...' : 'Create pool'}
             </Button>
           </form>
         )}

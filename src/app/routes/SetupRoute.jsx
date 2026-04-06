@@ -2,11 +2,13 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { AuthLoadingScreen, useAuth } from '../../features/auth';
+import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 
 import ProfileSetupPage from '../../pages/auth/ProfileSetupPage';
 
 export default function SetupRoute() {
   const { user, userProfile, loading } = useAuth();
+  const isAdminUser = user?.email === 'pat@road2media.com';
 
   if (loading) {
     return <AuthLoadingScreen />;
@@ -17,7 +19,7 @@ export default function SetupRoute() {
   }
 
   if (userProfile) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;
   }
 
   return <ProfileSetupPage user={user} />;
