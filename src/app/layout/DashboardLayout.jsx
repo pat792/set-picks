@@ -144,8 +144,8 @@ export default function DashboardLayout() {
       </div>
 
       {/* MAIN CONTENT AREA — mobile: match header stack + bottom nav + home indicator */}
-      <main className="flex-1 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+7.625rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
-        <div className="max-w-xl mx-auto w-full px-4 pt-2 md:p-8">
+      <main className="flex-1 min-w-0 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+7.625rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
+        <div className="max-w-xl mx-auto w-full min-w-0 px-4 pt-2 md:p-8">
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
