@@ -143,10 +143,12 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
       const userPicks = pickData.picks || {};
       const score = calculateTotalScore(userPicks, actualSetlist);
 
-      batch.update(pickDoc.ref, {
-        score,
-        gradedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      // Live scoring only: do not set gradedAt here (pool season uses isGraded from rollup).
+      const update = { score };
+      if (pickData.isGraded !== true) {
+        update.gradedAt = admin.firestore.FieldValue.delete();
+      }
+      batch.update(pickDoc.ref, update);
     });
 
     await batch.commit();

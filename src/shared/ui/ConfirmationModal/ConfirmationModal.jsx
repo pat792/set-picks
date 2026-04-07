@@ -1,0 +1,100 @@
+import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
+
+import Button from '../Button';
+
+/**
+ * Domain-agnostic confirm / cancel dialog (portal, Escape + backdrop close).
+ */
+export default function ConfirmationModal({
+  open,
+  title,
+  message,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  confirmVariant = 'primary',
+  busy = false,
+  onConfirm,
+  onClose,
+}) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onCloseRef.current();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      role="presentation"
+    >
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        aria-label="Close dialog"
+        onClick={() => onCloseRef.current()}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-modal-title"
+        className="relative z-10 w-full max-w-md rounded-t-2xl border border-slate-700 bg-[#0f172a] p-4 shadow-xl sm:rounded-2xl sm:p-6"
+      >
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => onCloseRef.current()}
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
+        <h2
+          id="confirmation-modal-title"
+          className="pr-10 -mt-8 text-lg font-bold text-white"
+        >
+          {title}
+        </h2>
+        {message ? (
+          <p className="mt-3 text-sm font-medium text-slate-400 leading-relaxed">
+            {message}
+          </p>
+        ) : null}
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => onCloseRef.current()}
+            disabled={busy}
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            type="button"
+            variant={confirmVariant}
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}

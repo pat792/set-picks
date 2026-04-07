@@ -28,10 +28,12 @@ export async function fetchPools(userId) {
   );
   const snapshot = await getDocs(poolsQuery);
 
-  return snapshot.docs.map((poolDoc) => ({
-    id: poolDoc.id,
-    ...poolDoc.data(),
-  }));
+  return snapshot.docs
+    .map((poolDoc) => ({
+      id: poolDoc.id,
+      ...poolDoc.data(),
+    }))
+    .filter((p) => p.status !== 'archived');
 }
 
 export async function createPool({ userId, name }) {
@@ -51,6 +53,7 @@ export async function createPool({ userId, name }) {
     ownerId: userId,
     members: [userId],
     createdAt,
+    status: 'active',
   };
 
   const batch = writeBatch(db);
@@ -90,6 +93,12 @@ export async function joinPool({ userId, inviteCode }) {
 
   const poolDoc = snapshot.docs[0];
   const poolData = poolDoc.data();
+
+  if (poolData.status === 'archived') {
+    const err = new Error('This pool is archived.');
+    err.code = 'pool-archived';
+    throw err;
+  }
 
   if (
     typeof poolData.maxMembers === 'number' &&

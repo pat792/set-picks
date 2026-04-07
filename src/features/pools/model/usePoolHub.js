@@ -76,5 +76,6 @@ export function usePoolHub(poolId, currentUser) {
     forbidden,
     inviteCode,
     onInviteShareSuccess: handleInviteShareSuccess,
+    reload: load,
   };
 }

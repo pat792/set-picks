@@ -1,7 +1,11 @@
 export { joinPool } from './api/poolsApi';
+export { pickDataCountsForPool, POOL_NAME_MAX_LENGTH } from './api/poolFirestore';
 export { usePoolHub } from './model/usePoolHub';
+export { usePoolAdminControls } from './model/usePoolAdminControls';
+export { usePoolSeasonStandings } from './model/usePoolSeasonStandings';
 export { invalidateUserPools } from './model/userPoolsRefreshBus';
 export { default as useUserPools } from './model/useUserPools';
+export { default as PoolAdminControls } from './ui/PoolAdminControls';
 export { default as PoolHubActiveShow } from './ui/PoolHubActiveShow';
 export { default as PoolHubHeader } from './ui/PoolHubHeader';
 export { default as PoolHubLeaderboard } from './ui/PoolHubLeaderboard';
