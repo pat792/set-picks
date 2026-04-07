@@ -1,0 +1,21 @@
+import React from 'react';
+
+/**
+ * Display-only pill for header metadata (counts, labels). Not interactive.
+ * See docs/design.md (filters use FilterPill; this is muted meta).
+ */
+export default function MetaChip({ children, className = '', ...props }) {
+  return (
+    <span
+      className={[
+        'inline-flex items-center whitespace-nowrap rounded-full border border-border-subtle bg-surface-panel px-3 py-1 font-sans text-[10px] font-bold text-slate-400',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+}

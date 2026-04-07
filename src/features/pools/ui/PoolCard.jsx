@@ -25,7 +25,7 @@ export default function PoolCard({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`/dashboard/pool/${pool?.id}`}
-              className="inline-flex items-center gap-1 text-lg font-bold text-emerald-400 hover:text-emerald-300 hover:underline decoration-emerald-400/70 underline-offset-2"
+              className="inline-flex items-center gap-1 text-lg font-bold text-brand-primary decoration-brand-primary/70 underline-offset-2 hover:text-brand-primary-strong hover:underline"
             >
               <span className="truncate">{pool?.name}</span>
               <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />

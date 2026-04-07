@@ -64,15 +64,15 @@ export default function PoolHubActiveShow({
       as="section"
       variant="default"
       padding="sm"
-      className="border border-emerald-500/30 bg-gradient-to-br from-slate-800/90 to-slate-900/90 shadow-lg shadow-emerald-900/10 md:p-6"
+      className="border border-brand-primary/30 bg-gradient-to-br from-surface-panel-strong to-brand-bg-deep shadow-glow-brand md:p-6"
     >
       <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/90">
+          <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
             {eyebrow}
           </p>
           <p className="font-display text-lg font-bold leading-snug text-white md:text-xl">
-            <span className="text-emerald-300/95">{showLabel}</span>
+            <span className="text-brand-primary">{showLabel}</span>
           </p>
           {picksStatusLoading && !isLocked ? (
             <p className="flex items-center gap-2 text-sm font-bold text-slate-500">
@@ -105,7 +105,7 @@ export default function PoolHubActiveShow({
             </Button>
           ) : picksStatusLoading ? (
             <div
-              className="flex h-11 w-full min-w-[12rem] items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/50 sm:w-auto"
+              className="flex h-11 w-full min-w-[12rem] items-center justify-center rounded-xl border border-border-subtle bg-surface-field sm:w-auto"
               aria-busy="true"
               aria-label="Loading picks status"
             >

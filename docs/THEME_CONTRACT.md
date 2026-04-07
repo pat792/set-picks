@@ -1,50 +1,38 @@
-# Theme Contract (Hybrid Now)
+# Theme contract (shared UI)
 
-This document defines predictable visual roles for dashboard surfaces and actions.
-Use these roles instead of ad hoc screen-level color classes.
+Canonical visual roles for dashboard/scoring shells. **Authoritative palette, typography, and do/don’t rules:** [`design.md`](./design.md).
 
-## Roles
+## Layer ownership (FSD)
 
-- `chrome`: navigation bars, utility wrappers, fixed headers.
-- `panel`: primary content containers.
-- `inset`: nested wells inside a panel (details, sub-sections, score cells).
-- `field`: form input surfaces.
-- `action-primary`: the highest-priority CTA.
-- `action-secondary`: supporting actions.
-- `status-success`: positive/result emphasis.
-- `status-warning` / `status-danger`: warning/destructive states.
+| Layer | Owns |
+|--------|------|
+| `src/shared/ui` | Reusable primitives and variant APIs (buttons, pills, cards, inputs). |
+| `src/features/*/ui` | Composition and feature-specific layout; consumes shared primitives instead of one-off class bundles where a primitive exists. |
+| `src/pages` | Route wiring and composing feature UI only. |
 
-## Component Mapping
+## Primitives ↔ roles
 
-- `Card` (`src/shared/ui/Card.jsx`)
-  - `chrome` -> top/bottom bars and utility containers.
-  - `panel`/`default` -> base container.
-  - `solid` -> emphasized container.
-  - `inset`/`nested` -> subordinate grouped content.
-  - `alert`, `danger` -> semantic states.
-- `Button` (`src/shared/ui/Button.jsx`)
-  - `primary`, `secondary`, `ghost`, `danger`, `text`, `link`.
-- `Input` (`src/shared/ui/Input.jsx`)
-  - all text-like controls use `surface.field`.
-- `GhostPill` (`src/shared/ui/GhostPill.jsx`)
-  - low-emphasis controls/chips tied to `panel` + accent hover.
-
-## Accent Semantics
-
-- Teal (`brand.primary`) = interactive emphasis (buttons, focus, selected nav/action affordances).
-- Emerald = score/success emphasis (leader names, points, success status).
-- Avoid mixing cyan/fuchsia accents in default dashboard/scoring containers.
-
-## Do / Don't
-
-- Do use semantic tokens from `tailwind.config.js`:
-  - `bg-surface-*`, `border-border-*`, `text-brand-*`.
-- Do route new container styles through shared `Card` variants when possible.
-- Do keep visual changes composable via variant props.
-- Don't use direct `bg-slate-*` or `border-slate-*` for dashboard/scoring shell surfaces.
-- Don't add one-off border/ring colors to page components when a shared role already exists.
+| Role | Component | Notes |
+|------|-----------|--------|
+| Compare / filter toggles | `FilterPill` | Pill shape; **active** = `surface-panel-strong` + `border-subtle` (not brand teal). |
+| Dashboard row nav / overflow | `DashboardRowPill` | Polymorphic (`as={Link}`, `as="summary"`). Tones: `muted`, `accent`. |
+| Icon + label ghost actions | `GhostPill` | Same glass/surface language as row pills; picks + standings secondary actions. |
+| Primary / secondary CTAs | `Button` | Rounded-xl family; brand gradient primary (see `Button.jsx`). |
+| Panel containers | `Card` | `surface-panel` / `surface-panel-strong` variants. |
+| Header meta (counts, non-interactive labels) | `MetaChip` | Muted pill; not a button — use `FilterPill` for toggles. |
 
 ## Verification
 
-- Run `npm run verify:theme-contract` to catch forbidden shell surface regressions.
-- Run `npm run verify:dashboard-meta` after dashboard route meta updates.
+`npm run verify:dashboard-ui` scans `features/scoring|pools|picks/ui` plus `ProfilePage` / `PoolsPage` for a small denylist of legacy class clusters (pre–design-token pills and slabs). CI runs this after ESLint (see `.github/workflows/ci.yml`).
+
+Run `npm run verify:theme-contract` to catch forbidden shell surface regressions in scoped paths.
+
+Run `npm run verify:dashboard-meta` after dashboard route meta updates.
+
+## Tailwind tokens
+
+Semantic colors live in `tailwind.config.js` under `brand`, `surface`, and `border`. Prefer these over raw `slate-*` / `emerald-*` for new dashboard work so theming stays centralized.
+
+## Migration
+
+When touching a file with ad hoc pill or filter classes, prefer the table above. If no primitive fits, add a small variant to an existing shared component (or propose a new primitive) rather than copying class strings across features.

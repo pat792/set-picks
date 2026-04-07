@@ -56,6 +56,7 @@ Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
 ## Dashboard routes
 
 - Adding or renaming **`/dashboard/*`**: update **`src/app/layout/model/dashboardPageMeta.js`**, nav / **`isActive`** in **`src/app/layout/DashboardLayout.jsx`**, extend **`scripts/verify-dashboard-meta.mjs`**, run **`npm run verify:dashboard-meta`**.
+- Dashboard shell / token drift in scoring, pools, and picks UI: **`docs/THEME_CONTRACT.md`**, **`npm run verify:dashboard-ui`** (CI).
 - Vocabulary and IA: **`docs/DASHBOARD_IA.md`**.
 
 ---

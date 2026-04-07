@@ -9,6 +9,7 @@ import {
   useUserPools,
 } from '../../features/pools';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
+import DashboardRowPill from '../../shared/ui/DashboardRowPill';
 import { getNextShow } from '../../shared/utils/timeLogic.js';
 
 export default function Pools({ user }) {
@@ -30,13 +31,10 @@ export default function Pools({ user }) {
   return (
     <div className="w-full space-y-8 pb-6 md:pb-12">
       <DashboardActionRow>
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/40 hover:bg-slate-700 hover:text-emerald-400"
-        >
+        <DashboardRowPill as={Link} to="/dashboard" tone="muted">
           <ListMusic className="h-3.5 w-3.5 shrink-0" aria-hidden />
           Go to Picks
-        </Link>
+        </DashboardRowPill>
       </DashboardActionRow>
 
       <UserPoolsSection
