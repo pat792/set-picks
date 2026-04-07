@@ -30,10 +30,6 @@ export default {
           primary: '#2dd4bf',
           'primary-strong': '#14b8a6',
           kicker: '#2dd4bf',
-          /** Primary CTA fill — Tailwind `green-400` */
-          cta: '#4ade80',
-          'cta-hover': '#86efac',
-          'cta-ink': '#052e16',
           accent: {
             red: '#ef4444',
             blue: '#3b82f6',
@@ -58,8 +54,6 @@ export default {
       boxShadow: {
         'glow-brand': '0 0 40px -10px rgba(45, 212, 191, 0.5)',
         'glow-brand-lg': '0 0 60px -15px rgba(45, 212, 191, 0.7)',
-        'glow-cta': '0 0 40px -10px rgba(74, 222, 128, 0.55)',
-        'glow-cta-lg': '0 0 60px -15px rgba(74, 222, 128, 0.65)',
         'glow-kicker': '0 0 12px rgba(45, 212, 191, 0.5)',
         'inset-glass': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
       },
