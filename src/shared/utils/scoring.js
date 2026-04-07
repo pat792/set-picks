@@ -52,15 +52,30 @@ function buildAllPlayedNormalized(actualSetlist) {
 }
 
 /**
- * @returns {{ base: number, bustoutBoost: boolean }}
+ * Why this slot scored (or did not). Used in standings pick breakdown UI.
+ * @typedef {'none' | 'miss' | 'in_setlist' | 'exact_slot' | 'encore_exact' | 'wildcard_hit'} ScoreBreakdownKind
+ */
+
+/** Short labels aligned with scoring rules copy (standings detail / tooltips). */
+export const SCORE_BREAKDOWN_KIND_LABEL = {
+  none: '',
+  miss: 'Not in show',
+  in_setlist: 'In setlist',
+  exact_slot: 'Exact slot',
+  encore_exact: 'Exact encore',
+  wildcard_hit: 'Wildcard hit',
+};
+
+/**
+ * @returns {{ base: number, bustoutBoost: boolean, kind: ScoreBreakdownKind }}
  */
 function computeSlotResult(fieldId, guessedSong, actualSetlist) {
   if (!actualSetlist || !guessedSong) {
-    return { base: 0, bustoutBoost: false };
+    return { base: 0, bustoutBoost: false, kind: 'none' };
   }
 
   const guess = normalize(guessedSong);
-  if (!guess) return { base: 0, bustoutBoost: false };
+  if (!guess) return { base: 0, bustoutBoost: false, kind: 'none' };
 
   const allPlayed = buildAllPlayedNormalized(actualSetlist);
 
@@ -69,7 +84,7 @@ function computeSlotResult(fieldId, guessedSong, actualSetlist) {
     if (allPlayed.includes(guess)) {
       base = SCORING_RULES.WILDCARD_HIT;
     } else {
-      return { base: 0, bustoutBoost: false };
+      return { base: 0, bustoutBoost: false, kind: 'miss' };
     }
   } else {
     const actualExact = normalize(actualSetlist[fieldId]);
@@ -81,7 +96,7 @@ function computeSlotResult(fieldId, guessedSong, actualSetlist) {
     } else if (allPlayed.includes(guess)) {
       base = SCORING_RULES.IN_SETLIST;
     } else {
-      return { base: 0, bustoutBoost: false };
+      return { base: 0, bustoutBoost: false, kind: 'miss' };
     }
   }
 
@@ -92,16 +107,30 @@ function computeSlotResult(fieldId, guessedSong, actualSetlist) {
     bustoutBoost = gapNum != null && gapNum >= SCORING_RULES.BUSTOUT_MIN_GAP;
   }
 
-  return { base, bustoutBoost };
+  /** @type {ScoreBreakdownKind} */
+  let kind = 'exact_slot';
+  if (fieldId === 'wild') {
+    kind = 'wildcard_hit';
+  } else if (fieldId === 'enc' && base === SCORING_RULES.ENCORE_EXACT) {
+    kind = 'encore_exact';
+  } else if (base === SCORING_RULES.IN_SETLIST) {
+    kind = 'in_setlist';
+  }
+
+  return { base, bustoutBoost, kind };
 }
 
-/** Points for one slot + whether the bustout boost applied (correct pick + gap ≥ BUSTOUT_MIN_GAP in song catalog). */
+/**
+ * Points for one slot + whether the bustout boost applied + kind for UI labels.
+ * Bustout does not change `kind` (still the base rule that earned points).
+ */
 export const getSlotScoreBreakdown = (fieldId, guessedSong, actualSetlist) => {
-  const { base, bustoutBoost } = computeSlotResult(fieldId, guessedSong, actualSetlist);
+  const { base, bustoutBoost, kind } = computeSlotResult(fieldId, guessedSong, actualSetlist);
   const boostPts = bustoutBoost ? SCORING_RULES.BUSTOUT_BOOST : 0;
   return {
     points: base + boostPts,
     bustoutBoost,
+    kind,
   };
 };
 

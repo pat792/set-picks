@@ -1,13 +1,18 @@
 import React from 'react';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
-import { getSlotScoreBreakdown, SCORING_RULES } from '../../../shared/utils/scoring';
+import {
+  getSlotScoreBreakdown,
+  SCORE_BREAKDOWN_KIND_LABEL,
+  SCORING_RULES,
+} from '../../../shared/utils/scoring';
 
 export default function ScoreBreakdownGrid({ userPicks, actualSetlist }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {FORM_FIELDS.map((field) => {
         const userGuess = userPicks[field.id] || '';
-        const { points: pts, bustoutBoost } = getSlotScoreBreakdown(
+        const trimmedGuess = String(userGuess).trim();
+        const { points: pts, bustoutBoost, kind } = getSlotScoreBreakdown(
           field.id,
           userGuess,
           actualSetlist
@@ -15,32 +20,35 @@ export default function ScoreBreakdownGrid({ userPicks, actualSetlist }) {
 
         let borderStyle = 'border-slate-700/50';
         let textColor = 'text-slate-300';
+        let markerColor = 'text-slate-500';
 
-        if (actualSetlist) {
-          const { EXACT_SLOT, ENCORE_EXACT, IN_SETLIST, WILDCARD_HIT, BUSTOUT_BOOST } =
-            SCORING_RULES;
-          const exactHit =
-            pts === EXACT_SLOT ||
-            pts === EXACT_SLOT + BUSTOUT_BOOST ||
-            pts === ENCORE_EXACT ||
-            pts === ENCORE_EXACT + BUSTOUT_BOOST ||
-            pts === WILDCARD_HIT ||
-            pts === WILDCARD_HIT + BUSTOUT_BOOST;
-          const inSetHit = pts === IN_SETLIST || pts === IN_SETLIST + BUSTOUT_BOOST;
-
-          if (exactHit) {
+        if (actualSetlist && trimmedGuess) {
+          if (kind === 'exact_slot' || kind === 'encore_exact' || kind === 'wildcard_hit') {
             borderStyle = 'border-emerald-500/50 bg-emerald-500/10';
             textColor = 'text-emerald-400';
-          } else if (inSetHit) {
+            markerColor = 'text-emerald-500/90';
+          } else if (kind === 'in_setlist') {
             borderStyle = 'border-blue-500/50 bg-blue-500/10';
             textColor = 'text-blue-400';
+            markerColor = 'text-blue-400/90';
+          } else if (kind === 'miss') {
+            borderStyle = 'border-slate-600/50 bg-slate-800/40';
+            textColor = 'text-slate-400';
+            markerColor = 'text-slate-500';
           }
         }
+
+        const kindLabel = SCORE_BREAKDOWN_KIND_LABEL[kind] || '';
 
         return (
           <div key={field.id} className={`p-3 rounded-xl border ${borderStyle} flex flex-col gap-1.5`}>
             <span className="text-[8px] uppercase text-slate-500 font-bold">{field.label}</span>
             <span className={`text-xs font-bold truncate ${textColor}`}>{userGuess || '—'}</span>
+            {actualSetlist && trimmedGuess && kindLabel ? (
+              <span className={`text-[9px] font-black uppercase tracking-wider ${markerColor}`}>
+                {kindLabel}
+              </span>
+            ) : null}
             {actualSetlist && pts > 0 && (
               <div className="flex flex-wrap items-center gap-2 mt-0.5">
                 <span className="text-[10px] font-black text-slate-500 uppercase tabular-nums tracking-wide">
