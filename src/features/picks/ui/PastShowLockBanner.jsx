@@ -5,7 +5,7 @@ import { Lock } from 'lucide-react';
 export default function PastShowLockBanner() {
   return (
     <div
-      className="mb-6 flex flex-col items-center justify-center rounded-2xl border border-slate-600/80 bg-slate-800/90 p-4 text-center shadow-lg md:flex-row md:gap-4 md:p-4 md:text-left"
+      className="mb-6 flex flex-col items-center justify-center rounded-2xl border border-border-subtle bg-surface-panel-strong p-4 text-center shadow-inset-glass md:flex-row md:gap-4 md:p-4 md:text-left"
       role="status"
     >
       <Lock

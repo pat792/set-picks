@@ -1,5 +1,5 @@
-# Runs lint + dashboard IA guardrails on every push and PR.
-# See docs/DASHBOARD_IA.md and npm run verify:dashboard-meta.
+# Runs lint + dashboard IA/UI guardrails on every push and PR.
+# See docs/DASHBOARD_IA.md, docs/THEME_CONTRACT.md, npm run verify:dashboard-meta, npm run verify:dashboard-ui.
 
 name: CI
 
@@ -28,3 +28,6 @@ jobs:
 
       - name: Dashboard meta (IA drift check)
         run: npm run verify:dashboard-meta
+
+      - name: Dashboard UI tokens (shell drift check)
+        run: npm run verify:dashboard-ui

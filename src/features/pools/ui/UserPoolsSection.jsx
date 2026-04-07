@@ -10,7 +10,7 @@ export default function UserPoolsSection({
   return (
     <section className="space-y-4">
       {pools.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-800/30 p-8 text-center">
+        <div className="rounded-3xl border border-dashed border-border-muted bg-surface-glass p-8 text-center shadow-inset-glass">
           <p className="font-bold text-slate-400">You are not in any pools yet.</p>
           <p className="mt-1 text-sm text-slate-500">
             Join with a code or create a pool below, then lock picks on the Picks tab.

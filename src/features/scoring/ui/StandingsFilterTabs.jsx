@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 
+import FilterPill from '../../../shared/ui/FilterPill';
 import PageTitle from '../../../shared/ui/PageTitle';
 
 const scrollRibbon =
@@ -108,24 +109,16 @@ export default function StandingsFilterTabs({ activeFilter, filterOptions, onTab
         onPointerDown={onPointerDown}
         onClickCapture={onClickCapture}
       >
-        {filterOptions.map((opt) => {
-          const isActive = activeFilter === opt.id;
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => onTabChange(opt.id)}
-              className={[
-                'shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold tracking-tight transition-colors',
-                isActive
-                  ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-900/30'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200',
-              ].join(' ')}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
+        {filterOptions.map((opt) => (
+          <FilterPill
+            key={opt.id}
+            type="button"
+            selected={activeFilter === opt.id}
+            onClick={() => onTabChange(opt.id)}
+          >
+            {opt.label}
+          </FilterPill>
+        ))}
       </div>
     </div>
   );

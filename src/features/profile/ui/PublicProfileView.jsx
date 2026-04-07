@@ -25,7 +25,7 @@ export default function PublicProfileView({ profile, userPools = [] }) {
     typeof profile.totalPoints === 'number' ? profile.totalPoints : 0;
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white">
+    <div className="min-h-screen bg-brand-bg text-white">
       <div className="max-w-xl mx-auto px-4 py-10 pb-16">
         <BackButton className="mb-8" />
 
@@ -34,13 +34,13 @@ export default function PublicProfileView({ profile, userPools = [] }) {
             {handle}
           </h1>
           {playingSince && (
-            <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mt-2">
+            <p className="mt-2 text-xs font-bold uppercase tracking-widest text-brand-primary">
               Playing since {playingSince}
             </p>
           )}
         </header>
 
-        <section className="mt-8 rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6">
+        <section className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
           <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
             Favorite song
           </h2>
@@ -49,8 +49,8 @@ export default function PublicProfileView({ profile, userPools = [] }) {
           </p>
         </section>
 
-        <section className="mt-6 rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6">
-          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+        <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
+          <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">
             Active pools
           </h2>
           {userPools.length === 0 ? (
@@ -60,7 +60,7 @@ export default function PublicProfileView({ profile, userPools = [] }) {
               {userPools.map((pool) => (
                 <span
                   key={pool.id}
-                  className="inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-300"
+                  className="inline-flex items-center rounded-full border border-border-subtle bg-surface-panel-strong px-3 py-1 text-xs font-bold text-brand-primary"
                 >
                   {pool.name || 'Unnamed pool'}
                 </span>
@@ -69,24 +69,24 @@ export default function PublicProfileView({ profile, userPools = [] }) {
           )}
         </section>
 
-        <section className="mt-6 rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6">
+        <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
           <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
             Stats
           </h2>
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="rounded-2xl bg-slate-900/60 border border-slate-700/50 p-4">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
+            <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
                 Total points
               </p>
-              <p className="text-xl font-black text-emerald-400 tabular-nums">{totalPoints}</p>
+              <p className="text-xl font-black tabular-nums text-brand-primary">{totalPoints}</p>
             </div>
-            <div className="rounded-2xl bg-slate-900/60 border border-slate-700/50 p-4">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
+            <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
                 Shows played
               </p>
-              <p className="text-xl font-black text-slate-400 tabular-nums">TBD</p>
+              <p className="text-xl font-black tabular-nums text-slate-400">TBD</p>
             </div>
-            <div className="rounded-2xl bg-slate-900/60 border border-slate-700/50 p-4">
+            <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
                 Direct hits
               </p>
