@@ -2,6 +2,8 @@ export { default as AsyncStatus } from './AsyncStatus';
 export { default as BackButton } from './BackButton';
 export { default as Button } from './Button';
 export { default as Card } from './Card';
+export { default as DashboardRowPill } from './DashboardRowPill';
+export { default as FilterPill } from './FilterPill';
 export { default as GhostPill } from './GhostPill';
 export { default as Input } from './Input';
 export { default as PageTitle } from './PageTitle';

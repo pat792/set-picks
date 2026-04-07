@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronDown, Home, MoreHorizontal, Scale, Users } from 'lucide-react';
 
 import DashboardActionRow from '../../../shared/ui/DashboardActionRow';
+import DashboardRowPill from '../../../shared/ui/DashboardRowPill';
 import GhostPill from '../../../shared/ui/GhostPill';
 
 const MOBILE_VISIBLE_ACTIONS = 2;
@@ -13,14 +14,10 @@ function StandingsTopActions({
   onOpenScoringRules,
 }) {
   const items = [
-    <Link
-      key="pools"
-      to="/dashboard/pools"
-      className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-900/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 transition-colors hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300 sm:px-4"
-    >
+    <DashboardRowPill key="pools" as={Link} to="/dashboard/pools" tone="accent">
       <Users className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
       Pools
-    </Link>,
+    </DashboardRowPill>,
   ];
 
   if (!isEveryone && onOpenPoolHub) {
@@ -55,8 +52,10 @@ function StandingsTopActions({
       {overflow.length > 0 ? (
         <>
           <details className="group relative sm:hidden">
-            <summary
-              className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-emerald-400 [&::-webkit-details-marker]:hidden"
+            <DashboardRowPill
+              as="summary"
+              tone="muted"
+              className="list-none"
               aria-label="More standings actions"
             >
               <MoreHorizontal className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -65,7 +64,7 @@ function StandingsTopActions({
                 className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
                 aria-hidden
               />
-            </summary>
+            </DashboardRowPill>
             <div className="absolute right-0 top-full z-20 mt-1 flex min-w-[11rem] flex-col gap-2 rounded-xl border border-slate-600 bg-slate-900 p-2 shadow-xl">
               {overflowMenu}
             </div>
