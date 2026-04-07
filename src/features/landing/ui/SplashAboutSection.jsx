@@ -8,12 +8,12 @@ export default function SplashAboutSection({
   onGetStartedClick,
 }) {
   const linkButtonClassName =
-    'text-sm font-bold text-slate-400 hover:text-white underline underline-offset-2 decoration-slate-500 hover:decoration-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] rounded-sm';
+    'text-sm font-bold text-slate-400 hover:text-white underline underline-offset-2 decoration-slate-500 hover:decoration-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-950 rounded-sm';
 
   return (
     <section
       ref={sectionRef}
-      className="relative z-10 w-full bg-[#0f172a] py-20 md:py-24 lg:py-32"
+      className="relative z-10 w-full bg-indigo-950 py-20 md:py-24 lg:py-32"
     >
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">

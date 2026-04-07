@@ -52,7 +52,7 @@ export default function ConfirmationModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmation-modal-title"
-        className="relative z-10 w-full max-w-md rounded-t-2xl border border-slate-700 bg-[#0f172a] p-4 shadow-xl sm:rounded-2xl sm:p-6"
+        className="relative z-10 w-full max-w-md rounded-t-2xl border border-slate-700 bg-indigo-950 p-4 shadow-xl sm:rounded-2xl sm:p-6"
       >
         <div className="flex justify-end">
           <button

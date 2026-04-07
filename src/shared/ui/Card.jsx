@@ -2,13 +2,14 @@ import React from 'react';
 
 const variantStyles = {
   default:
-    'bg-surface-panel border border-slate-700/50 rounded-3xl shadow-lg',
-  solid: 'bg-surface-panel-strong border border-slate-700 rounded-2xl shadow-lg',
+    'bg-surface-panel border border-border-venue rounded-3xl shadow-lg ring-1 ring-fuchsia-500/15',
+  solid:
+    'bg-surface-panel-strong border border-border-venue rounded-2xl shadow-lg ring-1 ring-fuchsia-500/20',
   glass:
-    'border border-white/10 bg-surface-glass backdrop-blur-xl ring-1 ring-white/10 shadow-inset-glass shadow-lg',
+    'border border-border-venue/80 bg-surface-glass backdrop-blur-xl ring-1 ring-fuchsia-500/10 shadow-inset-glass shadow-lg',
   alert: 'bg-amber-500/10 border border-amber-500/30 rounded-xl',
   danger: 'bg-red-500/10 border border-red-500/50 rounded-2xl',
-  nested: 'rounded-xl border border-slate-600/60 bg-surface-inset',
+  nested: 'rounded-xl border border-cyan-500/20 bg-surface-inset ring-1 ring-fuchsia-500/10',
   plain: '',
 };
 

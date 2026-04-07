@@ -24,32 +24,42 @@ export default {
        */
       colors: {
         brand: {
-          bg: '#0f172a',
-          'bg-deep': '#020617',
+          /** Venue base — Tailwind `indigo-950` (The Kuroda) */
+          bg: '#1e1b4b',
+          'bg-deep': '#0f0a2e',
           primary: '#2dd4bf',
           'primary-strong': '#14b8a6',
           kicker: '#2dd4bf',
+          /** Primary CTA fill — Tailwind `green-400` */
+          cta: '#4ade80',
+          'cta-hover': '#86efac',
+          'cta-ink': '#052e16',
           accent: {
             red: '#ef4444',
             blue: '#3b82f6',
           },
         },
         surface: {
-          glass: 'rgb(2 6 23 / 0.3)',
-          panel: 'rgb(30 41 59 / 0.5)',
-          'panel-strong': 'rgb(30 41 59 / 0.8)',
-          inset: 'rgb(15 23 42 / 0.4)',
-          field: '#0f172a',
+          glass: 'rgb(30 27 75 / 0.35)',
+          panel: 'rgb(67 56 202 / 0.38)',
+          'panel-strong': 'rgb(55 48 163 / 0.72)',
+          inset: 'rgb(30 27 75 / 0.5)',
+          field: '#1e1b4b',
         },
         border: {
           glass: 'rgba(255, 255, 255, 0.25)',
           subtle: 'rgb(51 65 85 / 0.5)',
           muted: 'rgb(71 85 105 / 0.6)',
+          /** Kuroda panel accents */
+          venue: 'rgba(34, 211, 238, 0.22)',
+          'venue-magenta': 'rgba(232, 121, 249, 0.18)',
         },
       },
       boxShadow: {
         'glow-brand': '0 0 40px -10px rgba(45, 212, 191, 0.5)',
         'glow-brand-lg': '0 0 60px -15px rgba(45, 212, 191, 0.7)',
+        'glow-cta': '0 0 40px -10px rgba(74, 222, 128, 0.55)',
+        'glow-cta-lg': '0 0 60px -15px rgba(74, 222, 128, 0.65)',
         'glow-kicker': '0 0 12px rgba(45, 212, 191, 0.5)',
         'inset-glass': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
       },

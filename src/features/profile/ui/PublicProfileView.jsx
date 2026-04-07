@@ -25,7 +25,7 @@ export default function PublicProfileView({ profile, userPools = [] }) {
     typeof profile.totalPoints === 'number' ? profile.totalPoints : 0;
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white">
+    <div className="min-h-screen bg-indigo-950 text-white">
       <div className="max-w-xl mx-auto px-4 py-10 pb-16">
         <BackButton className="mb-8" />
 

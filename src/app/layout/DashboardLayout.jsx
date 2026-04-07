@@ -86,7 +86,7 @@ export default function DashboardLayout() {
 
   return (
     <ScoringRulesModalProvider>
-    <div className="flex h-screen w-full bg-[#0f172a] text-white overflow-hidden">
+    <div className="flex h-screen w-full bg-indigo-950 text-white overflow-hidden">
       
       {/* DESKTOP SIDEBAR */}
       <nav className="hidden md:flex flex-col w-64 bg-slate-800/50 border-r border-slate-700/50 p-4 z-10">

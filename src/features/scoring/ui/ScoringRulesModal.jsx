@@ -40,9 +40,9 @@ export default function ScoringRulesModal({ open, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="scoring-rules-heading"
-        className="relative z-10 flex max-h-[min(90vh,calc(100dvh-env(safe-area-inset-bottom,0px)))] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl border border-slate-700 bg-[#0f172a] shadow-xl sm:max-h-[90vh] sm:rounded-2xl"
+        className="relative z-10 flex max-h-[min(90vh,calc(100dvh-env(safe-area-inset-bottom,0px)))] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl border border-slate-700 bg-indigo-950 shadow-xl sm:max-h-[90vh] sm:rounded-2xl"
       >
-        <div className="flex shrink-0 justify-end border-b border-slate-700/80 bg-[#0f172a] px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1">
+        <div className="flex shrink-0 justify-end border-b border-slate-700/80 bg-indigo-950 px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1">
           <button
             type="button"
             onClick={onClose}

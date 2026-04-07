@@ -2,12 +2,12 @@ import React from 'react';
 
 // 1. Removed `rounded-2xl` from here so sizes can control it
 const baseStyles =
-  'inline-flex items-center justify-center font-black transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-teal-400 disabled:opacity-50 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center font-black transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-green-400 disabled:opacity-50 disabled:cursor-not-allowed';
 
 // 2. Removed `px-8 py-4` and text sizes from here (variants are now ONLY colors/effects)
 const variantStyles = {
   primary:
-    'bg-gradient-to-r from-teal-400 to-teal-500 text-slate-900 shadow-[0_0_40px_-10px_rgba(45,212,191,0.5)] hover:shadow-[0_0_60px_-15px_rgba(45,212,191,0.7)] hover:-translate-y-0.5',
+    'bg-green-400 text-green-950 shadow-glow-cta hover:bg-green-300 hover:shadow-glow-cta-lg hover:-translate-y-0.5',
   secondary:
     'border-2 border-teal-400/70 bg-transparent text-teal-300 shadow-none hover:bg-teal-400/10 hover:border-teal-300 hover:-translate-y-0.5',
   danger:

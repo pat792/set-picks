@@ -13,7 +13,11 @@
 
 @layer base {
   html {
-    @apply font-sans antialiased;
+    @apply min-h-full font-sans antialiased bg-indigo-950 text-white;
+  }
+
+  body {
+    @apply min-h-full bg-indigo-950 antialiased;
   }
 }
 
