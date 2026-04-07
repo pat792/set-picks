@@ -6,6 +6,7 @@ export { default as DashboardRowPill } from './DashboardRowPill';
 export { default as FilterPill } from './FilterPill';
 export { default as GhostPill } from './GhostPill';
 export { default as Input } from './Input';
+export { default as MetaChip } from './MetaChip';
 export { default as PageTitle } from './PageTitle';
 export { default as SongAutocomplete } from './SongAutocomplete';
 export { default as StatusBadge } from './StatusBadge';

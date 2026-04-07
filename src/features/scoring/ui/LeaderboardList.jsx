@@ -5,6 +5,8 @@ import {
   SHOW_STANDINGS_EYEBROW,
 } from '../../../shared/config/dashboardVocabulary';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
+import MetaChip from '../../../shared/ui/MetaChip';
+
 import LeaderboardRow from './LeaderboardRow';
 
 export default function LeaderboardList({
@@ -37,14 +39,14 @@ export default function LeaderboardList({
     <div className="space-y-4 pb-6 md:pb-16 text-white">
       {showLeaderCallout ? (
         <div
-          className="rounded-xl border border-emerald-500/35 bg-emerald-500/[0.07] px-4 py-3 mx-0.5"
+          className="mx-0.5 rounded-xl border border-brand-primary/35 bg-brand-primary/[0.07] px-4 py-3 shadow-inset-glass"
           role="status"
         >
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500/90">
+          <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
             {LEADING_THIS_SHOW}
           </p>
           <p className="mt-1 text-sm font-bold text-slate-100">
-            <span className="text-emerald-400">{leader.handle || 'Anonymous'}</span>
+            <span className="text-brand-primary">{leader.handle || 'Anonymous'}</span>
             {' — '}
             <span className="tabular-nums text-white">{leaderScore}</span>
             <span className="font-semibold text-slate-400"> pts</span>
@@ -68,9 +70,9 @@ export default function LeaderboardList({
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 self-start sm:self-center pt-0.5 sm:pt-0">
           {headerEnd}
-          <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full whitespace-nowrap">
+          <MetaChip>
             {sortedPicks.length} {sortedPicks.length === 1 ? 'player' : 'players'}
-          </span>
+          </MetaChip>
         </div>
       </div>
 

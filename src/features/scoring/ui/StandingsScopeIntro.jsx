@@ -65,7 +65,7 @@ function StandingsTopActions({
                 aria-hidden
               />
             </DashboardRowPill>
-            <div className="absolute right-0 top-full z-20 mt-1 flex min-w-[11rem] flex-col gap-2 rounded-xl border border-slate-600 bg-slate-900 p-2 shadow-xl">
+            <div className="absolute right-0 top-full z-20 mt-1 flex min-w-[11rem] flex-col gap-2 rounded-xl border border-border-subtle bg-surface-panel-strong p-2 shadow-inset-glass">
               {overflowMenu}
             </div>
           </details>
@@ -120,7 +120,7 @@ export default function StandingsScopeIntro({
         />
       </DashboardActionRow>
 
-      <details className="group rounded-xl border border-slate-700/50 bg-slate-900/25">
+      <details className="group rounded-xl border border-border-subtle bg-surface-glass shadow-inset-glass">
         <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 transition-colors hover:text-slate-400 [&::-webkit-details-marker]:hidden">
           <ChevronDown
             className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
@@ -128,7 +128,7 @@ export default function StandingsScopeIntro({
           />
           How scoring & pools work
         </summary>
-        <div className="border-t border-slate-700/40 px-3 py-3 text-sm leading-relaxed text-slate-400">
+        <div className="border-t border-border-muted px-3 py-3 text-sm leading-relaxed text-slate-400">
           {isEveryone ? (
             <p>
               <span className="font-semibold text-slate-200">Show standings</span> are the running

@@ -6,6 +6,7 @@ import { useSignOut } from '../../features/auth';
 import { ProfileEditForm, useUserProfile } from '../../features/profile';
 import Button from '../../shared/ui/Button';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
+import DashboardRowPill from '../../shared/ui/DashboardRowPill';
 
 export default function Profile({ user }) {
   const navigate = useNavigate();
@@ -38,13 +39,10 @@ export default function Profile({ user }) {
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <DashboardActionRow>
         {user?.uid ? (
-          <Link
-            to={`/user/${user.uid}`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/40 hover:bg-slate-700 hover:text-emerald-400"
-          >
+          <DashboardRowPill as={Link} to={`/user/${user.uid}`} tone="muted">
             <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
             Preview public view
-          </Link>
+          </DashboardRowPill>
         ) : null}
       </DashboardActionRow>
 
@@ -53,7 +51,7 @@ export default function Profile({ user }) {
           Profile
         </h2>
         {joinDate && (
-          <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mt-1">
+          <p className="mt-1 text-xs font-bold uppercase tracking-widest text-brand-primary">
             Playing Since {joinDate}
           </p>
         )}
@@ -71,17 +69,17 @@ export default function Profile({ user }) {
       />
 
       {hasEmailPasswordProvider && user?.email && (
-        <div className="mt-8 rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6">
+        <div className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
           <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
             Sign-in &amp; password
           </h3>
-          <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+          <p className="mt-2 text-sm leading-relaxed text-slate-400">
             Update the email or password you use to sign in (you&apos;ll need your current password on
             the next screen, or a reset link if you forgot it).
           </p>
           <Link
             to="/dashboard/account-security"
-            className="mt-4 flex w-full items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-900/80 py-3.5 font-black text-sm uppercase tracking-widest text-white transition-colors hover:border-emerald-500/50 hover:bg-slate-800"
+            className="mt-4 flex w-full items-center justify-center rounded-xl border-2 border-border-subtle bg-surface-field py-3.5 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel"
           >
             Update email or password
           </Link>

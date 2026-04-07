@@ -19,6 +19,11 @@ Canonical visual roles for dashboard/scoring shells. **Authoritative palette, ty
 | Icon + label ghost actions | `GhostPill` | Same glass/surface language as row pills; picks + standings secondary actions. |
 | Primary / secondary CTAs | `Button` | Rounded-xl family; brand gradient primary (see `Button.jsx`). |
 | Panel containers | `Card` | `surface-panel` / `surface-panel-strong` variants. |
+| Header meta (counts, non-interactive labels) | `MetaChip` | Muted pill; not a button — use `FilterPill` for toggles. |
+
+## Verification
+
+`npm run verify:dashboard-ui` scans `features/scoring|pools|picks/ui` plus `ProfilePage` / `PoolsPage` for a small denylist of legacy class clusters (pre–design-token pills and slabs). CI runs this after ESLint (see `.github/workflows/ci.yml`).
 
 ## Tailwind tokens
 
