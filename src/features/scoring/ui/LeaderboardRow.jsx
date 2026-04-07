@@ -5,9 +5,9 @@ import ScoreBreakdownGrid from './ScoreBreakdownGrid';
 
 const rankBadgeClass = (rank) => {
   if (rank === 1) return 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40';
-  if (rank === 2) return 'bg-slate-500/25 text-slate-200 ring-1 ring-slate-500/35';
+  if (rank === 2) return 'bg-indigo-300/20 text-indigo-100 ring-1 ring-indigo-300/35';
   if (rank === 3) return 'bg-orange-900/40 text-orange-200 ring-1 ring-orange-700/40';
-  return 'bg-slate-700/80 text-slate-400 ring-1 ring-slate-600/60';
+  return 'bg-indigo-900/75 text-slate-300 ring-1 ring-indigo-500/40';
 };
 
 export default function LeaderboardRow({
@@ -25,8 +25,8 @@ export default function LeaderboardRow({
 
   return (
     <div
-      className={`bg-slate-800/80 rounded-2xl border overflow-hidden shadow-lg transition-all ${
-        isLeaderRow ? 'border-emerald-500/40 ring-1 ring-emerald-500/20' : 'border-slate-700'
+      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-lg transition-all ${
+        isLeaderRow ? 'border-border-venue/55 ring-1 ring-teal-400/10' : 'border-border-subtle/35'
       }`}
     >
       <div
@@ -39,7 +39,7 @@ export default function LeaderboardRow({
             onToggle();
           }
         }}
-        className="w-full flex items-center justify-between p-5 hover:bg-slate-700/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 rounded-t-2xl"
+        className="w-full flex items-center justify-between p-5 hover:bg-indigo-900/45 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60 rounded-t-2xl"
       >
         <div className="flex items-center gap-3 text-left min-w-0">
           <div
@@ -69,18 +69,18 @@ export default function LeaderboardRow({
             <span className="font-black text-emerald-400 text-xl block leading-none">
               {actualSetlist ? score : '-'}
             </span>
-            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
               Points
             </span>
           </div>
-          <div className={`text-slate-500 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+          <div className={`text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
             ▼
           </div>
         </div>
       </div>
 
       {isExpanded && (
-        <div className="p-4 border-t border-slate-700/50 bg-slate-900/30">
+        <div className="p-4 border-t border-border-subtle/30 bg-surface-inset">
           <ScoreBreakdownGrid userPicks={userPicks} actualSetlist={actualSetlist} />
         </div>
       )}

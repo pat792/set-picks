@@ -25,30 +25,31 @@ export default {
       colors: {
         brand: {
           /** Venue base — Tailwind `indigo-950` (The Kuroda) */
-          bg: '#1e1b4b',
-          'bg-deep': '#0f0a2e',
-          primary: '#2dd4bf',
-          'primary-strong': '#14b8a6',
-          kicker: '#2dd4bf',
+          bg: 'rgb(var(--brand-bg) / <alpha-value>)',
+          'bg-deep': 'rgb(var(--brand-bg-deep) / <alpha-value>)',
+          primary: 'rgb(var(--brand-primary) / <alpha-value>)',
+          'primary-strong': 'rgb(var(--brand-primary-strong) / <alpha-value>)',
+          kicker: 'rgb(var(--brand-primary) / <alpha-value>)',
           accent: {
             red: '#ef4444',
             blue: '#3b82f6',
           },
         },
         surface: {
-          glass: 'rgb(30 27 75 / 0.35)',
-          panel: 'rgb(67 56 202 / 0.38)',
-          'panel-strong': 'rgb(55 48 163 / 0.72)',
-          inset: 'rgb(30 27 75 / 0.5)',
-          field: '#1e1b4b',
+          glass: 'rgb(var(--surface-glass) / 0.3)',
+          chrome: 'rgb(var(--surface-chrome) / 0.52)',
+          panel: 'rgb(var(--surface-panel) / 0.48)',
+          'panel-strong': 'rgb(var(--surface-panel-strong) / 0.62)',
+          inset: 'rgb(var(--surface-inset) / 0.72)',
+          field: 'rgb(var(--surface-field) / 1)',
         },
         border: {
-          glass: 'rgba(255, 255, 255, 0.25)',
-          subtle: 'rgb(51 65 85 / 0.5)',
-          muted: 'rgb(71 85 105 / 0.6)',
-          /** Kuroda panel accents */
-          venue: 'rgba(34, 211, 238, 0.22)',
-          'venue-magenta': 'rgba(232, 121, 249, 0.18)',
+          glass: 'rgb(var(--border-glass) / 0.25)',
+          subtle: 'rgb(var(--border-subtle) / 0.5)',
+          muted: 'rgb(var(--border-muted) / 0.6)',
+          /** Kuroda accents — keep one family (teal) for interactive affordances */
+          venue: 'rgb(var(--border-venue) / 0.34)',
+          'venue-strong': 'rgb(var(--border-venue-strong) / 0.46)',
         },
       },
       boxShadow: {

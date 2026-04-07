@@ -9,7 +9,8 @@
     "build:staging": "vite build --mode staging",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,jsx}\"",
-    "verify:dashboard-meta": "node scripts/verify-dashboard-meta.mjs"
+    "verify:dashboard-meta": "node scripts/verify-dashboard-meta.mjs",
+    "verify:theme-contract": "node scripts/verify-theme-contract.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",

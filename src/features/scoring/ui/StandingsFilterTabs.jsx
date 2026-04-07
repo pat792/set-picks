@@ -118,8 +118,8 @@ export default function StandingsFilterTabs({ activeFilter, filterOptions, onTab
               className={[
                 'shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold tracking-tight transition-colors',
                 isActive
-                  ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-900/30'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200',
+                  ? 'bg-indigo-400/20 text-indigo-100 border border-indigo-300/35 shadow-sm shadow-indigo-950/25'
+                  : 'bg-surface-panel text-slate-400 hover:bg-indigo-900/45 hover:text-slate-200 border border-border-subtle/35',
               ].join(' ')}
             >
               {opt.label}

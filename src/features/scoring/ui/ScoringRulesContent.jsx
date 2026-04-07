@@ -15,7 +15,7 @@ const {
  */
 export default function ScoringRulesContent() {
   return (
-    <div className="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 shadow-lg">
+    <div className="rounded-2xl border border-border-muted/45 bg-surface-panel p-6 shadow-lg ring-1 ring-border-glass/25">
       <h1
         id="scoring-rules-heading"
         className="font-display text-display-md font-bold uppercase tracking-tight text-white mb-2"
@@ -93,7 +93,7 @@ export default function ScoringRulesContent() {
         </li>
       </ul>
 
-      <p className="mt-8 pt-6 border-t border-slate-700/80 text-slate-500 text-xs font-bold leading-relaxed">
+      <p className="mt-8 pt-6 border-t border-border-subtle/30 text-slate-500 text-xs font-bold leading-relaxed">
         Missed picks score 0. Maximum per slot is {ENCORE_EXACT + BUSTOUT_BOOST} (encore exact plus bustout) or{' '}
         {EXACT_SLOT + BUSTOUT_BOOST} / {WILDCARD_HIT + BUSTOUT_BOOST} for other slots when bustout applies.
       </p>

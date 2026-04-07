@@ -16,7 +16,7 @@ function StandingsTopActions({
     <Link
       key="pools"
       to="/dashboard/pools"
-      className="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-900/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 transition-colors hover:border-emerald-500/50 hover:bg-slate-800 hover:text-emerald-300 sm:px-4"
+      className="inline-flex items-center gap-2 rounded-full border border-border-subtle/35 bg-surface-inset px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 transition-colors hover:border-border-venue/55 hover:bg-indigo-900/45 hover:text-emerald-300 sm:px-4"
     >
       <Users className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
       Pools
@@ -56,7 +56,7 @@ function StandingsTopActions({
         <>
           <details className="group relative sm:hidden">
             <summary
-              className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-emerald-400 [&::-webkit-details-marker]:hidden"
+              className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-border-subtle/35 bg-surface-panel px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-indigo-900/45 hover:text-teal-300 [&::-webkit-details-marker]:hidden"
               aria-label="More standings actions"
             >
               <MoreHorizontal className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -66,7 +66,7 @@ function StandingsTopActions({
                 aria-hidden
               />
             </summary>
-            <div className="absolute right-0 top-full z-20 mt-1 flex min-w-[11rem] flex-col gap-2 rounded-xl border border-slate-600 bg-slate-900 p-2 shadow-xl">
+            <div className="absolute right-0 top-full z-20 mt-1 flex min-w-[11rem] flex-col gap-2 rounded-xl border border-border-subtle/35 bg-surface-panel-strong p-2 shadow-xl">
               {overflowMenu}
             </div>
           </details>
@@ -121,15 +121,15 @@ export default function StandingsScopeIntro({
         />
       </DashboardActionRow>
 
-      <details className="group rounded-xl border border-slate-700/50 bg-slate-900/25">
-        <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 transition-colors hover:text-slate-400 [&::-webkit-details-marker]:hidden">
+      <details className="group rounded-xl border border-border-subtle/35 bg-surface-inset">
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-400 transition-colors hover:text-slate-300 [&::-webkit-details-marker]:hidden">
           <ChevronDown
             className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
             aria-hidden
           />
           How scoring & pools work
         </summary>
-        <div className="border-t border-slate-700/40 px-3 py-3 text-sm leading-relaxed text-slate-400">
+        <div className="border-t border-border-subtle/30 px-3 py-3 text-sm leading-relaxed text-slate-400">
           {isEveryone ? (
             <p>
               <span className="font-semibold text-slate-200">Show standings</span> are the running

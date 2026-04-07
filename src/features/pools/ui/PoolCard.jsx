@@ -18,7 +18,7 @@ export default function PoolCard({
       as="article"
       variant="solid"
       padding="md"
-      className="border-slate-700/70"
+      className="border-border-subtle/25 ring-0"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">

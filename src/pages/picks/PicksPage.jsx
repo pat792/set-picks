@@ -3,6 +3,7 @@ import { CheckCircle2, Lock, Scale } from 'lucide-react';
 
 import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features/picks';
 import { useScoringRulesModal } from '../../features/scoring';
+import Card from '../../shared/ui/Card';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
 export default function PicksPage({ user, selectedDate }) {
@@ -51,11 +52,11 @@ export default function PicksPage({ user, selectedDate }) {
             <span>Picks are locked for this show.</span>
           </div>
         ) : null}
-        <form
+        <Card
+          as="form"
           onSubmit={handleSave}
-          className={`space-y-4 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50 transition-all duration-300 ${
-            isLocked ? 'opacity-60' : ''
-          }`}
+          variant="solid"
+          className="space-y-4 transition-all duration-300"
         >
           <PicksFieldsForm
             formData={formData}
@@ -69,7 +70,7 @@ export default function PicksPage({ user, selectedDate }) {
             hasExistingPicks={hasExistingPicks}
             saveFeedback={saveFeedback}
           />
-        </form>
+        </Card>
       </div>
     </div>
   );

@@ -86,10 +86,10 @@ export default function DashboardLayout() {
 
   return (
     <ScoringRulesModalProvider>
-    <div className="flex h-screen w-full bg-indigo-950 text-white overflow-hidden">
+    <div className="flex h-screen w-full bg-brand-bg text-white overflow-hidden">
       
       {/* DESKTOP SIDEBAR */}
-      <nav className="hidden md:flex flex-col w-64 bg-slate-800/50 border-r border-slate-700/50 p-4 z-10">
+      <nav className="hidden md:flex flex-col w-64 bg-surface-chrome border-r border-border-muted/65 p-4 z-10">
       <div className="mb-8 px-4 py-2">
           <h1 className="font-display text-display-brand-sidebar md:text-display-brand-sidebar-lg font-bold italic leading-none outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity flex flex-col items-start">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 pr-2">
@@ -119,7 +119,7 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${isActive ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+              <Link key={item.name} to={item.path} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${isActive ? 'bg-teal-400/10 text-teal-300' : 'text-slate-400 hover:bg-surface-inset hover:text-white'}`}>
                 {/* Render the Lucide icon instead of text */}
                 <Icon className="w-5 h-5 shrink-0" />
                 {item.name}
@@ -149,13 +149,13 @@ export default function DashboardLayout() {
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
-            <div className="hidden md:flex mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 items-center justify-between gap-4 min-w-0 shadow-lg">
+            <div className="hidden md:flex mb-6 bg-surface-panel-strong backdrop-blur-md p-3 rounded-2xl border border-border-muted/70 items-center justify-between gap-4 min-w-0 shadow-lg ring-1 ring-border-glass/45">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 shrink-0">Select Show:</span>
               <div className="min-w-0 w-64 max-w-full shrink">
                 <select
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-surface-field border-2 border-indigo-700/70 text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-teal-400 transition-colors cursor-pointer"
                 >
                   {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
                     <optgroup key={tour} label={tour} className="tour-optgroup">
@@ -187,23 +187,24 @@ export default function DashboardLayout() {
           )}
 
           <Routes>
-            <Route path="/" element={<PicksPage user={user} selectedDate={selectedDate} />} />
+            <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
+            <Route path="picks" element={<PicksPage user={user} selectedDate={selectedDate} />} />
             <Route
-              path="/scoring"
+              path="scoring"
               element={<Navigate to="/dashboard?scoringRules=1" replace />}
             />
-            <Route path="/standings" element={<StandingsPage selectedDate={selectedDate} />} />
-            <Route path="/admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
-            <Route path="/profile" element={<ProfilePage user={user} />} />
-            <Route path="/account-security" element={<AccountSecurity user={user} />} />
-            <Route path="/pools" element={<PoolsPage user={user} />} />
-            <Route path="/pool/:poolId" element={<PoolHubPage user={user} />} />
+            <Route path="standings" element={<StandingsPage selectedDate={selectedDate} />} />
+            <Route path="admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
+            <Route path="profile" element={<ProfilePage user={user} />} />
+            <Route path="account-security" element={<AccountSecurity user={user} />} />
+            <Route path="pools" element={<PoolsPage user={user} />} />
+            <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
           </Routes>
         </div>
       </main>
 
       {/* MOBILE BOTTOM BAR */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-slate-900 border-t border-slate-800 z-50 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-[rgb(var(--brand-bg)_/_1)] border-t border-border-subtle/35 z-50 pb-safe">
         <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-2`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
@@ -223,7 +224,7 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}>
+              <Link key={item.name} to={item.path} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-teal-300' : 'text-slate-500 hover:text-slate-300'}`}>
                 {/* Render the Lucide icon */}
                 <Icon className="w-5 h-5 mb-0.5" />
                 <span className="text-[10px] font-bold tracking-wider">{item.name}</span>

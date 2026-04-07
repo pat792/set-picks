@@ -41,6 +41,7 @@ export function isRestorableDashboardPath(pathname, search = '', opts = {}) {
   }
 
   if (path === '/dashboard') return true;
+  if (path === '/dashboard/picks') return true;
   if (path === '/dashboard/pools') return true;
   if (path === '/dashboard/standings') return true;
   if (path === '/dashboard/scoring') return true;

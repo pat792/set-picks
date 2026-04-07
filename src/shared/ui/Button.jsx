@@ -10,10 +10,12 @@ const variantStyles = {
     'bg-gradient-to-r from-teal-400 to-teal-500 text-slate-900 shadow-[0_0_40px_-10px_rgba(45,212,191,0.5)] hover:shadow-[0_0_60px_-15px_rgba(45,212,191,0.7)] hover:-translate-y-0.5',
   secondary:
     'border-2 border-teal-400/70 bg-transparent text-teal-300 shadow-none hover:bg-teal-400/10 hover:border-teal-300 hover:-translate-y-0.5',
+  ghost:
+    'border border-indigo-700/70 bg-surface-panel text-slate-300 hover:bg-indigo-900/45 hover:text-teal-300',
   danger:
     'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-[0_0_40px_-10px_rgba(239,68,68,0.45)] hover:shadow-[0_0_60px_-15px_rgba(239,68,68,0.6)] hover:-translate-y-0.5',
   glass:
-    'border border-white/25 bg-slate-950/30 backdrop-blur-xl text-white shadow-lg ring-1 ring-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] hover:bg-slate-950/45',
+    'border border-border-venue/70 bg-surface-glass backdrop-blur-xl text-white shadow-lg ring-1 ring-border-glass/55 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] hover:bg-indigo-900/45',
   text: 'text-slate-300 hover:text-white',
   link: 'text-slate-400 hover:text-white underline underline-offset-2 decoration-slate-500 hover:decoration-white',
 };

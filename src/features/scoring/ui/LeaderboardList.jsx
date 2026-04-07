@@ -49,7 +49,7 @@ export default function LeaderboardList({
             <span className="tabular-nums text-white">{leaderScore}</span>
             <span className="font-semibold text-slate-400"> pts</span>
             {sortedPicks.length > 1 ? (
-              <span className="block mt-1 text-xs font-medium text-slate-500">
+              <span className="block mt-1 text-xs font-medium text-slate-400">
                 Expand a row to compare picks and points for this show.
               </span>
             ) : null}
@@ -68,7 +68,7 @@ export default function LeaderboardList({
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 self-start sm:self-center pt-0.5 sm:pt-0">
           {headerEnd}
-          <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full whitespace-nowrap">
+          <span className="text-[10px] font-bold text-slate-300 bg-surface-panel border border-border-muted/65 px-3 py-1 rounded-full whitespace-nowrap">
             {sortedPicks.length} {sortedPicks.length === 1 ? 'player' : 'players'}
           </span>
         </div>

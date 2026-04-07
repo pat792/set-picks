@@ -13,7 +13,7 @@ export default function GhostPill({
       type={type}
       onClick={onClick}
       className={[
-        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-emerald-400 transition-colors cursor-pointer',
+        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-surface-panel text-slate-300 hover:bg-indigo-900/45 hover:text-teal-300 transition-colors cursor-pointer border border-indigo-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60',
         className,
       ]
         .filter(Boolean)

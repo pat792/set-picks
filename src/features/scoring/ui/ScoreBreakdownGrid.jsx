@@ -18,7 +18,7 @@ export default function ScoreBreakdownGrid({ userPicks, actualSetlist }) {
           actualSetlist
         );
 
-        let borderStyle = 'border-slate-700/50';
+        let borderStyle = 'border-indigo-700/60 bg-surface-inset';
         let textColor = 'text-slate-300';
         let markerColor = 'text-slate-500';
 
@@ -32,7 +32,7 @@ export default function ScoreBreakdownGrid({ userPicks, actualSetlist }) {
             textColor = 'text-blue-400';
             markerColor = 'text-blue-400/90';
           } else if (kind === 'miss') {
-            borderStyle = 'border-slate-600/50 bg-slate-800/40';
+            borderStyle = 'border-indigo-700/70 bg-indigo-900/35';
             textColor = 'text-slate-400';
             markerColor = 'text-slate-500';
           }

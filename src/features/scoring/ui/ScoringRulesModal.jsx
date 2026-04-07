@@ -40,13 +40,13 @@ export default function ScoringRulesModal({ open, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="scoring-rules-heading"
-        className="relative z-10 flex max-h-[min(90vh,calc(100dvh-env(safe-area-inset-bottom,0px)))] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl border border-slate-700 bg-indigo-950 shadow-xl sm:max-h-[90vh] sm:rounded-2xl"
+        className="relative z-10 flex max-h-[min(90vh,calc(100dvh-env(safe-area-inset-bottom,0px)))] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl border border-border-muted/45 bg-brand-bg shadow-xl ring-1 ring-border-glass/25 sm:max-h-[90vh] sm:rounded-2xl"
       >
-        <div className="flex shrink-0 justify-end border-b border-slate-700/80 bg-indigo-950 px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1">
+        <div className="flex shrink-0 justify-end border-b border-border-subtle/30 bg-brand-bg px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-1">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-300 transition-colors hover:bg-indigo-900/45 hover:text-white"
             aria-label="Close"
           >
             <X className="h-5 w-5" aria-hidden />
