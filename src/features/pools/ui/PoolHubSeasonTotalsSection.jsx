@@ -13,7 +13,6 @@ import PoolHubLeaderboard from './PoolHubLeaderboard';
 export default function PoolHubSeasonTotalsSection({
   members,
   loading = false,
-  seasonShowCount,
 }) {
   return (
     <section>
@@ -26,7 +25,7 @@ export default function PoolHubSeasonTotalsSection({
           <span>Loading season totals…</span>
         </div>
       ) : (
-        <PoolHubLeaderboard members={members} seasonShowCount={seasonShowCount} />
+        <PoolHubLeaderboard members={members} />
       )}
       <details className="group mt-3 rounded-xl border border-slate-700/50 bg-slate-900/25">
         <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 transition-colors hover:text-slate-400 [&::-webkit-details-marker]:hidden">
@@ -39,9 +38,9 @@ export default function PoolHubSeasonTotalsSection({
         <div className="border-t border-slate-700/40 px-3 py-3 text-xs font-medium text-slate-500 leading-relaxed space-y-2">
           <p>{SEASON_TOTALS_DESCRIPTION}</p>
           <p>
-            <span className="text-slate-400">Shows</span> counts graded nights where
-            you had picks in this pool, out of past dates on the tour schedule (nights you sat out are
-            not counted against you).
+            <span className="text-slate-400">Shows</span> is how many nights you submitted picks in
+            this pool after that show was finalized (Finalize and rollup). Nights you skip do not add
+            to your count.
           </p>
         </div>
       </details>

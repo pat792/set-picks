@@ -32,11 +32,11 @@ export default function PoolHubPage({ user }) {
     onInviteShareSuccess,
     reload,
   } = usePoolHub(poolId, user);
-  const {
-    leaderboardMembers,
-    loading: seasonLoading,
-    totalShowsInPoolSeason,
-  } = usePoolSeasonStandings(poolId, pool, members);
+  const { leaderboardMembers, loading: seasonLoading } = usePoolSeasonStandings(
+    poolId,
+    pool,
+    members
+  );
   const admin = usePoolAdminControls(poolId, user, pool, {
     navigate: (path) => navigate(path),
     onReloadPool: () => reload(),
@@ -162,7 +162,6 @@ export default function PoolHubPage({ user }) {
         <PoolHubSeasonTotalsSection
           members={leaderboardMembers}
           loading={seasonLoading}
-          seasonShowCount={totalShowsInPoolSeason}
         />
         <PoolHubShowArchive poolId={poolId} />
       </div>

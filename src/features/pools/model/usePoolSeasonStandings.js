@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { todayYmd } from '../../../shared/utils/dateUtils.js';
-import {
-  computePoolSeasonTotalsByUser,
-  pastScheduledShowDates,
-} from '../api/poolFirestore';
+import { computePoolSeasonTotalsByUser } from '../api/poolFirestore';
 
 /**
- * Pool-scoped season totals from `picks` (graded scores only), merged with member profiles.
+ * Pool-scoped season totals from `picks` (finalize + rollup only), merged with member profiles.
  * @param {string | undefined} poolId
  * @param {{ members?: string[], id?: string } | null} pool
  * @param {Array<{ id: string, handle?: string } & Record<string, unknown>>} memberProfiles
@@ -53,11 +49,6 @@ export function usePoolSeasonStandings(poolId, pool, memberProfiles) {
     load();
   }, [load]);
 
-  const totalShowsInPoolSeason = useMemo(
-    () => pastScheduledShowDates(todayYmd()).length,
-    []
-  );
-
   const leaderboardMembers = useMemo(() => {
     const rows = (memberProfiles || []).map((m) => {
       const t = totalsByUser.get(m.id) || {
@@ -70,8 +61,6 @@ export function usePoolSeasonStandings(poolId, pool, memberProfiles) {
         totalPoints: t.totalScore,
         wins: t.wins,
         showsPlayed: t.showsPlayed,
-        showsParticipatedIn: t.showsPlayed,
-        totalShowsInPoolSeason,
       };
     });
     rows.sort(
@@ -80,13 +69,12 @@ export function usePoolSeasonStandings(poolId, pool, memberProfiles) {
         (typeof a.totalPoints === 'number' ? a.totalPoints : 0)
     );
     return rows;
-  }, [memberProfiles, totalsByUser, totalShowsInPoolSeason]);
+  }, [memberProfiles, totalsByUser]);
 
   return {
     leaderboardMembers,
     loading,
     error,
-    totalShowsInPoolSeason,
     reload: load,
   };
 }

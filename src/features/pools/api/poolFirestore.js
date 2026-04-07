@@ -34,18 +34,18 @@ export function pickDataCountsForPool(pickData, poolId) {
 }
 
 /**
- * True if any graded pick doc ties this user + show to the pool.
+ * Pool season totals / wins: finalized (rollup) only, with submitted picks.
+ * Do not use gradedAt — live CF scoring must not imply season eligibility.
  */
-function isPickGraded(pickData) {
-  if (pickData.isGraded === true) return true;
-  if (pickData.gradedAt != null) return true;
-  return false;
+function pickCountsTowardPoolSeasonTotals(pickData) {
+  if (pickData.isGraded !== true) return false;
+  return hasNonEmptyPicksObject(pickData.picks);
 }
 
 function pickDocHasPoolActivity(pickData, poolId) {
   if (!pickDataCountsForPool(pickData, poolId)) return false;
   if (hasNonEmptyPicksObject(pickData.picks)) return true;
-  if (isPickGraded(pickData)) return true;
+  if (pickData.isGraded === true) return true;
   if (typeof pickData.score === 'number' && pickData.score > 0) return true;
   return false;
 }
@@ -196,7 +196,7 @@ export async function computePoolSeasonTotalsByUser(poolId, memberIds) {
       if (!snap.exists()) continue;
       const data = snap.data();
       if (!pickDataCountsForPool(data, pid)) continue;
-      if (!isPickGraded(data)) continue;
+      if (!pickCountsTowardPoolSeasonTotals(data)) continue;
       const score = typeof data.score === 'number' ? data.score : 0;
       const row = totals.get(userId);
       if (row) {
@@ -212,6 +212,7 @@ export async function computePoolSeasonTotalsByUser(poolId, memberIds) {
   for (const [, list] of byShow) {
     if (list.length === 0) continue;
     const max = Math.max(...list.map((x) => x.score));
+    if (max === 0) continue;
     const winners = list.filter((x) => x.score === max).map((x) => x.userId);
     for (const uid of winners) {
       const row = totals.get(uid);

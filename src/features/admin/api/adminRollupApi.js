@@ -4,6 +4,7 @@ import {
   getDocs,
   increment,
   query,
+  serverTimestamp,
   where,
   writeBatch,
 } from 'firebase/firestore';
@@ -41,7 +42,11 @@ export async function rollupScoresForShow({ showDate, actualSetlistPayload }) {
     const scoreDiff = newScore - oldScore;
     const isFirstGrade = !pickData.isGraded;
 
-    batch.update(pickDoc.ref, { score: newScore, isGraded: true });
+    const pickUpdate = { score: newScore, isGraded: true };
+    if (isFirstGrade) {
+      pickUpdate.gradedAt = serverTimestamp();
+    }
+    batch.update(pickDoc.ref, pickUpdate);
     batch.set(
       doc(db, 'users', pickData.userId),
       {
