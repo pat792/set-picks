@@ -36,12 +36,17 @@ export default {
           },
         },
         surface: {
-          glass: 'rgb(var(--surface-glass) / 0.3)',
-          chrome: 'rgb(var(--surface-chrome) / 0.52)',
-          panel: 'rgb(var(--surface-panel) / 0.48)',
-          'panel-strong': 'rgb(var(--surface-panel-strong) / 0.62)',
+          glass: 'rgb(var(--surface-glass) / 0.32)',
+          chrome: 'rgb(var(--surface-chrome) / 0.5)',
+          /** ~design.md panel translucency */
+          panel: 'rgb(var(--surface-panel) / 0.5)',
+          'panel-strong': 'rgb(var(--surface-panel-strong) / 0.72)',
           inset: 'rgb(var(--surface-inset) / 0.72)',
           field: 'rgb(var(--surface-field) / 1)',
+        },
+        /** Secondary UI copy — labels, helper text, meta (dashboard + shared forms) */
+        content: {
+          secondary: 'rgb(var(--content-secondary) / <alpha-value>)',
         },
         border: {
           glass: 'rgb(var(--border-glass) / 0.25)',

@@ -27,7 +27,7 @@ export default function DashboardMobileContextBar({
           <select
             value={selectedDate}
             onChange={(e) => onSelectedDateChange(e.target.value)}
-            className="show-date-select shrink-0 max-w-[180px] min-w-0 appearance-none bg-surface-field border border-border-subtle/45 text-white text-xs font-bold py-1.5 px-2.5 rounded-lg outline-none focus:border-teal-400 transition-colors cursor-pointer"
+            className="show-date-select shrink-0 max-w-[180px] min-w-0 appearance-none bg-surface-field border border-border-subtle/45 text-white text-xs font-bold py-1.5 px-2.5 rounded-lg outline-none focus:border-brand-primary transition-colors cursor-pointer"
           >
             {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
               <optgroup key={tour} label={tour} className="tour-optgroup">

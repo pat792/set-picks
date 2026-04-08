@@ -6,7 +6,7 @@ export default function SplashHeader({
   onSignInClick,
 }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-indigo-950/80 backdrop-blur-lg border-b border-white/5 h-[4.25rem] sm:h-20 flex items-center transition-all duration-300">
+    <header className="fixed left-0 right-0 top-0 z-50 flex h-[4.25rem] items-center border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg transition-all duration-300 sm:h-20">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         <button
           type="button"

@@ -70,10 +70,10 @@ export default function Profile({ user }) {
 
       {hasEmailPasswordProvider && user?.email && (
         <div className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
-          <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
+          <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">
             Sign-in &amp; password
           </h3>
-          <p className="mt-2 text-sm leading-relaxed text-slate-400">
+          <p className="mt-2 text-sm leading-relaxed text-content-secondary">
             Update the email or password you use to sign in (you&apos;ll need your current password on
             the next screen, or a reset link if you forgot it).
           </p>
@@ -86,7 +86,7 @@ export default function Profile({ user }) {
         </div>
       )}
 
-      <div className="mt-8 pt-6 border-t border-slate-700/50">
+      <div className="mt-8 border-t border-border-muted pt-6">
         <Button
           variant="text"
           onClick={handleLogout}

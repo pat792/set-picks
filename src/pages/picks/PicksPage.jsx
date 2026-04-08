@@ -30,11 +30,11 @@ export default function PicksPage({ user, selectedDate }) {
       <div className="relative">
         {!isLocked && hasExistingPicks ? (
           <div
-            className="mb-4 flex items-center gap-2.5 rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-400"
+            className="mb-4 flex items-center gap-2.5 rounded-md border border-brand-primary/40 bg-brand-primary/10 p-3 text-sm text-brand-primary"
             role="status"
           >
             <CheckCircle2
-              className="h-5 w-5 shrink-0 text-emerald-500"
+              className="h-5 w-5 shrink-0 text-brand-primary"
               strokeWidth={2}
               aria-hidden
             />
@@ -55,7 +55,7 @@ export default function PicksPage({ user, selectedDate }) {
         <Card
           as="form"
           onSubmit={handleSave}
-          variant="solid"
+          variant="venue"
           className="space-y-4 transition-all duration-300"
         >
           <PicksFieldsForm

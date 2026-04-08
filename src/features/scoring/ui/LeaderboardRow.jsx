@@ -5,9 +5,10 @@ import ScoreBreakdownGrid from './ScoreBreakdownGrid';
 
 const rankBadgeClass = (rank) => {
   if (rank === 1) return 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40';
-  if (rank === 2) return 'bg-indigo-300/20 text-indigo-100 ring-1 ring-indigo-300/35';
+  if (rank === 2)
+    return 'bg-brand-accent-blue/15 text-blue-200 ring-1 ring-brand-accent-blue/35';
   if (rank === 3) return 'bg-orange-900/40 text-orange-200 ring-1 ring-orange-700/40';
-  return 'bg-indigo-900/75 text-slate-300 ring-1 ring-indigo-500/40';
+  return 'bg-surface-inset text-slate-300 ring-1 ring-border-muted';
 };
 
 export default function LeaderboardRow({
@@ -25,8 +26,8 @@ export default function LeaderboardRow({
 
   return (
     <div
-      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-lg transition-all ${
-        isLeaderRow ? 'border-border-venue/55 ring-1 ring-teal-400/10' : 'border-border-subtle/35'
+      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-inset-glass transition-all ${
+        isLeaderRow ? 'border-border-venue/55 ring-1 ring-brand-primary/15' : 'border-border-subtle/35'
       }`}
     >
       <div
@@ -39,7 +40,7 @@ export default function LeaderboardRow({
             onToggle();
           }
         }}
-        className="w-full flex items-center justify-between p-5 hover:bg-indigo-900/45 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60 rounded-t-2xl"
+        className="w-full flex items-center justify-between p-5 hover:bg-surface-panel-strong/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-t-2xl"
       >
         <div className="flex items-center gap-3 text-left min-w-0">
           <div
@@ -48,14 +49,14 @@ export default function LeaderboardRow({
           >
             {rank}
           </div>
-          <div className="w-10 h-10 shrink-0 bg-gradient-to-tr from-blue-500 to-emerald-500 rounded-full flex items-center justify-center font-bold text-lg shadow-inner">
+          <div className="w-10 h-10 shrink-0 bg-gradient-to-tr from-brand-accent-blue to-brand-primary rounded-full flex items-center justify-center font-bold text-lg shadow-inner text-brand-bg-deep">
             👤
           </div>
           {playerUserId ? (
             <Link
               to={`/user/${playerUserId}`}
               onClick={(e) => e.stopPropagation()}
-              className="font-bold text-base tracking-tight text-emerald-400 hover:text-emerald-300 hover:underline decoration-emerald-400/70 underline-offset-2"
+              className="font-bold text-base tracking-tight text-brand-primary hover:text-brand-primary-strong hover:underline decoration-brand-primary/70 underline-offset-2"
             >
               {p.handle || 'Anonymous'}
             </Link>
@@ -66,14 +67,14 @@ export default function LeaderboardRow({
 
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <span className="font-black text-emerald-400 text-xl block leading-none">
+            <span className="font-black text-brand-primary text-xl block leading-none">
               {actualSetlist ? score : '-'}
             </span>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-content-secondary">
               Points
             </span>
           </div>
-          <div className={`text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+          <div className={`text-content-secondary transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
             ▼
           </div>
         </div>

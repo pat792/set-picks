@@ -11,7 +11,7 @@ export default function PublicProfile() {
 
   if (loading || error === 'fetch') {
     return (
-      <div className="min-h-screen bg-indigo-950 text-white flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-brand-bg p-6 text-center text-white">
         <AsyncStatus
           isLoading={loading}
           error={error === 'fetch' ? 'Could not load this profile.' : null}
@@ -24,9 +24,9 @@ export default function PublicProfile() {
 
   if (error === 'missing' || error === 'notfound' || !profile) {
     return (
-      <div className="min-h-screen bg-indigo-950 text-white flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-brand-bg p-6 text-center text-white">
         <h1 className="font-display text-2xl font-bold text-white mb-2">Player not found</h1>
-        <p className="text-slate-400 text-sm max-w-md mb-8">
+        <p className="mb-8 max-w-md text-sm text-content-secondary">
           {error === 'missing'
             ? 'No user id was provided.'
             : 'There is no public profile for this link.'}

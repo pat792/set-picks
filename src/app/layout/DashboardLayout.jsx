@@ -119,7 +119,7 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${isActive ? 'bg-teal-400/10 text-teal-300' : 'text-slate-400 hover:bg-surface-inset hover:text-white'}`}>
+              <Link key={item.name} to={item.path} className={`flex items-center gap-3 rounded-xl px-4 py-3 font-bold transition-all ${isActive ? 'bg-brand-primary/10 text-brand-primary' : 'text-content-secondary hover:bg-surface-inset hover:text-white'}`}>
                 {/* Render the Lucide icon instead of text */}
                 <Icon className="w-5 h-5 shrink-0" />
                 {item.name}
@@ -149,13 +149,15 @@ export default function DashboardLayout() {
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
-            <div className="hidden md:flex mb-6 bg-surface-panel-strong backdrop-blur-md p-3 rounded-2xl border border-border-muted/70 items-center justify-between gap-4 min-w-0 shadow-lg ring-1 ring-border-glass/45">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 shrink-0">Select Show:</span>
+            <div className="hidden md:flex mb-6 bg-surface-panel-strong backdrop-blur-md p-3 rounded-2xl border border-border-muted/70 items-center justify-between gap-4 min-w-0 shadow-inset-glass ring-1 ring-border-glass/45">
+              <span className="shrink-0 px-2 text-xs font-black uppercase tracking-widest text-content-secondary">
+                Select Show:
+              </span>
               <div className="min-w-0 w-64 max-w-full shrink">
                 <select
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-surface-field border-2 border-indigo-700/70 text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-teal-400 transition-colors cursor-pointer"
+                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-surface-field border-2 border-border-subtle text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-brand-primary transition-colors cursor-pointer"
                 >
                   {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
                     <optgroup key={tour} label={tour} className="tour-optgroup">
@@ -177,7 +179,7 @@ export default function DashboardLayout() {
           )}
 
           {meta.layoutDetailEyebrow ? (
-            <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-slate-400 md:block">
+            <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-content-secondary md:block">
               {meta.layoutDetailEyebrow}
             </p>
           ) : null}
@@ -204,7 +206,7 @@ export default function DashboardLayout() {
       </main>
 
       {/* MOBILE BOTTOM BAR */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-[rgb(var(--brand-bg)_/_1)] border-t border-border-subtle/35 z-50 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 z-50 w-full border-t border-border-subtle/35 bg-brand-bg/92 pb-safe shadow-[0_-10px_28px_-14px_rgba(15,10,46,0.85)] backdrop-blur-md supports-[backdrop-filter]:backdrop-saturate-150">
         <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-2`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
@@ -224,7 +226,7 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-teal-300' : 'text-slate-500 hover:text-slate-300'}`}>
+              <Link key={item.name} to={item.path} className={`flex h-full w-full flex-col items-center justify-center space-y-1 ${isActive ? 'text-brand-primary' : 'text-content-secondary hover:text-white'}`}>
                 {/* Render the Lucide icon */}
                 <Icon className="w-5 h-5 mb-0.5" />
                 <span className="text-[10px] font-bold tracking-wider">{item.name}</span>

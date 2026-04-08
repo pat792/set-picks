@@ -52,13 +52,13 @@ export default function ConfirmationModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmation-modal-title"
-        className="relative z-10 w-full max-w-md rounded-t-2xl border border-slate-700 bg-indigo-950 p-4 shadow-xl sm:rounded-2xl sm:p-6"
+        className="relative z-10 w-full max-w-md rounded-t-2xl border border-border-subtle bg-surface-panel-strong p-4 shadow-inset-glass ring-1 ring-border-glass/25 sm:rounded-2xl sm:p-6"
       >
         <div className="flex justify-end">
           <button
             type="button"
             onClick={() => onCloseRef.current()}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition-colors hover:bg-surface-panel hover:text-white"
             aria-label="Close"
           >
             <X className="h-5 w-5" aria-hidden />

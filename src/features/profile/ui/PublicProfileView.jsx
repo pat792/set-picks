@@ -41,7 +41,7 @@ export default function PublicProfileView({ profile, userPools = [] }) {
         </header>
 
         <section className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
-          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+          <h2 className="mb-2 text-xs font-black uppercase tracking-widest text-content-secondary">
             Favorite song
           </h2>
           <p className="text-lg font-bold text-white">
@@ -50,11 +50,11 @@ export default function PublicProfileView({ profile, userPools = [] }) {
         </section>
 
         <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
-          <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">
+          <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-content-secondary">
             Active pools
           </h2>
           {userPools.length === 0 ? (
-            <p className="text-sm font-bold text-slate-500">Not in any pools</p>
+            <p className="text-sm font-bold text-content-secondary">Not in any pools</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {userPools.map((pool) => (
@@ -70,27 +70,27 @@ export default function PublicProfileView({ profile, userPools = [] }) {
         </section>
 
         <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
-          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
+          <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-content-secondary">
             Stats
           </h2>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
-              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
                 Total points
               </p>
               <p className="text-xl font-black tabular-nums text-brand-primary">{totalPoints}</p>
             </div>
             <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
-              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
                 Shows played
               </p>
-              <p className="text-xl font-black tabular-nums text-slate-400">TBD</p>
+              <p className="text-xl font-black tabular-nums text-content-secondary/90">TBD</p>
             </div>
             <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
                 Direct hits
               </p>
-              <p className="text-xl font-black text-slate-400 tabular-nums">TBD</p>
+              <p className="text-xl font-black tabular-nums text-content-secondary/90">TBD</p>
             </div>
           </div>
         </section>

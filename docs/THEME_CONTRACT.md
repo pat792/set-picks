@@ -18,7 +18,7 @@ Canonical visual roles for dashboard/scoring shells. **Authoritative palette, ty
 | Dashboard row nav / overflow | `DashboardRowPill` | Polymorphic (`as={Link}`, `as="summary"`). Tones: `muted`, `accent`. |
 | Icon + label ghost actions | `GhostPill` | Same glass/surface language as row pills; picks + standings secondary actions. |
 | Primary / secondary CTAs | `Button` | Rounded-xl family; brand gradient primary (see `Button.jsx`). |
-| Panel containers | `Card` | `surface-panel` / `surface-panel-strong` variants. |
+| Panel containers | `Card` | `default` / `solid` = quiet panels. **`frosted`** = middle tier (teal border + `backdrop-blur` + `surface-panel`) — e.g. `PoolCard`. **`venue`** = hero (gradient + `shadow-glow-brand`) — Pool Hub game status, Picks form. |
 | Header meta (counts, non-interactive labels) | `MetaChip` | Muted pill; not a button — use `FilterPill` for toggles. |
 
 ## Verification
@@ -31,7 +31,7 @@ Run `npm run verify:dashboard-meta` after dashboard route meta updates.
 
 ## Tailwind tokens
 
-Semantic colors live in `tailwind.config.js` under `brand`, `surface`, and `border`. Prefer these over raw `slate-*` / `emerald-*` for new dashboard work so theming stays centralized.
+Semantic colors live in `tailwind.config.js` under `brand`, `surface`, `border`, and **`content`** (`content.secondary` → `text-content-secondary` for helper / meta copy). Prefer these over raw `slate-*` / `emerald-*` for new dashboard work so theming stays centralized. Surface RGB lives in `src/index.css` `:root`.
 
 ## Migration
 

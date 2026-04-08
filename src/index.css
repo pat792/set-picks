@@ -19,12 +19,16 @@
     --brand-primary: 45 212 191;
     --brand-primary-strong: 20 184 166;
 
-    --surface-glass: 49 46 129;
-    --surface-chrome: 49 46 129;
-    --surface-panel: 67 56 202;
-    --surface-panel-strong: 79 70 229;
-    --surface-inset: 30 27 75;
+    /* Surfaces: slate-glass (design.md) with slight indigo bias — softer vs saturated violet panels */
+    --surface-glass: 28 36 58;
+    --surface-chrome: 32 40 62;
+    --surface-panel: 34 42 62;
+    --surface-panel-strong: 42 52 78;
+    --surface-inset: 26 32 52;
     --surface-field: 15 23 42;
+
+    /* Helper / meta copy (warm slate, ~Tailwind slate-300) */
+    --content-secondary: 203 213 225;
 
     --border-glass: 148 163 184;
     --border-subtle: 51 65 85;
@@ -34,11 +38,11 @@
   }
 
   html {
-    @apply min-h-full font-sans antialiased bg-indigo-950 text-white;
+    @apply min-h-full font-sans antialiased bg-brand-bg text-white;
   }
 
   body {
-    @apply min-h-full bg-indigo-950 antialiased;
+    @apply min-h-full bg-brand-bg antialiased;
   }
 }
 

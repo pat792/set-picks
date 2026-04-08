@@ -28,7 +28,7 @@ export default function PoolAdminControls({
         Pool admin
       </h2>
       {isArchived ? (
-        <p className="text-sm font-medium text-slate-400 mb-3">
+        <p className="mb-3 text-sm font-medium text-content-secondary">
           This pool is archived. You can still view history here; it no longer appears in your
           active pool list.
         </p>

@@ -131,12 +131,13 @@ export default function SongAutocomplete({
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        className="bg-[rgb(var(--surface-field)_/_1)] read-only:!opacity-100"
       />
       
       {isOpen && filteredSongs.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden"
+          className="absolute z-50 mt-2 max-h-64 w-full overflow-y-auto overflow-x-hidden rounded-xl border-2 border-border-subtle bg-[rgb(var(--surface-field)_/_1)] shadow-inset-glass ring-1 ring-border-glass/30"
         >
           {filteredSongs.map((song, index) => {
             const songName = typeof song === 'string' ? song : song.name;
@@ -156,10 +157,10 @@ export default function SongAutocomplete({
                   e.preventDefault();
                   handleSelect(songName);
                 }}
-                className={`border-b border-slate-700/50 last:border-b-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 p-3 cursor-pointer transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-400 ${
+                className={`flex cursor-pointer flex-col gap-1 border-b border-border-muted/50 p-3 transition-colors last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
                   isKeyboardActive
-                    ? 'bg-slate-700 ring-1 ring-inset ring-teal-400/60'
-                    : 'md:hover:bg-slate-700/50'
+                    ? 'bg-[#1e293b] ring-1 ring-inset ring-brand/50'
+                    : 'md:hover:bg-[#1e293b]'
                 }`}
               >
                 <div className="text-base font-bold text-slate-200 whitespace-normal break-words text-left">

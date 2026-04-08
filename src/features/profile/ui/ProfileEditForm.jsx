@@ -19,7 +19,7 @@ export default function ProfileEditForm({
   return (
     <form
       onSubmit={onSave}
-      className="space-y-6 bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50"
+      className="space-y-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass"
     >
       <div className="flex flex-col">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">

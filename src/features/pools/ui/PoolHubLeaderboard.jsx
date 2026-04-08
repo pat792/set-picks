@@ -5,7 +5,7 @@ export default function PoolHubLeaderboard({ members }) {
   return (
     <>
       {members.length === 0 ? (
-        <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-8 text-center text-slate-500 font-bold">
+        <div className="rounded-2xl border border-border-subtle bg-surface-panel p-8 text-center font-bold text-content-secondary shadow-inset-glass">
           No members to show yet.
         </div>
       ) : (
@@ -22,25 +22,25 @@ export default function PoolHubLeaderboard({ members }) {
             return (
               <li
                 key={m.id}
-                className="flex items-center justify-between gap-2 sm:gap-3 bg-slate-800/80 border border-slate-700 rounded-2xl px-4 py-3 min-w-0"
+                className="flex min-w-0 items-center justify-between gap-2 rounded-2xl border border-border-subtle bg-surface-panel px-4 py-3 shadow-inset-glass sm:gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <span className="text-slate-500 font-black tabular-nums w-8 shrink-0">
+                  <span className="w-8 shrink-0 font-black tabular-nums text-content-secondary/90">
                     {rank}
                   </span>
                   <Link
                     to={`/user/${m.id}`}
-                    className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline truncate min-w-0"
+                    className="min-w-0 truncate font-bold text-brand-primary hover:text-brand-primary-strong hover:underline"
                   >
                     {handle}
                   </Link>
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                   <div className="flex flex-col items-center">
-                    <span className="text-base font-bold text-emerald-400 tabular-nums leading-none">
+                    <span className="text-base font-bold tabular-nums leading-none text-brand-primary">
                       {pts}
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-content-secondary">
                       Points
                     </span>
                   </div>
@@ -48,7 +48,7 @@ export default function PoolHubLeaderboard({ members }) {
                     <span className="text-base font-bold text-white tabular-nums leading-none">
                       {wins}
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-content-secondary">
                       Wins
                     </span>
                   </div>
@@ -56,7 +56,7 @@ export default function PoolHubLeaderboard({ members }) {
                     <span className="text-base font-bold text-white tabular-nums leading-none">
                       {showsLabel}
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-content-secondary">
                       Shows
                     </span>
                   </div>

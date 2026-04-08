@@ -20,7 +20,7 @@ export default function LeaderboardList({
 }) {
   if (sortedPicks.length === 0) {
     return (
-      <div className="text-center text-slate-500 mt-10 font-bold">
+      <div className="mt-10 text-center font-bold text-content-secondary">
         No one is on the show standings for this date yet.
       </div>
     );
@@ -49,9 +49,9 @@ export default function LeaderboardList({
             <span className="text-brand-primary">{leader.handle || 'Anonymous'}</span>
             {' — '}
             <span className="tabular-nums text-white">{leaderScore}</span>
-            <span className="font-semibold text-slate-400"> pts</span>
+            <span className="font-semibold text-content-secondary"> pts</span>
             {sortedPicks.length > 1 ? (
-              <span className="block mt-1 text-xs font-medium text-slate-400">
+              <span className="mt-1 block text-xs font-medium text-content-secondary">
                 Expand a row to compare picks and points for this show.
               </span>
             ) : null}
@@ -61,7 +61,7 @@ export default function LeaderboardList({
 
       <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 px-2">
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-sm font-bold uppercase leading-snug break-words text-slate-400 sm:text-display-sm md:text-display-md-lg sm:leading-none">
+          <h2 className="font-display text-sm font-bold uppercase leading-snug break-words text-content-secondary sm:text-display-sm md:text-display-md-lg sm:leading-none">
             {SHOW_STANDINGS_EYEBROW}
           </h2>
           <p className="mt-0.5 font-display text-base font-bold text-white break-words sm:text-lg md:text-xl">

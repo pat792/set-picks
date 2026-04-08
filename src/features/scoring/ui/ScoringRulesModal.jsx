@@ -46,7 +46,7 @@ export default function ScoringRulesModal({ open, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-300 transition-colors hover:bg-indigo-900/45 hover:text-white"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-300 transition-colors hover:bg-surface-panel hover:text-white"
             aria-label="Close"
           >
             <X className="h-5 w-5" aria-hidden />

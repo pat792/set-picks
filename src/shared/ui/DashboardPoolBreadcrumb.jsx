@@ -15,7 +15,7 @@ export default function DashboardPoolBreadcrumb({
     >
       <Link
         to={poolsPath}
-        className="shrink-0 text-emerald-400 transition-colors hover:text-emerald-300 hover:underline underline-offset-2 decoration-emerald-500/50"
+        className="shrink-0 text-brand-primary transition-colors hover:text-brand-primary-strong hover:underline underline-offset-2 decoration-brand-primary/50"
       >
         Pools
       </Link>
