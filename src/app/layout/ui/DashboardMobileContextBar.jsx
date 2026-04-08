@@ -11,7 +11,7 @@ export default function DashboardMobileContextBar({
 }) {
   return (
     <div
-      className={`absolute top-full left-0 w-full bg-[rgb(var(--surface-chrome)_/_0.98)] backdrop-blur-sm supports-[backdrop-filter]:backdrop-saturate-125 shadow-[inset_0_1px_0_0_rgb(var(--brand-primary)/0.14),0_10px_26px_-18px_rgb(var(--brand-bg-deep)/0.9),0_0_24px_-16px_rgb(var(--brand-primary)/0.07)] px-4 py-3 flex flex-row flex-nowrap items-center justify-between gap-2 min-w-0 transition-transform duration-300 ease-in-out z-10 ring-1 ring-inset ring-brand-primary/8 ${
+      className={`absolute top-full left-0 w-full bg-[rgb(var(--surface-chrome)_/_0.98)] backdrop-blur-sm supports-[backdrop-filter]:backdrop-saturate-125 shadow-[inset_0_1px_0_0_rgb(var(--brand-primary)/0.14),0_10px_26px_-18px_rgb(var(--brand-bg-deep)/0.9),0_0_24px_-16px_rgb(var(--brand-primary)/0.07)] px-4 py-3 flex flex-row flex-nowrap items-center justify-between gap-2 min-w-0 transition-transform duration-300 ease-in-out z-10 ${
         scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
       }`}
     >
