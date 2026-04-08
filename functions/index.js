@@ -174,6 +174,9 @@ exports.getPhishnetSetlist = onCall(
   {
     region: PHISHNET_FUNCTIONS_REGION,
     secrets: [phishnetApiKey],
+    // Gen 2 callables run on Cloud Run; without public invoker, browsers get CORS preflight failures
+    // (no Access-Control-Allow-Origin) and FirebaseError: internal. Auth is still enforced in handler.
+    invoker: "public",
     // Avoid App Check blocking admin fetch from localhost before debug tokens are registered.
     enforceAppCheck: false,
   },

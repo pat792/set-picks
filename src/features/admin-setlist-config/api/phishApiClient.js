@@ -143,7 +143,7 @@ function callableFailureToError(e) {
   if (code === 'functions/unavailable' || code === 'functions/internal') {
     const fallback =
       code === 'functions/internal'
-        ? `${msg}. If this persists: redeploy getPhishnetSetlist, confirm App Check is not enforced for Functions (or use a registered debug token on localhost), and check the browser console for the full error.`
+        ? `${msg}. Common causes: (1) Cloud Run invoker not public—redeploy getPhishnetSetlist with invoker "public" or grant roles/run.invoker to allUsers on the Cloud Run service (see README “CORS policy”); (2) App Check enforcing Functions; (3) stale function deploy. Check the browser console for a CORS preflight error on the cloudfunctions.net POST.`
         : msg;
     return { type: 'SetlistApiError', message: fallback || 'Server error.', source: 'phishnet' };
   }
