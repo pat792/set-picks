@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function DashboardMobileBrandBar({ user }) {
   return (
-    <div className="relative z-20 min-h-16 py-2.5 bg-brand-bg/92 backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150 border-b border-border-subtle/35 shadow-[0_8px_24px_-16px_rgba(15,10,46,0.95)] flex items-center justify-between px-4 gap-3">
+    <div className="relative z-20 min-h-16 py-2.5 bg-brand-bg/98 backdrop-blur-sm supports-[backdrop-filter]:backdrop-saturate-125 border-b border-border-subtle/35 shadow-[0_8px_24px_-16px_rgba(15,10,46,0.95)] flex items-center justify-between px-4 gap-3">
       
       {/* Structural Container: Stretches across the screen */}
       <h1 className="min-w-0 flex-1 leading-none outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm">

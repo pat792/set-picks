@@ -206,7 +206,7 @@ export default function DashboardLayout() {
       </main>
 
       {/* MOBILE BOTTOM BAR */}
-      <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-brand-bg/92 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-10px_28px_-14px_rgba(15,10,46,0.85)] backdrop-blur-md supports-[backdrop-filter]:backdrop-saturate-150">
+      <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-brand-bg/98 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-10px_28px_-14px_rgba(15,10,46,0.85)] backdrop-blur-sm supports-[backdrop-filter]:backdrop-saturate-125">
         <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-2`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
