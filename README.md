@@ -4,6 +4,8 @@ Nail the setlist. Win the game.
 
 ## Phish.net API key (admin setlist fetch)
 
+**Incident triage (ordered steps):** [docs/PHISHNET_CALLABLE_RUNBOOK.md](docs/PHISHNET_CALLABLE_RUNBOOK.md).
+
 Setlist automation calls **Phish.net v5** only through the Firebase Callable **`getPhishnetSetlist`**. The Phish.net key lives in **Secret Manager** (`PHISHNET_API_KEY`), not in the web app.
 
 **Why no `VITE_PHISHNET_API_KEY`:** Vite exposes every `VITE_*` variable from `.env` in the **browser bundle**. That is public to anyone who loads the site or opens DevTools. The codebase **does not** read a client Phish.net key anymore; if `VITE_USE_CALLABLE_PHISHNET_SETLIST` is off while source is `phishnet`, the client shows a configuration error.
