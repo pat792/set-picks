@@ -49,7 +49,7 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 font-medium text-white"
             />
           </div>
           <div>
@@ -65,7 +65,7 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="mt-1 w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 font-medium text-white"
             />
           </div>
           <div>
@@ -80,7 +80,7 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="mt-1 w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 font-medium text-white"
             />
           </div>
           {error ? <StatusBanner type="error" message={error} /> : null}

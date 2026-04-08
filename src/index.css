@@ -12,8 +12,69 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Venue and action tokens (hybrid now; CSS var runtime themes later) */
+    --brand-bg: 30 27 75;
+    --brand-bg-deep: 15 10 46;
+    --brand-primary: 45 212 191;
+    --brand-primary-strong: 20 184 166;
+
+    /* Surfaces: slate-glass (design.md) with slight indigo bias — softer vs saturated violet panels */
+    --surface-glass: 28 36 58;
+    --surface-chrome: 32 40 62;
+    --surface-panel: 34 42 62;
+    --surface-panel-strong: 42 52 78;
+    --surface-inset: 26 32 52;
+    --surface-field: 15 23 42;
+
+    /* Helper / meta copy (warm slate, ~Tailwind slate-300) */
+    --content-secondary: 203 213 225;
+
+    --border-glass: 148 163 184;
+    --border-subtle: 51 65 85;
+    --border-muted: 71 85 105;
+    --border-venue: 45 212 191;
+    --border-venue-strong: 45 212 191;
+  }
+
   html {
-    @apply font-sans antialiased;
+    @apply min-h-full font-sans antialiased bg-brand-bg text-white;
+  }
+
+  body {
+    @apply min-h-full bg-brand-bg antialiased;
+  }
+
+  /**
+   * Themed scrollbars (issue #56): thin track/thumb using CSS variables from :root.
+   * Elements that set scrollbar-width: none or hide webkit scrollbars keep their behavior.
+   */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--brand-primary) / 0.28) rgb(var(--surface-panel) / 0.45);
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: rgb(var(--surface-panel) / 0.4);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--brand-primary) / 0.22);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--brand-primary) / 0.38);
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 }
 

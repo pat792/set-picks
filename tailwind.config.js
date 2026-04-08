@@ -24,27 +24,37 @@ export default {
        */
       colors: {
         brand: {
-          bg: '#0f172a',
-          'bg-deep': '#020617',
-          primary: '#2dd4bf',
-          'primary-strong': '#14b8a6',
-          kicker: '#2dd4bf',
+          /** Venue base — Tailwind `indigo-950` (The Kuroda) */
+          bg: 'rgb(var(--brand-bg) / <alpha-value>)',
+          'bg-deep': 'rgb(var(--brand-bg-deep) / <alpha-value>)',
+          primary: 'rgb(var(--brand-primary) / <alpha-value>)',
+          'primary-strong': 'rgb(var(--brand-primary-strong) / <alpha-value>)',
+          kicker: 'rgb(var(--brand-primary) / <alpha-value>)',
           accent: {
             red: '#ef4444',
             blue: '#3b82f6',
           },
         },
         surface: {
-          glass: 'rgb(2 6 23 / 0.3)',
-          panel: 'rgb(30 41 59 / 0.5)',
-          'panel-strong': 'rgb(30 41 59 / 0.8)',
-          inset: 'rgb(15 23 42 / 0.4)',
-          field: '#0f172a',
+          glass: 'rgb(var(--surface-glass) / 0.32)',
+          chrome: 'rgb(var(--surface-chrome) / 0.5)',
+          /** ~design.md panel translucency */
+          panel: 'rgb(var(--surface-panel) / 0.5)',
+          'panel-strong': 'rgb(var(--surface-panel-strong) / 0.72)',
+          inset: 'rgb(var(--surface-inset) / 0.72)',
+          field: 'rgb(var(--surface-field) / 1)',
+        },
+        /** Secondary UI copy — labels, helper text, meta (dashboard + shared forms) */
+        content: {
+          secondary: 'rgb(var(--content-secondary) / <alpha-value>)',
         },
         border: {
-          glass: 'rgba(255, 255, 255, 0.25)',
-          subtle: 'rgb(51 65 85 / 0.5)',
-          muted: 'rgb(71 85 105 / 0.6)',
+          glass: 'rgb(var(--border-glass) / 0.25)',
+          subtle: 'rgb(var(--border-subtle) / 0.5)',
+          muted: 'rgb(var(--border-muted) / 0.6)',
+          /** Kuroda accents — keep one family (teal) for interactive affordances */
+          venue: 'rgb(var(--border-venue) / 0.34)',
+          'venue-strong': 'rgb(var(--border-venue-strong) / 0.46)',
         },
       },
       boxShadow: {
@@ -61,6 +71,15 @@ export default {
         sans: ['Inter', 'sans-serif'],
         // Space Grotesk becomes available via the 'font-display' class
         display: ['"Space Grotesk"', 'sans-serif'],
+      },
+      keyframes: {
+        pageEnter: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+      animation: {
+        'page-enter': 'pageEnter 0.32s ease-out forwards',
       },
       fontSize: {
         body: ['0.875rem', { lineHeight: '1.5' }],

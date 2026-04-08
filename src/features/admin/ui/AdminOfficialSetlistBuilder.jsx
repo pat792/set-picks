@@ -12,7 +12,7 @@ export default function AdminOfficialSetlistBuilder({
   isSaving = false,
 }) {
   return (
-    <div className="pt-2 border-t border-slate-700/60 space-y-3">
+    <div className="space-y-3 border-t border-border-muted pt-2">
       <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 block">
         Build Official Setlist (In Order)
       </label>
@@ -47,7 +47,7 @@ export default function AdminOfficialSetlistBuilder({
               key={`${index}-${song}`}
               className="flex items-center gap-2 text-sm font-bold text-slate-200"
             >
-              <span className="flex-1 min-w-0 flex flex-wrap items-center gap-2 rounded-xl border border-slate-600/80 bg-slate-900/60 px-3 py-2">
+              <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 rounded-xl border border-border-subtle bg-surface-field px-3 py-2">
                 <span className="text-slate-500 tabular-nums shrink-0">{index + 1}.</span>
                 <span className="break-words">{song}</span>
               </span>
@@ -56,7 +56,7 @@ export default function AdminOfficialSetlistBuilder({
                 variant="text"
                 size="none"
                 onClick={() => removeOfficialSongAt(index)}
-                className="shrink-0 rounded-lg border border-slate-600 text-slate-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 h-9 w-9"
+                className="h-9 w-9 shrink-0 rounded-lg border border-border-muted text-slate-400 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
                 aria-label={`Remove ${song}`}
               >
                 x

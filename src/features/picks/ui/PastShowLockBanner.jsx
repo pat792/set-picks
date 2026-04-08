@@ -14,7 +14,7 @@ export default function PastShowLockBanner() {
       />
       <div className="min-w-0">
         <h3 className="font-display text-display-sm font-bold text-white">Picks Locked</h3>
-        <p className="mt-1 text-sm font-bold leading-relaxed text-slate-400">
+        <p className="mt-1 text-sm font-bold leading-relaxed text-content-secondary">
           This show is in the past — picks can&apos;t be changed for this date.
         </p>
       </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Share } from 'lucide-react';
 
 const ghostInviteClass =
-  'inline-flex items-center gap-1.5 rounded-md px-0 py-0 text-sm font-semibold tracking-tight text-slate-400 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 disabled:cursor-not-allowed disabled:opacity-40';
+  'inline-flex items-center gap-1.5 rounded-md px-0 py-0 text-sm font-semibold tracking-tight text-content-secondary transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-40';
 
 /**
  * Presentational ghost-style invite control (no IO).

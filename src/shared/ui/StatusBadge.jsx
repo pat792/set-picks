@@ -2,11 +2,11 @@ import React from 'react';
 
 const variantStyles = {
   success:
-    'border border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+    'border border-brand-primary/40 bg-brand-primary/10 text-brand-primary',
   warning:
     'border border-amber-500/40 bg-amber-500/10 text-amber-400',
   neutral:
-    'border border-slate-600/60 bg-slate-500/10 text-slate-400',
+    'border border-border-muted bg-surface-inset text-slate-400',
 };
 
 /**

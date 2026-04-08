@@ -14,12 +14,7 @@ export default function PoolCard({
   const memberCount = pool?.members?.length ?? 0;
 
   return (
-    <Card
-      as="article"
-      variant="solid"
-      padding="md"
-      className="border-slate-700/70"
-    >
+    <Card as="article" variant="frosted" padding="md">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -51,7 +46,7 @@ export default function PoolCard({
               </StatusBadge>
             ) : null}
           </div>
-          <p className="mt-1 text-xs text-slate-400 uppercase tracking-widest">
+          <p className="mt-1 text-xs uppercase tracking-widest text-content-secondary">
             {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
           </p>
         </div>

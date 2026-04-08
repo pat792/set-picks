@@ -63,7 +63,7 @@ export default function PoolHubPage({ user }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 mt-20 text-emerald-400">
+      <div className="mt-20 flex flex-col items-center justify-center gap-3 text-brand-primary">
         <Loader2 className="w-10 h-10 animate-spin" aria-hidden />
         <p className="font-bold">Loading pool…</p>
       </div>
@@ -76,7 +76,7 @@ export default function PoolHubPage({ user }) {
         <p className="text-slate-300 font-bold">Pool not found.</p>
         <Link
           to="/dashboard/pools"
-          className="inline-block text-emerald-400 font-black uppercase tracking-widest text-sm hover:text-emerald-300 hover:underline"
+          className="inline-block font-black text-sm uppercase tracking-widest text-brand-primary hover:text-brand-primary-strong hover:underline"
         >
           Back to pools
         </Link>
@@ -92,7 +92,7 @@ export default function PoolHubPage({ user }) {
         </p>
         <Link
           to="/dashboard/pools"
-          className="inline-block text-emerald-400 font-black uppercase tracking-widest text-sm hover:text-emerald-300 hover:underline"
+          className="inline-block font-black text-sm uppercase tracking-widest text-brand-primary hover:text-brand-primary-strong hover:underline"
         >
           Back to pools
         </Link>
@@ -146,7 +146,7 @@ export default function PoolHubPage({ user }) {
           confirmModalProps={admin.confirmModalProps}
         />
         <section>
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">
+          <h2 className="mb-3 ml-1 text-xs font-bold uppercase tracking-widest text-content-secondary">
             Game Status
           </h2>
           <PoolHubActiveShow

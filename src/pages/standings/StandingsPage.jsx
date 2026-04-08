@@ -58,7 +58,7 @@ export default function StandingsPage({ selectedDate }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 mt-20 text-emerald-400 font-bold">
+      <div className="mt-20 flex flex-col items-center justify-center gap-3 font-bold text-brand-primary">
         <Loader2 className="h-10 w-10 animate-spin" aria-hidden />
         <p>Loading standings for {showLabel}…</p>
       </div>
@@ -71,7 +71,7 @@ export default function StandingsPage({ selectedDate }) {
         <PageTitle as="h2" variant="section" className="mb-2">
           Results aren&apos;t up yet
         </PageTitle>
-        <p className="text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">
+        <p className="mx-auto max-w-sm font-bold leading-relaxed text-content-secondary">
           This date hasn&apos;t happened yet. Lock your picks on Picks, then check Standings after the
           show for scores and rankings.
         </p>
@@ -109,11 +109,11 @@ export default function StandingsPage({ selectedDate }) {
         >
           {showStatus === 'PAST' ? (
             <>
-              <Inbox className="mb-4 h-14 w-14 text-slate-500" strokeWidth={1.5} aria-hidden />
+              <Inbox className="mb-4 h-14 w-14 text-content-secondary" strokeWidth={1.5} aria-hidden />
               <PageTitle as="h3" variant="section" className="mb-2">
                 No picks for this show
               </PageTitle>
-              <p className="text-slate-400 font-bold max-w-sm">
+              <p className="max-w-sm font-bold text-content-secondary">
                 {activeFilter === 'global'
                   ? 'Nobody submitted picks for this date.'
                   : 'Nobody in this pool submitted picks for this date.'}
@@ -121,11 +121,11 @@ export default function StandingsPage({ selectedDate }) {
             </>
           ) : (
             <>
-              <Music className="mb-4 h-14 w-14 text-emerald-400/80" strokeWidth={1.5} aria-hidden />
+              <Music className="mb-4 h-14 w-14 text-brand-primary/80" strokeWidth={1.5} aria-hidden />
               <PageTitle as="h3" variant="section" className="mb-2">
                 No picks yet
               </PageTitle>
-              <p className="text-slate-400 font-bold max-w-sm">
+              <p className="max-w-sm font-bold text-content-secondary">
                 {activeFilter === 'global'
                   ? 'Be the first to lock in picks for this show — head to the Picks tab.'
                   : 'Nobody in this pool has locked in yet. Invite friends from Pools.'}
