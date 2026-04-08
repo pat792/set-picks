@@ -3,6 +3,9 @@
  * No parsing beyond JSON — see #141. Parsing lives in `setlistParser` (#142).
  */
 
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../../../shared/lib/firebase.js';
+
 /** @typedef {'NetworkError' | 'HTTPError' | 'JSONParseError' | 'SetlistApiError' | 'ConfigurationError'} SetlistFetchErrorType */
 
 /**
@@ -68,6 +71,68 @@ const PHISHNET_SETLIST_URL = (date, apiKey) => {
   const q = new URLSearchParams({ apikey: apiKey });
   return `${base}?${q.toString()}`;
 };
+
+/** Keep in sync with `PHISHNET_FUNCTIONS_REGION` in `functions/index.js`. */
+const PHISHNET_CALLABLE_REGION = 'us-central1';
+
+function isPhishnetCallableEnabled() {
+  const v = String(import.meta.env.VITE_USE_CALLABLE_PHISHNET_SETLIST ?? '')
+    .trim()
+    .toLowerCase();
+  return v === 'true' || v === '1' || v === 'yes';
+}
+
+/**
+ * @param {unknown} e
+ * @returns {SetlistFetchError}
+ */
+function callableFailureToError(e) {
+  const code = typeof e === 'object' && e !== null && 'code' in e ? String(e.code) : '';
+  const msg =
+    typeof e === 'object' && e !== null && 'message' in e && typeof e.message === 'string'
+      ? e.message
+      : 'Callable request failed.';
+  if (code === 'functions/unauthenticated') {
+    return {
+      type: 'ConfigurationError',
+      message: 'Sign in required to fetch Phish.net setlist via server.',
+    };
+  }
+  if (
+    code === 'functions/permission-denied' ||
+    code === 'functions/failed-precondition' ||
+    code === 'functions/invalid-argument'
+  ) {
+    return { type: 'ConfigurationError', message: msg };
+  }
+  return { type: 'SetlistApiError', message: msg, source: 'phishnet' };
+}
+
+/**
+ * @param {string} dateString
+ * @returns {Promise<SetlistFetchResult>}
+ */
+async function fetchPhishnetViaCallable(dateString) {
+  try {
+    const functions = getFunctions(app, PHISHNET_CALLABLE_REGION);
+    const getPhishnetSetlist = httpsCallable(functions, 'getPhishnetSetlist');
+    const result = await getPhishnetSetlist({ showDate: dateString });
+    const data = result.data;
+    if (data == null || typeof data !== 'object') {
+      return {
+        ok: false,
+        error: { type: 'JSONParseError', message: 'Empty or invalid response from server.' },
+      };
+    }
+    const logical = phishNetLogicalError(data);
+    if (logical) {
+      return { ok: false, error: logical };
+    }
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, error: callableFailureToError(e) };
+  }
+}
 
 const ALLOWED_SOURCES = new Set(['phishin', 'phishnet']);
 
@@ -186,6 +251,10 @@ async function fetchPhishinRaw(dateString) {
  * @returns {Promise<SetlistFetchResult>}
  */
 async function fetchPhishnetRaw(dateString) {
+  if (isPhishnetCallableEnabled()) {
+    return fetchPhishnetViaCallable(dateString);
+  }
+
   const apiKey = import.meta.env.VITE_PHISHNET_API_KEY ?? '';
   const url = PHISHNET_SETLIST_URL(dateString, apiKey);
   let res;
