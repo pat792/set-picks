@@ -64,13 +64,7 @@ const SHOW_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const PHISHIN_SHOW_URL = (date) => `https://phish.in/api/v2/shows/${encodeURIComponent(date)}`;
 
-/** Phish.net v5 — see https://api.phish.net/ (setlists by showdate). */
-const PHISHNET_SETLIST_URL = (date, apiKey) => {
-  const base = `https://api.phish.net/v5/setlists/showdate/${encodeURIComponent(date)}.json`;
-  if (!apiKey) return base;
-  const q = new URLSearchParams({ apikey: apiKey });
-  return `${base}?${q.toString()}`;
-};
+/** Phish.net calls from this module use the Firebase callable only — see README (key in Secret Manager, never `VITE_*`). */
 
 /** Keep in sync with `PHISHNET_FUNCTIONS_REGION` in `functions/index.js`. */
 const PHISHNET_CALLABLE_REGION = 'us-central1';
@@ -313,31 +307,14 @@ async function fetchPhishnetRaw(dateString) {
     return fetchPhishnetViaCallable(dateString);
   }
 
-  const apiKey = import.meta.env.VITE_PHISHNET_API_KEY ?? '';
-  const url = PHISHNET_SETLIST_URL(dateString, apiKey);
-  let res;
-  try {
-    res = await fetch(url, {
-      headers: { Accept: 'application/json' },
-    });
-  } catch (e) {
-    return { ok: false, error: networkError(e) };
-  }
-
-  if (!res.ok) {
-    return { ok: false, error: httpErrorFromResponse(res) };
-  }
-
-  try {
-    const data = await res.json();
-    const logical = phishNetLogicalError(data);
-    if (logical) {
-      return { ok: false, error: logical };
-    }
-    return { ok: true, data };
-  } catch (e) {
-    return { ok: false, error: jsonParseError(e) };
-  }
+  return {
+    ok: false,
+    error: {
+      type: 'ConfigurationError',
+      message:
+        'Phish.net must be loaded via the Firebase callable so the API key stays server-side. Set VITE_USE_CALLABLE_PHISHNET_SETLIST=true, deploy getPhishnetSetlist, and store the key only as Secret PHISHNET_API_KEY — do not use VITE_PHISHNET_API_KEY (any VITE_* value is embedded in the browser bundle).',
+    },
+  };
 }
 
 /**

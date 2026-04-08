@@ -4,15 +4,23 @@ Nail the setlist. Win the game.
 
 ## Phish.net API key (admin setlist fetch)
 
-Setlist automation can call **Phish.net v5** (`setlists/showdate/…`) via the **Firebase Callable** (recommended everywhere the app runs in a browser). Direct browser `fetch` to `api.phish.net` is **blocked by CORS**, so local dev should use the callable too—not `VITE_PHISHNET_API_KEY` in the SPA.
+Setlist automation calls **Phish.net v5** only through the Firebase Callable **`getPhishnetSetlist`**. The Phish.net key lives in **Secret Manager** (`PHISHNET_API_KEY`), not in the web app.
 
-### Local development (same as production: callable)
+**Why no `VITE_PHISHNET_API_KEY`:** Vite exposes every `VITE_*` variable from `.env` in the **browser bundle**. That is public to anyone who loads the site or opens DevTools. The codebase **does not** read a client Phish.net key anymore; if `VITE_USE_CALLABLE_PHISHNET_SETLIST` is off while source is `phishnet`, the client shows a configuration error.
 
-1. Deploy **`getPhishnetSetlist`** and set the **`PHISHNET_API_KEY`** secret (see below).
-2. In `.env`: `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true`.
-3. Run `npm run dev`, sign in as the **designated admin** user, then use **Fetch setlist from API**.
+### Maintainer checklist (key secrecy)
 
-Optional: `VITE_PHISHNET_API_KEY` only if you disable the callable (e.g. non-browser scripts); it is **not** reliable for the admin UI in the browser.
+1. **Store the key once** as a Functions secret: `firebase functions:secrets:set PHISHNET_API_KEY` (paste value when prompted).
+2. **Never** add `VITE_PHISHNET_API_KEY` to `.env`, `.env.local`, or hosting env — remove it if it exists (rotate the key at phish.net if it was ever committed or pasted).
+3. **Redeploy** after changing the secret: `firebase deploy --only functions:getPhishnetSetlist`.
+4. **Build flags:** `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true` only; no Phish.net key in Vite.
+5. **Local admin:** same as prod — callable + signed-in admin + App Check debug token registered in Firebase Console if enforcement blocks localhost.
+
+### Local development (callable)
+
+1. Deploy **`getPhishnetSetlist`** and set **`PHISHNET_API_KEY`** (secret).
+2. In `.env`: `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true` (no Phish.net key in `.env`).
+3. `npm run dev`, sign in as **designated admin**, **Fetch setlist from API**.
 
 ### Staging / production (Firebase Callable)
 
@@ -28,7 +36,6 @@ Optional: `VITE_PHISHNET_API_KEY` only if you disable the callable (e.g. non-bro
 
    - `VITE_SETLIST_API_SOURCE=phishnet`
    - `VITE_USE_CALLABLE_PHISHNET_SETLIST=true`
-   - **Do not** set `VITE_PHISHNET_API_KEY` in production builds.
 
 The callable runs in **`us-central1`**; the client uses the same region when invoking it. If you change the function region, update **`PHISHNET_CALLABLE_REGION`** in `src/features/admin-setlist-config/api/phishApiClient.js` to match.
 
