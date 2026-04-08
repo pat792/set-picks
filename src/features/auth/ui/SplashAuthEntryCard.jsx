@@ -4,11 +4,11 @@ import Button from '../../../shared/ui/Button';
 export default function SplashAuthEntryCard({ onOpenSignUp, onOpenSignIn, headingRef = null }) {
   return (
     <div className="z-10 w-full max-w-lg">
-      <div className="rounded-[2rem] border border-white/10 bg-slate-800/60 backdrop-blur-md p-8 shadow-2xl text-center">
+      <div className="rounded-[2rem] border border-border-subtle bg-surface-panel-strong p-8 text-center shadow-inset-glass ring-1 ring-border-glass/20 backdrop-blur-md">
         <h2
           ref={headingRef}
           tabIndex={-1}
-          className="font-display text-display-sm font-bold text-slate-200 mb-1 outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded-md"
+          className="mb-1 rounded-md font-display text-display-sm font-bold text-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           Get started
         </h2>
@@ -18,7 +18,7 @@ export default function SplashAuthEntryCard({ onOpenSignUp, onOpenSignIn, headin
             variant="primary"
             type="button"
             onClick={onOpenSignUp}
-            className="flex-1 py-4 px-4 from-teal-400 to-teal-500 shadow-lg hover:opacity-95"
+            className="flex-1 px-4 py-4 shadow-glow-brand hover:opacity-95"
           >
             Create account
           </Button>
@@ -26,7 +26,7 @@ export default function SplashAuthEntryCard({ onOpenSignUp, onOpenSignIn, headin
             variant="glass"
             type="button"
             onClick={onOpenSignIn}
-            className="flex-1 border-white/20 bg-white/5 py-4 px-4 shadow-lg hover:bg-white/10"
+            className="flex-1 border-white/20 bg-white/5 px-4 py-4 shadow-inset-glass hover:bg-white/10"
           >
             Sign in
           </Button>

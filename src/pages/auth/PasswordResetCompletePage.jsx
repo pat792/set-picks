@@ -28,8 +28,7 @@ export default function PasswordResetComplete() {
 
   if (shouldShowSuccess) {
     return (
-      <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/15 blur-[100px] rounded-full pointer-events-none" />
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-transparent p-6 text-white">
         <div className="relative z-10 max-w-md w-full text-center space-y-6">
           <h1 className="font-display text-display-xl md:text-display-xl-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
             Password updated
@@ -43,7 +42,7 @@ export default function PasswordResetComplete() {
           </p>
           <Link
             to="/?login=true"
-            className="inline-flex w-full sm:w-auto justify-center items-center rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-8 py-4 font-black text-slate-900 shadow-lg hover:opacity-95 transition-opacity"
+            className="inline-flex w-full items-center justify-center rounded-2xl bg-brand-primary px-8 py-4 font-black text-brand-bg-deep shadow-glow-brand transition-opacity hover:bg-brand-primary-strong hover:opacity-95 sm:w-auto"
           >
             Go to sign in
           </Link>
@@ -56,8 +55,7 @@ export default function PasswordResetComplete() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/15 blur-[100px] rounded-full pointer-events-none" />
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-transparent p-6 text-white">
       <div className="relative z-10 max-w-md w-full text-center space-y-6">
         <h1 className="font-display text-display-xl md:text-display-xl-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
           Reset your password

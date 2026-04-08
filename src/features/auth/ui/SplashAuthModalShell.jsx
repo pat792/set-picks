@@ -7,14 +7,14 @@ export default function SplashAuthModalShell({ isOpen, onClose, title, handleGoo
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-bg-deep/85 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="w-full max-w-md rounded-[2rem] border border-white/10 bg-slate-900 p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2rem] border border-border-subtle bg-surface-panel-strong p-8 shadow-inset-glass ring-1 ring-border-glass/20"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start mb-6">
@@ -42,9 +42,9 @@ export default function SplashAuthModalShell({ isOpen, onClose, title, handleGoo
         </Button>
 
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 h-px bg-slate-700" />
-          <span className="text-xs font-bold text-slate-500 uppercase">or email</span>
-          <div className="flex-1 h-px bg-slate-700" />
+          <div className="h-px flex-1 bg-border-muted" />
+          <span className="text-xs font-bold uppercase text-slate-500">or email</span>
+          <div className="h-px flex-1 bg-border-muted" />
         </div>
 
         {children}

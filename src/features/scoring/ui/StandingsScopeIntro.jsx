@@ -93,7 +93,7 @@ export default function StandingsScopeIntro({
       <span className="text-slate-300">{showLabel}</span>
       {' · '}
       <span className="font-semibold text-slate-300">Everyone</span>
-      <span className="text-slate-500">
+      <span className="text-content-secondary">
         {' '}
         — all players who picked this show. Under Compare, pick a pool to see just that group.
       </span>
@@ -103,7 +103,7 @@ export default function StandingsScopeIntro({
       <span className="text-slate-300">{showLabel}</span>
       {' · '}
       <span className="font-semibold text-slate-300">{poolName || 'This pool'}</span>
-      <span className="text-slate-500">
+      <span className="text-content-secondary">
         {' '}
         — pool members only. Open the Everyone tab to see all players.
       </span>
@@ -121,14 +121,14 @@ export default function StandingsScopeIntro({
       </DashboardActionRow>
 
       <details className="group rounded-xl border border-border-subtle bg-surface-glass shadow-inset-glass">
-        <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 transition-colors hover:text-slate-400 [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-bold text-content-secondary transition-colors hover:text-white [&::-webkit-details-marker]:hidden">
           <ChevronDown
             className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
             aria-hidden
           />
           How scoring & pools work
         </summary>
-        <div className="border-t border-border-muted px-3 py-3 text-sm leading-relaxed text-slate-400">
+        <div className="border-t border-border-muted px-3 py-3 text-sm leading-relaxed text-content-secondary">
           {isEveryone ? (
             <p>
               <span className="font-semibold text-slate-200">Show standings</span> are the running

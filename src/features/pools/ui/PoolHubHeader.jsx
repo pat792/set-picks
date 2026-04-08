@@ -21,7 +21,7 @@ export default function PoolHubHeader({
             </span>
           ) : null}
         </div>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="mt-0.5 text-xs text-content-secondary">
           {memberCount} {memberCount === 1 ? 'member' : 'members'}
           {creatorLabel ? ` · ${creatorLabel}` : null}
         </p>

@@ -2,7 +2,7 @@
 
 ## 1. Visual Theme & Atmosphere
 
-Setlist Pick'em features a deep, high-contrast "dark mode" interface that captures the midnight excitement of live music. The design uses a neon teal (`#2dd4bf`) as the primary brand accent against deep slate backgrounds (`#0f172a`, `#020617`). The aesthetic relies heavily on "glassmorphism"—using translucent surface panels (`rgb(30 41 59 / 0.5)`) and subtle border glows rather than flat, opaque cards. 
+Setlist Pick'em features a deep, high-contrast "dark mode" interface that captures the midnight excitement of live music. The design uses a neon teal (`#2dd4bf`) as the primary brand accent against deep venue backgrounds (see **`brand-bg` / `brand-bg-deep`** in `src/index.css` — Kuroda-tinted indigo). The aesthetic relies heavily on "glassmorphism"—translucent **surface** tokens (`surface-panel`, etc.) and subtle border glows rather than flat, opaque cards. 
 
 The typography utilizes a two-font system: **Space Grotesk** for high-impact, stylized headings and branding, and **Inter** for highly legible, dense data (like leaderboards and settings). 
 
@@ -27,10 +27,21 @@ The typography utilizes a two-font system: **Space Grotesk** for high-impact, st
 - **Deep Bg (`brand-bg-deep`)**: `#020617` — Maximum contrast areas, lowest elevation.
 
 ### Surfaces (Glassmorphism)
-- **Glass (`surface-glass`)**: `rgb(2 6 23 / 0.3)` — Extremely subtle translucent overlays.
-- **Panel (`surface-panel`)**: `rgb(30 41 59 / 0.5)` — Standard card and container backgrounds.
-- **Panel Strong (`surface-panel-strong`)**: `rgb(30 41 59 / 0.8)` — Elevated modals, dropdowns.
-- **Field (`surface-field`)**: `#0f172a` — Form input backgrounds (like song selection slots).
+
+Implemented as CSS variables in `src/index.css` and mapped in `tailwind.config.js` (opacity per token). Current values are **slate-forward** with a slight indigo bias so panels sit softly on the venue background (not saturated violet).
+
+- **Glass (`surface-glass`)**: Dark blue-slate wash — subtle overlays, details chrome.
+- **Chrome (`surface-chrome`)**: Sidebar / dense chrome — slightly lifted vs glass.
+- **Panel (`surface-panel`)**: Standard cards and containers (~`rgb(34 42 62 / 0.5)` effective).
+- **Panel Strong (`surface-panel-strong`)**: Elevated rows, modals, gradient starts (~`rgb(42 52 78 / 0.72)` effective).
+- **Inset (`surface-inset`)**: Nested wells inside panels.
+- **Field (`surface-field`)**: Form inputs and song slots (`#0f172a` channel).
+
+**Hero dashboard cards** (e.g. Pool Hub “Game status”, Picks form): use `Card` **`variant="venue"`** — `border-brand-primary/30`, gradient `from-surface-panel-strong to-brand-bg-deep`, `shadow-glow-brand` + inset glass (see [`Card.jsx`](../src/shared/ui/Card.jsx)).
+
+### Content (secondary copy)
+
+- **`text-content-secondary`** — Warm muted foreground for helper text, uppercase field labels, meta descriptions, and inactive nav (token: `--content-secondary` in `index.css`, ~slate-300). Prefer over raw `text-slate-400` / `text-slate-500` on dashboard routes.
 
 ### Borders
 - **Glass Border (`border-glass`)**: `rgba(255, 255, 255, 0.25)` — Highlights on elevated cards.
@@ -57,6 +68,7 @@ The typography utilizes a two-font system: **Space Grotesk** for high-impact, st
 | Section Header | `text-display-sm` | Space Grotesk | 1.3125rem / 1.28 | -0.015em |
 | General Title | `text-title` | Inter | 1.5rem / 1.2 (Bold) | Normal |
 | Standard Body | `text-body` | Inter | 0.875rem / 1.5 | Normal |
+| Secondary / meta copy | `text-content-secondary` | Inter | (inherits) | Use for labels, helpers, empty states |
 
 ## 4. Component Stylings & Shapes (CRITICAL)
 
@@ -81,11 +93,15 @@ The typography utilizes a two-font system: **Space Grotesk** for high-impact, st
 - **Inactive:** `bg-surface-field` with `border border-border-subtle` (keep it dark and muted).
 - **Focus/Active:** Change border or ring to `brand-primary` (`ring-brand` or `border-brand-primary`) to guide the user's eye. Do not use random blue/indigo borders.
 
-### Cards (Leaderboard & Pools)
-- **Background:** `bg-surface-panel`
-- **Border:** `border border-border-subtle`
-- **Radius:** `rounded-xl` or `rounded-2xl`
-- **Focus/Active State:** Add `shadow-inset-glass`.
+### Cards (three tiers — `Card` variants)
+
+| Tier | `Card` variant | Use when |
+|------|----------------|----------|
+| **Quiet** | `default`, `solid`, `panel` | Dense lists, nested shells, subtle chrome — muted border, no teal edge. |
+| **Middle (frosted)** | `frosted` | Dashboard list cards (e.g. pool rows): **`border-brand-primary/30`**, `bg-surface-panel`, **`backdrop-blur-md` / `backdrop-blur-xl`**, `shadow-inset-glass` — glassmorphism without hero glow. |
+| **Hero** | `venue` | Primary task blocks (Picks form, Pool Hub game status): teal border + **gradient** into `brand-bg-deep` + **`shadow-glow-brand`**. |
+
+Legacy copy for quiet cards: **Background** `bg-surface-panel`, **Border** `border-border-subtle`, **Radius** `rounded-xl` / `rounded-2xl`, **Depth** `shadow-inset-glass`.
 
 ## 5. Depth & Elevation (Glows over Shadows)
 
@@ -111,6 +127,7 @@ Because the app uses a dark theme, traditional black drop-shadows do not work. D
 ### Quick Tailwind Class Reference
 - **Background:** `bg-brand-bg`
 - **Standard Card:** `bg-surface-panel border border-border-subtle rounded-xl`
+- **Frosted list card:** `Card` `variant="frosted"` — teal border + blur + inset glass
 - **Primary Text:** `text-white font-sans`
 - **Page Heading:** `text-display-page font-display font-bold text-white`
 - **Primary Button (CTA):** `bg-brand-primary text-brand-bg-deep rounded-xl font-bold px-6 py-3 hover:bg-brand-primary-strong shadow-glow-brand`

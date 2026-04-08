@@ -19,12 +19,12 @@ export default function TooEarlyBanner({ priorShowLabel = null }) {
       role="status"
     >
       <Hourglass
-        className="mb-2 h-5 w-5 shrink-0 text-slate-400 md:mb-0"
+        className="mb-2 h-5 w-5 shrink-0 text-content-secondary md:mb-0"
         aria-hidden
       />
       <div className="min-w-0">
         <h3 className="font-display text-display-sm font-bold text-white">Too early</h3>
-        <p className="mt-1 text-sm font-bold leading-relaxed text-slate-400">{detail}</p>
+        <p className="mt-1 text-sm font-bold leading-relaxed text-content-secondary">{detail}</p>
       </div>
     </div>
   );

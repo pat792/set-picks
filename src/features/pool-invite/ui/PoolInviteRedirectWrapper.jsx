@@ -6,9 +6,9 @@ export default function PoolInviteRedirectWrapper() {
   usePoolInviteInterceptor();
 
   return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 bg-slate-900 px-4 text-center text-slate-300">
+    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 bg-brand-bg px-4 text-center text-slate-300">
       <div
-        className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"
+        className="h-8 w-8 animate-spin rounded-full border-2 border-brand-primary border-t-transparent"
         aria-hidden
       />
       <p className="text-sm font-bold uppercase tracking-widest text-slate-500">

@@ -13,7 +13,7 @@ export default function PicksFieldsForm({
     <>
       {FORM_FIELDS.map((field) => (
         <div key={field.id} className="flex flex-col">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
+          <label className="mb-1 ml-1 text-xs font-bold uppercase tracking-widest text-content-secondary">
             {field.label}
           </label>
           <SongAutocomplete

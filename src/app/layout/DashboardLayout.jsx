@@ -86,10 +86,10 @@ export default function DashboardLayout() {
 
   return (
     <ScoringRulesModalProvider>
-    <div className="flex h-screen w-full bg-[#0f172a] text-white overflow-hidden">
+    <div className="flex h-[100dvh] min-h-0 w-full bg-transparent text-white overflow-hidden md:h-screen">
       
       {/* DESKTOP SIDEBAR */}
-      <nav className="hidden md:flex flex-col w-64 bg-slate-800/50 border-r border-slate-700/50 p-4 z-10">
+      <nav className="hidden md:flex flex-col w-64 bg-surface-chrome border-r border-border-muted/65 p-4 z-10">
       <div className="mb-8 px-4 py-2">
           <h1 className="font-display text-display-brand-sidebar md:text-display-brand-sidebar-lg font-bold italic leading-none outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity flex flex-col items-start">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 pr-2">
@@ -119,7 +119,7 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${isActive ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+              <Link key={item.name} to={item.path} className={`flex items-center gap-3 rounded-xl px-4 py-3 font-bold transition-all ${isActive ? 'bg-brand-primary/10 text-brand-primary' : 'text-content-secondary hover:bg-surface-inset hover:text-white'}`}>
                 {/* Render the Lucide icon instead of text */}
                 <Icon className="w-5 h-5 shrink-0" />
                 {item.name}
@@ -149,13 +149,15 @@ export default function DashboardLayout() {
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
-            <div className="hidden md:flex mb-6 bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 items-center justify-between gap-4 min-w-0 shadow-lg">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 shrink-0">Select Show:</span>
+            <div className="hidden md:flex mb-6 bg-surface-panel-strong backdrop-blur-md p-3 rounded-2xl border border-border-muted/70 items-center justify-between gap-4 min-w-0 shadow-inset-glass ring-1 ring-border-glass/45">
+              <span className="shrink-0 px-2 text-xs font-black uppercase tracking-widest text-content-secondary">
+                Select Show:
+              </span>
               <div className="min-w-0 w-64 max-w-full shrink">
                 <select
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-slate-900 border-2 border-slate-700 text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-surface-field border-2 border-border-subtle text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-brand-primary transition-colors cursor-pointer"
                 >
                   {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
                     <optgroup key={tour} label={tour} className="tour-optgroup">
@@ -177,7 +179,7 @@ export default function DashboardLayout() {
           )}
 
           {meta.layoutDetailEyebrow ? (
-            <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-slate-400 md:block">
+            <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-content-secondary md:block">
               {meta.layoutDetailEyebrow}
             </p>
           ) : null}
@@ -187,23 +189,24 @@ export default function DashboardLayout() {
           )}
 
           <Routes>
-            <Route path="/" element={<PicksPage user={user} selectedDate={selectedDate} />} />
+            <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
+            <Route path="picks" element={<PicksPage user={user} selectedDate={selectedDate} />} />
             <Route
-              path="/scoring"
+              path="scoring"
               element={<Navigate to="/dashboard?scoringRules=1" replace />}
             />
-            <Route path="/standings" element={<StandingsPage selectedDate={selectedDate} />} />
-            <Route path="/admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
-            <Route path="/profile" element={<ProfilePage user={user} />} />
-            <Route path="/account-security" element={<AccountSecurity user={user} />} />
-            <Route path="/pools" element={<PoolsPage user={user} />} />
-            <Route path="/pool/:poolId" element={<PoolHubPage user={user} />} />
+            <Route path="standings" element={<StandingsPage selectedDate={selectedDate} />} />
+            <Route path="admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
+            <Route path="profile" element={<ProfilePage user={user} />} />
+            <Route path="account-security" element={<AccountSecurity user={user} />} />
+            <Route path="pools" element={<PoolsPage user={user} />} />
+            <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
           </Routes>
         </div>
       </main>
 
       {/* MOBILE BOTTOM BAR */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-slate-900 border-t border-slate-800 z-50 pb-safe">
+      <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-brand-bg/92 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-10px_28px_-14px_rgba(15,10,46,0.85)] backdrop-blur-md supports-[backdrop-filter]:backdrop-saturate-150">
         <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-2`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
@@ -223,7 +226,7 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}>
+              <Link key={item.name} to={item.path} className={`flex h-full w-full flex-col items-center justify-center space-y-1 ${isActive ? 'text-brand-primary' : 'text-content-secondary hover:text-white'}`}>
                 {/* Render the Lucide icon */}
                 <Icon className="w-5 h-5 mb-0.5" />
                 <span className="text-[10px] font-bold tracking-wider">{item.name}</span>

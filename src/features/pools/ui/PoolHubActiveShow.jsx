@@ -60,12 +60,7 @@ export default function PoolHubActiveShow({
   }
 
   return (
-    <Card
-      as="section"
-      variant="default"
-      padding="sm"
-      className="border border-brand-primary/30 bg-gradient-to-br from-surface-panel-strong to-brand-bg-deep shadow-glow-brand md:p-6"
-    >
+    <Card as="section" variant="venue" padding="sm" className="md:p-6">
       <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
           <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
@@ -75,15 +70,15 @@ export default function PoolHubActiveShow({
             <span className="text-brand-primary">{showLabel}</span>
           </p>
           {picksStatusLoading && !isLocked ? (
-            <p className="flex items-center gap-2 text-sm font-bold text-slate-500">
+            <p className="flex items-center gap-2 text-sm font-bold text-content-secondary">
               <Loader2
-                className="h-4 w-4 shrink-0 animate-spin text-slate-500"
+                className="h-4 w-4 shrink-0 animate-spin text-content-secondary"
                 aria-hidden
               />
               {bodyLine}
             </p>
           ) : bodyLine ? (
-            <p className="text-sm font-bold text-slate-400">{bodyLine}</p>
+            <p className="text-sm font-bold text-content-secondary">{bodyLine}</p>
           ) : null}
         </div>
 
@@ -109,7 +104,7 @@ export default function PoolHubActiveShow({
               aria-busy="true"
               aria-label="Loading picks status"
             >
-              <Loader2 className="h-5 w-5 animate-spin text-slate-500" />
+              <Loader2 className="h-5 w-5 animate-spin text-content-secondary" />
             </div>
           ) : !isSecured ? (
             <Button

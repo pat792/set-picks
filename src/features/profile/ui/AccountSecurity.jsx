@@ -30,18 +30,18 @@ export default function AccountSecurity({ user }) {
       <div className="max-w-xl mx-auto pb-6 md:pb-12">
         <Link
           to="/dashboard/profile"
-          className="inline-block text-sm font-bold text-emerald-400 hover:underline mb-6"
+          className="mb-6 inline-block text-sm font-bold text-brand-primary hover:underline"
         >
           ← Back to Profile
         </Link>
-        <div className="rounded-3xl border border-slate-700/50 bg-slate-800/50 p-8 text-center">
+        <div className="rounded-3xl border border-border-subtle bg-surface-panel p-8 text-center shadow-inset-glass">
           <p className="text-slate-400 font-bold">
             Email and password sign-in is only for accounts that use it. You signed in with Google —
             manage your account in your Google settings.
           </p>
           <Link
             to="/dashboard/profile"
-            className="mt-6 inline-flex rounded-xl bg-emerald-500 px-6 py-3 font-black text-slate-900"
+            className="mt-6 inline-flex rounded-xl bg-brand-primary px-6 py-3 font-black text-brand-bg-deep shadow-glow-brand hover:bg-brand-primary-strong"
           >
             Back to Profile
           </Link>
@@ -54,7 +54,7 @@ export default function AccountSecurity({ user }) {
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <Link
         to="/dashboard/profile"
-        className="inline-block text-sm font-bold text-emerald-400 hover:underline mb-4"
+        className="mb-4 inline-block text-sm font-bold text-brand-primary hover:underline"
       >
         ← Back to Profile
       </Link>
@@ -65,7 +65,7 @@ export default function AccountSecurity({ user }) {
         </h2>
         <p className="mt-2 text-sm text-slate-400 leading-relaxed">
           You sign in as{' '}
-          <span className="font-bold text-emerald-400/90">{user.email}</span>. Enter your{' '}
+          <span className="font-bold text-brand-primary">{user.email}</span>. Enter your{' '}
           <strong className="text-slate-300">current password</strong> below to change your email
           and/or password.
         </p>

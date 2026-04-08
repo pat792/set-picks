@@ -23,7 +23,7 @@ export default function AccountSecurityForm({
   onPasswordResetEmail,
 }) {
   return (
-    <div className="space-y-6 rounded-3xl border border-slate-700/50 bg-slate-800/50 p-6">
+    <div className="space-y-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
       <form onSubmit={onSubmit} className="space-y-4">
         {/* Helps password managers associate the current password + updated password with the right user */}
         <input
@@ -49,7 +49,7 @@ export default function AccountSecurityForm({
           />
         </div>
 
-        <div className="border-t border-slate-700/50 pt-4 space-y-4">
+        <div className="space-y-4 border-t border-border-muted pt-4">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             New sign-in email <span className="normal-case font-medium">(optional)</span>
           </p>
@@ -80,7 +80,7 @@ export default function AccountSecurityForm({
           </div>
         </div>
 
-        <div className="border-t border-slate-700/50 pt-4 space-y-4">
+        <div className="space-y-4 border-t border-border-muted pt-4">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             New password <span className="normal-case font-medium">(optional)</span>
           </p>
@@ -114,7 +114,7 @@ export default function AccountSecurityForm({
         {accountMessage.text && (
           <p
             className={`text-center text-sm font-bold ${
-              accountMessage.type === 'error' ? 'text-red-400' : 'text-emerald-400'
+              accountMessage.type === 'error' ? 'text-red-400' : 'text-brand-primary'
             }`}
           >
             {accountMessage.text}
@@ -125,13 +125,13 @@ export default function AccountSecurityForm({
           variant="primary"
           type="submit"
           disabled={accountBusy}
-          className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 py-3.5 text-sm uppercase tracking-widest text-slate-900"
+          className="w-full rounded-xl py-3.5 text-sm uppercase tracking-widest"
         >
           {accountBusy ? 'Saving…' : 'Save sign-in changes'}
         </Button>
       </form>
 
-      <div className="border-t border-slate-700/50 pt-6 space-y-3">
+      <div className="space-y-3 border-t border-border-muted pt-6">
         <p className="text-sm text-slate-400 leading-relaxed">
           <strong className="text-slate-300">Forgot your current password?</strong> We&apos;ll email
           a reset link to <span className="font-bold text-slate-300">{currentEmail}</span> — no
@@ -142,14 +142,14 @@ export default function AccountSecurityForm({
           type="button"
           onClick={onPasswordResetEmail}
           disabled={passwordResetSending}
-          className="w-full rounded-xl border-2 border-slate-600 bg-slate-900/80 py-3.5 text-sm uppercase tracking-widest text-white hover:border-amber-500/50 hover:bg-slate-800"
+          className="w-full rounded-xl border-2 border-border-muted bg-surface-field py-3.5 text-sm uppercase tracking-widest text-white hover:border-brand-primary/40 hover:bg-surface-panel"
         >
           {passwordResetSending ? 'Sending…' : 'Send password reset email'}
         </Button>
         {passwordResetNotice.text && (
           <p
             className={`text-center text-sm font-bold ${
-              passwordResetNotice.type === 'error' ? 'text-red-400' : 'text-emerald-400'
+              passwordResetNotice.type === 'error' ? 'text-red-400' : 'text-brand-primary'
             }`}
           >
             {passwordResetNotice.text}

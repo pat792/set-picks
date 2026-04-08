@@ -38,7 +38,7 @@ export default function AdminFinalizeAndSave({
       {message?.text && (
         <div
           className={`mt-2 flex items-center justify-center gap-2 text-center text-sm font-bold uppercase tracking-widest ${
-            message.type === 'error' ? 'text-red-400' : 'text-emerald-400'
+            message.type === 'error' ? 'text-red-400' : 'text-brand-primary'
           }`}
           role={message.type === 'error' ? 'alert' : 'status'}
         >

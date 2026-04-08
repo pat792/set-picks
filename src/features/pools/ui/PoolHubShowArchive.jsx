@@ -13,22 +13,22 @@ export default function PoolHubShowArchive({ poolId }) {
 
   return (
     <section>
-      <details className="group rounded-xl border border-slate-700/50 bg-slate-900/25">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-slate-500 transition-colors hover:text-slate-400 [&::-webkit-details-marker]:hidden">
+      <details className="group rounded-xl border border-border-subtle bg-surface-glass shadow-inset-glass">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-content-secondary transition-colors hover:text-white [&::-webkit-details-marker]:hidden">
           <span className="uppercase tracking-widest">Past shows</span>
           <ChevronDown
             className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
             aria-hidden
           />
         </summary>
-        <div className="space-y-2 border-t border-slate-700/40 px-3 py-3">
+        <div className="space-y-2 border-t border-border-muted px-3 py-3">
           {pastShows.length > 0 ? (
             <ul className="space-y-2">
               {pastShows.map((show) => (
                 <li key={show.date}>
                   <Link
                     to={`/dashboard/standings?showDate=${encodeURIComponent(show.date)}&poolId=${encodeURIComponent(poolId)}`}
-                    className="block bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    className="block rounded-xl border border-border-subtle bg-surface-panel px-4 py-3 text-sm font-bold text-brand-primary transition-colors hover:bg-surface-panel-strong hover:text-brand-primary-strong"
                   >
                     Show standings · {formatShowLabel(show.date)}
                   </Link>
@@ -36,7 +36,7 @@ export default function PoolHubShowArchive({ poolId }) {
               ))}
             </ul>
           ) : (
-            <p className="text-slate-500 font-bold text-sm px-1">
+            <p className="px-1 text-sm font-bold text-content-secondary">
               No past shows in the schedule yet.
             </p>
           )}
