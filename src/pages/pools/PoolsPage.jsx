@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ListMusic } from 'lucide-react';
+import { Users } from 'lucide-react';
 
 import { useNextShowPicksStatus } from '../../features/picks';
 import {
@@ -31,10 +31,12 @@ export default function Pools({ user }) {
   return (
     <div className="w-full space-y-8 pb-6 md:pb-12">
       <DashboardActionRow>
-        <DashboardRowPill as={Link} to="/dashboard" tone="muted">
-          <ListMusic className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          Go to Picks
-        </DashboardRowPill>
+        <div className="flex w-full justify-start">
+          <DashboardRowPill as={Link} to="/dashboard" tone="accent">
+            <Users className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
+            Go to Picks
+          </DashboardRowPill>
+        </div>
       </DashboardActionRow>
 
       <UserPoolsSection
