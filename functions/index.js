@@ -1,6 +1,7 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
+const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const { PHISH_SONGS: phishSongs } = require("./phishSongs");
 
@@ -173,88 +174,103 @@ exports.getPhishnetSetlist = onCall(
   {
     region: PHISHNET_FUNCTIONS_REGION,
     secrets: [phishnetApiKey],
+    // Avoid App Check blocking admin fetch from localhost before debug tokens are registered.
+    enforceAppCheck: false,
   },
   async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "Sign in required.");
-    }
-    const email = request.auth.token?.email;
-    if (email !== ADMIN_EMAIL_FOR_SETLIST_PROXY) {
-      throw new HttpsError(
-        "permission-denied",
-        "Only the designated admin can fetch Phish.net setlists."
-      );
-    }
-
-    const showDate = request.data?.showDate;
-    if (
-      typeof showDate !== "string" ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(showDate.trim())
-    ) {
-      throw new HttpsError(
-        "invalid-argument",
-        "showDate must be a YYYY-MM-DD string."
-      );
-    }
-
-    const key = phishnetApiKey.value();
-    if (!key || !String(key).trim()) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
-      );
-    }
-
-    const url = `https://api.phish.net/v5/setlists/showdate/${encodeURIComponent(
-      showDate.trim()
-    )}.json?apikey=${encodeURIComponent(String(key).trim())}`;
-
-    let res;
     try {
-      res = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Sign in required.");
+      }
+      const email = request.auth.token?.email;
+      if (email !== ADMIN_EMAIL_FOR_SETLIST_PROXY) {
+        throw new HttpsError(
+          "permission-denied",
+          "Only the designated admin can fetch Phish.net setlists."
+        );
+      }
+
+      const showDate = request.data?.showDate;
+      if (
+        typeof showDate !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(showDate.trim())
+      ) {
+        throw new HttpsError(
+          "invalid-argument",
+          "showDate must be a YYYY-MM-DD string."
+        );
+      }
+
+      const key = phishnetApiKey.value();
+      if (!key || !String(key).trim()) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+        );
+      }
+
+      const url = `https://api.phish.net/v5/setlists/showdate/${encodeURIComponent(
+        showDate.trim()
+      )}.json?apikey=${encodeURIComponent(String(key).trim())}`;
+
+      let res;
+      try {
+        res = await fetch(url, { headers: { Accept: "application/json" } });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Network error to Phish.net";
+        // Use `unavailable` (not `internal`) so the client SDK forwards the message; `internal` is redacted.
+        throw new HttpsError("unavailable", msg);
+      }
+
+      let bodyText;
+      try {
+        bodyText = await res.text();
+      } catch (e) {
+        throw new HttpsError(
+          "unavailable",
+          "Failed to read Phish.net response."
+        );
+      }
+
+      if (!res.ok) {
+        throw new HttpsError(
+          "failed-precondition",
+          `Phish.net HTTP ${res.status}: ${bodyText.slice(0, 240)}`
+        );
+      }
+
+      let data;
+      try {
+        data = JSON.parse(bodyText);
+      } catch {
+        throw new HttpsError(
+          "failed-precondition",
+          "Phish.net returned non-JSON."
+        );
+      }
+
+      // Phish.net often returns HTTP 200 with `error` / `error_message` (e.g. invalid key).
+      const apiErr = data && typeof data === "object" ? data.error : undefined;
+      if (apiErr !== undefined && apiErr !== null && apiErr !== 0) {
+        const apiMsg =
+          typeof data.error_message === "string"
+            ? data.error_message
+            : "Phish.net API error.";
+        throw new HttpsError("failed-precondition", apiMsg);
+      }
+
+      return data;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Network error to Phish.net";
-      // Use `unavailable` (not `internal`) so the client SDK forwards the message; `internal` is redacted.
-      throw new HttpsError("unavailable", msg);
-    }
-
-    let bodyText;
-    try {
-      bodyText = await res.text();
-    } catch (e) {
-      throw new HttpsError(
-        "unavailable",
-        "Failed to read Phish.net response."
-      );
-    }
-
-    if (!res.ok) {
+      if (e instanceof HttpsError) {
+        throw e;
+      }
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("getPhishnetSetlist unexpected error", msg, e);
+      // Map unexpected throws (e.g. secret/param) to a code whose message is not stripped client-side.
       throw new HttpsError(
         "failed-precondition",
-        `Phish.net HTTP ${res.status}: ${bodyText.slice(0, 240)}`
+        `getPhishnetSetlist failed: ${msg}`
       );
     }
-
-    let data;
-    try {
-      data = JSON.parse(bodyText);
-    } catch {
-      throw new HttpsError(
-        "failed-precondition",
-        "Phish.net returned non-JSON."
-      );
-    }
-
-    // Phish.net often returns HTTP 200 with `error` / `error_message` (e.g. invalid key).
-    const apiErr = data && typeof data === "object" ? data.error : undefined;
-    if (apiErr !== undefined && apiErr !== null && apiErr !== 0) {
-      const apiMsg =
-        typeof data.error_message === "string"
-          ? data.error_message
-          : "Phish.net API error.";
-      throw new HttpsError("failed-precondition", apiMsg);
-    }
-
-    return data;
   }
 );

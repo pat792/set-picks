@@ -33,3 +33,5 @@ Optional: `VITE_PHISHNET_API_KEY` only if you disable the callable (e.g. non-bro
 The callable runs in **`us-central1`**; the client uses the same region when invoking it. If you change the function region, update **`PHISHNET_CALLABLE_REGION`** in `src/features/admin-setlist-config/api/phishApiClient.js` to match.
 
 The callable requires a **signed-in Firebase user** whose **email matches** the admin gate in `useAdminSetlistForm` (same hard-coded admin email as today).
+
+If the admin UI shows a generic **`internal`** error, redeploy **`getPhishnetSetlist`** (stale deploy is a common cause). The function sets **`enforceAppCheck: false`** so localhost works without an App Check debug token; if you still see failures, check **Firebase Console → App Check → APIs** and ensure Cloud Functions enforcement is not blocking your environment, and open the browser **console** for the full `httpsCallable` error (dev builds log it).

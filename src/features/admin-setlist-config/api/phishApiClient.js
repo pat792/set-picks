@@ -83,15 +83,50 @@ function isPhishnetCallableEnabled() {
 }
 
 /**
+ * Firebase `httpsCallable` errors sometimes hide the real text in `details` or use a useless `message` ("internal").
+ * @param {unknown} e
+ * @returns {string | null}
+ */
+function extractCallableDetailMessage(e) {
+  if (typeof e !== 'object' || e === null) return null;
+  const rec = /** @type {Record<string, unknown>} */ (e);
+  const details = rec.details;
+  if (typeof details === 'string' && details.trim()) return details.trim();
+  if (Array.isArray(details) && details.length > 0) {
+    const d0 = details[0];
+    if (typeof d0 === 'string' && d0.trim()) return d0.trim();
+    if (typeof d0 === 'object' && d0 !== null && 'message' in d0 && typeof d0.message === 'string') {
+      return d0.message.trim();
+    }
+  }
+  if (details && typeof details === 'object' && !Array.isArray(details)) {
+    const d = /** @type {Record<string, unknown>} */ (details);
+    if (typeof d.message === 'string' && d.message.trim()) return d.message.trim();
+  }
+  const custom = rec.customData;
+  if (custom && typeof custom === 'object' && !Array.isArray(custom)) {
+    const c = /** @type {Record<string, unknown>} */ (custom);
+    if (typeof c.message === 'string' && c.message.trim()) return c.message.trim();
+  }
+  return null;
+}
+
+/**
  * @param {unknown} e
  * @returns {SetlistFetchError}
  */
 function callableFailureToError(e) {
   const code = typeof e === 'object' && e !== null && 'code' in e ? String(e.code) : '';
-  const msg =
+  const rawMsg =
     typeof e === 'object' && e !== null && 'message' in e && typeof e.message === 'string'
       ? e.message
       : 'Callable request failed.';
+  const detailMsg = extractCallableDetailMessage(e);
+  const generic =
+    /^internal$/i.test(rawMsg.trim()) ||
+    /^unknown$/i.test(rawMsg.trim()) ||
+    /^firebase error$/i.test(rawMsg.trim());
+  const msg = (generic && detailMsg) || detailMsg || rawMsg;
   if (code === 'functions/unauthenticated') {
     return {
       type: 'ConfigurationError',
@@ -106,7 +141,11 @@ function callableFailureToError(e) {
     return { type: 'ConfigurationError', message: msg };
   }
   if (code === 'functions/unavailable' || code === 'functions/internal') {
-    return { type: 'SetlistApiError', message: msg || 'Server error.', source: 'phishnet' };
+    const fallback =
+      code === 'functions/internal'
+        ? `${msg}. If this persists: redeploy getPhishnetSetlist, confirm App Check is not enforced for Functions (or use a registered debug token on localhost), and check the browser console for the full error.`
+        : msg;
+    return { type: 'SetlistApiError', message: fallback || 'Server error.', source: 'phishnet' };
   }
   return { type: 'SetlistApiError', message: msg, source: 'phishnet' };
 }
@@ -133,6 +172,9 @@ async function fetchPhishnetViaCallable(dateString) {
     }
     return { ok: true, data };
   } catch (e) {
+    if (import.meta.env.DEV) {
+      console.error('[phishApiClient] getPhishnetSetlist callable failed', e);
+    }
     return { ok: false, error: callableFailureToError(e) };
   }
 }
