@@ -1,23 +1,13 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../../shared/lib/firebase';
+import {
+  sanitizeOfficialSongList,
+  sanitizeSetlistSlots,
+} from '../../../shared/utils/officialSetlistSanitize.js';
 
 const OFFICIAL_SETLISTS_COLLECTION = 'official_setlists';
 
-const normalizeSong = (value) => String(value ?? '').trim();
-
-export function sanitizeSetlistSlots(setlistData, slotFields) {
-  const cleaned = {};
-  slotFields.forEach((field) => {
-    const value = setlistData?.[field.id];
-    cleaned[field.id] = typeof value === 'string' ? value.trim() : normalizeSong(value);
-  });
-  return cleaned;
-}
-
-export function sanitizeOfficialSongList(officialSetlist) {
-  if (!Array.isArray(officialSetlist)) return [];
-  return officialSetlist.map(normalizeSong).filter(Boolean);
-}
+export { sanitizeOfficialSongList, sanitizeSetlistSlots };
 
 export async function fetchOfficialSetlistByDate(showDate, slotFields) {
   const docRef = doc(db, OFFICIAL_SETLISTS_COLLECTION, showDate);

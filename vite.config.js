@@ -8,6 +8,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   base: '/',
   plugins: [react()],
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.js'],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

@@ -3,3 +3,9 @@
  * Prefer importing from here from pages or other features.
  */
 export { fetchSetlistRaw, isSetlistFetchFailure } from './api/phishApiClient.js';
+export {
+  parseSetlist,
+  mapParsedSetlistToLegacySaveShape,
+  normalizeSetlistApiSource,
+  SetlistParseError,
+} from './model/setlistParser.js';
