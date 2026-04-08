@@ -214,19 +214,23 @@ exports.getPhishnetSetlist = onCall(
       res = await fetch(url, { headers: { Accept: "application/json" } });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Network error to Phish.net";
-      throw new HttpsError("internal", msg);
+      // Use `unavailable` (not `internal`) so the client SDK forwards the message; `internal` is redacted.
+      throw new HttpsError("unavailable", msg);
     }
 
     let bodyText;
     try {
       bodyText = await res.text();
     } catch (e) {
-      throw new HttpsError("internal", "Failed to read Phish.net response.");
+      throw new HttpsError(
+        "unavailable",
+        "Failed to read Phish.net response."
+      );
     }
 
     if (!res.ok) {
       throw new HttpsError(
-        "internal",
+        "failed-precondition",
         `Phish.net HTTP ${res.status}: ${bodyText.slice(0, 240)}`
       );
     }
@@ -235,7 +239,20 @@ exports.getPhishnetSetlist = onCall(
     try {
       data = JSON.parse(bodyText);
     } catch {
-      throw new HttpsError("internal", "Phish.net returned non-JSON.");
+      throw new HttpsError(
+        "failed-precondition",
+        "Phish.net returned non-JSON."
+      );
+    }
+
+    // Phish.net often returns HTTP 200 with `error` / `error_message` (e.g. invalid key).
+    const apiErr = data && typeof data === "object" ? data.error : undefined;
+    if (apiErr !== undefined && apiErr !== null && apiErr !== 0) {
+      const apiMsg =
+        typeof data.error_message === "string"
+          ? data.error_message
+          : "Phish.net API error.";
+      throw new HttpsError("failed-precondition", apiMsg);
     }
 
     return data;

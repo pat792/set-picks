@@ -105,6 +105,9 @@ function callableFailureToError(e) {
   ) {
     return { type: 'ConfigurationError', message: msg };
   }
+  if (code === 'functions/unavailable' || code === 'functions/internal') {
+    return { type: 'SetlistApiError', message: msg || 'Server error.', source: 'phishnet' };
+  }
   return { type: 'SetlistApiError', message: msg, source: 'phishnet' };
 }
 
