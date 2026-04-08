@@ -156,14 +156,16 @@ function parsePhishnet(rawData, formFields) {
     throw new SetlistParseError('Phish.net payload must be an object.');
   }
   const body = /** @type {Record<string, unknown>} */ (rawData);
-  if (body.error != null && body.error !== 0 && body.error !== '0') {
+  if (body.error != null && body.error !== false && body.error !== 0 && body.error !== '0') {
     throw new SetlistParseError(
       typeof body.error_message === 'string' ? body.error_message : 'Phish.net API returned an error.',
     );
   }
   const data = body.data;
   if (!Array.isArray(data) || data.length === 0) {
-    throw new SetlistParseError('Phish.net payload missing non-empty data array.');
+    throw new SetlistParseError(
+      'Phish.net returned no setlist songs for this date (empty data). Often that means the show has not happened yet or Phish.net has no setlist posted—try a past show date that already occurred.'
+    );
   }
 
   /** @type {{ setKey: string, position: number, title: string }[]} */

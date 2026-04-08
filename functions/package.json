@@ -8,7 +8,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "secrets:sync-phishnet": "node ../scripts/sync-phishnet-secret.mjs",
-    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist"
+    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist",
+    "diagnose:phishnet": "node ../scripts/diagnose-phishnet-local.mjs"
   },
   "engines": {
     "node": "24"

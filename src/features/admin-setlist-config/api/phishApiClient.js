@@ -262,7 +262,7 @@ function jsonParseError(cause) {
 function phishNetLogicalError(body) {
   if (!body || typeof body !== 'object') return null;
   const err = /** @type {Record<string, unknown>} */ (body).error;
-  if (err === undefined || err === null || err === 0) return null;
+  if (err === undefined || err === null || err === false || err === 0 || err === '0') return null;
   const msg =
     typeof /** @type {Record<string, unknown>} */ (body).error_message === 'string'
       ? /** @type {Record<string, unknown>} */ (body).error_message

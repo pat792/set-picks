@@ -252,9 +252,15 @@ exports.getPhishnetSetlist = onCall(
         );
       }
 
-      // Phish.net often returns HTTP 200 with `error` / `error_message` (e.g. invalid key).
+      // Phish.net: success is `error: false`, `0`, or `"0"`; numeric ≥1 (e.g. 2) = invalid key, etc.
       const apiErr = data && typeof data === "object" ? data.error : undefined;
-      if (apiErr !== undefined && apiErr !== null && apiErr !== 0) {
+      const phishNetOk =
+        apiErr === undefined ||
+        apiErr === null ||
+        apiErr === false ||
+        apiErr === 0 ||
+        apiErr === "0";
+      if (!phishNetOk) {
         const apiMsg =
           typeof data.error_message === "string"
             ? data.error_message

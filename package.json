@@ -14,6 +14,7 @@
     "verify:dashboard-ui": "node scripts/verify-dashboard-ui-tokens.mjs",
     "secrets:sync-phishnet": "node scripts/sync-phishnet-secret.mjs",
     "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist",
+    "diagnose:phishnet": "node scripts/diagnose-phishnet-local.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

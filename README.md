@@ -23,6 +23,24 @@ Setlist automation calls **Phish.net v5** only through the Firebase Callable **`
 2. **`npm run secrets:sync-phishnet`** then **`npm run deploy:functions:phishnet`** (first time and whenever the key changes).
 3. **`npm run dev`**, sign in as **designated admin**, **Fetch setlist from API**.
 
+### Troubleshooting: fetch still fails
+
+1. **Use a past show date** in the date picker. Phish.net often returns **no rows** for **future** shows; the admin error will mention an empty setlist / parser failure. (Phish.net v5 marks success with **`error: false`** in JSON; the app and callable must treat that as OK, not as an error code.)
+2. **Verify the key with Phish.net directly** (does not touch Firebase):
+
+   ```bash
+   npm run diagnose:phishnet
+   ```
+
+   (From **`functions/`**, same command works.) If this fails, fix the key at phish.net, run **`npm run secrets:sync-phishnet`** again, then **`npm run deploy:functions:phishnet`**.
+3. **Cloud Function logs:**
+
+   ```bash
+   firebase functions:log --only getPhishnetSetlist
+   ```
+
+4. **Browser:** sign in as **`pat@road2media.com`**, open DevTools → Console for **`[phishApiClient] getPhishnetSetlist callable failed`** `{ code, message, … }`. Register **App Check** debug token for localhost if Functions enforcement blocks you.
+
 ### Staging / production (Firebase Callable)
 
 1. Create or update the Functions secret (from a machine that has **`.env`** with `PHISHNET_API_KEY`, or paste interactively):
