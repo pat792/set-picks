@@ -133,6 +133,12 @@ function callableFailureToError(e) {
       message: 'Sign in required to fetch Phish.net setlist via server.',
     };
   }
+  if (/app-check|appcheck/i.test(code) || /app check/i.test(msg)) {
+    return {
+      type: 'ConfigurationError',
+      message: `${msg} — For localhost: add the debug token from the browser console to Firebase Console → App Check → your Web app → Debug tokens, or turn off Cloud Functions enforcement there while testing.`,
+    };
+  }
   if (
     code === 'functions/permission-denied' ||
     code === 'functions/failed-precondition' ||
@@ -173,7 +179,14 @@ async function fetchPhishnetViaCallable(dateString) {
     return { ok: true, data };
   } catch (e) {
     if (import.meta.env.DEV) {
-      console.error('[phishApiClient] getPhishnetSetlist callable failed', e);
+      const r = typeof e === 'object' && e !== null ? /** @type {Record<string, unknown>} */ (e) : {};
+      console.error('[phishApiClient] getPhishnetSetlist callable failed', {
+        code: r.code,
+        message: r.message,
+        details: r.details,
+        customData: r.customData,
+        showDateSent: dateString,
+      });
     }
     return { ok: false, error: callableFailureToError(e) };
   }
