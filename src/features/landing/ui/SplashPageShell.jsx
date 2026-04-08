@@ -26,10 +26,8 @@ export default function SplashPageShell({
       {/* Fixed + flex parent breaks iOS Safari; header must sit outside the flex wrapper. */}
       <SplashHeader onPlayNowClick={onScrollToGetStarted} onSignInClick={onOpenSignInModal} />
 
-      <div className="relative flex min-h-screen w-full flex-col bg-brand-bg text-white">
+      <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
         <main className="flex-1 w-full relative overflow-x-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-teal-400/20 blur-[120px] rounded-full pointer-events-none" />
-
           <SplashHeroSection
             onHowItWorksClick={onScrollToHowItWorks}
             onPlayNowClick={onScrollToGetStarted}

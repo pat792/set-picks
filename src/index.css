@@ -44,6 +44,38 @@
   body {
     @apply min-h-full bg-brand-bg antialiased;
   }
+
+  /**
+   * Themed scrollbars (issue #56): thin track/thumb using CSS variables from :root.
+   * Elements that set scrollbar-width: none or hide webkit scrollbars keep their behavior.
+   */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--brand-primary) / 0.28) rgb(var(--surface-panel) / 0.45);
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: rgb(var(--surface-panel) / 0.4);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--brand-primary) / 0.22);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--brand-primary) / 0.38);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
 }
 
 /* Tour section headers in show date <select> (optgroup labels — gold; support varies slightly by browser/OS) */

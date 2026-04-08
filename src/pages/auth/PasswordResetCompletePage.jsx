@@ -28,8 +28,7 @@ export default function PasswordResetComplete() {
 
   if (shouldShowSuccess) {
     return (
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-brand-bg p-6 text-white">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-brand-primary/15 blur-[100px]" />
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-transparent p-6 text-white">
         <div className="relative z-10 max-w-md w-full text-center space-y-6">
           <h1 className="font-display text-display-xl md:text-display-xl-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
             Password updated
@@ -56,8 +55,7 @@ export default function PasswordResetComplete() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-brand-bg p-6 text-white">
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-brand-primary/15 blur-[100px]" />
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-transparent p-6 text-white">
       <div className="relative z-10 max-w-md w-full text-center space-y-6">
         <h1 className="font-display text-display-xl md:text-display-xl-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
           Reset your password

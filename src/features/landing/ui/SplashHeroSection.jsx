@@ -3,7 +3,7 @@ import Button from '../../../shared/ui/Button';
 
 export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, onAboutClick }) {
   return (
-    <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-brand-bg pt-[3.5rem] sm:pt-20">
+    <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-transparent pt-[3.5rem] sm:pt-20">
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center -translate-y-8 sm:-translate-y-12">
         <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic splash-gradient-text drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
           SETLIST <br className="md:hidden" /> PICK &apos;EM

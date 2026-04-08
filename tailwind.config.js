@@ -72,6 +72,15 @@ export default {
         // Space Grotesk becomes available via the 'font-display' class
         display: ['"Space Grotesk"', 'sans-serif'],
       },
+      keyframes: {
+        pageEnter: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+      animation: {
+        'page-enter': 'pageEnter 0.32s ease-out forwards',
+      },
       fontSize: {
         body: ['0.875rem', { lineHeight: '1.5' }],
         title: ['1.5rem', { lineHeight: '1.2', fontWeight: '800' }],
