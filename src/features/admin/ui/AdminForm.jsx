@@ -3,6 +3,7 @@ import Card from '../../../shared/ui/Card';
 import { AlertTriangle } from 'lucide-react';
 import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
 import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
+import AdminSetlistFetchButton from './AdminSetlistFetchButton';
 import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 
@@ -14,11 +15,14 @@ export default function AdminForm({ user, selectedDate }) {
     officialSetlist,
     officialSetlistInput,
     isSaving,
+    isFetchingApi,
+    apiFetchError,
     message,
     setOfficialSetlistInput,
     handleInputChange,
     addOfficialSong,
     removeOfficialSongAt,
+    handleFetchFromApi,
     handleSave,
     handleFinalizeAndRollup,
   } = useAdminSetlistForm({ user, selectedDate });
@@ -49,6 +53,13 @@ export default function AdminForm({ user, selectedDate }) {
         padding="md"
         className="space-y-6"
       >
+        <AdminSetlistFetchButton
+          onFetch={handleFetchFromApi}
+          disabled={isSaving}
+          isFetching={isFetchingApi}
+          errorText={apiFetchError}
+        />
+
         <AdminSetlistSlotInputs
           formState={setlistData}
           handleInputChange={handleInputChange}

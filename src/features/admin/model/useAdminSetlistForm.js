@@ -5,6 +5,7 @@ import {
   saveOfficialSetlistByDate,
 } from '../api/officialSetlistsApi';
 import { rollupScoresForShow } from '../api/adminRollupApi';
+import { fetchAndMapExternalSetlist } from './setlistAutomation';
 
 export const ADMIN_SETLIST_FIELDS = FORM_FIELDS.filter((field) => field.id !== 'wild');
 
@@ -21,6 +22,8 @@ export function useAdminSetlistForm({ user, selectedDate }) {
   const [officialSetlist, setOfficialSetlist] = useState([]);
   const [officialSetlistInput, setOfficialSetlistInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isFetchingApi, setIsFetchingApi] = useState(false);
+  const [apiFetchError, setApiFetchError] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
   const clearMessageTimeoutRef = useRef(null);
 
@@ -34,6 +37,10 @@ export function useAdminSetlistForm({ user, selectedDate }) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    setApiFetchError('');
+  }, [selectedShow]);
 
   useEffect(() => {
     const loadSetlist = async () => {
@@ -51,6 +58,27 @@ export function useAdminSetlistForm({ user, selectedDate }) {
 
     loadSetlist();
   }, [selectedShow, isAdmin]);
+
+  const handleFetchFromApi = async () => {
+    if (!selectedShow || !isAdmin || isSaving) return;
+    setApiFetchError('');
+    setIsFetchingApi(true);
+    try {
+      const result = await fetchAndMapExternalSetlist(selectedShow, ADMIN_SETLIST_FIELDS);
+      if (!result.ok) {
+        setApiFetchError(result.error);
+        return;
+      }
+      setSetlistData(result.setlistData);
+      setOfficialSetlist(result.officialSetlist);
+      setOfficialSetlistInput('');
+    } catch (e) {
+      console.error('Fetch setlist from API failed:', e);
+      setApiFetchError(e instanceof Error ? e.message : 'Unexpected error while fetching.');
+    } finally {
+      setIsFetchingApi(false);
+    }
+  };
 
   const handleInputChange = (fieldId, value) => {
     setSetlistData((prev) => ({
@@ -139,11 +167,14 @@ export function useAdminSetlistForm({ user, selectedDate }) {
     officialSetlist,
     officialSetlistInput,
     isSaving,
+    isFetchingApi,
+    apiFetchError,
     message,
     setOfficialSetlistInput,
     handleInputChange,
     addOfficialSong,
     removeOfficialSongAt,
+    handleFetchFromApi,
     handleSave,
     handleFinalizeAndRollup,
   };
