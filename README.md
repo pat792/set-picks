@@ -10,27 +10,32 @@ Setlist automation calls **Phish.net v5** only through the Firebase Callable **`
 
 ### Maintainer checklist (key secrecy)
 
-1. **Store the key once** as a Functions secret: `firebase functions:secrets:set PHISHNET_API_KEY` (paste value when prompted).
-2. **Never** add `VITE_PHISHNET_API_KEY` to `.env`, `.env.local`, or hosting env — remove it if it exists (rotate the key at phish.net if it was ever committed or pasted).
-3. **Redeploy** after changing the secret: `firebase deploy --only functions:getPhishnetSetlist`.
-4. **Build flags:** `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true` only; no Phish.net key in Vite.
-5. **Local admin:** same as prod — callable + signed-in admin + App Check debug token registered in Firebase Console if enforcement blocks localhost.
+1. **Keep a private record** in **`.env`** (gitignored): one line `PHISHNET_API_KEY=…` (**no `VITE_` prefix** — Vite would ship it to the browser).
+2. **Push that value to Firebase** so the callable can read it: `npm run secrets:sync-phishnet` (uses the Firebase CLI; does not print the key). Or run `firebase functions:secrets:set PHISHNET_API_KEY` and paste manually.
+3. **Never** add `VITE_PHISHNET_API_KEY` — remove it if it exists.
+4. **Redeploy** after creating or changing the secret so the function binds the new version: `npm run deploy:functions:phishnet` (or `firebase deploy --only functions:getPhishnetSetlist`).
+5. **Build flags:** `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true` only.
+6. **Local admin:** callable + signed-in admin + App Check debug token in Firebase Console if Functions enforcement blocks localhost.
 
 ### Local development (callable)
 
-1. Deploy **`getPhishnetSetlist`** and set **`PHISHNET_API_KEY`** (secret).
-2. In `.env`: `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true` (no Phish.net key in `.env`).
-3. `npm run dev`, sign in as **designated admin**, **Fetch setlist from API**.
+1. In **`.env`:** `VITE_SETLIST_API_SOURCE=phishnet`, `VITE_USE_CALLABLE_PHISHNET_SETLIST=true`, and **`PHISHNET_API_KEY=…`** (private record; not used by Vite).
+2. **`npm run secrets:sync-phishnet`** then **`npm run deploy:functions:phishnet`** (first time and whenever the key changes).
+3. **`npm run dev`**, sign in as **designated admin**, **Fetch setlist from API**.
 
 ### Staging / production (Firebase Callable)
 
-1. Create the Functions secret (one-time per project):
+1. Create or update the Functions secret (from a machine that has **`.env`** with `PHISHNET_API_KEY`, or paste interactively):
+
+   ```bash
+   npm run secrets:sync-phishnet
+   ```
 
    ```bash
    firebase functions:secrets:set PHISHNET_API_KEY
    ```
 
-2. Deploy the **`getPhishnetSetlist`** callable (see `functions/index.js`).
+2. Deploy the **`getPhishnetSetlist`** callable: `npm run deploy:functions:phishnet` (see `functions/index.js`).
 
 3. Build the web app with:
 
