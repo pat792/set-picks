@@ -4,15 +4,15 @@ Nail the setlist. Win the game.
 
 ## Phish.net API key (admin setlist fetch)
 
-Setlist automation can call **Phish.net v5** (`setlists/showdate/…`) in two ways:
+Setlist automation can call **Phish.net v5** (`setlists/showdate/…`) via the **Firebase Callable** (recommended everywhere the app runs in a browser). Direct browser `fetch` to `api.phish.net` is **blocked by CORS**, so local dev should use the callable too—not `VITE_PHISHNET_API_KEY` in the SPA.
 
-### Local development (direct `fetch`)
+### Local development (same as production: callable)
 
-1. Set `VITE_SETLIST_API_SOURCE=phishnet` in `.env`.
-2. Set `VITE_PHISHNET_API_KEY` to a **developer** key from [phish.net/api](https://phish.net/api/).
-3. Leave `VITE_USE_CALLABLE_PHISHNET_SETLIST` unset or `false`.
+1. Deploy **`getPhishnetSetlist`** and set the **`PHISHNET_API_KEY`** secret (see below).
+2. In `.env`: `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true`.
+3. Run `npm run dev`, sign in as the **designated admin** user, then use **Fetch setlist from API**.
 
-> `VITE_*` values are embedded in the browser bundle. Use only a non-production or low-risk key here.
+Optional: `VITE_PHISHNET_API_KEY` only if you disable the callable (e.g. non-browser scripts); it is **not** reliable for the admin UI in the browser.
 
 ### Staging / production (Firebase Callable)
 
