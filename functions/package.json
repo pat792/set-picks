@@ -6,7 +6,9 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "secrets:sync-phishnet": "node ../scripts/sync-phishnet-secret.mjs",
+    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist"
   },
   "engines": {
     "node": "24"

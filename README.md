@@ -11,7 +11,7 @@ Setlist automation calls **Phish.net v5** only through the Firebase Callable **`
 ### Maintainer checklist (key secrecy)
 
 1. **Keep a private record** in **`.env`** (gitignored): one line `PHISHNET_API_KEY=…` (**no `VITE_` prefix** — Vite would ship it to the browser).
-2. **Push that value to Firebase** so the callable can read it: `npm run secrets:sync-phishnet` (uses the Firebase CLI; does not print the key). Or run `firebase functions:secrets:set PHISHNET_API_KEY` and paste manually.
+2. **Push that value to Firebase** so the callable can read it: `npm run secrets:sync-phishnet` from **repo root** *or* from **`functions/`** (both define the script; uses the Firebase CLI; does not print the key). Or run `firebase functions:secrets:set PHISHNET_API_KEY` and paste manually.
 3. **Never** add `VITE_PHISHNET_API_KEY` — remove it if it exists.
 4. **Redeploy** after creating or changing the secret so the function binds the new version: `npm run deploy:functions:phishnet` (or `firebase deploy --only functions:getPhishnetSetlist`).
 5. **Build flags:** `VITE_SETLIST_API_SOURCE=phishnet` and `VITE_USE_CALLABLE_PHISHNET_SETLIST=true` only.
