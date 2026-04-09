@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 
 import { AuthLoadingScreen, useAuth } from '../../features/auth';
 
+import { ShowCalendarProvider } from '../../features/show-calendar';
 import DashboardLayout from '../layout/DashboardLayout';
 
 export default function DashboardRoute() {
@@ -20,5 +21,9 @@ export default function DashboardRoute() {
     return <Navigate to="/setup" replace />;
   }
 
-  return <DashboardLayout />;
+  return (
+    <ShowCalendarProvider>
+      <DashboardLayout />
+    </ShowCalendarProvider>
+  );
 }

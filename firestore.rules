@@ -47,5 +47,11 @@ service cloud.firestore {
     match /official_setlists/{showDate} {
       allow read, write: if signedIn();
     }
+
+    /** Server-written Phish.net show calendar; clients read only (issue #160). */
+    match /show_calendar/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
   }
 }

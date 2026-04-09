@@ -6,7 +6,7 @@ import {
   fetchPicksForShowDate,
 } from '../api/standingsApi';
 
-export function useStandings(showDate) {
+export function useStandings(showDate, showDates) {
   const [picks, setPicks] = useState([]);
   const [actualSetlist, setActualSetlist] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,10 @@ export function useStandings(showDate) {
       return;
     }
 
-    const showStatus = getShowStatus(showDate);
+    const showStatus =
+      Array.isArray(showDates) && showDates.length > 0
+        ? getShowStatus(showDate, showDates)
+        : 'FUTURE';
     if (showStatus === 'FUTURE') {
       setPicks([]);
       setActualSetlist(null);
@@ -57,7 +60,7 @@ export function useStandings(showDate) {
     return () => {
       cancelled = true;
     };
-  }, [showDate]);
+  }, [showDate, showDates]);
 
   return { picks, actualSetlist, loading, error };
 }

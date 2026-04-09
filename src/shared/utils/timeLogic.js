@@ -1,16 +1,19 @@
-// src/utils/timeLogic.js
-import { SHOW_DATES } from '../data/showDates';
+// src/shared/utils/timeLogic.js
 import { todayYmd } from './dateUtils';
 
-export const getNextShow = () => {
+/**
+ * @param {{ date: string }[]} showDates — chronological flat list from show calendar (Phish.net or fallback).
+ */
+export function getNextShow(showDates) {
+  if (!Array.isArray(showDates) || showDates.length === 0) {
+    throw new Error('getNextShow requires a non-empty showDates array.');
+  }
   const today = todayYmd();
-  
-  // Find the first show that hasn't happened yet
-  const nextShow = SHOW_DATES.find(show => show.date >= today);
-  
-  // Fallback to the last show if tour is over
-  return nextShow || SHOW_DATES[SHOW_DATES.length - 1]; 
-};
+
+  const nextShow = showDates.find((show) => show.date >= today);
+
+  return nextShow || showDates[showDates.length - 1];
+}
 
 /**
  * NEXT — only date users can enter picks (the upcoming show from today; same calendar day as next show, before live cutoff).
@@ -20,16 +23,25 @@ export const getNextShow = () => {
  */
 export const SHOW_DAY_LIVE_FROM_HOUR_LOCAL = 17;
 
-/** Tour ordering: show immediately before `ymd` in `SHOW_DATES`, or null. */
-export function getShowBeforeDate(ymd) {
-  const i = SHOW_DATES.findIndex((s) => s.date === ymd);
+/**
+ * Tour ordering: show immediately before `ymd` in `showDates`, or null.
+ * @param {string} ymd
+ * @param {{ date: string }[]} showDates
+ */
+export function getShowBeforeDate(ymd, showDates) {
+  if (!Array.isArray(showDates) || showDates.length === 0) return null;
+  const i = showDates.findIndex((s) => s.date === ymd);
   if (i <= 0) return null;
-  return SHOW_DATES[i - 1];
+  return showDates[i - 1];
 }
 
-export const getShowStatus = (selectedDate) => {
+/**
+ * @param {string} selectedDate — YYYY-MM-DD
+ * @param {{ date: string }[]} showDates
+ */
+export const getShowStatus = (selectedDate, showDates) => {
   const today = todayYmd();
-  const nextShow = getNextShow();
+  const nextShow = getNextShow(showDates);
 
   if (selectedDate < today) return 'PAST';
   if (selectedDate === nextShow.date) {
