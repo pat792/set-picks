@@ -5,7 +5,7 @@ import { usePendingPoolJoin } from '../../features/pool-invite';
 import { useShowCalendar } from '../../features/show-calendar';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 
-import { ListMusic, Users, Trophy, User as UserIcon, Settings } from 'lucide-react'; 
+import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react'; 
 
 import PicksPage from '../../pages/picks/PicksPage';
 import AdminPage from '../../pages/admin/AdminPage';
@@ -77,7 +77,7 @@ export default function DashboardLayout() {
     const navItems = [
     { name: NAV_LABEL_PICKS, path: '/dashboard', icon: ListMusic },
     { name: NAV_LABEL_POOLS, path: '/dashboard/pools', icon: Users },
-    { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Trophy },
+    { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Medal },
     { name: NAV_LABEL_PROFILE, path: '/dashboard/profile', icon: UserIcon },
   ];
 
