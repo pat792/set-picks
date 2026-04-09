@@ -33,7 +33,7 @@ Or with **gcloud** (same file):
 gcloud storage buckets update gs://set-picks.firebasestorage.app --cors-file=scripts/song-catalog-storage-cors.json
 ```
 
-Edit **`scripts/song-catalog-storage-cors.json`** if your production domain is not `set-picks.web.app` / `set-picks.firebaseapp.com`.
+Edit **`scripts/song-catalog-storage-cors.json`** if your web origin is not already listed. **Custom domains** (e.g. `https://www.setlistpickem.com`) and **Vercel preview URLs** (`https://…vercel.app`) must be included explicitly — GCS CORS does **not** support `https://*.vercel.app`. Each new preview hostname needs the same `gsutil`/`gcloud` step, or use a **stable** staging URL (custom domain on Vercel) and add only that origin.
 
 4. **Optional (raw GCS URL only):** If you insist on anonymous `https://storage.googleapis.com/.../song-catalog.json`, grant **`allUsers` → Storage Object Viewer** (or fix **`makePublic()`** / object ACL). Prefer the default **`getDownloadURL`** path instead.
 
