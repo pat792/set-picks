@@ -2,11 +2,13 @@ import { initializeApp } from "firebase/app";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAJskQFM62Fyr-EjxlGJD3svAhf9gp9CHI",
   authDomain: "set-picks.firebaseapp.com",
   projectId: "set-picks",
+  /** Default Storage bucket (same as Firebase console → Storage). */
   storageBucket: "set-picks.firebasestorage.app",
   messagingSenderId: "927420107250",
   appId: "1:927420107250:web:1b9f52a72ef8dd9096836b",
@@ -26,6 +28,8 @@ const appCheck = initializeAppCheck(app, {
 
 // We export these so any file in the app can use them
 export { app, appCheck };
+export const firebaseStorageBucket = firebaseConfig.storageBucket;
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();

@@ -8,6 +8,9 @@ const { PHISH_SONGS: phishSongs } = require("./phishSongs");
 const {
   syncPhishnetShowCalendarToFirestore,
 } = require("./phishnetShowCalendar");
+const {
+  syncPhishnetSongCatalogToStorage,
+} = require("./phishnetSongCatalog");
 
 /** Must match admin setlist gate in `src/features/admin/model/useAdminSetlistForm.js`. */
 const ADMIN_EMAIL_FOR_SETLIST_PROXY = "pat@road2media.com";
@@ -420,6 +423,82 @@ exports.refreshPhishnetShowCalendar = onCall(
       throw new HttpsError(
         "failed-precondition",
         `refreshPhishnetShowCalendar failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Weekly sync: Phish.net v5 `songs.json` → Storage `song-catalog.json` (issue #158).
+ * Sunday 7:00 America/New_York. Same secret as other Phish.net callables.
+ */
+exports.scheduledPhishnetSongCatalog = onSchedule(
+  {
+    schedule: "0 7 * * 0",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+  },
+  async () => {
+    const key = phishnetApiKey.value();
+    if (!key || !String(key).trim()) {
+      logger.error(
+        "scheduledPhishnetSongCatalog: PHISHNET_API_KEY missing; skip sync."
+      );
+      return null;
+    }
+    try {
+      const result = await syncPhishnetSongCatalogToStorage(
+        String(key).trim(),
+        { logger }
+      );
+      logger.info("scheduledPhishnetSongCatalog public URL", result.publicUrl);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledPhishnetSongCatalog failed", msg, e);
+    }
+    return null;
+  }
+);
+
+/**
+ * Admin-only on-demand refresh of Storage `song-catalog.json` (issue #158).
+ */
+exports.refreshPhishnetSongCatalog = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    try {
+      assertAdminEmail(request);
+
+      const key = phishnetApiKey.value();
+      if (!key || !String(key).trim()) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+        );
+      }
+
+      const result = await syncPhishnetSongCatalogToStorage(
+        String(key).trim(),
+        { logger }
+      );
+      return {
+        ok: true,
+        songCount: result.songCount,
+        publicUrl: result.publicUrl,
+      };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshPhishnetSongCatalog unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshPhishnetSongCatalog failed: ${msg}`
       );
     }
   }

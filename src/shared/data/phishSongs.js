@@ -1,3 +1,7 @@
+/**
+ * Bundled fallback for song autocomplete when public `song-catalog.json` is missing or unreachable (issue #158).
+ * Server-side grading still uses `functions/phishSongs.js` until aligned.
+ */
 export const PHISH_SONGS = [{ name: "Alumni Blues", total: "112", gap: "133", last: "2023-07-12" },
 { name: "And So To Bed", total: "1", gap: "211", last: "2021-10-15" },
 { name: "You Enjoy Myself", total: "623", gap: "5", last: "2025-12-31" },
