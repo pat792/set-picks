@@ -1,7 +1,8 @@
-// src/data/showDates.js
+// src/shared/data/showDates.js
+// Emergency fallback when Firestore `show_calendar/snapshot` is missing or invalid (issue #160).
 
 /** Grouped for UI (e.g. optgroups). Order of tours is preserved. */
-export const SHOW_DATES_BY_TOUR = [
+export const FALLBACK_SHOW_DATES_BY_TOUR = [
   {
     tour: 'Past Shows',
     shows: [
@@ -54,4 +55,11 @@ export const SHOW_DATES_BY_TOUR = [
 ];
 
 /** Flat list (chronological) for logic that only needs dates — e.g. next show. */
-export const SHOW_DATES = SHOW_DATES_BY_TOUR.flatMap((g) => g.shows);
+export const FALLBACK_SHOW_DATES =
+  FALLBACK_SHOW_DATES_BY_TOUR.flatMap((g) => g.shows);
+
+/** @deprecated Use calendar from `features/show-calendar` (Phish.net sync). Kept for tests / tooling. */
+export const SHOW_DATES_BY_TOUR = FALLBACK_SHOW_DATES_BY_TOUR;
+
+/** @deprecated Use calendar from `features/show-calendar`. */
+export const SHOW_DATES = FALLBACK_SHOW_DATES;

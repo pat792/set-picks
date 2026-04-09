@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, Navigate, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth';
 import { usePendingPoolJoin } from '../../features/pool-invite';
+import { useShowCalendar } from '../../features/show-calendar';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 
 import { ListMusic, Users, Trophy, User as UserIcon, Settings } from 'lucide-react'; 
@@ -22,7 +23,7 @@ import {
   NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
 } from '../../shared/config/dashboardVocabulary';
-import { SHOW_DATES, SHOW_DATES_BY_TOUR } from '../../shared/data/showDates.js';
+import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
 import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
 import {
   showOptionLabelCompact,
@@ -41,20 +42,31 @@ export default function DashboardLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { showDates, showDatesByTour } = useShowCalendar();
   usePendingPoolJoin();
   const isAdmin = user?.email === 'pat@road2media.com';
   
   const scrollDirection = useScrollDirection(); 
 
-  const [selectedDate, setSelectedDate] = useState(getNextShow().date);
+  const [selectedDate, setSelectedDate] = useState(() =>
+    getNextShow(FALLBACK_SHOW_DATES).date
+  );
+
+  useEffect(() => {
+    if (!showDates.length) return;
+    setSelectedDate((prev) => {
+      if (showDates.some((s) => s.date === prev)) return prev;
+      return getNextShow(showDates).date;
+    });
+  }, [showDates]);
 
   const showDateFromStandingsUrl = searchParams.get('showDate');
   useEffect(() => {
     if (location.pathname !== '/dashboard/standings') return;
     if (!showDateFromStandingsUrl) return;
-    const valid = SHOW_DATES.some((s) => s.date === showDateFromStandingsUrl);
+    const valid = showDates.some((s) => s.date === showDateFromStandingsUrl);
     if (valid) setSelectedDate(showDateFromStandingsUrl);
-  }, [location.pathname, showDateFromStandingsUrl]);
+  }, [location.pathname, showDateFromStandingsUrl, showDates]);
 
   useEffect(() => {
     persistDashboardPath(location.pathname, location.search, {
@@ -74,8 +86,8 @@ export default function DashboardLayout() {
   }
 
   const meta = getDashboardPageMeta(location.pathname);
-  const datePickerStatus = getShowStatus(selectedDate);
-  const priorShowForTooEarly = getShowBeforeDate(selectedDate);
+  const datePickerStatus = getShowStatus(selectedDate, showDates);
+  const priorShowForTooEarly = getShowBeforeDate(selectedDate, showDates);
   const tooEarlyPriorLabel =
     priorShowForTooEarly != null ? showOptionLabelCompact(priorShowForTooEarly) : null;
   const showDatePickerUserBanners = meta.showDatePicker && location.pathname !== '/dashboard/admin';
@@ -139,6 +151,7 @@ export default function DashboardLayout() {
             showDatePicker={meta.showDatePicker}
             selectedDate={selectedDate}
             onSelectedDateChange={setSelectedDate}
+            showDatesByTour={showDatesByTour}
           />
         </div>
       </div>
@@ -159,8 +172,12 @@ export default function DashboardLayout() {
                   onChange={(e) => setSelectedDate(e.target.value)}
                   className="show-date-select w-full min-w-0 max-w-full appearance-none bg-surface-field border-2 border-border-subtle text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-brand-primary transition-colors cursor-pointer"
                 >
-                  {SHOW_DATES_BY_TOUR.map(({ tour, shows }) => (
-                    <optgroup key={tour} label={tour} className="tour-optgroup">
+                  {showDatesByTour.map(({ tour, shows }, idx) => (
+                    <optgroup
+                      key={`${tour}-${shows[0]?.date ?? idx}`}
+                      label={tour}
+                      className="tour-optgroup"
+                    >
                       {shows.map((show) => (
                         <option key={show.date} value={show.date} title={showOptionTitle(show)}>
                           {showOptionLabelDesktop(show)}

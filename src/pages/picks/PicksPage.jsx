@@ -2,11 +2,13 @@ import React, { useEffect, useId, useState } from 'react';
 import { CheckCircle2, ChevronDown, Lock, Scale } from 'lucide-react';
 
 import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features/picks';
+import { useShowCalendar } from '../../features/show-calendar';
 import { useScoringRulesModal } from '../../features/scoring';
 import Card from '../../shared/ui/Card';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
 export default function PicksPage({ user, selectedDate }) {
+  const { showDates, showDatesByTour } = useShowCalendar();
   const {
     formData,
     handleInput,
@@ -16,7 +18,7 @@ export default function PicksPage({ user, selectedDate }) {
     isLocked,
     hasExistingPicks,
     saveFeedback,
-  } = usePicksForm({ user, selectedDate });
+  } = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
 
   const { openScoringRules } = useScoringRulesModal();
   const statusContentId = useId();

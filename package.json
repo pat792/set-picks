@@ -11,7 +11,13 @@
     "lint": "eslint \"src/**/*.{js,jsx}\"",
     "verify:dashboard-meta": "node scripts/verify-dashboard-meta.mjs",
     "verify:theme-contract": "node scripts/verify-theme-contract.mjs",
-    "verify:dashboard-ui": "node scripts/verify-dashboard-ui-tokens.mjs"
+    "verify:dashboard-ui": "node scripts/verify-dashboard-ui-tokens.mjs",
+    "secrets:sync-phishnet": "node scripts/sync-phishnet-secret.mjs",
+    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar",
+    "diagnose:phishnet": "node scripts/diagnose-phishnet-local.mjs",
+    "print:phishnet-tour-clusters": "node scripts/print-phishnet-tour-clusters.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
@@ -30,6 +36,7 @@
     "eslint-plugin-import": "^2.32.0",
     "postcss": "^8.4.27",
     "tailwindcss": "^3.3.3",
-    "vite": "^4.4.0"
+    "vite": "^4.4.0",
+    "vitest": "^1.6.1"
   }
 }

@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "date": "2024-01-01",
+  "tracks": [
+    { "title": "Song A", "set_name": "Set 1", "position": 1 },
+    { "title": "Song B", "set_name": "Set 1", "position": 2 },
+    { "title": "Song C", "set_name": "Set 2", "position": 1 },
+    { "title": "Song D", "set_name": "Set 2", "position": 2 },
+    { "title": "Song E", "set_name": "Encore", "position": 1 }
+  ]
+}

@@ -13,6 +13,7 @@ import {
   usePoolHub,
   usePoolSeasonStandings,
 } from '../../features/pools';
+import { useShowCalendar } from '../../features/show-calendar';
 import BackButton from '../../shared/ui/BackButton';
 import DashboardPoolBreadcrumb from '../../shared/ui/DashboardPoolBreadcrumb';
 import { todayYmd } from '../../shared/utils/dateUtils.js';
@@ -32,6 +33,7 @@ export default function PoolHubPage({ user }) {
     onInviteShareSuccess,
     reload,
   } = usePoolHub(poolId, user);
+  const { showDates } = useShowCalendar();
   const { leaderboardMembers, loading: seasonLoading } = usePoolSeasonStandings(
     poolId,
     pool,
@@ -41,7 +43,7 @@ export default function PoolHubPage({ user }) {
     navigate: (path) => navigate(path),
     onReloadPool: () => reload(),
   });
-  const nextShow = getNextShow();
+  const nextShow = getNextShow(showDates);
   const nextShowDate = nextShow.date;
   const {
     hasSubmittedPicksForNextShow,
@@ -53,7 +55,7 @@ export default function PoolHubPage({ user }) {
     : picksStatusError
       ? false
       : hasSubmittedPicksForNextShow;
-  const nextShowTimeStatus = getShowStatus(nextShowDate);
+  const nextShowTimeStatus = getShowStatus(nextShowDate, showDates);
   const isLocked =
     nextShowTimeStatus === 'LIVE' ||
     nextShowTimeStatus === 'PAST' ||
