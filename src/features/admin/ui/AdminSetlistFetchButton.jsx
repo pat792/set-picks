@@ -7,9 +7,11 @@ export default function AdminSetlistFetchButton({
   disabled = false,
   isFetching = false,
   errorText = '',
+  /** When true, omit bottom border (e.g. inside Admin actions accordion). */
+  embedded = false,
 }) {
   return (
-    <div className="space-y-2 border-b border-border-muted pb-4">
+    <div className={`space-y-2 ${embedded ? '' : 'border-b border-border-muted pb-4'}`}>
       <p className="text-[11px] text-slate-500 font-bold leading-relaxed ml-1">
         Pull slot picks and ordered setlist from the configured external API (
         <code className="text-slate-400">VITE_SETLIST_API_SOURCE</code>). Review before saving.

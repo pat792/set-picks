@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '../../../shared/ui/Card';
 import { AlertTriangle } from 'lucide-react';
 import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
 import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
 import AdminSetlistFetchButton from './AdminSetlistFetchButton';
+import AdminSongCatalogRefresh from './AdminSongCatalogRefresh';
+import AdminActionToggle from './AdminActionToggle';
 import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 
 export default function AdminForm({ user, selectedDate }) {
+  const [setlistActionsOpen, setSetlistActionsOpen] = useState(true);
+  const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
   const {
     isAdmin,
     selectedShow,
@@ -53,33 +57,63 @@ export default function AdminForm({ user, selectedDate }) {
         padding="md"
         className="space-y-6"
       >
-        <AdminSetlistFetchButton
-          onFetch={handleFetchFromApi}
-          disabled={isSaving}
-          isFetching={isFetchingApi}
-          errorText={apiFetchError}
-        />
+        <div className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-content-secondary ml-1">
+            Admin actions
+          </h2>
+          <div className="space-y-3">
+            <AdminActionToggle
+              id="admin-setlist-fetch"
+              title="Setlist"
+              description="Pull slot picks and ordered setlist from the configured API for this show date."
+              open={setlistActionsOpen}
+              onOpenChange={setSetlistActionsOpen}
+            >
+              <AdminSetlistFetchButton
+                embedded
+                onFetch={handleFetchFromApi}
+                disabled={isSaving}
+                isFetching={isFetchingApi}
+                errorText={apiFetchError}
+              />
+            </AdminActionToggle>
+            <AdminActionToggle
+              id="admin-song-catalog"
+              title="Song catalog"
+              description="Upload Phish.net master list to Cloud Storage (public JSON); clients fetch with a 3-day cache."
+              open={songCatalogActionsOpen}
+              onOpenChange={setSongCatalogActionsOpen}
+            >
+              <AdminSongCatalogRefresh embedded disabled={isSaving} />
+            </AdminActionToggle>
+          </div>
+        </div>
 
-        <AdminSetlistSlotInputs
-          formState={setlistData}
-          handleInputChange={handleInputChange}
-        />
+        <div className="border-t border-border-muted pt-6 space-y-6">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-content-secondary ml-1">
+            Official setlist
+          </h2>
+          <AdminSetlistSlotInputs
+            formState={setlistData}
+            handleInputChange={handleInputChange}
+          />
 
-        <AdminOfficialSetlistBuilder
-          officialSetlistInput={officialSetlistInput}
-          setOfficialSetlistInput={setOfficialSetlistInput}
-          officialSetlist={officialSetlist}
-          addOfficialSong={addOfficialSong}
-          removeOfficialSongAt={removeOfficialSongAt}
-          isSaving={isSaving}
-        />
+          <AdminOfficialSetlistBuilder
+            officialSetlistInput={officialSetlistInput}
+            setOfficialSetlistInput={setOfficialSetlistInput}
+            officialSetlist={officialSetlist}
+            addOfficialSong={addOfficialSong}
+            removeOfficialSongAt={removeOfficialSongAt}
+            isSaving={isSaving}
+          />
 
-        <AdminFinalizeAndSave
-          isSaving={isSaving}
-          onSave={handleSave}
-          onFinalize={handleFinalizeAndRollup}
-          message={message}
-        />
+          <AdminFinalizeAndSave
+            isSaving={isSaving}
+            onSave={handleSave}
+            onFinalize={handleFinalizeAndRollup}
+            message={message}
+          />
+        </div>
       </Card>
     </div>
   );

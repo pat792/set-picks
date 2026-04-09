@@ -2,6 +2,7 @@ import React from 'react';
 
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import SongAutocomplete from '../../../shared/ui/SongAutocomplete';
+import { useSongCatalog } from '../../song-catalog';
 
 export default function PicksFieldsForm({
   formData,
@@ -9,6 +10,8 @@ export default function PicksFieldsForm({
   isLocked,
   disabled = false,
 }) {
+  const { songs } = useSongCatalog();
+
   return (
     <>
       {FORM_FIELDS.map((field) => (
@@ -17,6 +20,7 @@ export default function PicksFieldsForm({
             {field.label}
           </label>
           <SongAutocomplete
+            songs={songs}
             value={formData[field.id] || ''}
             onChange={(val) => onChange(field.id, val)}
             placeholder="Type a song..."

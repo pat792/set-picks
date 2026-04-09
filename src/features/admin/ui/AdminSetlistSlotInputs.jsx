@@ -1,5 +1,6 @@
 import React from 'react';
 import SongAutocomplete from '../../../shared/ui/SongAutocomplete';
+import { useSongCatalog } from '../../song-catalog';
 import { ADMIN_SETLIST_FIELDS } from '../model/useAdminSetlistForm';
 
 export default function AdminSetlistSlotInputs({
@@ -7,6 +8,8 @@ export default function AdminSetlistSlotInputs({
   handleInputChange,
   fields = ADMIN_SETLIST_FIELDS,
 }) {
+  const { songs } = useSongCatalog();
+
   return (
     <div className="space-y-4">
       {fields.map((field) => (
@@ -15,6 +18,7 @@ export default function AdminSetlistSlotInputs({
             Official {field.label}
           </label>
           <SongAutocomplete
+            songs={songs}
             value={formState[field.id] || ''}
             onChange={(value) => handleInputChange(field.id, value)}
             placeholder={`e.g., ${field.placeholder || 'Song Name'}`}
