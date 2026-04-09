@@ -2,6 +2,7 @@ import React from 'react';
 import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
 import SongAutocomplete from '../../../shared/ui/SongAutocomplete';
+import { useSongCatalog } from '../../song-catalog';
 
 export default function AdminOfficialSetlistBuilder({
   officialSetlistInput,
@@ -11,6 +12,8 @@ export default function AdminOfficialSetlistBuilder({
   removeOfficialSongAt,
   isSaving = false,
 }) {
+  const { songs } = useSongCatalog();
+
   return (
     <div className="space-y-3 border-t border-border-muted pt-2">
       <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 block">
@@ -22,6 +25,7 @@ export default function AdminOfficialSetlistBuilder({
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-center">
         <SongAutocomplete
+          songs={songs}
           value={officialSetlistInput}
           onChange={setOfficialSetlistInput}
           onSongSelected={addOfficialSong}

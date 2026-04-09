@@ -13,7 +13,10 @@ export default function SongAutocomplete({
   onBlur,
   readOnly = false,
   disabled = false,
+  /** @type {{ name: string, total?: string, gap?: string, last?: string }[] | undefined} */
+  songs: songsProp,
 }) {
+  const songs = songsProp ?? PHISH_SONGS;
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSongs, setFilteredSongs] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -47,7 +50,7 @@ export default function SongAutocomplete({
     onChange?.(val);
 
     if (val.length > 0) {
-      const matches = PHISH_SONGS.filter(song => 
+      const matches = songs.filter(song => 
         (typeof song === 'string' ? song : song.name).toLowerCase().includes(val.toLowerCase())
       ).slice(0, 10);
       
