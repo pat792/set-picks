@@ -1,9 +1,13 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const { PHISH_SONGS: phishSongs } = require("./phishSongs");
+const {
+  syncPhishnetShowCalendarToFirestore,
+} = require("./phishnetShowCalendar");
 
 /** Must match admin setlist gate in `src/features/admin/model/useAdminSetlistForm.js`. */
 const ADMIN_EMAIL_FOR_SETLIST_PROXY = "pat@road2media.com";
@@ -279,6 +283,85 @@ exports.getPhishnetSetlist = onCall(
       throw new HttpsError(
         "failed-precondition",
         `getPhishnetSetlist failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Monthly sync: Phish.net v5 `shows/showyear/{year}` → Firestore `show_calendar/snapshot` (issue #160).
+ * First of each month 6:00 America/New_York. Same secret as setlist proxy; key never sent to browsers.
+ */
+exports.scheduledPhishnetShowCalendar = onSchedule(
+  {
+    schedule: "0 6 1 * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+  },
+  async () => {
+    const key = phishnetApiKey.value();
+    if (!key || !String(key).trim()) {
+      logger.error(
+        "scheduledPhishnetShowCalendar: PHISHNET_API_KEY missing; skip sync."
+      );
+      return null;
+    }
+    await syncPhishnetShowCalendarToFirestore(db, String(key).trim(), {
+      logger,
+    });
+    return null;
+  }
+);
+
+/**
+ * Admin-only on-demand refresh of `show_calendar/snapshot` (issue #160).
+ */
+exports.refreshPhishnetShowCalendar = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    try {
+      if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Sign in required.");
+      }
+      const email = request.auth.token?.email;
+      if (email !== ADMIN_EMAIL_FOR_SETLIST_PROXY) {
+        throw new HttpsError(
+          "permission-denied",
+          "Only the designated admin can refresh the show calendar."
+        );
+      }
+
+      const key = phishnetApiKey.value();
+      if (!key || !String(key).trim()) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+        );
+      }
+
+      const result = await syncPhishnetShowCalendarToFirestore(
+        db,
+        String(key).trim(),
+        { logger }
+      );
+      return {
+        ok: true,
+        showCount: result.showCount,
+        groupCount: result.groupCount,
+      };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshPhishnetShowCalendar unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshPhishnetShowCalendar failed: ${msg}`
       );
     }
   }

@@ -7,13 +7,12 @@ import {
   savePickDoc,
 } from '../api/picksApi';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
-import { SHOW_DATES_BY_TOUR } from '../../../shared/data/showDates';
 import { getShowStatus } from '../../../shared/utils/timeLogic';
 import { trackEditPicks, trackSubmitPicks } from './picksAnalytics';
 
-function tourLabelForShowDate(selectedDate) {
-  if (!selectedDate) return '';
-  const group = SHOW_DATES_BY_TOUR.find((g) =>
+function tourLabelForShowDate(selectedDate, showDatesByTour) {
+  if (!selectedDate || !Array.isArray(showDatesByTour)) return '';
+  const group = showDatesByTour.find((g) =>
     g.shows.some((s) => s.date === selectedDate)
   );
   return group?.tour ?? '';
@@ -26,7 +25,12 @@ function picksObjectHasAnyValue(picks) {
   });
 }
 
-export default function usePicksForm({ user, selectedDate }) {
+export default function usePicksForm({
+  user,
+  selectedDate,
+  showDates,
+  showDatesByTour,
+}) {
   const [formData, setFormData] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingPicks, setIsLoadingPicks] = useState(false);
@@ -34,7 +38,10 @@ export default function usePicksForm({ user, selectedDate }) {
   const [hadPersistedPicksOnServer, setHadPersistedPicksOnServer] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState(null);
 
-  const showStatus = selectedDate ? getShowStatus(selectedDate) : null;
+  const showStatus =
+    selectedDate && Array.isArray(showDates) && showDates.length > 0
+      ? getShowStatus(selectedDate, showDates)
+      : null;
   const isLocked = showStatus !== 'NEXT';
 
   const hasExistingPicks =
@@ -106,7 +113,7 @@ export default function usePicksForm({ user, selectedDate }) {
       setSaveFeedback(null);
 
       const isUpdateSave = hadPersistedPicksOnServer;
-      const tourDate = tourLabelForShowDate(selectedDate);
+      const tourDate = tourLabelForShowDate(selectedDate, showDatesByTour);
 
       try {
         const handle = await resolveHandleForPicks(user.uid, user);
@@ -164,6 +171,8 @@ export default function usePicksForm({ user, selectedDate }) {
     [
       user,
       selectedDate,
+      showDates,
+      showDatesByTour,
       formData,
       isLocked,
       isSaving,

@@ -8,15 +8,17 @@ import {
   UserPoolsSection,
   useUserPools,
 } from '../../features/pools';
+import { useShowCalendar } from '../../features/show-calendar';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
 import { getNextShow } from '../../shared/utils/timeLogic.js';
 
 export default function Pools({ user }) {
+  const { showDates } = useShowCalendar();
   const { pools, loading, error, handleJoin, handleCreate } = useUserPools(
     user?.uid
   );
-  const nextShowDate = getNextShow().date;
+  const nextShowDate = getNextShow(showDates).date;
   const {
     hasSubmittedPicksForNextShow,
     loading: picksStatusLoading,

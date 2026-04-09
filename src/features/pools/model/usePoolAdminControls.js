@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
+import { useShowCalendar } from '../../show-calendar';
 import {
   deletePoolApi,
   POOL_NAME_MAX_LENGTH,
@@ -15,6 +16,7 @@ import { invalidateUserPools } from './userPoolsRefreshBus';
  * @param {{ navigate: (path: string) => void, onReloadPool: () => void | Promise<void> }} callbacks
  */
 export function usePoolAdminControls(poolId, user, pool, { navigate, onReloadPool }) {
+  const { showDates } = useShowCalendar();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(
     /** @type {null | 'archive' | 'delete'} */ (null)
@@ -113,7 +115,7 @@ export function usePoolAdminControls(poolId, user, pool, { navigate, onReloadPoo
     setBusy(true);
     setFormError('');
     try {
-      await deletePoolApi(pid, members, oid);
+      await deletePoolApi(pid, members, oid, showDates);
       invalidateUserPools();
       setConfirmAction(null);
       navigate('/dashboard/pools');
@@ -132,7 +134,7 @@ export function usePoolAdminControls(poolId, user, pool, { navigate, onReloadPoo
     } finally {
       setBusy(false);
     }
-  }, [poolId, pool?.ownerId, pool?.members, navigate]);
+  }, [poolId, pool?.ownerId, pool?.members, navigate, showDates]);
 
   const confirmModalProps = useMemo(() => {
     if (confirmAction === 'archive') {

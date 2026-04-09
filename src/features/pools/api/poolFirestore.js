@@ -1,6 +1,5 @@
 import { arrayRemove, doc, getDoc, updateDoc, writeBatch } from 'firebase/firestore';
 
-import { SHOW_DATES } from '../../../shared/data/showDates';
 import { db } from '../../../shared/lib/firebase';
 
 /** @type {number} */
@@ -73,14 +72,16 @@ export async function updatePoolStatusApi(poolId, status) {
 }
 
 /**
+ * @param {{ date: string }[]} showDates — same calendar as dashboard (Phish.net or fallback).
  * @returns {Promise<boolean>}
  */
-export async function poolHasPickActivityApi(poolId, memberIds) {
+export async function poolHasPickActivityApi(poolId, memberIds, showDates) {
   const pid = poolId?.trim();
   const members = Array.isArray(memberIds) ? memberIds.filter(Boolean) : [];
   if (!pid || members.length === 0) return false;
+  if (!Array.isArray(showDates) || showDates.length === 0) return false;
 
-  const dates = SHOW_DATES.map((s) => s.date);
+  const dates = showDates.map((s) => s.date);
   const chunkSize = 24;
   const tasks = [];
   for (const showDate of dates) {
@@ -128,7 +129,7 @@ export async function deleteOwnerOnlyEmptyPoolApi(poolId, ownerId) {
 /**
  * @param {string} ownerId — pool.ownerId (creator)
  */
-export async function deletePoolApi(poolId, memberIds, ownerId) {
+export async function deletePoolApi(poolId, memberIds, ownerId, showDates) {
   const pid = poolId?.trim();
   const oid = ownerId?.trim();
   const members = Array.isArray(memberIds) ? memberIds.filter(Boolean) : [];
@@ -144,7 +145,7 @@ export async function deletePoolApi(poolId, memberIds, ownerId) {
     throw err;
   }
 
-  const active = await poolHasPickActivityApi(pid, unique);
+  const active = await poolHasPickActivityApi(pid, unique, showDates);
   if (active) {
     const err = new Error(
       'This pool has pick history. Archive it instead of deleting.'
@@ -159,9 +160,10 @@ export async function deletePoolApi(poolId, memberIds, ownerId) {
 /**
  * @param {string} poolId
  * @param {string[]} memberIds
+ * @param {{ date: string }[]} showDates
  * @returns {Promise<Map<string, { totalScore: number, showsPlayed: number, wins: number }>>}
  */
-export async function computePoolSeasonTotalsByUser(poolId, memberIds) {
+export async function computePoolSeasonTotalsByUser(poolId, memberIds, showDates) {
   const pid = poolId?.trim();
   const members = Array.isArray(memberIds) ? memberIds.filter(Boolean) : [];
   const totals = new Map();
@@ -169,8 +171,9 @@ export async function computePoolSeasonTotalsByUser(poolId, memberIds) {
     totals.set(uid, { totalScore: 0, showsPlayed: 0, wins: 0 });
   }
   if (!pid || members.length === 0) return totals;
+  if (!Array.isArray(showDates) || showDates.length === 0) return totals;
 
-  const dates = SHOW_DATES.map((s) => s.date);
+  const dates = showDates.map((s) => s.date);
   const chunkSize = 24;
 
   /** @type {Map<string, Array<{ userId: string, score: number }>>} */
@@ -226,8 +229,10 @@ export async function computePoolSeasonTotalsByUser(poolId, memberIds) {
 /**
  * Past scheduled show dates (chronological), for "shows in pool season" denominator.
  * @param {string} todayYmd
+ * @param {{ date: string }[]} showDates
  * @returns {string[]}
  */
-export function pastScheduledShowDates(todayYmd) {
-  return SHOW_DATES.map((s) => s.date).filter((d) => d < todayYmd);
+export function pastScheduledShowDates(todayYmd, showDates) {
+  if (!Array.isArray(showDates) || showDates.length === 0) return [];
+  return showDates.map((s) => s.date).filter((d) => d < todayYmd);
 }

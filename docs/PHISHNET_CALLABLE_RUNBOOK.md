@@ -96,9 +96,24 @@ Look for `HttpsError` paths vs unexpected throws. Callable maps many failures to
 
 ---
 
-## 8. Files to touch when changing behavior
+## 8. Show calendar sync (issue #160)
+
+| Item | Location / value |
+|------|------------------|
+| Firestore doc | `show_calendar/snapshot` (read by signed-in clients) |
+| Scheduled job | `scheduledPhishnetShowCalendar` — 1st of month 6:00 America/New_York (`0 6 1 * *`) |
+| Admin callable | `refreshPhishnetShowCalendar` (same admin email gate as `getPhishnetSetlist`) |
+| Upstream | Phish.net v5 `shows/showyear/{year}.json?order_by=showdate` |
+| Client | `src/features/show-calendar` → `ShowCalendarProvider` (dashboard route); falls back to `src/shared/data/showDates.js` if the doc is missing |
+
+**Tour / optgroup labels:** See **[docs/SHOW_CALENDAR_TOUR_LABELS.md](SHOW_CALENDAR_TOUR_LABELS.md)** — priority is **`tour_overrides`** → **Phish.net `tour_name`** (when not NPT) → **previous snapshot** → **heuristics**. Seed example: **`scripts/seed/show_calendar_tour_overrides.json`**. **`reviewQueue`** lists **new** dates vs last snapshot. Official **phish.com/tours** names are **not** scraped; use overrides to match the band’s wording when needed.
+
+Deploy with **`npm run deploy:functions:phishnet`** (includes setlist + show-calendar functions). After first deploy, run **`refreshPhishnetShowCalendar`** once as admin (or wait for the schedule) so Firestore is populated.
+
+## 9. Files to touch when changing behavior
 
 - **Callable, secret, invoker, Phish.net URL:** `functions/index.js`
+- **Show calendar fetch + grouping:** `functions/phishnetShowCalendar.js`
 - **Client region + callable wiring + error extraction:** `src/features/admin-setlist-config/api/phishApiClient.js`
 - **Local key smoke test (no Firebase):** `scripts/diagnose-phishnet-local.mjs`
 - **Secret sync:** `scripts/sync-phishnet-secret.mjs`

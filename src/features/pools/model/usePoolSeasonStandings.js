@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useShowCalendar } from '../../show-calendar';
 import { computePoolSeasonTotalsByUser } from '../api/poolFirestore';
 
 /**
@@ -9,6 +10,7 @@ import { computePoolSeasonTotalsByUser } from '../api/poolFirestore';
  * @param {Array<{ id: string, handle?: string } & Record<string, unknown>>} memberProfiles
  */
 export function usePoolSeasonStandings(poolId, pool, memberProfiles) {
+  const { showDates } = useShowCalendar();
   const [totalsByUser, setTotalsByUser] = useState(
     /** @type {Map<string, { totalScore: number, showsPlayed: number, wins: number }>} */ (
       new Map()
@@ -34,7 +36,7 @@ export function usePoolSeasonStandings(poolId, pool, memberProfiles) {
     setLoading(true);
     setError(null);
     try {
-      const next = await computePoolSeasonTotalsByUser(pid, memberIds);
+      const next = await computePoolSeasonTotalsByUser(pid, memberIds, showDates);
       setTotalsByUser(next);
     } catch (e) {
       console.error('Pool season standings load error:', e);
@@ -43,7 +45,7 @@ export function usePoolSeasonStandings(poolId, pool, memberProfiles) {
     } finally {
       setLoading(false);
     }
-  }, [poolId, pool, memberIds]);
+  }, [poolId, pool, memberIds, showDates]);
 
   useEffect(() => {
     load();

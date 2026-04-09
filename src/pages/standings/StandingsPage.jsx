@@ -14,7 +14,7 @@ import {
   useStandingsLeaderboardView,
   useScoringRulesModal,
 } from '../../features/scoring';
-import { SHOW_DATES } from '../../shared/data/showDates';
+import { useShowCalendar } from '../../features/show-calendar';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel.js';
 import Card from '../../shared/ui/Card';
@@ -29,8 +29,9 @@ export default function StandingsPage({ selectedDate }) {
       : '';
 
   const { user } = useAuth();
+  const { showDates } = useShowCalendar();
   const { pools: userPools } = useUserPools(user?.uid);
-  const { picks, actualSetlist, loading } = useStandings(selectedDate);
+  const { picks, actualSetlist, loading } = useStandings(selectedDate, showDates);
   const { displayedPicks, activeFilter, setActiveFilter, filterOptions } = useDisplayedPicks(
     picks,
     user,
@@ -38,15 +39,15 @@ export default function StandingsPage({ selectedDate }) {
     targetPoolId || undefined
   );
 
-  const showStatus = getShowStatus(selectedDate);
+  const showStatus = getShowStatus(selectedDate, showDates);
   const { openScoringRules } = useScoringRulesModal();
 
-  useStandingsLeaderboardView(selectedDate, loading);
+  useStandingsLeaderboardView(selectedDate, loading, showDates);
 
   const showLabel = useMemo(() => {
-    const show = SHOW_DATES.find((s) => s.date === selectedDate);
+    const show = showDates.find((s) => s.date === selectedDate);
     return show ? showOptionLabelCompact(show) : selectedDate;
-  }, [selectedDate]);
+  }, [selectedDate, showDates]);
 
   const activePoolName = useMemo(() => {
     if (activeFilter === 'global') return null;
