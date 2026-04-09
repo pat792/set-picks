@@ -6,6 +6,7 @@
  * Publishes `song-catalog.json` to the default Firebase Storage bucket (public read for CDN fetch).
  */
 
+const crypto = require("node:crypto");
 const admin = require("firebase-admin");
 
 /** Object path in the default Storage bucket. */
@@ -154,6 +155,10 @@ async function syncPhishnetSongCatalogToStorage(apiKey, opts = {}) {
     metadata: {
       contentType: "application/json; charset=utf-8",
       cacheControl: "public, max-age=300",
+      // Required for web `getDownloadURL` + fetch(); without this, client GETs return 403.
+      metadata: {
+        firebaseStorageDownloadTokens: crypto.randomUUID(),
+      },
     },
   });
 
