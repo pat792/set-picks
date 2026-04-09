@@ -5,6 +5,7 @@ import {
   saveOfficialSetlistByDate,
 } from '../api/officialSetlistsApi';
 import { rollupScoresForShow } from '../api/adminRollupApi';
+import { refreshLiveScoresForShow } from '../api/liveScoringApi';
 import { fetchAndMapExternalSetlist } from './setlistAutomation';
 
 export const ADMIN_SETLIST_FIELDS = FORM_FIELDS.filter((field) => field.id !== 'wild');
@@ -112,6 +113,19 @@ export function useAdminSetlistForm({ user, selectedDate }) {
         slotFields: ADMIN_SETLIST_FIELDS,
         updatedBy: user?.email ?? null,
       });
+
+      if (!finalizeRollup) {
+        try {
+          await refreshLiveScoresForShow(selectedShow);
+        } catch (liveScoreError) {
+          console.error('Live score refresh failed:', liveScoreError);
+          setMessage({
+            text: 'Setlist saved, but live score refresh failed. Check console.',
+            type: 'error',
+          });
+          return;
+        }
+      }
 
       if (finalizeRollup) {
         try {

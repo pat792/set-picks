@@ -122,6 +122,55 @@ function calculateTotalScore(userPicks, actualSetlist) {
   }, 0);
 }
 
+function assertAdminEmail(request) {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in required.");
+  }
+  const email = request.auth.token?.email;
+  if (email !== ADMIN_EMAIL_FOR_SETLIST_PROXY) {
+    throw new HttpsError(
+      "permission-denied",
+      "Only the designated admin can perform this action."
+    );
+  }
+}
+
+async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = null) {
+  const setlistDoc =
+    actualSetlistFromWrite ||
+    (() => {
+      throw new Error("actualSetlistFromWrite required when no Firestore fallback");
+    })();
+  const picksSnap = await db
+    .collection("picks")
+    .where("showDate", "==", showDate)
+    .get();
+
+  if (picksSnap.empty) {
+    return { updatedPicks: 0 };
+  }
+
+  const batch = db.batch();
+  let updatedPicks = 0;
+
+  picksSnap.forEach((pickDoc) => {
+    const pickData = pickDoc.data() || {};
+    const userPicks = pickData.picks || {};
+    const score = calculateTotalScore(userPicks, setlistDoc);
+
+    // Live scoring only: do not set gradedAt here (pool season uses isGraded from rollup).
+    const update = { score };
+    if (pickData.isGraded !== true) {
+      update.gradedAt = admin.firestore.FieldValue.delete();
+    }
+    batch.update(pickDoc.ref, update);
+    updatedPicks += 1;
+  });
+
+  await batch.commit();
+  return { updatedPicks };
+}
+
 exports.gradePicksOnSetlistWrite = onDocumentWritten(
   "official_setlists/{showDate}",
   async (event) => {
@@ -139,36 +188,54 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
         : [],
     };
 
-    const picksSnap = await db
-      .collection("picks")
-      .where("showDate", "==", showDate)
-      .get();
-
-    if (picksSnap.empty) {
-      return null;
-    }
-
-    const batch = db.batch();
-
-    picksSnap.forEach((pickDoc) => {
-      const pickData = pickDoc.data() || {};
-      const userPicks = pickData.picks || {};
-      const score = calculateTotalScore(userPicks, actualSetlist);
-
-      // Live scoring only: do not set gradedAt here (pool season uses isGraded from rollup).
-      const update = { score };
-      if (pickData.isGraded !== true) {
-        update.gradedAt = admin.firestore.FieldValue.delete();
-      }
-      batch.update(pickDoc.ref, update);
-    });
-
-    await batch.commit();
+    await recomputeLiveScoresForShow(showDate, actualSetlist);
     return null;
   }
 );
 
 const PHISHNET_FUNCTIONS_REGION = "us-central1";
+
+exports.refreshLiveScoresForShow = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminEmail(request);
+    const showDate = request.data?.showDate;
+    if (
+      typeof showDate !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(showDate.trim())
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "showDate must be a YYYY-MM-DD string."
+      );
+    }
+
+    const setlistSnap = await db
+      .collection("official_setlists")
+      .doc(showDate.trim())
+      .get();
+    if (!setlistSnap.exists) {
+      throw new HttpsError(
+        "failed-precondition",
+        `official_setlists/${showDate.trim()} does not exist. Save the setlist first.`
+      );
+    }
+    const setlistDoc = setlistSnap.data() || {};
+    const setlistFlat = setlistDoc.setlist || {};
+    const actualSetlist = {
+      ...setlistFlat,
+      officialSetlist: Array.isArray(setlistDoc.officialSetlist)
+        ? setlistDoc.officialSetlist
+        : [],
+    };
+    const result = await recomputeLiveScoresForShow(showDate.trim(), actualSetlist);
+    return { ok: true, ...result };
+  }
+);
 
 /**
  * Secure proxy for Phish.net v5 setlists/showdate (epic #42, issue #146).
@@ -186,16 +253,7 @@ exports.getPhishnetSetlist = onCall(
   },
   async (request) => {
     try {
-      if (!request.auth) {
-        throw new HttpsError("unauthenticated", "Sign in required.");
-      }
-      const email = request.auth.token?.email;
-      if (email !== ADMIN_EMAIL_FOR_SETLIST_PROXY) {
-        throw new HttpsError(
-          "permission-denied",
-          "Only the designated admin can fetch Phish.net setlists."
-        );
-      }
+      assertAdminEmail(request);
 
       const showDate = request.data?.showDate;
       if (
