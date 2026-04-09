@@ -9,8 +9,9 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "secrets:sync-phishnet": "node ../scripts/sync-phishnet-secret.mjs",
-    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar",
-    "diagnose:phishnet": "node ../scripts/diagnose-phishnet-local.mjs"
+    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow",
+    "diagnose:phishnet": "node ../scripts/diagnose-phishnet-local.mjs",
+    "qa:clone-picks-for-show": "node scripts/clonePicksForShowQa.js"
   },
   "engines": {
     "node": "24"
