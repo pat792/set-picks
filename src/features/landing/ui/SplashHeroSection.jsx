@@ -5,7 +5,7 @@ import SplashHeroWordmark from './SplashHeroWordmark';
 
 export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, onAboutClick }) {
   return (
-    <section className="relative flex min-h-[100dvh] w-full flex-col overflow-hidden bg-transparent pt-[5.35rem] pb-6 sm:min-h-screen sm:pt-[5.25rem] sm:pb-14">
+    <section className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-transparent pt-[5.35rem] pb-6 sm:min-h-screen sm:pt-[5.25rem] sm:pb-14">
       <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 pt-1 text-center sm:px-6 sm:pt-0 lg:px-8">
         <h1
           className="relative left-1/2 w-screen max-w-[100vw] shrink-0 -translate-x-1/2 overflow-visible leading-none sm:left-0 sm:w-full sm:max-w-none sm:translate-x-0"
