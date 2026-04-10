@@ -13,8 +13,7 @@ export default function SplashHeader({
 }) {
   const wordmarkMarkup = useMemo(() => getBrandChromeWordmarkSvgMarkup(), []);
 
-  // If `h-[5.35rem]` / `sm:h-[5.25rem]` change, update `splashSectionScrollMarginClassName`
-  // in `features/landing/lib/splashScrollMargin.js` (splash scroll-into-view offset).
+  // If `h-[5.35rem]` / `sm:h-[5.25rem]` change, update `splashScrollPadding.js` (html scroll-padding).
   return (
     <header className="fixed left-0 right-0 top-0 z-50 flex h-[5.35rem] items-center overflow-visible border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg transition-all duration-300 sm:h-[5.25rem]">
       <div className="grid h-full w-full max-w-7xl min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 overflow-visible pl-[max(1rem,env(safe-area-inset-left,0px))] pr-4 sm:flex sm:justify-between sm:gap-3 sm:px-6 lg:px-8">

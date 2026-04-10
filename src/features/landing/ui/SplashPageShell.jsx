@@ -1,5 +1,6 @@
 import React from 'react';
 
+import useSplashDocumentScrollPadding from '../model/useSplashDocumentScrollPadding';
 import SplashAboutSection from './SplashAboutSection';
 import SplashGetStartedSection from './SplashGetStartedSection';
 import SplashHeader from './SplashHeader';
@@ -21,6 +22,8 @@ export default function SplashPageShell({
   onOpenSignInModal,
   children,
 }) {
+  useSplashDocumentScrollPadding();
+
   return (
     <>
       {/* Fixed + flex parent breaks iOS Safari; header must sit outside the flex wrapper. */}
