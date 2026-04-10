@@ -13,7 +13,7 @@ export default function DashboardMobileBrandBar({ user }) {
       <h1 className="flex min-h-0 min-w-0 items-center justify-start justify-self-start self-center overflow-visible text-left leading-none max-sm:-translate-x-[1.125rem] max-sm:translate-y-1 sm:flex-1 sm:translate-x-0 sm:translate-y-0 sm:justify-self-auto">
         <Link
           to="/dashboard"
-          className="inline-flex max-w-full items-center overflow-visible text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity"
+          className="inline-flex max-w-full items-center justify-start overflow-visible text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity"
           aria-label="Setlist Pick 'Em — dashboard home"
         >
           <span className={brandWordmarkDashboardMobileBarScaleWrapperClassNames}>
