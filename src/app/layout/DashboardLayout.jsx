@@ -33,6 +33,11 @@ import {
 import { PastShowLockBanner, TooEarlyBanner } from '../../features/picks';
 
 import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
+import {
+  BRAND_WORDMARK_SRC,
+  brandWordmarkDashboardSidebarScaleWrapperClassNames,
+  brandWordmarkImgClassNames,
+} from '../../shared/config/branding';
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
@@ -101,15 +106,25 @@ export default function DashboardLayout() {
     <div className="flex h-[100dvh] min-h-0 w-full bg-transparent text-white overflow-hidden md:h-screen">
       
       {/* DESKTOP SIDEBAR */}
-      <nav className="hidden md:flex flex-col w-64 bg-surface-chrome border-r border-border-muted/65 p-4 z-10">
-      <div className="mb-8 px-4 py-2">
-          <h1 className="font-display text-display-brand-sidebar md:text-display-brand-sidebar-lg font-bold italic leading-none outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity flex flex-col items-start">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 pr-2">
-              SETLIST
-            </span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 pr-2">
-              PICK 'EM
-            </span>
+      <nav className="hidden md:flex flex-col w-64 overflow-visible bg-surface-chrome border-r border-border-muted/65 p-4 z-10">
+      <div className="mb-6 overflow-visible py-2">
+          <h1 className="w-full overflow-visible text-center leading-none">
+            <Link
+              to="/dashboard"
+              className="block w-full overflow-visible outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity md:flex md:justify-center"
+              aria-label="Setlist Pick 'Em — dashboard home"
+            >
+              <span className={brandWordmarkDashboardSidebarScaleWrapperClassNames}>
+                <img
+                  src={BRAND_WORDMARK_SRC}
+                  alt=""
+                  width={300}
+                  height={120}
+                  className={brandWordmarkImgClassNames.dashboardSidebar}
+                  decoding="async"
+                />
+              </span>
+            </Link>
           </h1>
         </div>
         <div className="flex flex-col gap-2 flex-1">
@@ -157,7 +172,7 @@ export default function DashboardLayout() {
       </div>
 
       {/* MAIN CONTENT AREA — mobile: match header stack + bottom nav + home indicator */}
-      <main className="flex-1 min-w-0 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+7.625rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
+      <main className="flex-1 min-w-0 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+9rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
         <div className="max-w-xl mx-auto w-full min-w-0 px-4 pt-2 md:p-8">
           
           {/* DESKTOP Global Date Picker */}

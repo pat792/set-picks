@@ -1,11 +1,13 @@
 import React from 'react';
 import Button from '../../../shared/ui/Button';
 
+import { splashSectionScrollMarginClassName } from '../lib/splashScrollMargin.js';
+
 export default function SplashHowItWorksSection({ sectionRef, headingRef, onCreateAccountClick }) {
   return (
     <section
       ref={sectionRef}
-      className="relative z-10 w-full bg-slate-50 py-20 md:py-24 lg:py-32"
+      className={`relative z-10 w-full bg-slate-50 py-20 md:py-24 lg:py-32 ${splashSectionScrollMarginClassName}`}
     >
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2

@@ -27,6 +27,13 @@ Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
 
 ---
 
+## Design system
+
+- **Tokens, typography, surfaces, components:** **`docs/design.md`**.
+- **Brand wordmark (SVG) storage and code contract:** **`docs/design.md`** §7 *Brand wordmark & asset storage* — files under **`public/branding/`** (served as **`/branding/…`**), canonical imports from **`src/shared/config/branding.js`**, surfaces include splash hero/header and dashboard chrome. PRDs that change the logo or bar layout should name these paths and avoid hardcoded asset URLs in feature code.
+
+---
+
 ## Reduced FSD layout (strict)
 
 | Layer | Path | Responsibility |
@@ -79,4 +86,4 @@ Name **existing** domains when known (e.g. `pools`, `picks`, `scoring`, `auth`, 
 
 ## Maintenance
 
-When architecture or automation behavior changes, update **this file** and keep **`.cursorrules`** and **`docs/DASHBOARD_IA.md`** aligned.
+When architecture or automation behavior changes, update **this file** and keep **`.cursorrules`** and **`docs/DASHBOARD_IA.md`** aligned. If **`public/branding/`** or **`src/shared/config/branding.js`** changes materially, refresh **`docs/design.md`** §7 so automation and humans share the same contract.
