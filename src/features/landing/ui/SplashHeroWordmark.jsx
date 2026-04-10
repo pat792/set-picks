@@ -8,16 +8,15 @@ import {
 
 /**
  * Inline SVG stays vector on mobile WebKit; `<img src=".svg">` is often rasterized (soft/grainy),
- * especially with CSS filters. Glow uses box-shadow on the aspect frame (no filter on the graphic).
+ * especially with CSS filters. Avoid box-shadow on the aspect frame — it traces the rectangular
+ * box and reads as a “border” around transparent letter areas (unlike drop-shadow on an img).
  */
 export default function SplashHeroWordmark() {
   const markup = useMemo(() => getBrandHeroWordmarkSvgMarkup(), []);
 
   return (
     <span className={brandHeroWordmarkScaleWrapperClassNames}>
-      <span
-        className={`${brandHeroWordmarkAspectFrameClassNames} shadow-[0_4px_36px_-6px_rgba(15,10,46,0.55)] sm:shadow-[0_4px_40px_-4px_rgba(15,10,46,0.5)]`}
-      >
+      <span className={brandHeroWordmarkAspectFrameClassNames}>
         <span
           className="isolate block h-full min-h-0 w-full"
           dangerouslySetInnerHTML={{ __html: markup }}
