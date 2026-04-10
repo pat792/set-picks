@@ -9,20 +9,20 @@ export const BRAND_HERO_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
 
 /**
  * Hero frame: the SVG’s painted gradient is taller than the letterforms, leaving a band of empty
- * space below the artwork. A wider aspect + overflow clips that band; the img uses `object-cover`
- * + `object-top` inside this frame only.
+ * space below the artwork. A wider aspect + overflow clips that band. The splash hero renders this
+ * asset **inline** (`SplashHeroWordmark`) so WebKit keeps vectors crisp; `preserveAspectRatio` is
+ * adjusted there to mirror former `object-cover` + `object-top`.
  */
-/** Mobile: taller frame replaces old `scale-[1.2]` (GPU scale blurs SVG on iOS). ~same visual as 16/5 + 1.2. */
 export const brandHeroWordmarkAspectFrameClassNames =
-  'mx-auto block aspect-[8/3] w-[100vw] max-w-none overflow-hidden sm:aspect-[71/20] sm:w-full sm:max-w-[min(96vw,70rem)] md:max-w-[min(94vw,78rem)] lg:max-w-[min(92vw,86rem)] xl:max-w-[min(90vw,94rem)]';
+  'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[71/20] sm:w-full sm:max-w-[min(96vw,70rem)] md:max-w-[min(94vw,78rem)] lg:max-w-[min(92vw,86rem)] xl:max-w-[min(90vw,94rem)]';
 
-/** Fills {@link brandHeroWordmarkAspectFrameClassNames}; do not use without that frame. */
+/** Legacy `<img>` hero classes; splash hero uses inline SVG (`SplashHeroWordmark.jsx`) instead. */
 export const brandHeroWordmarkImgClassNames =
-  'block h-full w-full min-h-0 object-cover object-top drop-shadow-[0_4px_32px_rgba(15,10,46,0.5)]';
+  'block h-full w-full min-h-0 object-cover object-top';
 
-/** Avoid `scale()` on hero wordmark — mobile Safari rasterizes scaled layers soft; frame aspect handles size. */
+/** Mobile `scale-[1.2]` is OK with **inline** SVG (vector); avoid with `<img src=".svg">` on iOS. */
 export const brandHeroWordmarkScaleWrapperClassNames =
-  'block w-full origin-center motion-reduce:transform-none';
+  'block w-full origin-center max-sm:scale-[1.2] motion-reduce:max-sm:scale-100 sm:scale-100';
 
 /**
  * Per-surface img `className` tokens. Contexts differ in bar height and horizontal budget,
