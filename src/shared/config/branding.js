@@ -20,9 +20,12 @@ export const brandHeroWordmarkAspectFrameClassNames =
 export const brandHeroWordmarkImgClassNames =
   'block h-full w-full min-h-0 object-cover object-top';
 
-/** Mobile `scale-[1.2]` is OK with **inline** SVG (vector); avoid with `<img src=".svg">` on iOS. */
+/**
+ * Mobile “1.2×” via **layout width** (`120vw` + `-ml-[10vw]`) so the graphic scales as vector paint,
+ * not `transform: scale()` (compositor can soften on iOS). `sm:` restores contained width.
+ */
 export const brandHeroWordmarkScaleWrapperClassNames =
-  'block w-full origin-center max-sm:scale-[1.2] motion-reduce:max-sm:scale-100 sm:scale-100';
+  'block w-full overflow-visible max-sm:w-[120vw] max-sm:max-w-none max-sm:-ml-[10vw] motion-reduce:max-sm:w-full motion-reduce:max-sm:ml-0 sm:ml-0 sm:w-full';
 
 /**
  * Per-surface img `className` tokens. Contexts differ in bar height and horizontal budget,
@@ -48,6 +51,13 @@ export const brandWordmarkImgClassNames = {
   dashboardMobileBar:
     'block h-[3.95rem] w-auto max-w-[calc(100vw_-_7rem)] object-contain object-left sm:h-[4.05rem] sm:max-w-[min(68vw,380px)]',
 };
+
+/** Inline SVG chrome: same box as {@link brandWordmarkImgClassNames} minus `object-*` (img-only). */
+export const brandWordmarkChromeSplashHeaderClassNames =
+  'block h-[5.05rem] w-auto max-w-[calc(100vw_-_8.5rem)] sm:h-[4.55rem] sm:max-w-[min(54vw,360px)]';
+
+export const brandWordmarkChromeDashboardMobileBarClassNames =
+  'block h-[3.95rem] w-auto max-w-[calc(100vw_-_7rem)] sm:h-[4.05rem] sm:max-w-[min(68vw,380px)]';
 
 /**
  * No `scale()` — img `h-*` carries size (sharper on WebKit).
