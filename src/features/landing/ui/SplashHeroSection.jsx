@@ -1,25 +1,44 @@
 import React from 'react';
+import {
+  BRAND_HERO_WORDMARK_SRC,
+  brandHeroWordmarkAspectFrameClassNames,
+  brandHeroWordmarkImgClassNames,
+  brandHeroWordmarkScaleWrapperClassNames,
+} from '../../../shared/config/branding';
 import Button from '../../../shared/ui/Button';
 
 export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, onAboutClick }) {
   return (
-    <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-transparent pt-[3.5rem] sm:pt-20">
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center -translate-y-8 sm:-translate-y-12">
-        <h1 className="mx-auto max-w-full font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic splash-gradient-text drop-shadow-xl pr-2 md:pr-4 leading-tight whitespace-normal md:whitespace-nowrap">
-          SETLIST <br className="md:hidden" /> PICK &apos;EM
+    <section className="relative flex min-h-[100dvh] w-full flex-col overflow-hidden bg-transparent pt-[4.6rem] pb-6 sm:min-h-screen sm:pt-[5.25rem] sm:pb-14">
+      <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 pt-1 text-center sm:px-6 sm:pt-0 lg:px-8">
+        <h1 className="relative left-1/2 w-screen max-w-[100vw] shrink-0 -translate-x-1/2 leading-none sm:left-0 sm:w-full sm:max-w-none sm:translate-x-0">
+          <span className={brandHeroWordmarkScaleWrapperClassNames}>
+            <span className={brandHeroWordmarkAspectFrameClassNames}>
+              <img
+                src={BRAND_HERO_WORDMARK_SRC}
+                alt="Setlist Pick 'Em"
+                className={brandHeroWordmarkImgClassNames}
+                decoding="async"
+                fetchpriority="high"
+              />
+            </span>
+          </span>
         </h1>
 
-        <div className="mt-6 max-w-2xl mx-auto">
-          <p className="text-lg md:text-xl text-teal-400 font-bold tracking-wide drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] mb-4">
+        <div className="mx-auto mt-6 max-w-2xl shrink-0 sm:-mt-0.5 md:-mt-1">
+          <p className="mb-3 text-lg font-bold tracking-wide text-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] sm:mb-2 md:text-xl">
             The ultimate live music prediction game. Launching on Phish Tour.
           </p>
 
-          <p className="text-base md:text-lg text-slate-300 font-normal leading-relaxed">
+          <p className="text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
             Join a global community of fans who live for the next song. Challenge your tour family, lock in your predictions, and share the thrill of calling a legendary show before the lights even go down.
           </p>
         </div>
 
-        <div className="mt-10 flex w-full max-w-md flex-col items-center gap-6 mx-auto">
+        {/* Mobile: split leftover viewport 50/50 above vs below CTA (replaces mt-auto). Hidden sm+. */}
+        <div className="min-h-2 flex-1 sm:hidden" aria-hidden />
+
+        <div className="mx-auto flex w-full max-w-md shrink-0 flex-col items-center gap-5 sm:mt-6 sm:gap-4">
           <Button
             variant="primary"
             type="button"
@@ -47,6 +66,8 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
             </button>
           </div>
         </div>
+
+        <div className="min-h-2 flex-1 sm:hidden" aria-hidden />
       </div>
     </section>
   );

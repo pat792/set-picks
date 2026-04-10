@@ -1,22 +1,36 @@
 import React from 'react';
-import Button from "../../../shared/ui/Button";
+import {
+  BRAND_WORDMARK_SRC,
+  brandWordmarkImgClassNames,
+  brandWordmarkSplashHeaderScaleWrapperClassNames,
+} from '../../../shared/config/branding';
+import Button from '../../../shared/ui/Button';
 
 export default function SplashHeader({
   onPlayNowClick,
   onSignInClick,
 }) {
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 flex h-[4.25rem] items-center border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg transition-all duration-300 sm:h-20">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <header className="fixed left-0 right-0 top-0 z-50 flex h-[4.6rem] items-center overflow-visible border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg transition-all duration-300 sm:h-[5.25rem]">
+      <div className="grid h-full w-full max-w-7xl min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 overflow-visible pl-[max(1rem,env(safe-area-inset-left,0px))] pr-4 sm:flex sm:justify-between sm:gap-3 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="font-display font-bold italic text-[clamp(1.05rem,4.6vw,1.5rem)] sm:text-2xl splash-gradient-text outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity pr-1 min-w-0 whitespace-nowrap leading-none inline-block"
+          className="inline-flex min-w-0 items-center justify-start justify-self-start overflow-visible pl-0 pr-1 text-left outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm max-sm:-translate-x-[1.125rem] sm:shrink-0 sm:translate-x-0 sm:justify-self-auto sm:pr-2"
+          aria-label="Setlist Pick &apos;Em — scroll to top"
         >
-          SETLIST PICK &apos;EM
+          <span className={brandWordmarkSplashHeaderScaleWrapperClassNames}>
+            <img
+              src={BRAND_WORDMARK_SRC}
+              alt="Setlist Pick &apos;Em"
+              className={brandWordmarkImgClassNames.splashHeader}
+              decoding="async"
+              fetchpriority="high"
+            />
+          </span>
         </button>
 
-        <div className="flex items-center gap-0.25 sm:gap-4 min-w-0">
+        <div className="flex min-w-0 items-center justify-self-end gap-0.25 sm:justify-self-auto sm:gap-4">
           <Button
             variant="text"
             size="none"

@@ -11,7 +11,7 @@ The typography utilizes a two-font system: **Space Grotesk** for high-impact, st
 - **Two-font system**: `Space Grotesk` (Display) and `Inter` (Sans/Body).
 - **Glass Surfaces**: Cards and inputs use translucent backgrounds (`bg-surface-panel`) with subtle inset borders.
 - **Differentiated Buttons**: Primary action buttons use rounded rectangles, while secondary filters use full pill shapes.
-- **Gradients**: The main brand wordmark utilizes a red-to-blue gradient (`#ef4444` to `#3b82f6`).
+- **Gradients**: The main brand wordmark utilizes a red-to-blue gradient (`#ef4444` to `#3b82f6`). The **in-app and splash chrome wordmark** is delivered as an **SVG image** (not the `text-display-brand-bar` utility alone). See **§7 Brand wordmark & asset storage** for paths and sizing.
 
 ## 2. Color Palette & Roles (Tailwind Tokens)
 
@@ -64,7 +64,7 @@ Implemented as CSS variables in `src/index.css` and mapped in `tailwind.config.j
 |------|-------|------|--------------------|----------|
 | Splash Hero | `text-display-hero-splash` | Space Grotesk | 3.75rem / 1.04 | -0.028em |
 | Page Title | `text-display-page` | Space Grotesk | 2rem / 1.2 | -0.02em |
-| Brand Wordmark | `text-display-brand-bar` | Space Grotesk | 1.5625rem / 1.08 | -0.02em |
+| Brand Wordmark (text fallback / legacy) | `text-display-brand-bar` | Space Grotesk | 1.5625rem / 1.08 | -0.02em |
 | Section Header | `text-display-sm` | Space Grotesk | 1.3125rem / 1.28 | -0.015em |
 | General Title | `text-title` | Inter | 1.5rem / 1.2 (Bold) | Normal |
 | Standard Body | `text-body` | Inter | 0.875rem / 1.5 | Normal |
@@ -122,9 +122,37 @@ Because the app uses a dark theme, traditional black drop-shadows do not work. D
 - Don't mix border radii randomly (e.g., don't put a `rounded-full` CTA inside a perfectly square card).
 - Don't use traditional drop shadows (`shadow-md`, `shadow-xl`); use the custom `glow` shadows.
 
-## 7. Agent Prompt Guide
+## 7. Brand wordmark & asset storage
+
+### Where files live
+
+Static wordmark assets are served from **`public/branding/`** (URL path **`/branding/…`**).
+
+| File | Role |
+|------|------|
+| **`splash-gradient-4x1.svg`** | **Primary lockup** — full gradient (red → blue). Cropped viewBox; used for splash hero, splash header, dashboard mobile brand bar, and desktop sidebar. |
+| **`splash-wordmark.svg`** | **Optional** white/single-color variant; not wired in code by default. |
+
+Add or replace SVGs here; update **`src/shared/config/branding.js`** if filenames or default variant change.
+
+### Code contract (`src/shared/config/branding.js`)
+
+- **`BRAND_GRADIENT_WORDMARK_SRC` / `BRAND_WORDMARK_SRC` / `BRAND_HERO_WORDMARK_SRC`** — canonical URL for the gradient asset (hero and chrome share one file today).
+- **Hero-only**: `brandHeroWordmarkAspectFrameClassNames` + `brandHeroWordmarkImgClassNames` + `brandHeroWordmarkScaleWrapperClassNames` — aspect frame crops empty space below glyphs on desktop; mobile uses a slightly taller aspect ratio for rhythm.
+- **Per-surface img classes** — `brandWordmarkImgClassNames.splashHeader`, `.dashboardMobileBar`, `.dashboardSidebar` (height/width/`max-w`/`object-*` tuned per bar or sidebar column).
+- **Scale wrappers** — `brandWordmarkSplashHeaderScaleWrapperClassNames`, `brandWordmarkDashboardMobileBarScaleWrapperClassNames`, `brandWordmarkDashboardSidebarScaleWrapperClassNames` — `transform` + `origin` so the wide asset reads balanced next to nav type and CTAs.
+
+UI surfaces that render the logo:
+
+- **Splash**: `src/features/landing/ui/SplashHeader.jsx`, `SplashHeroSection.jsx`
+- **Dashboard**: `src/app/layout/DashboardLayout.jsx` (sidebar), `src/app/layout/ui/DashboardMobileBrandBar.jsx`
+
+Do **not** hardcode `/branding/…` paths in components; import from **`shared/config/branding`**.
+
+## 8. Agent Prompt Guide
 
 ### Quick Tailwind Class Reference
+- **Brand wordmark (img):** import `BRAND_WORDMARK_SRC`, `brandWordmarkImgClassNames`, and the matching scale wrapper from `src/shared/config/branding.js` — do not duplicate `/branding/…` paths in feature or layout files.
 - **Background:** `bg-brand-bg`
 - **Standard Card:** `bg-surface-panel border border-border-subtle rounded-xl`
 - **Frosted list card:** `Card` `variant="frosted"` — teal border + blur + inset glass
