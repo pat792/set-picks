@@ -1,8 +1,6 @@
 import React from 'react';
 import { SplashAuthEntryCard } from '../../auth';
 
-import { splashSectionScrollMarginClassName } from '../lib/splashScrollMargin.js';
-
 export default function SplashGetStartedSection({
   sectionRef,
   headingRef,
@@ -12,7 +10,7 @@ export default function SplashGetStartedSection({
   return (
     <section
       ref={sectionRef}
-      className={`relative z-10 w-full overflow-hidden border-t border-white/5 bg-gradient-to-b from-brand-bg to-brand-bg-deep py-20 md:py-32 ${splashSectionScrollMarginClassName}`}
+      className="relative z-10 w-full overflow-hidden border-t border-white/5 bg-gradient-to-b from-brand-bg to-brand-bg-deep py-20 md:py-32"
     >
       <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
         <div className="w-[600px] h-[300px] bg-teal-400/10 blur-[100px] rounded-full"></div>
