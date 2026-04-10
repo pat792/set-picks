@@ -17,7 +17,9 @@ export default function useScrollToSectionFocus({ onCreateAccountRequest } = {})
     });
     const delay = shouldReduceMotion ? 0 : 350;
     window.setTimeout(() => {
-      focusRef?.current?.focus();
+      // Avoid a second scroll: default focus() scrolls the target into view and
+      // fights smooth scrollIntoView + section scroll-margin (feels glitchy).
+      focusRef?.current?.focus({ preventScroll: true });
     }, delay);
   }, []);
 
