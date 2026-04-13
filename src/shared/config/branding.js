@@ -4,6 +4,9 @@
  */
 export const BRAND_GRADIENT_WORDMARK_SRC = '/branding/splash-gradient-4x1.svg';
 
+/** Circular vinyl-style mark — splash header A/B (replaces wide gradient wordmark when used). */
+export const BRAND_SPLASH_HEADER_VINYL_MARK_SRC = '/branding/splash-vinyl-mark.webp';
+
 export const BRAND_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
 export const BRAND_HERO_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
 
@@ -66,6 +69,10 @@ export const brandWordmarkChromeDashboardMobileBarClassNames =
  */
 export const brandWordmarkSplashHeaderScaleWrapperClassNames =
   'flex w-max max-w-full shrink-0 items-center justify-start motion-reduce:transform-none';
+
+/** Splash header vinyl mark: square asset, height-led to fit the fixed bar without crowding CTAs. */
+export const brandSplashHeaderVinylMarkImgClassNames =
+  'block h-[3.35rem] w-[3.35rem] shrink-0 object-contain object-center sm:h-[3.55rem] sm:w-[3.55rem]';
 
 /** Same leading-edge contract as splash header (post-auth mobile bar). */
 export const brandWordmarkDashboardMobileBarScaleWrapperClassNames =
