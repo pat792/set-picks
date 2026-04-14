@@ -48,6 +48,16 @@ service cloud.firestore {
       allow read, write: if signedIn();
     }
 
+    /**
+     * Live setlist automation state (issue #164). Written by Cloud Functions (Admin SDK);
+     * admin UI reads pause/backoff metadata. Same admin email as admin setlist tooling.
+     */
+    match /live_setlist_automation/{showDate} {
+      allow read: if signedIn()
+        && request.auth.token.email == 'pat@road2media.com';
+      allow write: if false;
+    }
+
     /** Server-written Phish.net show calendar; clients read only (issue #160). */
     match /show_calendar/{docId} {
       allow read: if signedIn();

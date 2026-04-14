@@ -11,6 +11,10 @@ const {
 const {
   syncPhishnetSongCatalogToStorage,
 } = require("./phishnetSongCatalog");
+const {
+  candidateShowDates,
+  pollSingleShowDate,
+} = require("./phishnetLiveSetlistAutomation");
 
 /** Must match admin setlist gate in `src/features/admin/model/useAdminSetlistForm.js`. */
 const ADMIN_EMAIL_FOR_SETLIST_PROXY = "pat@road2media.com";
@@ -138,6 +142,19 @@ function assertAdminEmail(request) {
   }
 }
 
+function assertShowDateString(showDate) {
+  if (
+    typeof showDate !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(showDate.trim())
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      "showDate must be a YYYY-MM-DD string."
+    );
+  }
+  return showDate.trim();
+}
+
 async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = null) {
   const setlistDoc =
     actualSetlistFromWrite ||
@@ -206,25 +223,16 @@ exports.refreshLiveScoresForShow = onCall(
   },
   async (request) => {
     assertAdminEmail(request);
-    const showDate = request.data?.showDate;
-    if (
-      typeof showDate !== "string" ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(showDate.trim())
-    ) {
-      throw new HttpsError(
-        "invalid-argument",
-        "showDate must be a YYYY-MM-DD string."
-      );
-    }
+    const showDate = assertShowDateString(request.data?.showDate);
 
     const setlistSnap = await db
       .collection("official_setlists")
-      .doc(showDate.trim())
+      .doc(showDate)
       .get();
     if (!setlistSnap.exists) {
       throw new HttpsError(
         "failed-precondition",
-        `official_setlists/${showDate.trim()} does not exist. Save the setlist first.`
+        `official_setlists/${showDate} does not exist. Save the setlist first.`
       );
     }
     const setlistDoc = setlistSnap.data() || {};
@@ -235,8 +243,138 @@ exports.refreshLiveScoresForShow = onCall(
         ? setlistDoc.officialSetlist
         : [],
     };
-    const result = await recomputeLiveScoresForShow(showDate.trim(), actualSetlist);
+    const result = await recomputeLiveScoresForShow(showDate, actualSetlist);
     return { ok: true, ...result };
+  }
+);
+
+exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
+  {
+    schedule: "*/2 * * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+  },
+  async () => {
+    const key = phishnetApiKey.value();
+    if (!key || !String(key).trim()) {
+      logger.error(
+        "scheduledPhishnetLiveSetlistPoll: PHISHNET_API_KEY missing; skip poll."
+      );
+      return null;
+    }
+    const dates = candidateShowDates(new Date());
+    const started = Date.now();
+    const results = [];
+    for (const showDate of dates) {
+      const result = await pollSingleShowDate({
+        db,
+        admin,
+        showDate,
+        apiKey: String(key).trim(),
+        logger,
+        force: false,
+      });
+      results.push(result);
+    }
+    logger.info("live setlist poll cycle", {
+      dates,
+      results,
+      durationMs: Date.now() - started,
+    });
+    return null;
+  }
+);
+
+exports.setLiveSetlistAutomationState = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminEmail(request);
+    const showDate = assertShowDateString(request.data?.showDate);
+    const enabled = request.data?.enabled;
+    if (typeof enabled !== "boolean") {
+      throw new HttpsError("invalid-argument", "enabled must be boolean.");
+    }
+    await db
+      .collection("live_setlist_automation")
+      .doc(showDate)
+      .set(
+        {
+          showDate,
+          enabled,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedBy: request.auth.token?.email ?? null,
+          pausedAt: enabled
+            ? admin.firestore.FieldValue.delete()
+            : admin.firestore.FieldValue.serverTimestamp(),
+          pausedBy: enabled
+            ? admin.firestore.FieldValue.delete()
+            : request.auth.token?.email ?? null,
+        },
+        { merge: true }
+      );
+    return { ok: true, showDate, enabled };
+  }
+);
+
+exports.pollLiveSetlistNow = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminEmail(request);
+    const key = phishnetApiKey.value();
+    if (!key || !String(key).trim()) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+      );
+    }
+    const explicitShowDate = request.data?.showDate;
+    const dates =
+      explicitShowDate == null
+        ? candidateShowDates(new Date())
+        : [assertShowDateString(explicitShowDate)];
+    const started = Date.now();
+    const results = [];
+    for (const showDate of dates) {
+      const result = await pollSingleShowDate({
+        db,
+        admin,
+        showDate,
+        apiKey: String(key).trim(),
+        logger,
+        force: true,
+        requestorEmail: request.auth.token?.email ?? null,
+      });
+      if (result.changed) {
+        const setlistSnap = await db.collection("official_setlists").doc(showDate).get();
+        const setlistDoc = setlistSnap.data() || {};
+        const actualSetlist = {
+          ...(setlistDoc.setlist || {}),
+          officialSetlist: Array.isArray(setlistDoc.officialSetlist)
+            ? setlistDoc.officialSetlist
+            : [],
+        };
+        result.updatedPicks = (
+          await recomputeLiveScoresForShow(showDate, actualSetlist)
+        ).updatedPicks;
+      }
+      results.push(result);
+    }
+    logger.info("manual live setlist poll", {
+      dates,
+      results,
+      durationMs: Date.now() - started,
+    });
+    return { ok: true, dates, results };
   }
 );
 

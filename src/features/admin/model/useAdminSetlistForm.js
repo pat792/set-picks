@@ -6,6 +6,11 @@ import {
 } from '../api/officialSetlistsApi';
 import { rollupScoresForShow } from '../api/adminRollupApi';
 import { refreshLiveScoresForShow } from '../api/liveScoringApi';
+import {
+  fetchLiveSetlistAutomationState,
+  pollLiveSetlistNow,
+  setLiveSetlistAutomationState,
+} from '../api/liveSetlistAutomationApi';
 import { fetchAndMapExternalSetlist } from './setlistAutomation';
 
 export const ADMIN_SETLIST_FIELDS = FORM_FIELDS.filter((field) => field.id !== 'wild');
@@ -25,6 +30,12 @@ export function useAdminSetlistForm({ user, selectedDate }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isFetchingApi, setIsFetchingApi] = useState(false);
   const [apiFetchError, setApiFetchError] = useState('');
+  const [automationEnabled, setAutomationEnabled] = useState(true);
+  const [isAutomationLoading, setIsAutomationLoading] = useState(false);
+  const [isAutomationToggling, setIsAutomationToggling] = useState(false);
+  const [isAutomationPolling, setIsAutomationPolling] = useState(false);
+  const [automationStatus, setAutomationStatus] = useState('');
+  const [automationError, setAutomationError] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
   const clearMessageTimeoutRef = useRef(null);
 
@@ -41,6 +52,8 @@ export function useAdminSetlistForm({ user, selectedDate }) {
 
   useEffect(() => {
     setApiFetchError('');
+    setAutomationStatus('');
+    setAutomationError('');
   }, [selectedShow]);
 
   useEffect(() => {
@@ -58,6 +71,22 @@ export function useAdminSetlistForm({ user, selectedDate }) {
     };
 
     loadSetlist();
+  }, [selectedShow, isAdmin]);
+
+  useEffect(() => {
+    const loadAutomationState = async () => {
+      if (!selectedShow || !isAdmin) return;
+      setIsAutomationLoading(true);
+      try {
+        const state = await fetchLiveSetlistAutomationState(selectedShow);
+        setAutomationEnabled(state.enabled !== false);
+      } catch (error) {
+        console.error('Error loading automation state:', error);
+      } finally {
+        setIsAutomationLoading(false);
+      }
+    };
+    loadAutomationState();
   }, [selectedShow, isAdmin]);
 
   const handleFetchFromApi = async () => {
@@ -174,6 +203,52 @@ export function useAdminSetlistForm({ user, selectedDate }) {
   const handleSave = async () => saveSetlist({ finalizeRollup: false });
   const handleFinalizeAndRollup = async () => saveSetlist({ finalizeRollup: true });
 
+  const handleToggleAutomation = async () => {
+    if (!selectedShow || !isAdmin || isAutomationLoading || isAutomationPolling) return;
+    setAutomationError('');
+    setAutomationStatus('');
+    setIsAutomationToggling(true);
+    const nextEnabled = !automationEnabled;
+    try {
+      await setLiveSetlistAutomationState(selectedShow, nextEnabled);
+      setAutomationEnabled(nextEnabled);
+      setAutomationStatus(
+        nextEnabled
+          ? `Automation resumed for ${selectedShow}.`
+          : `Automation paused for ${selectedShow}.`
+      );
+    } catch (error) {
+      console.error('Error toggling automation:', error);
+      setAutomationError(error instanceof Error ? error.message : 'Failed to update automation state.');
+    } finally {
+      setIsAutomationToggling(false);
+    }
+  };
+
+  const handlePollAutomationNow = async () => {
+    if (!selectedShow || !isAdmin || isAutomationLoading || isAutomationToggling) return;
+    setAutomationError('');
+    setAutomationStatus('');
+    setIsAutomationPolling(true);
+    try {
+      const result = await pollLiveSetlistNow(selectedShow);
+      const row = Array.isArray(result?.results) ? result.results[0] : null;
+      if (row?.changed) {
+        const picksUpdated = typeof row.updatedPicks === 'number' ? row.updatedPicks : 0;
+        setAutomationStatus(
+          `Manual poll wrote updated setlist and refreshed ${picksUpdated} pick scores for ${selectedShow}.`
+        );
+      } else {
+        setAutomationStatus(`Manual poll completed: no setlist change for ${selectedShow}.`);
+      }
+    } catch (error) {
+      console.error('Error running manual automation poll:', error);
+      setAutomationError(error instanceof Error ? error.message : 'Manual poll failed.');
+    } finally {
+      setIsAutomationPolling(false);
+    }
+  };
+
   return {
     isAdmin,
     selectedShow,
@@ -183,6 +258,12 @@ export function useAdminSetlistForm({ user, selectedDate }) {
     isSaving,
     isFetchingApi,
     apiFetchError,
+    automationEnabled,
+    isAutomationLoading,
+    isAutomationToggling,
+    isAutomationPolling,
+    automationStatus,
+    automationError,
     message,
     setOfficialSetlistInput,
     handleInputChange,
@@ -191,5 +272,7 @@ export function useAdminSetlistForm({ user, selectedDate }) {
     handleFetchFromApi,
     handleSave,
     handleFinalizeAndRollup,
+    handleToggleAutomation,
+    handlePollAutomationNow,
   };
 }
