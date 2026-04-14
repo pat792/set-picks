@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from '../../../shared/ui/Card';
 import { AlertTriangle } from 'lucide-react';
 import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
@@ -9,11 +9,26 @@ import AdminLiveSetlistAutomationControls from './AdminLiveSetlistAutomationCont
 import AdminActionToggle from './AdminActionToggle';
 import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
+import AdminWarRoomShowDate from './AdminWarRoomShowDate';
+
+function normalizeDashboardShowDate(value) {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) return value.trim();
+  return '';
+}
 
 export default function AdminForm({ user, selectedDate }) {
+  const [warRoomShowDate, setWarRoomShowDate] = useState(() =>
+    normalizeDashboardShowDate(selectedDate),
+  );
   const [setlistActionsOpen, setSetlistActionsOpen] = useState(true);
   const [liveAutomationOpen, setLiveAutomationOpen] = useState(true);
   const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
+
+  useEffect(() => {
+    const next = normalizeDashboardShowDate(selectedDate);
+    if (next) setWarRoomShowDate(next);
+  }, [selectedDate]);
+
   const {
     isAdmin,
     selectedShow,
@@ -39,7 +54,7 @@ export default function AdminForm({ user, selectedDate }) {
     handleFinalizeAndRollup,
     handleToggleAutomation,
     handlePollAutomationNow,
-  } = useAdminSetlistForm({ user, selectedDate });
+  } = useAdminSetlistForm({ user, selectedDate: warRoomShowDate });
 
   if (!isAdmin) {
     return (
@@ -52,7 +67,12 @@ export default function AdminForm({ user, selectedDate }) {
 
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
-      <Card variant="danger" padding="sm" className="mb-6">
+      <AdminWarRoomShowDate
+        value={warRoomShowDate}
+        onChange={setWarRoomShowDate}
+        disabled={isSaving}
+      />
+      <Card variant="danger" padding="sm" className="mb-6 mt-4">
         <p className="text-xs text-red-300/80 font-bold uppercase tracking-wider flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
           <span>

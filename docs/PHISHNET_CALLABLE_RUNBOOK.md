@@ -131,6 +131,10 @@ Deploy with **`npm run deploy:functions:phishnet`** (includes setlist + show-cal
 | Manual recovery callable | `pollLiveSetlistNow` (forces one poll + one score recompute) |
 | Per-show state doc | `live_setlist_automation/{showDate}` |
 
+**Admin UI vs global show picker:** The dashboard “Select Show” list only includes dates from `show_calendar`. War Room uses **War Room show date** (`<input type="date">`) so you can load or poll **any** `YYYY-MM-DD` that exists in Firestore / Phish.net (e.g. Mexico) even when that date is missing from the global picker.
+
+**`isScored: false` on automated writes:** Expected for live ingestion — the doc is not “finalize graded.” **Finalize and rollup** still sets graded profile state separately.
+
 ### Firestore rules (admin UI)
 
 Clients read `live_setlist_automation/{showDate}` for pause/backoff UI. **`firestore.rules`** must allow that read for the designated admin email; deploy after changes:

@@ -241,37 +241,34 @@ async function pollSingleShowDate({
       return { showDate, changed: false, updatedPicks: 0, reason: "unchanged" };
     }
 
-    await setlistRef.set(
-      {
-        showDate,
-        status: "LIVE",
-        isScored: false,
-        setlist: nextPayload.setlist,
-        officialSetlist: nextPayload.officialSetlist,
-        updatedBy: requestorEmail || "setlist-automation",
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        sourceMeta: {
-          source: "phishnet",
-          signature,
-          songCount: rows.length,
-          lastFetchedAt: admin.firestore.FieldValue.serverTimestamp(),
-          pollMode: force ? "manual" : "scheduled",
-        },
+    const setlistPayload = {
+      showDate,
+      status: "LIVE",
+      isScored: false,
+      setlist: nextPayload.setlist,
+      officialSetlist: nextPayload.officialSetlist,
+      updatedBy: requestorEmail || "setlist-automation",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      sourceMeta: {
+        source: "phishnet",
+        signature,
+        songCount: rows.length,
+        lastFetchedAt: admin.firestore.FieldValue.serverTimestamp(),
+        pollMode: force ? "manual" : "scheduled",
       },
-      { merge: true }
-    );
-
-    await automationRef.set(
-      {
-        showDate,
-        enabled: automation.enabled !== false,
-        failureCount: 0,
-        lastPolledAt: admin.firestore.FieldValue.serverTimestamp(),
-        lastResult: "changed",
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    };
+    const automationPayload = {
+      showDate,
+      enabled: automation.enabled !== false,
+      failureCount: 0,
+      lastPolledAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastResult: "changed",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    const batch = db.batch();
+    batch.set(setlistRef, setlistPayload, { merge: true });
+    batch.set(automationRef, automationPayload, { merge: true });
+    await batch.commit();
     return { showDate, changed: true, updatedPicks: null, durationMs: Date.now() - started };
   } catch (e) {
     const failureCount = Number(automation.failureCount || 0) + 1;
