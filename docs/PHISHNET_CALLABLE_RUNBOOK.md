@@ -117,3 +117,47 @@ Deploy with **`npm run deploy:functions:phishnet`** (includes setlist + show-cal
 - **Client region + callable wiring + error extraction:** `src/features/admin-setlist-config/api/phishApiClient.js`
 - **Local key smoke test (no Firebase):** `scripts/diagnose-phishnet-local.mjs`
 - **Secret sync:** `scripts/sync-phishnet-secret.mjs`
+
+---
+
+## 10. Live-night automation (issue #164)
+
+| Item | Location / value |
+|------|------------------|
+| Scheduled poller | `scheduledPhishnetLiveSetlistPoll` (`functions/index.js`) |
+| Poll cadence | Every 2 minutes, `America/New_York` |
+| Target dates | ET today + ET yesterday (`candidateShowDates`) |
+| Pause/resume callable | `setLiveSetlistAutomationState` |
+| Manual recovery callable | `pollLiveSetlistNow` (forces one poll + one score recompute) |
+| Per-show state doc | `live_setlist_automation/{showDate}` |
+
+**Admin UI vs global show picker:** The dashboard “Select Show” list only includes dates from `show_calendar`. War Room uses **War Room show date** (`<input type="date">`) so you can load or poll **any** `YYYY-MM-DD` that exists in Firestore / Phish.net (e.g. Mexico) even when that date is missing from the global picker.
+
+**`isScored: false` on automated writes:** Expected for live ingestion — the doc is not “finalize graded.” **Finalize and rollup** still sets graded profile state separately.
+
+### Firestore rules (admin UI)
+
+Clients read `live_setlist_automation/{showDate}` for pause/backoff UI. **`firestore.rules`** must allow that read for the designated admin email; deploy after changes:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+Without this, the admin console shows **Missing or insufficient permissions** on load.
+
+### CORS / “No Access-Control-Allow-Origin” on new Gen2 callables
+
+`pollLiveSetlistNow` and `setLiveSetlistAutomationState` each get their own **Cloud Run** service name (lowercase). If the browser reports a **CORS** failure on `…cloudfunctions.net/pollLiveSetlistNow`, treat it like **`getPhishnetSetlist`** (README §CORS): redeploy with `invoker: "public"` in `functions/index.js`, then if needed grant **`roles/run.invoker`** for **`allUsers`** on the **`polllivesetlistnow`** (and **`setlivesetlistautomationstate`**) service in `us-central1`, same as `getphishnetsetlist`.
+
+### Live-night SOP
+
+1. Keep automation **enabled** for active show date in admin panel.
+2. Monitor function logs for `live setlist poll cycle` and per-date result (`changed`, `no-change`, `paused`, `backoff`).
+3. If API turbulence occurs, exponential backoff is stamped in `live_setlist_automation/{showDate}.nextPollAt`.
+4. For incident recovery (stale score or missed update), run **Force poll + score refresh** from admin panel or call `pollLiveSetlistNow`.
+
+### Rollback
+
+1. Pause automation with `setLiveSetlistAutomationState(showDate, false)`.
+2. Use existing manual admin flow (**Fetch from API** + **Save Official Setlist**) for the date.
+3. Resume automation after incident confirmation.

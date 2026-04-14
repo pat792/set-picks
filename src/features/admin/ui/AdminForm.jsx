@@ -1,17 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from '../../../shared/ui/Card';
 import { AlertTriangle } from 'lucide-react';
 import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
 import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
 import AdminSetlistFetchButton from './AdminSetlistFetchButton';
 import AdminSongCatalogRefresh from './AdminSongCatalogRefresh';
+import AdminLiveSetlistAutomationControls from './AdminLiveSetlistAutomationControls';
 import AdminActionToggle from './AdminActionToggle';
 import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
+import AdminWarRoomShowDate from './AdminWarRoomShowDate';
+
+function normalizeDashboardShowDate(value) {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) return value.trim();
+  return '';
+}
 
 export default function AdminForm({ user, selectedDate }) {
+  const [warRoomShowDate, setWarRoomShowDate] = useState(() =>
+    normalizeDashboardShowDate(selectedDate),
+  );
   const [setlistActionsOpen, setSetlistActionsOpen] = useState(true);
+  const [liveAutomationOpen, setLiveAutomationOpen] = useState(true);
   const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
+
+  useEffect(() => {
+    const next = normalizeDashboardShowDate(selectedDate);
+    if (next) setWarRoomShowDate(next);
+  }, [selectedDate]);
+
   const {
     isAdmin,
     selectedShow,
@@ -21,6 +38,12 @@ export default function AdminForm({ user, selectedDate }) {
     isSaving,
     isFetchingApi,
     apiFetchError,
+    automationEnabled,
+    isAutomationLoading,
+    isAutomationToggling,
+    isAutomationPolling,
+    automationStatus,
+    automationError,
     message,
     setOfficialSetlistInput,
     handleInputChange,
@@ -29,7 +52,9 @@ export default function AdminForm({ user, selectedDate }) {
     handleFetchFromApi,
     handleSave,
     handleFinalizeAndRollup,
-  } = useAdminSetlistForm({ user, selectedDate });
+    handleToggleAutomation,
+    handlePollAutomationNow,
+  } = useAdminSetlistForm({ user, selectedDate: warRoomShowDate });
 
   if (!isAdmin) {
     return (
@@ -42,7 +67,12 @@ export default function AdminForm({ user, selectedDate }) {
 
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
-      <Card variant="danger" padding="sm" className="mb-6">
+      <AdminWarRoomShowDate
+        value={warRoomShowDate}
+        onChange={setWarRoomShowDate}
+        disabled={isSaving}
+      />
+      <Card variant="danger" padding="sm" className="mb-6 mt-4">
         <p className="text-xs text-red-300/80 font-bold uppercase tracking-wider flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
           <span>
@@ -85,6 +115,23 @@ export default function AdminForm({ user, selectedDate }) {
               onOpenChange={setSongCatalogActionsOpen}
             >
               <AdminSongCatalogRefresh embedded disabled={isSaving} />
+            </AdminActionToggle>
+            <AdminActionToggle
+              id="admin-live-automation"
+              title="Live automation"
+              description="Pause/resume scheduled live setlist polling and run a one-off poll + score refresh."
+              open={liveAutomationOpen}
+              onOpenChange={setLiveAutomationOpen}
+            >
+              <AdminLiveSetlistAutomationControls
+                enabled={automationEnabled}
+                isToggling={isAutomationLoading || isAutomationToggling}
+                isPolling={isAutomationPolling}
+                statusText={automationStatus}
+                errorText={automationError}
+                onToggle={handleToggleAutomation}
+                onPollNow={handlePollAutomationNow}
+              />
             </AdminActionToggle>
           </div>
         </div>
