@@ -131,6 +131,20 @@ Deploy with **`npm run deploy:functions:phishnet`** (includes setlist + show-cal
 | Manual recovery callable | `pollLiveSetlistNow` (forces one poll + one score recompute) |
 | Per-show state doc | `live_setlist_automation/{showDate}` |
 
+### Firestore rules (admin UI)
+
+Clients read `live_setlist_automation/{showDate}` for pause/backoff UI. **`firestore.rules`** must allow that read for the designated admin email; deploy after changes:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+Without this, the admin console shows **Missing or insufficient permissions** on load.
+
+### CORS / “No Access-Control-Allow-Origin” on new Gen2 callables
+
+`pollLiveSetlistNow` and `setLiveSetlistAutomationState` each get their own **Cloud Run** service name (lowercase). If the browser reports a **CORS** failure on `…cloudfunctions.net/pollLiveSetlistNow`, treat it like **`getPhishnetSetlist`** (README §CORS): redeploy with `invoker: "public"` in `functions/index.js`, then if needed grant **`roles/run.invoker`** for **`allUsers`** on the **`polllivesetlistnow`** (and **`setlivesetlistautomationstate`**) service in `us-central1`, same as `getphishnetsetlist`.
+
 ### Live-night SOP
 
 1. Keep automation **enabled** for active show date in admin panel.
