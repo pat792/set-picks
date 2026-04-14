@@ -113,6 +113,7 @@ Deploy with **`npm run deploy:functions:phishnet`** (includes setlist + show-cal
 ## 9. Files to touch when changing behavior
 
 - **Callable, secret, invoker, Phish.net URL:** `functions/index.js`
+- **Live setlist scheduled automation (window, calendar gate, cadence):** `functions/phishnetLiveSetlistAutomation.js`
 - **Show calendar fetch + grouping:** `functions/phishnetShowCalendar.js`
 - **Client region + callable wiring + error extraction:** `src/features/admin-setlist-config/api/phishApiClient.js`
 - **Local key smoke test (no Firebase):** `scripts/diagnose-phishnet-local.mjs`
@@ -120,16 +121,21 @@ Deploy with **`npm run deploy:functions:phishnet`** (includes setlist + show-cal
 
 ---
 
-## 10. Live-night automation (issue #164)
+## 10. Live-night automation (issues #164, #180)
 
 | Item | Location / value |
 |------|------------------|
 | Scheduled poller | `scheduledPhishnetLiveSetlistPoll` (`functions/index.js`) |
-| Poll cadence | Every 2 minutes, `America/New_York` |
-| Target dates | ET today + ET yesterday (`candidateShowDates`) |
+| ET window | **4:00 PM–3:00 AM** `America/New_York` (hour ≥ 16 or hour < 3). Outside the window the job **no-ops** with **no** Phish.net HTTP calls. |
+| Cron wake | Every **3** minutes (`*/3 * * * *`, `America/New_York`). Actual spacing vs Phish.net is **3–5 minutes** per show date via `live_setlist_automation/{showDate}.nextPollAt` jitter after each **scheduled** fetch (success, no-change, or empty rows). |
+| Calendar (scheduled only) | **`show_calendar/snapshot.showDates`** — scheduled polling **only** considers dates in this set (strict). Missing/empty/unreadable snapshot → scheduled path skips (**no** Phish.net). |
+| Target dates (scheduled) | `scheduledCandidateShowDates` in `functions/phishnetLiveSetlistAutomation.js`: ET **today** if a show date; ET **yesterday** only in the **0:00–2:59 AM** ET slice **and** only if that date is still in the calendar (late encore / post-midnight updates). **Not** “compare two setlists” — each date is still diffed only against its own last saved payload/signature. |
+| Admin / force poll | `pollLiveSetlistNow` stays **unrestricted**: default still uses ET today + yesterday (`candidateShowDates`) with **no** calendar gate — recovery when the calendar is stale, you’re outside the ET window, or scheduled strict mode would skip. Optional explicit `showDate` unchanged. |
 | Pause/resume callable | `setLiveSetlistAutomationState` |
 | Manual recovery callable | `pollLiveSetlistNow` (forces one poll + one score recompute) |
 | Per-show state doc | `live_setlist_automation/{showDate}` |
+
+**Rate limit triage (Phish.net `error: 4`):** Watch Cloud Logging for `live setlist poll failed` and Phish.net logical errors. Existing **exponential backoff** on failures still stamps `nextPollAt`. If `error: 4` appears often, widen spacing (code: `randomScheduledPollDelayMs` / cron) or pause automation for the date until traffic cools. See [Phish.net errors](https://docs.phish.net/errors) and [API terms](https://api.phish.net/).
 
 **Admin UI vs global show picker:** The dashboard “Select Show” list only includes dates from `show_calendar`. War Room uses **War Room show date** (`<input type="date">`) so you can load or poll **any** `YYYY-MM-DD` that exists in Firestore / Phish.net (e.g. Mexico) even when that date is missing from the global picker.
 

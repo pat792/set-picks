@@ -12,6 +12,27 @@ function formatEtShowDate(now = new Date()) {
   return String(asEt).slice(0, 10);
 }
 
+/** Wall-clock hour 0–23 in `America/New_York` for `now`. */
+function getEtHour(now = new Date()) {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    hour12: false,
+  });
+  const parts = dtf.formatToParts(now);
+  const hPart = parts.find((p) => p.type === "hour");
+  return Number.parseInt(String(hPart?.value ?? "0"), 10);
+}
+
+/**
+ * Live setlist scheduled polling window: 4:00 PM ET through 3:00 AM ET the next
+ * calendar day (active when hour ≥ 16 or hour < 3, America/New_York wall clock).
+ */
+function isWithinLiveSetlistPollWindow(now = new Date()) {
+  const h = getEtHour(now);
+  return h >= 16 || h < 3;
+}
+
 function ymdDaysAgo(ymd, days) {
   const [y, m, d] = String(ymd)
     .split("-")
@@ -20,9 +41,63 @@ function ymdDaysAgo(ymd, days) {
   return new Date(t).toISOString().slice(0, 10);
 }
 
+/**
+ * Admin / manual recovery: ET today + ET yesterday (not gated on show_calendar).
+ * Used by `pollLiveSetlistNow` when no explicit date is passed.
+ */
 function candidateShowDates(now = new Date()) {
   const etToday = formatEtShowDate(now);
   return [etToday, ymdDaysAgo(etToday, 1)];
+}
+
+/**
+ * Parse `show_calendar/snapshot` into a Set of YYYY-MM-DD show dates.
+ * Returns `null` if missing, empty, or unreadable (strict — scheduled poller must skip).
+ */
+function parseShowCalendarSnapshotToDateSet(snapshotData) {
+  if (!snapshotData || typeof snapshotData !== "object") return null;
+  const raw = snapshotData.showDates;
+  if (!Array.isArray(raw) || raw.length === 0) return null;
+  const set = new Set();
+  for (const item of raw) {
+    const d =
+      typeof item === "string"
+        ? item
+        : item && typeof item === "object" && typeof item.date === "string"
+        ? item.date
+        : null;
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) set.add(d);
+  }
+  return set.size > 0 ? set : null;
+}
+
+/**
+ * Scheduled poller target dates (intersected with show_calendar in the caller).
+ *
+ * - Always consider ET "today" when it is a show date in the calendar set.
+ * - Do not include "yesterday" by default (before local ET midnight).
+ * - After local midnight ET (hours 0–2), also include "yesterday" when that date
+ *   is still a show date — same gig can receive encore/post-midnight updates until
+ *   the 3 AM window end. This is **not** comparing two setlists: each `showDate`
+ *   doc is still diffed only against its own last saved official payload/signature.
+ */
+function scheduledCandidateShowDates(now, calendarDateSet) {
+  const etToday = formatEtShowDate(now);
+  const etYesterday = ymdDaysAgo(etToday, 1);
+  const hourEt = getEtHour(now);
+  const out = [];
+  if (calendarDateSet.has(etToday)) out.push(etToday);
+  if (hourEt >= 0 && hourEt < 3 && calendarDateSet.has(etYesterday)) {
+    out.push(etYesterday);
+  }
+  return out;
+}
+
+/** Uniform random delay in [3, 5] minutes — scheduled cadence jitter (issue #180). */
+function randomScheduledPollDelayMs(rng = Math.random) {
+  const min = 3 * 60 * 1000;
+  const max = 5 * 60 * 1000;
+  return min + Math.floor(rng() * (max - min + 1));
 }
 
 function phishNetResponseOk(data) {
@@ -210,10 +285,33 @@ async function pollSingleShowDate({
     return { showDate, skipped: "backoff", changed: false, updatedPicks: 0 };
   }
 
+  const scheduledCadenceStamp = () =>
+    !force
+      ? {
+          nextPollAt: admin.firestore.Timestamp.fromDate(
+            new Date(Date.now() + randomScheduledPollDelayMs())
+          ),
+        }
+      : {};
+
   try {
     const payload = await fetchPhishnetSetlistForDate(showDate, apiKey);
     const rows = normalizeSetlistRows(payload);
     if (rows.length === 0) {
+      if (!force) {
+        await automationRef.set(
+          {
+            showDate,
+            enabled: automation.enabled !== false,
+            failureCount: 0,
+            lastPolledAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastResult: "no-rows",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            ...scheduledCadenceStamp(),
+          },
+          { merge: true }
+        );
+      }
       return { showDate, changed: false, updatedPicks: 0, reason: "no-rows" };
     }
 
@@ -235,6 +333,7 @@ async function pollSingleShowDate({
           lastResult: "no-change",
           lastNoChangeAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          ...scheduledCadenceStamp(),
         },
         { merge: true }
       );
@@ -264,6 +363,7 @@ async function pollSingleShowDate({
       lastPolledAt: admin.firestore.FieldValue.serverTimestamp(),
       lastResult: "changed",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      ...scheduledCadenceStamp(),
     };
     const batch = db.batch();
     batch.set(setlistRef, setlistPayload, { merge: true });
@@ -307,8 +407,13 @@ async function pollSingleShowDate({
 module.exports = {
   buildSetlistDocFromRows,
   candidateShowDates,
+  getEtHour,
+  isWithinLiveSetlistPollWindow,
   normalizeSetlistRows,
+  parseShowCalendarSnapshotToDateSet,
   pollSingleShowDate,
+  randomScheduledPollDelayMs,
+  scheduledCandidateShowDates,
   setlistPayloadEqual,
   signatureFromRows,
 };

@@ -4,17 +4,120 @@ const assert = require("node:assert/strict");
 const {
   buildSetlistDocFromRows,
   candidateShowDates,
+  isWithinLiveSetlistPollWindow,
   normalizeSetlistRows,
+  parseShowCalendarSnapshotToDateSet,
+  randomScheduledPollDelayMs,
+  scheduledCandidateShowDates,
   setlistPayloadEqual,
   signatureFromRows,
 } = require("./phishnetLiveSetlistAutomation");
 
-test("candidateShowDates returns ET today and previous day", () => {
+/** Fixture: `show_calendar/snapshot`-shaped doc (subset). */
+const SHOW_CALENDAR_SNAPSHOT_FIXTURE = {
+  schemaVersion: 2,
+  showDates: [
+    { date: "2026-07-03", venue: "A" },
+    { date: "2026-07-04", venue: "B" },
+  ],
+};
+
+test("candidateShowDates returns ET today and previous day (admin / force poll)", () => {
   const dates = candidateShowDates(new Date("2026-04-15T01:30:00.000Z"));
   assert.equal(dates.length, 2);
   assert.match(dates[0], /^\d{4}-\d{2}-\d{2}$/);
   assert.match(dates[1], /^\d{4}-\d{2}-\d{2}$/);
   assert.notEqual(dates[0], dates[1]);
+});
+
+test("parseShowCalendarSnapshotToDateSet reads flat showDates", () => {
+  const set = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
+  assert.ok(set);
+  assert.equal(set.has("2026-07-03"), true);
+  assert.equal(set.has("2026-07-04"), true);
+});
+
+test("parseShowCalendarSnapshotToDateSet accepts string dates", () => {
+  const set = parseShowCalendarSnapshotToDateSet({
+    showDates: ["2026-08-01", "2026-08-02"],
+  });
+  assert.ok(set);
+  assert.equal(set.has("2026-08-01"), true);
+});
+
+test("parseShowCalendarSnapshotToDateSet returns null when strict-invalid", () => {
+  assert.equal(parseShowCalendarSnapshotToDateSet(null), null);
+  assert.equal(parseShowCalendarSnapshotToDateSet({}), null);
+  assert.equal(parseShowCalendarSnapshotToDateSet({ showDates: [] }), null);
+  assert.equal(parseShowCalendarSnapshotToDateSet({ showDates: [{ venue: "x" }] }), null);
+});
+
+test("isWithinLiveSetlistPollWindow: 4pm–3am ET (summer EDT)", () => {
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-07-04T20:00:00-04:00")),
+    true
+  );
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-07-04T15:00:00-04:00")),
+    false
+  );
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-07-04T02:30:00-04:00")),
+    true
+  );
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-07-04T03:00:00-04:00")),
+    false
+  );
+});
+
+test("isWithinLiveSetlistPollWindow: winter EST", () => {
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-01-15T21:00:00-05:00")),
+    true
+  );
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-01-15T14:00:00-05:00")),
+    false
+  );
+});
+
+test("scheduledCandidateShowDates: evening uses today only when in calendar", () => {
+  const cal = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
+  const dates = scheduledCandidateShowDates(
+    new Date("2026-07-04T22:00:00-04:00"),
+    cal
+  );
+  assert.deepEqual(dates, ["2026-07-04"]);
+});
+
+test("scheduledCandidateShowDates: after midnight adds yesterday when still a show date", () => {
+  const cal = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
+  const dates = scheduledCandidateShowDates(
+    new Date("2026-07-04T01:30:00-04:00"),
+    cal
+  );
+  assert.deepEqual(dates, ["2026-07-04", "2026-07-03"]);
+});
+
+test("scheduledCandidateShowDates: post-midnight only prior night when today not on calendar", () => {
+  const cal = parseShowCalendarSnapshotToDateSet({
+    showDates: [{ date: "2026-07-03", venue: "x" }],
+  });
+  const dates = scheduledCandidateShowDates(
+    new Date("2026-07-04T01:00:00-04:00"),
+    cal
+  );
+  assert.deepEqual(dates, ["2026-07-03"]);
+});
+
+test("randomScheduledPollDelayMs is within 3–5 minutes", () => {
+  for (let i = 0; i < 50; i += 1) {
+    const ms = randomScheduledPollDelayMs(Math.random);
+    assert.ok(ms >= 3 * 60 * 1000 && ms <= 5 * 60 * 1000);
+  }
+  assert.equal(randomScheduledPollDelayMs(() => 0), 3 * 60 * 1000);
+  assert.equal(randomScheduledPollDelayMs(() => 0.999999), 5 * 60 * 1000);
 });
 
 test("normalizeSetlistRows parses + sorts phish.net row shape", () => {

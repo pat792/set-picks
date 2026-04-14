@@ -13,7 +13,10 @@ const {
 } = require("./phishnetSongCatalog");
 const {
   candidateShowDates,
+  isWithinLiveSetlistPollWindow,
+  parseShowCalendarSnapshotToDateSet,
   pollSingleShowDate,
+  scheduledCandidateShowDates,
 } = require("./phishnetLiveSetlistAutomation");
 
 /** Must match admin setlist gate in `src/features/admin/model/useAdminSetlistForm.js`. */
@@ -250,7 +253,9 @@ exports.refreshLiveScoresForShow = onCall(
 
 exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
   {
-    schedule: "*/2 * * * *",
+    // Wake every 3m; in-window spacing vs Phish.net is enforced by per-date
+    // `nextPollAt` (3–5m jitter after each scheduled fetch — issue #180).
+    schedule: "*/3 * * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
     secrets: [phishnetApiKey],
@@ -263,7 +268,28 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
       );
       return null;
     }
-    const dates = candidateShowDates(new Date());
+    const now = new Date();
+    if (!isWithinLiveSetlistPollWindow(now)) {
+      logger.info("scheduledPhishnetLiveSetlistPoll: outside 4pm–3am ET window; skip.");
+      return null;
+    }
+    const calSnap = await db.collection("show_calendar").doc("snapshot").get();
+    const calendarSet = parseShowCalendarSnapshotToDateSet(
+      calSnap.exists ? calSnap.data() : null
+    );
+    if (!calendarSet) {
+      logger.info(
+        "scheduledPhishnetLiveSetlistPoll: show_calendar snapshot missing/empty; strict skip (no Phish.net)."
+      );
+      return null;
+    }
+    const dates = scheduledCandidateShowDates(now, calendarSet);
+    if (!dates.length) {
+      logger.info(
+        "scheduledPhishnetLiveSetlistPoll: no matching show dates in calendar; skip."
+      );
+      return null;
+    }
     const started = Date.now();
     const results = [];
     for (const showDate of dates) {
