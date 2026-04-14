@@ -117,3 +117,29 @@ Deploy with **`npm run deploy:functions:phishnet`** (includes setlist + show-cal
 - **Client region + callable wiring + error extraction:** `src/features/admin-setlist-config/api/phishApiClient.js`
 - **Local key smoke test (no Firebase):** `scripts/diagnose-phishnet-local.mjs`
 - **Secret sync:** `scripts/sync-phishnet-secret.mjs`
+
+---
+
+## 10. Live-night automation (issue #164)
+
+| Item | Location / value |
+|------|------------------|
+| Scheduled poller | `scheduledPhishnetLiveSetlistPoll` (`functions/index.js`) |
+| Poll cadence | Every 2 minutes, `America/New_York` |
+| Target dates | ET today + ET yesterday (`candidateShowDates`) |
+| Pause/resume callable | `setLiveSetlistAutomationState` |
+| Manual recovery callable | `pollLiveSetlistNow` (forces one poll + one score recompute) |
+| Per-show state doc | `live_setlist_automation/{showDate}` |
+
+### Live-night SOP
+
+1. Keep automation **enabled** for active show date in admin panel.
+2. Monitor function logs for `live setlist poll cycle` and per-date result (`changed`, `no-change`, `paused`, `backoff`).
+3. If API turbulence occurs, exponential backoff is stamped in `live_setlist_automation/{showDate}.nextPollAt`.
+4. For incident recovery (stale score or missed update), run **Force poll + score refresh** from admin panel or call `pollLiveSetlistNow`.
+
+### Rollback
+
+1. Pause automation with `setLiveSetlistAutomationState(showDate, false)`.
+2. Use existing manual admin flow (**Fetch from API** + **Save Official Setlist**) for the date.
+3. Resume automation after incident confirmation.

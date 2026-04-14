@@ -5,12 +5,14 @@ import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
 import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
 import AdminSetlistFetchButton from './AdminSetlistFetchButton';
 import AdminSongCatalogRefresh from './AdminSongCatalogRefresh';
+import AdminLiveSetlistAutomationControls from './AdminLiveSetlistAutomationControls';
 import AdminActionToggle from './AdminActionToggle';
 import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 
 export default function AdminForm({ user, selectedDate }) {
   const [setlistActionsOpen, setSetlistActionsOpen] = useState(true);
+  const [liveAutomationOpen, setLiveAutomationOpen] = useState(true);
   const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
   const {
     isAdmin,
@@ -21,6 +23,12 @@ export default function AdminForm({ user, selectedDate }) {
     isSaving,
     isFetchingApi,
     apiFetchError,
+    automationEnabled,
+    isAutomationLoading,
+    isAutomationToggling,
+    isAutomationPolling,
+    automationStatus,
+    automationError,
     message,
     setOfficialSetlistInput,
     handleInputChange,
@@ -29,6 +37,8 @@ export default function AdminForm({ user, selectedDate }) {
     handleFetchFromApi,
     handleSave,
     handleFinalizeAndRollup,
+    handleToggleAutomation,
+    handlePollAutomationNow,
   } = useAdminSetlistForm({ user, selectedDate });
 
   if (!isAdmin) {
@@ -85,6 +95,23 @@ export default function AdminForm({ user, selectedDate }) {
               onOpenChange={setSongCatalogActionsOpen}
             >
               <AdminSongCatalogRefresh embedded disabled={isSaving} />
+            </AdminActionToggle>
+            <AdminActionToggle
+              id="admin-live-automation"
+              title="Live automation"
+              description="Pause/resume scheduled live setlist polling and run a one-off poll + score refresh."
+              open={liveAutomationOpen}
+              onOpenChange={setLiveAutomationOpen}
+            >
+              <AdminLiveSetlistAutomationControls
+                enabled={automationEnabled}
+                isToggling={isAutomationLoading || isAutomationToggling}
+                isPolling={isAutomationPolling}
+                statusText={automationStatus}
+                errorText={automationError}
+                onToggle={handleToggleAutomation}
+                onPollNow={handlePollAutomationNow}
+              />
             </AdminActionToggle>
           </div>
         </div>

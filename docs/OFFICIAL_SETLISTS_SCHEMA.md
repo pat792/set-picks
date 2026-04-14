@@ -31,6 +31,7 @@ Written on save from `saveOfficialSetlistByDate` (`src/features/admin/api/offici
 | `isScored` | Reserved flag (currently written `false` on admin save). |
 | `updatedAt` | ISO timestamp string. |
 | `updatedBy` | Admin email (or null). |
+| `sourceMeta` | Live automation metadata (`source`, `signature`, `songCount`, `lastFetchedAt`, `pollMode`) used for idempotent/no-op detection and observability. |
 
 ---
 
