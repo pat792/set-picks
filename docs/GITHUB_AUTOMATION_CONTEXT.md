@@ -20,7 +20,7 @@
 
 - **Frontend:** React (Vite), Tailwind, React Router.
 - **Backend / data:** Firebase Auth, Firestore, App Check; **Firebase Cloud Functions** live under repo root **`functions/`** (e.g. `functions/index.js`), not `firebase/functions/`.
-- **Official setlists (Firestore):** `official_setlists/{showDate}` field semantics, scoring, save vs finalize — **`docs/OFFICIAL_SETLISTS_SCHEMA.md`**.
+- **Official setlists (Firestore):** `official_setlists/{showDate}` field semantics, scoring, save vs finalize — **`docs/OFFICIAL_SETLISTS_SCHEMA.md`**. Live-night automation delivery and acceptance criteria — **`docs/ISSUE_164.md`** (issue [#164](https://github.com/pat792/set-picks/issues/164)).
 - **Rules:** `firestore.rules` (referenced from `firebase.json`).
 
 Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
