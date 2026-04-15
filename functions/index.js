@@ -158,6 +158,9 @@ function assertShowDateString(showDate) {
   return showDate.trim();
 }
 
+/** Firestore batch write limit (same invariant as `adminRollupApi.js` / `profileApi.js`). */
+const MAX_FIRESTORE_BATCH_WRITES = 500;
+
 async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = null) {
   const setlistDoc =
     actualSetlistFromWrite ||
@@ -173,10 +176,16 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     return { updatedPicks: 0 };
   }
 
-  const batch = db.batch();
+  let batch = db.batch();
+  let opCount = 0;
   let updatedPicks = 0;
 
-  picksSnap.forEach((pickDoc) => {
+  for (const pickDoc of picksSnap.docs) {
+    if (opCount >= MAX_FIRESTORE_BATCH_WRITES) {
+      await batch.commit();
+      batch = db.batch();
+      opCount = 0;
+    }
     const pickData = pickDoc.data() || {};
     const userPicks = pickData.picks || {};
     const score = calculateTotalScore(userPicks, setlistDoc);
@@ -187,10 +196,13 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
       update.gradedAt = admin.firestore.FieldValue.delete();
     }
     batch.update(pickDoc.ref, update);
+    opCount += 1;
     updatedPicks += 1;
-  });
+  }
 
-  await batch.commit();
+  if (opCount > 0) {
+    await batch.commit();
+  }
   return { updatedPicks };
 }
 
