@@ -13,7 +13,10 @@ const {
 } = require("./phishnetSongCatalog");
 const {
   candidateShowDates,
+  isWithinLiveSetlistPollWindow,
+  parseShowCalendarSnapshotToDateSet,
   pollSingleShowDate,
+  scheduledCandidateShowDates,
 } = require("./phishnetLiveSetlistAutomation");
 
 /** Must match admin setlist gate in `src/features/admin/model/useAdminSetlistForm.js`. */
@@ -155,6 +158,9 @@ function assertShowDateString(showDate) {
   return showDate.trim();
 }
 
+/** Firestore batch write limit (same invariant as `adminRollupApi.js` / `profileApi.js`). */
+const MAX_FIRESTORE_BATCH_WRITES = 500;
+
 async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = null) {
   const setlistDoc =
     actualSetlistFromWrite ||
@@ -170,10 +176,16 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     return { updatedPicks: 0 };
   }
 
-  const batch = db.batch();
+  let batch = db.batch();
+  let opCount = 0;
   let updatedPicks = 0;
 
-  picksSnap.forEach((pickDoc) => {
+  for (const pickDoc of picksSnap.docs) {
+    if (opCount >= MAX_FIRESTORE_BATCH_WRITES) {
+      await batch.commit();
+      batch = db.batch();
+      opCount = 0;
+    }
     const pickData = pickDoc.data() || {};
     const userPicks = pickData.picks || {};
     const score = calculateTotalScore(userPicks, setlistDoc);
@@ -184,10 +196,13 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
       update.gradedAt = admin.firestore.FieldValue.delete();
     }
     batch.update(pickDoc.ref, update);
+    opCount += 1;
     updatedPicks += 1;
-  });
+  }
 
-  await batch.commit();
+  if (opCount > 0) {
+    await batch.commit();
+  }
   return { updatedPicks };
 }
 
@@ -250,7 +265,9 @@ exports.refreshLiveScoresForShow = onCall(
 
 exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
   {
-    schedule: "*/2 * * * *",
+    // Wake every 3m; in-window spacing vs Phish.net is enforced by per-date
+    // `nextPollAt` (3–5m jitter after each scheduled fetch — issue #180).
+    schedule: "*/3 * * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
     secrets: [phishnetApiKey],
@@ -263,7 +280,28 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
       );
       return null;
     }
-    const dates = candidateShowDates(new Date());
+    const now = new Date();
+    if (!isWithinLiveSetlistPollWindow(now)) {
+      logger.info("scheduledPhishnetLiveSetlistPoll: outside 4pm–3am ET window; skip.");
+      return null;
+    }
+    const calSnap = await db.collection("show_calendar").doc("snapshot").get();
+    const calendarSet = parseShowCalendarSnapshotToDateSet(
+      calSnap.exists ? calSnap.data() : null
+    );
+    if (!calendarSet) {
+      logger.info(
+        "scheduledPhishnetLiveSetlistPoll: show_calendar snapshot missing/empty; strict skip (no Phish.net)."
+      );
+      return null;
+    }
+    const dates = scheduledCandidateShowDates(now, calendarSet);
+    if (!dates.length) {
+      logger.info(
+        "scheduledPhishnetLiveSetlistPoll: no matching show dates in calendar; skip."
+      );
+      return null;
+    }
     const started = Date.now();
     const results = [];
     for (const showDate of dates) {
