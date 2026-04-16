@@ -16,8 +16,7 @@ import {
 import { useShowCalendar } from '../../features/show-calendar';
 import BackButton from '../../shared/ui/BackButton';
 import DashboardPoolBreadcrumb from '../../shared/ui/DashboardPoolBreadcrumb';
-import { todayYmd } from '../../shared/utils/dateUtils.js';
-import { getNextShow, getShowStatus } from '../../shared/utils/timeLogic.js';
+import { getNextShow, getShowStatus, scheduleTodayYmd } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop } from '../../shared/utils/showOptionLabel.js';
 
 export default function PoolHubPage({ user }) {
@@ -61,7 +60,7 @@ export default function PoolHubPage({ user }) {
     nextShowTimeStatus === 'PAST' ||
     nextShowTimeStatus === 'FUTURE';
   const activeShowLine = showOptionLabelDesktop(nextShow);
-  const isShowToday = nextShow.date === todayYmd();
+  const isShowToday = nextShow.date === scheduleTodayYmd();
 
   if (loading) {
     return (

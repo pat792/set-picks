@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 
 import { useShowCalendar } from '../../show-calendar';
-import { formatShowLabel, todayYmd } from '../../../shared';
+import { formatShowLabel, scheduleTodayYmd } from '../../../shared';
 
 export default function PoolHubShowArchive({ poolId }) {
   const { showDates } = useShowCalendar();
   const pastShows = useMemo(() => {
-    const today = todayYmd();
+    const today = scheduleTodayYmd();
     return showDates.filter((s) => s.date < today);
   }, [showDates]);
 

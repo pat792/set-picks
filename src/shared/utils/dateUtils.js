@@ -17,6 +17,16 @@ export function todayYmd() {
   return `${year}-${month}-${day}`;
 }
 
+/** @param {Date} [date] @param {string} timeZone — IANA, e.g. `America/Los_Angeles` */
+export function ymdInTimeZone(date = new Date(), timeZone) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
 export function formatShowLabel(dateStr) {
   const date = toDateSafe(`${dateStr}T12:00:00`);
   if (!date) return dateStr;
