@@ -1,5 +1,5 @@
-export { formatMonthYear, formatShowLabel, todayYmd } from './dateUtils';
-export { getNextShow, getShowStatus } from './timeLogic';
+export { formatMonthYear, formatShowLabel, todayYmd, ymdInTimeZone } from './dateUtils';
+export { getNextShow, getShowStatus, scheduleTodayYmd } from './timeLogic';
 export {
   SCORE_BREAKDOWN_KIND_LABEL,
   SCORING_RULES,
