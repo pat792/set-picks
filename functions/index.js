@@ -40,7 +40,12 @@ const SCORING_RULES = {
 const SCORE_FIELDS = ["s1o", "s1c", "s2o", "s2c", "enc", "wild"];
 
 /** Keys on the scoring payload that are not slot song strings. */
-const NON_SONG_SETLIST_KEYS = new Set(["officialSetlist", "id", "bustouts"]);
+const NON_SONG_SETLIST_KEYS = new Set([
+  "officialSetlist",
+  "encoreSongs",
+  "id",
+  "bustouts",
+]);
 
 function normalizeSong(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -50,6 +55,15 @@ function parseGap(gap) {
   if (gap == null || gap === "" || gap === "—") return null;
   const n = Number.parseInt(String(gap), 10);
   return Number.isFinite(n) ? n : null;
+}
+
+function guessMatchesEncoreExact(actualSetlist, guessNorm) {
+  if (!guessNorm) return false;
+  const primary = normalizeSong(actualSetlist.enc);
+  if (primary === guessNorm) return true;
+  const list = actualSetlist.encoreSongs;
+  if (!Array.isArray(list)) return false;
+  return list.some((t) => normalizeSong(t) === guessNorm);
 }
 
 /**
@@ -99,8 +113,11 @@ function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
       return 0;
     }
   } else {
-    const actualExact = normalizeSong(actualSetlist[fieldId]);
-    if (actualExact === guess) {
+    const exactNonEnc =
+      fieldId !== "enc" && normalizeSong(actualSetlist[fieldId]) === guess;
+    const exactEnc =
+      fieldId === "enc" && guessMatchesEncoreExact(actualSetlist, guess);
+    if (exactNonEnc || exactEnc) {
       base =
         fieldId === "enc"
           ? SCORING_RULES.ENCORE_EXACT
@@ -206,6 +223,20 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
   return { updatedPicks };
 }
 
+function actualSetlistFromOfficialDoc(setlistDoc) {
+  const setlistFlat = setlistDoc.setlist || {};
+  const out = {
+    ...setlistFlat,
+    officialSetlist: Array.isArray(setlistDoc.officialSetlist)
+      ? setlistDoc.officialSetlist
+      : [],
+  };
+  if (Array.isArray(setlistDoc.encoreSongs) && setlistDoc.encoreSongs.length > 0) {
+    out.encoreSongs = setlistDoc.encoreSongs;
+  }
+  return out;
+}
+
 exports.gradePicksOnSetlistWrite = onDocumentWritten(
   "official_setlists/{showDate}",
   async (event) => {
@@ -215,13 +246,7 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
 
     const showDate = event.params.showDate;
     const setlistDoc = event.data.after.data() || {};
-    const setlistFlat = setlistDoc.setlist || {};
-    const actualSetlist = {
-      ...setlistFlat,
-      officialSetlist: Array.isArray(setlistDoc.officialSetlist)
-        ? setlistDoc.officialSetlist
-        : [],
-    };
+    const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
 
     await recomputeLiveScoresForShow(showDate, actualSetlist);
     return null;
@@ -251,13 +276,7 @@ exports.refreshLiveScoresForShow = onCall(
       );
     }
     const setlistDoc = setlistSnap.data() || {};
-    const setlistFlat = setlistDoc.setlist || {};
-    const actualSetlist = {
-      ...setlistFlat,
-      officialSetlist: Array.isArray(setlistDoc.officialSetlist)
-        ? setlistDoc.officialSetlist
-        : [],
-    };
+    const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
     const result = await recomputeLiveScoresForShow(showDate, actualSetlist);
     return { ok: true, ...result };
   }
@@ -395,12 +414,7 @@ exports.pollLiveSetlistNow = onCall(
       if (result.changed) {
         const setlistSnap = await db.collection("official_setlists").doc(showDate).get();
         const setlistDoc = setlistSnap.data() || {};
-        const actualSetlist = {
-          ...(setlistDoc.setlist || {}),
-          officialSetlist: Array.isArray(setlistDoc.officialSetlist)
-            ? setlistDoc.officialSetlist
-            : [],
-        };
+        const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
         result.updatedPicks = (
           await recomputeLiveScoresForShow(showDate, actualSetlist)
         ).updatedPicks;

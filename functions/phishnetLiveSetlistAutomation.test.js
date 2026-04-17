@@ -152,6 +152,7 @@ test("buildSetlistDocFromRows maps slots and ordered list", () => {
   assert.equal(out.setlist.s2o, "Down with Disease");
   assert.equal(out.setlist.s2c, "Zero");
   assert.equal(out.setlist.enc, "Tweezer Reprise");
+  assert.deepEqual(out.encoreSongs, ["Tweezer Reprise"]);
   assert.equal(out.officialSetlist.length, 5);
 });
 
@@ -162,11 +163,29 @@ test("buildSetlistDocFromRows preserves non-empty prior slots for partial feed",
   });
   const out = buildSetlistDocFromRows(rows, {
     setlist: { s1o: "AC/DC Bag", s1c: "Bathtub Gin", s2o: "Carini", s2c: "Zero", enc: "Loving Cup" },
+    encoreSongs: ["Loving Cup"],
   });
   assert.equal(out.setlist.s1o, "AC/DC Bag");
-  assert.equal(out.setlist.s1c, "Bathtub Gin");
+  assert.equal(out.setlist.s1c, "");
   assert.equal(out.setlist.s2o, "Carini");
+  assert.equal(out.setlist.s2c, "");
   assert.equal(out.setlist.enc, "Loving Cup");
+  assert.deepEqual(out.encoreSongs, ["Loving Cup"]);
+});
+
+test("buildSetlistDocFromRows records every encore song", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "A" },
+      { set: "2", idx: 1, song: "B" },
+      { set: "E", idx: 1, song: "E1" },
+      { set: "E", idx: 2, song: "E2" },
+    ],
+  });
+  const out = buildSetlistDocFromRows(rows, {});
+  assert.deepEqual(out.encoreSongs, ["E1", "E2"]);
+  assert.equal(out.setlist.enc, "E1");
 });
 
 test("signatureFromRows stable and changes with song edits", () => {
@@ -224,7 +243,11 @@ test("historical progression replay keeps slots stable as show grows", () => {
     },
   ];
 
-  let doc = { setlist: { s1o: "", s1c: "", s2o: "", s2c: "", enc: "" }, officialSetlist: [] };
+  let doc = {
+    setlist: { s1o: "", s1c: "", s2o: "", s2c: "", enc: "" },
+    officialSetlist: [],
+    encoreSongs: [],
+  };
   for (const payload of snapshots) {
     doc = buildSetlistDocFromRows(normalizeSetlistRows(payload), doc);
   }
@@ -232,6 +255,8 @@ test("historical progression replay keeps slots stable as show grows", () => {
   assert.equal(doc.setlist.s1o, "AC/DC Bag");
   assert.equal(doc.setlist.s1c, "Bathtub Gin");
   assert.equal(doc.setlist.s2o, "Carini");
+  assert.equal(doc.setlist.s2c, "Carini");
   assert.equal(doc.setlist.enc, "Tweezer Reprise");
+  assert.deepEqual(doc.encoreSongs, ["Tweezer Reprise"]);
   assert.equal(doc.officialSetlist.length, 4);
 });

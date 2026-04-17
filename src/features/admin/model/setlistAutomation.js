@@ -48,8 +48,11 @@ export async function fetchAndMapExternalSetlist(showDate, slotFields) {
 
   try {
     const parsed = parseSetlist(rawResult.data, apiSource, gameConfig);
-    const { setlistData, officialSetlist } = mapParsedSetlistToLegacySaveShape(parsed, slotFields);
-    return { ok: true, setlistData, officialSetlist };
+    const { setlistData, officialSetlist, encoreSongs } = mapParsedSetlistToLegacySaveShape(
+      parsed,
+      slotFields,
+    );
+    return { ok: true, setlistData, officialSetlist, encoreSongs };
   } catch (e) {
     if (e instanceof SetlistParseError) {
       return { ok: false, error: e.message };

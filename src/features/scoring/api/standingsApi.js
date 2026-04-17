@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { sanitizeOfficialSongList } from '../../../shared/utils/officialSetlistSanitize.js';
 
 /**
  * @param {string} showDate
@@ -31,8 +32,14 @@ export async function fetchOfficialSetlistForShow(showDate) {
   if (!setlistSnap.exists()) return null;
 
   const data = setlistSnap.data();
+  const rawEnc = data.encoreSongs;
+  const encoreSongs =
+    Array.isArray(rawEnc) && rawEnc.length > 0
+      ? sanitizeOfficialSongList(rawEnc)
+      : [];
   return {
     ...(data.setlist || {}),
     officialSetlist: Array.isArray(data.officialSetlist) ? data.officialSetlist : [],
+    ...(encoreSongs.length > 0 ? { encoreSongs } : {}),
   };
 }

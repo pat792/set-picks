@@ -12,6 +12,7 @@ import {
   sanitizeSetlistSlots,
   sanitizeOfficialSongList,
 } from '../../../shared/utils/officialSetlistSanitize.js';
+import { calculateSlotScore } from '../../../shared/utils/scoring.js';
 
 const ADMIN_SLOT_FIELDS = FORM_FIELDS.filter((f) => f.id !== 'wild');
 
@@ -38,6 +39,7 @@ describe('parseSetlist', () => {
     expect(parsed.positionSlots.s2o).toBe('Song C');
     expect(parsed.positionSlots.s2c).toBe('Song D');
     expect(parsed.positionSlots.enc).toBe('Song E');
+    expect(parsed.encoreSongTitles).toEqual(['Song E']);
     expect(parsed.positionSlots.wild).toBe('');
     expect(parsed.playedSongOrder).toEqual(['Song A', 'Song B', 'Song C', 'Song D', 'Song E']);
   });
@@ -49,7 +51,45 @@ describe('parseSetlist', () => {
     expect(parsed.positionSlots.s2o).toBe('Song C');
     expect(parsed.positionSlots.s2c).toBe('Song D');
     expect(parsed.positionSlots.enc).toBe('Song E');
+    expect(parsed.encoreSongTitles).toEqual(['Song E']);
     expect(parsed.playedSongOrder).toEqual(['Song A', 'Song B', 'Song C', 'Song D', 'Song E']);
+  });
+
+  it('withholds set closers until the next segment exists (Phish.net)', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'A', position: 1 },
+          { set: '1', song: 'B', position: 2 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    expect(parsed.positionSlots.s1o).toBe('A');
+    expect(parsed.positionSlots.s1c).toBe('');
+    expect(parsed.encoreSongTitles).toEqual([]);
+  });
+
+  it('withholds set 2 closer until encore exists (Phish.net)', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'A', position: 1 },
+          { set: '1', song: 'B', position: 2 },
+          { set: '2', song: 'C', position: 1 },
+          { set: '2', song: 'D', position: 2 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    expect(parsed.positionSlots.s1c).toBe('B');
+    expect(parsed.positionSlots.s2o).toBe('C');
+    expect(parsed.positionSlots.s2c).toBe('');
+    expect(parsed.encoreSongTitles).toEqual([]);
   });
 
   it('throws on Phish.net API error field', () => {
@@ -62,7 +102,10 @@ describe('parseSetlist', () => {
 describe('mapParsedSetlistToLegacySaveShape', () => {
   it('matches sanitizeSetlistSlots + sanitizeOfficialSongList contract for saveOfficialSetlistByDate', () => {
     const parsed = parseSetlist(phishinFixture, 'phishin', gameConfig);
-    const { setlistData, officialSetlist } = mapParsedSetlistToLegacySaveShape(parsed, ADMIN_SLOT_FIELDS);
+    const { setlistData, officialSetlist, encoreSongs } = mapParsedSetlistToLegacySaveShape(
+      parsed,
+      ADMIN_SLOT_FIELDS,
+    );
 
     expect(sanitizeSetlistSlots(setlistData, ADMIN_SLOT_FIELDS)).toEqual(setlistData);
     expect(sanitizeOfficialSongList(officialSetlist)).toEqual(officialSetlist);
@@ -70,5 +113,21 @@ describe('mapParsedSetlistToLegacySaveShape', () => {
     expect(Object.keys(setlistData).sort()).toEqual(['enc', 's1c', 's1o', 's2c', 's2o']);
     expect(setlistData.s1o).toBe('Song A');
     expect(officialSetlist).toHaveLength(5);
+    expect(encoreSongs).toEqual(['Song E']);
+  });
+});
+
+describe('encore exact scoring', () => {
+  it('awards encore exact for any listed encore song', () => {
+    const actual = {
+      s1o: 'a',
+      s1c: 'b',
+      s2o: 'c',
+      s2c: 'd',
+      enc: 'First Encore',
+      encoreSongs: ['First Encore', 'Second Encore'],
+      officialSetlist: [],
+    };
+    expect(calculateSlotScore('enc', 'Second Encore', actual)).toBe(15);
   });
 });

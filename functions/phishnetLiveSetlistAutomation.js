@@ -186,35 +186,52 @@ function buildSetlistDocFromRows(rows, existingDoc = {}) {
     .filter(([k]) => classifySetLabel(k).kind === "encore")
     .flatMap(([, arr]) => arr)
     .sort((a, b) => a.position - b.position);
+
+  /** Set 1 closer is unknown until set 2 has started (live feeds list the current last song). */
+  const set1Complete = Boolean(set2?.length);
+  /** Set 2 closer is unknown until the encore has started. */
+  const set2Complete = Boolean(encRows.length);
+
   if (set1?.length) {
     set1.sort((a, b) => a.position - b.position);
     slots.s1o = set1[0].title;
-    if (set1.length > 1) {
+    if (set1Complete) {
       slots.s1c = set1[set1.length - 1].title;
     }
   }
   if (set2?.length) {
     set2.sort((a, b) => a.position - b.position);
     slots.s2o = set2[0].title;
-    if (set2.length > 1) {
+    if (set2Complete) {
       slots.s2c = set2[set2.length - 1].title;
     }
   }
-  if (encRows.length) {
-    slots.enc = encRows[0].title;
+  const encoreSongsFromRows = encRows.map((r) => r.title).filter(Boolean);
+  if (encoreSongsFromRows.length) {
+    slots.enc = encoreSongsFromRows[0];
   }
 
   // Preserve prior slot values when the upstream payload is still partial.
+  // Do not preserve set closers: a stale closer would keep wrong live scores until the set ends.
   const prevSlots = existingDoc?.setlist || {};
+  const noPreserveKeys = new Set(["s1c", "s2c"]);
   for (const key of SLOT_KEYS) {
+    if (noPreserveKeys.has(key)) continue;
     if (!slots[key] && typeof prevSlots[key] === "string" && prevSlots[key].trim()) {
       slots[key] = prevSlots[key].trim();
     }
   }
 
+  const prevEncoreSongs = Array.isArray(existingDoc?.encoreSongs)
+    ? existingDoc.encoreSongs.map((t) => String(t ?? "").trim()).filter(Boolean)
+    : [];
+  const encoreSongs =
+    encoreSongsFromRows.length > 0 ? encoreSongsFromRows : prevEncoreSongs;
+
   return {
     setlist: slots,
     officialSetlist,
+    encoreSongs,
   };
 }
 
@@ -229,7 +246,10 @@ function setlistPayloadEqual(a, b) {
   if (JSON.stringify(aSet) !== JSON.stringify(bSet)) return false;
   const aOrder = Array.isArray(a?.officialSetlist) ? a.officialSetlist : [];
   const bOrder = Array.isArray(b?.officialSetlist) ? b.officialSetlist : [];
-  return JSON.stringify(aOrder) === JSON.stringify(bOrder);
+  if (JSON.stringify(aOrder) !== JSON.stringify(bOrder)) return false;
+  const aEnc = Array.isArray(a?.encoreSongs) ? a.encoreSongs : [];
+  const bEnc = Array.isArray(b?.encoreSongs) ? b.encoreSongs : [];
+  return JSON.stringify(aEnc) === JSON.stringify(bEnc);
 }
 
 function nextBackoffMinutes(failureCount) {
@@ -346,6 +366,7 @@ async function pollSingleShowDate({
       isScored: false,
       setlist: nextPayload.setlist,
       officialSetlist: nextPayload.officialSetlist,
+      encoreSongs: nextPayload.encoreSongs || [],
       updatedBy: requestorEmail || "setlist-automation",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       sourceMeta: {
