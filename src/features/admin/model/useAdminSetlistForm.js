@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+import { FORM_FIELDS } from '../../../shared/data/gameConfig.js';
+import { sanitizeOfficialSongList } from '../../../shared/utils/officialSetlistSanitize.js';
 import {
   fetchOfficialSetlistByDate,
   saveOfficialSetlistByDate,
@@ -37,6 +38,8 @@ export function useAdminSetlistForm({ user, selectedDate }) {
   const [automationStatus, setAutomationStatus] = useState('');
   const [automationError, setAutomationError] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
+  /** Mirrors `official_setlists.encoreSongs` for multi-encore scoring + save. */
+  const [encoreSongs, setEncoreSongs] = useState([]);
   const clearMessageTimeoutRef = useRef(null);
 
   const isAdmin = user?.email === 'pat@road2media.com';
@@ -64,6 +67,7 @@ export function useAdminSetlistForm({ user, selectedDate }) {
         const response = await fetchOfficialSetlistByDate(selectedShow, ADMIN_SETLIST_FIELDS);
         setSetlistData(response.setlist);
         setOfficialSetlist(response.officialSetlist);
+        setEncoreSongs(sanitizeOfficialSongList(response.encoreSongs ?? []));
         setOfficialSetlistInput('');
       } catch (error) {
         console.error('Error fetching setlist:', error);
@@ -101,6 +105,7 @@ export function useAdminSetlistForm({ user, selectedDate }) {
       }
       setSetlistData(result.setlistData);
       setOfficialSetlist(result.officialSetlist);
+      setEncoreSongs(sanitizeOfficialSongList(result.encoreSongs ?? []));
       setOfficialSetlistInput('');
     } catch (e) {
       console.error('Fetch setlist from API failed:', e);
@@ -115,6 +120,10 @@ export function useAdminSetlistForm({ user, selectedDate }) {
       ...prev,
       [fieldId]: value,
     }));
+    if (fieldId === 'enc') {
+      const t = String(value ?? '').trim();
+      setEncoreSongs(t ? [t] : []);
+    }
   };
 
   const addOfficialSong = (songName) => {
@@ -135,13 +144,16 @@ export function useAdminSetlistForm({ user, selectedDate }) {
     setMessage({ text: '', type: '' });
 
     try {
-      const { cleanedSlots, cleanedOfficialSetlist } = await saveOfficialSetlistByDate({
-        showDate: selectedShow,
-        setlistData,
-        officialSetlist,
-        slotFields: ADMIN_SETLIST_FIELDS,
-        updatedBy: user?.email ?? null,
-      });
+      const { cleanedSlots, cleanedOfficialSetlist, encoreSongs: savedEncoreSongs } =
+        await saveOfficialSetlistByDate({
+          showDate: selectedShow,
+          setlistData,
+          officialSetlist,
+          slotFields: ADMIN_SETLIST_FIELDS,
+          updatedBy: user?.email ?? null,
+          encoreSongs,
+        });
+      setEncoreSongs(savedEncoreSongs);
 
       if (!finalizeRollup) {
         try {
@@ -163,6 +175,7 @@ export function useAdminSetlistForm({ user, selectedDate }) {
             actualSetlistPayload: {
               ...cleanedSlots,
               officialSetlist: cleanedOfficialSetlist,
+              encoreSongs: savedEncoreSongs,
             },
           });
         } catch (rollupError) {

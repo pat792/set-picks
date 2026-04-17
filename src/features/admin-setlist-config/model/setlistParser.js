@@ -6,6 +6,7 @@
  * @typedef {object} ParsedSetlistDto
  * @property {Record<string, string>} positionSlots Song title per `FORM_FIELDS` id (`wild` often empty — not in admin slot form).
  * @property {string[]} playedSongOrder Full show order as played (normalized titles, no empties).
+ * @property {string[]} encoreSongTitles Encore segment titles in show order (empty if none).
  */
 
 export class SetlistParseError extends Error {
@@ -129,21 +130,25 @@ function parsePhishin(rawData, formFields) {
     .flatMap(([, arr]) => arr)
     .sort((a, b) => a.position - b.position);
 
+  const set1Complete = Boolean(set2?.length);
+  const set2Complete = Boolean(encRows.length);
+  const encoreSongTitles = encRows.map((r) => r.title).filter(Boolean);
+
   if (set1?.length) {
     set1.sort((a, b) => a.position - b.position);
     slots.s1o = set1[0].title;
-    slots.s1c = set1[set1.length - 1].title;
+    slots.s1c = set1Complete ? set1[set1.length - 1].title : '';
   }
   if (set2?.length) {
     set2.sort((a, b) => a.position - b.position);
     slots.s2o = set2[0].title;
-    slots.s2c = set2[set2.length - 1].title;
+    slots.s2c = set2Complete ? set2[set2.length - 1].title : '';
   }
-  if (encRows.length) {
-    slots.enc = encRows[0].title;
+  if (encoreSongTitles.length) {
+    slots.enc = encoreSongTitles[0];
   }
 
-  return { positionSlots: slots, playedSongOrder };
+  return { positionSlots: slots, playedSongOrder, encoreSongTitles };
 }
 
 /**
@@ -207,21 +212,25 @@ function parsePhishnet(rawData, formFields) {
   const encKeys = [...bySet.keys()].filter((k) => classifySetLabel(k).kind === 'encore');
   const encRows = encKeys.flatMap((k) => bySet.get(k) ?? []).sort((a, b) => a.position - b.position);
 
+  const set1Complete = Boolean(set2?.length);
+  const set2Complete = Boolean(encRows.length);
+  const encoreSongTitles = encRows.map((r) => r.title).filter(Boolean);
+
   if (set1?.length) {
     set1.sort((a, b) => a.position - b.position);
     slots.s1o = set1[0].title;
-    slots.s1c = set1[set1.length - 1].title;
+    slots.s1c = set1Complete ? set1[set1.length - 1].title : '';
   }
   if (set2?.length) {
     set2.sort((a, b) => a.position - b.position);
     slots.s2o = set2[0].title;
-    slots.s2c = set2[set2.length - 1].title;
+    slots.s2c = set2Complete ? set2[set2.length - 1].title : '';
   }
-  if (encRows.length) {
-    slots.enc = encRows[0].title;
+  if (encoreSongTitles.length) {
+    slots.enc = encoreSongTitles[0];
   }
 
-  return { positionSlots: slots, playedSongOrder };
+  return { positionSlots: slots, playedSongOrder, encoreSongTitles };
 }
 
 /**
@@ -249,7 +258,7 @@ export function parseSetlist(rawData, apiSource, gameConfig) {
  *
  * @param {ParsedSetlistDto} parsed
  * @param {{ id: string }[]} slotFields - e.g. `ADMIN_SETLIST_FIELDS` (excludes `wild`).
- * @returns {{ setlistData: Record<string, string>, officialSetlist: string[] }}
+ * @returns {{ setlistData: Record<string, string>, officialSetlist: string[], encoreSongs: string[] }}
  */
 export function mapParsedSetlistToLegacySaveShape(parsed, slotFields) {
   if (!parsed?.positionSlots || !Array.isArray(parsed.playedSongOrder)) {
@@ -262,5 +271,8 @@ export function mapParsedSetlistToLegacySaveShape(parsed, slotFields) {
     setlistData[id] = typeof v === 'string' ? v.trim() : '';
   });
   const officialSetlist = parsed.playedSongOrder.map((s) => String(s ?? '').trim()).filter(Boolean);
-  return { setlistData, officialSetlist };
+  const encoreSongs = Array.isArray(parsed.encoreSongTitles)
+    ? parsed.encoreSongTitles.map((s) => String(s ?? '').trim()).filter(Boolean)
+    : [];
+  return { setlistData, officialSetlist, encoreSongs };
 }

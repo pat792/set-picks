@@ -16,12 +16,26 @@ export const SCORING_RULES = {
 const normalize = (s) => String(s ?? '').trim().toLowerCase();
 
 /** Keys on the scoring payload that are not slot song strings. */
-const NON_SONG_SETLIST_KEYS = new Set(['officialSetlist', 'id', 'bustouts']);
+const NON_SONG_SETLIST_KEYS = new Set(['officialSetlist', 'encoreSongs', 'id', 'bustouts']);
 
 function parseGap(gap) {
   if (gap == null || gap === '' || gap === '—') return null;
   const n = Number.parseInt(String(gap), 10);
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Encore exact: primary `enc` slot plus optional `encoreSongs` (multi-encore shows).
+ * @param {Record<string, unknown>} actualSetlist
+ * @param {string} guessNorm
+ */
+function guessMatchesEncoreExact(actualSetlist, guessNorm) {
+  if (!guessNorm) return false;
+  const primary = normalize(actualSetlist.enc);
+  if (primary === guessNorm) return true;
+  const list = actualSetlist.encoreSongs;
+  if (!Array.isArray(list)) return false;
+  return list.some((t) => normalize(t) === guessNorm);
 }
 
 /**
@@ -87,8 +101,10 @@ function computeSlotResult(fieldId, guessedSong, actualSetlist) {
       return { base: 0, bustoutBoost: false, kind: 'miss' };
     }
   } else {
-    const actualExact = normalize(actualSetlist[fieldId]);
-    if (actualExact === guess) {
+    const exactNonEnc =
+      fieldId !== 'enc' && normalize(actualSetlist[fieldId]) === guess;
+    const exactEnc = fieldId === 'enc' && guessMatchesEncoreExact(actualSetlist, guess);
+    if (exactNonEnc || exactEnc) {
       base =
         fieldId === 'enc'
           ? SCORING_RULES.ENCORE_EXACT
