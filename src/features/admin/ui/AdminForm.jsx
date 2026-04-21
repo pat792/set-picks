@@ -10,6 +10,7 @@ import AdminActionToggle from './AdminActionToggle';
 import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 import AdminWarRoomShowDate from './AdminWarRoomShowDate';
+import AdminClaimBootstrap from './AdminClaimBootstrap';
 
 function normalizeDashboardShowDate(value) {
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) return value.trim();
@@ -72,6 +73,7 @@ export default function AdminForm({ user, selectedDate }) {
         onChange={setWarRoomShowDate}
         disabled={isSaving}
       />
+      <AdminClaimBootstrap user={user} />
       <Card variant="danger" padding="sm" className="mb-6 mt-4">
         <p className="text-xs text-red-300/80 font-bold uppercase tracking-wider flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
