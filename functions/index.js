@@ -18,6 +18,7 @@ const {
   pollSingleShowDate,
   scheduledCandidateShowDates,
 } = require("./phishnetLiveSetlistAutomation");
+const { loadSongCatalogSongs } = require("./songCatalogSource");
 
 /** Must match admin setlist gate in `src/features/admin/model/useAdminSetlistForm.js`. */
 const ADMIN_EMAIL_FOR_SETLIST_PROXY = "pat@road2media.com";
@@ -96,8 +97,14 @@ function buildAllPlayedNormalized(actualSetlist) {
   return [...new Set(combined)];
 }
 
-/** Matches computeSlotResult + bustout from getSlotScoreBreakdown in src/utils/scoring.js. */
-function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
+/**
+ * Matches computeSlotResult + bustout from getSlotScoreBreakdown in src/utils/scoring.js.
+ *
+ * `catalogSongs` is the normalized catalog (Storage `song-catalog.json` with
+ * `functions/phishSongs.js` as fallback — see `loadSongCatalogSongs`). Passed
+ * in (not imported) so it can be loaded once per grading invocation.
+ */
+function calculateSlotScore(fieldId, guessedSong, actualSetlist, catalogSongs) {
   if (!actualSetlist || !guessedSong) return 0;
 
   const guess = normalizeSong(guessedSong);
@@ -129,9 +136,8 @@ function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
     }
   }
 
-  const matched = phishSongs.find(
-    (song) => normalizeSong(song.name) === guess
-  );
+  const songs = Array.isArray(catalogSongs) ? catalogSongs : phishSongs;
+  const matched = songs.find((song) => normalizeSong(song.name) === guess);
   let bustoutBoost = false;
   if (matched) {
     const gapNum = parseGap(matched.gap);
@@ -142,10 +148,13 @@ function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
   return base + (bustoutBoost ? SCORING_RULES.BUSTOUT_BOOST : 0);
 }
 
-function calculateTotalScore(userPicks, actualSetlist) {
+function calculateTotalScore(userPicks, actualSetlist, catalogSongs) {
   if (!actualSetlist || !userPicks) return 0;
   return SCORE_FIELDS.reduce((total, fieldId) => {
-    return total + calculateSlotScore(fieldId, userPicks[fieldId], actualSetlist);
+    return (
+      total +
+      calculateSlotScore(fieldId, userPicks[fieldId], actualSetlist, catalogSongs)
+    );
   }, 0);
 }
 
@@ -193,6 +202,11 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     return { updatedPicks: 0 };
   }
 
+  const catalogSongs = await loadSongCatalogSongs({
+    fallbackSongs: phishSongs,
+    logger,
+  });
+
   let batch = db.batch();
   let opCount = 0;
   let updatedPicks = 0;
@@ -205,7 +219,7 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     }
     const pickData = pickDoc.data() || {};
     const userPicks = pickData.picks || {};
-    const score = calculateTotalScore(userPicks, setlistDoc);
+    const score = calculateTotalScore(userPicks, setlistDoc, catalogSongs);
 
     // Live scoring only: do not set gradedAt here (pool season uses isGraded from rollup).
     const update = { score };
