@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { fetchPublicProfileByHandle } from '../../profile';
 import { getDashboardEntryHref } from '../../../shared/lib/dashboardLastPath';
+import { resolveIsAdmin } from '../api/authApi';
 import { createInitialUserProfile } from '../api/profileSetupApi';
 
 export function useProfileSetup(user) {
@@ -35,7 +36,7 @@ export function useProfileSetup(user) {
         // Force a reload so `useAuth` re-reads the Firestore users doc.
         // Otherwise `/dashboard/*` can redirect back to `/setup` because `userProfile`
         // is not live-updated after the write.
-        const isAdminUser = user?.email === 'pat@road2media.com';
+        const isAdminUser = await resolveIsAdmin(user);
         window.location.href = getDashboardEntryHref({ isAdminUser });
       } catch (err) {
         console.error(err);

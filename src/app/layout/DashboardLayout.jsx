@@ -46,10 +46,9 @@ import DashboardPageHeading from './ui/DashboardPageHeading';
 export default function DashboardLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { showDates, showDatesByTour } = useShowCalendar();
   usePendingPoolJoin();
-  const isAdmin = user?.email === 'pat@road2media.com';
   
   const scrollDirection = useScrollDirection(); 
 
