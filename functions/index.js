@@ -477,21 +477,58 @@ exports.setAdminClaim = onCall(
       );
     }
 
-    let existing;
+    let existingClaims = {};
     try {
-      existing = await admin.auth().getUser(targetUid);
+      const existing = await admin.auth().getUser(targetUid);
+      existingClaims = existing.customClaims || {};
     } catch (e) {
-      throw new HttpsError(
-        "not-found",
-        `No Auth user for uid=${targetUid}.`
-      );
+      // Surface the real error instead of squashing everything to "not-found".
+      // Expected firebase-admin error codes include `auth/user-not-found`,
+      // `auth/insufficient-permission`, and generic network errors. We still
+      // proceed to `setCustomUserClaims` for self-bootstrap so a transient
+      // `getUser` permission hiccup doesn't block the first admin — the
+      // caller's UID was already validated by the callable auth layer above.
+      const code =
+        typeof e?.code === "string" ? e.code : e?.errorInfo?.code || "unknown";
+      const msg = e?.message || String(e);
+      logger.warn("setAdminClaim.getUser failed", {
+        targetUid,
+        code,
+        msg,
+      });
+      if (targetUid !== callerUid) {
+        // Only fail hard when delegating to someone else — we can't be sure
+        // the target really exists in that case.
+        throw new HttpsError(
+          code === "auth/insufficient-permission"
+            ? "permission-denied"
+            : "not-found",
+          `Lookup failed for uid=${targetUid} (${code}): ${msg}`
+        );
+      }
     }
-    const existingClaims = existing.customClaims || {};
     const nextClaims = { ...existingClaims, admin: grant };
     if (!grant) {
       delete nextClaims.admin;
     }
-    await admin.auth().setCustomUserClaims(targetUid, nextClaims);
+    try {
+      await admin.auth().setCustomUserClaims(targetUid, nextClaims);
+    } catch (e) {
+      const code =
+        typeof e?.code === "string" ? e.code : e?.errorInfo?.code || "unknown";
+      const msg = e?.message || String(e);
+      logger.error("setAdminClaim.setCustomUserClaims failed", {
+        targetUid,
+        code,
+        msg,
+      });
+      throw new HttpsError(
+        code === "auth/insufficient-permission"
+          ? "permission-denied"
+          : "internal",
+        `setCustomUserClaims failed for uid=${targetUid} (${code}): ${msg}`
+      );
+    }
 
     logger.info("setAdminClaim", {
       callerUid,
