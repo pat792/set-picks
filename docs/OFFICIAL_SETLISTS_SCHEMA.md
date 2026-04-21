@@ -50,9 +50,20 @@ Written on save from `saveOfficialSetlistByDate` (`src/features/admin/api/offici
 - **Exact slot / encore exact:** compare user pick to `actualSetlist[fieldId]` (from the slot map).
 - **In setlist:** guess appears in `buildAllPlayedNormalized(actualSetlist)` but is not an exact slot match.
 - **Wildcard:** guess must appear in that merged “all played” set.
-- **Bustout boost:** applied on top when catalog metadata matches (shared `PHISH_SONGS` / function copy).
+- **Bustout boost:** applied on top when catalog metadata (song `gap`) matches.
 
 Detailed points and UI breakdown kinds: `getSlotScoreBreakdown` in `src/shared/utils/scoring.js`.
+
+### Bustout catalog source (client vs Cloud Function)
+
+Bustout boosts depend on per-song `gap` metadata from the **Phish.net-synced song catalog**. Both runtimes now read the same canonical catalog published to Firebase Storage (`song-catalog.json`) with a bundled fallback so scoring never hard-fails:
+
+| Runtime | Loader | Storage path | Fallback |
+|---------|--------|--------------|----------|
+| Client (copy / UI explanations) | `useSongCatalog` (`src/features/song-catalog/model/useSongCatalog.js`) | `song-catalog.json` (default bucket; URL via `songCatalogUrl.js`) | Bundled `src/shared/data/phishSongs.js` |
+| Cloud Function (grading) | `loadSongCatalogSongs` → `functions/songCatalogSource.js` (5 min in-memory TTL cache, per function instance) | `song-catalog.json` (`CATALOG_STORAGE_PATH` shared with `functions/phishnetSongCatalog.js`) | Bundled `functions/phishSongs.js` |
+
+The grading function loads the catalog **once per invocation** in `recomputeLiveScoresForShow` (`functions/index.js`) and threads the array through `calculateTotalScore` / `calculateSlotScore` so every pick in the batch uses the same snapshot. See **`docs/SONG_CATALOG.md`** for the weekly refresh pipeline (`scheduledPhishnetSongCatalog` / admin `refreshPhishnetSongCatalog`) and issue [#167](https://github.com/pat792/set-picks/issues/167) for the server-side alignment rationale.
 
 ---
 
@@ -109,6 +120,8 @@ Network layer: `src/features/admin-setlist-config/api/phishApiClient.js`.
 | Standings read shape | `src/features/scoring/api/standingsApi.js` (`fetchOfficialSetlistForShow`) |
 | Client scoring | `src/shared/utils/scoring.js` |
 | Setlist write trigger | `functions/index.js` — `gradePicksOnSetlistWrite` |
+| Cloud Function bustout catalog loader | `functions/songCatalogSource.js` (Storage → fallback; 5 min TTL) |
+| Cloud Function live scoring core | `functions/index.js` — `recomputeLiveScoresForShow`, `calculateTotalScore`, `calculateSlotScore` |
 
 ---
 
