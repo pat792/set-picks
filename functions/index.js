@@ -20,7 +20,6 @@ const {
 } = require("./phishnetLiveSetlistAutomation");
 const { loadSongCatalogSongs } = require("./songCatalogSource");
 const {
-  ADMIN_EMAIL_FOR_SETLIST_PROXY,
   parseSuperAdminUidsEnv,
   resolveAdminCallerRole,
   resolveSetAdminClaimCallerRole,
@@ -166,26 +165,12 @@ function calculateTotalScore(userPicks, actualSetlist, catalogSongs) {
   }, 0);
 }
 
-function assertAdminEmail(request) {
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Sign in required.");
-  }
-  const email = request.auth.token?.email;
-  if (email !== ADMIN_EMAIL_FOR_SETLIST_PROXY) {
-    throw new HttpsError(
-      "permission-denied",
-      "Only the designated admin can perform this action."
-    );
-  }
-}
-
 /**
- * Accepts either the hard-coded admin email (legacy transition) or a Firebase
- * custom claim `admin: true` (target state for #139). Callables that use this
- * can be tightened to claim-only after PR B lands and the claim is granted to
- * every real admin.
+ * Gate an admin-only callable on the `admin: true` custom claim (issue #139).
+ * PR B dropped the legacy email fallback — the claim is the only signal. Use
+ * `setAdminClaim` to grant the claim (bootstrap via `SUPER_ADMIN_UIDS`).
  */
-function assertAdminClaimOrEmail(request) {
+function assertAdminClaim(request) {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Sign in required.");
   }
@@ -302,7 +287,7 @@ exports.refreshLiveScoresForShow = onCall(
     enforceAppCheck: false,
   },
   async (request) => {
-    assertAdminEmail(request);
+    assertAdminClaim(request);
     const showDate = assertShowDateString(request.data?.showDate);
 
     const setlistSnap = await db
@@ -343,7 +328,7 @@ exports.rollupScoresForShow = onCall(
     enforceAppCheck: false,
   },
   async (request) => {
-    assertAdminClaimOrEmail(request);
+    assertAdminClaim(request);
     const showDate = assertShowDateString(request.data?.showDate);
 
     const setlistSnap = await db
@@ -508,13 +493,12 @@ async function writeRollupAuditDoc({
 /**
  * Grant or revoke the `admin: true` Firebase custom claim on a target user.
  *
- * Authorization rules:
+ * Authorization rules (PR B — claim-only):
  *   - Caller must be signed in.
  *   - Caller must either already hold `admin: true`, **or** have a UID listed
- *     in the `SUPER_ADMIN_UIDS` env var (comma-separated). Bootstrap-only.
- *   - The legacy `ADMIN_EMAIL_FOR_SETLIST_PROXY` email holder is implicitly
- *     treated as super-admin so #139 PR A doesn't require env-var changes on
- *     day one; remove after PR B.
+ *     in the `SUPER_ADMIN_UIDS` env var (comma-separated). `SUPER_ADMIN_UIDS`
+ *     is the bootstrap / break-glass path — required on a fresh project or
+ *     after an accidental revocation removes the last admin claim holder.
  *
  * Caller can set the claim on their own UID (self-bootstrap) or on another
  * UID (delegate). The target user must refresh their ID token before the new
@@ -810,7 +794,7 @@ exports.setLiveSetlistAutomationState = onCall(
     enforceAppCheck: false,
   },
   async (request) => {
-    assertAdminEmail(request);
+    assertAdminClaim(request);
     const showDate = assertShowDateString(request.data?.showDate);
     const enabled = request.data?.enabled;
     if (typeof enabled !== "boolean") {
@@ -846,7 +830,7 @@ exports.pollLiveSetlistNow = onCall(
     enforceAppCheck: false,
   },
   async (request) => {
-    assertAdminEmail(request);
+    assertAdminClaim(request);
     const key = phishnetApiKey.value();
     if (!key || !String(key).trim()) {
       throw new HttpsError(
@@ -906,7 +890,7 @@ exports.getPhishnetSetlist = onCall(
   },
   async (request) => {
     try {
-      assertAdminEmail(request);
+      assertAdminClaim(request);
 
       const showDate = request.data?.showDate;
       if (
@@ -1037,16 +1021,7 @@ exports.refreshPhishnetShowCalendar = onCall(
   },
   async (request) => {
     try {
-      if (!request.auth) {
-        throw new HttpsError("unauthenticated", "Sign in required.");
-      }
-      const email = request.auth.token?.email;
-      if (email !== ADMIN_EMAIL_FOR_SETLIST_PROXY) {
-        throw new HttpsError(
-          "permission-denied",
-          "Only the designated admin can refresh the show calendar."
-        );
-      }
+      assertAdminClaim(request);
 
       const key = phishnetApiKey.value();
       if (!key || !String(key).trim()) {
@@ -1123,7 +1098,7 @@ exports.refreshPhishnetSongCatalog = onCall(
   },
   async (request) => {
     try {
-      assertAdminEmail(request);
+      assertAdminClaim(request);
 
       const key = phishnetApiKey.value();
       if (!key || !String(key).trim()) {
