@@ -1,0 +1,378 @@
+/**
+ * Firestore security rules emulator tests (issue #139 PR B).
+ *
+ * Runs under `firebase emulators:exec` (see `npm run test:rules`). Covers the
+ * automatable rows from `docs/ADMIN_CLAIMS_RUNBOOK.md` §8 staging QA matrix —
+ * everything that can be asserted with the rules engine alone, without a real
+ * browser or a real Phish.net webhook.
+ *
+ * Conventions:
+ *  - `assertSucceeds` → rule must allow the operation.
+ *  - `assertFails` → rule must reject with `permission-denied`.
+ *  - Context helpers:
+ *      anonUser()                 — unauthenticated
+ *      signedInAs(uid, claims?)   — authenticated user; admin claim via claims
+ *      unsafeAdmin()              — helper to seed docs bypassing rules
+ */
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const {
+  initializeTestEnvironment,
+  assertSucceeds,
+  assertFails,
+} = require("@firebase/rules-unit-testing");
+const {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} = require("firebase/firestore");
+
+const PROJECT_ID = "setlist-pickem-rules-test";
+let env;
+
+test.before(async () => {
+  env = await initializeTestEnvironment({
+    projectId: PROJECT_ID,
+    firestore: {
+      rules: fs.readFileSync("firestore.rules", "utf8"),
+      host: "127.0.0.1",
+      port: 8080,
+    },
+  });
+});
+
+test.after(async () => {
+  if (env) await env.cleanup();
+});
+
+test.beforeEach(async () => {
+  await env.clearFirestore();
+});
+
+/** Signed-in user context with optional custom claims (e.g. `{ admin: true }`). */
+function signedInAs(uid, claims = {}) {
+  return env.authenticatedContext(uid, claims).firestore();
+}
+
+/** Unauthenticated context. */
+function anon() {
+  return env.unauthenticatedContext().firestore();
+}
+
+/** Seed documents bypassing rules. Used to set up preconditions. */
+async function seed(fn) {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await fn(ctx.firestore());
+  });
+}
+
+// ─── users/{userId} ──────────────────────────────────────────────────────────
+
+test("users: owner may create their own profile", async () => {
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    setDoc(doc(db, "users", "alice"), {
+      handle: "alice",
+      favoriteSong: "Tweezer",
+    })
+  );
+});
+
+test("users: cannot create another user's profile", async () => {
+  const db = signedInAs("alice");
+  await assertFails(
+    setDoc(doc(db, "users", "bob"), { handle: "impostor" })
+  );
+});
+
+test("users: signed-in user may read any profile (peer lookups)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob" });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(getDoc(doc(db, "users", "bob")));
+});
+
+test("users: anon cannot read profiles", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob" });
+  });
+  await assertFails(getDoc(doc(anon(), "users", "bob")));
+});
+
+test("users: owner may update their own profile", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice"), { handle: "alice" });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    updateDoc(doc(db, "users", "alice"), { favoriteSong: "Reba" })
+  );
+});
+
+test("users: non-owner non-admin cannot update another profile", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob" });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    updateDoc(doc(db, "users", "bob"), { handle: "hijacked" })
+  );
+});
+
+test("users: admin claim holder may update any profile", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob" });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertSucceeds(
+    updateDoc(doc(db, "users", "bob"), { handle: "bob-fixed" })
+  );
+});
+
+test("users: non-admin cannot delete any profile", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice"), { handle: "alice" });
+  });
+  const db = signedInAs("alice");
+  await assertFails(deleteDoc(doc(db, "users", "alice")));
+});
+
+test("users: admin claim holder may delete profiles", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "ghost"), { handle: "ghost" });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertSucceeds(deleteDoc(doc(db, "users", "ghost")));
+});
+
+// ─── picks/{pickId} ──────────────────────────────────────────────────────────
+
+test("picks: owner may create a pick with matching userId", async () => {
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    setDoc(doc(db, "picks", "2026-04-23_alice"), {
+      userId: "alice",
+      showDate: "2026-04-23",
+      picks: { opener: "Tweezer" },
+    })
+  );
+});
+
+test("picks: cannot create a pick with someone else's userId", async () => {
+  const db = signedInAs("alice");
+  await assertFails(
+    setDoc(doc(db, "picks", "2026-04-23_bob"), {
+      userId: "bob",
+      showDate: "2026-04-23",
+      picks: { opener: "Tweezer" },
+    })
+  );
+});
+
+test("picks: signed-in user may read any pick (standings/pool views)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "picks", "2026-04-23_bob"), {
+      userId: "bob",
+      showDate: "2026-04-23",
+      picks: {},
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(getDoc(doc(db, "picks", "2026-04-23_bob")));
+});
+
+test("picks: owner may update their own pick (userId preserved)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "picks", "2026-04-23_alice"), {
+      userId: "alice",
+      showDate: "2026-04-23",
+      picks: { opener: "Tweezer" },
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    updateDoc(doc(db, "picks", "2026-04-23_alice"), {
+      picks: { opener: "Reba" },
+    })
+  );
+});
+
+test("picks: non-owner non-admin cannot edit another user's pick", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "picks", "2026-04-23_bob"), {
+      userId: "bob",
+      showDate: "2026-04-23",
+      picks: { opener: "Tweezer" },
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    updateDoc(doc(db, "picks", "2026-04-23_bob"), {
+      picks: { opener: "Hijacked" },
+    })
+  );
+});
+
+test("picks: owner cannot hand off ownership via overwrite", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "picks", "2026-04-23_alice"), {
+      userId: "alice",
+      showDate: "2026-04-23",
+      picks: {},
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    setDoc(doc(db, "picks", "2026-04-23_alice"), {
+      userId: "bob",
+      showDate: "2026-04-23",
+      picks: {},
+    })
+  );
+});
+
+test("picks: admin claim holder may repair any pick", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "picks", "2026-04-23_bob"), {
+      userId: "bob",
+      showDate: "2026-04-23",
+      picks: {},
+    });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertSucceeds(
+    updateDoc(doc(db, "picks", "2026-04-23_bob"), { score: 10 })
+  );
+});
+
+test("picks: non-owner non-admin cannot delete another user's pick", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "picks", "2026-04-23_bob"), {
+      userId: "bob",
+      showDate: "2026-04-23",
+      picks: {},
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(deleteDoc(doc(db, "picks", "2026-04-23_bob")));
+});
+
+// ─── official_setlists/{showDate} ────────────────────────────────────────────
+
+test("official_setlists: signed-in user may read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "official_setlists", "2026-04-23"), {
+      showDate: "2026-04-23",
+      status: "COMPLETED",
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(getDoc(doc(db, "official_setlists", "2026-04-23")));
+});
+
+test("official_setlists: non-admin cannot write", async () => {
+  const db = signedInAs("alice");
+  await assertFails(
+    setDoc(doc(db, "official_setlists", "2026-04-23"), {
+      showDate: "2026-04-23",
+      status: "COMPLETED",
+    })
+  );
+});
+
+test("official_setlists: admin claim holder may write", async () => {
+  const db = signedInAs("mod", { admin: true });
+  await assertSucceeds(
+    setDoc(doc(db, "official_setlists", "2026-04-23"), {
+      showDate: "2026-04-23",
+      status: "COMPLETED",
+    })
+  );
+});
+
+// ─── live_setlist_automation/{showDate} ──────────────────────────────────────
+
+test("live_setlist_automation: non-admin cannot read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "live_setlist_automation", "2026-04-23"), {
+      enabled: true,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    getDoc(doc(db, "live_setlist_automation", "2026-04-23"))
+  );
+});
+
+test("live_setlist_automation: admin claim holder may read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "live_setlist_automation", "2026-04-23"), {
+      enabled: true,
+    });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertSucceeds(
+    getDoc(doc(db, "live_setlist_automation", "2026-04-23"))
+  );
+});
+
+test("live_setlist_automation: client writes always rejected (even admin)", async () => {
+  const db = signedInAs("mod", { admin: true });
+  await assertFails(
+    setDoc(doc(db, "live_setlist_automation", "2026-04-23"), {
+      enabled: false,
+    })
+  );
+});
+
+// ─── rollup_audit/{showDate} ─────────────────────────────────────────────────
+
+test("rollup_audit: non-admin cannot read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "rollup_audit", "2026-04-23"), {
+      processedPicks: 5,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(getDoc(doc(db, "rollup_audit", "2026-04-23")));
+});
+
+test("rollup_audit: admin claim holder may read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "rollup_audit", "2026-04-23"), {
+      processedPicks: 5,
+    });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertSucceeds(getDoc(doc(db, "rollup_audit", "2026-04-23")));
+});
+
+test("rollup_audit: client writes always rejected (even admin)", async () => {
+  const db = signedInAs("mod", { admin: true });
+  await assertFails(
+    setDoc(doc(db, "rollup_audit", "2026-04-23"), { processedPicks: 1 })
+  );
+});
+
+// ─── cross-collection: a pool member profiles query (standings-style) ────────
+
+test("users: signed-in user may query profiles (standings/pool lookup)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice"), { handle: "alice" });
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob" });
+  });
+  const db = signedInAs("alice");
+  const snap = await assertSucceeds(
+    getDocs(query(collection(db, "users")))
+  );
+  assert.ok(snap && snap.size >= 2);
+});

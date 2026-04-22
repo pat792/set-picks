@@ -140,23 +140,23 @@ PR B tightens Firestore rules and drops the legacy email fallback. Before mergin
 
 ## 8. PR B staging QA checklist
 
-Verify each of these flows against staging with a real non-admin user AND the admin claim holder, before deploying PR B to production.
+Most of the rule-level rows below are now **automated** via the Firestore emulator test suite at `firestore.rules.test.cjs` (`npm run test:rules`; also runs in CI on every push/PR). Those rows are marked *(auto)*. The remaining rows still need a quick manual pass on staging because they exercise the full Auth + Cloud Functions + UI integration, not just rules.
 
-| Surface | Who | Expected |
-|---|---|---|
-| Sign up → create profile | New user (no claim) | `users/{uid}` created (self-write rule) |
-| Submit picks | Any signed-in user | `picks/{date_uid}` created/updated (userId matches auth.uid) |
-| Attempt to edit another user's pick via DevTools | Non-admin | Rejected by rules |
-| Attempt to edit another user's users doc via DevTools | Non-admin | Rejected by rules |
-| Attempt to write `official_setlists` via DevTools | Non-admin | Rejected by rules |
-| Attempt to read `live_setlist_automation/{showDate}` | Non-admin | Rejected by rules |
-| Global standings | Any signed-in user | Loads (reads `users` + `picks`) |
-| Pool details + member profiles | Any signed-in user | Loads (reads `users`) |
-| Public profile by handle | Any signed-in user | Loads (reads `users`) |
-| Admin setlist save | Admin (claim) | `official_setlists/{showDate}` write succeeds |
-| Admin Finalize and rollup | Admin (claim) | `rollupScoresForShow` callable succeeds; `rollup_audit/{showDate}` timestamp advances |
-| Live-scoring trigger | N/A (Admin SDK) | `gradePicksOnSetlistWrite` still runs on setlist write |
-| Live setlist automation UI | Admin (claim) | Reads `live_setlist_automation/{showDate}` pause/backoff metadata |
+| Surface | Who | Expected | Coverage |
+|---|---|---|---|
+| Sign up → create profile | New user (no claim) | `users/{uid}` created (self-write rule) | *(auto)* for rule, manual for full Auth flow |
+| Submit picks | Any signed-in user | `picks/{date_uid}` created/updated (userId matches auth.uid) | *(auto)* |
+| Attempt to edit another user's pick | Non-admin | Rejected by rules | *(auto)* |
+| Attempt to edit another user's users doc | Non-admin | Rejected by rules | *(auto)* |
+| Attempt to write `official_setlists` | Non-admin | Rejected by rules | *(auto)* |
+| Attempt to read `live_setlist_automation/{showDate}` | Non-admin | Rejected by rules | *(auto)* |
+| Global standings | Any signed-in user | Loads (reads `users` + `picks`) | *(auto)* rules; manual UI |
+| Pool details + member profiles | Any signed-in user | Loads (reads `users`) | *(auto)* rules; manual UI |
+| Public profile by handle | Any signed-in user | Loads (reads `users`) | *(auto)* rules; manual UI |
+| Admin setlist save | Admin (claim) | `official_setlists/{showDate}` write succeeds | *(auto)* rules; **manual** UI button |
+| Admin Finalize and rollup | Admin (claim) | `rollupScoresForShow` callable succeeds; `rollup_audit/{showDate}` timestamp advances | **manual** (callable + UI integration) |
+| Live-scoring trigger | N/A (Admin SDK) | `gradePicksOnSetlistWrite` still runs on setlist write | **manual** (scheduled / real webhook) |
+| Live setlist automation UI | Admin (claim) | Reads `live_setlist_automation/{showDate}` pause/backoff metadata | *(auto)* rules; manual UI |
 
 Also confirm: an admin who already grants themselves the claim via the `AdminClaimBootstrap` card in PR A sees the green "Admin claim active" pill and all admin surfaces continue to work after the rules tighten (no email fallback regression).
 
