@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { Undo2 } from 'lucide-react';
 
 export default function BackButton({ className = '', ...props }) {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function BackButton({ className = '', ...props }) {
         .join(' ')}
       {...props}
     >
-      <ArrowLeft className="w-4 h-4 shrink-0" aria-hidden />
+      <Undo2 className="w-4 h-4 shrink-0" aria-hidden />
       Back
     </button>
   );

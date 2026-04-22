@@ -6,6 +6,7 @@ export { usePoolSeasonStandings } from './model/usePoolSeasonStandings';
 export { invalidateUserPools } from './model/userPoolsRefreshBus';
 export { default as useUserPools } from './model/useUserPools';
 export { default as PoolAdminControls } from './ui/PoolAdminControls';
+export { default as PoolAdminSection } from './ui/PoolAdminSection';
 export { default as PoolHubActiveShow } from './ui/PoolHubActiveShow';
 export { default as PoolHubHeader } from './ui/PoolHubHeader';
 export { default as PoolHubLeaderboard } from './ui/PoolHubLeaderboard';
