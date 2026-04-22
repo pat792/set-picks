@@ -18,7 +18,6 @@ const {
   pollSingleShowDate,
   scheduledCandidateShowDates,
 } = require("./phishnetLiveSetlistAutomation");
-const { loadSongCatalogSongs } = require("./songCatalogSource");
 const {
   parseSuperAdminUidsEnv,
   resolveAdminCallerRole,
@@ -107,11 +106,16 @@ function buildAllPlayedNormalized(actualSetlist) {
 /**
  * Matches computeSlotResult + bustout from getSlotScoreBreakdown in src/utils/scoring.js.
  *
- * `catalogSongs` is the normalized catalog (Storage `song-catalog.json` with
- * `functions/phishSongs.js` as fallback — see `loadSongCatalogSongs`). Passed
- * in (not imported) so it can be loaded once per grading invocation.
+ * Bustout lookup uses the bundled `functions/phishSongs.js` catalog (same
+ * snapshot the client reads from `src/shared/data/phishSongs.js`). This keeps
+ * client-computed per-show scores and server-stored `pick.score` in sync.
+ *
+ * NOTE: #167 briefly routed this through the Storage-backed `song-catalog.json`
+ * (dynamic per-song gap), which broke parity once a bustout's gap reset to 0
+ * after the show played. The proper fix — snapshot per-show bustouts on
+ * `official_setlists/{showDate}` — is tracked in #214.
  */
-function calculateSlotScore(fieldId, guessedSong, actualSetlist, catalogSongs) {
+function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
   if (!actualSetlist || !guessedSong) return 0;
 
   const guess = normalizeSong(guessedSong);
@@ -143,8 +147,7 @@ function calculateSlotScore(fieldId, guessedSong, actualSetlist, catalogSongs) {
     }
   }
 
-  const songs = Array.isArray(catalogSongs) ? catalogSongs : phishSongs;
-  const matched = songs.find((song) => normalizeSong(song.name) === guess);
+  const matched = phishSongs.find((song) => normalizeSong(song.name) === guess);
   let bustoutBoost = false;
   if (matched) {
     const gapNum = parseGap(matched.gap);
@@ -155,12 +158,12 @@ function calculateSlotScore(fieldId, guessedSong, actualSetlist, catalogSongs) {
   return base + (bustoutBoost ? SCORING_RULES.BUSTOUT_BOOST : 0);
 }
 
-function calculateTotalScore(userPicks, actualSetlist, catalogSongs) {
+function calculateTotalScore(userPicks, actualSetlist) {
   if (!actualSetlist || !userPicks) return 0;
   return SCORE_FIELDS.reduce((total, fieldId) => {
     return (
       total +
-      calculateSlotScore(fieldId, userPicks[fieldId], actualSetlist, catalogSongs)
+      calculateSlotScore(fieldId, userPicks[fieldId], actualSetlist)
     );
   }, 0);
 }
@@ -213,11 +216,6 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     return { updatedPicks: 0 };
   }
 
-  const catalogSongs = await loadSongCatalogSongs({
-    fallbackSongs: phishSongs,
-    logger,
-  });
-
   let batch = db.batch();
   let opCount = 0;
   let updatedPicks = 0;
@@ -230,7 +228,7 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     }
     const pickData = pickDoc.data() || {};
     const userPicks = pickData.picks || {};
-    const score = calculateTotalScore(userPicks, setlistDoc, catalogSongs);
+    const score = calculateTotalScore(userPicks, setlistDoc);
 
     // Live scoring only: do not set gradedAt here (pool season uses isGraded from rollup).
     const update = { score };
@@ -374,11 +372,6 @@ exports.rollupScoresForShow = onCall(
       };
     }
 
-    const catalogSongs = await loadSongCatalogSongs({
-      fallbackSongs: phishSongs,
-      logger,
-    });
-
     // Two writes per pick (picks doc + users doc), same as client rollup.
     const OPS_PER_PICK = 2;
     let batch = db.batch();
@@ -398,7 +391,7 @@ exports.rollupScoresForShow = onCall(
         opCount = 0;
       }
       const userPicks = pickData.picks || {};
-      const newScore = calculateTotalScore(userPicks, actualSetlist, catalogSongs);
+      const newScore = calculateTotalScore(userPicks, actualSetlist);
       const oldScore = pickData.score || 0;
       const scoreDiff = newScore - oldScore;
       const isFirstGrade = pickData.isGraded !== true;
