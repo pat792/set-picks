@@ -13,7 +13,7 @@ import {
   pollLiveSetlistNow,
   setLiveSetlistAutomationState,
 } from '../api/liveSetlistAutomationApi';
-import { fetchAndMapExternalSetlist } from './setlistAutomation';
+import { fetchAndMapExternalSetlist, fetchBustoutsFromPhishnet } from './setlistAutomation';
 
 export const ADMIN_SETLIST_FIELDS = FORM_FIELDS.filter((field) => field.id !== 'wild');
 
@@ -41,6 +41,13 @@ export function useAdminSetlistForm({ user, selectedDate }) {
   const [message, setMessage] = useState({ text: '', type: '' });
   /** Mirrors `official_setlists.encoreSongs` for multi-encore scoring + save. */
   const [encoreSongs, setEncoreSongs] = useState([]);
+  /**
+   * Mirrors `official_setlists.bustouts` (#214). Derived from Phish.net row
+   * `gap` metadata when the admin ingests from the API; left as `null` when
+   * the admin is editing by hand so the save flow can fetch it on demand
+   * (rather than writing an empty array over a good snapshot).
+   */
+  const [bustouts, setBustouts] = useState(/** @type {string[] | null} */ (null));
   const clearMessageTimeoutRef = useRef(null);
 
   const { isAdmin: sessionIsAdmin } = useAuth();
@@ -70,6 +77,13 @@ export function useAdminSetlistForm({ user, selectedDate }) {
         setSetlistData(response.setlist);
         setOfficialSetlist(response.officialSetlist);
         setEncoreSongs(sanitizeOfficialSongList(response.encoreSongs ?? []));
+        // Seed from the existing doc when present; `null` means "unknown,
+        // let save fetch it" on a brand-new show.
+        setBustouts(
+          Array.isArray(response.bustouts) && response.bustouts.length >= 0 && response.exists
+            ? response.bustouts
+            : null,
+        );
         setOfficialSetlistInput('');
       } catch (error) {
         console.error('Error fetching setlist:', error);
@@ -108,6 +122,10 @@ export function useAdminSetlistForm({ user, selectedDate }) {
       setSetlistData(result.setlistData);
       setOfficialSetlist(result.officialSetlist);
       setEncoreSongs(sanitizeOfficialSongList(result.encoreSongs ?? []));
+      // Phish.in ingest returns an empty `bustouts` array because Phish.in
+      // has no gap metadata. Leave state as `null` in that case so the save
+      // flow falls through to the Phish.net fetch-at-save path.
+      setBustouts(Array.isArray(result.bustouts) && result.bustouts.length > 0 ? result.bustouts : null);
       setOfficialSetlistInput('');
     } catch (e) {
       console.error('Fetch setlist from API failed:', e);
@@ -144,18 +162,51 @@ export function useAdminSetlistForm({ user, selectedDate }) {
 
     setIsSaving(true);
     setMessage({ text: '', type: '' });
+    /**
+     * Warning text appended to the final success toast when fetch-at-save
+     * couldn't derive bustouts. We still save (so scoring works for exact /
+     * in-setlist / wildcard), just without the bustout boost.
+     */
+    let bustoutsWarning = '';
 
     try {
-      const { cleanedSlots, cleanedOfficialSetlist, encoreSongs: savedEncoreSongs } =
-        await saveOfficialSetlistByDate({
+      // Fetch-at-save fallback (#214). Options:
+      // - state `bustouts` is an array (admin ingested from Phish.net or
+      //   reopened an existing doc): use it verbatim.
+      // - state `bustouts` is null (hand-typed, or Phish.in ingest): fire a
+      //   one-shot Phish.net fetch so the snapshot is definitional. On
+      //   soft-failure, save with an empty array and warn — scoring stays
+      //   deterministic; admin can re-save later to backfill.
+      let bustoutsToSave;
+      if (Array.isArray(bustouts)) {
+        bustoutsToSave = bustouts;
+      } else {
+        const res = await fetchBustoutsFromPhishnet(selectedShow, ADMIN_SETLIST_FIELDS);
+        if (res.ok) {
+          bustoutsToSave = res.bustouts;
+          setBustouts(res.bustouts);
+        } else {
+          bustoutsToSave = [];
+          bustoutsWarning = ` Bustouts could not be derived from Phish.net (${res.error}); save again once Phish.net posts the setlist to earn bustout boosts.`;
+        }
+      }
+
+      const {
+        cleanedSlots,
+        cleanedOfficialSetlist,
+        encoreSongs: savedEncoreSongs,
+        bustouts: savedBustouts,
+      } = await saveOfficialSetlistByDate({
           showDate: selectedShow,
           setlistData,
           officialSetlist,
           slotFields: ADMIN_SETLIST_FIELDS,
           updatedBy: user?.email ?? null,
           encoreSongs,
+          bustouts: bustoutsToSave,
         });
       setEncoreSongs(savedEncoreSongs);
+      setBustouts(savedBustouts);
 
       if (!finalizeRollup) {
         try {
@@ -178,6 +229,7 @@ export function useAdminSetlistForm({ user, selectedDate }) {
               ...cleanedSlots,
               officialSetlist: cleanedOfficialSetlist,
               encoreSongs: savedEncoreSongs,
+              bustouts: savedBustouts,
             },
           });
         } catch (rollupError) {
@@ -191,10 +243,11 @@ export function useAdminSetlistForm({ user, selectedDate }) {
       }
 
       setMessage({
-        text: finalizeRollup
-          ? 'OFFICIAL SETLIST LOCKED — STATS ROLLED UP'
-          : 'OFFICIAL SETLIST LOCKED',
-        type: 'success',
+        text:
+          (finalizeRollup
+            ? 'OFFICIAL SETLIST LOCKED — STATS ROLLED UP'
+            : 'OFFICIAL SETLIST LOCKED') + bustoutsWarning,
+        type: bustoutsWarning ? 'warning' : 'success',
       });
     } catch (error) {
       console.error('Error saving setlist or running rollup:', error);

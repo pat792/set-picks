@@ -131,3 +131,64 @@ describe('encore exact scoring', () => {
     expect(calculateSlotScore('enc', 'Second Encore', actual)).toBe(15);
   });
 });
+
+describe('parseSetlist bustoutTitles (#214)', () => {
+  it('Phish.net: derives bustoutTitles from row gap >= BUSTOUT_MIN_GAP', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'AC/DC Bag', position: 1, gap: 8 },
+          { set: '1', song: 'Bathtub Gin', position: 2, gap: 14 },
+          { set: '2', song: "Colonel Forbin's Ascent", position: 1, gap: 98 },
+          { set: '2', song: 'Down with Disease', position: 2, gap: 2 },
+          { set: 'e', song: "Fluff's Travels", position: 1, gap: 1884 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    expect(parsed.bustoutTitles).toEqual([
+      "Colonel Forbin's Ascent",
+      "Fluff's Travels",
+    ]);
+  });
+
+  it('Phish.net: accepts gap as numeric string, ignores non-numeric / negative', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'A', position: 1, gap: '40' },
+          { set: '1', song: 'B', position: 2, gap: '—' },
+          { set: '1', song: 'C', position: 3, gap: -5 },
+          { set: '1', song: 'D', position: 4 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    expect(parsed.bustoutTitles).toEqual(['A']);
+  });
+
+  it('Phish.in: returns empty bustoutTitles (no gap metadata available)', () => {
+    const parsed = parseSetlist(phishinFixture, 'phishin', gameConfig);
+    expect(parsed.bustoutTitles).toEqual([]);
+  });
+
+  it('mapParsedSetlistToLegacySaveShape forwards bustouts', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'A', position: 1, gap: 2 },
+          { set: '1', song: 'B', position: 2, gap: 40 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    const { bustouts } = mapParsedSetlistToLegacySaveShape(parsed, ADMIN_SLOT_FIELDS);
+    expect(bustouts).toEqual(['B']);
+  });
+});

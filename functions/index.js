@@ -4,7 +4,6 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
-const { PHISH_SONGS: phishSongs } = require("./phishSongs");
 const {
   syncPhishnetShowCalendarToFirestore,
 } = require("./phishnetShowCalendar");
@@ -12,8 +11,12 @@ const {
   syncPhishnetSongCatalogToStorage,
 } = require("./phishnetSongCatalog");
 const {
+  BUSTOUT_MIN_GAP: AUTOMATION_BUSTOUT_MIN_GAP,
   candidateShowDates,
+  deriveBustoutsFromRows,
+  fetchPhishnetSetlistForDate,
   isWithinLiveSetlistPollWindow,
+  normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
   pollSingleShowDate,
   scheduledCandidateShowDates,
@@ -58,12 +61,6 @@ function normalizeSong(value) {
   return String(value ?? "").trim().toLowerCase();
 }
 
-function parseGap(gap) {
-  if (gap == null || gap === "" || gap === "—") return null;
-  const n = Number.parseInt(String(gap), 10);
-  return Number.isFinite(n) ? n : null;
-}
-
 function guessMatchesEncoreExact(actualSetlist, guessNorm) {
   if (!guessNorm) return false;
   const primary = normalizeSong(actualSetlist.enc);
@@ -104,16 +101,14 @@ function buildAllPlayedNormalized(actualSetlist) {
 }
 
 /**
- * Matches computeSlotResult + bustout from getSlotScoreBreakdown in src/utils/scoring.js.
+ * Mirrors computeSlotResult + bustout from getSlotScoreBreakdown in
+ * src/shared/utils/scoring.js.
  *
- * Bustout lookup uses the bundled `functions/phishSongs.js` catalog (same
- * snapshot the client reads from `src/shared/data/phishSongs.js`). This keeps
- * client-computed per-show scores and server-stored `pick.score` in sync.
- *
- * NOTE: #167 briefly routed this through the Storage-backed `song-catalog.json`
- * (dynamic per-song gap), which broke parity once a bustout's gap reset to 0
- * after the show played. The proper fix — snapshot per-show bustouts on
- * `official_setlists/{showDate}` — is tracked in #214.
+ * Bustout boosts read the per-show `bustouts` snapshot on the official
+ * setlist doc (#214). The snapshot is frozen at save time from Phish.net row
+ * `gap`, so scoring is deterministic and never drifts with the weekly
+ * `song-catalog.json` refresh. Absence / empty array → no bustout boost; no
+ * catalog fallback.
  */
 function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
   if (!actualSetlist || !guessedSong) return 0;
@@ -147,12 +142,16 @@ function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
     }
   }
 
-  const matched = phishSongs.find((song) => normalizeSong(song.name) === guess);
+  const bustoutList = Array.isArray(actualSetlist.bustouts)
+    ? actualSetlist.bustouts
+    : [];
   let bustoutBoost = false;
-  if (matched) {
-    const gapNum = parseGap(matched.gap);
-    bustoutBoost =
-      gapNum != null && gapNum >= SCORING_RULES.BUSTOUT_MIN_GAP;
+  for (const raw of bustoutList) {
+    if (typeof raw !== "string") continue;
+    if (normalizeSong(raw) === guess) {
+      bustoutBoost = true;
+      break;
+    }
   }
 
   return base + (bustoutBoost ? SCORING_RULES.BUSTOUT_BOOST : 0);
@@ -256,6 +255,10 @@ function actualSetlistFromOfficialDoc(setlistDoc) {
   };
   if (Array.isArray(setlistDoc.encoreSongs) && setlistDoc.encoreSongs.length > 0) {
     out.encoreSongs = setlistDoc.encoreSongs;
+  }
+  // Per-show bustout snapshot for scoring (#214). Absence/empty → no boost.
+  if (Array.isArray(setlistDoc.bustouts)) {
+    out.bustouts = setlistDoc.bustouts;
   }
   return out;
 }
@@ -973,6 +976,175 @@ exports.getPhishnetSetlist = onCall(
         `getPhishnetSetlist failed: ${msg}`
       );
     }
+  }
+);
+
+/**
+ * Backfill `official_setlists/{showDate}.bustouts` for a batch of shows (#214).
+ *
+ * For each show date, this callable:
+ *   1. Re-fetches the Phish.net setlist by showdate (rows include per-row
+ *      pre-show `gap` — the definitional bustout metric).
+ *   2. Derives `bustouts` from rows with `gap >= BUSTOUT_MIN_GAP`.
+ *   3. Writes `bustouts` onto `official_setlists/{showDate}` via merge, which
+ *      triggers `gradePicksOnSetlistWrite` → live-score recompute.
+ *   4. When a show is graded (`isGraded: true` on any pick), also runs
+ *      `rollupScoresForShow` semantics inline so `users.totalPoints` reconciles
+ *      by the score delta.
+ *
+ * Safe to run multiple times — write is idempotent when the snapshot matches.
+ *
+ * Input: `{ showDates: string[] }` (each `YYYY-MM-DD`) OR `{ mode: "missing" }`
+ * to scan `official_setlists` for docs missing `bustouts`.
+ */
+exports.backfillBustoutsForShows = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminClaim(request);
+
+    const key = phishnetApiKey.value();
+    if (!key || !String(key).trim()) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+      );
+    }
+
+    // Resolve target show dates.
+    /** @type {string[]} */
+    let showDates = [];
+    const explicitDates = request.data?.showDates;
+    if (Array.isArray(explicitDates) && explicitDates.length > 0) {
+      showDates = explicitDates.map((d) => assertShowDateString(d));
+    } else if (request.data?.mode === "missing") {
+      const snap = await db.collection("official_setlists").get();
+      for (const d of snap.docs) {
+        const data = d.data() || {};
+        if (!Array.isArray(data.bustouts)) {
+          showDates.push(d.id);
+        }
+      }
+    } else {
+      throw new HttpsError(
+        "invalid-argument",
+        'Pass { showDates: ["YYYY-MM-DD", ...] } or { mode: "missing" }.'
+      );
+    }
+
+    const results = [];
+    for (const showDate of showDates) {
+      const setlistRef = db.collection("official_setlists").doc(showDate);
+      const setlistSnap = await setlistRef.get();
+      if (!setlistSnap.exists) {
+        results.push({ showDate, skipped: "no-setlist-doc" });
+        continue;
+      }
+
+      // 1) Re-fetch Phish.net rows and derive bustouts.
+      let bustouts;
+      try {
+        const payload = await fetchPhishnetSetlistForDate(
+          showDate,
+          String(key).trim()
+        );
+        const rows = normalizeSetlistRows(payload);
+        bustouts = deriveBustoutsFromRows(rows);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        logger.warn("backfillBustoutsForShows fetch failed", { showDate, msg });
+        results.push({ showDate, skipped: "phishnet-fetch-failed", error: msg });
+        continue;
+      }
+
+      // 2) Write merge + capture prior bustouts for idempotency / logging.
+      const prior = setlistSnap.data() || {};
+      const priorBustouts = Array.isArray(prior.bustouts) ? prior.bustouts : null;
+      await setlistRef.set(
+        {
+          bustouts,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedBy: request.auth?.token?.email || "backfill-bustouts",
+        },
+        { merge: true }
+      );
+
+      // 3) Recompute live scores from the *post-write* doc so the snapshot
+      // we just wrote is what scoring sees. Also reconcile graded picks'
+      // contribution to `users.totalPoints` by score diff — mirrors the
+      // rollup pathway so we don't leave stale totals behind.
+      const freshSnap = await setlistRef.get();
+      const freshDoc = freshSnap.data() || {};
+      const actualSetlist = actualSetlistFromOfficialDoc(freshDoc);
+
+      const picksSnap = await db
+        .collection("picks")
+        .where("showDate", "==", showDate)
+        .get();
+
+      let batch = db.batch();
+      let opCount = 0;
+      let updatedPicks = 0;
+      let reconciledGradedPicks = 0;
+
+      for (const pickDoc of picksSnap.docs) {
+        if (opCount + 2 > MAX_FIRESTORE_BATCH_WRITES) {
+          await batch.commit();
+          batch = db.batch();
+          opCount = 0;
+        }
+        const pickData = pickDoc.data() || {};
+        const newScore = calculateTotalScore(pickData.picks || {}, actualSetlist);
+        const oldScore = Number.isFinite(pickData.score) ? Number(pickData.score) : 0;
+        const scoreDelta = newScore - oldScore;
+
+        const pickUpdate = { score: newScore };
+        if (pickData.isGraded !== true) {
+          pickUpdate.gradedAt = admin.firestore.FieldValue.delete();
+        }
+        batch.update(pickDoc.ref, pickUpdate);
+        opCount += 1;
+        updatedPicks += 1;
+
+        // Only reconcile user totals when this pick was already graded —
+        // otherwise the rollup flow owns first-grade accounting.
+        if (pickData.isGraded === true && scoreDelta !== 0 && pickData.userId) {
+          batch.set(
+            db.collection("users").doc(pickData.userId),
+            {
+              totalPoints: admin.firestore.FieldValue.increment(scoreDelta),
+            },
+            { merge: true }
+          );
+          opCount += 1;
+          reconciledGradedPicks += 1;
+        }
+      }
+
+      if (opCount > 0) {
+        await batch.commit();
+      }
+
+      results.push({
+        showDate,
+        bustoutCount: bustouts.length,
+        priorBustoutCount: priorBustouts ? priorBustouts.length : null,
+        updatedPicks,
+        reconciledGradedPicks,
+      });
+    }
+
+    logger.info("backfillBustoutsForShows complete", {
+      minGap: AUTOMATION_BUSTOUT_MIN_GAP,
+      results,
+      callerUid: request.auth?.uid || null,
+    });
+
+    return { ok: true, results };
   }
 );
 

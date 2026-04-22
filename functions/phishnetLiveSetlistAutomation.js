@@ -7,6 +7,30 @@ const MAX_BACKOFF_MINUTES = 30;
 
 const SLOT_KEYS = ["s1o", "s1c", "s2o", "s2c", "enc"];
 
+/** Minimum shows-since-last-play for a song to count as a bustout. Mirrors SCORING_RULES.BUSTOUT_MIN_GAP. */
+const BUSTOUT_MIN_GAP = 30;
+
+/** Normalize a song title for dedupe/compare (must match `normalizeSong` in scoring code). */
+function normalizeSongTitle(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+/**
+ * Parse a Phish.net setlist row `gap` field into a non-negative integer or null.
+ * Phish.net has returned gap as number or numeric string across versions; treat
+ * anything unparseable or negative as "unknown" (null).
+ */
+function parseRowGap(gap) {
+  if (typeof gap === "number" && Number.isFinite(gap) && gap >= 0) {
+    return Math.trunc(gap);
+  }
+  if (typeof gap === "string") {
+    const n = Number.parseInt(gap.trim(), 10);
+    if (Number.isFinite(n) && n >= 0) return n;
+  }
+  return null;
+}
+
 function formatEtShowDate(now = new Date()) {
   const asEt = now.toLocaleString("en-CA", { timeZone: "America/New_York" });
   return String(asEt).slice(0, 10);
@@ -164,7 +188,8 @@ function normalizeSetlistRows(payload) {
         : typeof row.idx === "number" && Number.isFinite(row.idx)
         ? row.idx
         : 0;
-    rows.push({ setKey: setKey || "unknown", position, title: song });
+    const gap = parseRowGap(row.gap);
+    rows.push({ setKey: setKey || "unknown", position, title: song, gap });
   }
   rows.sort(compareRows);
   return rows;
@@ -228,11 +253,72 @@ function buildSetlistDocFromRows(rows, existingDoc = {}) {
   const encoreSongs =
     encoreSongsFromRows.length > 0 ? encoreSongsFromRows : prevEncoreSongs;
 
+  // Per-show bustout snapshot from per-row pre-show gap (#214). Phish.net
+  // setlist rows expose `gap` = shows since the song was last played prior to
+  // this show. Freezing that at save time decouples scoring from the weekly
+  // `song-catalog.json` refresh cadence, which would reset to gap ≈ 0 after
+  // this show plays and silently erase the bustout boost.
+  const bustoutsFromRows = deriveBustoutsFromRows(rows);
+  const prevBustouts = Array.isArray(existingDoc?.bustouts)
+    ? existingDoc.bustouts
+        .map((t) => String(t ?? "").trim())
+        .filter(Boolean)
+    : [];
+  // Live automation may see a partial feed (only set 1 so far). Preserve the
+  // wider `bustouts` superset so mid-show polls never shrink the list and
+  // erase a bustout captured in a prior poll. Rows that newly appear extend
+  // the list; rows that existed but no longer appear (very rare edit) remain.
+  const bustouts = mergeBustouts(prevBustouts, bustoutsFromRows);
+
   return {
     setlist: slots,
     officialSetlist,
     encoreSongs,
+    bustouts,
   };
+}
+
+/**
+ * @param {{ title: string, gap: number | null }[]} rows
+ * @returns {string[]} original-cased titles, deduped by normalized form
+ */
+function deriveBustoutsFromRows(rows) {
+  const seenNormalized = new Set();
+  const out = [];
+  for (const row of rows) {
+    if (!row || typeof row.title !== "string") continue;
+    const title = row.title.trim();
+    if (!title) continue;
+    const gap = typeof row.gap === "number" ? row.gap : parseRowGap(row.gap);
+    if (gap == null || gap < BUSTOUT_MIN_GAP) continue;
+    const norm = normalizeSongTitle(title);
+    if (seenNormalized.has(norm)) continue;
+    seenNormalized.add(norm);
+    out.push(title);
+  }
+  return out;
+}
+
+/**
+ * Union of two bustout string[] lists, deduped by normalized title, preserving
+ * the first occurrence's original casing. `prev` takes precedence so the
+ * stored casing is stable across polls.
+ */
+function mergeBustouts(prev, next) {
+  const seen = new Set();
+  const out = [];
+  for (const list of [prev, next]) {
+    if (!Array.isArray(list)) continue;
+    for (const raw of list) {
+      const title = typeof raw === "string" ? raw.trim() : "";
+      if (!title) continue;
+      const norm = normalizeSongTitle(title);
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      out.push(title);
+    }
+  }
+  return out;
 }
 
 function signatureFromRows(rows) {
@@ -249,7 +335,14 @@ function setlistPayloadEqual(a, b) {
   if (JSON.stringify(aOrder) !== JSON.stringify(bOrder)) return false;
   const aEnc = Array.isArray(a?.encoreSongs) ? a.encoreSongs : [];
   const bEnc = Array.isArray(b?.encoreSongs) ? b.encoreSongs : [];
-  return JSON.stringify(aEnc) === JSON.stringify(bEnc);
+  if (JSON.stringify(aEnc) !== JSON.stringify(bEnc)) return false;
+  // Compare `bustouts` by normalized set so a pure casing/ordering change
+  // does not trigger a re-score write; a real membership change does (#214).
+  const aBust = Array.isArray(a?.bustouts) ? a.bustouts : [];
+  const bBust = Array.isArray(b?.bustouts) ? b.bustouts : [];
+  const aNorm = [...new Set(aBust.map((t) => normalizeSongTitle(t)).filter(Boolean))].sort();
+  const bNorm = [...new Set(bBust.map((t) => normalizeSongTitle(t)).filter(Boolean))].sort();
+  return JSON.stringify(aNorm) === JSON.stringify(bNorm);
 }
 
 function nextBackoffMinutes(failureCount) {
@@ -367,6 +460,7 @@ async function pollSingleShowDate({
       setlist: nextPayload.setlist,
       officialSetlist: nextPayload.officialSetlist,
       encoreSongs: nextPayload.encoreSongs || [],
+      bustouts: nextPayload.bustouts || [],
       updatedBy: requestorEmail || "setlist-automation",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       sourceMeta: {
@@ -426,8 +520,11 @@ async function pollSingleShowDate({
 }
 
 module.exports = {
+  BUSTOUT_MIN_GAP,
   buildSetlistDocFromRows,
   candidateShowDates,
+  deriveBustoutsFromRows,
+  fetchPhishnetSetlistForDate,
   getEtHour,
   isWithinLiveSetlistPollWindow,
   normalizeSetlistRows,

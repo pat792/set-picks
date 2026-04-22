@@ -1,5 +1,4 @@
 import { FORM_FIELDS } from '../data/gameConfig';
-import { PHISH_SONGS } from '../data/phishSongs.js';
 
 export const SCORING_RULES = {
   EXACT_SLOT: 10,
@@ -9,7 +8,13 @@ export const SCORING_RULES = {
   /** Wildcard: song appeared anywhere in the show (slots + officialSetlist). */
   WILDCARD_HIT: 10,
   BUSTOUT_BOOST: 20,
-  /** Minimum catalog gap (shows since last play) to earn the bustout boost. */
+  /**
+   * Minimum pre-show gap to count as a bustout. Kept as a named constant for
+   * the write paths (`setlistParser`, live automation) that derive
+   * `official_setlists.bustouts` from Phish.net row `gap`. Scoring itself no
+   * longer evaluates this at read time — it consumes the frozen `bustouts`
+   * snapshot instead (#214).
+   */
   BUSTOUT_MIN_GAP: 30,
 };
 
@@ -17,12 +22,6 @@ const normalize = (s) => String(s ?? '').trim().toLowerCase();
 
 /** Keys on the scoring payload that are not slot song strings. */
 const NON_SONG_SETLIST_KEYS = new Set(['officialSetlist', 'encoreSongs', 'id', 'bustouts']);
-
-function parseGap(gap) {
-  if (gap == null || gap === '' || gap === '—') return null;
-  const n = Number.parseInt(String(gap), 10);
-  return Number.isFinite(n) ? n : null;
-}
 
 /**
  * Encore exact: primary `enc` slot plus optional `encoreSongs` (multi-encore shows).
@@ -116,11 +115,19 @@ function computeSlotResult(fieldId, guessedSong, actualSetlist) {
     }
   }
 
-  const matched = PHISH_SONGS.find((song) => normalize(song.name) === guess);
+  // Bustout boost reads the per-show snapshot on the official setlist doc
+  // (#214). Absence or empty array → no bustout boost; no catalog fallback.
+  // The snapshot is written at save time from Phish.net row `gap` (pre-show
+  // by construction), which decouples scoring from the weekly
+  // `song-catalog.json` refresh cadence.
+  const bustoutList = Array.isArray(actualSetlist.bustouts) ? actualSetlist.bustouts : [];
   let bustoutBoost = false;
-  if (matched) {
-    const gapNum = parseGap(matched.gap);
-    bustoutBoost = gapNum != null && gapNum >= SCORING_RULES.BUSTOUT_MIN_GAP;
+  for (const raw of bustoutList) {
+    if (typeof raw !== 'string') continue;
+    if (normalize(raw) === guess) {
+      bustoutBoost = true;
+      break;
+    }
   }
 
   /** @type {ScoreBreakdownKind} */

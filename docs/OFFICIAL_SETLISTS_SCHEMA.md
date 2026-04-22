@@ -17,6 +17,7 @@ Canonical reference for `official_setlists/{showDate}` documents, how scoring co
 |--------|------|------|
 | `setlist` | `Record<string, string>` | **Position / slot answers** — keys are game slot IDs from `FORM_FIELDS` in `src/shared/data/gameConfig.js` (e.g. `s1o`, `s1c`, `s2o`, `s2c`, `enc`, `wild`). Values are song titles as entered for that slot. Used for **exact-slot** and **encore-exact** scoring. |
 | `officialSetlist` | `string[]` | **Ordered full-show song list** as played. Merged with slot values when building “everything that counted as played” for **in-setlist** and **wildcard** scoring. |
+| `bustouts` | `string[]` | **Per-show bustout snapshot** (#214). Song titles whose **pre-show** gap (shows since last play before this show) was ≥ `SCORING_RULES.BUSTOUT_MIN_GAP` (30). Frozen at save time from Phish.net v5 setlist rows' per-row `gap`. Scoring uses this snapshot only — it does **not** fall back to the Storage song catalog (whose gap resets to ~0 after this show plays). Absence or empty array means “no bustouts for this show.” |
 
 **Naming note:** In everyday language “setlist” means the whole show. In Firestore, `setlist` is **only** the slot map; `officialSetlist` is the **chronological** list. Both are authoritative for different scoring paths. A future optional rename to `positionSlots` / `playedSongOrder` is tracked in [#145](https://github.com/pat792/set-picks/issues/145).
 
@@ -50,20 +51,53 @@ Written on save from `saveOfficialSetlistByDate` (`src/features/admin/api/offici
 - **Exact slot / encore exact:** compare user pick to `actualSetlist[fieldId]` (from the slot map).
 - **In setlist:** guess appears in `buildAllPlayedNormalized(actualSetlist)` but is not an exact slot match.
 - **Wildcard:** guess must appear in that merged “all played” set.
-- **Bustout boost:** applied on top when catalog metadata (song `gap`) matches.
+- **Bustout boost:** applied on top when the pick matches an entry in `actualSetlist.bustouts` (case-insensitive). Absence/empty → no boost.
 
 Detailed points and UI breakdown kinds: `getSlotScoreBreakdown` in `src/shared/utils/scoring.js`.
 
-### Bustout catalog source (client vs Cloud Function)
+### Bustout source — per-show snapshot (#214)
 
-Bustout boosts depend on per-song `gap` metadata from the **Phish.net-synced song catalog**. Both runtimes now read the same canonical catalog published to Firebase Storage (`song-catalog.json`) with a bundled fallback so scoring never hard-fails:
+Both the client (`src/shared/utils/scoring.js`) and the Cloud Function (`functions/index.js`) read bustout membership exclusively from **`official_setlists/{showDate}.bustouts`**. The snapshot is frozen at setlist save time from **Phish.net v5 `/setlists/showdate/{date}` row `gap`** — the definitional pre-show gap — so scoring is deterministic and cannot drift with the weekly `song-catalog.json` refresh cadence.
 
-| Runtime | Loader | Storage path | Fallback |
-|---------|--------|--------------|----------|
-| Client (copy / UI explanations) | `useSongCatalog` (`src/features/song-catalog/model/useSongCatalog.js`) | `song-catalog.json` (default bucket; URL via `songCatalogUrl.js`) | Bundled `src/shared/data/phishSongs.js` |
-| Cloud Function (grading) | `loadSongCatalogSongs` → `functions/songCatalogSource.js` (5 min in-memory TTL cache, per function instance) | `song-catalog.json` (`CATALOG_STORAGE_PATH` shared with `functions/phishnetSongCatalog.js`) | Bundled `functions/phishSongs.js` |
+Write paths (both populate `bustouts`):
 
-The grading function loads the catalog **once per invocation** in `recomputeLiveScoresForShow` (`functions/index.js`) and threads the array through `calculateTotalScore` / `calculateSlotScore` so every pick in the batch uses the same snapshot. See **`docs/SONG_CATALOG.md`** for the weekly refresh pipeline (`scheduledPhishnetSongCatalog` / admin `refreshPhishnetSongCatalog`) and issue [#167](https://github.com/pat792/set-picks/issues/167) for the server-side alignment rationale.
+| Path | File | Source for `gap` |
+|------|------|------------------|
+| Live automation | `functions/phishnetLiveSetlistAutomation.js` (`normalizeSetlistRows` → `buildSetlistDocFromRows` → `pollSingleShowDate`) | Phish.net row `gap` (direct). |
+| Admin save | `src/features/admin/model/useAdminSetlistForm.js` → `saveOfficialSetlistByDate` | Phish.net row `gap` via `setlistParser` when the admin ingested from Phish.net; otherwise a fetch-at-save call (`fetchBustoutsFromPhishnet`) hits the `getPhishnetSetlist` callable and derives from rows. On soft-failure we save with `bustouts: []` and surface a warning so the admin can retry. |
+
+The live Storage `song-catalog.json` and the bundled fallbacks (`src/shared/data/phishSongs.js`, `functions/phishSongs.js`) are **no longer used for scoring**. They remain in place for UI autocomplete, scoring-rules copy, and future upcoming-show bustout-prediction features. See `docs/SONG_CATALOG.md` for their current (UI-only) role.
+
+### Partial-feed safety
+
+Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows` merges the prior `bustouts` with the newly-derived set so a bustout captured in an earlier poll is never shrunk away by a partial later one.
+
+### Backfill
+
+For shows saved before #214 landed, `bustouts` is absent. The admin callable `backfillBustoutsForShows` (in `functions/index.js`) re-fetches each setlist from Phish.net, derives `bustouts`, writes the snapshot via merge, and reconciles `pick.score` + `users.totalPoints` by the per-pick score delta so existing graded shows stay consistent. Input shapes:
+
+- `{ showDates: ["YYYY-MM-DD", ...] }` — targeted list.
+- `{ mode: "missing" }` — scan `official_setlists` for docs without `bustouts`.
+
+**Run from a local admin workstation** via the wrapper script (mints a short-lived admin-claim token via `firebase-admin` + Identity Toolkit REST; the callable stays the single source of truth):
+
+```bash
+# One-time: make sure ADC is configured for firebase-admin.
+gcloud auth application-default login
+
+cd functions
+
+# Dry-run: list shows that need a snapshot without invoking the callable.
+npm run backfill:bustouts -- --missing
+
+# Backfill every show missing a snapshot:
+npm run backfill:bustouts -- --missing --apply
+
+# Backfill specific dates:
+npm run backfill:bustouts -- --showDates=2025-12-28,2025-12-30,2025-12-31 --apply
+```
+
+Script reads `VITE_FIREBASE_API_KEY` + `VITE_FIREBASE_PROJECT_ID` from the repo-root `.env` (public web config; fine to read locally) and mints a custom token for a synthetic UID (`backfill-bustouts-script`) with `{ admin: true }`. The callable's `assertAdminClaim` gate accepts the claim; no real user account is created or modified.
 
 ---
 
@@ -120,7 +154,10 @@ Network layer: `src/features/admin-setlist-config/api/phishApiClient.js`.
 | Standings read shape | `src/features/scoring/api/standingsApi.js` (`fetchOfficialSetlistForShow`) |
 | Client scoring | `src/shared/utils/scoring.js` |
 | Setlist write trigger | `functions/index.js` — `gradePicksOnSetlistWrite` |
-| Cloud Function bustout catalog loader | `functions/songCatalogSource.js` (Storage → fallback; 5 min TTL) |
+| Per-show bustout snapshot derivation (live) | `functions/phishnetLiveSetlistAutomation.js` — `deriveBustoutsFromRows`, `buildSetlistDocFromRows` |
+| Per-show bustout snapshot derivation (admin) | `src/features/admin-setlist-config/model/setlistParser.js` — `bustoutTitles` on the parsed DTO |
+| Admin fetch-at-save fallback | `src/features/admin/model/setlistAutomation.js` — `fetchBustoutsFromPhishnet` |
+| Backfill callable | `functions/index.js` — `backfillBustoutsForShows` |
 | Cloud Function live scoring core | `functions/index.js` — `recomputeLiveScoresForShow`, `calculateTotalScore`, `calculateSlotScore` |
 
 ---

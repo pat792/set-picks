@@ -2,8 +2,10 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
+  BUSTOUT_MIN_GAP,
   buildSetlistDocFromRows,
   candidateShowDates,
+  deriveBustoutsFromRows,
   isWithinLiveSetlistPollWindow,
   normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
@@ -259,4 +261,103 @@ test("historical progression replay keeps slots stable as show grows", () => {
   assert.equal(doc.setlist.enc, "Tweezer Reprise");
   assert.deepEqual(doc.encoreSongs, ["Tweezer Reprise"]);
   assert.equal(doc.officialSetlist.length, 4);
+});
+
+// ---------- per-show bustouts snapshot (#214) ----------
+
+test("normalizeSetlistRows preserves per-row gap (number and numeric string)", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "A", gap: 12 },
+      { set: "1", idx: 2, song: "B", gap: "40" },
+      { set: "1", idx: 3, song: "C", gap: null },
+      { set: "1", idx: 4, song: "D" },
+    ],
+  });
+  const byTitle = Object.fromEntries(rows.map((r) => [r.title, r.gap]));
+  assert.equal(byTitle.A, 12);
+  assert.equal(byTitle.B, 40);
+  assert.equal(byTitle.C, null);
+  assert.equal(byTitle.D, null);
+});
+
+test("deriveBustoutsFromRows selects titles with gap >= BUSTOUT_MIN_GAP", () => {
+  const rows = [
+    { setKey: "1", position: 1, title: "Low Gap", gap: 5 },
+    { setKey: "1", position: 2, title: "Exact Threshold", gap: BUSTOUT_MIN_GAP },
+    { setKey: "1", position: 3, title: "Big Gap", gap: 137 },
+    { setKey: "1", position: 4, title: "Unknown Gap", gap: null },
+  ];
+  const bustouts = deriveBustoutsFromRows(rows);
+  assert.deepEqual(bustouts, ["Exact Threshold", "Big Gap"]);
+});
+
+test("deriveBustoutsFromRows dedupes by normalized title, keeps first casing", () => {
+  const rows = [
+    { setKey: "1", position: 1, title: "Colonel Forbin's Ascent", gap: 98 },
+    { setKey: "E", position: 1, title: "COLONEL FORBIN'S ASCENT", gap: 98 },
+  ];
+  const bustouts = deriveBustoutsFromRows(rows);
+  assert.deepEqual(bustouts, ["Colonel Forbin's Ascent"]);
+});
+
+test("buildSetlistDocFromRows emits bustouts from per-row gap", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "AC/DC Bag", gap: 8 },
+      { set: "1", idx: 2, song: "Bathtub Gin", gap: 14 },
+      { set: "2", idx: 1, song: "Colonel Forbin's Ascent", gap: 98 },
+      { set: "2", idx: 2, song: "Down with Disease", gap: 2 },
+      { set: "E", idx: 1, song: "Fluff's Travels", gap: 1884 },
+    ],
+  });
+  const out = buildSetlistDocFromRows(rows, {});
+  assert.deepEqual(out.bustouts, ["Colonel Forbin's Ascent", "Fluff's Travels"]);
+});
+
+test("buildSetlistDocFromRows merges prior bustouts as a superset (partial feed safety)", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      // Set 1 already played; Phish.net might already include gap here.
+      { set: "1", idx: 1, song: "AC/DC Bag", gap: 8 },
+      // Set 2 not yet played in this feed; prior snapshot has a bustout from
+      // an earlier partial poll. We must preserve it.
+    ],
+  });
+  const out = buildSetlistDocFromRows(rows, {
+    bustouts: ["Colonel Forbin's Ascent"],
+  });
+  // Prior bustout preserved even though it is not in the current rows slice.
+  assert.ok(out.bustouts.includes("Colonel Forbin's Ascent"));
+});
+
+test("setlistPayloadEqual detects bustouts membership change, ignores casing/order", () => {
+  const base = {
+    setlist: { s1o: "A", s1c: "", s2o: "", s2c: "", enc: "" },
+    officialSetlist: ["A"],
+    encoreSongs: [],
+    bustouts: ["Colonel Forbin's Ascent", "Fluff's Travels"],
+  };
+  const reordered = { ...base, bustouts: ["Fluff's Travels", "Colonel Forbin's Ascent"] };
+  const recased = { ...base, bustouts: ["colonel forbin's ascent", "fluff's travels"] };
+  const removed = { ...base, bustouts: ["Colonel Forbin's Ascent"] };
+  const added = { ...base, bustouts: [...base.bustouts, "Minkin"] };
+
+  assert.equal(setlistPayloadEqual(base, reordered), true);
+  assert.equal(setlistPayloadEqual(base, recased), true);
+  assert.equal(setlistPayloadEqual(base, removed), false);
+  assert.equal(setlistPayloadEqual(base, added), false);
+});
+
+test("setlistPayloadEqual: absent bustouts on both sides still compares equal", () => {
+  const a = {
+    setlist: { s1o: "A", s1c: "", s2o: "", s2c: "", enc: "" },
+    officialSetlist: ["A"],
+    encoreSongs: [],
+  };
+  const b = { ...a };
+  assert.equal(setlistPayloadEqual(a, b), true);
 });
