@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 
 import { useNextShowPicksStatus } from '../../features/picks';
 import {
-  PoolAdminControls,
+  PoolAdminSection,
   PoolHubActiveShow,
   PoolHubHeader,
   PoolHubSeasonTotalsSection,
@@ -15,7 +15,6 @@ import {
 } from '../../features/pools';
 import { useShowCalendar } from '../../features/show-calendar';
 import BackButton from '../../shared/ui/BackButton';
-import DashboardPoolBreadcrumb from '../../shared/ui/DashboardPoolBreadcrumb';
 import { getNextShow, getShowStatus, scheduleTodayYmd } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelDesktop } from '../../shared/utils/showOptionLabel.js';
 
@@ -118,7 +117,6 @@ export default function PoolHubPage({ user }) {
       <div className="flex flex-col gap-2">
         <div className="px-1">
           <BackButton />
-          <DashboardPoolBreadcrumb poolName={pool.name} />
         </div>
         <PoolHubHeader
           poolName={pool.name}
@@ -130,7 +128,7 @@ export default function PoolHubPage({ user }) {
         />
       </div>
       <div className="flex flex-col gap-6">
-        <PoolAdminControls
+        <PoolAdminSection
           canAdmin={admin.canAdmin}
           isArchived={admin.isArchived}
           editNameOpen={admin.editNameOpen}
