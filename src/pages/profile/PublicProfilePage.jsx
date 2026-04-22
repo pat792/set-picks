@@ -1,13 +1,21 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
-import { PublicProfileView, usePublicProfile } from '../../features/profile';
+import {
+  PublicProfileView,
+  usePublicProfile,
+  useUserSeasonStats,
+} from '../../features/profile';
+import { ShowCalendarProvider } from '../../features/show-calendar';
 import { AsyncStatus } from '../../shared';
 import BackButton from '../../shared/ui/BackButton';
 
-export default function PublicProfile() {
+function PublicProfileContent() {
   const { userId } = useParams();
   const { loading, error, profile, userPools } = usePublicProfile(userId);
+  const { stats, loading: statsLoading } = useUserSeasonStats(
+    profile ? userId : undefined
+  );
 
   if (loading || error === 'fetch') {
     return (
@@ -36,5 +44,22 @@ export default function PublicProfile() {
     );
   }
 
-  return <PublicProfileView profile={profile} userPools={userPools} />;
+  return (
+    <PublicProfileView
+      profile={profile}
+      userPools={userPools}
+      stats={stats}
+      statsLoading={statsLoading}
+    />
+  );
+}
+
+export default function PublicProfile() {
+  // Season stats need the show calendar; the public profile route lives
+  // outside the dashboard shell so we provide it locally.
+  return (
+    <ShowCalendarProvider>
+      <PublicProfileContent />
+    </ShowCalendarProvider>
+  );
 }
