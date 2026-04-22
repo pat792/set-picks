@@ -1,4 +1,4 @@
-import { arrayRemove, doc, getDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
 
@@ -41,14 +41,6 @@ function pickCountsTowardPoolSeasonTotals(pickData) {
   return hasNonEmptyPicksObject(pickData.picks);
 }
 
-function pickDocHasPoolActivity(pickData, poolId) {
-  if (!pickDataCountsForPool(pickData, poolId)) return false;
-  if (hasNonEmptyPicksObject(pickData.picks)) return true;
-  if (pickData.isGraded === true) return true;
-  if (typeof pickData.score === 'number' && pickData.score > 0) return true;
-  return false;
-}
-
 export async function updatePoolNameApi(poolId, newName) {
   const trimmed = newName?.trim() ?? '';
   if (!poolId?.trim()) throw new Error('Missing pool id.');
@@ -69,92 +61,6 @@ export async function updatePoolStatusApi(poolId, status) {
     throw new Error('Invalid pool status.');
   }
   await updateDoc(doc(db, 'pools', poolId.trim()), { status });
-}
-
-/**
- * @param {{ date: string }[]} showDates — same calendar as dashboard (Phish.net or fallback).
- * @returns {Promise<boolean>}
- */
-export async function poolHasPickActivityApi(poolId, memberIds, showDates) {
-  const pid = poolId?.trim();
-  const members = Array.isArray(memberIds) ? memberIds.filter(Boolean) : [];
-  if (!pid || members.length === 0) return false;
-  if (!Array.isArray(showDates) || showDates.length === 0) return false;
-
-  const dates = showDates.map((s) => s.date);
-  const chunkSize = 24;
-  const tasks = [];
-  for (const showDate of dates) {
-    for (const userId of members) {
-      tasks.push({ showDate, userId });
-    }
-  }
-
-  for (let i = 0; i < tasks.length; i += chunkSize) {
-    const slice = tasks.slice(i, i + chunkSize);
-    const snaps = await Promise.all(
-      slice.map(({ showDate, userId }) =>
-        getDoc(doc(db, 'picks', pickDocId(showDate, userId)))
-      )
-    );
-    for (let j = 0; j < snaps.length; j += 1) {
-      const snap = snaps[j];
-      if (!snap.exists()) continue;
-      if (pickDocHasPoolActivity(snap.data(), pid)) return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Deletes the pool doc and removes the pool id from the owner’s `users.pools` only.
- * Multi-member pools cannot be fully cleaned up from the client without a Cloud Function
- * (Firestore rules keep user updates owner-scoped).
- */
-export async function deleteOwnerOnlyEmptyPoolApi(poolId, ownerId) {
-  const pid = poolId?.trim();
-  const uid = ownerId?.trim();
-  if (!pid || !uid) throw new Error('Missing pool or owner id.');
-
-  const batch = writeBatch(db);
-  batch.set(
-    doc(db, 'users', uid),
-    { pools: arrayRemove(pid) },
-    { merge: true }
-  );
-  batch.delete(doc(db, 'pools', pid));
-  await batch.commit();
-}
-
-/**
- * @param {string} ownerId — pool.ownerId (creator)
- */
-export async function deletePoolApi(poolId, memberIds, ownerId, showDates) {
-  const pid = poolId?.trim();
-  const oid = ownerId?.trim();
-  const members = Array.isArray(memberIds) ? memberIds.filter(Boolean) : [];
-  if (!pid) throw new Error('Missing pool id.');
-  if (!oid) throw new Error('Missing pool owner id.');
-
-  const unique = [...new Set(members)];
-  if (unique.length !== 1 || unique[0] !== oid) {
-    const err = new Error(
-      'You can only delete a pool that has no other members. Ask others to leave, or archive the pool.'
-    );
-    err.code = 'pool-has-members';
-    throw err;
-  }
-
-  const active = await poolHasPickActivityApi(pid, unique, showDates);
-  if (active) {
-    const err = new Error(
-      'This pool has pick history. Archive it instead of deleting.'
-    );
-    err.code = 'pool-has-activity';
-    throw err;
-  }
-
-  await deleteOwnerOnlyEmptyPoolApi(pid, oid);
 }
 
 /**

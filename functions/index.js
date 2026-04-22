@@ -25,6 +25,11 @@ const {
   resolveAdminCallerRole,
   resolveSetAdminClaimCallerRole,
 } = require("./adminAuth");
+const {
+  MAX_POOL_DELETE_BATCH_WRITES,
+  findPoolPickActivity,
+  parseShowCalendarDates,
+} = require("./poolDelete");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 
@@ -609,6 +614,131 @@ exports.setAdminClaim = onCall(
     });
 
     return { ok: true, targetUid, admin: grant };
+  }
+);
+
+/**
+ * Server-side delete of a pool with full member cleanup (issue #138).
+ *
+ * Required because Firestore rules only let a user update their own `users`
+ * doc — a pool owner cannot clear the pool id from every other member's
+ * `users.pools` array from the client. Admin SDK bypasses rules; authz is
+ * enforced here.
+ *
+ * Guarantees:
+ *   - Caller must be signed in (`unauthenticated` otherwise).
+ *   - Caller must match `pools/{poolId}.ownerId` (`permission-denied` otherwise).
+ *   - Pool must have **no qualifying pick activity**; otherwise the client is
+ *     told to archive instead (`failed-precondition`). Activity is the same
+ *     rule as the client walk (`pickDocHasPoolActivity`) using
+ *     `show_calendar/snapshot` as the authoritative date source.
+ *   - Every member of `pools/{poolId}.members` has `poolId` removed from
+ *     `users/{uid}.pools` via `FieldValue.arrayRemove`, then the pool doc
+ *     is deleted in the same logical operation (batched; split at
+ *     `MAX_POOL_DELETE_BATCH_WRITES`).
+ *
+ * NB: We intentionally re-walk the calendar server-side instead of trusting
+ * a client-provided list, so a stale client can't bypass the activity guard.
+ */
+exports.deletePoolWithCleanup = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const callerUid = request.auth.uid;
+    const rawPoolId = request.data?.poolId;
+    const poolId =
+      typeof rawPoolId === "string" && rawPoolId.trim() ? rawPoolId.trim() : "";
+    if (!poolId) {
+      throw new HttpsError("invalid-argument", "poolId is required.");
+    }
+
+    const poolRef = db.collection("pools").doc(poolId);
+    const poolSnap = await poolRef.get();
+    if (!poolSnap.exists) {
+      throw new HttpsError("not-found", `Pool ${poolId} does not exist.`);
+    }
+    const poolData = poolSnap.data() || {};
+    const ownerId =
+      typeof poolData.ownerId === "string" ? poolData.ownerId.trim() : "";
+    if (!ownerId || ownerId !== callerUid) {
+      throw new HttpsError(
+        "permission-denied",
+        "Only the pool owner can delete this pool."
+      );
+    }
+
+    const rawMembers = Array.isArray(poolData.members) ? poolData.members : [];
+    const memberIds = [
+      ...new Set(
+        rawMembers
+          .filter((u) => typeof u === "string" && u.trim())
+          .map((u) => u.trim())
+      ),
+    ];
+    if (!memberIds.includes(ownerId)) memberIds.push(ownerId);
+
+    const calendarSnap = await db
+      .collection("show_calendar")
+      .doc("snapshot")
+      .get();
+    const showDates = parseShowCalendarDates(
+      calendarSnap.exists ? calendarSnap.data() : null
+    );
+
+    const hasActivity = await findPoolPickActivity({
+      db,
+      poolId,
+      memberIds,
+      showDates,
+    });
+    if (hasActivity) {
+      throw new HttpsError(
+        "failed-precondition",
+        "This pool has pick history. Archive it instead of deleting."
+      );
+    }
+
+    // Split at the Firestore 500-write batch limit. Pool delete is its own
+    // write, so we reserve one slot for it before committing.
+    let batch = db.batch();
+    let opCount = 0;
+    let memberUpdates = 0;
+    for (const uid of memberIds) {
+      if (opCount >= MAX_POOL_DELETE_BATCH_WRITES) {
+        await batch.commit();
+        batch = db.batch();
+        opCount = 0;
+      }
+      batch.set(
+        db.collection("users").doc(uid),
+        { pools: admin.firestore.FieldValue.arrayRemove(poolId) },
+        { merge: true }
+      );
+      opCount += 1;
+      memberUpdates += 1;
+    }
+    if (opCount >= MAX_POOL_DELETE_BATCH_WRITES) {
+      await batch.commit();
+      batch = db.batch();
+      opCount = 0;
+    }
+    batch.delete(poolRef);
+    opCount += 1;
+    if (opCount > 0) await batch.commit();
+
+    logger.info("deletePoolWithCleanup", {
+      poolId,
+      callerUid,
+      memberUpdates,
+    });
+
+    return { ok: true, poolId, memberUpdates };
   }
 );
 
