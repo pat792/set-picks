@@ -6,6 +6,7 @@ import {
   SplashPageShell,
   useScrollToSectionFocus,
 } from '../../features/landing';
+import { ScoringRulesModalProvider } from '../../features/scoring';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
 import { showSuccessToast } from '../../shared/ui/toast';
@@ -57,7 +58,7 @@ export default function Splash() {
   }, [openSignInModal]);
 
   return (
-    <>
+    <ScoringRulesModalProvider>
       <SplashPageShell
         howItWorksSectionRef={howItWorksSectionRef}
         howItWorksHeadingRef={howItWorksHeadingRef}
@@ -73,6 +74,6 @@ export default function Splash() {
         onOpenSignInModal={openSignInModal}
       />
       <SplashAuthModals authModal={authModal} closeModal={closeModal} />
-    </>
+    </ScoringRulesModalProvider>
   );
 }

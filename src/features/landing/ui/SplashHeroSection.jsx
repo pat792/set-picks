@@ -12,15 +12,23 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
           aria-label={"Setlist Pick 'Em"}
         >
           <SplashHeroWordmark />
+          <span className="sr-only">
+            Setlist Pick &apos;Em &mdash; the free live setlist prediction game for Phish fans
+          </span>
         </h1>
 
         <div className="mx-auto mt-6 max-w-2xl shrink-0 sm:-mt-0.5 md:-mt-1">
           <p className="mb-3 text-lg font-bold tracking-wide text-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] sm:mb-2 md:text-xl">
-            The ultimate live music prediction game. Launching on Phish Tour.
+            Predict the setlist. Win the night. 
+            Now live on Phish Tour.
           </p>
 
           <p className="text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
-            Join a global community of fans who live for the next song. Challenge your tour family, lock in your predictions, and share the thrill of calling a legendary show before the lights even go down.
+            Make picks for tonight's show, watch scores update as songs are played, and compete with your tour crew for the top spot.
+          </p>
+
+          <p className="mt-4 text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
+            What started as a game on paper 25 years ago is now a fully automated, live setlist game for friends to play at the show and on couch tour. Invite your friends, track stats, and make every show count.
           </p>
         </div>
 

@@ -16,12 +16,12 @@ export default function SplashAboutSection({
       className="relative z-10 w-full bg-transparent py-20 md:py-24 lg:py-32"
     >
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-16 items-start">
           <div className="lg:col-span-5 lg:sticky lg:top-32">
             <h2
               ref={headingRef}
               tabIndex={-1}
-              className="font-display text-[6.5vw] sm:text-4xl md:text-5xl lg:text-6xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 mb-8 outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded-md leading-tight whitespace-nowrap sm:whitespace-normal"
+              className="font-display text-[6.5vw] sm:text-4xl md:text-5xl lg:text-6xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500 mb-2 lg:mb-8 outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded-md leading-tight whitespace-nowrap sm:whitespace-normal"
             >
               About Setlist Pick &apos;Em
             </h2>

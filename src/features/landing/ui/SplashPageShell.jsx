@@ -55,6 +55,24 @@ export default function SplashPageShell({
           />
         </main>
 
+        <footer className="relative z-10 border-t border-slate-800/60 bg-transparent px-4 py-6 text-center text-xs font-medium leading-relaxed text-slate-500 sm:px-6 lg:px-8">
+          <p>
+            &copy; {new Date().getFullYear()} Road2 Media, LLC. All rights reserved.
+          </p>
+          <p className="mt-1">
+            Song and setlist data provided by{' '}
+            <a
+              href="https://phish.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
+            >
+              The Mockingbird Foundation / Phish.Net
+            </a>
+            .
+          </p>
+        </footer>
+
         {children}
       </div>
     </>

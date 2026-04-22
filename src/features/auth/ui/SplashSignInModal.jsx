@@ -141,7 +141,7 @@ export default function SplashSignInModal({ isOpen, onClose }) {
           </div>
           {error ? <StatusBanner type="error" message={error} /> : null}
           <Button
-            variant="primary"
+            variant="secondary"
             type="submit"
             disabled={busy}
             className="w-full py-3.5 rounded-xl uppercase tracking-widest"

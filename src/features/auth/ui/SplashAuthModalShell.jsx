@@ -2,7 +2,15 @@ import React from 'react';
 
 import Button from '../../../shared/ui/Button';
 
-export default function SplashAuthModalShell({ isOpen, onClose, title, handleGoogle, busy, children }) {
+export default function SplashAuthModalShell({
+  isOpen,
+  onClose,
+  title,
+  handleGoogle,
+  busy,
+  googleFootnote,
+  children,
+}) {
   if (!isOpen) return null;
 
   return (
@@ -35,15 +43,21 @@ export default function SplashAuthModalShell({ isOpen, onClose, title, handleGoo
           type="button"
           onClick={handleGoogle}
           disabled={busy}
-          className="w-full bg-white text-slate-900 py-3.5 rounded-xl gap-3 hover:bg-slate-100 transition-colors mb-6"
+          className="w-full bg-white text-slate-900 py-3.5 rounded-xl gap-3 shadow-[0_8px_24px_-12px_rgba(255,255,255,0.35)] ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-[0_12px_28px_-12px_rgba(255,255,255,0.45)]"
         >
           <img src="https://www.google.com/favicon.ico" alt="" className="w-5 h-5" />
           Continue with Google
         </Button>
 
-        <div className="flex items-center gap-3 mb-6">
+        {googleFootnote ? (
+          <p className="mt-3 text-center text-xs font-semibold leading-relaxed text-slate-300">
+            {googleFootnote}
+          </p>
+        ) : null}
+
+        <div className="mt-8 flex items-center gap-3 mb-6">
           <div className="h-px flex-1 bg-border-muted" />
-          <span className="text-xs font-bold uppercase text-slate-500">or email</span>
+          <span className="text-xs font-bold uppercase text-slate-500">or</span>
           <div className="h-px flex-1 bg-border-muted" />
         </div>
 
