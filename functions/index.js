@@ -359,7 +359,23 @@ exports.rollupScoresForShow = onCall(
       .where("showDate", "==", showDate)
       .get();
 
+    const callerUid = request.auth?.uid || null;
+
     if (picksSnap.empty) {
+      await writeRollupAuditDoc({
+        showDate,
+        processedPicks: 0,
+        skippedPicks: 0,
+        totalPicks: 0,
+        callerUid,
+      });
+      logger.info("rollupScoresForShow", {
+        showDate,
+        processedPicks: 0,
+        skippedPicks: 0,
+        totalPicks: 0,
+        callerUid,
+      });
       return {
         ok: true,
         processedPicks: 0,
@@ -420,14 +436,69 @@ exports.rollupScoresForShow = onCall(
       await batch.commit();
     }
 
+    const totalPicks = picksSnap.size;
+    await writeRollupAuditDoc({
+      showDate,
+      processedPicks,
+      skippedPicks,
+      totalPicks,
+      callerUid,
+    });
+    logger.info("rollupScoresForShow", {
+      showDate,
+      processedPicks,
+      skippedPicks,
+      totalPicks,
+      callerUid,
+    });
+
     return {
       ok: true,
       processedPicks,
       skippedPicks,
-      totalPicks: picksSnap.size,
+      totalPicks,
     };
   }
 );
+
+/**
+ * Writes an audit record to `rollup_audit/{showDate}` with the counts and
+ * timestamp of the most recent `rollupScoresForShow` invocation. Standalone
+ * top-level collection (not under `official_setlists`) so it never re-triggers
+ * `gradePicksOnSetlistWrite`. PR B will add a rule that makes this collection
+ * admin-read-only; Admin SDK writes bypass rules so this still works under
+ * tightened policy. Soft-fails on error so a transient audit write failure
+ * never loses a successful grading pass.
+ */
+async function writeRollupAuditDoc({
+  showDate,
+  processedPicks,
+  skippedPicks,
+  totalPicks,
+  callerUid,
+}) {
+  try {
+    await db
+      .collection("rollup_audit")
+      .doc(showDate)
+      .set(
+        {
+          lastRolledUpAt: admin.firestore.FieldValue.serverTimestamp(),
+          processedPicks,
+          skippedPicks,
+          totalPicks,
+          callerUid: callerUid || null,
+        },
+        { merge: true }
+      );
+  } catch (e) {
+    const msg = e?.message || String(e);
+    logger.warn("rollupScoresForShow.auditWrite failed", {
+      showDate,
+      msg,
+    });
+  }
+}
 
 /**
  * Grant or revoke the `admin: true` Firebase custom claim on a target user.
