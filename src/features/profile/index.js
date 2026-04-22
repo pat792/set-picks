@@ -4,3 +4,4 @@ export { default as ProfileEditForm } from './ui/ProfileEditForm';
 export { default as PublicProfileView } from './ui/PublicProfileView';
 export { usePublicProfile } from './model/usePublicProfile';
 export { useUserProfile } from './model/useUserProfile';
+export { useUserSeasonStats } from './model/useUserSeasonStats';

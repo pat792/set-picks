@@ -1,4 +1,6 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
+
 import { formatMonthYear } from '../../../shared';
 import BackButton from '../../../shared/ui/BackButton';
 
@@ -7,10 +9,38 @@ function formatPlayingSince(createdAt) {
   return value || null;
 }
 
+function StatCell({ label, value, loading }) {
+  return (
+    <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
+      <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
+        {label}
+      </p>
+      {loading ? (
+        <Loader2
+          className="mx-auto h-5 w-5 animate-spin text-brand-primary"
+          aria-label={`Loading ${label.toLowerCase()}`}
+        />
+      ) : (
+        <p className="text-xl font-black tabular-nums text-brand-primary">
+          {value}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /**
- * Read-only public profile: handle, favorite song, pools, and stats.
+ * Read-only public profile: handle, favorite song, pools, and season stats.
+ * Stats are the global cross-pool view (points from the user's own graded
+ * picks, overall shows won, and shows played) — `wins` counts each night
+ * once based on the global high score, not per-pool.
  */
-export default function PublicProfileView({ profile, userPools = [] }) {
+export default function PublicProfileView({
+  profile,
+  userPools = [],
+  stats,
+  statsLoading = false,
+}) {
   if (!profile) return null;
 
   const handle = profile.handle?.trim() || 'Anonymous';
@@ -21,8 +51,11 @@ export default function PublicProfileView({ profile, userPools = [] }) {
     profile.favoriteSong !== 'Unknown'
       ? profile.favoriteSong
       : null;
+
   const totalPoints =
-    typeof profile.totalPoints === 'number' ? profile.totalPoints : 0;
+    typeof stats?.totalPoints === 'number' ? stats.totalPoints : 0;
+  const wins = typeof stats?.wins === 'number' ? stats.wins : 0;
+  const shows = typeof stats?.shows === 'number' ? stats.shows : 0;
 
   return (
     <div className="min-h-screen bg-transparent text-white">
@@ -74,25 +107,18 @@ export default function PublicProfileView({ profile, userPools = [] }) {
             Stats
           </h2>
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
-              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
-                Total points
-              </p>
-              <p className="text-xl font-black tabular-nums text-brand-primary">{totalPoints}</p>
-            </div>
-            <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
-              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
-                Shows played
-              </p>
-              <p className="text-xl font-black tabular-nums text-content-secondary/90">TBD</p>
-            </div>
-            <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
-              <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
-                Direct hits
-              </p>
-              <p className="text-xl font-black tabular-nums text-content-secondary/90">TBD</p>
-            </div>
+            <StatCell
+              label="Total points"
+              value={totalPoints}
+              loading={statsLoading}
+            />
+            <StatCell label="Wins" value={wins} loading={statsLoading} />
+            <StatCell label="Shows" value={shows} loading={statsLoading} />
           </div>
+          <p className="mt-3 text-[11px] font-medium leading-relaxed text-content-secondary">
+            Running totals across every graded night. Wins count shows where
+            this player had the top score overall, not just in a single pool.
+          </p>
         </section>
       </div>
     </div>
