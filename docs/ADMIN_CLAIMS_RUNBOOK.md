@@ -2,7 +2,7 @@
 
 Operational guide for granting, revoking, and auditing the `admin: true` Firebase Auth custom claim used by Set Picks.
 
-Introduced in issue #139 PR A. In PR A the claim is the preferred signal for admin UI gating (`useAuth().isAdmin`) but a **legacy email fallback** (`pat@road2media.com`) is still accepted so existing admin flows keep working during transition. PR B removes the email fallback and tightens Firestore rules to require the claim.
+Introduced in issue #139 PR A as the preferred admin signal, with a transitional `pat@road2media.com` email fallback. **PR B (this milestone) tightened Firestore rules to require the claim and removed the email fallback everywhere** — from `resolveIsAdmin` (client), from `resolveAdminCallerRole` / `resolveSetAdminClaimCallerRole` (functions), from `assertAdminClaim` (formerly `assertAdminEmail` / `assertAdminClaimOrEmail`), and from `firestore.rules`. The claim is now the single source of truth.
 
 ---
 
@@ -13,19 +13,21 @@ Both live in `functions/index.js`:
 | Function | Type | Purpose |
 |---------|------|---------|
 | `setAdminClaim` | HTTPS callable | Grant or revoke `admin: true` on a target Auth user |
-| `rollupScoresForShow` | HTTPS callable | Server-side replacement for `adminRollupApi.js`; gated by `admin: true` claim OR legacy email |
+| `rollupScoresForShow` | HTTPS callable | Server-side replacement for `adminRollupApi.js`; gated by the `admin: true` claim |
+
+Every other admin-only callable (`refreshLiveScoresForShow`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `getPhishnetSetlist`, `refreshPhishnetShowCalendar`, `refreshPhishnetSongCatalog`) is gated on the same `assertAdminClaim(request)` helper.
 
 `setAdminClaim` authorization:
 
 - Caller must be signed in.
-- Caller must be a **super-admin** — either `SUPER_ADMIN_UIDS` env var listed, or the legacy `pat@road2media.com` email holder (transition only) — **or** caller must already hold `admin: true`.
+- Caller must be a **super-admin** (UID listed in `SUPER_ADMIN_UIDS` env var — bootstrap / break-glass path) **or** already hold `admin: true`.
 - Callers can set the claim on themselves (bootstrap) or on another uid (delegation).
 
 ---
 
 ## 2. One-time bootstrap (first admin)
 
-The first time you roll this out, no one has the claim yet. Seed the first admin via the super-admin env var.
+The first time you roll this out — or after an accidental revocation that removes the last admin — no one has the claim. Seed the first admin via `SUPER_ADMIN_UIDS`.
 
 ### 2a. Set `SUPER_ADMIN_UIDS`
 
@@ -44,11 +46,11 @@ Then redeploy:
 firebase deploy --only functions:setAdminClaim --project <alias>
 ```
 
-> The legacy `pat@road2media.com` email holder is implicitly treated as a super-admin in PR A, so you can skip this env var during initial rollout and still bootstrap from the browser as that user. Remove that fallback in PR B.
+> **PR B note:** the legacy email shortcut (previously let `pat@road2media.com` skip this env-var step) is gone. `SUPER_ADMIN_UIDS` is now the only bootstrap path — don't forget to populate it before deploying PR B to a new project.
 
 ### 2b. Self-grant the claim (preferred: in-app UI)
 
-As the super-admin (or legacy email holder), sign into the app and navigate to `/admin`. If your account does **not** yet hold the `admin: true` claim, the `AdminClaimBootstrap` card (amber) renders above the "Locking the official setlist" warning with a single button:
+As the super-admin, sign into the app and navigate to `/admin`. If your account does **not** yet hold the `admin: true` claim, the `AdminClaimBootstrap` card (amber) renders above the "Locking the official setlist" warning with a single button:
 
 **Grant admin claim to myself**
 
@@ -57,7 +59,7 @@ Click it. The UI:
 2. Force-refreshes the ID token (`getIdTokenResult(true)`) so the new claim is visible to the client without re-login.
 3. Flips the card to green: "Admin claim active on your account."
 
-`useAuth().isAdmin` now resolves via the claim, not the legacy email fallback.
+`useAuth().isAdmin` now resolves via the claim.
 
 > **Note:** An earlier version of this runbook documented a devtools `import()` snippet for bootstrap. That snippet worked against source paths (`/src/shared/lib/firebase.js`) that **don't exist** in the Vite production bundle on Vercel, so it's not viable in deployed environments. The in-app button replaces it. If you're working against the local dev server and want to script the call, see §4 (Admin SDK).
 
@@ -88,6 +90,8 @@ await fn({ admin: false, targetUid: '<uid>' });
 
 Revocations remove the `admin` key from custom claims entirely.
 
+> **Break-glass:** If the last admin is revoked accidentally, a user listed in `SUPER_ADMIN_UIDS` can still call `setAdminClaim`. If `SUPER_ADMIN_UIDS` is empty, re-bootstrap from a machine with Admin SDK credentials using `setCustomUserClaims(uid, { admin: true })` directly.
+
 ---
 
 ## 5. Audit current claims
@@ -117,23 +121,48 @@ Cloud Logging also records every `setAdminClaim` call with caller uid, target ui
 
 - `setAdminClaim` only manipulates Auth custom claims; it never touches `picks`, `users`, or `official_setlists`.
 - A token refresh is required for client-side `isAdmin` to flip. The app's `useAuth` subscribes to `onIdTokenChanged` so this propagates automatically after `getIdTokenResult(true)` without re-login.
-- Firestore rules in PR A are **unchanged**; the claim is purely for UI gating and for `rollupScoresForShow` authorization. PR B makes the rules require the claim for writes to `picks` / `users` / `official_setlists`.
-- If you accidentally revoke your own claim and no longer match the email fallback or `SUPER_ADMIN_UIDS`, re-bootstrap from a machine with Admin SDK credentials using `setCustomUserClaims(uid, { admin: true })` directly.
+- Firestore rules require the claim for writes to `picks` (admin-override only; owners write their own), `users` (admin-override only; owners write their own), `official_setlists` (admin-only write), `live_setlist_automation` (admin-only read, server-only write), and `rollup_audit` (admin-only read, server-only write). See `firestore.rules`.
+- Admin SDK writes from scheduled / callable Cloud Functions (`gradePicksOnSetlistWrite`, `recomputeLiveScoresForShow`, `rollupScoresForShow`, `pollLiveSetlistNow`, show-calendar sync) bypass rules entirely, so server-side grading and automation are unaffected by the tightened rules.
 
 ---
 
-## 7. PR B follow-ups
+## 7. PR B deployment checklist
 
-After soaking PR A in staging:
+PR B tightens Firestore rules and drops the legacy email fallback. Before merging to `main`:
 
-1. Grant the claim to every current admin via `setAdminClaim`.
-2. Remove the legacy email fallback from `resolveIsAdmin` in `src/features/auth/api/authApi.js` and from `assertAdminClaimOrEmail` in `functions/index.js`.
-3. Tighten `firestore.rules` (claim-only). Include a rule for the new `rollup_audit/{showDate}` collection — admin-read-only, no client writes (Admin SDK writes from `rollupScoresForShow` bypass rules).
-4. Keep `SUPER_ADMIN_UIDS` so the break-glass path exists.
+1. **Grant the claim to every current admin** (via the in-app bootstrap UI on staging, or `setAdminClaim` from an existing admin). Double-check in Firebase console → Authentication → Users → "Custom claims" that every required admin has `admin: true`.
+2. **Populate `SUPER_ADMIN_UIDS`** on the `setAdminClaim` function so the break-glass path exists if the last admin revokes themselves. Redeploy `setAdminClaim` if this changed.
+3. **Staging QA** (see §8 checklist below).
+4. Deploy rules **after** functions: `firebase deploy --only functions && firebase deploy --only firestore:rules`. Rolling out rules before the new functions means Admin-SDK writes still work but client-side admin UI breaks for the email-only holder.
+5. **Rollback plan:** if anything misbehaves, revert with `firebase deploy --only firestore:rules` after checking out the pre-PR-B `firestore.rules` file (`git show HEAD~1:firestore.rules > /tmp/r.rules && firebase deploy --only firestore:rules --project <alias>` after replacing). Callable code can roll back via `firebase deploy --only functions --project <alias>` from the pre-PR-B commit.
 
 ---
 
-## 8. Rollup audit collection
+## 8. PR B staging QA checklist
+
+Verify each of these flows against staging with a real non-admin user AND the admin claim holder, before deploying PR B to production.
+
+| Surface | Who | Expected |
+|---|---|---|
+| Sign up → create profile | New user (no claim) | `users/{uid}` created (self-write rule) |
+| Submit picks | Any signed-in user | `picks/{date_uid}` created/updated (userId matches auth.uid) |
+| Attempt to edit another user's pick via DevTools | Non-admin | Rejected by rules |
+| Attempt to edit another user's users doc via DevTools | Non-admin | Rejected by rules |
+| Attempt to write `official_setlists` via DevTools | Non-admin | Rejected by rules |
+| Attempt to read `live_setlist_automation/{showDate}` | Non-admin | Rejected by rules |
+| Global standings | Any signed-in user | Loads (reads `users` + `picks`) |
+| Pool details + member profiles | Any signed-in user | Loads (reads `users`) |
+| Public profile by handle | Any signed-in user | Loads (reads `users`) |
+| Admin setlist save | Admin (claim) | `official_setlists/{showDate}` write succeeds |
+| Admin Finalize and rollup | Admin (claim) | `rollupScoresForShow` callable succeeds; `rollup_audit/{showDate}` timestamp advances |
+| Live-scoring trigger | N/A (Admin SDK) | `gradePicksOnSetlistWrite` still runs on setlist write |
+| Live setlist automation UI | Admin (claim) | Reads `live_setlist_automation/{showDate}` pause/backoff metadata |
+
+Also confirm: an admin who already grants themselves the claim via the `AdminClaimBootstrap` card in PR A sees the green "Admin claim active" pill and all admin surfaces continue to work after the rules tighten (no email fallback regression).
+
+---
+
+## 9. Rollup audit collection
 
 Each successful `rollupScoresForShow` invocation writes a record to `rollup_audit/{showDate}` with:
 
@@ -141,17 +170,17 @@ Each successful `rollupScoresForShow` invocation writes a record to `rollup_audi
 |-------|------|---------|
 | `lastRolledUpAt` | serverTimestamp | When the rollup committed. Updated on every run. |
 | `processedPicks` | number | Picks regraded in this run. |
-| `skippedPicks`   | number | Picks skipped (missing `userId`). |
-| `totalPicks`     | number | Total matching `picks` docs for this `showDate`. |
-| `callerUid`      | string \| null | Firebase UID of the admin who triggered it. |
+| `skippedPicks` | number | Picks skipped (missing `userId`). |
+| `totalPicks` | number | Total matching `picks` docs for this `showDate`. |
+| `callerUid` | string \| null | Firebase UID of the admin who triggered it. |
 
 This is a **Firestore-visible "when did the last rollup run"** signal, separate from per-pick `gradedAt` which only stamps the first grade. Useful for PM-level sanity-checking after idempotent re-runs (where pick `score` and `gradedAt` may not visibly change even though the batch committed).
 
-Do not write to this collection from the client. It's a pure server-side audit log.
+PR B rules: admin-only read, no client writes. The Admin SDK bypasses rules on the write path.
 
 ---
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 ### `setCustomUserClaims failed … (auth/insufficient-permission): Credential implementation provided to initializeApp() via the "credential" property has insufficient permission to access the requested resource.`
 
@@ -175,4 +204,17 @@ The v1 PR A code masked every `admin.auth().getUser` failure as a misleading "No
 
 ### Finalize and rollup "succeeded" but Firestore looks unchanged
 
-Expected when re-running Finalize on an already-graded show: `gradedAt` is only stamped on the first grade (`isFirstGrade` check in `rollupScoresForShow`), and scores/user totals don't visibly change if the computation is deterministic and the inputs haven't changed. Check `rollup_audit/{showDate}.lastRolledUpAt` (added in §8) for a current timestamp, or filter Cloud Logging for `jsonPayload.message="rollupScoresForShow"`.
+Expected when re-running Finalize on an already-graded show: `gradedAt` is only stamped on the first grade (`isFirstGrade` check in `rollupScoresForShow`), and scores/user totals don't visibly change if the computation is deterministic and the inputs haven't changed. Check `rollup_audit/{showDate}.lastRolledUpAt` (§9) for a current timestamp, or filter Cloud Logging for `jsonPayload.message="rollupScoresForShow"`.
+
+### `permission-denied: Only an admin can perform this action.` from a callable that used to work
+
+PR B expectation. The calling user no longer has the `admin: true` claim. Either (a) grant the claim via `setAdminClaim`, or (b) if the account was relying on the legacy email fallback, self-grant via the `AdminClaimBootstrap` card on `/admin`.
+
+### `FirebaseError: Missing or insufficient permissions.` on a client write that used to work
+
+PR B expectation if the caller is not the document owner. Check:
+- `picks` writes: incoming payload must carry `userId == auth.uid`; on update, the existing doc's `userId` must already match.
+- `users` writes: path `userId` segment must equal `auth.uid`.
+- `official_setlists` / `live_setlist_automation` / `rollup_audit` writes from the client are always rejected (admin claim required, or server-only).
+
+If a legitimate admin flow hits this, confirm the admin holds the claim (§2c) and that `useAuth().isAdmin` shows `true` in React DevTools before writing.

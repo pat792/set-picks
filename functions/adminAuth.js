@@ -1,13 +1,17 @@
 /**
- * Admin authorization helpers for HTTPS callables (issue #139 PR A).
+ * Admin authorization helpers for HTTPS callables (issue #139).
  *
  * Pure functions — no `firebase-admin` dependency so they can be unit-tested
  * without spinning up the Firebase Functions test harness. Consumed by
- * `functions/index.js` to gate `rollupScoresForShow` and `setAdminClaim`.
+ * `functions/index.js` to gate `rollupScoresForShow`, `setAdminClaim`, and
+ * every other admin-only callable.
+ *
+ * PR B tightening: the legacy `pat@road2media.com` email fallback was removed
+ * from the admin caller check alongside the Firestore rules tightening. The
+ * `admin: true` custom claim is now the single source of truth. The break-
+ * glass `SUPER_ADMIN_UIDS` env-var path is retained so the claim can still be
+ * bootstrapped on a fresh project or recovered after accidental revocation.
  */
-
-/** Must match `src/features/auth/api/authApi.js` legacy fallback. */
-const ADMIN_EMAIL_FOR_SETLIST_PROXY = "pat@road2media.com";
 
 /**
  * Parse `SUPER_ADMIN_UIDS` (comma-separated uids) from the given env into a
@@ -29,30 +33,27 @@ function parseSuperAdminUidsEnv(env = process.env) {
 
 /**
  * Decide whether the caller of an admin-gated callable qualifies as admin.
- * Accepts either the `admin: true` custom claim (#139 target state) or the
- * legacy hard-coded admin email (transition only; drop in PR B).
+ * As of PR B this is claim-only. Returns `null` when the caller does not
+ * qualify. Callers in `functions/index.js` convert `null` into an
+ * `HttpsError("permission-denied")`.
  *
- * Returns `null` when neither qualifies. Callers in `functions/index.js`
- * convert `null` into an `HttpsError("permission-denied")`.
- *
- * @param {{ uid?: string, token?: { admin?: boolean, email?: string } } | null | undefined} authLike
- * @returns {"admin-claim" | "legacy-email" | null}
+ * @param {{ uid?: string, token?: { admin?: boolean } } | null | undefined} authLike
+ * @returns {"admin-claim" | null}
  */
 function resolveAdminCallerRole(authLike) {
   if (!authLike) return null;
   const token = authLike.token || {};
   if (token.admin === true) return "admin-claim";
-  if (token.email === ADMIN_EMAIL_FOR_SETLIST_PROXY) return "legacy-email";
   return null;
 }
 
 /**
  * Decide whether the caller of `setAdminClaim` qualifies to grant/revoke the
- * claim. Super-admins are `SUPER_ADMIN_UIDS` members **or** the legacy email
- * holder (bootstrap only). Anyone already holding `admin: true` can also grant
+ * claim. Super-admins are `SUPER_ADMIN_UIDS` members (the bootstrap /
+ * break-glass path). Anyone already holding `admin: true` can also grant
  * (delegation).
  *
- * @param {{ uid?: string, token?: { admin?: boolean, email?: string } } | null | undefined} authLike
+ * @param {{ uid?: string, token?: { admin?: boolean } } | null | undefined} authLike
  * @param {Set<string>} superAdminUids
  * @returns {"super-admin" | "admin" | null}
  */
@@ -60,10 +61,7 @@ function resolveSetAdminClaimCallerRole(authLike, superAdminUids) {
   if (!authLike) return null;
   const uid = authLike.uid;
   const token = authLike.token || {};
-  if (
-    (uid && superAdminUids.has(uid)) ||
-    token.email === ADMIN_EMAIL_FOR_SETLIST_PROXY
-  ) {
+  if (uid && superAdminUids.has(uid)) {
     return "super-admin";
   }
   if (token.admin === true) return "admin";
@@ -71,7 +69,6 @@ function resolveSetAdminClaimCallerRole(authLike, superAdminUids) {
 }
 
 module.exports = {
-  ADMIN_EMAIL_FOR_SETLIST_PROXY,
   parseSuperAdminUidsEnv,
   resolveAdminCallerRole,
   resolveSetAdminClaimCallerRole,

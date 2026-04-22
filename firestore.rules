@@ -7,6 +7,15 @@ service cloud.firestore {
     }
 
     /**
+     * Admin custom claim (issue #139 PR B). Set via `setAdminClaim` callable.
+     * The legacy email fallback is removed in PR B; the claim is the single
+     * source of truth for write authorization against admin surfaces.
+     */
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    /**
      * Join flow: only `members` may change; array grows by one and includes the caller.
      */
     function isPoolSelfJoin() {
@@ -32,29 +41,72 @@ service cloud.firestore {
     }
 
     /**
-     * Remaining collections: authenticated read/write so existing admin rollups, profile setup,
-     * and Cloud Function grading (Admin SDK) keep working. Tighten per-collection when you add
-     * custom claims or server-only admin paths.
+     * `users/{uid}` — profile docs (issue #139 PR B).
+     * Reads stay auth'd-only so peer lookups (`fetchPoolMemberProfiles`,
+     * `fetchPublicProfileByUid/Handle`) keep working. Writes are restricted to
+     * the owning user or an admin claim holder. Admin-SDK writes from
+     * `rollupScoresForShow` bypass rules entirely.
      */
     match /users/{userId} {
-      allow read, write: if signedIn();
-    }
-
-    match /picks/{pickId} {
-      allow read, write: if signedIn();
-    }
-
-    match /official_setlists/{showDate} {
-      allow read, write: if signedIn();
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow update: if signedIn()
+        && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
     }
 
     /**
-     * Live setlist automation state (issue #164). Written by Cloud Functions (Admin SDK);
-     * admin UI reads pause/backoff metadata. Same admin email as admin setlist tooling.
+     * `picks/{pickId}` — per-user pick docs (issue #139 PR B).
+     * Create/update must carry `userId == auth.uid` on the incoming payload,
+     * and update/delete additionally require the existing owner to match
+     * (prevents ownership handoff via overwrite). Admin claim holders can
+     * recover/repair any pick. Admin-SDK writes (grading) bypass rules.
+     */
+    match /picks/{pickId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if signedIn()
+        && (
+          (
+            resource.data.userId == request.auth.uid
+            && request.resource.data.userId == request.auth.uid
+          )
+          || isAdmin()
+        );
+      allow delete: if signedIn()
+        && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    /**
+     * `official_setlists/{showDate}` — authoritative, admin-authored setlists
+     * (issue #139 PR B). Reads stay auth'd-only so every user can see the
+     * live/final setlist; writes require the admin claim. Admin-SDK writes
+     * from scheduled / manual live-setlist automation bypass rules.
+     */
+    match /official_setlists/{showDate} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    /**
+     * Live setlist automation state (issue #164). Written by Cloud Functions
+     * (Admin SDK); admin UI reads pause/backoff metadata. Gated on the admin
+     * claim as of PR B (previously: hard-coded email).
      */
     match /live_setlist_automation/{showDate} {
-      allow read: if signedIn()
-        && request.auth.token.email == 'pat@road2media.com';
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    /**
+     * Rollup audit log (issue #139 PR B). Written server-side by
+     * `rollupScoresForShow` after every invocation; surfaces a
+     * Firestore-visible "last rollup ran at…" signal. Admin-only reads; no
+     * client writes (Admin SDK bypasses rules on the write path).
+     */
+    match /rollup_audit/{showDate} {
+      allow read: if isAdmin();
       allow write: if false;
     }
 
