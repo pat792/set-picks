@@ -21,6 +21,7 @@
 - **Frontend:** React (Vite), Tailwind, React Router.
 - **Backend / data:** Firebase Auth, Firestore, App Check; **Firebase Cloud Functions** live under repo root **`functions/`** (e.g. `functions/index.js`), not `firebase/functions/`.
 - **Official setlists (Firestore):** `official_setlists/{showDate}` field semantics, scoring, save vs finalize — **`docs/OFFICIAL_SETLISTS_SCHEMA.md`**.
+- **Pool admin callables:** `deletePoolWithCleanup` (issue #138) handles server-side pool delete + member cleanup via Admin SDK — **`docs/POOL_DELETE_RUNBOOK.md`**. Owner-auth + activity check mirror `src/features/pools/api/poolFirestore.js`.
 - **Rules:** `firestore.rules` (referenced from `firebase.json`).
 
 Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
