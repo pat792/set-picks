@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { useShowCalendar } from '../../show-calendar';
+import { deletePoolWithCleanup } from '../api/poolDeleteCallable';
 import {
-  deletePoolApi,
   POOL_NAME_MAX_LENGTH,
   updatePoolNameApi,
   updatePoolStatusApi,
@@ -16,7 +15,6 @@ import { invalidateUserPools } from './userPoolsRefreshBus';
  * @param {{ navigate: (path: string) => void, onReloadPool: () => void | Promise<void> }} callbacks
  */
 export function usePoolAdminControls(poolId, user, pool, { navigate, onReloadPool }) {
-  const { showDates } = useShowCalendar();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(
     /** @type {null | 'archive' | 'delete'} */ (null)
@@ -110,22 +108,28 @@ export function usePoolAdminControls(poolId, user, pool, { navigate, onReloadPoo
   const handleConfirmDelete = useCallback(async () => {
     const pid = poolId?.trim();
     const oid = pool?.ownerId?.trim();
-    const members = pool?.members;
     if (!pid || !oid) return;
     setBusy(true);
     setFormError('');
     try {
-      await deletePoolApi(pid, members, oid, showDates);
+      // Server (`deletePoolWithCleanup`, issue #138) is the source of truth:
+      // it re-checks ownership, activity, and cleans up every member's
+      // `users.pools` entry with Admin SDK. Don't duplicate that logic here.
+      await deletePoolWithCleanup(pid);
       invalidateUserPools();
       setConfirmAction(null);
       navigate('/dashboard/pools');
     } catch (e) {
       setConfirmAction(null);
       const code = e && typeof e === 'object' && 'code' in e ? e.code : '';
-      if (code === 'pool-has-activity' || code === 'pool-has-members') {
+      if (code === 'pool-has-activity') {
         setFormError(
-          e instanceof Error ? e.message : 'Cannot delete this pool.'
+          e instanceof Error
+            ? e.message
+            : 'This pool has pick history. Archive it instead of deleting.'
         );
+      } else if (code === 'permission-denied') {
+        setFormError('Only the pool owner can delete this pool.');
       } else {
         setFormError(
           e instanceof Error ? e.message : 'Could not delete this pool.'
@@ -134,7 +138,7 @@ export function usePoolAdminControls(poolId, user, pool, { navigate, onReloadPoo
     } finally {
       setBusy(false);
     }
-  }, [poolId, pool?.ownerId, pool?.members, navigate, showDates]);
+  }, [poolId, pool?.ownerId, navigate]);
 
   const confirmModalProps = useMemo(() => {
     if (confirmAction === 'archive') {
@@ -151,7 +155,7 @@ export function usePoolAdminControls(poolId, user, pool, { navigate, onReloadPoo
       return {
         title: 'Delete this pool?',
         message:
-          'You can only delete a pool you created alone, with no pick history. This cannot be undone.',
+          'This removes the pool and clears it from every member. Only allowed when no picks have been made yet; otherwise archive instead. This cannot be undone.',
         confirmLabel: 'Delete pool',
         confirmVariant: 'danger',
         onConfirm: handleConfirmDelete,
