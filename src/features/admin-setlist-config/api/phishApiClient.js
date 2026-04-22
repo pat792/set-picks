@@ -321,20 +321,29 @@ async function fetchPhishnetRaw(dateString) {
  * Fetches raw setlist-related JSON for a show date from the configured external API.
  *
  * @param {string} dateString Show date `YYYY-MM-DD`
+ * @param {{ forceSource?: 'phishin' | 'phishnet' }} [options] Override the
+ * configured `VITE_SETLIST_API_SOURCE`. Used by bustout-fetch flows that need
+ * Phish.net specifically (the only source with per-row `gap`).
  * @returns {Promise<SetlistFetchResult>}
  */
-export async function fetchSetlistRaw(dateString) {
+export async function fetchSetlistRaw(dateString, options = {}) {
   const badDate = validateShowDate(dateString);
   if (badDate) {
     return { ok: false, error: badDate };
   }
 
-  const sourceRes = resolveSource();
-  if (!sourceRes.ok) {
-    return { ok: false, error: sourceRes.error };
+  let source;
+  if (options && options.forceSource && ALLOWED_SOURCES.has(options.forceSource)) {
+    source = options.forceSource;
+  } else {
+    const sourceRes = resolveSource();
+    if (!sourceRes.ok) {
+      return { ok: false, error: sourceRes.error };
+    }
+    source = sourceRes.source;
   }
 
-  if (sourceRes.source === 'phishnet') {
+  if (source === 'phishnet') {
     return fetchPhishnetRaw(dateString);
   }
   return fetchPhishinRaw(dateString);

@@ -1,6 +1,10 @@
 /**
  * Bundled fallback for song autocomplete when public `song-catalog.json` is missing or unreachable (issue #158).
- * Server-side grading still uses `functions/phishSongs.js` until aligned.
+ *
+ * Post-#214: not used for scoring. Bustout boosts come from the per-show
+ * `official_setlists/{showDate}.bustouts` snapshot, not catalog `gap`. This
+ * file exists purely as a Storage-fetch fallback for `useSongCatalog` and the
+ * default `SongAutocomplete` `songs` prop.
  */
 export const PHISH_SONGS = [{ name: "Alumni Blues", total: "112", gap: "133", last: "2023-07-12" },
 { name: "And So To Bed", total: "1", gap: "211", last: "2021-10-15" },

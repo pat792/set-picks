@@ -4,7 +4,6 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
-const { PHISH_SONGS: phishSongs } = require("./phishSongs");
 const {
   syncPhishnetShowCalendarToFirestore,
 } = require("./phishnetShowCalendar");
@@ -28,145 +27,16 @@ const {
   findPoolPickActivity,
   parseShowCalendarDates,
 } = require("./poolDelete");
+const {
+  calculateTotalScore,
+  actualSetlistFromOfficialDoc,
+} = require("./scoringCore");
+const { runBackfill } = require("./backfillBustoutsCore");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 
 admin.initializeApp();
 const db = admin.firestore();
-
-// Mirrors src/utils/scoring.js (keep in sync).
-const SCORING_RULES = {
-  EXACT_SLOT: 10,
-  ENCORE_EXACT: 15,
-  IN_SETLIST: 5,
-  WILDCARD_HIT: 10,
-  BUSTOUT_BOOST: 20,
-  BUSTOUT_MIN_GAP: 30,
-};
-
-const SCORE_FIELDS = ["s1o", "s1c", "s2o", "s2c", "enc", "wild"];
-
-/** Keys on the scoring payload that are not slot song strings. */
-const NON_SONG_SETLIST_KEYS = new Set([
-  "officialSetlist",
-  "encoreSongs",
-  "id",
-  "bustouts",
-]);
-
-function normalizeSong(value) {
-  return String(value ?? "").trim().toLowerCase();
-}
-
-function parseGap(gap) {
-  if (gap == null || gap === "" || gap === "—") return null;
-  const n = Number.parseInt(String(gap), 10);
-  return Number.isFinite(n) ? n : null;
-}
-
-function guessMatchesEncoreExact(actualSetlist, guessNorm) {
-  if (!guessNorm) return false;
-  const primary = normalizeSong(actualSetlist.enc);
-  if (primary === guessNorm) return true;
-  const list = actualSetlist.encoreSongs;
-  if (!Array.isArray(list)) return false;
-  return list.some((t) => normalizeSong(t) === guessNorm);
-}
-
-/**
- * Slot strings from the flat map plus ordered officialSetlist, normalized and deduped.
- * Same as buildAllPlayedNormalized in src/utils/scoring.js.
- * @param {Record<string, unknown>} actualSetlist
- * @returns {string[]}
- */
-function buildAllPlayedNormalized(actualSetlist) {
-  const fromSlots = [];
-  for (const [key, val] of Object.entries(actualSetlist || {})) {
-    if (NON_SONG_SETLIST_KEYS.has(key)) continue;
-    if (typeof val !== "string") continue;
-    const t = val.trim();
-    if (!t) continue;
-    fromSlots.push(normalizeSong(t));
-  }
-
-  const rawOfficial = actualSetlist.officialSetlist;
-  const fromOfficial = Array.isArray(rawOfficial)
-    ? rawOfficial
-        .map((s) =>
-          typeof s === "string" ? s.trim() : String(s ?? "").trim()
-        )
-        .filter(Boolean)
-        .map((s) => normalizeSong(s))
-    : [];
-
-  const combined = [...fromSlots, ...fromOfficial];
-  return [...new Set(combined)];
-}
-
-/**
- * Matches computeSlotResult + bustout from getSlotScoreBreakdown in src/utils/scoring.js.
- *
- * Bustout lookup uses the bundled `functions/phishSongs.js` catalog (same
- * snapshot the client reads from `src/shared/data/phishSongs.js`). This keeps
- * client-computed per-show scores and server-stored `pick.score` in sync.
- *
- * NOTE: #167 briefly routed this through the Storage-backed `song-catalog.json`
- * (dynamic per-song gap), which broke parity once a bustout's gap reset to 0
- * after the show played. The proper fix — snapshot per-show bustouts on
- * `official_setlists/{showDate}` — is tracked in #214.
- */
-function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
-  if (!actualSetlist || !guessedSong) return 0;
-
-  const guess = normalizeSong(guessedSong);
-  if (!guess) return 0;
-
-  const allPlayed = buildAllPlayedNormalized(actualSetlist);
-
-  let base = 0;
-  if (fieldId === "wild") {
-    if (allPlayed.includes(guess)) {
-      base = SCORING_RULES.WILDCARD_HIT;
-    } else {
-      return 0;
-    }
-  } else {
-    const exactNonEnc =
-      fieldId !== "enc" && normalizeSong(actualSetlist[fieldId]) === guess;
-    const exactEnc =
-      fieldId === "enc" && guessMatchesEncoreExact(actualSetlist, guess);
-    if (exactNonEnc || exactEnc) {
-      base =
-        fieldId === "enc"
-          ? SCORING_RULES.ENCORE_EXACT
-          : SCORING_RULES.EXACT_SLOT;
-    } else if (allPlayed.includes(guess)) {
-      base = SCORING_RULES.IN_SETLIST;
-    } else {
-      return 0;
-    }
-  }
-
-  const matched = phishSongs.find((song) => normalizeSong(song.name) === guess);
-  let bustoutBoost = false;
-  if (matched) {
-    const gapNum = parseGap(matched.gap);
-    bustoutBoost =
-      gapNum != null && gapNum >= SCORING_RULES.BUSTOUT_MIN_GAP;
-  }
-
-  return base + (bustoutBoost ? SCORING_RULES.BUSTOUT_BOOST : 0);
-}
-
-function calculateTotalScore(userPicks, actualSetlist) {
-  if (!actualSetlist || !userPicks) return 0;
-  return SCORE_FIELDS.reduce((total, fieldId) => {
-    return (
-      total +
-      calculateSlotScore(fieldId, userPicks[fieldId], actualSetlist)
-    );
-  }, 0);
-}
 
 /**
  * Gate an admin-only callable on the `admin: true` custom claim (issue #139).
@@ -244,20 +114,6 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     await batch.commit();
   }
   return { updatedPicks };
-}
-
-function actualSetlistFromOfficialDoc(setlistDoc) {
-  const setlistFlat = setlistDoc.setlist || {};
-  const out = {
-    ...setlistFlat,
-    officialSetlist: Array.isArray(setlistDoc.officialSetlist)
-      ? setlistDoc.officialSetlist
-      : [],
-  };
-  if (Array.isArray(setlistDoc.encoreSongs) && setlistDoc.encoreSongs.length > 0) {
-    out.encoreSongs = setlistDoc.encoreSongs;
-  }
-  return out;
 }
 
 exports.gradePicksOnSetlistWrite = onDocumentWritten(
@@ -972,6 +828,78 @@ exports.getPhishnetSetlist = onCall(
         "failed-precondition",
         `getPhishnetSetlist failed: ${msg}`
       );
+    }
+  }
+);
+
+/**
+ * Backfill `official_setlists/{showDate}.bustouts` for a batch of shows (#214).
+ *
+ * For each show date, this callable:
+ *   1. Re-fetches the Phish.net setlist by showdate (rows include per-row
+ *      pre-show `gap` — the definitional bustout metric).
+ *   2. Derives `bustouts` from rows with `gap >= BUSTOUT_MIN_GAP`.
+ *   3. Writes `bustouts` onto `official_setlists/{showDate}` via merge, which
+ *      triggers `gradePicksOnSetlistWrite` → live-score recompute.
+ *   4. When a show is graded (`isGraded: true` on any pick), also runs
+ *      `rollupScoresForShow` semantics inline so `users.totalPoints` reconciles
+ *      by the score delta.
+ *
+ * Safe to run multiple times — write is idempotent when the snapshot matches.
+ *
+ * Input: `{ showDates: string[] }` (each `YYYY-MM-DD`) OR `{ mode: "missing" }`
+ * to scan `official_setlists` for docs missing `bustouts`.
+ */
+exports.backfillBustoutsForShows = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminClaim(request);
+
+    const key = phishnetApiKey.value();
+    if (!key || !String(key).trim()) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+      );
+    }
+
+    const explicitDates = request.data?.showDates;
+    const mode = request.data?.mode === "missing" ? "missing" : undefined;
+    if (
+      !(Array.isArray(explicitDates) && explicitDates.length > 0) &&
+      mode !== "missing"
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        'Pass { showDates: ["YYYY-MM-DD", ...] } or { mode: "missing" }.'
+      );
+    }
+
+    try {
+      const { results } = await runBackfill({
+        db,
+        admin,
+        logger,
+        phishnetApiKey: key,
+        showDates: Array.isArray(explicitDates) ? explicitDates : undefined,
+        mode,
+        updatedBy: request.auth?.token?.email || "backfill-bustouts",
+      });
+      logger.info("backfillBustoutsForShows callable complete", {
+        callerUid: request.auth?.uid || null,
+      });
+      return { ok: true, results };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/^showDate must be a YYYY-MM-DD/.test(msg)) {
+        throw new HttpsError("invalid-argument", msg);
+      }
+      throw e;
     }
   }
 );

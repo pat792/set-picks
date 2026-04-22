@@ -1,7 +1,10 @@
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
-import { sanitizeOfficialSongList } from '../../../shared/utils/officialSetlistSanitize.js';
+import {
+  sanitizeBustouts,
+  sanitizeOfficialSongList,
+} from '../../../shared/utils/officialSetlistSanitize.js';
 
 /**
  * @param {string} showDate
@@ -37,9 +40,13 @@ export async function fetchOfficialSetlistForShow(showDate) {
     Array.isArray(rawEnc) && rawEnc.length > 0
       ? sanitizeOfficialSongList(rawEnc)
       : [];
+  const bustouts = sanitizeBustouts(data.bustouts);
   return {
     ...(data.setlist || {}),
     officialSetlist: Array.isArray(data.officialSetlist) ? data.officialSetlist : [],
     ...(encoreSongs.length > 0 ? { encoreSongs } : {}),
+    // Always include the bustouts key (even when empty) so downstream scoring
+    // treats absence = empty without ambiguity (#214).
+    bustouts,
   };
 }
