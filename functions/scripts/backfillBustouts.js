@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 /**
- * Admin-script wrapper for the `backfillBustoutsForShows` callable (#214).
+ * Admin-script for the #214 per-show `bustouts` snapshot backfill.
  *
- * Mints a short-lived admin-claim ID token via firebase-admin + Identity
- * Toolkit REST, then POSTs to the deployed callable. Keeps the entire
- * backfill pipeline (Phish.net fetch → derive bustouts → write snapshot →
- * recompute pick scores → reconcile `users.totalPoints` for graded picks) in
- * the single deployed source of truth — this script is only a caller.
+ * Runs the exact same pipeline as the deployed `backfillBustoutsForShows`
+ * callable by importing the shared core module (`functions/backfillBustoutsCore.js`).
+ * Does NOT call the deployed callable — so there is no Firebase Auth dance
+ * (no custom token, no Identity Toolkit round-trip, no referrer-restricted
+ * API key). The script uses Application Default Credentials directly.
  *
- * Usage (from repo root or functions/):
- *   # Dry-run: list which shows are missing `bustouts` on `official_setlists`.
- *   cd functions
- *   node scripts/backfillBustouts.js --missing --dry-run
+ * Usage (from `functions/`):
+ *   # Dry-run: list which shows are missing `bustouts`.
+ *   node scripts/backfillBustouts.js --missing
  *
  *   # Backfill every show missing a snapshot:
  *   node scripts/backfillBustouts.js --missing --apply
@@ -20,18 +19,22 @@
  *   node scripts/backfillBustouts.js --showDates=2025-12-28,2025-12-30 --apply
  *
  * Auth:
- *   Requires Application Default Credentials (ADC) for `firebase-admin`:
+ *   Requires Application Default Credentials for firebase-admin:
  *     gcloud auth application-default login
- *   The script mints a custom token with `{ admin: true }` for a synthetic
- *   UID (`backfill-bustouts-script`) — no real user account is created; the
- *   token is discarded after the call. The deployed callable gates on the
- *   `admin` claim via `assertAdminClaim` (functions/adminAuth.js).
+ *   Your ADC identity must have Firestore read/write on the project.
  *
- * Config read from repo-root `.env`:
- *   VITE_FIREBASE_API_KEY   — required, used for custom→ID token exchange.
- *   VITE_FIREBASE_PROJECT_ID — used to derive the callable URL.
+ * Phish.net key:
+ *   The core re-fetches Phish.net at runtime to re-derive bustouts from per-row
+ *   `gap`. Provide the key via `PHISHNET_API_KEY` env var — the same secret the
+ *   deployed function uses. Easiest pull:
+ *     PHISHNET_API_KEY="$(firebase functions:secrets:access PHISHNET_API_KEY \
+ *       --project=<project-id>)"
  *
- * This script is safe to re-run: the callable is idempotent (write-merge;
+ * Project id:
+ *   Read from repo-root `.env` (`VITE_FIREBASE_PROJECT_ID`) or the
+ *   `GOOGLE_CLOUD_PROJECT` env var.
+ *
+ * This script is safe to re-run: the core is idempotent (write-merge;
  * score-delta reconciliation is zero when bustouts didn't change).
  */
 
@@ -39,10 +42,10 @@ const admin = require("firebase-admin");
 const fs = require("node:fs");
 const path = require("node:path");
 
+const { runBackfill } = require("../backfillBustoutsCore");
+
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const ENV_PATH = path.join(REPO_ROOT, ".env");
-const BACKFILL_UID = "backfill-bustouts-script";
-const FUNCTIONS_REGION = "us-central1";
 
 /**
  * @param {string[]} argv
@@ -64,19 +67,23 @@ function usageAndExit(msg) {
   console.log(
     [
       "Usage:",
-      "  node scripts/backfillBustouts.js --missing [--dry-run|--apply]",
-      "  node scripts/backfillBustouts.js --showDates=YYYY-MM-DD[,YYYY-MM-DD...] [--dry-run|--apply]",
+      "  node scripts/backfillBustouts.js --missing [--apply]",
+      "  node scripts/backfillBustouts.js --showDates=YYYY-MM-DD[,YYYY-MM-DD...] [--apply]",
       "",
       "Modes:",
-      "  --missing           Scan official_setlists for docs without a `bustouts` field.",
+      "  --missing           Scan official_setlists for docs without `bustouts`.",
       "  --showDates=...     Comma-separated list of show dates to backfill.",
       "",
       "Flags:",
-      "  --dry-run           Default. List target show dates; do not call the callable.",
-      "  --apply             Invoke the deployed backfillBustoutsForShows callable.",
+      "  --dry-run           Default. List target show dates; no writes.",
+      "  --apply             Actually run the backfill pipeline.",
       "",
-      "Auth:",
-      "  Requires ADC: gcloud auth application-default login",
+      "Env:",
+      "  PHISHNET_API_KEY    Required for --apply. Pull via:",
+      "                        firebase functions:secrets:access PHISHNET_API_KEY",
+      "  GOOGLE_CLOUD_PROJECT  Optional override (falls back to .env VITE_FIREBASE_PROJECT_ID).",
+      "",
+      "Auth:  gcloud auth application-default login",
       "",
     ].join("\n"),
   );
@@ -87,9 +94,7 @@ function usageAndExit(msg) {
 function loadEnv() {
   /** @type {Record<string, string>} */
   const env = {};
-  if (!fs.existsSync(ENV_PATH)) {
-    throw new Error(`.env not found at ${ENV_PATH}`);
-  }
+  if (!fs.existsSync(ENV_PATH)) return env;
   const text = fs.readFileSync(ENV_PATH, "utf8");
   for (const line of text.split("\n")) {
     const t = line.trim();
@@ -108,8 +113,6 @@ function loadEnv() {
 
 function isShowDate(v) {
   if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v.trim())) return false;
-  // Reject impossible calendar dates (e.g. 2025-13-99). Parse as UTC to avoid
-  // local-timezone rollover flipping a valid boundary date.
   const [y, m, d] = v.trim().split("-").map(Number);
   const parsed = new Date(Date.UTC(y, m - 1, d));
   return (
@@ -119,69 +122,6 @@ function isShowDate(v) {
   );
 }
 
-/**
- * Exchange a custom token for a Firebase ID token using the Identity Toolkit
- * REST API. The resulting ID token carries the developer claims set on the
- * custom token (`admin: true`), which `assertAdminClaim` checks on the server.
- *
- * @param {string} customToken
- * @param {string} apiKey - Firebase web API key (VITE_FIREBASE_API_KEY).
- * @returns {Promise<string>}
- */
-async function exchangeCustomTokenForIdToken(customToken, apiKey) {
-  const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${encodeURIComponent(
-    apiKey,
-  )}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: customToken, returnSecureToken: true }),
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg =
-      body?.error?.message || `HTTP ${res.status} ${res.statusText || ""}`.trim();
-    throw new Error(`signInWithCustomToken failed: ${msg}`);
-  }
-  if (!body?.idToken) {
-    throw new Error("signInWithCustomToken response missing idToken.");
-  }
-  return body.idToken;
-}
-
-/**
- * POST to the deployed callable HTTPS endpoint with the Firebase ID token.
- *
- * @param {string} projectId
- * @param {string} idToken
- * @param {object} data - The `data` payload the callable expects.
- * @returns {Promise<unknown>} The `result` field from the callable response.
- */
-async function invokeCallable(projectId, idToken, data) {
-  const url = `https://${FUNCTIONS_REGION}-${projectId}.cloudfunctions.net/backfillBustoutsForShows`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({ data }),
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg =
-      body?.error?.message ||
-      body?.error?.status ||
-      `HTTP ${res.status} ${res.statusText || ""}`.trim();
-    throw new Error(`backfillBustoutsForShows callable failed: ${msg}`);
-  }
-  return body.result;
-}
-
-/**
- * @param {FirebaseFirestore.Firestore} db
- * @returns {Promise<string[]>}
- */
 async function scanMissing(db) {
   const snap = await db.collection("official_setlists").get();
   /** @type {string[]} */
@@ -211,17 +151,18 @@ async function main() {
   const apply = args.apply === true;
   const dryRun = !apply || args["dry-run"] === true;
 
-  // --- Env + admin init ---
-  const env = loadEnv();
-  const apiKey = env.VITE_FIREBASE_API_KEY;
-  const projectId = env.VITE_FIREBASE_PROJECT_ID;
-  if (!apiKey) throw new Error("VITE_FIREBASE_API_KEY missing from .env");
-  if (!projectId) throw new Error("VITE_FIREBASE_PROJECT_ID missing from .env");
+  const fileEnv = loadEnv();
+  const projectId =
+    process.env.GOOGLE_CLOUD_PROJECT || fileEnv.VITE_FIREBASE_PROJECT_ID;
+  if (!projectId) {
+    throw new Error(
+      "Project id missing: set GOOGLE_CLOUD_PROJECT or VITE_FIREBASE_PROJECT_ID in .env",
+    );
+  }
 
   admin.initializeApp({ projectId });
   const db = admin.firestore();
 
-  // --- Resolve target show dates ---
   /** @type {string[]} */
   let showDates = [];
   if (useMissing) {
@@ -246,39 +187,42 @@ async function main() {
       "",
       `Target show dates: ${showDates.length}`,
       ...showDates.map((d) => `  - ${d}`),
-      `Mode: ${dryRun ? "DRY RUN (no callable invocation)" : "APPLY"}`,
+      `Mode: ${dryRun ? "DRY RUN (no writes)" : "APPLY"}`,
+      `Project: ${projectId}`,
       "",
     ].join("\n"),
   );
 
   if (dryRun) {
-    console.log("Dry-run complete. Re-run with --apply to invoke the callable.");
+    console.log("Dry-run complete. Re-run with --apply to execute the backfill.");
     return;
   }
 
-  // --- Mint admin-claim token ---
-  console.log("Minting admin-claim token for backfill script...");
-  const customToken = await admin
-    .auth()
-    .createCustomToken(BACKFILL_UID, { admin: true });
-  const idToken = await exchangeCustomTokenForIdToken(customToken, apiKey);
+  const phishnetApiKey = process.env.PHISHNET_API_KEY;
+  if (!phishnetApiKey || !phishnetApiKey.trim()) {
+    throw new Error(
+      [
+        "PHISHNET_API_KEY env var is required for --apply. Pull it from Firebase secrets:",
+        `  firebase functions:secrets:access PHISHNET_API_KEY --project=${projectId}`,
+      ].join("\n"),
+    );
+  }
 
-  // --- Invoke the deployed callable (single source of truth) ---
-  console.log(
-    `Invoking backfillBustoutsForShows (${FUNCTIONS_REGION}) for ${showDates.length} show(s)...`,
-  );
+  console.log(`Running backfill against ${showDates.length} show(s)...`);
   const started = Date.now();
-  const result = await invokeCallable(projectId, idToken, { showDates });
+  const { results, minGap } = await runBackfill({
+    db,
+    admin,
+    logger: console,
+    phishnetApiKey,
+    showDates,
+    updatedBy: `backfill-script:${process.env.USER || "unknown"}`,
+  });
   const elapsedMs = Date.now() - started;
 
-  console.log(`\nCallable returned in ${elapsedMs}ms:\n`);
-  console.log(JSON.stringify(result, null, 2));
+  console.log(`\nCompleted in ${elapsedMs}ms (minGap=${minGap}):\n`);
+  console.log(JSON.stringify({ results }, null, 2));
 
-  // --- Summary ---
-  const results =
-    result && typeof result === "object" && Array.isArray(result.results)
-      ? result.results
-      : [];
   let totalPicksUpdated = 0;
   let totalReconciled = 0;
   let skipped = 0;
