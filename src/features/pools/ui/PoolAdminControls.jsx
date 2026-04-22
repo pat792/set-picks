@@ -23,10 +23,7 @@ export default function PoolAdminControls({
   if (!canAdmin) return null;
 
   return (
-    <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
-      <h2 className="text-xs font-bold text-amber-200/90 uppercase tracking-widest mb-3">
-        Pool admin
-      </h2>
+    <>
       {isArchived ? (
         <p className="mb-3 text-sm font-medium text-content-secondary">
           This pool is archived. You can still view history here; it no longer appears in your
@@ -93,6 +90,6 @@ export default function PoolAdminControls({
           onClose={onCloseConfirm}
         />
       ) : null}
-    </section>
+    </>
   );
 }
