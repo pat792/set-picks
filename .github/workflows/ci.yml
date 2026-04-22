@@ -71,13 +71,13 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Install Firebase CLI
-        run: npm install --no-save --prefix "$RUNNER_TEMP" firebase-tools@13
+        run: npm install --no-save --prefix "$RUNNER_TEMP" firebase-tools@15
 
       - name: Firestore rules emulator tests
         run: "$RUNNER_TEMP/node_modules/.bin/firebase emulators:exec --only firestore --project setlist-pickem-rules-test 'node --test firestore.rules.test.cjs'"
