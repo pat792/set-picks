@@ -19,9 +19,12 @@ const {
   scheduledCandidateShowDates,
 } = require("./phishnetLiveSetlistAutomation");
 const { loadSongCatalogSongs } = require("./songCatalogSource");
-
-/** Must match admin setlist gate in `src/features/admin/model/useAdminSetlistForm.js`. */
-const ADMIN_EMAIL_FOR_SETLIST_PROXY = "pat@road2media.com";
+const {
+  ADMIN_EMAIL_FOR_SETLIST_PROXY,
+  parseSuperAdminUidsEnv,
+  resolveAdminCallerRole,
+  resolveSetAdminClaimCallerRole,
+} = require("./adminAuth");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 
@@ -171,6 +174,24 @@ function assertAdminEmail(request) {
   }
 }
 
+/**
+ * Accepts either the hard-coded admin email (legacy transition) or a Firebase
+ * custom claim `admin: true` (target state for #139). Callables that use this
+ * can be tightened to claim-only after PR B lands and the claim is granted to
+ * every real admin.
+ */
+function assertAdminClaimOrEmail(request) {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in required.");
+  }
+  if (!resolveAdminCallerRole(request.auth)) {
+    throw new HttpsError(
+      "permission-denied",
+      "Only an admin can perform this action."
+    );
+  }
+}
+
 function assertShowDateString(showDate) {
   if (
     typeof showDate !== "string" ||
@@ -293,6 +314,301 @@ exports.refreshLiveScoresForShow = onCall(
     const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
     const result = await recomputeLiveScoresForShow(showDate, actualSetlist);
     return { ok: true, ...result };
+  }
+);
+
+/**
+ * Admin ""Finalize and rollup"" for a show — server-side replacement for the
+ * client batched writes in `src/features/admin/api/adminRollupApi.js` (#139).
+ *
+ * Reads `official_setlists/{showDate}`, loads the Storage song catalog once,
+ * and for every `picks` doc with that `showDate`:
+ *   - computes final `score` using the same path as `gradePicksOnSetlistWrite`
+ *   - sets `isGraded: true` (with `gradedAt` on the first grade)
+ *   - increments `users.totalPoints` by the score diff and `users.showsPlayed`
+ *     by 1 on first-grade (mirrors the client batch exactly).
+ *
+ * Uses Admin SDK; rules don't apply here. This lets PR B tighten Firestore
+ * rules on `picks` + `users` without breaking Finalize.
+ */
+exports.rollupScoresForShow = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminClaimOrEmail(request);
+    const showDate = assertShowDateString(request.data?.showDate);
+
+    const setlistSnap = await db
+      .collection("official_setlists")
+      .doc(showDate)
+      .get();
+    if (!setlistSnap.exists) {
+      throw new HttpsError(
+        "failed-precondition",
+        `official_setlists/${showDate} does not exist. Save the setlist first.`
+      );
+    }
+    const setlistDoc = setlistSnap.data() || {};
+    const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
+
+    const picksSnap = await db
+      .collection("picks")
+      .where("showDate", "==", showDate)
+      .get();
+
+    const callerUid = request.auth?.uid || null;
+
+    if (picksSnap.empty) {
+      await writeRollupAuditDoc({
+        showDate,
+        processedPicks: 0,
+        skippedPicks: 0,
+        totalPicks: 0,
+        callerUid,
+      });
+      logger.info("rollupScoresForShow", {
+        showDate,
+        processedPicks: 0,
+        skippedPicks: 0,
+        totalPicks: 0,
+        callerUid,
+      });
+      return {
+        ok: true,
+        processedPicks: 0,
+        skippedPicks: 0,
+        totalPicks: 0,
+      };
+    }
+
+    const catalogSongs = await loadSongCatalogSongs({
+      fallbackSongs: phishSongs,
+      logger,
+    });
+
+    // Two writes per pick (picks doc + users doc), same as client rollup.
+    const OPS_PER_PICK = 2;
+    let batch = db.batch();
+    let opCount = 0;
+    let processedPicks = 0;
+    let skippedPicks = 0;
+
+    for (const pickDoc of picksSnap.docs) {
+      const pickData = pickDoc.data() || {};
+      if (!pickData.userId) {
+        skippedPicks += 1;
+        continue;
+      }
+      if (opCount + OPS_PER_PICK > MAX_FIRESTORE_BATCH_WRITES) {
+        await batch.commit();
+        batch = db.batch();
+        opCount = 0;
+      }
+      const userPicks = pickData.picks || {};
+      const newScore = calculateTotalScore(userPicks, actualSetlist, catalogSongs);
+      const oldScore = pickData.score || 0;
+      const scoreDiff = newScore - oldScore;
+      const isFirstGrade = pickData.isGraded !== true;
+
+      const pickUpdate = { score: newScore, isGraded: true };
+      if (isFirstGrade) {
+        pickUpdate.gradedAt = admin.firestore.FieldValue.serverTimestamp();
+      }
+      batch.update(pickDoc.ref, pickUpdate);
+      batch.set(
+        db.collection("users").doc(pickData.userId),
+        {
+          totalPoints: admin.firestore.FieldValue.increment(scoreDiff),
+          showsPlayed: admin.firestore.FieldValue.increment(
+            isFirstGrade ? 1 : 0
+          ),
+        },
+        { merge: true }
+      );
+      opCount += OPS_PER_PICK;
+      processedPicks += 1;
+    }
+
+    if (opCount > 0) {
+      await batch.commit();
+    }
+
+    const totalPicks = picksSnap.size;
+    await writeRollupAuditDoc({
+      showDate,
+      processedPicks,
+      skippedPicks,
+      totalPicks,
+      callerUid,
+    });
+    logger.info("rollupScoresForShow", {
+      showDate,
+      processedPicks,
+      skippedPicks,
+      totalPicks,
+      callerUid,
+    });
+
+    return {
+      ok: true,
+      processedPicks,
+      skippedPicks,
+      totalPicks,
+    };
+  }
+);
+
+/**
+ * Writes an audit record to `rollup_audit/{showDate}` with the counts and
+ * timestamp of the most recent `rollupScoresForShow` invocation. Standalone
+ * top-level collection (not under `official_setlists`) so it never re-triggers
+ * `gradePicksOnSetlistWrite`. PR B will add a rule that makes this collection
+ * admin-read-only; Admin SDK writes bypass rules so this still works under
+ * tightened policy. Soft-fails on error so a transient audit write failure
+ * never loses a successful grading pass.
+ */
+async function writeRollupAuditDoc({
+  showDate,
+  processedPicks,
+  skippedPicks,
+  totalPicks,
+  callerUid,
+}) {
+  try {
+    await db
+      .collection("rollup_audit")
+      .doc(showDate)
+      .set(
+        {
+          lastRolledUpAt: admin.firestore.FieldValue.serverTimestamp(),
+          processedPicks,
+          skippedPicks,
+          totalPicks,
+          callerUid: callerUid || null,
+        },
+        { merge: true }
+      );
+  } catch (e) {
+    const msg = e?.message || String(e);
+    logger.warn("rollupScoresForShow.auditWrite failed", {
+      showDate,
+      msg,
+    });
+  }
+}
+
+/**
+ * Grant or revoke the `admin: true` Firebase custom claim on a target user.
+ *
+ * Authorization rules:
+ *   - Caller must be signed in.
+ *   - Caller must either already hold `admin: true`, **or** have a UID listed
+ *     in the `SUPER_ADMIN_UIDS` env var (comma-separated). Bootstrap-only.
+ *   - The legacy `ADMIN_EMAIL_FOR_SETLIST_PROXY` email holder is implicitly
+ *     treated as super-admin so #139 PR A doesn't require env-var changes on
+ *     day one; remove after PR B.
+ *
+ * Caller can set the claim on their own UID (self-bootstrap) or on another
+ * UID (delegate). The target user must refresh their ID token before the new
+ * claim is visible to the client (`getIdTokenResult(true)`).
+ */
+exports.setAdminClaim = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const callerUid = request.auth.uid;
+    const superAdminUids = parseSuperAdminUidsEnv();
+    const role = resolveSetAdminClaimCallerRole(request.auth, superAdminUids);
+    if (!role) {
+      throw new HttpsError(
+        "permission-denied",
+        "Only a super-admin or existing admin can set admin claims."
+      );
+    }
+
+    const rawTargetUid = request.data?.targetUid;
+    const targetUid =
+      typeof rawTargetUid === "string" && rawTargetUid.trim()
+        ? rawTargetUid.trim()
+        : callerUid;
+    const grant = request.data?.admin;
+    if (typeof grant !== "boolean") {
+      throw new HttpsError(
+        "invalid-argument",
+        "`admin` must be a boolean (true to grant, false to revoke)."
+      );
+    }
+
+    let existingClaims = {};
+    try {
+      const existing = await admin.auth().getUser(targetUid);
+      existingClaims = existing.customClaims || {};
+    } catch (e) {
+      // Surface the real error instead of squashing everything to "not-found".
+      // Expected firebase-admin error codes include `auth/user-not-found`,
+      // `auth/insufficient-permission`, and generic network errors. We still
+      // proceed to `setCustomUserClaims` for self-bootstrap so a transient
+      // `getUser` permission hiccup doesn't block the first admin — the
+      // caller's UID was already validated by the callable auth layer above.
+      const code =
+        typeof e?.code === "string" ? e.code : e?.errorInfo?.code || "unknown";
+      const msg = e?.message || String(e);
+      logger.warn("setAdminClaim.getUser failed", {
+        targetUid,
+        code,
+        msg,
+      });
+      if (targetUid !== callerUid) {
+        // Only fail hard when delegating to someone else — we can't be sure
+        // the target really exists in that case.
+        throw new HttpsError(
+          code === "auth/insufficient-permission"
+            ? "permission-denied"
+            : "not-found",
+          `Lookup failed for uid=${targetUid} (${code}): ${msg}`
+        );
+      }
+    }
+    const nextClaims = { ...existingClaims, admin: grant };
+    if (!grant) {
+      delete nextClaims.admin;
+    }
+    try {
+      await admin.auth().setCustomUserClaims(targetUid, nextClaims);
+    } catch (e) {
+      const code =
+        typeof e?.code === "string" ? e.code : e?.errorInfo?.code || "unknown";
+      const msg = e?.message || String(e);
+      logger.error("setAdminClaim.setCustomUserClaims failed", {
+        targetUid,
+        code,
+        msg,
+      });
+      throw new HttpsError(
+        code === "auth/insufficient-permission"
+          ? "permission-denied"
+          : "internal",
+        `setCustomUserClaims failed for uid=${targetUid} (${code}): ${msg}`
+      );
+    }
+
+    logger.info("setAdminClaim", {
+      callerUid,
+      targetUid,
+      grant,
+      callerRole: role,
+    });
+
+    return { ok: true, targetUid, admin: grant };
   }
 );
 

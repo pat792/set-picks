@@ -7,8 +7,7 @@ import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 import ProfileSetupPage from '../../pages/auth/ProfileSetupPage';
 
 export default function SetupRoute() {
-  const { user, userProfile, loading } = useAuth();
-  const isAdminUser = user?.email === 'pat@road2media.com';
+  const { user, userProfile, loading, isAdmin: isAdminUser } = useAuth();
 
   if (loading) {
     return <AuthLoadingScreen />;

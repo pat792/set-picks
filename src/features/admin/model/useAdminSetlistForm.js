@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../../auth';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig.js';
 import { sanitizeOfficialSongList } from '../../../shared/utils/officialSetlistSanitize.js';
 import {
@@ -42,7 +43,8 @@ export function useAdminSetlistForm({ user, selectedDate }) {
   const [encoreSongs, setEncoreSongs] = useState([]);
   const clearMessageTimeoutRef = useRef(null);
 
-  const isAdmin = user?.email === 'pat@road2media.com';
+  const { isAdmin: sessionIsAdmin } = useAuth();
+  const isAdmin = sessionIsAdmin;
   const selectedShow = selectedDate ?? '';
 
   useEffect(() => {

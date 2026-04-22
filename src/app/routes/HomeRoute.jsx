@@ -10,8 +10,7 @@ import LandingPage from '../../pages/landing/LandingPage';
  * Public home: paint immediately for crawlers; redirect to dashboard once auth proves a session.
  */
 export default function HomeRoute() {
-  const { user } = useAuth();
-  const isAdminUser = user?.email === 'pat@road2media.com';
+  const { user, isAdmin: isAdminUser } = useAuth();
 
   if (user) {
     return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;
