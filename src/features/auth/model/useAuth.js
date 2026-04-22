@@ -9,11 +9,10 @@ import {
 
 /**
  * Session-scoped auth hook. Exposes the Firebase user, the Firestore profile
- * doc, a loading flag, and `isAdmin` — the latter prefers the `admin: true`
- * custom claim (issue #139) and falls back to the legacy hard-coded admin
- * email while the claim rollout is in progress. `isAdmin` refreshes whenever
- * the ID token refreshes, so `setAdminClaim` callable writes propagate into
- * the UI without a full re-login (after `getIdTokenResult(true)`).
+ * doc, a loading flag, and `isAdmin` — resolved from the `admin: true` custom
+ * claim (issue #139; PR B made the claim the sole signal). `isAdmin` refreshes
+ * whenever the ID token refreshes, so `setAdminClaim` callable writes
+ * propagate into the UI without a full re-login (after `getIdTokenResult(true)`).
  */
 export function useAuth() {
   const [user, setUser] = useState(null);

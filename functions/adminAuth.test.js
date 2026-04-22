@@ -2,7 +2,6 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
-  ADMIN_EMAIL_FOR_SETLIST_PROXY,
   parseSuperAdminUidsEnv,
   resolveAdminCallerRole,
   resolveSetAdminClaimCallerRole,
@@ -31,20 +30,20 @@ test("resolveAdminCallerRole: null when no auth", () => {
   assert.equal(resolveAdminCallerRole(undefined), null);
 });
 
-test("resolveAdminCallerRole: admin-claim takes precedence over email", () => {
+test("resolveAdminCallerRole: admin-claim qualifies", () => {
   const role = resolveAdminCallerRole({
     uid: "u1",
-    token: { admin: true, email: "random@example.com" },
+    token: { admin: true, email: "whatever@example.com" },
   });
   assert.equal(role, "admin-claim");
 });
 
-test("resolveAdminCallerRole: legacy email accepted when no claim", () => {
+test("resolveAdminCallerRole: legacy email no longer qualifies (PR B)", () => {
   const role = resolveAdminCallerRole({
     uid: "u1",
-    token: { email: ADMIN_EMAIL_FOR_SETLIST_PROXY },
+    token: { email: "pat@road2media.com" },
   });
-  assert.equal(role, "legacy-email");
+  assert.equal(role, null);
 });
 
 test("resolveAdminCallerRole: admin=false is not admin", () => {
@@ -72,15 +71,15 @@ test("resolveSetAdminClaimCallerRole: super-admin via env UID", () => {
   assert.equal(role, "super-admin");
 });
 
-test("resolveSetAdminClaimCallerRole: super-admin via legacy email (bootstrap)", () => {
+test("resolveSetAdminClaimCallerRole: legacy email no longer bootstraps (PR B)", () => {
   const role = resolveSetAdminClaimCallerRole(
     {
       uid: "whatever",
-      token: { email: ADMIN_EMAIL_FOR_SETLIST_PROXY },
+      token: { email: "pat@road2media.com" },
     },
     new Set()
   );
-  assert.equal(role, "super-admin");
+  assert.equal(role, null);
 });
 
 test("resolveSetAdminClaimCallerRole: admin claim delegates", () => {
@@ -91,7 +90,7 @@ test("resolveSetAdminClaimCallerRole: admin claim delegates", () => {
   assert.equal(role, "admin");
 });
 
-test("resolveSetAdminClaimCallerRole: no claim + no env + no legacy email → null", () => {
+test("resolveSetAdminClaimCallerRole: no claim + no env → null", () => {
   const role = resolveSetAdminClaimCallerRole(
     { uid: "rando", token: { email: "rando@example.com" } },
     new Set(["other-uid"])
@@ -111,12 +110,7 @@ test("resolveSetAdminClaimCallerRole: null auth returns null", () => {
   assert.equal(resolveSetAdminClaimCallerRole(null, new Set()), null);
 });
 
-test("resolveSetAdminClaimCallerRole: missing uid falls back to email/claim", () => {
-  const viaEmail = resolveSetAdminClaimCallerRole(
-    { token: { email: ADMIN_EMAIL_FOR_SETLIST_PROXY } },
-    new Set()
-  );
-  assert.equal(viaEmail, "super-admin");
+test("resolveSetAdminClaimCallerRole: missing uid + claim still delegates", () => {
   const viaClaim = resolveSetAdminClaimCallerRole(
     { token: { admin: true } },
     new Set()
