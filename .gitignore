@@ -1,9 +1,14 @@
 node_modules
 .env
+.env.*
+!.env.example
 .DS_Store
 dist
 .cursor/debug-2b48e0.log
 mcp.json
+firestore-debug.log
+firebase-debug.log
+*.log
 
 # Local credentials (GCP service accounts, etc.). Prefer ~/… or secrets/ and never commit.
 secrets/
