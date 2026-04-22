@@ -17,7 +17,8 @@
     "diagnose:phishnet": "node scripts/diagnose-phishnet-local.mjs",
     "print:phishnet-tour-clusters": "node scripts/print-phishnet-tour-clusters.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:rules": "firebase emulators:exec --only firestore --project setlist-pickem-rules-test \"node --test firestore.rules.test.cjs\""
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
@@ -30,6 +31,7 @@
     "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
     "@vitejs/plugin-react": "^4.0.0",
     "autoprefixer": "^10.4.14",
     "eslint": "^9.39.4",
