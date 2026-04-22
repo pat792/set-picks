@@ -1,12 +1,14 @@
 # Song catalog (picks autocomplete) — issue #158
 
+> **Scoring decoupled (#214):** As of #214, **scoring does not consult this catalog.** Bustout boosts come from the per-show `official_setlists/{showDate}.bustouts` snapshot (frozen at save time from Phish.net row `gap`). The Storage catalog and the bundled fallbacks (`src/shared/data/phishSongs.js`, `functions/phishSongs.js`) are retained solely for **UI concerns** — autocomplete, scoring-rules copy, and future upcoming-show bustout hints. Weekly refresh cadence is adequate for those uses; scoring accuracy no longer depends on it. See `docs/OFFICIAL_SETLISTS_SCHEMA.md` → “Bustout source — per-show snapshot (#214).”
+
 ## Data path
 
 1. **Source of truth (live):** Phish.net API v5 `GET /v5/songs.json` (server-side only, `PHISHNET_API_KEY`).
 2. **Publish:** Cloud Functions write **`song-catalog.json`** to the **default Firebase Storage bucket** (`makePublic()` is best-effort; not required for the default client path).
 3. **Client URL:** By default the app uses **`getDownloadURL()`** (Firebase Storage SDK) for `song-catalog.json`. That respects **`storage.rules`** (`allow read: if true`) and avoids opening the whole bucket on **GCS IAM**. A raw browser URL like `https://storage.googleapis.com/<bucket>/song-catalog.json` **does not** use Firebase rules and returns **`AccessDenied`** for anonymous users unless you add **`allUsers` → Storage Object Viewer** on the bucket (usually avoid on buckets that hold private uploads). Override with **`VITE_SONG_CATALOG_URL`** only if you host the JSON elsewhere (CDN) with anonymous GET + CORS.
 4. **Fetch + cache:** `useSongCatalog` **`fetch()`**s the resolved URL. **localStorage** (`set-picks.songCatalogCache.v1`): if data was saved **within the last 3 days**, the hook **skips** both `getDownloadURL` and `fetch`. On failure, an **older cache** is used if present; otherwise **`src/shared/data/phishSongs.js`**.
-5. **Cloud Function grading / bustout (issue #167):** `recomputeLiveScoresForShow` (`functions/index.js`) reads the same **Storage `song-catalog.json`** via **`functions/songCatalogSource.js`** (5-minute in-memory TTL per function instance) and threads the `songs[]` array into `calculateSlotScore` for bustout gap lookup. On any failure (object missing, parse error, empty `songs`, Storage read error) grading falls back to **`functions/phishSongs.js`** so it never hard-fails. No Phish.net API key is required on the grading path.
+5. **Scoring does not read this catalog (post-#214).** `recomputeLiveScoresForShow` and `calculateSlotScore` in `functions/index.js` — and their client counterparts in `src/shared/utils/scoring.js` — read bustout membership from `actualSetlist.bustouts`. `functions/songCatalogSource.js` (5-minute TTL loader) is still present in-tree but is no longer threaded into grading; it can be removed in a follow-up once no code path imports it. The bundled catalogs (`src/shared/data/phishSongs.js`, `functions/phishSongs.js`) remain only as Storage-fallback seeds for `useSongCatalog` / the storage loader.
 
 ## Operations
 
