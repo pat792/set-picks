@@ -7,7 +7,7 @@ import PoolAdminControls from './PoolAdminControls';
  * Collapsed-by-default owner-only disclosure that wraps {@link PoolAdminControls}.
  *
  * Mirrors the `<details>` pattern used by `PoolHubShowArchive` and
- * `PoolHubSeasonTotalsSection`, keeping the amber "admin zone" accent so the
+ * `PoolHubStandingsSection`, keeping the amber "admin zone" accent so the
  * section still reads as a destructive-capable surface even when collapsed.
  *
  * Accessibility: native `<details>`/`<summary>` handles keyboard toggle + focus.
