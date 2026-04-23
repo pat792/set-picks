@@ -1,0 +1,101 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  DEFAULT_STANDINGS_VIEW,
+  STANDINGS_VIEWS,
+  deriveStandingsView,
+  normalizeView,
+} from './useStandingsView';
+
+describe('normalizeView', () => {
+  it('returns known views verbatim', () => {
+    for (const v of STANDINGS_VIEWS) {
+      expect(normalizeView(v)).toBe(v);
+    }
+  });
+
+  it.each([
+    null,
+    undefined,
+    '',
+    'season',
+    'picks',
+    'POOLS',
+    42,
+    true,
+    {},
+  ])('falls back to the default view for %p', (input) => {
+    expect(normalizeView(input)).toBe(DEFAULT_STANDINGS_VIEW);
+  });
+});
+
+describe('deriveStandingsView', () => {
+  const pools = [
+    { id: 'pool-a', name: 'A' },
+    { id: 'pool-b', name: 'B' },
+  ];
+
+  it('defaults to the Show view when no query is present', () => {
+    expect(deriveStandingsView({}, pools)).toEqual({
+      view: 'show',
+      poolId: null,
+    });
+  });
+
+  it('preserves a known view when valid', () => {
+    expect(deriveStandingsView({ view: 'tour' }, pools)).toEqual({
+      view: 'tour',
+      poolId: null,
+    });
+  });
+
+  it('falls back to Show for an unknown view', () => {
+    expect(deriveStandingsView({ view: 'season' }, pools)).toEqual({
+      view: 'show',
+      poolId: null,
+    });
+  });
+
+  it('ignores pool when the view is not Pools', () => {
+    expect(deriveStandingsView({ view: 'show', pool: 'pool-a' }, pools)).toEqual({
+      view: 'show',
+      poolId: null,
+    });
+    expect(deriveStandingsView({ view: 'tour', pool: 'pool-a' }, pools)).toEqual({
+      view: 'tour',
+      poolId: null,
+    });
+  });
+
+  it('keeps the Pools view with a matching pool id', () => {
+    expect(
+      deriveStandingsView({ view: 'pools', pool: 'pool-b' }, pools),
+    ).toEqual({ view: 'pools', poolId: 'pool-b' });
+  });
+
+  it('drops unknown pool ids but keeps the Pools view (picker will show)', () => {
+    expect(
+      deriveStandingsView({ view: 'pools', pool: 'ghost' }, pools),
+    ).toEqual({ view: 'pools', poolId: null });
+  });
+
+  it('handles null / empty userPools without throwing', () => {
+    expect(deriveStandingsView({ view: 'pools', pool: 'x' }, null)).toEqual({
+      view: 'pools',
+      poolId: null,
+    });
+    expect(deriveStandingsView({ view: 'pools', pool: 'x' }, [])).toEqual({
+      view: 'pools',
+      poolId: null,
+    });
+  });
+
+  it('tolerates malformed pool entries', () => {
+    expect(
+      deriveStandingsView(
+        { view: 'pools', pool: 'pool-a' },
+        [null, undefined, { id: null }, { id: 'pool-a' }],
+      ),
+    ).toEqual({ view: 'pools', poolId: 'pool-a' });
+  });
+});

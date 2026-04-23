@@ -47,6 +47,37 @@ const CASES = [
     },
   },
   {
+    path: '/dashboard/standings',
+    search: '?view=show',
+    expect: {
+      contextTitle: NAV_LABEL_STANDINGS,
+      showDatePicker: true,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    path: '/dashboard/standings',
+    search: '?view=pools&pool=abc',
+    expect: {
+      contextTitle: NAV_LABEL_STANDINGS,
+      showDatePicker: true,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #255: Tour view is cumulative; global date picker hidden for clarity.
+    path: '/dashboard/standings',
+    search: '?view=tour',
+    expect: {
+      contextTitle: NAV_LABEL_STANDINGS,
+      showDatePicker: false,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
     path: '/dashboard/pools',
     expect: {
       contextTitle: NAV_LABEL_POOLS,
@@ -96,13 +127,14 @@ const CASES = [
 
 let failed = false;
 
-for (const { path, expect: exp } of CASES) {
-  const meta = getDashboardPageMeta(path);
+for (const { path, search, expect: exp } of CASES) {
+  const meta = getDashboardPageMeta(path, search);
   const normalized = normalizeDashboardPathname(path);
+  const label = search ? `${path}${search}` : path;
   for (const key of Object.keys(exp)) {
     if (meta[key] !== exp[key]) {
       console.error(
-        `[verify-dashboard-meta] ${path} (normalized: ${normalized}) — ${key}: got ${JSON.stringify(meta[key])}, expected ${JSON.stringify(exp[key])}`
+        `[verify-dashboard-meta] ${label} (normalized: ${normalized}) — ${key}: got ${JSON.stringify(meta[key])}, expected ${JSON.stringify(exp[key])}`,
       );
       failed = true;
     }

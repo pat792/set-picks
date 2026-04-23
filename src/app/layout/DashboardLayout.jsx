@@ -104,7 +104,7 @@ export default function DashboardLayout() {
     navItems.push({ name: NAV_LABEL_ADMIN, path: '/dashboard/admin', icon: Settings });
   }
 
-  const meta = getDashboardPageMeta(location.pathname);
+  const meta = getDashboardPageMeta(location.pathname, location.search);
   const datePickerStatus = getShowStatus(selectedDate, showDates);
   const priorShowForTooEarly = getShowBeforeDate(selectedDate, showDates);
   const tooEarlyPriorLabel =
