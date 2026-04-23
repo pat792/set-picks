@@ -18,11 +18,16 @@ import { fetchGlobalMaxScoreForShow } from '../../scoring';
  * wrapper) can report Firestore reads per profile view without needing to
  * re-instrument internals.
  *
+ * `source` (added in #244) distinguishes a materialized short-circuit
+ * (`'materialized'`, `showsChecked === 1`, `collectionQueries === 0`) from
+ * the fallback live-compute path (`'live'`, real counters).
+ *
  * @typedef {Object} UserSeasonStatsTelemetry
  * @property {number} showsChecked       Calendar size = point reads performed.
  * @property {number} showsPlayed        Graded non-empty picks for this user.
  * @property {number} collectionQueries  `picks where showDate == X` queries
  *                                       issued during the Wins pass.
+ * @property {'materialized' | 'live'} source  Which pipeline served this run.
  */
 
 /** @type {UserSeasonStats} */
@@ -37,17 +42,26 @@ export const EMPTY_USER_SEASON_STATS_TELEMETRY = Object.freeze({
   showsChecked: 0,
   showsPlayed: 0,
   collectionQueries: 0,
+  source: 'live',
 });
 
 /**
- * Season stats for a single user computed live from `picks`:
- *   - `totalPoints` / `shows` — sum of the user's own graded picks (picks
- *     aren't double-counted when they belong to multiple pools).
+ * Season stats for a single user. Attempts the #244 materialized path
+ * first — a single `users/{uid}` point read — and falls back to the
+ * live-compute pipeline when the snapshot is missing or stale.
+ *
+ * Materialized short-circuit requirements (all must hold):
+ *   - The users doc exists and has numeric `totalPoints`, `showsPlayed`,
+ *     `wins` fields (server-written by `rollupScoresForShow`).
+ *   - `seasonStatsThroughShow >= latestFinalizedShow` — the rollup caught
+ *     up to the most recent finalized show the caller is aware of.
+ *
+ * The live-compute fallback (read cost = `|showDates|` point reads +
+ * `|showsPlayed|` collection queries) implements the same aggregation
+ * rule as `reduceShowWinners` so the two paths agree:
+ *   - `totalPoints` / `shows` — sum of the user's own graded picks.
  *   - `wins` — shows won overall (global high score across every graded,
- *     non-empty pick for that show), not pool-scoped wins. Ties share the
- *     win, matching the per-pool leaderboard's tie rule and the shared
- *     `reduceShowWinners` rule used by Standings (#218) and Tour standings
- *     (#219).
+ *     non-empty pick for that show), not pool-scoped wins. Ties share.
  *
  * Also reports per-invocation read-cost counters via the optional
  * `onTelemetry` callback so `useUserSeasonStats` can ship the #220
@@ -55,11 +69,14 @@ export const EMPTY_USER_SEASON_STATS_TELEMETRY = Object.freeze({
  *
  * @param {string | undefined} uid
  * @param {Array<{ date: string }>} showDates
- * @param {{ onTelemetry?: (t: UserSeasonStatsTelemetry) => void }} [options]
+ * @param {{
+ *   onTelemetry?: (t: UserSeasonStatsTelemetry) => void,
+ *   latestFinalizedShow?: string | null,
+ * }} [options]
  * @returns {Promise<UserSeasonStats>}
  */
 export async function computeUserSeasonStats(uid, showDates, options = {}) {
-  const { onTelemetry } = options;
+  const { onTelemetry, latestFinalizedShow = null } = options;
   const telemetry = { ...EMPTY_USER_SEASON_STATS_TELEMETRY };
   const emit = () => {
     if (typeof onTelemetry === 'function') {
@@ -80,6 +97,31 @@ export async function computeUserSeasonStats(uid, showDates, options = {}) {
     emit();
     return { ...EMPTY_USER_SEASON_STATS };
   }
+
+  // #244 materialized short-circuit. When `rollupScoresForShow` has
+  // processed this user through at least the caller-supplied
+  // `latestFinalizedShow`, the numeric aggregates on the user doc are
+  // authoritative and we can skip the |showDates| + |shows_played|
+  // live fan-out.
+  telemetry.showsChecked = 1;
+  const userRef = doc(db, 'users', id);
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.exists() ? userSnap.data() || {} : null;
+  const materialized = readMaterializedSeasonStats(
+    userData,
+    latestFinalizedShow
+  );
+  if (materialized) {
+    telemetry.source = 'materialized';
+    emit();
+    return materialized;
+  }
+
+  // Fallback: the user doc is missing, the materialization snapshot is
+  // stale (new show finalized since the last rollup for this user), or
+  // the caller didn't supply `latestFinalizedShow`. Live-compute from
+  // `picks/{date}_{uid}` — same pipeline as before #244.
+  telemetry.source = 'live';
 
   const dates = showDates.map((s) => s.date).filter(Boolean);
   telemetry.showsChecked = dates.length;
@@ -132,5 +174,42 @@ export async function computeUserSeasonStats(uid, showDates, options = {}) {
   }
 
   emit();
+  return { totalPoints, shows, wins };
+}
+
+/**
+ * Short-circuit predicate for the #244 materialized path.
+ *
+ * Returns the materialized `{ totalPoints, shows, wins }` from a
+ * `users/{uid}` doc when:
+ *   - the doc exists and has numeric `totalPoints`, `showsPlayed`, `wins`,
+ *   - `latestFinalizedShow` is provided by the caller, AND
+ *   - `seasonStatsThroughShow >= latestFinalizedShow` (rollup has caught
+ *     up).
+ *
+ * Returns `null` when any check fails — the caller falls back to the
+ * live-compute path in that case. Pure so the decision logic can be
+ * unit-tested without mocking Firestore.
+ *
+ * @param {Record<string, unknown> | null | undefined} userData
+ * @param {string | null | undefined} latestFinalizedShow
+ * @returns {UserSeasonStats | null}
+ */
+export function readMaterializedSeasonStats(userData, latestFinalizedShow) {
+  if (!userData || typeof userData !== 'object') return null;
+  const totalPoints =
+    typeof userData.totalPoints === 'number' ? userData.totalPoints : null;
+  const shows =
+    typeof userData.showsPlayed === 'number' ? userData.showsPlayed : null;
+  const wins = typeof userData.wins === 'number' ? userData.wins : null;
+  if (totalPoints === null || shows === null || wins === null) return null;
+  if (typeof latestFinalizedShow !== 'string' || !latestFinalizedShow) {
+    return null;
+  }
+  const through =
+    typeof userData.seasonStatsThroughShow === 'string'
+      ? userData.seasonStatsThroughShow
+      : '';
+  if (!through || through < latestFinalizedShow) return null;
   return { totalPoints, shows, wins };
 }

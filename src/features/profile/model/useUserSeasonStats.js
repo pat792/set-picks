@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
+import { todayYmd } from '../../../shared/utils/dateUtils';
 import { useAuth } from '../../auth';
 import { useShowCalendar } from '../../show-calendar';
 import {
@@ -22,7 +23,40 @@ function deriveShowDatesKey(showDates) {
 }
 
 /**
- * Live-computed season totals for a user's public profile.
+ * Heuristic for "the most recent finalized show the client is aware of" —
+ * the max calendar date on or before today. Used by
+ * `computeUserSeasonStats` (#244) to decide whether the `users/{uid}`
+ * materialized snapshot is fresh enough to short-circuit the
+ * live-compute fallback.
+ *
+ * Today's show may not have been rolled up yet (finalize is still manual);
+ * if that's the case for the most-recent-show user, the snapshot will be
+ * stale and they'll fall back to live-compute for one profile view until
+ * the next rollup catches up. Acceptable trade-off vs. a second Firestore
+ * read to load a global "last rolled up show" marker.
+ *
+ * @param {Array<{ date: string }>} showDates
+ * @returns {string | null}
+ */
+function deriveLatestFinalizedShow(showDates) {
+  if (!Array.isArray(showDates) || showDates.length === 0) return null;
+  const today = todayYmd();
+  let latest = null;
+  for (const s of showDates) {
+    const d = s && typeof s.date === 'string' ? s.date : '';
+    if (!d || d > today) continue;
+    if (!latest || d > latest) latest = d;
+  }
+  return latest;
+}
+
+/**
+ * Season totals for a user's public profile.
+ *
+ * As of #244, prefers the `rollupScoresForShow`-materialized aggregates on
+ * `users/{uid}` (single point read) when the snapshot is caught up; falls
+ * back to the live-compute pipeline (|showDates| point reads + |showsPlayed|
+ * collection queries) otherwise.
  *
  * - `totalPoints` / `shows` come from the user's own graded picks.
  * - `wins` = shows won overall (global high score across every graded pick
@@ -31,12 +65,14 @@ function deriveShowDatesKey(showDates) {
  *
  * Wrapped with React Query in #243 so back-navigation within the session
  * reuses cached stats per `(uid, showDatesKey)` instead of re-issuing the
- * `|showDates|` point reads + per-show Wins queries on every mount.
+ * (materialized or live-compute) reads on every mount.
  *
- * Also emits the `#220` `profile_season_stats_computed` telemetry event on
- * every successful run AND on every cache-hit mount; the new `cache_hit`
- * param distinguishes the two so we can measure cache effectiveness without
- * losing reads-per-view accuracy.
+ * Emits the `#220` `profile_season_stats_computed` telemetry event on
+ * every successful run AND on every cache-hit mount. The `cache_hit`
+ * param distinguishes a real compute from a React Query cache hit; the
+ * `source` param (#244) distinguishes `'materialized'` from `'live'`
+ * compute pipelines. A cache hit reports `source: 'materialized'` with
+ * zeroed counters since no Firestore read happened this render.
  *
  * @param {string | undefined} uid
  */
@@ -48,13 +84,24 @@ export function useUserSeasonStats(uid) {
   const showDatesKey = deriveShowDatesKey(showDates);
   const enabled = trimmedUid.length > 0 && !showDatesLoading;
 
+  // Cheap derivation (one pass over ~30 dates + one comparison per date);
+  // computed on every render, but only read inside the `queryFn` that
+  // React Query gates on the `[uid, showDatesKey]` cache key.
+  const latestFinalizedShow = deriveLatestFinalizedShow(showDates);
+
   // Captured by the queryFn on every actual compute, then read by the
   // post-success telemetry effect. A ref keeps the latest run's counters
   // in sync with the data we hand to the cache without triggering renders.
   const lastComputeTelemetryRef = useRef(
-    /** @type {{ shows_checked: number, shows_played: number, collection_queries: number, elapsed_ms: number } | null} */ (
-      null
-    )
+    /**
+     * @type {{
+     *   shows_checked: number,
+     *   shows_played: number,
+     *   collection_queries: number,
+     *   elapsed_ms: number,
+     *   source: 'materialized' | 'live',
+     * } | null}
+     */ (null)
   );
 
   const query = useQuery({
@@ -65,10 +112,18 @@ export function useUserSeasonStats(uid) {
         typeof performance !== 'undefined' && typeof performance.now === 'function'
           ? performance.now()
           : Date.now();
-      /** @type {{ showsChecked: number, showsPlayed: number, collectionQueries: number } | null} */
+      /**
+       * @type {{
+       *   showsChecked: number,
+       *   showsPlayed: number,
+       *   collectionQueries: number,
+       *   source: 'materialized' | 'live',
+       * } | null}
+       */
       let captured = null;
       try {
         const stats = await computeUserSeasonStats(trimmedUid, showDates, {
+          latestFinalizedShow,
           onTelemetry: (t) => {
             captured = { ...t };
           },
@@ -85,6 +140,7 @@ export function useUserSeasonStats(uid) {
             shows_played: captured.showsPlayed,
             collection_queries: captured.collectionQueries,
             elapsed_ms: endedAt - startedAt,
+            source: captured.source,
           };
         }
       }
@@ -116,7 +172,17 @@ export function useUserSeasonStats(uid) {
     const computeTelemetry =
       !cacheHit && lastComputeTelemetryRef.current
         ? lastComputeTelemetryRef.current
-        : { shows_checked: 0, shows_played: 0, collection_queries: 0, elapsed_ms: 0 };
+        : {
+            shows_checked: 0,
+            shows_played: 0,
+            collection_queries: 0,
+            elapsed_ms: 0,
+            // Cache hits mean no Firestore read happened this render — the
+            // source is effectively "materialized from cache." Keeps the
+            // GA4 param shape stable so the dashboard doesn't need a
+            // null-source bucket.
+            source: /** @type {'materialized' | 'live'} */ ('materialized'),
+          };
 
     emitProfileSeasonStatsTelemetry({
       ...computeTelemetry,
