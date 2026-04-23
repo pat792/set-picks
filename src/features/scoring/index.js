@@ -17,6 +17,7 @@ export {
   ScoringRulesModalProvider,
   useScoringRulesModal,
 } from './ui/ScoringRulesModalProvider';
+export { default as StandingsActiveShowCard } from './ui/StandingsActiveShowCard';
 export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';
 export { default as StandingsPoolPicker } from './ui/StandingsPoolPicker';
 export { default as StandingsViewToggle } from './ui/StandingsViewToggle';

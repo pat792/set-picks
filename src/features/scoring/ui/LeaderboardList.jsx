@@ -17,6 +17,7 @@ export default function LeaderboardList({
   getPickPayload,
   title = 'Everyone',
   headerEnd = null,
+  selfUserId = null,
 }) {
   if (sortedPicks.length === 0) {
     return (
@@ -81,12 +82,18 @@ export default function LeaderboardList({
         const userPicks = getPickPayload(p);
         const isExpanded = expandedUser === uniqueId;
         const rank = index + 1;
+        const isSelf = Boolean(selfUserId) && (p.userId || p.uid) === selfUserId;
+        // Pre-grade, the self row is pinned to rank 1 by `useLeaderboard`;
+        // skip the natural rank badge so users don't misread "1" as a
+        // scoring result before the setlist lands.
+        const displayRank = isSelf && !actualSetlist ? null : rank;
 
         return (
           <LeaderboardRow
             key={uniqueId}
-            rank={rank}
+            rank={displayRank}
             isLeaderRow={showLeaderCallout && uniqueId === leaderId}
+            isSelf={isSelf}
             p={p}
             actualSetlist={actualSetlist}
             isExpanded={isExpanded}

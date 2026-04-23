@@ -21,6 +21,7 @@ const TARGETS = [
   'src/features/scoring/ui/ScoreBreakdownGrid.jsx',
   'src/features/scoring/ui/ScoringRulesContent.jsx',
   'src/features/scoring/ui/ScoringRulesModal.jsx',
+  'src/features/scoring/ui/StandingsActiveShowCard.jsx',
   'src/features/scoring/ui/StandingsPoolPicker.jsx',
   'src/features/scoring/ui/StandingsViewToggle.jsx',
 ];
