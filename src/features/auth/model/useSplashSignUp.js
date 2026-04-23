@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getAdditionalUserInfo } from 'firebase/auth';
 
-import { auth, googleProvider } from '../../../shared/lib/firebase';
+import { auth } from '../../../shared/lib/firebase';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import { registerWithEmail, signInWithGoogle } from '../api/splashAuthApi';
 import { trackAuthError, trackAuthLogin, trackAuthSignUp } from './authAnalytics';
@@ -46,7 +46,7 @@ export function useSplashSignUp(isOpen, onClose) {
     setError('');
     setBusy(true);
     try {
-      const cred = await signInWithGoogle(auth, googleProvider);
+      const cred = await signInWithGoogle(auth);
       const extra = getAdditionalUserInfo(cred);
       if (extra?.isNewUser) {
         trackAuthSignUp('google');

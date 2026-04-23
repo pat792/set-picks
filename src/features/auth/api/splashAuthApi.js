@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -7,8 +8,19 @@ import {
 
 import { getPasswordResetActionCodeSettings } from '../utils/passwordResetActionSettings';
 
-export function signInWithGoogle(auth, googleProvider) {
-  return signInWithPopup(auth, googleProvider);
+// Construct lazily on first Google sign-in attempt so the shared Firebase
+// boot module doesn't allocate it on splash load (issue #242).
+let googleProvider = null;
+
+function getGoogleProvider() {
+  if (!googleProvider) {
+    googleProvider = new GoogleAuthProvider();
+  }
+  return googleProvider;
+}
+
+export function signInWithGoogle(auth) {
+  return signInWithPopup(auth, getGoogleProvider());
 }
 
 export function registerWithEmail(auth, email, password) {

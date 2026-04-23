@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './app/App.jsx'
 import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import { initGa4 } from './shared/lib/ga4'
+import { initializeAppCheckDeferred } from './shared/lib/firebaseAppCheck'
 import './index.css'
 
 initGa4()
@@ -20,3 +21,5 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>
 )
+
+initializeAppCheckDeferred()
