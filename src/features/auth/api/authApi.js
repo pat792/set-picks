@@ -2,6 +2,7 @@ import { onAuthStateChanged, onIdTokenChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
 import { auth, db } from '../../../shared/lib/firebase';
+import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 
 export function subscribeToAuthState(onChange) {
   return onAuthStateChanged(auth, onChange);
@@ -40,6 +41,7 @@ export async function resolveIsAdmin(user, { forceRefresh = false } = {}) {
 }
 
 export async function fetchUserProfile(uid) {
+  await whenFirebaseReady();
   const userRef = doc(db, 'users', uid);
   const userSnap = await getDoc(userRef);
   return userSnap.exists() ? userSnap.data() : null;

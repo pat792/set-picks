@@ -23,21 +23,37 @@ export const PROFILE_STATS_TELEMETRY_THRESHOLDS = Object.freeze({
  * credentials. Failures inside GA never throw — telemetry must not break the
  * profile view.
  *
+ * `cache_hit` (added in #243) distinguishes a real `computeUserSeasonStats`
+ * run (`false`, with non-zero read counters) from a React Query cache hit
+ * (`true`, with all counters at 0). Both cases still fire one event per
+ * profile view so views-per-day stays accurate.
+ *
+ * `source` (added in #244) distinguishes the materialized short-circuit
+ * (`'materialized'`, one `users/{uid}` point read, zero collection
+ * queries) from the live-compute fallback (`'live'`, real per-show read
+ * counters). Cache hits report `source: 'materialized'` with all
+ * counters at 0 since no Firestore read happened this render.
+ *
  * @param {{
  *   shows_checked: number,
  *   shows_played: number,
  *   collection_queries: number,
  *   elapsed_ms: number,
  *   self_view: boolean,
+ *   cache_hit?: boolean,
+ *   source?: 'materialized' | 'live',
  * }} payload
  */
 export function emitProfileSeasonStatsTelemetry(payload) {
+  const source = payload.source === 'live' ? 'live' : 'materialized';
   const params = {
     shows_checked: Number(payload.shows_checked) || 0,
     shows_played: Number(payload.shows_played) || 0,
     collection_queries: Number(payload.collection_queries) || 0,
     elapsed_ms: Math.max(0, Math.round(Number(payload.elapsed_ms) || 0)),
     self_view: Boolean(payload.self_view),
+    cache_hit: Boolean(payload.cache_hit),
+    source,
   };
 
   try {

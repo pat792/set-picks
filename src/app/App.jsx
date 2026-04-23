@@ -1,15 +1,24 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-import PasswordResetCompletePage from '../pages/auth/PasswordResetCompletePage';
-import PublicProfilePage from '../pages/profile/PublicProfilePage';
-
 import RootAppShell from './layout/RootAppShell';
-import DashboardRoute from './routes/DashboardRoute';
 import HomeRoute from './routes/HomeRoute';
-import SetupRoute from './routes/SetupRoute';
-import PoolInviteMissingCodePage from '../pages/pool-invite/PoolInviteMissingCodePage';
-import PoolInvitePage from '../pages/pool-invite/PoolInvitePage';
+
+// Keep `HomeRoute` eager: it's the public splash / SEO-facing surface, so it
+// must paint before any dynamic import resolves. Every other top-level route
+// is lazy-loaded so direct hits on e.g. `/dashboard/profile` don't pay the
+// full dashboard+admin+pools download on first paint. The shared Suspense
+// boundary lives in `RootAppShell` (one place → consistent fallback).
+const PasswordResetCompletePage = lazy(() =>
+  import('../pages/auth/PasswordResetCompletePage')
+);
+const PublicProfilePage = lazy(() => import('../pages/profile/PublicProfilePage'));
+const PoolInviteMissingCodePage = lazy(() =>
+  import('../pages/pool-invite/PoolInviteMissingCodePage')
+);
+const PoolInvitePage = lazy(() => import('../pages/pool-invite/PoolInvitePage'));
+const SetupRoute = lazy(() => import('./routes/SetupRoute'));
+const DashboardRoute = lazy(() => import('./routes/DashboardRoute'));
 
 function App() {
   return (

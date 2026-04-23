@@ -25,6 +25,8 @@ describe('emitProfileSeasonStatsTelemetry', () => {
       collection_queries: 4,
       elapsed_ms: 812.4,
       self_view: true,
+      cache_hit: false,
+      source: 'live',
     });
     expect(ga4Event).toHaveBeenCalledTimes(1);
     expect(ga4Event).toHaveBeenCalledWith('profile_season_stats_computed', {
@@ -33,6 +35,8 @@ describe('emitProfileSeasonStatsTelemetry', () => {
       collection_queries: 4,
       elapsed_ms: 812,
       self_view: true,
+      cache_hit: false,
+      source: 'live',
     });
   });
 
@@ -50,6 +54,70 @@ describe('emitProfileSeasonStatsTelemetry', () => {
       collection_queries: 0,
       elapsed_ms: 0,
       self_view: false,
+      cache_hit: false,
+      source: 'materialized',
+    });
+  });
+
+  it('passes through `cache_hit: true` for React Query cache-served views', () => {
+    emitProfileSeasonStatsTelemetry({
+      shows_checked: 0,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 0,
+      self_view: false,
+      cache_hit: true,
+      source: 'materialized',
+    });
+    expect(ga4Event).toHaveBeenCalledWith('profile_season_stats_computed', {
+      shows_checked: 0,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 0,
+      self_view: false,
+      cache_hit: true,
+      source: 'materialized',
+    });
+  });
+
+  it('marks a materialized short-circuit with source="materialized" and 1 show read', () => {
+    emitProfileSeasonStatsTelemetry({
+      shows_checked: 1,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 34,
+      self_view: false,
+      cache_hit: false,
+      source: 'materialized',
+    });
+    expect(ga4Event).toHaveBeenCalledWith('profile_season_stats_computed', {
+      shows_checked: 1,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 34,
+      self_view: false,
+      cache_hit: false,
+      source: 'materialized',
+    });
+  });
+
+  it('defaults to source="materialized" when source is omitted or invalid', () => {
+    emitProfileSeasonStatsTelemetry({
+      shows_checked: 1,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 10,
+      self_view: false,
+      source: 'bogus',
+    });
+    expect(ga4Event).toHaveBeenCalledWith('profile_season_stats_computed', {
+      shows_checked: 1,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 10,
+      self_view: false,
+      cache_hit: false,
+      source: 'materialized',
     });
   });
 

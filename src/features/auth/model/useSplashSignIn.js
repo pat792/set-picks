@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { auth, googleProvider } from '../../../shared/lib/firebase';
+import { auth } from '../../../shared/lib/firebase';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import { sendResetEmail, signInWithEmail, signInWithGoogle } from '../api/splashAuthApi';
 import { trackAuthError, trackAuthLogin } from './authAnalytics';
@@ -45,7 +45,7 @@ export function useSplashSignIn(isOpen, onClose) {
     setError('');
     setBusy(true);
     try {
-      await signInWithGoogle(auth, googleProvider);
+      await signInWithGoogle(auth);
       trackAuthLogin('google');
       closeModal();
     } catch (err) {

@@ -1,6 +1,4 @@
-import { getDownloadURL, ref } from 'firebase/storage';
-
-import { storage } from '../../../shared/lib/firebase.js';
+import { loadFirebaseStorage } from '../../../shared/lib/firebaseStorage.js';
 
 const CATALOG_OBJECT_PATH = 'song-catalog.json';
 
@@ -20,6 +18,7 @@ export async function resolveSongCatalogFetchUrl() {
   if (typeof explicit === 'string' && explicit.trim()) {
     return explicit.trim();
   }
+  const { storage, ref, getDownloadURL } = await loadFirebaseStorage();
   const r = ref(storage, CATALOG_OBJECT_PATH);
   return getDownloadURL(r);
 }
