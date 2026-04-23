@@ -5,6 +5,7 @@ import { Users } from 'lucide-react';
 import { useNextShowPicksStatus } from '../../features/picks';
 import {
   PoolJoinCreateCard,
+  PoolsHowItWorksMenu,
   UserPoolsSection,
   useUserPools,
 } from '../../features/pools';
@@ -33,12 +34,14 @@ export default function Pools({ user }) {
   return (
     <div className="w-full space-y-8 pb-6 md:pb-12">
       <DashboardActionRow>
-        <div className="flex w-full justify-start">
-          <DashboardRowPill as={Link} to="/dashboard" tone="accent">
-            <Users className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
-            Go to Picks
-          </DashboardRowPill>
-        </div>
+        <PoolsHowItWorksMenu
+          leading={
+            <DashboardRowPill as={Link} to="/dashboard" tone="accent">
+              <Users className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
+              Go to Picks
+            </DashboardRowPill>
+          }
+        />
       </DashboardActionRow>
 
       <UserPoolsSection
