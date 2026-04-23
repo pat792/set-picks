@@ -9,7 +9,9 @@ import {
   StandingsBannerWaitingSetlist,
   StandingsFilterTabs,
   StandingsScopeIntro,
+  StandingsWinnerOfTheNightBanner,
   useDisplayedPicks,
+  useShowWinnerOfTheNight,
   useStandings,
   useStandingsLeaderboardView,
   useScoringRulesModal,
@@ -43,6 +45,12 @@ export default function StandingsPage({ selectedDate }) {
   const { openScoringRules } = useScoringRulesModal();
 
   useStandingsLeaderboardView(selectedDate, loading, showDates);
+
+  const winnerOfTheNight = useShowWinnerOfTheNight(picks);
+  const showWinnerBanner =
+    activeFilter === 'global' &&
+    Boolean(actualSetlist) &&
+    winnerOfTheNight.winners.length > 0;
 
   const showLabel = useMemo(() => {
     const show = showDates.find((s) => s.date === selectedDate);
@@ -99,6 +107,14 @@ export default function StandingsPage({ selectedDate }) {
         filterOptions={filterOptions}
         onTabChange={setActiveFilter}
       />
+
+      {showWinnerBanner ? (
+        <StandingsWinnerOfTheNightBanner
+          winners={winnerOfTheNight.winners}
+          max={winnerOfTheNight.max}
+          beats={winnerOfTheNight.beats}
+        />
+      ) : null}
 
       {!actualSetlist && picks.length > 0 ? <StandingsBannerWaitingSetlist /> : null}
 
