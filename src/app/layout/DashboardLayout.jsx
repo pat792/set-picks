@@ -1,20 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { Link, Navigate, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth';
 import { usePendingPoolJoin } from '../../features/pool-invite';
 import { useShowCalendar } from '../../features/show-calendar';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
+import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
 
-import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react'; 
+import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
 
-import PicksPage from '../../pages/picks/PicksPage';
-import AdminPage from '../../pages/admin/AdminPage';
-import StandingsPage from '../../pages/standings/StandingsPage';
-import ProfilePage from '../../pages/profile/ProfilePage';
-import { AccountSecurity } from '../../features/profile';
-import PoolsPage from '../../pages/pools/PoolsPage';
-import PoolHubPage from '../../pages/pools/PoolHubPage';
+// Lazy-load each dashboard page so a direct hit on e.g. `/dashboard/profile`
+// doesn't pay the download cost for Admin / Pools / Standings / Picks /
+// PoolHub. Static imports here would defeat the route-level code splitting
+// at the top level (`App.jsx`), because they'd all collapse back into the
+// DashboardRoute chunk. The inner `<Suspense>` below reuses the shared
+// brand loading fallback.
+const PicksPage = lazy(() => import('../../pages/picks/PicksPage'));
+const AdminPage = lazy(() => import('../../pages/admin/AdminPage'));
+const StandingsPage = lazy(() => import('../../pages/standings/StandingsPage'));
+const ProfilePage = lazy(() => import('../../pages/profile/ProfilePage'));
+// `AccountSecurity` ships through the `profile` feature barrel — preserve
+// that public API by dynamic-importing the barrel and picking the named
+// export for `React.lazy`'s default-module contract.
+const AccountSecurity = lazy(() =>
+  import('../../features/profile').then((m) => ({ default: m.AccountSecurity }))
+);
+const PoolsPage = lazy(() => import('../../pages/pools/PoolsPage'));
+const PoolHubPage = lazy(() => import('../../pages/pools/PoolHubPage'));
 
+// `ScoringRulesModalProvider` must stay eager — it wraps the whole dashboard
+// and owns the modal portal state; lazy-loading it would Suspense-flash the
+// entire dashboard chrome.
 import { ScoringRulesModalProvider } from '../../features/scoring';
 import {
   NAV_LABEL_ADMIN,
@@ -219,20 +234,34 @@ export default function DashboardLayout() {
             <DashboardPageHeading title={meta.layoutDesktopHeading} tone={isWarRoomRoute ? 'warRoom' : 'default'} />
           )}
 
-          <Routes>
-            <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
-            <Route path="picks" element={<PicksPage user={user} selectedDate={selectedDate} />} />
-            <Route
-              path="scoring"
-              element={<Navigate to="/dashboard?scoringRules=1" replace />}
-            />
-            <Route path="standings" element={<StandingsPage selectedDate={selectedDate} />} />
-            <Route path="admin" element={<AdminPage user={user} selectedDate={selectedDate} />} />
-            <Route path="profile" element={<ProfilePage user={user} />} />
-            <Route path="account-security" element={<AccountSecurity user={user} />} />
-            <Route path="pools" element={<PoolsPage user={user} />} />
-            <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
-          </Routes>
+          <Suspense fallback={<RouteSuspenseFallback />}>
+            <Routes>
+              <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
+              <Route
+                path="picks"
+                element={<PicksPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route
+                path="scoring"
+                element={<Navigate to="/dashboard?scoringRules=1" replace />}
+              />
+              <Route
+                path="standings"
+                element={<StandingsPage selectedDate={selectedDate} />}
+              />
+              <Route
+                path="admin"
+                element={<AdminPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route path="profile" element={<ProfilePage user={user} />} />
+              <Route
+                path="account-security"
+                element={<AccountSecurity user={user} />}
+              />
+              <Route path="pools" element={<PoolsPage user={user} />} />
+              <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
+            </Routes>
+          </Suspense>
         </div>
       </main>
 
