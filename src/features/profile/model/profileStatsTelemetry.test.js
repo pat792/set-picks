@@ -25,6 +25,7 @@ describe('emitProfileSeasonStatsTelemetry', () => {
       collection_queries: 4,
       elapsed_ms: 812.4,
       self_view: true,
+      cache_hit: false,
     });
     expect(ga4Event).toHaveBeenCalledTimes(1);
     expect(ga4Event).toHaveBeenCalledWith('profile_season_stats_computed', {
@@ -33,6 +34,7 @@ describe('emitProfileSeasonStatsTelemetry', () => {
       collection_queries: 4,
       elapsed_ms: 812,
       self_view: true,
+      cache_hit: false,
     });
   });
 
@@ -50,6 +52,26 @@ describe('emitProfileSeasonStatsTelemetry', () => {
       collection_queries: 0,
       elapsed_ms: 0,
       self_view: false,
+      cache_hit: false,
+    });
+  });
+
+  it('passes through `cache_hit: true` for React Query cache-served views', () => {
+    emitProfileSeasonStatsTelemetry({
+      shows_checked: 0,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 0,
+      self_view: false,
+      cache_hit: true,
+    });
+    expect(ga4Event).toHaveBeenCalledWith('profile_season_stats_computed', {
+      shows_checked: 0,
+      shows_played: 0,
+      collection_queries: 0,
+      elapsed_ms: 0,
+      self_view: false,
+      cache_hit: true,
     });
   });
 
