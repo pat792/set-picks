@@ -14,6 +14,7 @@ const rankBadgeClass = (rank) => {
 export default function LeaderboardRow({
   rank,
   isLeaderRow = false,
+  isSelf = false,
   p,
   actualSetlist,
   isExpanded,
@@ -24,11 +25,17 @@ export default function LeaderboardRow({
   const playerUserId = p.userId || p.uid;
   const score = calculateTotalScore(userPicks, actualSetlist);
 
+  // Self gets a stronger brand ring so users can locate themselves at
+  // a glance — doubly useful pre-grade when the row is pinned to rank 1.
+  const borderTone = isSelf
+    ? 'border-brand-primary/55 ring-1 ring-brand-primary/35'
+    : isLeaderRow
+    ? 'border-border-venue/55 ring-1 ring-brand-primary/15'
+    : 'border-border-subtle/35';
+
   return (
     <div
-      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-inset-glass transition-all ${
-        isLeaderRow ? 'border-border-venue/55 ring-1 ring-brand-primary/15' : 'border-border-subtle/35'
-      }`}
+      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-inset-glass transition-all ${borderTone}`}
     >
       <div
         role="button"
@@ -43,20 +50,39 @@ export default function LeaderboardRow({
         className="w-full flex items-center justify-between p-5 hover:bg-surface-panel-strong/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-t-2xl"
       >
         <div className="flex items-center gap-3 text-left min-w-0">
-          <div
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black tabular-nums ${rankBadgeClass(rank)}`}
-            aria-label={`Rank ${rank}`}
-          >
-            {rank}
-          </div>
+          {rank != null ? (
+            <div
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black tabular-nums ${rankBadgeClass(rank)}`}
+              aria-label={`Rank ${rank}`}
+            >
+              {rank}
+            </div>
+          ) : (
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[9px] font-black uppercase tracking-widest bg-brand-primary/15 text-brand-primary ring-1 ring-brand-primary/40"
+              aria-label="Pinned — you"
+            >
+              You
+            </div>
+          )}
           <div className="w-10 h-10 shrink-0 bg-gradient-to-tr from-brand-accent-blue to-brand-primary rounded-full flex items-center justify-center font-bold text-lg shadow-inner text-brand-bg-deep">
             👤
           </div>
-          <PlayerHandleLink
-            userId={playerUserId}
-            handle={p.handle}
-            className="text-base"
-          />
+          <div className="flex items-center gap-2 min-w-0">
+            <PlayerHandleLink
+              userId={playerUserId}
+              handle={p.handle}
+              className="text-base"
+            />
+            {isSelf && rank != null ? (
+              <span
+                className="inline-flex items-center rounded-full bg-brand-primary/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-brand-primary ring-1 ring-brand-primary/40"
+                aria-label="You"
+              >
+                You
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
