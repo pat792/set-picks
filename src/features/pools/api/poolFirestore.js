@@ -1,21 +1,13 @@
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { pickCountsTowardSeason } from '../../../shared/utils/showAggregation';
 
 /** @type {number} */
 export const POOL_NAME_MAX_LENGTH = 80;
 
 function pickDocId(showDate, userId) {
   return `${showDate}_${userId}`;
-}
-
-function hasNonEmptyPicksObject(picks) {
-  if (picks == null || typeof picks !== 'object' || Array.isArray(picks)) {
-    return false;
-  }
-  return Object.values(picks).some(
-    (v) => v != null && String(v).trim() !== ''
-  );
 }
 
 /**
@@ -30,15 +22,6 @@ export function pickDataCountsForPool(pickData, poolId) {
     return pools.some((p) => p && p.id === poolId);
   }
   return true;
-}
-
-/**
- * Pool season totals / wins: finalized (rollup) only, with submitted picks.
- * Do not use gradedAt — live CF scoring must not imply season eligibility.
- */
-function pickCountsTowardPoolSeasonTotals(pickData) {
-  if (pickData.isGraded !== true) return false;
-  return hasNonEmptyPicksObject(pickData.picks);
 }
 
 export async function updatePoolNameApi(poolId, newName) {
@@ -105,7 +88,7 @@ export async function computePoolSeasonTotalsByUser(poolId, memberIds, showDates
       if (!snap.exists()) continue;
       const data = snap.data();
       if (!pickDataCountsForPool(data, pid)) continue;
-      if (!pickCountsTowardPoolSeasonTotals(data)) continue;
+      if (!pickCountsTowardSeason(data)) continue;
       const score = typeof data.score === 'number' ? data.score : 0;
       const row = totals.get(userId);
       if (row) {

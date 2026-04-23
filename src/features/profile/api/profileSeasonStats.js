@@ -1,13 +1,8 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { pickCountsTowardSeason } from '../../../shared/utils/showAggregation';
+import { fetchGlobalMaxScoreForShow } from '../../scoring';
 
 /**
  * @typedef {Object} UserSeasonStats
@@ -24,53 +19,15 @@ export const EMPTY_USER_SEASON_STATS = Object.freeze({
   wins: 0,
 });
 
-function hasNonEmptyPicksObject(picks) {
-  if (picks == null || typeof picks !== 'object' || Array.isArray(picks)) {
-    return false;
-  }
-  return Object.values(picks).some(
-    (v) => v != null && String(v).trim() !== ''
-  );
-}
-
-function pickCountsTowardSeason(pickData) {
-  if (!pickData || pickData.isGraded !== true) return false;
-  return hasNonEmptyPicksObject(pickData.picks);
-}
-
-/**
- * Global max score among every graded, non-empty pick submitted for a single
- * show date. Returns `null` if nobody played the show. Mirrors the
- * "skip when max === 0" guard used by pool season totals so a night where
- * every player whiffed doesn't credit a tied "win" to everyone.
- *
- * @param {string} showDate
- * @returns {Promise<number | null>}
- */
-async function fetchGlobalMaxScoreForShow(showDate) {
-  const date = showDate?.trim?.();
-  if (!date) return null;
-  const snap = await getDocs(
-    query(collection(db, 'picks'), where('showDate', '==', date))
-  );
-  let max = null;
-  snap.forEach((docSnap) => {
-    const data = docSnap.data() || {};
-    if (!pickCountsTowardSeason(data)) return;
-    const score = typeof data.score === 'number' ? data.score : 0;
-    if (max === null || score > max) max = score;
-  });
-  if (max === null || max <= 0) return null;
-  return max;
-}
-
 /**
  * Season stats for a single user computed live from `picks`:
  *   - `totalPoints` / `shows` — sum of the user's own graded picks (picks
  *     aren't double-counted when they belong to multiple pools).
  *   - `wins` — shows won overall (global high score across every graded,
  *     non-empty pick for that show), not pool-scoped wins. Ties share the
- *     win, matching the per-pool leaderboard's tie rule.
+ *     win, matching the per-pool leaderboard's tie rule and the shared
+ *     `reduceShowWinners` rule used by Standings (#218) and Tour standings
+ *     (#219).
  *
  * @param {string | undefined} uid
  * @param {Array<{ date: string }>} showDates
@@ -112,7 +69,9 @@ export async function computeUserSeasonStats(uid, showDates) {
   }
 
   // Overall wins: count each show once where this user tied/beat the global
-  // high score. Parallelize across shows the user actually played.
+  // high score. Parallelize across shows the user actually played. The
+  // global-max fetch lives in `features/scoring` so the Standings "winner of
+  // the night" surface (#218) uses identical math.
   let wins = 0;
   const winChunkSize = 10;
   for (let i = 0; i < userGradedPicks.length; i += winChunkSize) {
