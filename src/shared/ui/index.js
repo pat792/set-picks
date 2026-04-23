@@ -8,6 +8,7 @@ export { default as GhostPill } from './GhostPill';
 export { default as Input } from './Input';
 export { default as MetaChip } from './MetaChip';
 export { default as PageTitle } from './PageTitle';
+export { default as PlayerHandleLink } from './PlayerHandleLink';
 export { default as SongAutocomplete } from './SongAutocomplete';
 export { default as StatusBadge } from './StatusBadge';
 export { default as StatusBanner } from './StatusBanner';

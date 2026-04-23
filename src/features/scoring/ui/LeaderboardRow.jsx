@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
 import ScoreBreakdownGrid from './ScoreBreakdownGrid';
 
@@ -52,17 +52,11 @@ export default function LeaderboardRow({
           <div className="w-10 h-10 shrink-0 bg-gradient-to-tr from-brand-accent-blue to-brand-primary rounded-full flex items-center justify-center font-bold text-lg shadow-inner text-brand-bg-deep">
             👤
           </div>
-          {playerUserId ? (
-            <Link
-              to={`/user/${playerUserId}`}
-              onClick={(e) => e.stopPropagation()}
-              className="font-bold text-base tracking-tight text-brand-primary hover:text-brand-primary-strong hover:underline decoration-brand-primary/70 underline-offset-2"
-            >
-              {p.handle || 'Anonymous'}
-            </Link>
-          ) : (
-            <span className="font-bold text-white text-base tracking-tight">{p.handle || 'Anonymous'}</span>
-          )}
+          <PlayerHandleLink
+            userId={playerUserId}
+            handle={p.handle}
+            className="text-base"
+          />
         </div>
 
         <div className="flex items-center gap-4">

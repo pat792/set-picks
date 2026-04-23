@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+
+import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
 
 export default function PoolHubLeaderboard({ members }) {
   return (
@@ -28,12 +29,11 @@ export default function PoolHubLeaderboard({ members }) {
                   <span className="w-8 shrink-0 font-black tabular-nums text-content-secondary/90">
                     {rank}
                   </span>
-                  <Link
-                    to={`/user/${m.id}`}
-                    className="min-w-0 truncate font-bold text-brand-primary hover:text-brand-primary-strong hover:underline"
-                  >
-                    {handle}
-                  </Link>
+                  <PlayerHandleLink
+                    userId={m.id}
+                    handle={handle}
+                    className="min-w-0 truncate"
+                  />
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                   <div className="flex flex-col items-center">
