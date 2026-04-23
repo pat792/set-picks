@@ -2,7 +2,7 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "test": "node --test phishnetShowCalendar.test.js phishnetSongCatalog.test.js phishnetLiveSetlistAutomation.test.js songCatalogSource.test.js adminAuth.test.js poolDelete.test.js",
+    "test": "node --test phishnetShowCalendar.test.js phishnetSongCatalog.test.js phishnetLiveSetlistAutomation.test.js songCatalogSource.test.js adminAuth.test.js poolDelete.test.js rollupSeasonAggregates.test.js",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
@@ -12,7 +12,8 @@
     "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow,functions:scheduledPhishnetSongCatalog,functions:refreshPhishnetSongCatalog,functions:scheduledPhishnetLiveSetlistPoll,functions:setLiveSetlistAutomationState,functions:pollLiveSetlistNow",
     "diagnose:phishnet": "node ../scripts/diagnose-phishnet-local.mjs",
     "qa:clone-picks-for-show": "node scripts/clonePicksForShowQa.js",
-    "backfill:bustouts": "node scripts/backfillBustouts.js"
+    "backfill:bustouts": "node scripts/backfillBustouts.js",
+    "backfill:season-aggregates": "node scripts/backfillSeasonAggregates.js"
   },
   "engines": {
     "node": "24"

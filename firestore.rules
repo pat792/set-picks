@@ -46,6 +46,15 @@ service cloud.firestore {
      * `fetchPublicProfileByUid/Handle`) keep working. Writes are restricted to
      * the owning user or an admin claim holder. Admin-SDK writes from
      * `rollupScoresForShow` bypass rules entirely.
+     *
+     * #244 (materialize season aggregates) adds server-written fields
+     * `wins`, `seasonStats.{tourKey}`, `seasonStatsSnapshotAt`, and
+     * `seasonStatsThroughShow` to this doc. Reads stay open; Admin-SDK
+     * writes from `rollupScoresForShow` still bypass these rules, and
+     * the owner/admin write path is unchanged (a determined owner could
+     * already overwrite `totalPoints` pre-#244 — same posture applies
+     * to the new fields; tightening to a server-only field-set is
+     * tracked as a follow-up if peer tampering becomes a concern).
      */
     match /users/{userId} {
       allow read: if signedIn();

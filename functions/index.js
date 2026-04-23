@@ -32,6 +32,11 @@ const {
   actualSetlistFromOfficialDoc,
 } = require("./scoringCore");
 const { runBackfill } = require("./backfillBustoutsCore");
+const {
+  computeGlobalMaxScore,
+  computePerPickRollup,
+  resolveTourKeyForDate,
+} = require("./rollupSeasonAggregates");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 
@@ -228,7 +233,51 @@ exports.rollupScoresForShow = onCall(
       };
     }
 
-    // Two writes per pick (picks doc + users doc), same as client rollup.
+    // Load the show calendar once so we can map `showDate` → `tourKey` for
+    // the `users.{uid}.seasonStats.{tourKey}` materialization (#244). If
+    // the calendar is stale (missing the date), the tour-scoped write is
+    // skipped and logged — global totals/wins still materialize.
+    const calendarSnap = await db
+      .collection("show_calendar")
+      .doc("snapshot")
+      .get();
+    const showDatesByTour = calendarSnap.exists
+      ? (calendarSnap.data() || {}).showDatesByTour
+      : null;
+    const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
+    if (!tourKey) {
+      logger.warn("rollupScoresForShow: tourKey missing for showDate", {
+        showDate,
+      });
+    }
+
+    // Pre-compute every pick's new score in one pass so we can derive the
+    // show's global max (for the wins pass) before issuing any writes.
+    // Mirrors `src/shared/utils/showAggregation.js::reduceShowWinners`: only
+    // graded, non-empty picks owned by an authenticated user are eligible;
+    // `max === 0` credits nobody.
+    /** @type {Map<string, number>} */
+    const newScoresById = new Map();
+    /** @type {Array<Record<string, unknown> & { id: string }>} */
+    const provisionalPicks = [];
+    for (const pickDoc of picksSnap.docs) {
+      const pickData = pickDoc.data() || {};
+      if (!pickData.userId) continue;
+      const userPicks = pickData.picks || {};
+      // Compute against the hypothetical "graded" view so the max reflects
+      // the post-commit state even for picks being graded for the first time.
+      newScoresById.set(
+        pickDoc.id,
+        calculateTotalScore(userPicks, actualSetlist)
+      );
+      provisionalPicks.push({ id: pickDoc.id, ...pickData, isGraded: true });
+    }
+    const newGlobalMax = computeGlobalMaxScore(provisionalPicks, newScoresById);
+
+    // Three writes per pick (picks doc + users doc + users doc #244 extras),
+    // but the users doc is merged into a single `set` — so the actual op
+    // count is still 2 per pick. The pick update now also carries
+    // `winCredited` so re-runs can diff cleanly against the prior state.
     const OPS_PER_PICK = 2;
     let batch = db.batch();
     let opCount = 0;
@@ -246,25 +295,49 @@ exports.rollupScoresForShow = onCall(
         batch = db.batch();
         opCount = 0;
       }
-      const userPicks = pickData.picks || {};
-      const newScore = calculateTotalScore(userPicks, actualSetlist);
-      const oldScore = pickData.score || 0;
-      const scoreDiff = newScore - oldScore;
-      const isFirstGrade = pickData.isGraded !== true;
+      const newScore = newScoresById.get(pickDoc.id) || 0;
+      const plan = computePerPickRollup({
+        pickData,
+        newScore,
+        newGlobalMax,
+      });
 
-      const pickUpdate = { score: newScore, isGraded: true };
-      if (isFirstGrade) {
+      const pickUpdate = {
+        score: newScore,
+        isGraded: true,
+        winCredited: plan.newIsWin,
+      };
+      if (plan.isFirstGrade) {
         pickUpdate.gradedAt = admin.firestore.FieldValue.serverTimestamp();
       }
       batch.update(pickDoc.ref, pickUpdate);
+
+      const userUpdate = {
+        totalPoints: admin.firestore.FieldValue.increment(plan.scoreDiff),
+        showsPlayed: admin.firestore.FieldValue.increment(
+          plan.isFirstGrade ? 1 : 0
+        ),
+        wins: admin.firestore.FieldValue.increment(plan.winsDelta),
+        seasonStatsSnapshotAt: admin.firestore.FieldValue.serverTimestamp(),
+        seasonStatsThroughShow: showDate,
+      };
+      // `seasonStats.{tourKey}` mirrors the three global counters so
+      // tour-scoped surfaces (#219 Tour standings, Profile tour card) can
+      // read the user doc directly without re-filtering per-show picks.
+      if (tourKey) {
+        userUpdate.seasonStats = {
+          [tourKey]: {
+            totalPoints: admin.firestore.FieldValue.increment(plan.scoreDiff),
+            shows: admin.firestore.FieldValue.increment(
+              plan.isFirstGrade ? 1 : 0
+            ),
+            wins: admin.firestore.FieldValue.increment(plan.winsDelta),
+          },
+        };
+      }
       batch.set(
         db.collection("users").doc(pickData.userId),
-        {
-          totalPoints: admin.firestore.FieldValue.increment(scoreDiff),
-          showsPlayed: admin.firestore.FieldValue.increment(
-            isFirstGrade ? 1 : 0
-          ),
-        },
+        userUpdate,
         { merge: true }
       );
       opCount += OPS_PER_PICK;
