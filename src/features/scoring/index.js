@@ -15,3 +15,5 @@ export {
 export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';
 export { default as StandingsFilterTabs } from './ui/StandingsFilterTabs';
 export { default as StandingsScopeIntro } from './ui/StandingsScopeIntro';
+export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinnerOfTheNightBanner';
+export { useShowWinnerOfTheNight } from './model/useShowWinnerOfTheNight';
