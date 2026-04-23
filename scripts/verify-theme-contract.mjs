@@ -21,8 +21,8 @@ const TARGETS = [
   'src/features/scoring/ui/ScoreBreakdownGrid.jsx',
   'src/features/scoring/ui/ScoringRulesContent.jsx',
   'src/features/scoring/ui/ScoringRulesModal.jsx',
-  'src/features/scoring/ui/StandingsFilterTabs.jsx',
-  'src/features/scoring/ui/StandingsScopeIntro.jsx',
+  'src/features/scoring/ui/StandingsPoolPicker.jsx',
+  'src/features/scoring/ui/StandingsViewToggle.jsx',
 ];
 
 const FORBIDDEN = /(bg-slate-|border-slate-)/g;

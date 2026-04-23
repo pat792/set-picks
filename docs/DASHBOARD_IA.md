@@ -40,7 +40,7 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Profile** | Tab + context for `/dashboard/profile` (`NAV_LABEL_PROFILE`); desktop in-page subheading matches. |
 | **Sign-in & password** | Account security route context (`NAV_LABEL_ACCOUNT_SECURITY`); Profile card and form use the same phrase. |
 | **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
-| **Standings** | Tab, context bar, and desktop H1 for `/dashboard/standings` (`NAV_LABEL_STANDINGS`) — aligned so the shell does not repeat two headings. |
+| **Standings** | Tab, context bar, and desktop H1 for `/dashboard/standings` (`NAV_LABEL_STANDINGS`) — aligned so the shell does not repeat two headings. In-page surface opens with a three-way pill toggle **Show / Tour / Pools** (#255); view is URL-synced via `?view=show\|tour\|pools` and the Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker (tour standings are cumulative). |
 | **Show standings** | Ordered points for **one show date** only (Standings screen); use this phrase in glossary, help, and cross-links where the “one night” nuance matters. |
 | **All-time standings** | Cumulative points / wins / shows across **every** finalized show (all tours). Canonical name on pool details (`POOL_ALL_TIME_STANDINGS_HEADING`) and optional global companion on Standings. Replaces legacy **Season totals**. See #148. |
 | **Tour standings** | Cumulative points / wins / shows scoped to the **current tour** via `show_calendar.showDatesByTour` (`TOUR_STANDINGS_HEADING`). Global on Standings (#219), pool-scoped on pool details (#148). |

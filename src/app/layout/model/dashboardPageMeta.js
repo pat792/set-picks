@@ -24,7 +24,30 @@ export function normalizeDashboardPathname(pathname) {
   return raw.replace(/\/+$/, '') || '/dashboard';
 }
 
-export function getDashboardPageMeta(pathname) {
+/**
+ * Read the `?view=` query from a search string or URLSearchParams.
+ * Tolerant to `undefined` / object forms so the Dashboard layout can
+ * pass `location.search` straight through.
+ */
+function readViewQuery(search) {
+  if (!search) return '';
+  try {
+    const params =
+      typeof search === 'string' ? new URLSearchParams(search) : search;
+    return params.get?.('view')?.toString?.() || '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * @param {string} pathname
+ * @param {string | URLSearchParams | null | undefined} [search]  `location.search`.
+ *   Used by `/dashboard/standings` to hide the global date picker when
+ *   `?view=tour` is active (#255) — tour standings are cumulative, so
+ *   a date selector has no meaning there.
+ */
+export function getDashboardPageMeta(pathname, search) {
   const normalized = normalizeDashboardPathname(pathname);
 
   // Defaults for safety (should only render within /dashboard/* routes).
@@ -42,9 +65,12 @@ export function getDashboardPageMeta(pathname) {
   const isAccountSecurity = normalized === '/dashboard/account-security';
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
+  const isStandings = normalized === '/dashboard/standings';
+  const isStandingsTourView =
+    isStandings && readViewQuery(search) === 'tour';
 
   const contextTitle = (() => {
-    if (normalized === '/dashboard/standings') return NAV_LABEL_STANDINGS;
+    if (isStandings) return NAV_LABEL_STANDINGS;
     if (normalized === '/dashboard/pools') return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
     if (isProfile) return NAV_LABEL_PROFILE;
@@ -54,7 +80,7 @@ export function getDashboardPageMeta(pathname) {
   })();
 
   const showDatePicker =
-    !isProfile && !isAccountSecurity && !isPoolHub;
+    !isProfile && !isAccountSecurity && !isPoolHub && !isStandingsTourView;
 
   const layoutDesktopHeading =
     !isProfile && !isAccountSecurity && !isPoolHub ? contextTitle : null;
