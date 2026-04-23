@@ -20,38 +20,14 @@ export default function ScoringRulesContent() {
         id="scoring-rules-heading"
         className="font-display text-display-md font-bold uppercase tracking-tight text-white mb-2"
       >
-        Scoring rules
+        How Scoring Works
       </h1>
       <p className="mb-6 text-sm font-bold leading-relaxed text-content-secondary">
-        As songs are played, scoring updates live. Each pick is scored per slot; your total for that
-        night feeds the show standings (Standings tab) for the date you picked.
+        Picks earn points based on where they land in the setlist. Live scoring feeds nightly
+        standings.
       </p>
 
       <ul className="space-y-5">
-        <li className="flex gap-4">
-          <span className="shrink-0 w-12 h-12 rounded-xl bg-brand-primary/15 border border-brand-primary/30 flex items-center justify-center font-black text-brand-primary text-lg tabular-nums">
-            {EXACT_SLOT}
-          </span>
-          <div>
-            <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">Exact slot</h2>
-            <p className="text-sm font-bold leading-relaxed text-content-secondary">
-              Your song matches that slot on the official setlist (Set 1 opener/closer, Set 2 opener/closer).
-            </p>
-          </div>
-        </li>
-
-        <li className="flex gap-4">
-          <span className="shrink-0 w-12 h-12 rounded-xl bg-brand-primary/12 border border-brand-primary/25 flex items-center justify-center font-black text-brand-primary text-lg tabular-nums">
-            {ENCORE_EXACT}
-          </span>
-          <div>
-            <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">Exact encore</h2>
-            <p className="text-sm font-bold leading-relaxed text-content-secondary">
-              Encore pick only: your song matches the official encore slot.
-            </p>
-          </div>
-        </li>
-
         <li className="flex gap-4">
           <span className="shrink-0 w-12 h-12 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center font-black text-blue-400 text-lg tabular-nums">
             {IN_SETLIST}
@@ -59,7 +35,21 @@ export default function ScoringRulesContent() {
           <div>
             <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">In setlist</h2>
             <p className="text-sm font-bold leading-relaxed text-content-secondary">
-              The song was played, but not in the slot you picked.
+              Your pick got played, just not in the slot you called. Partial credit for nailing
+              the song.
+            </p>
+          </div>
+        </li>
+
+        <li className="flex gap-4">
+          <span className="shrink-0 w-12 h-12 rounded-xl bg-brand-primary/15 border border-brand-primary/30 flex items-center justify-center font-black text-brand-primary text-lg tabular-nums">
+            {EXACT_SLOT}
+          </span>
+          <div>
+            <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">Exact slot</h2>
+            <p className="text-sm font-bold leading-relaxed text-content-secondary">
+              Your pick lands on the exact slot you chose &mdash; Set 1 opener or closer,
+              or Set 2 opener or closer.
             </p>
           </div>
         </li>
@@ -71,8 +61,20 @@ export default function ScoringRulesContent() {
           <div>
             <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">Wildcard</h2>
             <p className="text-sm font-bold leading-relaxed text-content-secondary">
-              For the wildcard pick only: if your song was played anywhere in the show (full setlist), you earn{' '}
-              {WILDCARD_HIT} points. Wrong song scores 0.
+              If your Wildcard pick is played anywhere in the setlist, you score {WILDCARD_HIT} points.
+            </p>
+          </div>
+        </li>
+
+        <li className="flex gap-4">
+          <span className="shrink-0 w-12 h-12 rounded-xl bg-brand-primary/12 border border-brand-primary/25 flex items-center justify-center font-black text-brand-primary text-lg tabular-nums">
+            {ENCORE_EXACT}
+          </span>
+          <div>
+            <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">Encore</h2>
+            <p className="text-sm font-bold leading-relaxed text-content-secondary">
+              Your pick is played during the encore. Worth a little more because the encore is
+              the toughest call.
             </p>
           </div>
         </li>
@@ -82,20 +84,32 @@ export default function ScoringRulesContent() {
             +{BUSTOUT_BOOST}
           </span>
           <div>
-            <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">Bustout boost</h2>
+            <h2 className="font-bold text-white text-sm uppercase tracking-widest mb-1">Bustout Boost™</h2>
             <p className="text-sm font-bold leading-relaxed text-content-secondary">
-              If your pick earns exact-slot, in-setlist, or wildcard points and the song’s gap in our catalog is{' '}
-              <span className="text-slate-300">{BUSTOUT_MIN_GAP} shows or more</span> since it was last played,
-              you get an extra <span className="text-slate-300">{BUSTOUT_BOOST} points</span> for that slot. Songs
-              not in the catalog only get the base points.
+              Correct picks on songs with a{' '}
+              <span className="text-slate-300">{BUSTOUT_MIN_GAP}+ show gap</span> earn a bonus{' '}
+              <span className="text-slate-300">{BUSTOUT_BOOST} points</span> on top of base points &mdash;
+              rewarding strategic picks over heavy rotation.
+              <a
+                href="#scoring-rules-footnote"
+                aria-describedby="scoring-rules-footnote"
+                className="ml-0.5 align-super text-[0.65rem] text-amber-400 no-underline hover:text-amber-300"
+              >
+                *
+              </a>
             </p>
           </div>
         </li>
       </ul>
 
-      <p className="mt-8 border-t border-border-subtle/30 pt-6 text-xs font-bold leading-relaxed text-content-secondary/90">
-        Missed picks score 0. Maximum per slot is {ENCORE_EXACT + BUSTOUT_BOOST} (encore exact plus bustout) or{' '}
-        {EXACT_SLOT + BUSTOUT_BOOST} / {WILDCARD_HIT + BUSTOUT_BOOST} for other slots when bustout applies.
+      <p
+        id="scoring-rules-footnote"
+        className="mt-6 scroll-mt-4 border-t border-border-subtle/30 pt-4 text-xs font-bold leading-snug text-content-secondary/90"
+      >
+        <span className="mr-1 text-amber-400">*</span>
+        Max per slot (if pick earns Bustout Boost): {IN_SETLIST + BUSTOUT_BOOST} in setlist &middot;{' '}
+        {EXACT_SLOT + BUSTOUT_BOOST} exact slot &middot; {WILDCARD_HIT + BUSTOUT_BOOST} wildcard &middot;{' '}
+        {ENCORE_EXACT + BUSTOUT_BOOST} encore.
       </p>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React from 'react';
 
 import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
@@ -7,7 +7,6 @@ import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignUp } from '../model/useSplashSignUp';
 
 export default function SplashSignUpModal({ isOpen, onClose }) {
-  const emailInputRef = useRef(null);
   const {
     email,
     setEmail,
@@ -22,11 +21,6 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
     handleEmailSignUp,
   } = useSplashSignUp(isOpen, onClose);
 
-  useLayoutEffect(() => {
-    if (!isOpen) return;
-    emailInputRef.current?.focus({ preventScroll: true });
-  }, [isOpen]);
-
   return (
     <SplashAuthModalShell
       isOpen={isOpen}
@@ -34,6 +28,7 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
       title="Create account"
       handleGoogle={handleGoogle}
       busy={busy}
+      googleFootnote="You'll set your handle on the next page. Your personal info will never be shared with users."
     >
         <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">
           <div>
@@ -41,7 +36,6 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
               Email
             </label>
             <Input
-              ref={emailInputRef}
               id="su-email"
               type="email"
               name="email"
@@ -85,7 +79,7 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
           </div>
           {error ? <StatusBanner type="error" message={error} /> : null}
           <Button
-            variant="primary"
+            variant="secondary"
             type="submit"
             disabled={busy}
             className="w-full py-3.5 rounded-xl uppercase tracking-widest"
@@ -93,9 +87,6 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
             {busy ? 'Creating…' : 'Create account'}
           </Button>
         </form>
-        <p className="text-xs text-slate-500 mt-4 text-center">
-          After you sign up, you&apos;ll set your handle on the next screen—same as Google sign-in.
-        </p>
     </SplashAuthModalShell>
   );
 }
