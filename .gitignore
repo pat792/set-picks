@@ -4,8 +4,13 @@ node_modules
 !.env.example
 .DS_Store
 dist
-.cursor/debug-2b48e0.log
+# Cursor agent per-session debug logs (pattern covers any session id).
+.cursor/debug-*.log
 mcp.json
+# Vercel CLI local metadata (created by `vercel link` / `vercel pull`).
+.vercel/
+# Test coverage output (vitest --coverage, nyc, etc.).
+coverage/
 firestore-debug.log
 firebase-debug.log
 *.log
