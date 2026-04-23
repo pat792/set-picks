@@ -15,3 +15,8 @@ export {
 export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';
 export { default as StandingsFilterTabs } from './ui/StandingsFilterTabs';
 export { default as StandingsScopeIntro } from './ui/StandingsScopeIntro';
+export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinnerOfTheNightBanner';
+export { default as TourStandingsSection } from './ui/TourStandingsSection';
+export { resolveCurrentTour } from './model/resolveCurrentTour';
+export { useShowWinnerOfTheNight } from './model/useShowWinnerOfTheNight';
+export { useTourStandings } from './model/useTourStandings';

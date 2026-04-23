@@ -7,11 +7,11 @@ import {
   PoolAdminSection,
   PoolHubActiveShow,
   PoolHubHeader,
-  PoolHubSeasonTotalsSection,
   PoolHubShowArchive,
+  PoolHubStandingsSection,
   usePoolAdminControls,
   usePoolHub,
-  usePoolSeasonStandings,
+  usePoolStandingsSection,
 } from '../../features/pools';
 import { useShowCalendar } from '../../features/show-calendar';
 import BackButton from '../../shared/ui/BackButton';
@@ -32,11 +32,14 @@ export default function PoolHubPage({ user }) {
     reload,
   } = usePoolHub(poolId, user);
   const { showDates } = useShowCalendar();
-  const { leaderboardMembers, loading: seasonLoading } = usePoolSeasonStandings(
-    poolId,
-    pool,
-    members
-  );
+  const {
+    leaderboardMembers,
+    loading: standingsLoading,
+    scope: standingsScope,
+    setScope: setStandingsScope,
+    tourName: standingsTourName,
+    tourAvailable: standingsTourAvailable,
+  } = usePoolStandingsSection(poolId, pool, members);
   const admin = usePoolAdminControls(poolId, user, pool, {
     navigate: (path) => navigate(path),
     onReloadPool: () => reload(),
@@ -158,9 +161,13 @@ export default function PoolHubPage({ user }) {
             poolId={pool.id}
           />
         </section>
-        <PoolHubSeasonTotalsSection
+        <PoolHubStandingsSection
           members={leaderboardMembers}
-          loading={seasonLoading}
+          loading={standingsLoading}
+          scope={standingsScope}
+          onScopeChange={setStandingsScope}
+          tourName={standingsTourName}
+          tourAvailable={standingsTourAvailable}
         />
         <PoolHubShowArchive poolId={poolId} />
       </div>

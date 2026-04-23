@@ -9,12 +9,18 @@ import {
   StandingsBannerWaitingSetlist,
   StandingsFilterTabs,
   StandingsScopeIntro,
+  StandingsWinnerOfTheNightBanner,
+  TourStandingsSection,
+  resolveCurrentTour,
   useDisplayedPicks,
+  useShowWinnerOfTheNight,
   useStandings,
   useStandingsLeaderboardView,
   useScoringRulesModal,
+  useTourStandings,
 } from '../../features/scoring';
 import { useShowCalendar } from '../../features/show-calendar';
+import { todayYmd } from '../../shared/utils/dateUtils.js';
 import { getShowStatus } from '../../shared/utils/timeLogic.js';
 import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel.js';
 import Card from '../../shared/ui/Card';
@@ -29,7 +35,7 @@ export default function StandingsPage({ selectedDate }) {
       : '';
 
   const { user } = useAuth();
-  const { showDates } = useShowCalendar();
+  const { showDates, showDatesByTour } = useShowCalendar();
   const { pools: userPools } = useUserPools(user?.uid);
   const { picks, actualSetlist, loading } = useStandings(selectedDate, showDates);
   const { displayedPicks, activeFilter, setActiveFilter, filterOptions } = useDisplayedPicks(
@@ -43,6 +49,23 @@ export default function StandingsPage({ selectedDate }) {
   const { openScoringRules } = useScoringRulesModal();
 
   useStandingsLeaderboardView(selectedDate, loading, showDates);
+
+  const winnerOfTheNight = useShowWinnerOfTheNight(picks);
+  const showWinnerBanner =
+    activeFilter === 'global' &&
+    Boolean(actualSetlist) &&
+    winnerOfTheNight.winners.length > 0;
+
+  const currentTour = useMemo(
+    () => resolveCurrentTour(selectedDate, todayYmd(), showDatesByTour),
+    [selectedDate, showDatesByTour]
+  );
+  const {
+    leaders: tourLeaders,
+    loading: tourLoading,
+    error: tourError,
+  } = useTourStandings(activeFilter === 'global' ? currentTour?.shows : null);
+  const showTourStandings = activeFilter === 'global' && Boolean(currentTour);
 
   const showLabel = useMemo(() => {
     const show = showDates.find((s) => s.date === selectedDate);
@@ -100,6 +123,14 @@ export default function StandingsPage({ selectedDate }) {
         onTabChange={setActiveFilter}
       />
 
+      {showWinnerBanner ? (
+        <StandingsWinnerOfTheNightBanner
+          winners={winnerOfTheNight.winners}
+          max={winnerOfTheNight.max}
+          beats={winnerOfTheNight.beats}
+        />
+      ) : null}
+
       {!actualSetlist && picks.length > 0 ? <StandingsBannerWaitingSetlist /> : null}
 
       {displayedPicks.length === 0 ? (
@@ -141,6 +172,15 @@ export default function StandingsPage({ selectedDate }) {
           title={leaderboardTitle}
         />
       )}
+
+      {showTourStandings ? (
+        <TourStandingsSection
+          tourName={currentTour?.tour}
+          leaders={tourLeaders}
+          loading={tourLoading}
+          error={tourError}
+        />
+      ) : null}
     </div>
   );
 }
