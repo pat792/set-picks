@@ -3,6 +3,8 @@ const assert = require("node:assert/strict");
 
 const {
   BUSTOUT_MIN_GAP,
+  MIN_SET1_ELAPSED_MS,
+  SET1_IDLE_MS,
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
@@ -11,6 +13,7 @@ const {
   parseShowCalendarSnapshotToDateSet,
   randomScheduledPollDelayMs,
   scheduledCandidateShowDates,
+  set1TitleSignatureFromRows,
   setlistPayloadEqual,
   signatureFromRows,
 } = require("./phishnetLiveSetlistAutomation");
@@ -360,4 +363,160 @@ test("setlistPayloadEqual: absent bustouts on both sides still compares equal", 
   };
   const b = { ...a };
   assert.equal(setlistPayloadEqual(a, b), true);
+});
+
+// ---------- #264 time-gated set 1 closer ----------
+
+/** Fixture helper: set-1-only rows, `n` songs, positions 1..n. */
+function set1OnlyRows(titles) {
+  return normalizeSetlistRows({
+    error: false,
+    data: titles.map((song, i) => ({ set: "1", idx: i + 1, song })),
+  });
+}
+
+test("set1TitleSignatureFromRows: stable for identical set 1, ignores set 2 / encore", () => {
+  const a = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "AC/DC Bag" },
+      { set: "1", idx: 2, song: "Bathtub Gin" },
+    ],
+  });
+  const b = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "AC/DC Bag" },
+      { set: "1", idx: 2, song: "Bathtub Gin" },
+      { set: "2", idx: 1, song: "Carini" },
+      { set: "E", idx: 1, song: "Loving Cup" },
+    ],
+  });
+  const c = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "AC/DC Bag" },
+      { set: "1", idx: 2, song: "Bathtub Gin" },
+      { set: "1", idx: 3, song: "Possum" },
+    ],
+  });
+  assert.equal(set1TitleSignatureFromRows(a), set1TitleSignatureFromRows(b));
+  assert.notEqual(set1TitleSignatureFromRows(a), set1TitleSignatureFromRows(c));
+  assert.equal(set1TitleSignatureFromRows([]), "");
+});
+
+test("buildSetlistDocFromRows: timing-close fires when elapsed ≥ 85m and idle ≥ 10m", () => {
+  const rows = set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini"]);
+  const nowMs = 1_000_000_000_000;
+  const out = buildSetlistDocFromRows(rows, {}, {
+    nowMs,
+    firstRowObservedAtMs: nowMs - MIN_SET1_ELAPSED_MS,
+    lastSet1ChangeAtMs: nowMs - SET1_IDLE_MS,
+  });
+  assert.equal(out.setlist.s1o, "AC/DC Bag");
+  assert.equal(out.setlist.s1c, "Carini");
+  assert.equal(out.setlist.s2o, "");
+  assert.equal(out.setlist.s2c, "");
+});
+
+test("buildSetlistDocFromRows: early-elapsed guard keeps s1c empty even when idle is long", () => {
+  const rows = set1OnlyRows(["AC/DC Bag", "Bathtub Gin"]);
+  const nowMs = 1_000_000_000_000;
+  const out = buildSetlistDocFromRows(rows, {}, {
+    nowMs,
+    firstRowObservedAtMs: nowMs - (60 * 60_000), // 60 min elapsed (< 85)
+    lastSet1ChangeAtMs: nowMs - (30 * 60_000),   // 30 min idle (> 10)
+  });
+  assert.equal(out.setlist.s1c, "");
+});
+
+test("buildSetlistDocFromRows: idle guard keeps s1c empty during a long jam", () => {
+  const rows = set1OnlyRows(["AC/DC Bag", "Bathtub Gin"]);
+  const nowMs = 1_000_000_000_000;
+  const out = buildSetlistDocFromRows(rows, {}, {
+    nowMs,
+    firstRowObservedAtMs: nowMs - (90 * 60_000), // 90 min elapsed (> 85)
+    lastSet1ChangeAtMs: nowMs - (5 * 60_000),    // 5 min idle (< 10)
+  });
+  assert.equal(out.setlist.s1c, "");
+});
+
+test("buildSetlistDocFromRows: missing timing state behaves like pre-#264 (no timing close)", () => {
+  const rows = set1OnlyRows(["AC/DC Bag", "Bathtub Gin"]);
+  const out = buildSetlistDocFromRows(rows, {});
+  assert.equal(out.setlist.s1c, "");
+});
+
+test("buildSetlistDocFromRows: set 2 start still forces s1c regardless of timing inputs", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "AC/DC Bag" },
+      { set: "1", idx: 2, song: "Bathtub Gin" },
+      { set: "2", idx: 1, song: "Carini" },
+    ],
+  });
+  const nowMs = 1_000_000_000_000;
+  const out = buildSetlistDocFromRows(rows, {}, {
+    nowMs,
+    firstRowObservedAtMs: nowMs - (10 * 60_000), // would block on timing
+    lastSet1ChangeAtMs: nowMs - (1 * 60_000),    // would block on idle
+  });
+  assert.equal(out.setlist.s1c, "Bathtub Gin");
+  assert.equal(out.setlist.s2o, "Carini");
+});
+
+test("buildSetlistDocFromRows: long-set edge — new set-1 song after timing fires rewrites s1c on re-fire", () => {
+  const nowMs = 1_000_000_000_000;
+  // Poll A: 3 songs, elapsed+idle both past threshold → s1c = "Carini".
+  const pollA = buildSetlistDocFromRows(
+    set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini"]),
+    {},
+    {
+      nowMs,
+      firstRowObservedAtMs: nowMs - (95 * 60_000),
+      lastSet1ChangeAtMs: nowMs - (15 * 60_000),
+    }
+  );
+  assert.equal(pollA.setlist.s1c, "Carini");
+
+  // Poll B: 4th song just arrived; lastSet1ChangeAt reset to now → idle < 10m → no timing close.
+  const pollBNow = nowMs + (4 * 60_000);
+  const pollB = buildSetlistDocFromRows(
+    set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini", "Down with Disease"]),
+    pollA,
+    {
+      nowMs: pollBNow,
+      firstRowObservedAtMs: nowMs - (95 * 60_000),
+      lastSet1ChangeAtMs: pollBNow, // just changed
+    }
+  );
+  assert.equal(pollB.setlist.s1c, "");
+
+  // Poll C: 10+ min later, no new song → timing re-fires, s1c = new last song.
+  const pollCNow = pollBNow + (11 * 60_000);
+  const pollC = buildSetlistDocFromRows(
+    set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini", "Down with Disease"]),
+    pollB,
+    {
+      nowMs: pollCNow,
+      firstRowObservedAtMs: nowMs - (95 * 60_000),
+      lastSet1ChangeAtMs: pollBNow,
+    }
+  );
+  assert.equal(pollC.setlist.s1c, "Down with Disease");
+});
+
+test("buildSetlistDocFromRows: exact-threshold elapsed + idle fires (inclusive)", () => {
+  const nowMs = 1_000_000_000_000;
+  const out = buildSetlistDocFromRows(
+    set1OnlyRows(["AC/DC Bag", "Bathtub Gin"]),
+    {},
+    {
+      nowMs,
+      firstRowObservedAtMs: nowMs - MIN_SET1_ELAPSED_MS,
+      lastSet1ChangeAtMs: nowMs - SET1_IDLE_MS,
+    }
+  );
+  assert.equal(out.setlist.s1c, "Bathtub Gin");
 });

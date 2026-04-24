@@ -34,6 +34,25 @@ Written on save from `saveOfficialSetlistByDate` (`src/features/admin/api/offici
 | `updatedBy` | Admin email (or null). |
 | `sourceMeta` | Live automation metadata (`source`, `signature`, `songCount`, `lastFetchedAt`, `pollMode`) used for idempotent/no-op detection and observability. |
 
+### Time-gated set 1 closer (`setlist.s1c` — #264)
+
+`s1c` is populated when **either**:
+
+1. Set 2 has started (original rule — live feeds list the current last song), **or**
+2. **Both** of these hold on a poll:
+   - Elapsed since the first observed row for this show ≥ **85 min** (`MIN_SET1_ELAPSED_MS`).
+   - No new set-1 song appended for ≥ **10 min** (`SET1_IDLE_MS`).
+
+State used for (2) lives on `live_setlist_automation/{showDate}` and is written by `pollSingleShowDate`:
+
+| Field | Role |
+|-------|------|
+| `firstRowObservedAt` | Timestamp of the first poll that saw any row for this show. Stamped once, never overwritten. |
+| `lastSet1ChangeAt` | Timestamp of the most recent poll where the set-1 title sequence changed. |
+| `set1TitleSignature` | sha256 of the set-1 title sequence; used to detect (2)'s idle reset without being sensitive to set-2/encore activity. |
+
+Long-set safeguard is inherent — `buildSetlistDocFromRows` re-derives `s1c` from rows every poll and does not preserve closers across writes, so an unusually long set 1 that plays another song after timing fires resets `lastSet1ChangeAt` and `s1c` rewrites to the new last song on the next poll where timing re-fires (or when set 2 starts, whichever first).
+
 ---
 
 ## How scoring uses `setlist` + `officialSetlist`
