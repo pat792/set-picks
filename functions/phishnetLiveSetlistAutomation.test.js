@@ -2,15 +2,19 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
+  AUTO_FINALIZE_IDLE_MS,
   BUSTOUT_MIN_GAP,
   MIN_SET1_ELAPSED_MS,
   SET1_IDLE_MS,
+  SHOW_SAFETY_CAP_MS,
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
+  evaluateAutoFinalize,
   isWithinLiveSetlistPollWindow,
   normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
+  pollSingleShowDate,
   randomScheduledPollDelayMs,
   scheduledCandidateShowDates,
   set1TitleSignatureFromRows,
@@ -519,4 +523,486 @@ test("buildSetlistDocFromRows: exact-threshold elapsed + idle fires (inclusive)"
     }
   );
   assert.equal(out.setlist.s1c, "Bathtub Gin");
+});
+
+// ---------- #266 auto-finalize ----------
+
+test("evaluateAutoFinalize: fires on encore + 25 min idle", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: nowMs - (3 * 60 * 60_000), // 3h into show
+    lastRowsChangedAtMs: nowMs - AUTO_FINALIZE_IDLE_MS,
+    encoreSongsCount: 1,
+    set2Count: 6,
+    alreadyAutoFinalized: false,
+  });
+  assert.equal(decision.shouldFinalize, true);
+  assert.equal(decision.reason, "encore-idle");
+});
+
+test("evaluateAutoFinalize: encore but idle under threshold does not fire", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: nowMs - (3 * 60 * 60_000),
+    lastRowsChangedAtMs: nowMs - (10 * 60_000),
+    encoreSongsCount: 1,
+    set2Count: 6,
+    alreadyAutoFinalized: false,
+  });
+  assert.equal(decision.shouldFinalize, false);
+});
+
+test("evaluateAutoFinalize: idle long but no encore does not fire (below safety cap)", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: nowMs - (3 * 60 * 60_000),
+    lastRowsChangedAtMs: nowMs - (30 * 60_000),
+    encoreSongsCount: 0,
+    set2Count: 6,
+    alreadyAutoFinalized: false,
+  });
+  assert.equal(decision.shouldFinalize, false);
+});
+
+test("evaluateAutoFinalize: safety cap fires past 4h30m when set 2 has songs", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: nowMs - SHOW_SAFETY_CAP_MS,
+    lastRowsChangedAtMs: nowMs - (5 * 60_000), // idle short — cap still fires
+    encoreSongsCount: 0,
+    set2Count: 1,
+    alreadyAutoFinalized: false,
+  });
+  assert.equal(decision.shouldFinalize, true);
+  assert.equal(decision.reason, "safety-cap");
+});
+
+test("evaluateAutoFinalize: safety cap does NOT fire if set 2 has no songs", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: nowMs - SHOW_SAFETY_CAP_MS,
+    lastRowsChangedAtMs: nowMs - (60 * 60_000),
+    encoreSongsCount: 0,
+    set2Count: 0,
+    alreadyAutoFinalized: false,
+  });
+  assert.equal(decision.shouldFinalize, false);
+});
+
+test("evaluateAutoFinalize: skips when already auto-finalized", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: nowMs - (3 * 60 * 60_000),
+    lastRowsChangedAtMs: nowMs - AUTO_FINALIZE_IDLE_MS,
+    encoreSongsCount: 1,
+    set2Count: 6,
+    alreadyAutoFinalized: true,
+  });
+  assert.equal(decision.shouldFinalize, false);
+});
+
+test("evaluateAutoFinalize: missing firstRowObservedAtMs → no fire", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: null,
+    lastRowsChangedAtMs: nowMs - AUTO_FINALIZE_IDLE_MS,
+    encoreSongsCount: 1,
+    set2Count: 6,
+    alreadyAutoFinalized: false,
+  });
+  assert.equal(decision.shouldFinalize, false);
+});
+
+test("evaluateAutoFinalize: exact-threshold idle + encore fires (inclusive)", () => {
+  const nowMs = 1_000_000_000_000;
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs: nowMs - (3 * 60 * 60_000),
+    lastRowsChangedAtMs: nowMs - AUTO_FINALIZE_IDLE_MS,
+    encoreSongsCount: 1,
+    set2Count: 4,
+    alreadyAutoFinalized: false,
+  });
+  assert.equal(decision.shouldFinalize, true);
+});
+
+// ---------- #266 pollSingleShowDate integration with auto-finalize ----------
+
+/** Minimal Firestore/admin harness for `pollSingleShowDate` wiring tests. */
+function buildFakeFirestoreHarness(initialDocs = {}) {
+  /** @type {Map<string, Record<string, unknown>>} */
+  const docs = new Map(Object.entries(initialDocs));
+  /** @type {Array<{ path: string, data: Record<string, unknown>, merge: boolean }>} */
+  const writes = [];
+
+  function path(collection, id) {
+    return `${collection}/${id}`;
+  }
+
+  function makeRef(collection, id) {
+    const key = path(collection, id);
+    return {
+      path: key,
+      async get() {
+        const data = docs.get(key);
+        return {
+          exists: data !== undefined,
+          data: () => (data ? { ...data } : undefined),
+        };
+      },
+      async set(value, opts) {
+        const merge = Boolean(opts?.merge);
+        const prev = docs.get(key) || {};
+        const next = merge ? { ...prev, ...value } : { ...value };
+        docs.set(key, next);
+        writes.push({ path: key, data: { ...value }, merge });
+      },
+    };
+  }
+
+  const db = {
+    collection(name) {
+      return {
+        doc: (id) => makeRef(name, id),
+      };
+    },
+    batch() {
+      /** @type {Array<() => void>} */
+      const ops = [];
+      return {
+        set(ref, value, opts) {
+          ops.push(async () => {
+            await ref.set(value, opts);
+          });
+        },
+        async commit() {
+          for (const op of ops) {
+            await op();
+          }
+        },
+      };
+    },
+  };
+
+  const admin = {
+    firestore: {
+      Timestamp: {
+        fromMillis: (ms) => ({ _millis: ms, toMillis: () => ms }),
+        fromDate: (d) => ({
+          _millis: d.getTime(),
+          toMillis: () => d.getTime(),
+        }),
+      },
+      FieldValue: {
+        serverTimestamp: () => ({ _sentinel: "serverTimestamp" }),
+        delete: () => ({ _sentinel: "delete" }),
+        increment: (n) => ({ _sentinel: "increment", n }),
+      },
+    },
+  };
+
+  return { db, admin, docs, writes };
+}
+
+/** Build a Phish.net API JSON response envelope from a list of rows. */
+function phishnetResponseFromRows(rows) {
+  return { data: rows };
+}
+
+/** Minimal `fetch` stub mirroring what `fetchPhishnetSetlistForDate` consumes. */
+function makeFakeFetch(rows) {
+  const bodyText = JSON.stringify(phishnetResponseFromRows(rows));
+  return async () => ({
+    ok: true,
+    status: 200,
+    async text() {
+      return bodyText;
+    },
+  });
+}
+
+test("pollSingleShowDate: encore + idle triggers auto-finalize and stamps automation doc", async () => {
+  const showDate = "2026-07-03";
+  const nowMs = 1_000_000_000_000;
+  const firstRowMs = nowMs - 3 * 60 * 60_000; // 3h in
+  const lastRowsChangedMs = nowMs - AUTO_FINALIZE_IDLE_MS - 60_000; // idle past threshold
+
+  const signature = "pre-existing-signature"; // matches what the harness will produce
+  const rows = [
+    { set: "1", position: 1, song: "AC/DC Bag" },
+    { set: "1", position: 2, song: "Bathtub Gin" },
+    { set: "2", position: 1, song: "Tweezer" },
+    { set: "2", position: 2, song: "Simple" },
+    { set: "e", position: 1, song: "Loving Cup" },
+  ];
+  const normalized = normalizeSetlistRows({ data: rows });
+  const realSignature = signatureFromRows(normalized);
+
+  const initialSetlist = {
+    showDate,
+    status: "LIVE",
+    isScored: false,
+    setlist: { s1o: "AC/DC Bag", s2o: "Tweezer", enc: "Loving Cup" },
+    officialSetlist: { set1: [], set2: [], encore: [] },
+    encoreSongs: ["Loving Cup"],
+    sourceMeta: { signature: realSignature, songCount: rows.length },
+  };
+  const initialAutomation = {
+    showDate,
+    enabled: true,
+    firstRowObservedAt: { _millis: firstRowMs, toMillis: () => firstRowMs },
+    lastRowsChangedAt: {
+      _millis: lastRowsChangedMs,
+      toMillis: () => lastRowsChangedMs,
+    },
+  };
+
+  const harness = buildFakeFirestoreHarness({
+    [`official_setlists/${showDate}`]: initialSetlist,
+    [`live_setlist_automation/${showDate}`]: initialAutomation,
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = makeFakeFetch(rows);
+
+  let rollupCalled = null;
+  const runRollup = async ({ showDate: sd, trigger }) => {
+    rollupCalled = { showDate: sd, trigger };
+    return { processedPicks: 3, skippedPicks: 0, totalPicks: 3, setlistExists: true };
+  };
+
+  const originalNow = Date.now;
+  Date.now = () => nowMs;
+
+  try {
+    const result = await pollSingleShowDate({
+      db: harness.db,
+      admin: harness.admin,
+      showDate,
+      apiKey: "test-key",
+      logger: { info() {}, warn() {}, error() {} },
+      runRollup,
+    });
+
+    // Payload may differ from the prior doc (s1c/other built fields), so the
+    // write may take the "changed" branch even though the rows signature is
+    // identical. Auto-finalize should still fire because the prior
+    // `lastRowsChangedAt` anchor is preserved (rows signature unchanged).
+    assert.deepEqual(rollupCalled, { showDate, trigger: "auto" });
+
+    const autoStamp = harness.docs.get(`live_setlist_automation/${showDate}`);
+    assert.ok(
+      autoStamp?.autoFinalizedAt,
+      "automation doc should be stamped with autoFinalizedAt"
+    );
+    assert.equal(autoStamp.autoFinalizeTrigger, "encore-idle");
+    assert.equal(result.autoFinalize.fired, true);
+    assert.equal(result.autoFinalize.trigger, "auto");
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = originalNow;
+  }
+});
+
+test("pollSingleShowDate: idempotent — prior autoFinalizedAt + no row change = no rollup", async () => {
+  const showDate = "2026-07-03";
+  const nowMs = 1_000_000_000_000;
+  const firstRowMs = nowMs - 3 * 60 * 60_000;
+  const lastRowsChangedMs = nowMs - 30 * 60_000;
+  const autoFinalizedMs = nowMs - 5 * 60_000;
+
+  const rows = [
+    { set: "1", position: 1, song: "AC/DC Bag" },
+    { set: "2", position: 1, song: "Tweezer" },
+    { set: "e", position: 1, song: "Loving Cup" },
+  ];
+  const normalized = normalizeSetlistRows({ data: rows });
+  const realSignature = signatureFromRows(normalized);
+
+  const harness = buildFakeFirestoreHarness({
+    [`official_setlists/${showDate}`]: {
+      showDate,
+      sourceMeta: { signature: realSignature, songCount: rows.length },
+      encoreSongs: ["Loving Cup"],
+      setlist: { s1o: "AC/DC Bag", s2o: "Tweezer", enc: "Loving Cup" },
+      officialSetlist: { set1: [], set2: [], encore: [] },
+    },
+    [`live_setlist_automation/${showDate}`]: {
+      showDate,
+      enabled: true,
+      firstRowObservedAt: { _millis: firstRowMs, toMillis: () => firstRowMs },
+      lastRowsChangedAt: {
+        _millis: lastRowsChangedMs,
+        toMillis: () => lastRowsChangedMs,
+      },
+      autoFinalizedAt: {
+        _millis: autoFinalizedMs,
+        toMillis: () => autoFinalizedMs,
+      },
+      autoFinalizeTrigger: "encore-idle",
+    },
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = makeFakeFetch(rows);
+
+  let rollupCallCount = 0;
+  const runRollup = async () => {
+    rollupCallCount += 1;
+    return { processedPicks: 0, skippedPicks: 0, totalPicks: 0, setlistExists: true };
+  };
+
+  const originalNow = Date.now;
+  Date.now = () => nowMs;
+
+  try {
+    const result = await pollSingleShowDate({
+      db: harness.db,
+      admin: harness.admin,
+      showDate,
+      apiKey: "test-key",
+      logger: { info() {}, warn() {}, error() {} },
+      runRollup,
+    });
+
+    assert.equal(rollupCallCount, 0, "no rollup call expected on already-finalized no-change poll");
+    assert.equal(result.autoFinalize.fired, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = originalNow;
+  }
+});
+
+test("pollSingleShowDate: post-finalize row change triggers auto-reconcile", async () => {
+  const showDate = "2026-07-03";
+  const nowMs = 1_000_000_000_000;
+  const firstRowMs = nowMs - 4 * 60 * 60_000;
+  const autoFinalizedMs = nowMs - 30 * 60_000;
+
+  const rows = [
+    { set: "1", position: 1, song: "AC/DC Bag" },
+    { set: "2", position: 1, song: "Tweezer" },
+    { set: "e", position: 1, song: "Loving Cup" },
+    { set: "e", position: 2, song: "Tweezer Reprise" },
+  ];
+
+  const harness = buildFakeFirestoreHarness({
+    [`official_setlists/${showDate}`]: {
+      showDate,
+      sourceMeta: { signature: "stale-signature", songCount: 3 },
+      encoreSongs: ["Loving Cup"],
+      setlist: { s1o: "AC/DC Bag", s2o: "Tweezer", enc: "Loving Cup" },
+      officialSetlist: { set1: [], set2: [], encore: [] },
+    },
+    [`live_setlist_automation/${showDate}`]: {
+      showDate,
+      enabled: true,
+      firstRowObservedAt: { _millis: firstRowMs, toMillis: () => firstRowMs },
+      autoFinalizedAt: {
+        _millis: autoFinalizedMs,
+        toMillis: () => autoFinalizedMs,
+      },
+      autoFinalizeTrigger: "encore-idle",
+    },
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = makeFakeFetch(rows);
+
+  let rollupCalled = null;
+  const runRollup = async ({ showDate: sd, trigger }) => {
+    rollupCalled = { showDate: sd, trigger };
+    return { processedPicks: 2, skippedPicks: 0, totalPicks: 2, setlistExists: true };
+  };
+
+  const originalNow = Date.now;
+  Date.now = () => nowMs;
+
+  try {
+    const result = await pollSingleShowDate({
+      db: harness.db,
+      admin: harness.admin,
+      showDate,
+      apiKey: "test-key",
+      logger: { info() {}, warn() {}, error() {} },
+      runRollup,
+    });
+
+    assert.equal(result.changed, true, "signature differs → changed branch");
+    assert.deepEqual(rollupCalled, { showDate, trigger: "auto-reconcile" });
+    assert.equal(result.autoFinalize.trigger, "auto-reconcile");
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = originalNow;
+  }
+});
+
+test("pollSingleShowDate: runRollup not injected → auto-finalize is a no-op", async () => {
+  const showDate = "2026-07-03";
+  const nowMs = 1_000_000_000_000;
+  const firstRowMs = nowMs - 3 * 60 * 60_000;
+  const lastRowsChangedMs = nowMs - AUTO_FINALIZE_IDLE_MS - 60_000;
+
+  const rows = [
+    { set: "1", position: 1, song: "AC/DC Bag" },
+    { set: "2", position: 1, song: "Tweezer" },
+    { set: "e", position: 1, song: "Loving Cup" },
+  ];
+  const normalized = normalizeSetlistRows({ data: rows });
+  const realSignature = signatureFromRows(normalized);
+
+  const harness = buildFakeFirestoreHarness({
+    [`official_setlists/${showDate}`]: {
+      showDate,
+      sourceMeta: { signature: realSignature, songCount: rows.length },
+      encoreSongs: ["Loving Cup"],
+      setlist: { s1o: "AC/DC Bag", s2o: "Tweezer", enc: "Loving Cup" },
+      officialSetlist: { set1: [], set2: [], encore: [] },
+    },
+    [`live_setlist_automation/${showDate}`]: {
+      showDate,
+      enabled: true,
+      firstRowObservedAt: { _millis: firstRowMs, toMillis: () => firstRowMs },
+      lastRowsChangedAt: {
+        _millis: lastRowsChangedMs,
+        toMillis: () => lastRowsChangedMs,
+      },
+    },
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = makeFakeFetch(rows);
+
+  const originalNow = Date.now;
+  Date.now = () => nowMs;
+
+  try {
+    const result = await pollSingleShowDate({
+      db: harness.db,
+      admin: harness.admin,
+      showDate,
+      apiKey: "test-key",
+      logger: { info() {}, warn() {}, error() {} },
+      // No runRollup — simulates the admin "Poll Now" path.
+    });
+
+    assert.equal(result.autoFinalize.fired, false);
+    assert.equal(result.autoFinalize.reason, "no-runner");
+    const autoStamp = harness.docs.get(`live_setlist_automation/${showDate}`);
+    assert.equal(
+      autoStamp.autoFinalizedAt,
+      undefined,
+      "no stamp should be written when runRollup absent"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = originalNow;
+  }
 });

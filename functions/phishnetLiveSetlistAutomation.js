@@ -35,6 +35,56 @@ const BUSTOUT_MIN_GAP = 30;
 const MIN_SET1_ELAPSED_MS = 85 * 60_000;
 const SET1_IDLE_MS = 10 * 60_000;
 
+/**
+ * Auto-finalize thresholds (issue #266).
+ *
+ * - `AUTO_FINALIZE_IDLE_MS`: after an encore is reported, the show is
+ *   considered finished once no new song has been appended to the setlist
+ *   for this long. 25 min is well past the longest realistic encore
+ *   transition and still lands well inside the natural 3.5h post-encore
+ *   poll window.
+ * - `SHOW_SAFETY_CAP_MS`: hard cutoff from first observed row. Fires
+ *   finalize even without a detected encore as long as set 2 has at least
+ *   one song — protects against the rare Phish.net encore-posting delay.
+ */
+const AUTO_FINALIZE_IDLE_MS = 25 * 60_000;
+const SHOW_SAFETY_CAP_MS = 4.5 * 60 * 60_000;
+
+/**
+ * Pure decision function for the auto-finalize step — kept side-effect-free
+ * so it can be unit-tested directly without Firestore.
+ *
+ * @param {object} state
+ * @param {number} state.nowMs
+ * @param {number | null} state.firstRowObservedAtMs
+ * @param {number | null} state.lastRowsChangedAtMs
+ * @param {number} state.encoreSongsCount
+ * @param {number} state.set2Count
+ * @param {boolean} state.alreadyAutoFinalized — true if a prior poll stamped `autoFinalizedAt`.
+ * @returns {{ shouldFinalize: boolean, reason?: "encore-idle" | "safety-cap" }}
+ */
+function evaluateAutoFinalize(state) {
+  if (state.alreadyAutoFinalized) {
+    return { shouldFinalize: false };
+  }
+  if (!Number.isFinite(state.firstRowObservedAtMs)) {
+    return { shouldFinalize: false };
+  }
+  const idleSource = Number.isFinite(state.lastRowsChangedAtMs)
+    ? state.lastRowsChangedAtMs
+    : state.firstRowObservedAtMs;
+  const idleMs = state.nowMs - idleSource;
+  const elapsedMs = state.nowMs - state.firstRowObservedAtMs;
+
+  if (state.encoreSongsCount >= 1 && idleMs >= AUTO_FINALIZE_IDLE_MS) {
+    return { shouldFinalize: true, reason: "encore-idle" };
+  }
+  if (elapsedMs >= SHOW_SAFETY_CAP_MS && state.set2Count >= 1) {
+    return { shouldFinalize: true, reason: "safety-cap" };
+  }
+  return { shouldFinalize: false };
+}
+
 /** Normalize a song title for dedupe/compare (must match `normalizeSong` in scoring code). */
 function normalizeSongTitle(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -450,6 +500,103 @@ async function fetchPhishnetSetlistForDate(showDate, apiKey) {
   return payload;
 }
 
+/**
+ * Side-effectful companion to `evaluateAutoFinalize`: when the pure check
+ * says "finalize now", invoke the injected rollup core and stamp
+ * `autoFinalizedAt` + `autoFinalizeTrigger` on the automation doc.
+ *
+ * Also handles the reconciliation case: when a show has already been
+ * auto-finalized and a new row-level change lands on a later poll (rare
+ * Phish.net post-show edit), re-run the rollup core with
+ * `trigger: "auto-reconcile"` so `users.totalPoints` reconciles against
+ * the new per-pick scores (delta-based math in `computePerPickRollup`).
+ *
+ * Returns a small summary object for logging. Never throws — rollup
+ * errors are logged and surfaced as `{ fired: false, error }` so a failing
+ * rollup does not break the surrounding poll.
+ */
+async function maybeAutoFinalize({
+  db: _db,
+  admin,
+  showDate,
+  automationRef,
+  runRollup,
+  logger,
+  nowMs,
+  firstRowObservedAtMs,
+  lastRowsChangedAtMs,
+  encoreSongsCount,
+  set2Count,
+  prevAutoFinalizedAtMs,
+  rowsChanged,
+}) {
+  if (!runRollup) {
+    return { fired: false, reason: "no-runner" };
+  }
+
+  const alreadyAutoFinalized = prevAutoFinalizedAtMs != null;
+
+  // Reconciliation: already finalized once, and Phish.net sent an edit
+  // (row-level change). Re-run rollup to reconcile users.totalPoints.
+  if (alreadyAutoFinalized && rowsChanged) {
+    try {
+      const result = await runRollup({
+        showDate,
+        trigger: "auto-reconcile",
+      });
+      return { fired: true, trigger: "auto-reconcile", result };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger?.error?.("auto-finalize reconcile failed", { showDate, msg });
+      return { fired: false, trigger: "auto-reconcile", error: msg };
+    }
+  }
+
+  // Idempotency: already finalized, no new rows → nothing to do.
+  if (alreadyAutoFinalized) {
+    return { fired: false, reason: "already-finalized" };
+  }
+
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs,
+    lastRowsChangedAtMs,
+    encoreSongsCount,
+    set2Count,
+    alreadyAutoFinalized: false,
+  });
+  if (!decision.shouldFinalize) {
+    return { fired: false };
+  }
+
+  try {
+    const result = await runRollup({ showDate, trigger: "auto" });
+    // Stamp post-rollup so a rollup failure doesn't leave a misleading
+    // "already finalized" flag that would suppress future retries.
+    await automationRef.set(
+      {
+        autoFinalizedAt: admin.firestore.Timestamp.fromMillis(nowMs),
+        autoFinalizeTrigger: decision.reason,
+      },
+      { merge: true }
+    );
+    return {
+      fired: true,
+      trigger: "auto",
+      reason: decision.reason,
+      result,
+    };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger?.error?.("auto-finalize run failed", {
+      showDate,
+      reason: decision.reason,
+      msg,
+    });
+    return { fired: false, trigger: "auto", error: msg };
+  }
+}
+
 async function pollSingleShowDate({
   db,
   admin,
@@ -458,6 +605,11 @@ async function pollSingleShowDate({
   logger,
   force = false,
   requestorEmail = null,
+  // Injected by `functions/index.js` so the poller can auto-finalize without
+  // going through the HTTPS callable path (#266). Left optional (null) so
+  // existing tests and any future caller that doesn't want auto-finalize
+  // keep working unchanged.
+  runRollup = null,
 }) {
   const started = Date.now();
   const automationRef = db.collection(LIVE_AUTOMATION_COLLECTION).doc(showDate);
@@ -551,10 +703,23 @@ async function pollSingleShowDate({
     };
     const nextPayload = buildSetlistDocFromRows(rows, prev, timingForBuild);
 
+    // Full-rows change detection (distinct from set-1 signature; used for
+    // #266 auto-finalize idle). A row-level change is any mismatch between
+    // the prior setlist-doc signature and the current one. On the very
+    // first poll (no prior signature), rows are considered changed.
+    const rowsChanged = prevSignature !== signature;
+    const prevLastRowsChangedAtMs = timestampToMs(automation.lastRowsChangedAt);
+    const lastRowsChangedAtMs = rowsChanged
+      ? nowMs
+      : prevLastRowsChangedAtMs != null
+      ? prevLastRowsChangedAtMs
+      : firstRowObservedAtMs;
+
     // Merge timing-state updates into every automation write below so the
     // next poll has monotonic anchors. Stamp `firstRowObservedAt` only on
     // first observation; update `lastSet1ChangeAt` + `set1TitleSignature`
-    // only when the set-1 title sequence actually changed.
+    // only when the set-1 title sequence actually changed; update
+    // `lastRowsChangedAt` whenever the full-rows signature changed.
     const timingStateUpdate = {
       ...(prevFirstRowObservedAtMs == null
         ? {
@@ -569,6 +734,37 @@ async function pollSingleShowDate({
             set1TitleSignature: currSet1Sig,
           }
         : {}),
+      ...(rowsChanged
+        ? {
+            lastRowsChangedAt: admin.firestore.Timestamp.fromMillis(nowMs),
+          }
+        : {}),
+    };
+
+    // Context for the #266 auto-finalize step (runs after either write
+    // branch below). Computed once to keep the two call sites consistent.
+    const prevAutoFinalizedAtMs = timestampToMs(automation.autoFinalizedAt);
+    const encoreSongsCount = Array.isArray(nextPayload.encoreSongs)
+      ? nextPayload.encoreSongs.length
+      : 0;
+    const set2Count = rows.reduce(
+      (n, r) => (r.setKey === "2" ? n + 1 : n),
+      0
+    );
+    const autoFinalizeContext = {
+      db,
+      admin,
+      showDate,
+      automationRef,
+      runRollup,
+      logger,
+      nowMs,
+      firstRowObservedAtMs,
+      lastRowsChangedAtMs,
+      encoreSongsCount,
+      set2Count,
+      prevAutoFinalizedAtMs,
+      rowsChanged,
     };
 
     // Use AND here (previously OR): once #264 timing can flip `s1c` without
@@ -590,7 +786,14 @@ async function pollSingleShowDate({
         },
         { merge: true }
       );
-      return { showDate, changed: false, updatedPicks: 0, reason: "unchanged" };
+      const autoFinalize = await maybeAutoFinalize(autoFinalizeContext);
+      return {
+        showDate,
+        changed: false,
+        updatedPicks: 0,
+        reason: "unchanged",
+        autoFinalize,
+      };
     }
 
     const setlistPayload = {
@@ -625,7 +828,14 @@ async function pollSingleShowDate({
     batch.set(setlistRef, setlistPayload, { merge: true });
     batch.set(automationRef, automationPayload, { merge: true });
     await batch.commit();
-    return { showDate, changed: true, updatedPicks: null, durationMs: Date.now() - started };
+    const autoFinalize = await maybeAutoFinalize(autoFinalizeContext);
+    return {
+      showDate,
+      changed: true,
+      updatedPicks: null,
+      durationMs: Date.now() - started,
+      autoFinalize,
+    };
   } catch (e) {
     const failureCount = Number(automation.failureCount || 0) + 1;
     const backoffMinutes = nextBackoffMinutes(failureCount);
@@ -661,12 +871,15 @@ async function pollSingleShowDate({
 }
 
 module.exports = {
+  AUTO_FINALIZE_IDLE_MS,
   BUSTOUT_MIN_GAP,
   MIN_SET1_ELAPSED_MS,
   SET1_IDLE_MS,
+  SHOW_SAFETY_CAP_MS,
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
+  evaluateAutoFinalize,
   fetchPhishnetSetlistForDate,
   getEtHour,
   isWithinLiveSetlistPollWindow,
