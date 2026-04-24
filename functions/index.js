@@ -1048,12 +1048,16 @@ exports.refreshPhishnetShowCalendar = onCall(
 );
 
 /**
- * Weekly sync: Phish.net v5 `songs.json` → Storage `song-catalog.json` (issue #158).
- * Sunday 7:00 America/New_York. Same secret as other Phish.net callables.
+ * Sync Phish.net v5 `songs.json` → Storage `song-catalog.json` every 6h
+ * (issue #158; freshness tightened in #261). Running at 00/06/12/18 ET keeps
+ * autocomplete `gap` + `last_played` aligned with tonight's show by the time
+ * users pick breakfast the next morning. Client-side localStorage TTL
+ * (`SONG_CATALOG_CACHE_MAX_AGE_MS`) is intentionally kept at 6h so the two
+ * freshness windows match. Same secret as other Phish.net callables.
  */
 exports.scheduledPhishnetSongCatalog = onSchedule(
   {
-    schedule: "0 7 * * 0",
+    schedule: "0 */6 * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
     secrets: [phishnetApiKey],
