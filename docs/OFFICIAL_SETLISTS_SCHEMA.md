@@ -53,6 +53,32 @@ State used for (2) lives on `live_setlist_automation/{showDate}` and is written 
 
 Long-set safeguard is inherent — `buildSetlistDocFromRows` re-derives `s1c` from rows every poll and does not preserve closers across writes, so an unusually long set 1 that plays another song after timing fires resets `lastSet1ChangeAt` and `s1c` rewrites to the new last song on the next poll where timing re-fires (or when set 2 starts, whichever first).
 
+### Auto-finalize and rollup (#266)
+
+The scheduled poller (`scheduledPhishnetLiveSetlistPoll`) finalizes a show and rolls up points automatically when either:
+
+1. **Encore idle:** `encoreSongs.length ≥ 1` **and** no new song has been appended to the setlist for ≥ **25 min** (`AUTO_FINALIZE_IDLE_MS`), **or**
+2. **Safety cap:** ≥ **4h 30m** (`SHOW_SAFETY_CAP_MS`) has elapsed since the first observed row **and** set 2 has ≥ 1 song — covers rare Phish.net encore-posting delays.
+
+The poller invokes the shared `runRollupForShow` core in `functions/rollupCore.js` (same code path as the manual `rollupScoresForShow` callable), stamps `autoFinalizedAt` + `autoFinalizeTrigger` on `live_setlist_automation/{showDate}` once the rollup succeeds, and tags the `rollup_audit/{showDate}` record with `trigger: "auto"`.
+
+Additional automation-doc state used by auto-finalize:
+
+| Field | Role |
+|-------|------|
+| `lastRowsChangedAt` | Timestamp of the most recent poll where the full-rows signature changed. Drives the idle calculation. |
+| `autoFinalizedAt` | Stamped when auto-finalize first runs rollup. Prevents double-firing. |
+| `autoFinalizeTrigger` | `"encore-idle"` or `"safety-cap"` — which rule fired. |
+
+**Reconciliation path:** if Phish.net edits a setlist after auto-finalize has fired (rare but possible within the ~3.5h post-encore poll window), the next changed-rows poll re-invokes `runRollupForShow` with `trigger: "auto-reconcile"`. The per-pick math in `computePerPickRollup` is delta-based, so `users.totalPoints` / `showsPlayed` / `wins` reconcile correctly rather than double-incrementing.
+
+**Manual override / pre-emption:** the admin "Finalize & Rollup Points" button (`rollupScoresForShow` callable, `trigger: "manual"`) keeps full control:
+
+- Clicking it before the 25-min idle pre-empts auto-finalize — the `rollup_audit` record exists, and on the next poll the automation sees no new row changes and leaves totals alone.
+- Clicking it after auto-finalize to correct a bad setlist runs the same delta-based rollup and reconciles totals identically to the `auto-reconcile` path.
+
+Admin "Poll Now" (`pollLiveSetlistNow`) does **not** inject the rollup core — auto-finalize is a no-op on that path by design so admins retain full control over finalize timing when they're actively monitoring a show.
+
 ---
 
 ## How scoring uses `setlist` + `officialSetlist`
