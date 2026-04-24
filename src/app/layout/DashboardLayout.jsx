@@ -63,7 +63,7 @@ export default function DashboardLayout() {
   const [searchParams] = useSearchParams();
   const { user, isAdmin } = useAuth();
   const { showDates, showDatesByTour } = useShowCalendar();
-  usePendingPoolJoin();
+  usePendingPoolJoin(showDates);
   
   const scrollDirection = useScrollDirection(); 
 

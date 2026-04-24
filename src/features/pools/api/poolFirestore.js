@@ -12,6 +12,19 @@ function pickDocId(showDate, userId) {
 
 /**
  * Whether a pick document should count toward this pool (snapshot or legacy).
+ *
+ * Pool standings, the active-show pool view, and the server-side pool
+ * delete path all gate inclusion on `pick.pools` (the snapshot of which
+ * pools the author belonged to at pick-save time). After pool **create**
+ * or **join**, `arrayUnionPoolOntoUserPickDocs` (picks API) merges the
+ * pool into that user's existing pick docs for the season calendar so
+ * pre-create / pre-join graded picks count for that pool.
+ *
+ * Legacy fallback: pick docs written before snapshots were introduced
+ * (no `pools` field, or `pools: []`) count for every pool the user is
+ * currently a member of — there is no other signal available for those
+ * rows.
+ *
  * @param {Record<string, unknown>} pickData
  * @param {string} poolId
  */
@@ -47,6 +60,18 @@ export async function updatePoolStatusApi(poolId, status) {
 }
 
 /**
+ * Compute pool-scoped totals (points, showsPlayed, wins) for each
+ * current member across the given show dates.
+ *
+ * Pool inclusion is gated by `pickDataCountsForPool`: a pick counts if
+ * the pool id appears in `pick.pools` (including after create/join
+ * backfill). This keeps pool leaderboards pool-specific rather than
+ * mirroring global standings.
+ *
+ * Wins follow the shared "overall winner of the night" rule restricted
+ * to picks that count for this pool: per show, max score across the
+ * pool's qualifying picks; ties share; `max === 0` credits no one.
+ *
  * @param {string} poolId
  * @param {string[]} memberIds
  * @param {{ date: string }[]} showDates
