@@ -7,7 +7,12 @@ import {
 } from '../api/poolsApi';
 import { subscribeUserPoolsInvalidate } from './userPoolsRefreshBus';
 
-export default function useUserPools(userId) {
+/**
+ * @param {string | undefined} userId
+ * @param {{ showDates?: Array<string | { date?: string }> }} [options] Calendar dates used to backfill `pick.pools` after create/join.
+ */
+export default function useUserPools(userId, options = {}) {
+  const { showDates = [] } = options;
   const [pools, setPools] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -48,7 +53,7 @@ export default function useUserPools(userId) {
       setLoading(true);
       setError(null);
       try {
-        const createdPool = await createPoolApi({ userId, name });
+        const createdPool = await createPoolApi({ userId, name, showDates });
         setPools((prev) => [...prev, createdPool]);
         return createdPool;
       } catch (err) {
@@ -58,7 +63,7 @@ export default function useUserPools(userId) {
         setLoading(false);
       }
     },
-    [userId]
+    [userId, showDates]
   );
 
   const handleJoin = useCallback(
@@ -66,7 +71,7 @@ export default function useUserPools(userId) {
       setLoading(true);
       setError(null);
       try {
-        const joinedPool = await joinPoolApi({ userId, inviteCode });
+        const joinedPool = await joinPoolApi({ userId, inviteCode, showDates });
         setPools((prev) => {
           if (prev.some((pool) => pool.id === joinedPool.id)) return prev;
           return [...prev, joinedPool];
@@ -79,7 +84,7 @@ export default function useUserPools(userId) {
         setLoading(false);
       }
     },
-    [userId]
+    [userId, showDates]
   );
 
   return {

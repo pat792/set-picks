@@ -8,6 +8,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 
+import { arrayUnionPoolOntoUserPickDocs } from '../../picks';
 import { db } from '../../../shared/lib/firebase';
 
 function generateInviteCode() {
@@ -36,7 +37,10 @@ export async function fetchPools(userId) {
     .filter((p) => p.status !== 'archived');
 }
 
-export async function createPool({ userId, name }) {
+/**
+ * @param {{ userId: string, name: string, showDates?: Array<string | { date?: string }> }} params
+ */
+export async function createPool({ userId, name, showDates }) {
   const trimmedName = name?.trim();
   if (!userId || !trimmedName) {
     throw new Error('Missing required create pool fields.');
@@ -67,13 +71,26 @@ export async function createPool({ userId, name }) {
   );
   await batch.commit();
 
+  try {
+    await arrayUnionPoolOntoUserPickDocs(
+      userId,
+      { id: poolRef.id, name: trimmedName },
+      showDates
+    );
+  } catch (e) {
+    console.error('createPool: pick snapshot backfill failed:', e);
+  }
+
   return {
     id: poolRef.id,
     ...poolPayload,
   };
 }
 
-export async function joinPool({ userId, inviteCode }) {
+/**
+ * @param {{ userId: string, inviteCode: string, showDates?: Array<string | { date?: string }> }} params
+ */
+export async function joinPool({ userId, inviteCode, showDates }) {
   const normalizedCode = inviteCode?.trim().toUpperCase();
   if (!userId || !normalizedCode) {
     throw new Error('Missing required join pool fields.');
@@ -129,6 +146,22 @@ export async function joinPool({ userId, inviteCode }) {
     { merge: true }
   );
   await batch.commit();
+
+  try {
+    await arrayUnionPoolOntoUserPickDocs(
+      userId,
+      {
+        id: poolDoc.id,
+        name:
+          typeof poolData.name === 'string' && poolData.name.trim()
+            ? poolData.name.trim()
+            : '',
+      },
+      showDates
+    );
+  } catch (e) {
+    console.error('joinPool: pick snapshot backfill failed:', e);
+  }
 
   return {
     id: poolDoc.id,

@@ -17,7 +17,8 @@ import { getNextShow } from '../../shared/utils/timeLogic.js';
 export default function Pools({ user }) {
   const { showDates } = useShowCalendar();
   const { pools, loading, error, handleJoin, handleCreate } = useUserPools(
-    user?.uid
+    user?.uid,
+    { showDates }
   );
   const nextShowDate = getNextShow(showDates).date;
   const {

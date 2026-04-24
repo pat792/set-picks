@@ -14,7 +14,10 @@ import { POOL_INVITE_STORAGE_KEY } from '../config';
 /** Prevents duplicate join attempts when React Strict Mode double-invokes effects. */
 let pendingJoinKeyInFlight = null;
 
-export function usePendingPoolJoin() {
+/**
+ * @param {Array<string | { date?: string }>} showDates Season calendar dates for pick-doc pool snapshot backfill after join.
+ */
+export function usePendingPoolJoin(showDates = []) {
   const { userId } = useAuthSession();
   const navigate = useNavigate();
 
@@ -35,6 +38,7 @@ export function usePendingPoolJoin() {
         const outcome = await joinPoolByInviteCode({
           userId,
           inviteCode: code,
+          showDates,
         });
 
         if (outcome === 'joined') {
@@ -63,5 +67,5 @@ export function usePendingPoolJoin() {
         pendingJoinKeyInFlight = null;
       }
     })();
-  }, [userId, navigate]);
+  }, [userId, navigate, showDates]);
 }
