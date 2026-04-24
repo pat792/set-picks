@@ -10,6 +10,81 @@ const SLOT_KEYS = ["s1o", "s1c", "s2o", "s2c", "enc"];
 /** Minimum shows-since-last-play for a song to count as a bustout. Mirrors SCORING_RULES.BUSTOUT_MIN_GAP. */
 const BUSTOUT_MIN_GAP = 30;
 
+/**
+ * Time-gated set 1 closer thresholds (issue #264).
+ *
+ * Phish.net v5 `/setlists/showdate` rows carry no per-song timestamps, so we
+ * use our own poll clock as the only available time signal. `s1c` stays empty
+ * until set 2 starts (original behavior) OR until BOTH:
+ *   - set 1 has been running for at least `MIN_SET1_ELAPSED_MS` (elapsed
+ *     since the first row was observed for this show), AND
+ *   - no new set-1 song has been appended for at least `SET1_IDLE_MS`.
+ *
+ * 85 min is the low end of typical Phish set-1 durations (75–90 min window
+ * observed over the last year); 10 min idle is longer than any realistic
+ * within-set silence (jam + transition + next song) and shorter than typical
+ * setbreak (20–30 min), so we reveal `s1c` ~10–15 min earlier than the
+ * "wait for set 2" rule without risking a mid-set false positive.
+ *
+ * Long-set safeguard: `buildSetlistDocFromRows` re-derives `s1c` from rows
+ * every poll and does not preserve closers across writes, so if set 1 keeps
+ * going after timing fires, the next poll with a new set-1 row resets
+ * `lastSet1ChangeAt`, and `s1c` rewrites to the new last song the next time
+ * timing re-fires (or when set 2 starts, whichever is first).
+ */
+const MIN_SET1_ELAPSED_MS = 85 * 60_000;
+const SET1_IDLE_MS = 10 * 60_000;
+
+/**
+ * Auto-finalize thresholds (issue #266).
+ *
+ * - `AUTO_FINALIZE_IDLE_MS`: after an encore is reported, the show is
+ *   considered finished once no new song has been appended to the setlist
+ *   for this long. 25 min is well past the longest realistic encore
+ *   transition and still lands well inside the natural 3.5h post-encore
+ *   poll window.
+ * - `SHOW_SAFETY_CAP_MS`: hard cutoff from first observed row. Fires
+ *   finalize even without a detected encore as long as set 2 has at least
+ *   one song — protects against the rare Phish.net encore-posting delay.
+ */
+const AUTO_FINALIZE_IDLE_MS = 25 * 60_000;
+const SHOW_SAFETY_CAP_MS = 4.5 * 60 * 60_000;
+
+/**
+ * Pure decision function for the auto-finalize step — kept side-effect-free
+ * so it can be unit-tested directly without Firestore.
+ *
+ * @param {object} state
+ * @param {number} state.nowMs
+ * @param {number | null} state.firstRowObservedAtMs
+ * @param {number | null} state.lastRowsChangedAtMs
+ * @param {number} state.encoreSongsCount
+ * @param {number} state.set2Count
+ * @param {boolean} state.alreadyAutoFinalized — true if a prior poll stamped `autoFinalizedAt`.
+ * @returns {{ shouldFinalize: boolean, reason?: "encore-idle" | "safety-cap" }}
+ */
+function evaluateAutoFinalize(state) {
+  if (state.alreadyAutoFinalized) {
+    return { shouldFinalize: false };
+  }
+  if (!Number.isFinite(state.firstRowObservedAtMs)) {
+    return { shouldFinalize: false };
+  }
+  const idleSource = Number.isFinite(state.lastRowsChangedAtMs)
+    ? state.lastRowsChangedAtMs
+    : state.firstRowObservedAtMs;
+  const idleMs = state.nowMs - idleSource;
+  const elapsedMs = state.nowMs - state.firstRowObservedAtMs;
+
+  if (state.encoreSongsCount >= 1 && idleMs >= AUTO_FINALIZE_IDLE_MS) {
+    return { shouldFinalize: true, reason: "encore-idle" };
+  }
+  if (elapsedMs >= SHOW_SAFETY_CAP_MS && state.set2Count >= 1) {
+    return { shouldFinalize: true, reason: "safety-cap" };
+  }
+  return { shouldFinalize: false };
+}
+
 /** Normalize a song title for dedupe/compare (must match `normalizeSong` in scoring code). */
 function normalizeSongTitle(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -195,7 +270,17 @@ function normalizeSetlistRows(payload) {
   return rows;
 }
 
-function buildSetlistDocFromRows(rows, existingDoc = {}) {
+/**
+ * @param {Array<{ setKey: string, position: number, title: string, gap: number | null }>} rows
+ * @param {object} [existingDoc] — prior `official_setlists/{showDate}` payload for partial-feed preservation.
+ * @param {object} [timing] — optional timing state for the #264 set-1 closer heuristic.
+ * @param {number} [timing.nowMs] — wall-clock "now" in epoch ms.
+ * @param {number | null} [timing.firstRowObservedAtMs] — epoch ms of the first poll that saw any row for this show.
+ * @param {number | null} [timing.lastSet1ChangeAtMs] — epoch ms of the most recent poll where the set-1 title list changed.
+ *
+ * When `timing` is absent (or inputs are null), behavior matches pre-#264: `s1c` is populated only once set 2 starts.
+ */
+function buildSetlistDocFromRows(rows, existingDoc = {}, timing = null) {
   const officialSetlist = rows.map((r) => r.title).filter(Boolean);
   const slots = {};
   for (const key of SLOT_KEYS) slots[key] = "";
@@ -212,8 +297,22 @@ function buildSetlistDocFromRows(rows, existingDoc = {}) {
     .flatMap(([, arr]) => arr)
     .sort((a, b) => a.position - b.position);
 
-  /** Set 1 closer is unknown until set 2 has started (live feeds list the current last song). */
-  const set1Complete = Boolean(set2?.length);
+  /**
+   * Set 1 closer is considered known when either:
+   *  - set 2 has started (original rule), OR
+   *  - the set has run long enough AND no new set-1 song has been appended
+   *    for the idle threshold (see `MIN_SET1_ELAPSED_MS` / `SET1_IDLE_MS`).
+   */
+  const set1TimingClosed =
+    Boolean(set1?.length) &&
+    !set2?.length &&
+    timing != null &&
+    Number.isFinite(timing.nowMs) &&
+    Number.isFinite(timing.firstRowObservedAtMs) &&
+    Number.isFinite(timing.lastSet1ChangeAtMs) &&
+    timing.nowMs - timing.firstRowObservedAtMs >= MIN_SET1_ELAPSED_MS &&
+    timing.nowMs - timing.lastSet1ChangeAtMs >= SET1_IDLE_MS;
+  const set1Complete = Boolean(set2?.length) || set1TimingClosed;
   /** Set 2 closer is unknown until the encore has started. */
   const set2Complete = Boolean(encRows.length);
 
@@ -326,6 +425,39 @@ function signatureFromRows(rows) {
   return crypto.createHash("sha256").update(stable).digest("hex");
 }
 
+/**
+ * Stable hash of the set-1 title sequence only, for detecting set-1 changes
+ * across polls without being sensitive to set-2/encore activity. Empty when
+ * the feed has no set-1 rows yet. Used by `pollSingleShowDate` to update
+ * `lastSet1ChangeAt` on the automation doc (issue #264).
+ */
+function set1TitleSignatureFromRows(rows) {
+  const titles = rows
+    .filter((r) => classifySetLabel(r.setKey).kind === "main" && r.setKey === "1")
+    .sort((a, b) => a.position - b.position)
+    .map((r) => r.title)
+    .filter(Boolean);
+  if (titles.length === 0) return "";
+  return crypto.createHash("sha256").update(titles.join("\n")).digest("hex");
+}
+
+/** Firestore Timestamp → epoch ms, or null if absent/unreadable. */
+function timestampToMs(ts) {
+  if (!ts) return null;
+  if (typeof ts.toMillis === "function") {
+    try {
+      return ts.toMillis();
+    } catch {
+      return null;
+    }
+  }
+  if (typeof ts.seconds === "number") {
+    const nanos = typeof ts.nanoseconds === "number" ? ts.nanoseconds : 0;
+    return ts.seconds * 1000 + Math.floor(nanos / 1_000_000);
+  }
+  return null;
+}
+
 function setlistPayloadEqual(a, b) {
   const aSet = a?.setlist || {};
   const bSet = b?.setlist || {};
@@ -368,6 +500,103 @@ async function fetchPhishnetSetlistForDate(showDate, apiKey) {
   return payload;
 }
 
+/**
+ * Side-effectful companion to `evaluateAutoFinalize`: when the pure check
+ * says "finalize now", invoke the injected rollup core and stamp
+ * `autoFinalizedAt` + `autoFinalizeTrigger` on the automation doc.
+ *
+ * Also handles the reconciliation case: when a show has already been
+ * auto-finalized and a new row-level change lands on a later poll (rare
+ * Phish.net post-show edit), re-run the rollup core with
+ * `trigger: "auto-reconcile"` so `users.totalPoints` reconciles against
+ * the new per-pick scores (delta-based math in `computePerPickRollup`).
+ *
+ * Returns a small summary object for logging. Never throws — rollup
+ * errors are logged and surfaced as `{ fired: false, error }` so a failing
+ * rollup does not break the surrounding poll.
+ */
+async function maybeAutoFinalize({
+  db: _db,
+  admin,
+  showDate,
+  automationRef,
+  runRollup,
+  logger,
+  nowMs,
+  firstRowObservedAtMs,
+  lastRowsChangedAtMs,
+  encoreSongsCount,
+  set2Count,
+  prevAutoFinalizedAtMs,
+  rowsChanged,
+}) {
+  if (!runRollup) {
+    return { fired: false, reason: "no-runner" };
+  }
+
+  const alreadyAutoFinalized = prevAutoFinalizedAtMs != null;
+
+  // Reconciliation: already finalized once, and Phish.net sent an edit
+  // (row-level change). Re-run rollup to reconcile users.totalPoints.
+  if (alreadyAutoFinalized && rowsChanged) {
+    try {
+      const result = await runRollup({
+        showDate,
+        trigger: "auto-reconcile",
+      });
+      return { fired: true, trigger: "auto-reconcile", result };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger?.error?.("auto-finalize reconcile failed", { showDate, msg });
+      return { fired: false, trigger: "auto-reconcile", error: msg };
+    }
+  }
+
+  // Idempotency: already finalized, no new rows → nothing to do.
+  if (alreadyAutoFinalized) {
+    return { fired: false, reason: "already-finalized" };
+  }
+
+  const decision = evaluateAutoFinalize({
+    nowMs,
+    firstRowObservedAtMs,
+    lastRowsChangedAtMs,
+    encoreSongsCount,
+    set2Count,
+    alreadyAutoFinalized: false,
+  });
+  if (!decision.shouldFinalize) {
+    return { fired: false };
+  }
+
+  try {
+    const result = await runRollup({ showDate, trigger: "auto" });
+    // Stamp post-rollup so a rollup failure doesn't leave a misleading
+    // "already finalized" flag that would suppress future retries.
+    await automationRef.set(
+      {
+        autoFinalizedAt: admin.firestore.Timestamp.fromMillis(nowMs),
+        autoFinalizeTrigger: decision.reason,
+      },
+      { merge: true }
+    );
+    return {
+      fired: true,
+      trigger: "auto",
+      reason: decision.reason,
+      result,
+    };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger?.error?.("auto-finalize run failed", {
+      showDate,
+      reason: decision.reason,
+      msg,
+    });
+    return { fired: false, trigger: "auto", error: msg };
+  }
+}
+
 async function pollSingleShowDate({
   db,
   admin,
@@ -376,6 +605,11 @@ async function pollSingleShowDate({
   logger,
   force = false,
   requestorEmail = null,
+  // Injected by `functions/index.js` so the poller can auto-finalize without
+  // going through the HTTPS callable path (#266). Left optional (null) so
+  // existing tests and any future caller that doesn't want auto-finalize
+  // keep working unchanged.
+  runRollup = null,
 }) {
   const started = Date.now();
   const automationRef = db.collection(LIVE_AUTOMATION_COLLECTION).doc(showDate);
@@ -434,9 +668,110 @@ async function pollSingleShowDate({
       prev?.sourceMeta && typeof prev.sourceMeta.signature === "string"
         ? prev.sourceMeta.signature
         : null;
-    const nextPayload = buildSetlistDocFromRows(rows, prev);
 
-    if (prevSignature === signature || setlistPayloadEqual(prev, nextPayload)) {
+    // Timing state for the #264 set-1 closer heuristic. `firstRowObservedAt`
+    // is stamped on the first poll that sees any row for this show and never
+    // overwritten. `lastSet1ChangeAt` is stamped whenever the set-1 title
+    // sequence changes (new song appended, reorder, rename) — detected via a
+    // separate sha256 of set-1 titles only so set-2 / encore activity does
+    // not reset the set-1 idle clock.
+    const nowMs = Date.now();
+    const prevFirstRowObservedAtMs = timestampToMs(automation.firstRowObservedAt);
+    const prevLastSet1ChangeAtMs = timestampToMs(automation.lastSet1ChangeAt);
+    const prevSet1Sig =
+      typeof automation.set1TitleSignature === "string"
+        ? automation.set1TitleSignature
+        : "";
+    const currSet1Sig = set1TitleSignatureFromRows(rows);
+    const firstRowObservedAtMs =
+      prevFirstRowObservedAtMs != null ? prevFirstRowObservedAtMs : nowMs;
+    const set1ChangedThisPoll =
+      currSet1Sig !== "" && currSet1Sig !== prevSet1Sig;
+    const lastSet1ChangeAtMs =
+      currSet1Sig === ""
+        ? null
+        : set1ChangedThisPoll
+        ? nowMs
+        : prevLastSet1ChangeAtMs != null
+        ? prevLastSet1ChangeAtMs
+        : nowMs;
+
+    const timingForBuild = {
+      nowMs,
+      firstRowObservedAtMs,
+      lastSet1ChangeAtMs,
+    };
+    const nextPayload = buildSetlistDocFromRows(rows, prev, timingForBuild);
+
+    // Full-rows change detection (distinct from set-1 signature; used for
+    // #266 auto-finalize idle). A row-level change is any mismatch between
+    // the prior setlist-doc signature and the current one. On the very
+    // first poll (no prior signature), rows are considered changed.
+    const rowsChanged = prevSignature !== signature;
+    const prevLastRowsChangedAtMs = timestampToMs(automation.lastRowsChangedAt);
+    const lastRowsChangedAtMs = rowsChanged
+      ? nowMs
+      : prevLastRowsChangedAtMs != null
+      ? prevLastRowsChangedAtMs
+      : firstRowObservedAtMs;
+
+    // Merge timing-state updates into every automation write below so the
+    // next poll has monotonic anchors. Stamp `firstRowObservedAt` only on
+    // first observation; update `lastSet1ChangeAt` + `set1TitleSignature`
+    // only when the set-1 title sequence actually changed; update
+    // `lastRowsChangedAt` whenever the full-rows signature changed.
+    const timingStateUpdate = {
+      ...(prevFirstRowObservedAtMs == null
+        ? {
+            firstRowObservedAt: admin.firestore.Timestamp.fromMillis(
+              firstRowObservedAtMs
+            ),
+          }
+        : {}),
+      ...(set1ChangedThisPoll
+        ? {
+            lastSet1ChangeAt: admin.firestore.Timestamp.fromMillis(nowMs),
+            set1TitleSignature: currSet1Sig,
+          }
+        : {}),
+      ...(rowsChanged
+        ? {
+            lastRowsChangedAt: admin.firestore.Timestamp.fromMillis(nowMs),
+          }
+        : {}),
+    };
+
+    // Context for the #266 auto-finalize step (runs after either write
+    // branch below). Computed once to keep the two call sites consistent.
+    const prevAutoFinalizedAtMs = timestampToMs(automation.autoFinalizedAt);
+    const encoreSongsCount = Array.isArray(nextPayload.encoreSongs)
+      ? nextPayload.encoreSongs.length
+      : 0;
+    const set2Count = rows.reduce(
+      (n, r) => (r.setKey === "2" ? n + 1 : n),
+      0
+    );
+    const autoFinalizeContext = {
+      db,
+      admin,
+      showDate,
+      automationRef,
+      runRollup,
+      logger,
+      nowMs,
+      firstRowObservedAtMs,
+      lastRowsChangedAtMs,
+      encoreSongsCount,
+      set2Count,
+      prevAutoFinalizedAtMs,
+      rowsChanged,
+    };
+
+    // Use AND here (previously OR): once #264 timing can flip `s1c` without
+    // any row change, two polls with the same `signature` can still produce
+    // different built docs, and we must write the newer one. Payload-equal
+    // alone is the authoritative "nothing to persist" test.
+    if (prevSignature === signature && setlistPayloadEqual(prev, nextPayload)) {
       await automationRef.set(
         {
           showDate,
@@ -446,11 +781,19 @@ async function pollSingleShowDate({
           lastResult: "no-change",
           lastNoChangeAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          ...timingStateUpdate,
           ...scheduledCadenceStamp(),
         },
         { merge: true }
       );
-      return { showDate, changed: false, updatedPicks: 0, reason: "unchanged" };
+      const autoFinalize = await maybeAutoFinalize(autoFinalizeContext);
+      return {
+        showDate,
+        changed: false,
+        updatedPicks: 0,
+        reason: "unchanged",
+        autoFinalize,
+      };
     }
 
     const setlistPayload = {
@@ -478,13 +821,21 @@ async function pollSingleShowDate({
       lastPolledAt: admin.firestore.FieldValue.serverTimestamp(),
       lastResult: "changed",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      ...timingStateUpdate,
       ...scheduledCadenceStamp(),
     };
     const batch = db.batch();
     batch.set(setlistRef, setlistPayload, { merge: true });
     batch.set(automationRef, automationPayload, { merge: true });
     await batch.commit();
-    return { showDate, changed: true, updatedPicks: null, durationMs: Date.now() - started };
+    const autoFinalize = await maybeAutoFinalize(autoFinalizeContext);
+    return {
+      showDate,
+      changed: true,
+      updatedPicks: null,
+      durationMs: Date.now() - started,
+      autoFinalize,
+    };
   } catch (e) {
     const failureCount = Number(automation.failureCount || 0) + 1;
     const backoffMinutes = nextBackoffMinutes(failureCount);
@@ -520,10 +871,15 @@ async function pollSingleShowDate({
 }
 
 module.exports = {
+  AUTO_FINALIZE_IDLE_MS,
   BUSTOUT_MIN_GAP,
+  MIN_SET1_ELAPSED_MS,
+  SET1_IDLE_MS,
+  SHOW_SAFETY_CAP_MS,
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
+  evaluateAutoFinalize,
   fetchPhishnetSetlistForDate,
   getEtHour,
   isWithinLiveSetlistPollWindow,
@@ -532,6 +888,7 @@ module.exports = {
   pollSingleShowDate,
   randomScheduledPollDelayMs,
   scheduledCandidateShowDates,
+  set1TitleSignatureFromRows,
   setlistPayloadEqual,
   signatureFromRows,
 };

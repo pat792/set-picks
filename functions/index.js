@@ -32,11 +32,7 @@ const {
   actualSetlistFromOfficialDoc,
 } = require("./scoringCore");
 const { runBackfill } = require("./backfillBustoutsCore");
-const {
-  computeGlobalMaxScore,
-  computePerPickRollup,
-  resolveTourKeyForDate,
-} = require("./rollupSeasonAggregates");
+const { runRollupForShow } = require("./rollupCore");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 
@@ -189,228 +185,30 @@ exports.rollupScoresForShow = onCall(
   async (request) => {
     assertAdminClaim(request);
     const showDate = assertShowDateString(request.data?.showDate);
+    const callerUid = request.auth?.uid || null;
 
-    const setlistSnap = await db
-      .collection("official_setlists")
-      .doc(showDate)
-      .get();
-    if (!setlistSnap.exists) {
+    const result = await runRollupForShow({
+      db,
+      admin,
+      showDate,
+      callerUid,
+      trigger: "manual",
+      logger,
+    });
+    if (!result.setlistExists) {
       throw new HttpsError(
         "failed-precondition",
         `official_setlists/${showDate} does not exist. Save the setlist first.`
       );
     }
-    const setlistDoc = setlistSnap.data() || {};
-    const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
-
-    const picksSnap = await db
-      .collection("picks")
-      .where("showDate", "==", showDate)
-      .get();
-
-    const callerUid = request.auth?.uid || null;
-
-    if (picksSnap.empty) {
-      await writeRollupAuditDoc({
-        showDate,
-        processedPicks: 0,
-        skippedPicks: 0,
-        totalPicks: 0,
-        callerUid,
-      });
-      logger.info("rollupScoresForShow", {
-        showDate,
-        processedPicks: 0,
-        skippedPicks: 0,
-        totalPicks: 0,
-        callerUid,
-      });
-      return {
-        ok: true,
-        processedPicks: 0,
-        skippedPicks: 0,
-        totalPicks: 0,
-      };
-    }
-
-    // Load the show calendar once so we can map `showDate` → `tourKey` for
-    // the `users.{uid}.seasonStats.{tourKey}` materialization (#244). If
-    // the calendar is stale (missing the date), the tour-scoped write is
-    // skipped and logged — global totals/wins still materialize.
-    const calendarSnap = await db
-      .collection("show_calendar")
-      .doc("snapshot")
-      .get();
-    const showDatesByTour = calendarSnap.exists
-      ? (calendarSnap.data() || {}).showDatesByTour
-      : null;
-    const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
-    if (!tourKey) {
-      logger.warn("rollupScoresForShow: tourKey missing for showDate", {
-        showDate,
-      });
-    }
-
-    // Pre-compute every pick's new score in one pass so we can derive the
-    // show's global max (for the wins pass) before issuing any writes.
-    // Mirrors `src/shared/utils/showAggregation.js::reduceShowWinners`: only
-    // graded, non-empty picks owned by an authenticated user are eligible;
-    // `max === 0` credits nobody.
-    /** @type {Map<string, number>} */
-    const newScoresById = new Map();
-    /** @type {Array<Record<string, unknown> & { id: string }>} */
-    const provisionalPicks = [];
-    for (const pickDoc of picksSnap.docs) {
-      const pickData = pickDoc.data() || {};
-      if (!pickData.userId) continue;
-      const userPicks = pickData.picks || {};
-      // Compute against the hypothetical "graded" view so the max reflects
-      // the post-commit state even for picks being graded for the first time.
-      newScoresById.set(
-        pickDoc.id,
-        calculateTotalScore(userPicks, actualSetlist)
-      );
-      provisionalPicks.push({ id: pickDoc.id, ...pickData, isGraded: true });
-    }
-    const newGlobalMax = computeGlobalMaxScore(provisionalPicks, newScoresById);
-
-    // Three writes per pick (picks doc + users doc + users doc #244 extras),
-    // but the users doc is merged into a single `set` — so the actual op
-    // count is still 2 per pick. The pick update now also carries
-    // `winCredited` so re-runs can diff cleanly against the prior state.
-    const OPS_PER_PICK = 2;
-    let batch = db.batch();
-    let opCount = 0;
-    let processedPicks = 0;
-    let skippedPicks = 0;
-
-    for (const pickDoc of picksSnap.docs) {
-      const pickData = pickDoc.data() || {};
-      if (!pickData.userId) {
-        skippedPicks += 1;
-        continue;
-      }
-      if (opCount + OPS_PER_PICK > MAX_FIRESTORE_BATCH_WRITES) {
-        await batch.commit();
-        batch = db.batch();
-        opCount = 0;
-      }
-      const newScore = newScoresById.get(pickDoc.id) || 0;
-      const plan = computePerPickRollup({
-        pickData,
-        newScore,
-        newGlobalMax,
-      });
-
-      const pickUpdate = {
-        score: newScore,
-        isGraded: true,
-        winCredited: plan.newIsWin,
-      };
-      if (plan.isFirstGrade) {
-        pickUpdate.gradedAt = admin.firestore.FieldValue.serverTimestamp();
-      }
-      batch.update(pickDoc.ref, pickUpdate);
-
-      const userUpdate = {
-        totalPoints: admin.firestore.FieldValue.increment(plan.scoreDiff),
-        showsPlayed: admin.firestore.FieldValue.increment(
-          plan.isFirstGrade ? 1 : 0
-        ),
-        wins: admin.firestore.FieldValue.increment(plan.winsDelta),
-        seasonStatsSnapshotAt: admin.firestore.FieldValue.serverTimestamp(),
-        seasonStatsThroughShow: showDate,
-      };
-      // `seasonStats.{tourKey}` mirrors the three global counters so
-      // tour-scoped surfaces (#219 Tour standings, Profile tour card) can
-      // read the user doc directly without re-filtering per-show picks.
-      if (tourKey) {
-        userUpdate.seasonStats = {
-          [tourKey]: {
-            totalPoints: admin.firestore.FieldValue.increment(plan.scoreDiff),
-            shows: admin.firestore.FieldValue.increment(
-              plan.isFirstGrade ? 1 : 0
-            ),
-            wins: admin.firestore.FieldValue.increment(plan.winsDelta),
-          },
-        };
-      }
-      batch.set(
-        db.collection("users").doc(pickData.userId),
-        userUpdate,
-        { merge: true }
-      );
-      opCount += OPS_PER_PICK;
-      processedPicks += 1;
-    }
-
-    if (opCount > 0) {
-      await batch.commit();
-    }
-
-    const totalPicks = picksSnap.size;
-    await writeRollupAuditDoc({
-      showDate,
-      processedPicks,
-      skippedPicks,
-      totalPicks,
-      callerUid,
-    });
-    logger.info("rollupScoresForShow", {
-      showDate,
-      processedPicks,
-      skippedPicks,
-      totalPicks,
-      callerUid,
-    });
-
     return {
       ok: true,
-      processedPicks,
-      skippedPicks,
-      totalPicks,
+      processedPicks: result.processedPicks,
+      skippedPicks: result.skippedPicks,
+      totalPicks: result.totalPicks,
     };
   }
 );
-
-/**
- * Writes an audit record to `rollup_audit/{showDate}` with the counts and
- * timestamp of the most recent `rollupScoresForShow` invocation. Standalone
- * top-level collection (not under `official_setlists`) so it never re-triggers
- * `gradePicksOnSetlistWrite`. PR B will add a rule that makes this collection
- * admin-read-only; Admin SDK writes bypass rules so this still works under
- * tightened policy. Soft-fails on error so a transient audit write failure
- * never loses a successful grading pass.
- */
-async function writeRollupAuditDoc({
-  showDate,
-  processedPicks,
-  skippedPicks,
-  totalPicks,
-  callerUid,
-}) {
-  try {
-    await db
-      .collection("rollup_audit")
-      .doc(showDate)
-      .set(
-        {
-          lastRolledUpAt: admin.firestore.FieldValue.serverTimestamp(),
-          processedPicks,
-          skippedPicks,
-          totalPicks,
-          callerUid: callerUid || null,
-        },
-        { merge: true }
-      );
-  } catch (e) {
-    const msg = e?.message || String(e);
-    logger.warn("rollupScoresForShow.auditWrite failed", {
-      showDate,
-      msg,
-    });
-  }
-}
 
 /**
  * Grant or revoke the `admin: true` Firebase custom claim on a target user.
@@ -697,6 +495,19 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
         apiKey: String(key).trim(),
         logger,
         force: false,
+        // Inject rollup core so the poller can auto-finalize + rollup
+        // without going through the HTTPS callable path (#266). Only the
+        // scheduled path gets this: admin "Poll Now" keeps full manual
+        // control over finalize timing.
+        runRollup: ({ showDate: sd, trigger }) =>
+          runRollupForShow({
+            db,
+            admin,
+            showDate: sd,
+            callerUid: null,
+            trigger,
+            logger,
+          }),
       });
       results.push(result);
     }
