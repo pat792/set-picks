@@ -17,3 +17,5 @@ firebase-debug.log
 
 # Local credentials (GCP service accounts, etc.). Prefer ~/… or secrets/ and never commit.
 secrets/
+.vercel
+.env*.local
