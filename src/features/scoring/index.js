@@ -25,4 +25,5 @@ export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinner
 export { default as TourStandingsSection } from './ui/TourStandingsSection';
 export { resolveCurrentTour } from './model/resolveCurrentTour';
 export { useShowWinnerOfTheNight } from './model/useShowWinnerOfTheNight';
+export { usePreviousShowNightWinner } from './model/usePreviousShowNightWinner';
 export { useTourStandings } from './model/useTourStandings';

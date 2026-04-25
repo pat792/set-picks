@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_STANDINGS_VIEW,
   STANDINGS_VIEWS,
+  deriveDefaultPoolId,
   deriveStandingsView,
   normalizeView,
 } from './useStandingsView';
@@ -97,5 +98,31 @@ describe('deriveStandingsView', () => {
         [null, undefined, { id: null }, { id: 'pool-a' }],
       ),
     ).toEqual({ view: 'pools', poolId: 'pool-a' });
+  });
+});
+
+describe('deriveDefaultPoolId', () => {
+  const pools = [
+    { id: 'pool-a', name: 'A' },
+    { id: 'pool-b', name: 'B' },
+  ];
+
+  it('prefers the recent pool when still present', () => {
+    expect(deriveDefaultPoolId(pools, 'pool-b')).toBe('pool-b');
+  });
+
+  it('falls back to first pool when recent pool is missing', () => {
+    expect(deriveDefaultPoolId(pools, 'ghost')).toBe('pool-a');
+  });
+
+  it('returns null when there are no pools', () => {
+    expect(deriveDefaultPoolId([], 'pool-a')).toBeNull();
+    expect(deriveDefaultPoolId(null, 'pool-a')).toBeNull();
+  });
+
+  it('ignores malformed pool rows', () => {
+    expect(deriveDefaultPoolId([null, { id: null }, { id: 'pool-z' }], 'pool-a')).toBe(
+      'pool-z',
+    );
   });
 });

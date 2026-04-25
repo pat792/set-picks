@@ -10,6 +10,7 @@ export const STANDINGS_VIEWS = Object.freeze(['show', 'tour', 'pools']);
 
 /** Default view when the URL has no `?view` query. */
 export const DEFAULT_STANDINGS_VIEW = 'show';
+const RECENT_STANDINGS_POOL_KEY = 'standings.recentPoolId';
 
 function isKnownView(v) {
   return typeof v === 'string' && STANDINGS_VIEWS.includes(v);
@@ -45,6 +46,45 @@ export function deriveStandingsView(query, userPools) {
     (p) => p && typeof p.id === 'string' && p.id === rawPool,
   );
   return { view, poolId: found ? rawPool : null };
+}
+
+/**
+ * Pick the default pool for the Pools view.
+ * - Prefer most-recent pool when it still exists.
+ * - Otherwise fall back to the first pool.
+ *
+ * @param {Array<{ id: string }> | null | undefined} userPools
+ * @param {string | null | undefined} recentPoolId
+ */
+export function deriveDefaultPoolId(userPools, recentPoolId) {
+  const ids = (userPools || [])
+    .map((p) => (p && typeof p.id === 'string' ? p.id : ''))
+    .filter(Boolean);
+  if (ids.length === 0) return null;
+  if (typeof recentPoolId === 'string' && ids.includes(recentPoolId)) {
+    return recentPoolId;
+  }
+  return ids[0];
+}
+
+function readRecentStandingsPoolId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const value = window.localStorage.getItem(RECENT_STANDINGS_POOL_KEY);
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeRecentStandingsPoolId(poolId) {
+  if (typeof window === 'undefined') return;
+  if (typeof poolId !== 'string' || !poolId.trim()) return;
+  try {
+    window.localStorage.setItem(RECENT_STANDINGS_POOL_KEY, poolId.trim());
+  } catch {
+    // Ignore storage write failures (private mode / blocked storage).
+  }
 }
 
 /**
@@ -163,6 +203,31 @@ export function useStandingsView({ userPools, navTargetPoolId } = {}) {
       { replace: true },
     );
   }, [view, rawPool, poolsById, setSearchParams]);
+
+  // In Pools view, auto-select a sensible default when no pool is selected.
+  useEffect(() => {
+    if (view !== 'pools') return;
+    if (poolId) return;
+    const defaultPoolId = deriveDefaultPoolId(userPools, readRecentStandingsPoolId());
+    if (!defaultPoolId) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('view', 'pools');
+        next.set('pool', defaultPoolId);
+        next.delete('poolId');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [view, poolId, userPools, setSearchParams]);
+
+  // Keep the most recently viewed Pools-selection for future visits.
+  useEffect(() => {
+    if (view !== 'pools') return;
+    if (!poolId) return;
+    writeRecentStandingsPoolId(poolId);
+  }, [view, poolId]);
 
   const setView = useCallback(
     (nextView) => {

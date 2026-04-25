@@ -103,3 +103,15 @@ export const TONIGHTS_WINNERS_PLURAL = "Tonight's winners";
 export function tonightsWinnerHeading(winnerCount) {
   return winnerCount > 1 ? TONIGHTS_WINNERS_PLURAL : TONIGHTS_WINNER_SINGULAR;
 }
+
+/** Standings callout for the prior tour night when the selected show is next or live. */
+export const LAST_SHOW_WINNER_SINGULAR = "Last show's winner";
+export const LAST_SHOW_WINNERS_PLURAL = "Last show's winners";
+
+/**
+ * @param {number} winnerCount
+ * @returns {string}
+ */
+export function lastShowWinnerHeading(winnerCount) {
+  return winnerCount > 1 ? LAST_SHOW_WINNERS_PLURAL : LAST_SHOW_WINNER_SINGULAR;
+}

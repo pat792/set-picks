@@ -34,7 +34,8 @@ export function computeShowWinnerOfTheNight(picks) {
  * (#219).
  *
  * Expects the full, un-filtered list of picks for a single show — the banner
- * is explicitly non-pool-scoped (pool-level winners live in pool details).
+ * is the **global** show winner (same row on Standings Show and Pools tabs;
+ * pool-only winners live in pool details).
  * Only picks with `isGraded === true` and at least one non-empty slot are
  * eligible, so the banner naturally stays hidden during live scoring until
  * the CF rollup runs.
