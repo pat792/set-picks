@@ -126,10 +126,10 @@ Deploy with **`npm run deploy:functions:phishnet`**, which deploys: `getPhishnet
 | Item | Location / value |
 |------|------------------|
 | Scheduled poller | `scheduledPhishnetLiveSetlistPoll` (`functions/index.js`) |
-| ET window | **4:00 PM–3:00 AM** `America/New_York` (hour ≥ 16 or hour < 3). Outside the window the job **no-ops** with **no** Phish.net HTTP calls. |
+| ET window | **4:00 PM–4:00 AM** `America/New_York` (hour ≥ 16 or hour < 4). Outside the window the job **no-ops** with **no** Phish.net HTTP calls. |
 | Cron wake | Every **3** minutes (`*/3 * * * *`, `America/New_York`). Actual spacing vs Phish.net is **3–5 minutes** per show date via `live_setlist_automation/{showDate}.nextPollAt` jitter after each **scheduled** fetch (success, no-change, or empty rows). |
 | Calendar (scheduled only) | **`show_calendar/snapshot.showDates`** — scheduled polling **only** considers dates in this set (strict). Missing/empty/unreadable snapshot → scheduled path skips (**no** Phish.net). |
-| Target dates (scheduled) | `scheduledCandidateShowDates` in `functions/phishnetLiveSetlistAutomation.js`: ET **today** if a show date; ET **yesterday** only in the **0:00–2:59 AM** ET slice **and** only if that date is still in the calendar (late encore / post-midnight updates). **Not** “compare two setlists” — each date is still diffed only against its own last saved payload/signature. |
+| Target dates (scheduled) | `scheduledCandidateShowDates` in `functions/phishnetLiveSetlistAutomation.js`: ET **today** if a show date; ET **yesterday** only in the **0:00–3:59 AM** ET slice **and** only if that date is still in the calendar (late encore / post-midnight updates). **Not** “compare two setlists” — each date is still diffed only against its own last saved payload/signature. |
 | Admin / force poll | `pollLiveSetlistNow` stays **unrestricted**: default still uses ET today + yesterday (`candidateShowDates`) with **no** calendar gate — recovery when the calendar is stale, you’re outside the ET window, or scheduled strict mode would skip. Optional explicit `showDate` unchanged. |
 | Pause/resume callable | `setLiveSetlistAutomationState` |
 | Manual recovery callable | `pollLiveSetlistNow` (forces one poll + one score recompute) |
