@@ -11,29 +11,27 @@ const SLOT_KEYS = ["s1o", "s1c", "s2o", "s2c", "enc"];
 const BUSTOUT_MIN_GAP = 30;
 
 /**
- * Time-gated set 1 closer thresholds (issue #264).
+ * Two-stage set 1 closer thresholds (#264 follow-up).
  *
  * Phish.net v5 `/setlists/showdate` rows carry no per-song timestamps, so we
- * use our own poll clock as the only available time signal. `s1c` stays empty
- * until set 2 starts (original behavior) OR until BOTH:
- *   - set 1 has been running for at least `MIN_SET1_ELAPSED_MS` (elapsed
- *     since the first row was observed for this show), AND
- *   - no new set-1 song has been appended for at least `SET1_IDLE_MS`.
+ * use poll-time signals:
  *
- * 85 min is the low end of typical Phish set-1 durations (75–90 min window
- * observed over the last year); 10 min idle is longer than any realistic
- * within-set silence (jam + transition + next song) and shorter than typical
- * setbreak (20–30 min), so we reveal `s1c` ~10–15 min earlier than the
- * "wait for set 2" rule without risking a mid-set false positive.
+ * - Provisional stage: `s1c` can surface early once set 1 has run long enough
+ *   and set-1 rows have been idle for a shorter window.
+ * - Confirmed stage: stronger idle/elapsed threshold (or set 2 start).
  *
- * Long-set safeguard: `buildSetlistDocFromRows` re-derives `s1c` from rows
- * every poll and does not preserve closers across writes, so if set 1 keeps
- * going after timing fires, the next poll with a new set-1 row resets
- * `lastSet1ChangeAt`, and `s1c` rewrites to the new last song the next time
- * timing re-fires (or when set 2 starts, whichever is first).
+ * Long-set safeguard: `buildSetlistDocFromRows` re-derives `s1c` every poll
+ * and does not preserve closers across writes. If set 1 continues after a
+ * provisional/confirmed stamp, the next set-1 row resets idle and `s1c` clears
+ * until one of the stage conditions re-fires.
  */
-const MIN_SET1_ELAPSED_MS = 85 * 60_000;
-const SET1_IDLE_MS = 10 * 60_000;
+const PROVISIONAL_SET1_ELAPSED_MS = 75 * 60_000;
+const PROVISIONAL_SET1_IDLE_MS = 8 * 60_000;
+const CONFIRMED_SET1_ELAPSED_MS = 85 * 60_000;
+const CONFIRMED_SET1_IDLE_MS = 12 * 60_000;
+// Back-compat aliases used by tests/docs that referenced the original names.
+const MIN_SET1_ELAPSED_MS = PROVISIONAL_SET1_ELAPSED_MS;
+const SET1_IDLE_MS = PROVISIONAL_SET1_IDLE_MS;
 
 /**
  * Auto-finalize thresholds (issue #266).
@@ -41,7 +39,7 @@ const SET1_IDLE_MS = 10 * 60_000;
  * - `AUTO_FINALIZE_IDLE_MS`: after an encore is reported, the show is
  *   considered finished once no new song has been appended to the setlist
  *   for this long. 25 min is well past the longest realistic encore
- *   transition and still lands well inside the natural 3.5h post-encore
+ *   transition and still lands well inside the natural 4.5h post-encore
  *   poll window.
  * - `SHOW_SAFETY_CAP_MS`: hard cutoff from first observed row. Fires
  *   finalize even without a detected encore as long as set 2 has at least
@@ -124,12 +122,12 @@ function getEtHour(now = new Date()) {
 }
 
 /**
- * Live setlist scheduled polling window: 4:00 PM ET through 3:00 AM ET the next
- * calendar day (active when hour ≥ 16 or hour < 3, America/New_York wall clock).
+ * Live setlist scheduled polling window: 4:00 PM ET through 4:00 AM ET the next
+ * calendar day (active when hour ≥ 16 or hour < 4, America/New_York wall clock).
  */
 function isWithinLiveSetlistPollWindow(now = new Date()) {
   const h = getEtHour(now);
-  return h >= 16 || h < 3;
+  return h >= 16 || h < 4;
 }
 
 function ymdDaysAgo(ymd, days) {
@@ -175,9 +173,9 @@ function parseShowCalendarSnapshotToDateSet(snapshotData) {
  *
  * - Always consider ET "today" when it is a show date in the calendar set.
  * - Do not include "yesterday" by default (before local ET midnight).
- * - After local midnight ET (hours 0–2), also include "yesterday" when that date
+ * - After local midnight ET (hours 0–3), also include "yesterday" when that date
  *   is still a show date — same gig can receive encore/post-midnight updates until
- *   the 3 AM window end. This is **not** comparing two setlists: each `showDate`
+ *   the 4 AM window end. This is **not** comparing two setlists: each `showDate`
  *   doc is still diffed only against its own last saved official payload/signature.
  */
 function scheduledCandidateShowDates(now, calendarDateSet) {
@@ -186,10 +184,41 @@ function scheduledCandidateShowDates(now, calendarDateSet) {
   const hourEt = getEtHour(now);
   const out = [];
   if (calendarDateSet.has(etToday)) out.push(etToday);
-  if (hourEt >= 0 && hourEt < 3 && calendarDateSet.has(etYesterday)) {
+  if (hourEt >= 0 && hourEt < 4 && calendarDateSet.has(etYesterday)) {
     out.push(etYesterday);
   }
   return out;
+}
+
+/**
+ * @param {{
+ *   set1Count: number,
+ *   set2Count: number,
+ *   nowMs?: number | null,
+ *   firstRowObservedAtMs?: number | null,
+ *   lastSet1ChangeAtMs?: number | null,
+ * }} state
+ * @returns {"confirmed" | "provisional" | null}
+ */
+function evaluateSet1CloserStage(state) {
+  if (!Number.isFinite(state.set1Count) || state.set1Count <= 0) return null;
+  if (state.set2Count >= 1) return "confirmed";
+  if (
+    !Number.isFinite(state.nowMs) ||
+    !Number.isFinite(state.firstRowObservedAtMs) ||
+    !Number.isFinite(state.lastSet1ChangeAtMs)
+  ) {
+    return null;
+  }
+  const elapsedMs = state.nowMs - state.firstRowObservedAtMs;
+  const idleMs = state.nowMs - state.lastSet1ChangeAtMs;
+  if (elapsedMs >= CONFIRMED_SET1_ELAPSED_MS && idleMs >= CONFIRMED_SET1_IDLE_MS) {
+    return "confirmed";
+  }
+  if (elapsedMs >= PROVISIONAL_SET1_ELAPSED_MS && idleMs >= PROVISIONAL_SET1_IDLE_MS) {
+    return "provisional";
+  }
+  return null;
 }
 
 /** Uniform random delay in [3, 5] minutes — scheduled cadence jitter (issue #180). */
@@ -278,7 +307,8 @@ function normalizeSetlistRows(payload) {
  * @param {number | null} [timing.firstRowObservedAtMs] — epoch ms of the first poll that saw any row for this show.
  * @param {number | null} [timing.lastSet1ChangeAtMs] — epoch ms of the most recent poll where the set-1 title list changed.
  *
- * When `timing` is absent (or inputs are null), behavior matches pre-#264: `s1c` is populated only once set 2 starts.
+ * When `timing` is absent (or inputs are null), behavior falls back to
+ * "set 2 started = confirmed", matching pre-#264.
  */
 function buildSetlistDocFromRows(rows, existingDoc = {}, timing = null) {
   const officialSetlist = rows.map((r) => r.title).filter(Boolean);
@@ -297,22 +327,14 @@ function buildSetlistDocFromRows(rows, existingDoc = {}, timing = null) {
     .flatMap(([, arr]) => arr)
     .sort((a, b) => a.position - b.position);
 
-  /**
-   * Set 1 closer is considered known when either:
-   *  - set 2 has started (original rule), OR
-   *  - the set has run long enough AND no new set-1 song has been appended
-   *    for the idle threshold (see `MIN_SET1_ELAPSED_MS` / `SET1_IDLE_MS`).
-   */
-  const set1TimingClosed =
-    Boolean(set1?.length) &&
-    !set2?.length &&
-    timing != null &&
-    Number.isFinite(timing.nowMs) &&
-    Number.isFinite(timing.firstRowObservedAtMs) &&
-    Number.isFinite(timing.lastSet1ChangeAtMs) &&
-    timing.nowMs - timing.firstRowObservedAtMs >= MIN_SET1_ELAPSED_MS &&
-    timing.nowMs - timing.lastSet1ChangeAtMs >= SET1_IDLE_MS;
-  const set1Complete = Boolean(set2?.length) || set1TimingClosed;
+  const set1CloserStage = evaluateSet1CloserStage({
+    set1Count: set1?.length || 0,
+    set2Count: set2?.length || 0,
+    nowMs: timing?.nowMs,
+    firstRowObservedAtMs: timing?.firstRowObservedAtMs,
+    lastSet1ChangeAtMs: timing?.lastSet1ChangeAtMs,
+  });
+  const set1Complete = set1CloserStage != null;
   /** Set 2 closer is unknown until the encore has started. */
   const set2Complete = Boolean(encRows.length);
 
@@ -374,6 +396,7 @@ function buildSetlistDocFromRows(rows, existingDoc = {}, timing = null) {
     officialSetlist,
     encoreSongs,
     bustouts,
+    set1CloserStage,
   };
 }
 
@@ -715,11 +738,46 @@ async function pollSingleShowDate({
       ? prevLastRowsChangedAtMs
       : firstRowObservedAtMs;
 
+    const prevSet1CloserStage =
+      automation.s1cStage === "provisional" || automation.s1cStage === "confirmed"
+        ? automation.s1cStage
+        : null;
+    const nextSet1CloserStage =
+      nextPayload.set1CloserStage === "provisional" ||
+      nextPayload.set1CloserStage === "confirmed"
+        ? nextPayload.set1CloserStage
+        : null;
+    const set1CloserStateUpdate =
+      nextSet1CloserStage == null
+        ? prevSet1CloserStage
+          ? {
+              s1cStage: admin.firestore.FieldValue.delete(),
+              s1cProvisionalAt: admin.firestore.FieldValue.delete(),
+              s1cConfirmedAt: admin.firestore.FieldValue.delete(),
+            }
+          : {}
+        : {
+            s1cStage: nextSet1CloserStage,
+            ...(nextSet1CloserStage === "provisional" &&
+            prevSet1CloserStage !== "provisional"
+              ? {
+                  s1cProvisionalAt: admin.firestore.Timestamp.fromMillis(nowMs),
+                }
+              : {}),
+            ...(nextSet1CloserStage === "confirmed" &&
+            prevSet1CloserStage !== "confirmed"
+              ? {
+                  s1cConfirmedAt: admin.firestore.Timestamp.fromMillis(nowMs),
+                }
+              : {}),
+          };
+
     // Merge timing-state updates into every automation write below so the
     // next poll has monotonic anchors. Stamp `firstRowObservedAt` only on
     // first observation; update `lastSet1ChangeAt` + `set1TitleSignature`
     // only when the set-1 title sequence actually changed; update
-    // `lastRowsChangedAt` whenever the full-rows signature changed.
+    // `lastRowsChangedAt` whenever the full-rows signature changed; and track
+    // two-stage set-1 closer state (`s1cStage` + stage timestamps).
     const timingStateUpdate = {
       ...(prevFirstRowObservedAtMs == null
         ? {
@@ -739,6 +797,7 @@ async function pollSingleShowDate({
             lastRowsChangedAt: admin.firestore.Timestamp.fromMillis(nowMs),
           }
         : {}),
+      ...set1CloserStateUpdate,
     };
 
     // Context for the #266 auto-finalize step (runs after either write
@@ -873,13 +932,18 @@ async function pollSingleShowDate({
 module.exports = {
   AUTO_FINALIZE_IDLE_MS,
   BUSTOUT_MIN_GAP,
+  CONFIRMED_SET1_ELAPSED_MS,
+  CONFIRMED_SET1_IDLE_MS,
   MIN_SET1_ELAPSED_MS,
+  PROVISIONAL_SET1_ELAPSED_MS,
+  PROVISIONAL_SET1_IDLE_MS,
   SET1_IDLE_MS,
   SHOW_SAFETY_CAP_MS,
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
   evaluateAutoFinalize,
+  evaluateSet1CloserStage,
   fetchPhishnetSetlistForDate,
   getEtHour,
   isWithinLiveSetlistPollWindow,

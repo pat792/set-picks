@@ -39,9 +39,9 @@ Written on save from `saveOfficialSetlistByDate` (`src/features/admin/api/offici
 `s1c` is populated when **either**:
 
 1. Set 2 has started (original rule — live feeds list the current last song), **or**
-2. **Both** of these hold on a poll:
-   - Elapsed since the first observed row for this show ≥ **85 min** (`MIN_SET1_ELAPSED_MS`).
-   - No new set-1 song appended for ≥ **10 min** (`SET1_IDLE_MS`).
+2. A two-stage timing gate fires:
+   - **Provisional:** elapsed since first observed row ≥ **75 min** (`PROVISIONAL_SET1_ELAPSED_MS`) and no set-1 change for ≥ **8 min** (`PROVISIONAL_SET1_IDLE_MS`).
+   - **Confirmed:** elapsed since first observed row ≥ **85 min** (`CONFIRMED_SET1_ELAPSED_MS`) and no set-1 change for ≥ **12 min** (`CONFIRMED_SET1_IDLE_MS`).
 
 State used for (2) lives on `live_setlist_automation/{showDate}` and is written by `pollSingleShowDate`:
 
@@ -50,6 +50,9 @@ State used for (2) lives on `live_setlist_automation/{showDate}` and is written 
 | `firstRowObservedAt` | Timestamp of the first poll that saw any row for this show. Stamped once, never overwritten. |
 | `lastSet1ChangeAt` | Timestamp of the most recent poll where the set-1 title sequence changed. |
 | `set1TitleSignature` | sha256 of the set-1 title sequence; used to detect (2)'s idle reset without being sensitive to set-2/encore activity. |
+| `s1cStage` | Current two-stage closer state (`"provisional"` or `"confirmed"`); cleared when timing confidence drops and set 2 has not started. |
+| `s1cProvisionalAt` | Timestamp of the most recent transition into provisional stage. |
+| `s1cConfirmedAt` | Timestamp of the most recent transition into confirmed stage. |
 
 Long-set safeguard is inherent — `buildSetlistDocFromRows` re-derives `s1c` from rows every poll and does not preserve closers across writes, so an unusually long set 1 that plays another song after timing fires resets `lastSet1ChangeAt` and `s1c` rewrites to the new last song on the next poll where timing re-fires (or when set 2 starts, whichever first).
 
@@ -70,7 +73,7 @@ Additional automation-doc state used by auto-finalize:
 | `autoFinalizedAt` | Stamped when auto-finalize first runs rollup. Prevents double-firing. |
 | `autoFinalizeTrigger` | `"encore-idle"` or `"safety-cap"` — which rule fired. |
 
-**Reconciliation path:** if Phish.net edits a setlist after auto-finalize has fired (rare but possible within the ~3.5h post-encore poll window), the next changed-rows poll re-invokes `runRollupForShow` with `trigger: "auto-reconcile"`. The per-pick math in `computePerPickRollup` is delta-based, so `users.totalPoints` / `showsPlayed` / `wins` reconcile correctly rather than double-incrementing.
+**Reconciliation path:** if Phish.net edits a setlist after auto-finalize has fired (rare but possible within the ~4.5h post-encore poll window), the next changed-rows poll re-invokes `runRollupForShow` with `trigger: "auto-reconcile"`. The per-pick math in `computePerPickRollup` is delta-based, so `users.totalPoints` / `showsPlayed` / `wins` reconcile correctly rather than double-incrementing.
 
 **Manual override / pre-emption:** the admin "Finalize & Rollup Points" button (`rollupScoresForShow` callable, `trigger: "manual"`) keeps full control:
 
