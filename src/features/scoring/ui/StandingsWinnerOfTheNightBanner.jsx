@@ -1,6 +1,9 @@
 import React, { Fragment } from 'react';
 
-import { tonightsWinnerHeading } from '../../../shared/config/dashboardVocabulary';
+import {
+  lastShowWinnerHeading,
+  tonightsWinnerHeading,
+} from '../../../shared/config/dashboardVocabulary';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
 
 /**
@@ -22,14 +25,23 @@ import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
  *   } & Record<string, unknown>>,
  *   max: number | null,
  *   beats?: number,
+ *   variant?: 'tonight' | 'lastShow',
  * }} props
  */
-export default function StandingsWinnerOfTheNightBanner({ winners, max, beats = 0 }) {
+export default function StandingsWinnerOfTheNightBanner({
+  winners,
+  max,
+  beats = 0,
+  variant = 'tonight',
+}) {
   if (!Array.isArray(winners) || winners.length === 0 || max == null) {
     return null;
   }
 
-  const heading = tonightsWinnerHeading(winners.length);
+  const heading =
+    variant === 'lastShow'
+      ? lastShowWinnerHeading(winners.length)
+      : tonightsWinnerHeading(winners.length);
   const handlesLabel = winners.map((w) => w.handle || 'Anonymous').join(', ');
 
   return (

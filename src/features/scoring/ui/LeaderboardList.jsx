@@ -18,6 +18,8 @@ export default function LeaderboardList({
   title = 'Everyone',
   headerEnd = null,
   selfUserId = null,
+  /** When true, hide the top “Leading this show” callout (e.g. Standings already shows “Tonight’s winner”). */
+  suppressLeadingCallout = false,
 }) {
   if (sortedPicks.length === 0) {
     return (
@@ -34,6 +36,7 @@ export default function LeaderboardList({
       ? calculateTotalScore(getPickPayload(leader), actualSetlist)
       : null;
   const showLeaderCallout =
+    !suppressLeadingCallout &&
     Boolean(actualSetlist && leader && leaderScore != null && sortedPicks.length > 0);
 
   return (

@@ -15,6 +15,7 @@ import {
   TourStandingsSection,
   resolveCurrentTour,
   useDisplayedPicks,
+  usePreviousShowNightWinner,
   useShowWinnerOfTheNight,
   useStandings,
   useStandingsLeaderboardView,
@@ -69,11 +70,25 @@ export default function StandingsPage({ selectedDate }) {
 
   useStandingsLeaderboardView(selectedDate, loading, showDates);
 
-  const winnerOfTheNight = useShowWinnerOfTheNight(picks);
+  const globalWinnerOfTheNight = useShowWinnerOfTheNight(picks);
+  const poolWinnerOfTheNight = useShowWinnerOfTheNight(displayedPicks);
+  const winnerOfTheNight =
+    view === 'pools' && Boolean(poolId) ? poolWinnerOfTheNight : globalWinnerOfTheNight;
+  const showWinnerEligibleView =
+    view === 'show' || (view === 'pools' && Boolean(poolId));
   const showWinnerBanner =
-    view === 'show' &&
+    showWinnerEligibleView &&
     Boolean(actualSetlist) &&
     winnerOfTheNight.winners.length > 0;
+
+  const lastShowWinnerEnabled =
+    showWinnerEligibleView &&
+    (showStatus === 'NEXT' || showStatus === 'LIVE');
+  const previousShowWinner = usePreviousShowNightWinner(
+    selectedDate,
+    showDates,
+    lastShowWinnerEnabled,
+  );
 
   const currentTour = useMemo(
     () => resolveCurrentTour(selectedDate, todayYmd(), showDatesByTour),
@@ -148,6 +163,7 @@ export default function StandingsPage({ selectedDate }) {
           displayedPicks={displayedPicks}
           leaderboardTitle={leaderboardTitle}
           showWinnerBanner={showWinnerBanner}
+          previousShowWinner={previousShowWinner}
           winnerOfTheNight={winnerOfTheNight}
           activePoolName={activePoolName}
           selfUserId={user?.uid || null}
@@ -198,6 +214,7 @@ function ShowOrPoolView({
   displayedPicks,
   leaderboardTitle,
   showWinnerBanner,
+  previousShowWinner,
   winnerOfTheNight,
   activePoolName,
   selfUserId,
@@ -206,6 +223,9 @@ function ShowOrPoolView({
 }) {
   const isPoolsView = view === 'pools';
   const isShowView = view === 'show';
+
+  const showLastShowWinnerBanner =
+    !previousShowWinner.loading && previousShowWinner.winners.length > 0;
 
   if (isPoolsView && !poolId) {
     return (
@@ -245,6 +265,14 @@ function ShowOrPoolView({
   if (isShowView && showStatus === 'NEXT') {
     return (
       <>
+        {showLastShowWinnerBanner ? (
+          <StandingsWinnerOfTheNightBanner
+            variant="lastShow"
+            winners={previousShowWinner.winners}
+            max={previousShowWinner.max}
+            beats={previousShowWinner.beats}
+          />
+        ) : null}
         <StandingsActiveShowCard
           showLabel={showLabel}
           isShowToday={Boolean(isShowToday)}
@@ -261,6 +289,7 @@ function ShowOrPoolView({
               actualSetlist={actualSetlist}
               title={leaderboardTitle}
               selfUserId={selfUserId}
+              suppressLeadingCallout={Boolean(showWinnerBanner)}
             />
           </div>
         ) : null}
@@ -317,6 +346,15 @@ function ShowOrPoolView({
             Pool details
           </button>
         </div>
+      ) : null}
+
+      {showLastShowWinnerBanner ? (
+        <StandingsWinnerOfTheNightBanner
+          variant="lastShow"
+          winners={previousShowWinner.winners}
+          max={previousShowWinner.max}
+          beats={previousShowWinner.beats}
+        />
       ) : null}
 
       {showWinnerBanner ? (
@@ -377,6 +415,7 @@ function ShowOrPoolView({
           actualSetlist={actualSetlist}
           title={leaderboardTitle}
           selfUserId={selfUserId}
+          suppressLeadingCallout={Boolean(showWinnerBanner)}
         />
       )}
     </>

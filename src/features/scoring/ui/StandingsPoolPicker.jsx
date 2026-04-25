@@ -5,8 +5,8 @@ import { Users } from 'lucide-react';
 import FilterPill from '../../../shared/ui/FilterPill';
 import PageTitle from '../../../shared/ui/PageTitle';
 
-const scrollRibbon =
-  'overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden';
+const responsivePoolPillLayout =
+  'overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:flex-wrap md:overflow-visible md:whitespace-normal';
 
 /**
  * Pool sub-selector for the Pools pill on `/dashboard/standings` (#255).
@@ -62,7 +62,7 @@ export default function StandingsPoolPicker({
       <PageTitle as="h3" variant="eyebrow" className="mb-2 px-2">
         Your pools
       </PageTitle>
-      <div className={`flex gap-1.5 px-1 pb-1 ${scrollRibbon}`}>
+      <div className={`flex gap-1.5 px-1 pb-1 ${responsivePoolPillLayout}`}>
         {pools.map((pool) => (
           <FilterPill
             key={pool.id}
