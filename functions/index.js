@@ -465,7 +465,7 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
     }
     const now = new Date();
     if (!isWithinLiveSetlistPollWindow(now)) {
-      logger.info("scheduledPhishnetLiveSetlistPoll: outside 4pm–3am ET window; skip.");
+      logger.info("scheduledPhishnetLiveSetlistPoll: outside 4pm–4am ET window; skip.");
       return null;
     }
     const calSnap = await db.collection("show_calendar").doc("snapshot").get();

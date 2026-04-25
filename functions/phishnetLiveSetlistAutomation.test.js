@@ -4,13 +4,16 @@ const assert = require("node:assert/strict");
 const {
   AUTO_FINALIZE_IDLE_MS,
   BUSTOUT_MIN_GAP,
-  MIN_SET1_ELAPSED_MS,
-  SET1_IDLE_MS,
+  CONFIRMED_SET1_ELAPSED_MS,
+  CONFIRMED_SET1_IDLE_MS,
+  PROVISIONAL_SET1_ELAPSED_MS,
+  PROVISIONAL_SET1_IDLE_MS,
   SHOW_SAFETY_CAP_MS,
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
   evaluateAutoFinalize,
+  evaluateSet1CloserStage,
   isWithinLiveSetlistPollWindow,
   normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
@@ -61,7 +64,7 @@ test("parseShowCalendarSnapshotToDateSet returns null when strict-invalid", () =
   assert.equal(parseShowCalendarSnapshotToDateSet({ showDates: [{ venue: "x" }] }), null);
 });
 
-test("isWithinLiveSetlistPollWindow: 4pm–3am ET (summer EDT)", () => {
+test("isWithinLiveSetlistPollWindow: 4pm–4am ET (summer EDT)", () => {
   assert.equal(
     isWithinLiveSetlistPollWindow(new Date("2026-07-04T20:00:00-04:00")),
     true
@@ -76,6 +79,14 @@ test("isWithinLiveSetlistPollWindow: 4pm–3am ET (summer EDT)", () => {
   );
   assert.equal(
     isWithinLiveSetlistPollWindow(new Date("2026-07-04T03:00:00-04:00")),
+    true
+  );
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-07-04T03:59:00-04:00")),
+    true
+  );
+  assert.equal(
+    isWithinLiveSetlistPollWindow(new Date("2026-07-04T04:00:00-04:00")),
     false
   );
 });
@@ -104,6 +115,15 @@ test("scheduledCandidateShowDates: after midnight adds yesterday when still a sh
   const cal = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
   const dates = scheduledCandidateShowDates(
     new Date("2026-07-04T01:30:00-04:00"),
+    cal
+  );
+  assert.deepEqual(dates, ["2026-07-04", "2026-07-03"]);
+});
+
+test("scheduledCandidateShowDates: 3am hour still includes yesterday", () => {
+  const cal = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
+  const dates = scheduledCandidateShowDates(
+    new Date("2026-07-04T03:15:00-04:00"),
     cal
   );
   assert.deepEqual(dates, ["2026-07-04", "2026-07-03"]);
@@ -409,16 +429,52 @@ test("set1TitleSignatureFromRows: stable for identical set 1, ignores set 2 / en
   assert.equal(set1TitleSignatureFromRows([]), "");
 });
 
-test("buildSetlistDocFromRows: timing-close fires when elapsed ≥ 85m and idle ≥ 10m", () => {
+test("evaluateSet1CloserStage: provisional at 75m + 8m idle", () => {
+  const nowMs = 1_000_000_000_000;
+  const stage = evaluateSet1CloserStage({
+    set1Count: 3,
+    set2Count: 0,
+    nowMs,
+    firstRowObservedAtMs: nowMs - PROVISIONAL_SET1_ELAPSED_MS,
+    lastSet1ChangeAtMs: nowMs - PROVISIONAL_SET1_IDLE_MS,
+  });
+  assert.equal(stage, "provisional");
+});
+
+test("evaluateSet1CloserStage: confirmed at 85m + 12m idle", () => {
+  const nowMs = 1_000_000_000_000;
+  const stage = evaluateSet1CloserStage({
+    set1Count: 3,
+    set2Count: 0,
+    nowMs,
+    firstRowObservedAtMs: nowMs - CONFIRMED_SET1_ELAPSED_MS,
+    lastSet1ChangeAtMs: nowMs - CONFIRMED_SET1_IDLE_MS,
+  });
+  assert.equal(stage, "confirmed");
+});
+
+test("evaluateSet1CloserStage: set 2 start hard-confirms", () => {
+  const stage = evaluateSet1CloserStage({
+    set1Count: 2,
+    set2Count: 1,
+    nowMs: null,
+    firstRowObservedAtMs: null,
+    lastSet1ChangeAtMs: null,
+  });
+  assert.equal(stage, "confirmed");
+});
+
+test("buildSetlistDocFromRows: provisional close fires at elapsed ≥ 75m and idle ≥ 8m", () => {
   const rows = set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini"]);
   const nowMs = 1_000_000_000_000;
   const out = buildSetlistDocFromRows(rows, {}, {
     nowMs,
-    firstRowObservedAtMs: nowMs - MIN_SET1_ELAPSED_MS,
-    lastSet1ChangeAtMs: nowMs - SET1_IDLE_MS,
+    firstRowObservedAtMs: nowMs - PROVISIONAL_SET1_ELAPSED_MS,
+    lastSet1ChangeAtMs: nowMs - PROVISIONAL_SET1_IDLE_MS,
   });
   assert.equal(out.setlist.s1o, "AC/DC Bag");
   assert.equal(out.setlist.s1c, "Carini");
+  assert.equal(out.set1CloserStage, "provisional");
   assert.equal(out.setlist.s2o, "");
   assert.equal(out.setlist.s2c, "");
 });
@@ -428,10 +484,11 @@ test("buildSetlistDocFromRows: early-elapsed guard keeps s1c empty even when idl
   const nowMs = 1_000_000_000_000;
   const out = buildSetlistDocFromRows(rows, {}, {
     nowMs,
-    firstRowObservedAtMs: nowMs - (60 * 60_000), // 60 min elapsed (< 85)
-    lastSet1ChangeAtMs: nowMs - (30 * 60_000),   // 30 min idle (> 10)
+    firstRowObservedAtMs: nowMs - (60 * 60_000), // 60 min elapsed (< 75)
+    lastSet1ChangeAtMs: nowMs - (30 * 60_000),   // 30 min idle (> 8)
   });
   assert.equal(out.setlist.s1c, "");
+  assert.equal(out.set1CloserStage, null);
 });
 
 test("buildSetlistDocFromRows: idle guard keeps s1c empty during a long jam", () => {
@@ -439,16 +496,18 @@ test("buildSetlistDocFromRows: idle guard keeps s1c empty during a long jam", ()
   const nowMs = 1_000_000_000_000;
   const out = buildSetlistDocFromRows(rows, {}, {
     nowMs,
-    firstRowObservedAtMs: nowMs - (90 * 60_000), // 90 min elapsed (> 85)
-    lastSet1ChangeAtMs: nowMs - (5 * 60_000),    // 5 min idle (< 10)
+    firstRowObservedAtMs: nowMs - (90 * 60_000), // 90 min elapsed (> 75)
+    lastSet1ChangeAtMs: nowMs - (5 * 60_000),    // 5 min idle (< 8)
   });
   assert.equal(out.setlist.s1c, "");
+  assert.equal(out.set1CloserStage, null);
 });
 
 test("buildSetlistDocFromRows: missing timing state behaves like pre-#264 (no timing close)", () => {
   const rows = set1OnlyRows(["AC/DC Bag", "Bathtub Gin"]);
   const out = buildSetlistDocFromRows(rows, {});
   assert.equal(out.setlist.s1c, "");
+  assert.equal(out.set1CloserStage, null);
 });
 
 test("buildSetlistDocFromRows: set 2 start still forces s1c regardless of timing inputs", () => {
@@ -468,61 +527,81 @@ test("buildSetlistDocFromRows: set 2 start still forces s1c regardless of timing
   });
   assert.equal(out.setlist.s1c, "Bathtub Gin");
   assert.equal(out.setlist.s2o, "Carini");
+  assert.equal(out.set1CloserStage, "confirmed");
 });
 
-test("buildSetlistDocFromRows: long-set edge — new set-1 song after timing fires rewrites s1c on re-fire", () => {
+test("buildSetlistDocFromRows: long-set edge — new set-1 song after stage fires rewrites s1c on re-fire", () => {
   const nowMs = 1_000_000_000_000;
-  // Poll A: 3 songs, elapsed+idle both past threshold → s1c = "Carini".
+  // Poll A: 3 songs, provisional threshold met → s1c = "Carini".
   const pollA = buildSetlistDocFromRows(
     set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini"]),
     {},
     {
       nowMs,
-      firstRowObservedAtMs: nowMs - (95 * 60_000),
-      lastSet1ChangeAtMs: nowMs - (15 * 60_000),
+      firstRowObservedAtMs: nowMs - (80 * 60_000),
+      lastSet1ChangeAtMs: nowMs - (9 * 60_000),
     }
   );
   assert.equal(pollA.setlist.s1c, "Carini");
+  assert.equal(pollA.set1CloserStage, "provisional");
 
-  // Poll B: 4th song just arrived; lastSet1ChangeAt reset to now → idle < 10m → no timing close.
+  // Poll B: 4th song just arrived; lastSet1ChangeAt reset to now → idle < 8m.
   const pollBNow = nowMs + (4 * 60_000);
   const pollB = buildSetlistDocFromRows(
     set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini", "Down with Disease"]),
     pollA,
     {
       nowMs: pollBNow,
-      firstRowObservedAtMs: nowMs - (95 * 60_000),
+      firstRowObservedAtMs: nowMs - (80 * 60_000),
       lastSet1ChangeAtMs: pollBNow, // just changed
     }
   );
   assert.equal(pollB.setlist.s1c, "");
+  assert.equal(pollB.set1CloserStage, null);
 
-  // Poll C: 10+ min later, no new song → timing re-fires, s1c = new last song.
-  const pollCNow = pollBNow + (11 * 60_000);
+  // Poll C: 8+ min later, no new song → provisional stage re-fires.
+  const pollCNow = pollBNow + (8 * 60_000);
   const pollC = buildSetlistDocFromRows(
     set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini", "Down with Disease"]),
     pollB,
     {
       nowMs: pollCNow,
-      firstRowObservedAtMs: nowMs - (95 * 60_000),
+      firstRowObservedAtMs: nowMs - (80 * 60_000),
       lastSet1ChangeAtMs: pollBNow,
     }
   );
   assert.equal(pollC.setlist.s1c, "Down with Disease");
+  assert.equal(pollC.set1CloserStage, "provisional");
 });
 
-test("buildSetlistDocFromRows: exact-threshold elapsed + idle fires (inclusive)", () => {
+test("buildSetlistDocFromRows: exact-threshold provisional elapsed + idle fires (inclusive)", () => {
   const nowMs = 1_000_000_000_000;
   const out = buildSetlistDocFromRows(
     set1OnlyRows(["AC/DC Bag", "Bathtub Gin"]),
     {},
     {
       nowMs,
-      firstRowObservedAtMs: nowMs - MIN_SET1_ELAPSED_MS,
-      lastSet1ChangeAtMs: nowMs - SET1_IDLE_MS,
+      firstRowObservedAtMs: nowMs - PROVISIONAL_SET1_ELAPSED_MS,
+      lastSet1ChangeAtMs: nowMs - PROVISIONAL_SET1_IDLE_MS,
     }
   );
   assert.equal(out.setlist.s1c, "Bathtub Gin");
+  assert.equal(out.set1CloserStage, "provisional");
+});
+
+test("buildSetlistDocFromRows: confirmed stage fires on stricter idle threshold", () => {
+  const nowMs = 1_000_000_000_000;
+  const out = buildSetlistDocFromRows(
+    set1OnlyRows(["AC/DC Bag", "Bathtub Gin", "Carini"]),
+    {},
+    {
+      nowMs,
+      firstRowObservedAtMs: nowMs - CONFIRMED_SET1_ELAPSED_MS,
+      lastSet1ChangeAtMs: nowMs - CONFIRMED_SET1_IDLE_MS,
+    }
+  );
+  assert.equal(out.setlist.s1c, "Carini");
+  assert.equal(out.set1CloserStage, "confirmed");
 });
 
 // ---------- #266 auto-finalize ----------
