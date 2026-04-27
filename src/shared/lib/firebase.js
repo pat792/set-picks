@@ -18,7 +18,7 @@ const firebaseConfig = {
   storageBucket: "set-picks.firebasestorage.app",
   messagingSenderId: "927420107250",
   appId: "1:927420107250:web:1b9f52a72ef8dd9096836b",
-  measurementId: import.meta.env.VITE_GA_MEASUREMENT_ID || "G-K3YZ8FNM3V",
+  measurementId: import.meta.env.VITE_GA_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
