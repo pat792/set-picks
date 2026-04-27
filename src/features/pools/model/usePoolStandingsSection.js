@@ -13,15 +13,16 @@ import { emitPoolStandingsTelemetry } from './poolStandingsTelemetry';
 /**
  * Pool-scoped standings (#148) with the All-time / Tour toggle.
  *
- * #254 perf rewrite (round 2): the original attempt routed standings
+ * #254 perf rewrite (round 3): the original attempt routed standings
  * through the #244 materialized `users/{uid}` aggregates, but those are
  * **global** sums — they cannot honor `pickDataCountsForPool` (per-pool
- * inclusion gate) and they encode the global "winner of the night" rule
- * instead of the pool-internal max wins this surface has always
- * reported. That regression shipped to staging and produced
- * incomplete/inflated numbers for multiple users; this hook now goes
- * through the per-pool live compute (`loadPoolStandings`), which is the
- * pre-PR `computePoolSeasonTotalsByUser` logic preserved verbatim.
+ * inclusion gate). That regression shipped to staging and produced
+ * incomplete numbers for multiple users; round 2 reverted to the
+ * per-pool live compute. Round 3 keeps the pool-scoped points/shows
+ * (correctness fix) and aligns the **wins** column with the same
+ * global "winner of the night" rule used by Standings #218, Profile
+ * #217, and Tour standings #219 — a user should see the same wins
+ * count for themselves on every surface.
  *
  * Perf wins kept from the original PR:
  *   - React Query (#243) caches the result keyed on `(poolId, scope,
@@ -36,7 +37,7 @@ import { emitPoolStandingsTelemetry } from './poolStandingsTelemetry';
  * Pool-scoped materialization (per-pool aggregates persisted on
  * `pools/{poolId}/standings/{uid}` or similar) is filed as the safe
  * follow-up — it requires server-side fan-in on rollup that respects
- * `pickDataCountsForPool` and the pool-internal wins rule.
+ * `pickDataCountsForPool`.
  *
  * Emits one `pool_standings_computed` telemetry event per view (compute
  * and React Query cache hits both) so we can monitor read-cost trends.

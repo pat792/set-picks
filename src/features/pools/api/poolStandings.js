@@ -3,15 +3,21 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../shared/lib/firebase';
 import { GAME_LAUNCH_SHOW_DATE } from '../../../shared/config/gameLaunch';
 import { pickCountsTowardSeason } from '../../../shared/utils/showAggregation';
+import { fetchGlobalMaxScoreForShow } from '../../scoring';
 import { pickDataCountsForPool } from './poolFirestore';
 
 /**
  * @typedef {Object} PoolStandingsRow
  * @property {number} totalScore  Sum of graded pick scores eligible for the pool.
  * @property {number} showsPlayed Graded non-empty picks eligible for the pool.
- * @property {number} wins        Shows the user won inside this pool — max
- *                                across pool members' eligible picks for
- *                                that night, ties share, `max === 0` skips.
+ * @property {number} wins        Shows the user won using the **global**
+ *                                "winner of the night" rule — global max
+ *                                across every graded, non-empty pick for
+ *                                that show; ties share; `max === 0`
+ *                                credits no one. Same rule as Standings
+ *                                #218 / Profile #217 / Tour standings #219
+ *                                so the wins column is consistent across
+ *                                every surface a user sees.
  */
 
 /**
@@ -29,23 +35,32 @@ export const EMPTY_POOL_STANDINGS_ROW = Object.freeze({
 });
 
 const PICK_READ_CHUNK_SIZE = 24;
+const WIN_FETCH_CHUNK_SIZE = 10;
 
 /**
  * Pure aggregation step factored out of {@link loadPoolStandings} so the
- * pool-internal wins rule (and the points / shows accumulation) can be
+ * scoring rules (points sum, shows count, global wins per night) can be
  * unit-tested without mocking Firestore.
  *
  * `picks` must already be filtered to the rows that count for this pool
  * + season (i.e. `pickDataCountsForPool(data, poolId)` and
- * `pickCountsTowardSeason(data)` returned `true`). Wins are pool-internal:
- * for each show, the max score among the supplied rows wins; ties share;
- * `max === 0` (hollow night) credits no one.
+ * `pickCountsTowardSeason(data)` returned `true`). `globalMaxByShow` is
+ * the global "max score across **every** graded non-empty pick for that
+ * show" — the same value `fetchGlobalMaxScoreForShow` returns. A `null`
+ * (or absent) entry means nobody is credited for that night
+ * (`max === 0`, hollow show). When `globalMaxByShow` is omitted, no
+ * wins are credited.
+ *
+ * Wins rule: `pick.score === globalMaxByShow.get(showDate)` (and the
+ * max is `> 0`). Ties share, identical to Standings / Profile / Tour
+ * standings.
  *
  * @param {string[]} memberIds
  * @param {Array<{ userId: string, showDate: string, score: number }>} picks
+ * @param {Map<string, number | null> | null | undefined} [globalMaxByShow]
  * @returns {Map<string, PoolStandingsRow>}
  */
-export function aggregatePoolStandings(memberIds, picks) {
+export function aggregatePoolStandings(memberIds, picks, globalMaxByShow) {
   /** @type {Map<string, PoolStandingsRow>} */
   const totals = new Map();
   const allowed = new Set();
@@ -55,33 +70,20 @@ export function aggregatePoolStandings(memberIds, picks) {
     allowed.add(uid);
   }
 
-  /** @type {Map<string, Array<{ userId: string, score: number }>>} */
-  const byShow = new Map();
-
   for (const p of Array.isArray(picks) ? picks : []) {
     if (!p || typeof p !== 'object') continue;
     if (!allowed.has(p.userId)) continue;
     if (typeof p.showDate !== 'string' || !p.showDate) continue;
     if (typeof p.score !== 'number') continue;
     const row = totals.get(p.userId);
-    if (row) {
-      row.totalScore += p.score;
-      row.showsPlayed += 1;
-    }
-    const list = byShow.get(p.showDate) || [];
-    list.push({ userId: p.userId, score: p.score });
-    byShow.set(p.showDate, list);
-  }
-
-  for (const [, list] of byShow) {
-    if (list.length === 0) continue;
-    let max = 0;
-    for (const x of list) if (x.score > max) max = x.score;
-    if (max === 0) continue;
-    for (const x of list) {
-      if (x.score !== max) continue;
-      const row = totals.get(x.userId);
-      if (row) row.wins += 1;
+    if (!row) continue;
+    row.totalScore += p.score;
+    row.showsPlayed += 1;
+    if (globalMaxByShow instanceof Map) {
+      const max = globalMaxByShow.get(p.showDate);
+      if (typeof max === 'number' && max > 0 && p.score === max) {
+        row.wins += 1;
+      }
     }
   }
 
@@ -89,35 +91,35 @@ export function aggregatePoolStandings(memberIds, picks) {
 }
 
 /**
- * Pool-scoped standings totals (points, shows, pool-internal wins) for
+ * Pool-scoped standings totals (points, shows, global-rule wins) for
  * every member across `effectiveShowDates`.
  *
- * Direct port of the pre-#254 `computePoolSeasonTotalsByUser` so behavior
- * matches the proven leaderboard exactly:
+ * Scoring rules:
  *   - **Inclusion gate:** `pickDataCountsForPool` (`pick.pools` snapshot,
  *     with the legacy "no snapshot → counts everywhere" fallback) +
- *     `pickCountsTowardSeason` (graded + non-empty).
- *   - **Wins:** per show, the **pool-internal** max across the pool's
- *     qualifying picks; ties share the win; `max === 0` (hollow show)
- *     credits no one. Distinct from the global "winner of the night"
- *     used by Standings #218 / Profile #217 — pool standings have always
- *     been pool-scoped here.
+ *     `pickCountsTowardSeason` (graded + non-empty). A pick that fails
+ *     either gate contributes nothing — points, shows, and wins all
+ *     reset against the per-pool inclusion check.
+ *   - **Wins:** the same global "winner of the night" rule the rest of
+ *     the app reports (Standings #218, Profile #217, Tour standings
+ *     #219). For each show with at least one eligible pick by a pool
+ *     member, we look up the global max via
+ *     `fetchGlobalMaxScoreForShow` (cached) and credit a win whenever a
+ *     pool member's eligible pick equals that max. This keeps the wins
+ *     column consistent across every surface — the pool view used to
+ *     report a pool-internal max, which produced different numbers
+ *     than Standings for the same user; that divergence was confusing
+ *     and is now gone.
  *
- * The earlier #254 attempt routed this through the materialized
- * `users.{uid}.totalPoints` / `seasonStats.{tourKey}` aggregates, but
- * those are global sums — they cannot honor the per-pool inclusion gate
- * above and they encode the global winner rule (a real, observed
- * regression). Pool-scoped materialization is filed separately; until
- * it lands, this is the source of truth.
+ * Read cost (cold mount, no React Query cache):
+ *   - `|members| × |effectiveShowDates|` Firestore point reads on
+ *     `picks/{date}_{uid}`.
+ *   - `≤ |distinct shows pool members played|` calls to
+ *     `fetchGlobalMaxScoreForShow` for the wins pass (cached upstream
+ *     so repeated lookups across users for the same show are free).
  *
- * `effectiveShowDates` is floored to {@link GAME_LAUNCH_SHOW_DATE} as
- * a defensive cap so we never iterate pre-launch upstream tour dates
- * even if the caller's calendar slips.
- *
- * Read cost (cold mount, no React Query cache): `|members| × |effective
- * showDates|` Firestore point reads on `picks/{date}_{uid}`. React
- * Query (#243) keys the result so back-nav within the session reissues
- * zero reads.
+ * `effectiveShowDates` is floored to {@link GAME_LAUNCH_SHOW_DATE} as a
+ * defensive cap so we never iterate pre-launch upstream tour dates.
  *
  * @param {string} poolId
  * @param {string[]} memberIds
@@ -206,7 +208,30 @@ export async function loadPoolStandings(
     }
   }
 
-  const aggregated = aggregatePoolStandings(members, eligiblePicks);
+  // Wins pass: fetch the global max for every show that had at least one
+  // eligible pick. `fetchGlobalMaxScoreForShow` is cached upstream so
+  // requesting the same show across users is free; no need to dedupe at
+  // this layer beyond the show-set we build below.
+  const showsWithEligiblePicks = [
+    ...new Set(eligiblePicks.map((p) => p.showDate)),
+  ];
+  /** @type {Map<string, number | null>} */
+  const globalMaxByShow = new Map();
+  for (let i = 0; i < showsWithEligiblePicks.length; i += WIN_FETCH_CHUNK_SIZE) {
+    const slice = showsWithEligiblePicks.slice(i, i + WIN_FETCH_CHUNK_SIZE);
+    const maxes = await Promise.all(
+      slice.map((d) => fetchGlobalMaxScoreForShow(d))
+    );
+    for (let j = 0; j < slice.length; j += 1) {
+      globalMaxByShow.set(slice[j], maxes[j]);
+    }
+  }
+
+  const aggregated = aggregatePoolStandings(
+    members,
+    eligiblePicks,
+    globalMaxByShow
+  );
   for (const [uid, row] of aggregated) totals.set(uid, row);
 
   emit();
