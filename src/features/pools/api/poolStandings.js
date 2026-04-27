@@ -2,7 +2,6 @@ import { doc, getDoc } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
 import { GAME_LAUNCH_SHOW_DATE } from '../../../shared/config/gameLaunch';
-import { fetchGlobalMaxScoreForShow } from '../../scoring';
 import { pickCountsTowardSeason } from '../../../shared/utils/showAggregation';
 import { pickDataCountsForPool } from './poolFirestore';
 
@@ -10,16 +9,15 @@ import { pickDataCountsForPool } from './poolFirestore';
  * @typedef {Object} PoolStandingsRow
  * @property {number} totalScore  Sum of graded pick scores eligible for the pool.
  * @property {number} showsPlayed Graded non-empty picks eligible for the pool.
- * @property {number} wins        Shows the user won (rule depends on `source`).
- *                                See `readMaterializedPoolStandings` for the
- *                                global-vs-pool wins discussion.
+ * @property {number} wins        Shows the user won inside this pool — max
+ *                                across pool members' eligible picks for
+ *                                that night, ties share, `max === 0` skips.
  */
 
 /**
  * @typedef {Object} PoolStandingsTelemetry
- * @property {number} memberCount         Total members the load was asked about.
- * @property {number} membersMaterialized Members served from the #244 user-doc snapshot.
- * @property {number} membersLiveFallback Members that hit the per-member live path.
+ * @property {number} memberCount   Total members the load was asked about.
+ * @property {number} showsScanned  Show dates iterated (post game-launch floor).
  * @property {'all-time' | 'tour'} scope  Surface scope.
  */
 
@@ -30,127 +28,103 @@ export const EMPTY_POOL_STANDINGS_ROW = Object.freeze({
   wins: 0,
 });
 
+const PICK_READ_CHUNK_SIZE = 24;
+
 /**
- * Short-circuit predicate for the pool-standings materialized path.
+ * Pure aggregation step factored out of {@link loadPoolStandings} so the
+ * pool-internal wins rule (and the points / shows accumulation) can be
+ * unit-tested without mocking Firestore.
  *
- * Mirrors `readMaterializedSeasonStats` from
- * `features/profile/api/profileSeasonStats.js`, with one extension: the
- * caller passes a `tourKey` for tour-scoped standings and we read the
- * per-tour `seasonStats.{tourKey}` map instead of the top-level
- * `totalPoints` / `showsPlayed` / `wins`.
+ * `picks` must already be filtered to the rows that count for this pool
+ * + season (i.e. `pickDataCountsForPool(data, poolId)` and
+ * `pickCountsTowardSeason(data)` returned `true`). Wins are pool-internal:
+ * for each show, the max score among the supplied rows wins; ties share;
+ * `max === 0` (hollow night) credits no one.
  *
- * Returns `null` when:
- *   - the user doc is missing or has non-numeric aggregate fields,
- *   - `latestFinalizedShow` was not provided by the caller, or
- *   - `seasonStatsThroughShow < latestFinalizedShow` (rollup hasn't caught
- *     up to this user yet — fall back to live-compute for that single
- *     member).
- *
- * **Wins semantic note (#254):** the materialized `wins` field on
- * `users/{uid}` is **global** wins — the global-max rule from
- * `reduceShowWinners`. Pool standings historically used a pool-internal
- * max. In practice the two collide for any pool the user is currently
- * in, because `arrayUnionPoolOntoUserPickDocs` (picks API) backfills
- * `pick.pools` onto every existing graded pick at create / join time, so
- * the in-pool eligible set is a superset of the user's own graded
- * picks. The "About all-time standings" copy already describes the
- * global rule. Filed as a follow-up if telemetry indicates this needs
- * pool-internal wins materialization.
- *
- * Pure so the decision table can be unit-tested without Firestore.
- *
- * @param {Record<string, unknown> | null | undefined} userData
- * @param {{
- *   latestFinalizedShow?: string | null,
- *   tourKey?: string | null,
- * }} [options]
- * @returns {PoolStandingsRow | null}
+ * @param {string[]} memberIds
+ * @param {Array<{ userId: string, showDate: string, score: number }>} picks
+ * @returns {Map<string, PoolStandingsRow>}
  */
-export function readMaterializedPoolStandings(userData, options = {}) {
-  const { latestFinalizedShow = null, tourKey = null } = options;
-  if (!userData || typeof userData !== 'object') return null;
-  if (typeof latestFinalizedShow !== 'string' || !latestFinalizedShow) {
-    return null;
-  }
-  const through =
-    typeof userData.seasonStatsThroughShow === 'string'
-      ? userData.seasonStatsThroughShow
-      : '';
-  if (!through || through < latestFinalizedShow) return null;
-
-  if (tourKey) {
-    const all = userData.seasonStats;
-    if (!all || typeof all !== 'object') return null;
-    const entry = /** @type {Record<string, unknown> | undefined} */ (
-      /** @type {Record<string, unknown>} */ (all)[tourKey]
-    );
-    if (!entry || typeof entry !== 'object') return null;
-    const totalPoints =
-      typeof /** @type {Record<string, unknown>} */ (entry).totalPoints ===
-      'number'
-        ? /** @type {number} */ (entry.totalPoints)
-        : null;
-    const shows =
-      typeof /** @type {Record<string, unknown>} */ (entry).shows === 'number'
-        ? /** @type {number} */ (entry.shows)
-        : null;
-    const wins =
-      typeof /** @type {Record<string, unknown>} */ (entry).wins === 'number'
-        ? /** @type {number} */ (entry.wins)
-        : null;
-    if (totalPoints === null || shows === null || wins === null) return null;
-    return { totalScore: totalPoints, showsPlayed: shows, wins };
+export function aggregatePoolStandings(memberIds, picks) {
+  /** @type {Map<string, PoolStandingsRow>} */
+  const totals = new Map();
+  const allowed = new Set();
+  for (const uid of Array.isArray(memberIds) ? memberIds : []) {
+    if (!uid) continue;
+    totals.set(uid, { ...EMPTY_POOL_STANDINGS_ROW });
+    allowed.add(uid);
   }
 
-  const totalPoints =
-    typeof userData.totalPoints === 'number' ? userData.totalPoints : null;
-  const shows =
-    typeof userData.showsPlayed === 'number' ? userData.showsPlayed : null;
-  const wins = typeof userData.wins === 'number' ? userData.wins : null;
-  if (totalPoints === null || shows === null || wins === null) return null;
-  return { totalScore: totalPoints, showsPlayed: shows, wins };
+  /** @type {Map<string, Array<{ userId: string, score: number }>>} */
+  const byShow = new Map();
+
+  for (const p of Array.isArray(picks) ? picks : []) {
+    if (!p || typeof p !== 'object') continue;
+    if (!allowed.has(p.userId)) continue;
+    if (typeof p.showDate !== 'string' || !p.showDate) continue;
+    if (typeof p.score !== 'number') continue;
+    const row = totals.get(p.userId);
+    if (row) {
+      row.totalScore += p.score;
+      row.showsPlayed += 1;
+    }
+    const list = byShow.get(p.showDate) || [];
+    list.push({ userId: p.userId, score: p.score });
+    byShow.set(p.showDate, list);
+  }
+
+  for (const [, list] of byShow) {
+    if (list.length === 0) continue;
+    let max = 0;
+    for (const x of list) if (x.score > max) max = x.score;
+    if (max === 0) continue;
+    for (const x of list) {
+      if (x.score !== max) continue;
+      const row = totals.get(x.userId);
+      if (row) row.wins += 1;
+    }
+  }
+
+  return totals;
 }
 
-const USER_READ_CHUNK_SIZE = 24;
-const PICK_READ_CHUNK_SIZE = 24;
-const WIN_FETCH_CHUNK_SIZE = 10;
-
 /**
- * Pool standings totals for every member, computed via the cheapest
- * available read path per member.
+ * Pool-scoped standings totals (points, shows, pool-internal wins) for
+ * every member across `effectiveShowDates`.
  *
- * Read cost (cold mount, no React Query cache):
- *   - **Best case (every member caught up):** `N` point reads —
- *     one `users/{uid}` per member. The historical
- *     `members × showDates` fan-out is gone.
- *   - **Mixed case:** caught-up members served from the user doc; stale
- *     members hit per-member live-compute (`|effectiveShowDates|` point
- *     reads + small wins fan-out for that one member only). One
- *     straggler doesn't regress the rest.
+ * Direct port of the pre-#254 `computePoolSeasonTotalsByUser` so behavior
+ * matches the proven leaderboard exactly:
+ *   - **Inclusion gate:** `pickDataCountsForPool` (`pick.pools` snapshot,
+ *     with the legacy "no snapshot → counts everywhere" fallback) +
+ *     `pickCountsTowardSeason` (graded + non-empty).
+ *   - **Wins:** per show, the **pool-internal** max across the pool's
+ *     qualifying picks; ties share the win; `max === 0` (hollow show)
+ *     credits no one. Distinct from the global "winner of the night"
+ *     used by Standings #218 / Profile #217 — pool standings have always
+ *     been pool-scoped here.
  *
- * Behavior parity with the legacy `computePoolSeasonTotalsByUser`:
- *   - `pickDataCountsForPool` gating still applies on the live fallback
- *     path. The materialized path implicitly uses the global aggregate
- *     (see `readMaterializedPoolStandings` — wins semantic note).
- *   - `pickCountsTowardSeason` still gates on `isGraded` + non-empty.
- *   - Tour scope is honored by passing `tourKey` to
- *     `readMaterializedPoolStandings` so the per-tour
- *     `seasonStats.{tourKey}` map is consulted in lieu of top-level
- *     totals.
+ * The earlier #254 attempt routed this through the materialized
+ * `users.{uid}.totalPoints` / `seasonStats.{tourKey}` aggregates, but
+ * those are global sums — they cannot honor the per-pool inclusion gate
+ * above and they encode the global winner rule (a real, observed
+ * regression). Pool-scoped materialization is filed separately; until
+ * it lands, this is the source of truth.
  *
- * Caller is responsible for passing an `effectiveShowDates` already
- * floored to {@link GAME_LAUNCH_SHOW_DATE} (handled by
- * `usePoolStandingsSection`); the floor is applied here too as a defensive
- * cap so the live fallback never iterates pre-launch noise even if a
- * caller forgets.
+ * `effectiveShowDates` is floored to {@link GAME_LAUNCH_SHOW_DATE} as
+ * a defensive cap so we never iterate pre-launch upstream tour dates
+ * even if the caller's calendar slips.
+ *
+ * Read cost (cold mount, no React Query cache): `|members| × |effective
+ * showDates|` Firestore point reads on `picks/{date}_{uid}`. React
+ * Query (#243) keys the result so back-nav within the session reissues
+ * zero reads.
  *
  * @param {string} poolId
  * @param {string[]} memberIds
  * @param {Array<{ date: string }>} effectiveShowDates
  * @param {{
- *   latestFinalizedShow?: string | null,
- *   tourKey?: string | null,
  *   onTelemetry?: (t: PoolStandingsTelemetry) => void,
+ *   scope?: 'all-time' | 'tour',
  * }} [options]
  * @returns {Promise<Map<string, PoolStandingsRow>>}
  */
@@ -160,11 +134,7 @@ export async function loadPoolStandings(
   effectiveShowDates,
   options = {}
 ) {
-  const {
-    latestFinalizedShow = null,
-    tourKey = null,
-    onTelemetry,
-  } = options;
+  const { onTelemetry, scope = 'all-time' } = options;
 
   const pid = poolId?.trim();
   const members = Array.isArray(memberIds) ? memberIds.filter(Boolean) : [];
@@ -174,12 +144,22 @@ export async function loadPoolStandings(
     totals.set(uid, { ...EMPTY_POOL_STANDINGS_ROW });
   }
 
+  const flooredShowDates = Array.isArray(effectiveShowDates)
+    ? effectiveShowDates
+        .filter(
+          (s) =>
+            s &&
+            typeof s.date === 'string' &&
+            s.date >= GAME_LAUNCH_SHOW_DATE
+        )
+        .map((s) => s.date)
+    : [];
+
   /** @type {PoolStandingsTelemetry} */
   const telemetry = {
     memberCount: members.length,
-    membersMaterialized: 0,
-    membersLiveFallback: 0,
-    scope: tourKey ? 'tour' : 'all-time',
+    showsScanned: flooredShowDates.length,
+    scope,
   };
   const emit = () => {
     if (typeof onTelemetry === 'function') {
@@ -191,125 +171,44 @@ export async function loadPoolStandings(
     }
   };
 
-  if (!pid || members.length === 0) {
+  if (!pid || members.length === 0 || flooredShowDates.length === 0) {
     emit();
     return totals;
   }
 
-  const flooredShowDates = Array.isArray(effectiveShowDates)
-    ? effectiveShowDates.filter(
-        (s) =>
-          s &&
-          typeof s.date === 'string' &&
-          s.date >= GAME_LAUNCH_SHOW_DATE
-      )
-    : [];
+  /** @type {Array<{ showDate: string, userId: string, score: number }>} */
+  const eligiblePicks = [];
 
-  /** @type {string[]} */
-  const liveMembers = [];
-
-  for (let i = 0; i < members.length; i += USER_READ_CHUNK_SIZE) {
-    const slice = members.slice(i, i + USER_READ_CHUNK_SIZE);
-    const snaps = await Promise.all(
-      slice.map((uid) => getDoc(doc(db, 'users', uid)))
-    );
-    for (let j = 0; j < slice.length; j += 1) {
-      const uid = slice[j];
-      const snap = snaps[j];
-      const userData = snap.exists() ? snap.data() || {} : null;
-      const materialized = readMaterializedPoolStandings(userData, {
-        latestFinalizedShow,
-        tourKey,
-      });
-      if (materialized) {
-        totals.set(uid, materialized);
-        telemetry.membersMaterialized += 1;
-      } else {
-        liveMembers.push(uid);
-      }
+  /** @type {Array<{ showDate: string, userId: string }>} */
+  const tasks = [];
+  for (const showDate of flooredShowDates) {
+    for (const userId of members) {
+      tasks.push({ showDate, userId });
     }
   }
 
-  if (liveMembers.length > 0 && flooredShowDates.length > 0) {
-    await Promise.all(
-      liveMembers.map(async (uid) => {
-        const row = await computeSingleMemberPoolStandingsLive(
-          pid,
-          uid,
-          flooredShowDates
-        );
-        totals.set(uid, row);
-      })
+  for (let i = 0; i < tasks.length; i += PICK_READ_CHUNK_SIZE) {
+    const slice = tasks.slice(i, i + PICK_READ_CHUNK_SIZE);
+    const snaps = await Promise.all(
+      slice.map(({ showDate, userId }) =>
+        getDoc(doc(db, 'picks', `${showDate}_${userId}`))
+      )
     );
-    telemetry.membersLiveFallback += liveMembers.length;
-  } else {
-    telemetry.membersLiveFallback += liveMembers.length;
+    for (let j = 0; j < slice.length; j += 1) {
+      const snap = snaps[j];
+      const { showDate, userId } = slice[j];
+      if (!snap.exists()) continue;
+      const data = snap.data() || {};
+      if (!pickDataCountsForPool(data, pid)) continue;
+      if (!pickCountsTowardSeason(data)) continue;
+      const score = typeof data.score === 'number' ? data.score : 0;
+      eligiblePicks.push({ showDate, userId, score });
+    }
   }
+
+  const aggregated = aggregatePoolStandings(members, eligiblePicks);
+  for (const [uid, row] of aggregated) totals.set(uid, row);
 
   emit();
   return totals;
-}
-
-/**
- * Per-member live-compute fallback used when a member's #244 snapshot is
- * missing or stale.
- *
- * Same rule as the legacy `computePoolSeasonTotalsByUser` restricted to a
- * single user:
- *   - Sum `score` for every graded, non-empty pick of this user that
- *     `pickDataCountsForPool` accepts.
- *   - Count those picks as `showsPlayed`.
- *   - For each show the user has a qualifying pick, look up the global
- *     max via `fetchGlobalMaxScoreForShow` (cached upstream); credit a
- *     win when the user tied or beat it. Same global-wins rule the
- *     materialized path returns, so the two paths report the same wins
- *     value modulo rollup freshness.
- *
- * @param {string} poolId
- * @param {string} userId
- * @param {Array<{ date: string }>} showDates
- * @returns {Promise<PoolStandingsRow>}
- */
-async function computeSingleMemberPoolStandingsLive(poolId, userId, showDates) {
-  const dates = showDates.map((s) => s.date).filter(Boolean);
-  /** @type {Array<{ showDate: string, score: number }>} */
-  const userGradedPicks = [];
-
-  for (let i = 0; i < dates.length; i += PICK_READ_CHUNK_SIZE) {
-    const slice = dates.slice(i, i + PICK_READ_CHUNK_SIZE);
-    const snaps = await Promise.all(
-      slice.map((date) => getDoc(doc(db, 'picks', `${date}_${userId}`)))
-    );
-    for (let j = 0; j < slice.length; j += 1) {
-      const snap = snaps[j];
-      if (!snap.exists()) continue;
-      const data = snap.data() || {};
-      if (!pickDataCountsForPool(data, poolId)) continue;
-      if (!pickCountsTowardSeason(data)) continue;
-      const score = typeof data.score === 'number' ? data.score : 0;
-      userGradedPicks.push({ showDate: slice[j], score });
-    }
-  }
-
-  let totalScore = 0;
-  let showsPlayed = 0;
-  for (const p of userGradedPicks) {
-    totalScore += p.score;
-    showsPlayed += 1;
-  }
-
-  let wins = 0;
-  for (let i = 0; i < userGradedPicks.length; i += WIN_FETCH_CHUNK_SIZE) {
-    const slice = userGradedPicks.slice(i, i + WIN_FETCH_CHUNK_SIZE);
-    const maxes = await Promise.all(
-      slice.map((p) => fetchGlobalMaxScoreForShow(p.showDate))
-    );
-    for (let j = 0; j < slice.length; j += 1) {
-      const max = maxes[j];
-      if (max === null) continue;
-      if (slice[j].score === max) wins += 1;
-    }
-  }
-
-  return { totalScore, showsPlayed, wins };
 }

@@ -1,174 +1,107 @@
 import { describe, expect, it } from 'vitest';
 
-import { readMaterializedPoolStandings } from './poolStandings';
+import { aggregatePoolStandings, EMPTY_POOL_STANDINGS_ROW } from './poolStandings';
 
 /**
- * #254 short-circuit predicate for pool standings. Pure so the decision
- * table can be tested directly without mocking Firestore.
+ * Pure aggregation step for pool standings. Locks down the rule that
+ * regressed in the original #254 attempt: pool-internal wins (per show,
+ * max across the pool's eligible picks; ties share; `max === 0`
+ * credits no one). Also asserts points / shows accumulation and the
+ * pool-membership boundary.
  */
-describe('readMaterializedPoolStandings (all-time scope)', () => {
-  const FRESH = {
-    totalPoints: 42,
-    showsPlayed: 5,
-    wins: 2,
-    seasonStatsThroughShow: '2026-04-23',
-  };
-
-  it('returns the materialized triple when fields are numeric and snapshot is caught up', () => {
-    expect(
-      readMaterializedPoolStandings(FRESH, {
-        latestFinalizedShow: '2026-04-23',
-      })
-    ).toEqual({ totalScore: 42, showsPlayed: 5, wins: 2 });
+describe('aggregatePoolStandings', () => {
+  it('sums points and counts shows per member', () => {
+    const totals = aggregatePoolStandings(
+      ['u1', 'u2'],
+      [
+        { showDate: '2026-04-16', userId: 'u1', score: 10 },
+        { showDate: '2026-04-17', userId: 'u1', score: 8 },
+        { showDate: '2026-04-16', userId: 'u2', score: 5 },
+      ]
+    );
+    expect(totals.get('u1')).toEqual({ totalScore: 18, showsPlayed: 2, wins: 2 });
+    expect(totals.get('u2')).toEqual({ totalScore: 5, showsPlayed: 1, wins: 0 });
   });
 
-  it('returns the materialized triple when the snapshot is ahead of the latest finalized show', () => {
-    expect(
-      readMaterializedPoolStandings(
-        { ...FRESH, seasonStatsThroughShow: '2026-04-24' },
-        { latestFinalizedShow: '2026-04-23' }
-      )
-    ).toEqual({ totalScore: 42, showsPlayed: 5, wins: 2 });
+  it('credits pool-internal wins (max across pool members), not the global max', () => {
+    // Even though some non-pool member could have scored higher globally,
+    // pool standings credit the highest pool member that night.
+    const totals = aggregatePoolStandings(
+      ['u1', 'u2'],
+      [
+        { showDate: '2026-04-16', userId: 'u1', score: 6 },
+        { showDate: '2026-04-16', userId: 'u2', score: 4 },
+      ]
+    );
+    expect(totals.get('u1')?.wins).toBe(1);
+    expect(totals.get('u2')?.wins).toBe(0);
   });
 
-  it('returns null when the user doc is missing / empty', () => {
-    expect(
-      readMaterializedPoolStandings(null, { latestFinalizedShow: '2026-04-23' })
-    ).toBeNull();
-    expect(
-      readMaterializedPoolStandings(undefined, {
-        latestFinalizedShow: '2026-04-23',
-      })
-    ).toBeNull();
-    expect(
-      readMaterializedPoolStandings({}, { latestFinalizedShow: '2026-04-23' })
-    ).toBeNull();
+  it('shares wins across ties at the pool-internal max', () => {
+    const totals = aggregatePoolStandings(
+      ['u1', 'u2', 'u3'],
+      [
+        { showDate: '2026-04-16', userId: 'u1', score: 8 },
+        { showDate: '2026-04-16', userId: 'u2', score: 8 },
+        { showDate: '2026-04-16', userId: 'u3', score: 4 },
+      ]
+    );
+    expect(totals.get('u1')?.wins).toBe(1);
+    expect(totals.get('u2')?.wins).toBe(1);
+    expect(totals.get('u3')?.wins).toBe(0);
   });
 
-  it('returns null when any of the three numeric fields is missing', () => {
-    const { wins: _wins, ...noWins } = FRESH;
-    const { showsPlayed: _shows, ...noShows } = FRESH;
-    const { totalPoints: _pts, ...noPts } = FRESH;
-    expect(
-      readMaterializedPoolStandings(noWins, {
-        latestFinalizedShow: '2026-04-23',
-      })
-    ).toBeNull();
-    expect(
-      readMaterializedPoolStandings(noShows, {
-        latestFinalizedShow: '2026-04-23',
-      })
-    ).toBeNull();
-    expect(
-      readMaterializedPoolStandings(noPts, {
-        latestFinalizedShow: '2026-04-23',
-      })
-    ).toBeNull();
+  it('credits nobody on a hollow night (max === 0)', () => {
+    const totals = aggregatePoolStandings(
+      ['u1', 'u2'],
+      [
+        { showDate: '2026-04-16', userId: 'u1', score: 0 },
+        { showDate: '2026-04-16', userId: 'u2', score: 0 },
+      ]
+    );
+    expect(totals.get('u1')).toEqual({ totalScore: 0, showsPlayed: 1, wins: 0 });
+    expect(totals.get('u2')).toEqual({ totalScore: 0, showsPlayed: 1, wins: 0 });
   });
 
-  it('returns null when the snapshot is stale (older than latestFinalizedShow)', () => {
-    expect(
-      readMaterializedPoolStandings(
-        { ...FRESH, seasonStatsThroughShow: '2026-04-22' },
-        { latestFinalizedShow: '2026-04-23' }
-      )
-    ).toBeNull();
+  it('ignores picks from non-pool members', () => {
+    const totals = aggregatePoolStandings(
+      ['u1'],
+      [
+        { showDate: '2026-04-16', userId: 'u1', score: 5 },
+        { showDate: '2026-04-16', userId: 'rando', score: 99 },
+      ]
+    );
+    expect(totals.get('u1')).toEqual({ totalScore: 5, showsPlayed: 1, wins: 1 });
+    expect(totals.get('rando')).toBeUndefined();
   });
 
-  it('returns null when latestFinalizedShow is missing (defensive fallback)', () => {
-    expect(
-      readMaterializedPoolStandings(FRESH, { latestFinalizedShow: null })
-    ).toBeNull();
-    expect(
-      readMaterializedPoolStandings(FRESH, { latestFinalizedShow: '' })
-    ).toBeNull();
-    expect(readMaterializedPoolStandings(FRESH, {})).toBeNull();
+  it('returns EMPTY rows for members with zero qualifying picks', () => {
+    const totals = aggregatePoolStandings(['u1', 'u2'], [
+      { showDate: '2026-04-16', userId: 'u1', score: 4 },
+    ]);
+    expect(totals.get('u2')).toEqual(EMPTY_POOL_STANDINGS_ROW);
   });
 
-  it('allows a zero-valued materialized triple (new pool, no graded picks yet)', () => {
-    expect(
-      readMaterializedPoolStandings(
-        {
-          totalPoints: 0,
-          showsPlayed: 0,
-          wins: 0,
-          seasonStatsThroughShow: '2026-04-23',
-        },
-        { latestFinalizedShow: '2026-04-23' }
-      )
-    ).toEqual({ totalScore: 0, showsPlayed: 0, wins: 0 });
-  });
-});
-
-describe('readMaterializedPoolStandings (tour scope)', () => {
-  const TOUR_KEY = 'Spring 2026 Tour';
-  const FRESH = {
-    totalPoints: 42,
-    showsPlayed: 5,
-    wins: 2,
-    seasonStats: {
-      [TOUR_KEY]: { totalPoints: 18, shows: 2, wins: 1 },
-    },
-    seasonStatsThroughShow: '2026-04-23',
-  };
-
-  it('returns the per-tour aggregates when the snapshot is caught up', () => {
-    expect(
-      readMaterializedPoolStandings(FRESH, {
-        latestFinalizedShow: '2026-04-23',
-        tourKey: TOUR_KEY,
-      })
-    ).toEqual({ totalScore: 18, showsPlayed: 2, wins: 1 });
+  it('handles missing / non-array inputs without throwing', () => {
+    expect(aggregatePoolStandings(null, null).size).toBe(0);
+    expect(aggregatePoolStandings(['u1'], null).get('u1')).toEqual(
+      EMPTY_POOL_STANDINGS_ROW
+    );
+    const empty = aggregatePoolStandings([], [
+      { showDate: '2026-04-16', userId: 'u1', score: 1 },
+    ]);
+    expect(empty.size).toBe(0);
   });
 
-  it('returns null when the seasonStats map is missing', () => {
-    const { seasonStats: _ss, ...noSeasonStats } = FRESH;
-    expect(
-      readMaterializedPoolStandings(noSeasonStats, {
-        latestFinalizedShow: '2026-04-23',
-        tourKey: TOUR_KEY,
-      })
-    ).toBeNull();
-  });
-
-  it('returns null when the tour entry is missing', () => {
-    expect(
-      readMaterializedPoolStandings(FRESH, {
-        latestFinalizedShow: '2026-04-23',
-        tourKey: 'Some Other Tour',
-      })
-    ).toBeNull();
-  });
-
-  it('returns null when any tour-scoped numeric is non-numeric', () => {
-    expect(
-      readMaterializedPoolStandings(
-        {
-          ...FRESH,
-          seasonStats: {
-            [TOUR_KEY]: { totalPoints: 18, shows: 2, wins: '1' },
-          },
-        },
-        { latestFinalizedShow: '2026-04-23', tourKey: TOUR_KEY }
-      )
-    ).toBeNull();
-  });
-
-  it('returns null when the snapshot is stale even if the tour map is present', () => {
-    expect(
-      readMaterializedPoolStandings(
-        { ...FRESH, seasonStatsThroughShow: '2026-04-22' },
-        { latestFinalizedShow: '2026-04-23', tourKey: TOUR_KEY }
-      )
-    ).toBeNull();
-  });
-
-  it('falls back to all-time top-level fields when tourKey is null', () => {
-    expect(
-      readMaterializedPoolStandings(FRESH, {
-        latestFinalizedShow: '2026-04-23',
-        tourKey: null,
-      })
-    ).toEqual({ totalScore: 42, showsPlayed: 5, wins: 2 });
+  it('skips invalid pick entries (missing fields, wrong types)', () => {
+    const totals = aggregatePoolStandings(
+      ['u1'],
+      [
+        null,
+        { userId: 'u1', score: 'not-a-number' },
+        { showDate: '2026-04-16', userId: 'u1', score: 7 },
+      ]
+    );
+    expect(totals.get('u1')).toEqual({ totalScore: 7, showsPlayed: 1, wins: 1 });
   });
 });
