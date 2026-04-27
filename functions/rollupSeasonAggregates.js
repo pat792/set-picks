@@ -123,11 +123,20 @@ function resolveTourKeyForDate(showDate, showDatesByTour) {
 /**
  * Per-pick rollup decision for the `users.{uid}` materialization pass.
  *
- * `scoreDiff` stays consistent with the existing behavior (applied
- * unconditionally to `totalPoints`). `winsDelta` uses the persisted
- * `pick.winCredited` flag to diff against the previous rolled-up state,
- * so re-finalizations never double-count wins even when the global max
- * changes.
+ * `scoreDiff` is the delta to apply to `users.{uid}.totalPoints`:
+ *   - **First grade** (`pickData.isGraded !== true`): we add the full
+ *     `newScore`. The persisted `pick.score` may already be non-zero
+ *     because `recomputeLiveScoresForShow` (live setlist scoring) writes
+ *     `score` without flipping `isGraded`. Differencing against that
+ *     pre-grade `pick.score` would zero out the contribution and leave
+ *     `users.{uid}.totalPoints = 0` while `showsPlayed` keeps
+ *     incrementing — the exact symptom seen in #254 follow-up.
+ *   - **Re-grade** (`isGraded === true`): we diff against the previously
+ *     persisted `pick.score` so re-finalizations are idempotent.
+ *
+ * `winsDelta` uses the persisted `pick.winCredited` flag to diff against
+ * the previous rolled-up state, so re-finalizations never double-count
+ * wins even when the global max changes.
  *
  * @param {{
  *   pickData: PickLike,
@@ -145,8 +154,8 @@ function resolveTourKeyForDate(showDate, showDatesByTour) {
  */
 function computePerPickRollup({ pickData, newScore, newGlobalMax }) {
   const oldScore = typeof pickData?.score === "number" ? pickData.score : 0;
-  const scoreDiff = newScore - oldScore;
   const isFirstGrade = pickData?.isGraded !== true;
+  const scoreDiff = isFirstGrade ? newScore : newScore - oldScore;
 
   const countsTowardSeason = hasNonEmptyPicksObject(pickData?.picks);
   const oldIsWin = pickData?.winCredited === true;

@@ -4,12 +4,20 @@ import { ChevronDown } from 'lucide-react';
 
 import { useShowCalendar } from '../../show-calendar';
 import { formatShowLabel, scheduleTodayYmd } from '../../../shared';
+import { GAME_LAUNCH_SHOW_DATE } from '../../../shared/config/gameLaunch';
 
 export default function PoolHubShowArchive({ poolId }) {
   const { showDates } = useShowCalendar();
+  // Past Shows lists every previously-finalized night for the schedule the
+  // pool plays on. Phish.net's `show_calendar` (#160) syncs upstream tour
+  // dates — including nights before the game existed; those are pure noise
+  // here. Floor at #254's `GAME_LAUNCH_SHOW_DATE` so the archive only
+  // surfaces nights with possible standings.
   const pastShows = useMemo(() => {
     const today = scheduleTodayYmd();
-    return showDates.filter((s) => s.date < today);
+    return showDates.filter(
+      (s) => s.date >= GAME_LAUNCH_SHOW_DATE && s.date < today
+    );
   }, [showDates]);
 
   return (

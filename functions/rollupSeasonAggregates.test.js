@@ -134,6 +134,26 @@ test("computePerPickRollup: isFirstGrade=true when pick hasn't been graded", () 
   assert.equal(plan.isFirstGrade, true);
 });
 
+test("computePerPickRollup: first-grade adds full newScore even when pick.score is already populated by live scoring", () => {
+  // Regression for the #254 follow-up bug: `recomputeLiveScoresForShow`
+  // writes `pick.score` without flipping `isGraded`, so by the time the
+  // rollup pass runs the persisted score equals what we just recomputed.
+  // Differencing against it would leave `users.{uid}.totalPoints` at 0
+  // while `showsPlayed` keeps incrementing on every first grade. The
+  // first-grade branch must add the full newScore.
+  const plan = computePerPickRollup({
+    pickData: {
+      picks: { s1o: "A" },
+      isGraded: false,
+      score: 15,
+    },
+    newScore: 15,
+    newGlobalMax: 25,
+  });
+  assert.equal(plan.scoreDiff, 15);
+  assert.equal(plan.isFirstGrade, true);
+});
+
 test("computePerPickRollup: winsDelta=+1 when newly winning (first grade)", () => {
   const plan = computePerPickRollup({
     pickData: { picks: { s1o: "A" } },
