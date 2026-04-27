@@ -4,60 +4,43 @@ import { useQuery } from '@tanstack/react-query';
 import { resolveCurrentTour } from '../../scoring';
 import { useShowCalendar } from '../../show-calendar';
 import { todayYmd } from '../../../shared/utils/dateUtils';
-import {
-  GAME_LAUNCH_SHOW_DATE,
-  floorShowsAtGameLaunch,
-} from '../../../shared/config/gameLaunch';
+import { floorShowsAtGameLaunch } from '../../../shared/config/gameLaunch';
 import { loadPoolStandings } from '../api/poolStandings';
 import { emitPoolStandingsTelemetry } from './poolStandingsTelemetry';
 
 /** @typedef {'all-time' | 'tour'} PoolStandingsScope */
 
 /**
- * Compute the most-recent finalized show date the client is aware of —
- * the max calendar date on or before today, after flooring at
- * {@link GAME_LAUNCH_SHOW_DATE}. Mirrors the heuristic in
- * `useUserSeasonStats` so the materialized short-circuit (#244) fires
- * when `users.{uid}.seasonStatsThroughShow >= latestFinalizedShow`.
- *
- * @param {Array<{ date: string }>} showDates
- * @returns {string | null}
- */
-function deriveLatestFinalizedShow(showDates) {
-  if (!Array.isArray(showDates) || showDates.length === 0) return null;
-  const today = todayYmd();
-  let latest = null;
-  for (const s of showDates) {
-    const d = s && typeof s.date === 'string' ? s.date : '';
-    if (!d || d > today) continue;
-    if (d < GAME_LAUNCH_SHOW_DATE) continue;
-    if (!latest || d > latest) latest = d;
-  }
-  return latest;
-}
-
-/**
  * Pool-scoped standings (#148) with the All-time / Tour toggle.
  *
- * #254 perf rewrite: replaces the historical
- * `members × showDates` Firestore fan-out (`computePoolSeasonTotalsByUser`)
- * with the #244 materialized read path — one `users/{uid}` point read
- * per member, with a per-member live-compute fallback for stale
- * snapshots. Read cost on the hot path collapses from `O(N × S)` to
- * `O(N)` (where N = pool members, S = `showDates.length`). React Query
- * (#243) caches the result keyed on `(poolId, scope, tourKey,
- * memberKey, latestFinalizedShow)` so back-nav within the session
- * issues zero Firestore reads.
+ * #254 perf rewrite (round 3): the original attempt routed standings
+ * through the #244 materialized `users/{uid}` aggregates, but those are
+ * **global** sums — they cannot honor `pickDataCountsForPool` (per-pool
+ * inclusion gate). That regression shipped to staging and produced
+ * incomplete numbers for multiple users; round 2 reverted to the
+ * per-pool live compute. Round 3 keeps the pool-scoped points/shows
+ * (correctness fix) and aligns the **wins** column with the same
+ * global "winner of the night" rule used by Standings #218, Profile
+ * #217, and Tour standings #219 — a user should see the same wins
+ * count for themselves on every surface.
  *
- * Wins follow the same shared `reduceShowWinners` rule the profile uses
- * — the materialized path returns the global-max wins persisted in
- * `users/{uid}.wins` (or `seasonStats.{tourKey}.wins`). See
- * `readMaterializedPoolStandings`'s "wins semantic note" for why this is
- * a near-zero behavior change in practice.
+ * Perf wins kept from the original PR:
+ *   - React Query (#243) caches the result keyed on `(poolId, scope,
+ *     tourKey, memberKey)` so back-nav within the session issues zero
+ *     Firestore reads.
+ *   - `effectiveShowDates` is floored at `GAME_LAUNCH_SHOW_DATE` so we
+ *     never iterate pre-launch upstream tour dates from the
+ *     `show_calendar` collection (#160). For all-time scope this is the
+ *     full eligible season; for tour scope the floor is a no-op (current
+ *     tour is post-launch by definition).
  *
- * Emits one `pool_standings_computed` telemetry event per view —
- * compute and React-Query cache hits both — so we can verify the read
- * win post-rollout.
+ * Pool-scoped materialization (per-pool aggregates persisted on
+ * `pools/{poolId}/standings/{uid}` or similar) is filed as the safe
+ * follow-up — it requires server-side fan-in on rollup that respects
+ * `pickDataCountsForPool`.
+ *
+ * Emits one `pool_standings_computed` telemetry event per view (compute
+ * and React Query cache hits both) so we can monitor read-cost trends.
  *
  * @param {string | undefined} poolId
  * @param {{ members?: string[], id?: string } | null} pool
@@ -92,10 +75,9 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
     () => [...memberIds].sort().join('|'),
     [memberIds]
   );
-
-  const latestFinalizedShow = useMemo(
-    () => deriveLatestFinalizedShow(showDates),
-    [showDates]
+  const showDatesKey = useMemo(
+    () => effectiveShowDates.map((s) => s.date).join('|'),
+    [effectiveShowDates]
   );
 
   const trimmedPoolId = poolId?.trim() || '';
@@ -109,8 +91,7 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
     /**
      * @type {{
      *   member_count: number,
-     *   members_materialized: number,
-     *   members_live_fallback: number,
+     *   shows_scanned: number,
      *   elapsed_ms: number,
      *   scope: 'all-time' | 'tour',
      * } | null}
@@ -124,7 +105,7 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
       scope,
       tourKey || '',
       memberKey,
-      latestFinalizedShow || '',
+      showDatesKey,
     ],
     enabled,
     queryFn: async () => {
@@ -135,8 +116,7 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
       /**
        * @type {{
        *   memberCount: number,
-       *   membersMaterialized: number,
-       *   membersLiveFallback: number,
+       *   showsScanned: number,
        *   scope: 'all-time' | 'tour',
        * } | null}
        */
@@ -147,8 +127,7 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
           memberIds,
           effectiveShowDates,
           {
-            latestFinalizedShow,
-            tourKey,
+            scope: tourKey ? 'tour' : 'all-time',
             onTelemetry: (t) => {
               captured = { ...t };
             },
@@ -163,8 +142,7 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
         if (captured) {
           lastComputeTelemetryRef.current = {
             member_count: captured.memberCount,
-            members_materialized: captured.membersMaterialized,
-            members_live_fallback: captured.membersLiveFallback,
+            shows_scanned: captured.showsScanned,
             elapsed_ms: endedAt - startedAt,
             scope: captured.scope,
           };
@@ -198,8 +176,7 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
         ? lastComputeTelemetryRef.current
         : {
             member_count: memberIds.length,
-            members_materialized: 0,
-            members_live_fallback: 0,
+            shows_scanned: 0,
             elapsed_ms: 0,
             scope: /** @type {'all-time' | 'tour'} */ (scope),
           };
