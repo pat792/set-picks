@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
   GoogleAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -19,8 +20,20 @@ function getGoogleProvider() {
   return googleProvider;
 }
 
-export function signInWithGoogle(auth) {
-  return signInWithPopup(auth, getGoogleProvider());
+/**
+ * Sign in with Google via popup and report whether this is a brand-new
+ * Firebase user. Returning the boolean here (rather than the raw
+ * `UserCredential`) keeps `firebase/auth` out of the model layer — the
+ * `getAdditionalUserInfo` helper is the only reason callers need to
+ * touch the credential, and analytics is the only consumer.
+ *
+ * @param {import('firebase/auth').Auth} auth
+ * @returns {Promise<{ isNewUser: boolean }>}
+ */
+export async function signInWithGoogle(auth) {
+  const cred = await signInWithPopup(auth, getGoogleProvider());
+  const extra = getAdditionalUserInfo(cred);
+  return { isNewUser: Boolean(extra?.isNewUser) };
 }
 
 export function registerWithEmail(auth, email, password) {

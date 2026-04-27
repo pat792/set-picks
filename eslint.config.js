@@ -129,4 +129,59 @@ export default [
       ],
     },
   },
+  {
+    // Model layer must not call Firebase directly; IO belongs in feature `api/`.
+    // Duplicates the cross-feature `patterns` from the parent block because
+    // ESLint flat config replaces (rather than merges) `no-restricted-imports`
+    // when two configs target the same file.
+    files: ["src/features/*/model/**/*.{js,jsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "firebase/firestore",
+              message:
+                "Models must not import firebase/firestore directly; place IO in feature api/.",
+            },
+            {
+              name: "firebase/auth",
+              message:
+                "Models must not import firebase/auth directly; place IO in feature api/.",
+            },
+            {
+              name: "firebase/functions",
+              message:
+                "Models must not import firebase/functions directly; place IO in feature api/.",
+            },
+            {
+              name: "firebase/storage",
+              message:
+                "Models must not import firebase/storage directly; place IO in feature api/.",
+            },
+            {
+              name: "firebase/app-check",
+              message:
+                "Models must not import firebase/app-check directly; place IO in feature api/.",
+            },
+          ],
+          patterns: [
+            {
+              regex:
+                "^(?:\\.\\./){2,}(?!shared/|pages/|app/)[^/]+\\/(api|model|ui|components)(?:\\/|$)",
+              message:
+                "Do not import another feature's internals; use a feature public entry point.",
+            },
+            {
+              regex:
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$).+",
+              message:
+                "Cross-feature imports must target feature root only (e.g. ../otherFeature), not deep internals.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
