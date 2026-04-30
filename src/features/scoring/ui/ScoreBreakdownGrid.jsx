@@ -6,7 +6,7 @@ import {
   SCORING_RULES,
 } from '../../../shared/utils/scoring';
 
-export default function ScoreBreakdownGrid({ userPicks, actualSetlist }) {
+export default function ScoreBreakdownGrid({ userPicks, actualSetlist, maskPickTitles = false }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {FORM_FIELDS.map((field) => {
@@ -39,11 +39,24 @@ export default function ScoreBreakdownGrid({ userPicks, actualSetlist }) {
         }
 
         const kindLabel = SCORE_BREAKDOWN_KIND_LABEL[kind] || '';
+        const showMaskedPick = Boolean(maskPickTitles && trimmedGuess);
 
         return (
           <div key={field.id} className={`p-3 rounded-xl border ${borderStyle} flex flex-col gap-1.5`}>
             <span className="text-[8px] font-bold uppercase text-content-secondary">{field.label}</span>
-            <span className={`text-xs font-bold truncate ${textColor}`}>{userGuess || '—'}</span>
+            {showMaskedPick ? (
+              <>
+                <span
+                  className="text-xs font-bold truncate text-slate-400 blur-sm select-none"
+                  aria-hidden="true"
+                >
+                  {userGuess}
+                </span>
+                <span className="sr-only">Pick hidden until showtime.</span>
+              </>
+            ) : (
+              <span className={`text-xs font-bold truncate ${textColor}`}>{userGuess || '—'}</span>
+            )}
             {actualSetlist && trimmedGuess && kindLabel ? (
               <span className={`text-[9px] font-black uppercase tracking-wider ${markerColor}`}>
                 {kindLabel}
