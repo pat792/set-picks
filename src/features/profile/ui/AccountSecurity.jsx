@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
 import { useAccountSecurity } from '../model/useAccountSecurity';
 import AccountSecurityForm from './AccountSecurityForm';
 
@@ -60,7 +61,9 @@ export default function AccountSecurity({ user }) {
       </Link>
 
       <div className="mb-6 text-left">
-        <h2 className="hidden md:block font-display text-display-page md:text-display-page-lg font-bold text-white">
+        <h2
+          className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
+        >
           Sign-in &amp; password
         </h2>
         <p className="mt-2 text-sm text-slate-400 leading-relaxed">

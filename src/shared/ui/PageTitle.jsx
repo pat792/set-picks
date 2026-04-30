@@ -1,8 +1,10 @@
 import React from 'react';
 
+import { dashboardPageTitleGradientClasses } from '../config/dashboardHeadingTypography';
+
 const variantStyles = {
-  /** Dashboard main h2 — font-display + display-page ladder */
-  page: 'font-display text-display-page md:text-display-page-lg font-bold text-white',
+  /** Dashboard main h2 — font-display + display-page ladder + venue gradient */
+  page: `font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`,
   /** Section titles inside cards (e.g. empty states) */
   section: 'font-display text-display-md font-bold text-white',
   /** Small uppercase label (filter labels, overlines) */

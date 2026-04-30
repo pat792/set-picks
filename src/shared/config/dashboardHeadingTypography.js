@@ -1,0 +1,19 @@
+/**
+ * Dashboard route titles: Space Grotesk page headings + mobile context bar.
+ * Gradient pulls the venue teal into display type without flat “slate” meta gray.
+ */
+
+/** Desktop main h2 (hidden on mobile where context bar carries the title). */
+export const dashboardPageTitleGradientClasses =
+  'text-transparent bg-clip-text bg-gradient-to-r from-white from-[5%] via-white to-brand-primary drop-shadow-[0_2px_28px_rgb(var(--brand-primary)/0.2)]';
+
+/** Admin / War Room — keep destructive red, add soft glow for parity with default tone. */
+export const dashboardPageTitleWarRoomClasses =
+  'uppercase text-red-500 drop-shadow-[0_0_22px_rgb(239_68_68_/_0.28)]';
+
+/** Mobile context bar route name (compact display). */
+export const dashboardMobileContextTitleGradientClasses =
+  'font-display text-transparent bg-clip-text bg-gradient-to-r from-white from-[4%] to-brand-primary drop-shadow-[0_0_18px_rgb(var(--brand-primary)/0.22)]';
+
+export const dashboardMobileContextTitleWarRoomClasses =
+  'font-display uppercase text-red-500 drop-shadow-[0_0_14px_rgb(239_68_68_/_0.25)]';
