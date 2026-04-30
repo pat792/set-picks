@@ -18,6 +18,7 @@ export default function PicksPage({ user, selectedDate }) {
     isLocked,
     hasExistingPicks,
     saveFeedback,
+    pickConstraintMessage,
   } = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
 
   const { openScoringRules } = useScoringRulesModal();
@@ -105,6 +106,14 @@ export default function PicksPage({ user, selectedDate }) {
           variant="venue"
           className="space-y-4 transition-all duration-300"
         >
+          {pickConstraintMessage ? (
+            <div
+              className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-100"
+              role="status"
+            >
+              {pickConstraintMessage}
+            </div>
+          ) : null}
           <PicksFieldsForm
             formData={formData}
             onChange={handleInput}

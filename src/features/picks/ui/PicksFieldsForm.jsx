@@ -23,7 +23,11 @@ export default function PicksFieldsForm({
             songs={songs}
             value={formData[field.id] || ''}
             onChange={(val) => onChange(field.id, val)}
-            placeholder="Type a song..."
+            placeholder="Search and choose a song…"
+            requireCatalogMatch
+            excludeTitles={FORM_FIELDS.filter((f) => f.id !== field.id)
+              .map((f) => formData[f.id])
+              .filter(Boolean)}
             readOnly={isLocked}
             disabled={disabled || isLocked}
           />
