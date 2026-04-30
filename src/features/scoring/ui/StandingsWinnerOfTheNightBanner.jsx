@@ -31,6 +31,7 @@ import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
  *   variant?: 'tonight' | 'lastShow',
  *   viewResults?: { showDate: string, labelCompact: string } | null,
  *   onSelectShowDate?: ((ymd: string) => void) | null,
+ *   lastShowPoolScopeLabel?: string | null,
  * }} props
  */
 export default function StandingsWinnerOfTheNightBanner({
@@ -40,6 +41,7 @@ export default function StandingsWinnerOfTheNightBanner({
   variant = 'tonight',
   viewResults = null,
   onSelectShowDate = null,
+  lastShowPoolScopeLabel = null,
 }) {
   const navigate = useNavigate();
 
@@ -49,7 +51,7 @@ export default function StandingsWinnerOfTheNightBanner({
 
   const heading =
     variant === 'lastShow'
-      ? lastShowWinnerHeading(winners.length)
+      ? lastShowWinnerHeading(winners.length, lastShowPoolScopeLabel)
       : tonightsWinnerHeading(winners.length);
   const handlesLabel = winners.map((w) => w.handle || 'Anonymous').join(', ');
 

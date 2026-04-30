@@ -104,6 +104,7 @@ export function useStandingsScreen(selectedDate, options = {}) {
     selectedDate,
     showDates,
     lastShowWinnerEnabled,
+    { userPools, activeFilter },
   );
   const showLastShowWinnerBanner =
     !previousShowWinner.loading && previousShowWinner.winners.length > 0;

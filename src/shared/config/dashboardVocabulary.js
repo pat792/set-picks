@@ -110,10 +110,16 @@ export const LAST_SHOW_WINNERS_PLURAL = "Last show's winners";
 
 /**
  * @param {number} winnerCount
+ * @param {string | null | undefined} [poolScopeLabel] — pool name on Standings Pools tab (#305 pool-scoped last show).
  * @returns {string}
  */
-export function lastShowWinnerHeading(winnerCount) {
-  return winnerCount > 1 ? LAST_SHOW_WINNERS_PLURAL : LAST_SHOW_WINNER_SINGULAR;
+export function lastShowWinnerHeading(winnerCount, poolScopeLabel) {
+  const phrase =
+    winnerCount > 1 ? LAST_SHOW_WINNERS_PLURAL : LAST_SHOW_WINNER_SINGULAR;
+  if (typeof poolScopeLabel === 'string' && poolScopeLabel.trim()) {
+    return `${phrase} · ${poolScopeLabel.trim()}`;
+  }
+  return phrase;
 }
 
 /** Compact one-line hint next to the info control (#303). */

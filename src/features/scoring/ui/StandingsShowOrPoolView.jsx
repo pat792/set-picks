@@ -97,6 +97,7 @@ export default function StandingsShowOrPoolView({ screen }) {
             beats={previousShowWinner.beats}
             viewResults={lastShowViewResultsForShowTab}
             onSelectShowDate={onSelectShowDate}
+            lastShowPoolScopeLabel={isPoolsView ? activePoolName : null}
           />
         ) : null}
         <StandingsActiveShowCard
@@ -183,6 +184,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           beats={previousShowWinner.beats}
           viewResults={lastShowViewResultsForShowTab}
           onSelectShowDate={onSelectShowDate}
+          lastShowPoolScopeLabel={isPoolsView ? activePoolName : null}
         />
       ) : null}
 

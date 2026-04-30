@@ -2,19 +2,25 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { getShowBeforeDate, getShowStatus } from '../../../shared/utils/timeLogic.js';
 import { fetchPicksForShowDate } from '../api/standingsApi';
+import { filterPicksToAudience } from './useDisplayedPicks';
 import { computeShowWinnerOfTheNight } from './useShowWinnerOfTheNight.js';
 
 /**
- * Global winner(s) of the **previous** tour night vs `selectedDate`, for
- * Standings when the selected show is NEXT or LIVE (Option A).
+ * Winner(s) of the **previous** tour night vs `selectedDate`, for Standings when
+ * the selected show is NEXT or LIVE (Option A).
  *
- * Reuses the same eligibility rules as {@link useShowWinnerOfTheNight}.
+ * Reuses the same eligibility rules as {@link useShowWinnerOfTheNight}. When
+ * `audience` targets a pool, the hook still fetches global picks for that date
+ * (one read) then filters with {@link filterPicksToAudience} — same contract
+ * as the leaderboard.
  *
  * @param {string | undefined} selectedDate — YYYY-MM-DD
  * @param {{ date: string }[] | undefined} showDates
  * @param {boolean} enabled — gate fetches (show/pools standings, NEXT/LIVE only)
+ * @param {{ userPools?: Array<{ id: string, members?: string[], name?: string }> | null, activeFilter: 'global' | string } | null | undefined} [audience] —
+ *   omit or `activeFilter: 'global'` for everyone; pool id for pool-scoped winner.
  */
-export function usePreviousShowNightWinner(selectedDate, showDates, enabled) {
+export function usePreviousShowNightWinner(selectedDate, showDates, enabled, audience) {
   const prevDate = useMemo(() => {
     if (!enabled || !selectedDate || !Array.isArray(showDates) || showDates.length === 0) {
       return null;
@@ -62,6 +68,11 @@ export function usePreviousShowNightWinner(selectedDate, showDates, enabled) {
     };
   }, [prevDate, showDates]);
 
+  const { userPools, activeFilter } = audience ?? {
+    userPools: null,
+    activeFilter: 'global',
+  };
+
   return useMemo(() => {
     if (!prevDate) {
       return {
@@ -73,7 +84,13 @@ export function usePreviousShowNightWinner(selectedDate, showDates, enabled) {
         prevDate: null,
       };
     }
-    const { max, winners, eligiblePlayers, beats } = computeShowWinnerOfTheNight(picks);
+    const scopedPicks = filterPicksToAudience({
+      picks,
+      userPools,
+      activeFilter,
+    });
+    const { max, winners, eligiblePlayers, beats } =
+      computeShowWinnerOfTheNight(scopedPicks);
     return {
       max,
       winners,
@@ -82,5 +99,5 @@ export function usePreviousShowNightWinner(selectedDate, showDates, enabled) {
       loading,
       prevDate,
     };
-  }, [picks, loading, prevDate]);
+  }, [picks, loading, prevDate, userPools, activeFilter]);
 }
