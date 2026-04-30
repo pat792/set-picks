@@ -5,6 +5,7 @@ import {
   LEADING_THIS_SHOW,
   SHOW_STANDINGS_EYEBROW,
   STANDINGS_PICK_PRIVACY_INFO_LABEL,
+  STANDINGS_PICK_PRIVACY_INLINE,
   STANDINGS_PICK_PRIVACY_TOOLTIP,
 } from '../../../shared/config/dashboardVocabulary';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
@@ -86,15 +87,18 @@ export default function LeaderboardList({
       </div>
 
       {redactOpponentPicksPreLock ? (
-        <div
-          role="note"
-          aria-label={STANDINGS_PICK_PRIVACY_INFO_LABEL}
-          className="mx-0.5 mb-2 flex gap-3 rounded-xl border border-brand-primary/30 bg-brand-primary/[0.08] px-4 py-3 shadow-inset-glass"
-        >
-          <Info className="h-5 w-5 shrink-0 text-brand-primary mt-0.5" aria-hidden />
-          <p className="text-sm font-semibold leading-relaxed text-slate-100">
-            {STANDINGS_PICK_PRIVACY_TOOLTIP}
-          </p>
+        <div className="mx-2 mb-1 flex min-h-0 items-center gap-1 border-b border-border-subtle/40 pb-1.5">
+          <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-tight text-content-secondary sm:text-xs">
+            {STANDINGS_PICK_PRIVACY_INLINE}
+          </span>
+          <button
+            type="button"
+            className="shrink-0 rounded p-0.5 text-brand-primary/85 transition-colors hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+            title={STANDINGS_PICK_PRIVACY_TOOLTIP}
+            aria-label={`${STANDINGS_PICK_PRIVACY_INFO_LABEL}. ${STANDINGS_PICK_PRIVACY_TOOLTIP}`}
+          >
+            <Info className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+          </button>
         </div>
       ) : null}
 

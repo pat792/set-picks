@@ -116,8 +116,13 @@ export function lastShowWinnerHeading(winnerCount) {
   return winnerCount > 1 ? LAST_SHOW_WINNERS_PLURAL : LAST_SHOW_WINNER_SINGULAR;
 }
 
-/** Logged-out / info affordance for pre-lock pick privacy on standings (#303). */
+/** Compact one-line hint next to the info control (#303). */
+export const STANDINGS_PICK_PRIVACY_INLINE =
+  "Other players' picks stay hidden until showtime.";
+
+/** Accessible name for the info control. */
 export const STANDINGS_PICK_PRIVACY_INFO_LABEL = 'About hidden picks';
 
+/** Full detail in `title` / screen-reader label on the info control (#303). */
 export const STANDINGS_PICK_PRIVACY_TOOLTIP =
   "We've made a key change our users have asked for: hiding other players' picks until showtime. You'll still see players and their picks, but those picks are now blurred to improve competition!";
