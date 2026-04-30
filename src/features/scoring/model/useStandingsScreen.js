@@ -32,8 +32,13 @@ import { useScoringRulesModal } from '../ui/ScoringRulesModalProvider';
  *
  * @param {string} selectedDate `YYYY-MM-DD` selected via the dashboard
  *   date picker (passed through from `DashboardLayout`).
+ * @param {{ onSelectShowDate?: (ymd: string) => void }} [options] —
+ *   `onSelectShowDate` updates the global date picker (layout state). Required
+ *   for **View results** so the picker moves even when `navigate` is a no-op
+ *   (same `?showDate=` already in the URL after the user changed the select).
  */
-export function useStandingsScreen(selectedDate) {
+export function useStandingsScreen(selectedDate, options = {}) {
+  const { onSelectShowDate } = options;
   const location = useLocation();
   const navigate = useNavigate();
   const targetPoolId =
@@ -178,6 +183,7 @@ export function useStandingsScreen(selectedDate) {
     previousShowWinner,
     showLastShowWinnerBanner,
     lastShowViewResults,
+    onSelectShowDate: onSelectShowDate ?? null,
 
     redactOpponentPicksPreLock,
   };

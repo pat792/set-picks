@@ -247,7 +247,12 @@ export default function DashboardLayout() {
               />
               <Route
                 path="standings"
-                element={<StandingsPage selectedDate={selectedDate} />}
+                element={
+                  <StandingsPage
+                    selectedDate={selectedDate}
+                    onSelectShowDate={setSelectedDate}
+                  />
+                }
               />
               <Route
                 path="admin"

@@ -42,6 +42,7 @@ export default function StandingsShowOrPoolView({ screen }) {
     picksStatusLoading,
     showLastShowWinnerBanner,
     lastShowViewResults,
+    onSelectShowDate,
     redactOpponentPicksPreLock,
   } = screen;
 
@@ -95,6 +96,7 @@ export default function StandingsShowOrPoolView({ screen }) {
             max={previousShowWinner.max}
             beats={previousShowWinner.beats}
             viewResults={lastShowViewResultsForShowTab}
+            onSelectShowDate={onSelectShowDate}
           />
         ) : null}
         <StandingsActiveShowCard
@@ -180,6 +182,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           max={previousShowWinner.max}
           beats={previousShowWinner.beats}
           viewResults={lastShowViewResultsForShowTab}
+          onSelectShowDate={onSelectShowDate}
         />
       ) : null}
 

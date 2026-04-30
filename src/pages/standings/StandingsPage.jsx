@@ -8,8 +8,8 @@ import {
   useStandingsScreen,
 } from '../../features/scoring';
 
-export default function StandingsPage({ selectedDate }) {
-  const screen = useStandingsScreen(selectedDate);
+export default function StandingsPage({ selectedDate, onSelectShowDate }) {
+  const screen = useStandingsScreen(selectedDate, { onSelectShowDate });
 
   return (
     <div className="w-full">

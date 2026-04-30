@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import {
   lastShowWinnerHeading,
@@ -30,6 +30,7 @@ import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
  *   beats?: number,
  *   variant?: 'tonight' | 'lastShow',
  *   viewResults?: { showDate: string, labelCompact: string } | null,
+ *   onSelectShowDate?: ((ymd: string) => void) | null,
  * }} props
  */
 export default function StandingsWinnerOfTheNightBanner({
@@ -38,7 +39,10 @@ export default function StandingsWinnerOfTheNightBanner({
   beats = 0,
   variant = 'tonight',
   viewResults = null,
+  onSelectShowDate = null,
 }) {
+  const navigate = useNavigate();
+
   if (!Array.isArray(winners) || winners.length === 0 || max == null) {
     return null;
   }
@@ -75,8 +79,8 @@ export default function StandingsWinnerOfTheNightBanner({
         </p>
         {showViewResultsLink ? (
           <DashboardRowPill
-            as={Link}
-            to={`/dashboard/standings?showDate=${encodeURIComponent(viewResults.showDate)}`}
+            as="button"
+            type="button"
             tone="accent"
             title={
               viewResultsHint
@@ -89,6 +93,17 @@ export default function StandingsWinnerOfTheNightBanner({
                 : 'View full standings for this show'
             }
             className="relative z-10 shrink-0 !border-amber-400/45 !bg-amber-950/35 !text-amber-100 !shadow-none hover:!border-amber-300/55 hover:!bg-amber-500/20 hover:!text-amber-50 focus-visible:!ring-amber-300/70"
+            onClick={() => {
+              const d = viewResults.showDate;
+              // Layout `selectedDate` can differ from URL (picker does not write
+              // `showDate`). Re-applying the same `?showDate=` is a navigate
+              // no-op — still move the picker via layout state.
+              onSelectShowDate?.(d);
+              navigate({
+                pathname: '/dashboard/standings',
+                search: `?showDate=${encodeURIComponent(d)}`,
+              });
+            }}
           >
             View results
             <ChevronRight className="pointer-events-none h-3 w-3 shrink-0 opacity-90" aria-hidden />
