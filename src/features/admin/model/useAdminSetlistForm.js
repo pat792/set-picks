@@ -17,6 +17,27 @@ import { fetchAndMapExternalSetlist, fetchBustoutsFromPhishnet } from './setlist
 
 export const ADMIN_SETLIST_FIELDS = FORM_FIELDS.filter((field) => field.id !== 'wild');
 
+/** True if draft state would yield at least one “played” song for scoring (slots + ordered list + encores). */
+function adminDraftHasPlayedSong(setlistData, officialSetlist, encoreSongs) {
+  for (const field of ADMIN_SETLIST_FIELDS) {
+    const v = setlistData[field.id];
+    if (v != null && String(v).trim() !== '') return true;
+  }
+  if (
+    Array.isArray(officialSetlist) &&
+    officialSetlist.some((s) => String(s ?? '').trim() !== '')
+  ) {
+    return true;
+  }
+  if (
+    Array.isArray(encoreSongs) &&
+    encoreSongs.some((s) => String(s ?? '').trim() !== '')
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function createEmptySlotState() {
   const initialState = {};
   ADMIN_SETLIST_FIELDS.forEach((field) => {
@@ -159,6 +180,23 @@ export function useAdminSetlistForm({ user, selectedDate }) {
 
   const saveSetlist = async ({ finalizeRollup = false } = {}) => {
     if (!isAdmin || !selectedShow) return;
+
+    if (
+      finalizeRollup &&
+      !adminDraftHasPlayedSong(setlistData, officialSetlist, encoreSongs)
+    ) {
+      setMessage({
+        text: 'Cannot finalize: no songs in the official setlist (slots, ordered list, or encore). Add at least one song, or use Save only.',
+        type: 'error',
+      });
+      if (clearMessageTimeoutRef.current) {
+        clearTimeout(clearMessageTimeoutRef.current);
+      }
+      clearMessageTimeoutRef.current = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 6000);
+      return;
+    }
 
     setIsSaving(true);
     setMessage({ text: '', type: '' });

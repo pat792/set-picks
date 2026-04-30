@@ -21,7 +21,11 @@
  * core is safe to invoke from both manual and automatic paths.
  */
 
-const { calculateTotalScore, actualSetlistFromOfficialDoc } = require("./scoringCore");
+const {
+  calculateTotalScore,
+  actualSetlistFromOfficialDoc,
+  setlistHasAnyPlayedSong,
+} = require("./scoringCore");
 const {
   computeGlobalMaxScore,
   computePerPickRollup,
@@ -39,7 +43,7 @@ const MAX_FIRESTORE_BATCH_WRITES = 500;
  * @param {string | null} [params.callerUid] Firebase UID of the caller (null for scheduler).
  * @param {"manual" | "auto" | "auto-reconcile"} [params.trigger] Audit tag.
  * @param {{ info?: Function, warn?: Function, error?: Function } | undefined} [params.logger]
- * @returns {Promise<{ processedPicks: number, skippedPicks: number, totalPicks: number, setlistExists: boolean }>}
+ * @returns {Promise<{ processedPicks: number, skippedPicks: number, totalPicks: number, setlistExists: boolean, hollowSetlist?: boolean }>}
  */
 async function runRollupForShow({
   db,
@@ -65,6 +69,20 @@ async function runRollupForShow({
   }
   const setlistDoc = setlistSnap.data() || {};
   const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
+
+  if (!setlistHasAnyPlayedSong(actualSetlist)) {
+    logger?.warn?.("runRollupForShow: hollow setlist (no played songs); skipping rollup", {
+      showDate,
+      trigger,
+    });
+    return {
+      processedPicks: 0,
+      skippedPicks: 0,
+      totalPicks: 0,
+      setlistExists: true,
+      hollowSetlist: true,
+    };
+  }
 
   const picksSnap = await db
     .collection("picks")

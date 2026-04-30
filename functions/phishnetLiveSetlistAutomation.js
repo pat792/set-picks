@@ -567,6 +567,17 @@ async function maybeAutoFinalize({
         showDate,
         trigger: "auto-reconcile",
       });
+      if (result.hollowSetlist) {
+        logger?.warn?.("auto-finalize reconcile skipped: hollow setlist", {
+          showDate,
+        });
+        return {
+          fired: false,
+          trigger: "auto-reconcile",
+          reason: "hollow-setlist",
+          result,
+        };
+      }
       return { fired: true, trigger: "auto-reconcile", result };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -594,6 +605,18 @@ async function maybeAutoFinalize({
 
   try {
     const result = await runRollup({ showDate, trigger: "auto" });
+    if (result.hollowSetlist) {
+      logger?.warn?.("auto-finalize skipped: hollow setlist", {
+        showDate,
+        reason: decision.reason,
+      });
+      return {
+        fired: false,
+        trigger: "auto",
+        reason: "hollow-setlist",
+        result,
+      };
+    }
     // Stamp post-rollup so a rollup failure doesn't leave a misleading
     // "already finalized" flag that would suppress future retries.
     await automationRef.set(
