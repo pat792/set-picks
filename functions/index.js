@@ -201,6 +201,12 @@ exports.rollupScoresForShow = onCall(
         `official_setlists/${showDate} does not exist. Save the setlist first.`
       );
     }
+    if (result.hollowSetlist) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Official setlist has no songs in slots or ordered list. Add the show before finalizing."
+      );
+    }
     return {
       ok: true,
       processedPicks: result.processedPicks,
