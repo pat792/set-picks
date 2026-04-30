@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   lastShowWinnerHeading,
@@ -26,6 +27,7 @@ import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
  *   max: number | null,
  *   beats?: number,
  *   variant?: 'tonight' | 'lastShow',
+ *   viewResults?: { showDate: string, labelCompact: string } | null,
  * }} props
  */
 export default function StandingsWinnerOfTheNightBanner({
@@ -33,6 +35,7 @@ export default function StandingsWinnerOfTheNightBanner({
   max,
   beats = 0,
   variant = 'tonight',
+  viewResults = null,
 }) {
   if (!Array.isArray(winners) || winners.length === 0 || max == null) {
     return null;
@@ -74,6 +77,25 @@ export default function StandingsWinnerOfTheNightBanner({
           </span>
         ) : null}
       </p>
+      {variant === 'lastShow' &&
+      viewResults &&
+      typeof viewResults.showDate === 'string' &&
+      viewResults.showDate.length > 0 ? (
+        <p className="mt-2">
+          <Link
+            to={`/dashboard/standings?showDate=${encodeURIComponent(viewResults.showDate)}`}
+            className="text-sm font-semibold text-amber-200 underline decoration-amber-200/60 underline-offset-2 transition-colors hover:text-white hover:decoration-white/80"
+          >
+            View results
+            {viewResults.labelCompact ? (
+              <span className="font-normal text-amber-200/90">
+                {' '}
+                · {viewResults.labelCompact}
+              </span>
+            ) : null}
+          </Link>
+        </p>
+      ) : null}
     </section>
   );
 }

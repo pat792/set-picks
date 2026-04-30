@@ -99,6 +99,18 @@ export function useStandingsScreen(selectedDate) {
   const showLastShowWinnerBanner =
     !previousShowWinner.loading && previousShowWinner.winners.length > 0;
 
+  /** Deep link to full standings for the prior night (Show tab only; see #305). */
+  const lastShowViewResults = useMemo(() => {
+    const d = previousShowWinner.prevDate;
+    if (!d) return null;
+    const show = showDates.find((s) => s.date === d);
+    if (!show) return null;
+    return {
+      showDate: d,
+      labelCompact: showOptionLabelCompact(show),
+    };
+  }, [previousShowWinner.prevDate, showDates]);
+
   const currentTour = useMemo(
     () => resolveCurrentTour(selectedDate, todayYmd(), showDatesByTour),
     [selectedDate, showDatesByTour],
@@ -165,6 +177,7 @@ export function useStandingsScreen(selectedDate) {
     winnerOfTheNight,
     previousShowWinner,
     showLastShowWinnerBanner,
+    lastShowViewResults,
 
     redactOpponentPicksPreLock,
   };
