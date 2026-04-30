@@ -4,6 +4,7 @@ import { ExternalLink } from 'lucide-react';
 
 import { useSignOut } from '../../features/auth';
 import { ProfileEditForm, useUserProfile } from '../../features/profile';
+import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import Button from '../../shared/ui/Button';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
@@ -47,7 +48,9 @@ export default function Profile({ user }) {
       </DashboardActionRow>
 
       <div className="mb-6 text-left">
-        <h2 className="hidden md:block font-display text-display-page md:text-display-page-lg font-bold text-white">
+        <h2
+          className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
+        >
           Profile
         </h2>
         {joinDate && (

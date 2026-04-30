@@ -177,6 +177,7 @@ export default function DashboardLayout() {
           <DashboardMobileContextBar
             scrollDirection={scrollDirection}
             contextTitle={meta.contextTitle}
+            contextTitleTone={meta.desktopHeadingTone}
             showDatePicker={meta.showDatePicker}
             selectedDate={selectedDate}
             onSelectedDateChange={setSelectedDate}
@@ -270,9 +271,9 @@ export default function DashboardLayout() {
         </div>
       </main>
 
-      {/* MOBILE BOTTOM BAR */}
-      <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-brand-bg/98 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-10px_28px_-14px_rgba(15,10,46,0.85)] backdrop-blur-sm supports-[backdrop-filter]:backdrop-saturate-125">
-        <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-2`}>
+      {/* MOBILE BOTTOM BAR — translucent tint + heavy blur (real glass); active pill keeps teal legible over scrolling content */}
+      <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-[linear-gradient(to_top,rgb(var(--brand-bg-deep)_/_0.76),rgb(var(--brand-bg)_/_0.60))] pb-[env(safe-area-inset-bottom,0px)] shadow-[inset_0_1px_0_0_rgb(var(--brand-primary)/0.12),0_-10px_28px_-14px_rgba(15,10,46,0.85)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150">
+        <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center gap-0.5 px-1.5 h-16`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
             const isProfileSection =
@@ -291,10 +292,20 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex h-full w-full flex-col items-center justify-center space-y-1 ${isActive ? 'text-brand-primary' : 'text-content-secondary hover:text-white'}`}>
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`flex h-[calc(100%-10px)] min-h-0 w-full flex-col items-center justify-center space-y-1 self-center rounded-xl transition-colors ${
+                  isActive
+                    ? 'text-brand-primary bg-brand-primary/[0.14] ring-1 ring-inset ring-brand-primary/30 shadow-[inset_0_1px_0_0_rgb(255_255_255_/_0.06)]'
+                    : 'text-content-secondary hover:text-white'
+                }`}
+              >
                 {/* Render the Lucide icon */}
-                <Icon className="w-5 h-5 mb-0.5" />
-                <span className="text-[10px] font-bold tracking-wider">{item.name}</span>
+                <Icon className="w-5 h-5 mb-0.5 drop-shadow-[0_1px_1px_rgb(15_10_46_/_0.75)]" />
+                <span className="text-[10px] font-bold tracking-wider [text-shadow:0_1px_2px_rgb(15_10_46_/_0.88)]">
+                  {item.name}
+                </span>
               </Link>
             );
           })}
