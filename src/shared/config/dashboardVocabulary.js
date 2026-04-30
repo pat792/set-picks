@@ -123,6 +123,6 @@ export const STANDINGS_PICK_PRIVACY_INLINE =
 /** Accessible name for the info control. */
 export const STANDINGS_PICK_PRIVACY_INFO_LABEL = 'About hidden picks';
 
-/** Full detail in `title` / screen-reader label on the info control (#303). */
+/** Full detail: disclosure panel + optional native `title` on summary (#303). */
 export const STANDINGS_PICK_PRIVACY_TOOLTIP =
   "We've made a key change our users have asked for: hiding other players' picks until showtime. You'll still see players and their picks, but those picks are now blurred to improve competition!";
