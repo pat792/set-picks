@@ -1,8 +1,11 @@
 import React from 'react';
+import { Info } from 'lucide-react';
 
 import {
   LEADING_THIS_SHOW,
   SHOW_STANDINGS_EYEBROW,
+  STANDINGS_PICK_PRIVACY_INFO_LABEL,
+  STANDINGS_PICK_PRIVACY_TOOLTIP,
 } from '../../../shared/config/dashboardVocabulary';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
 import MetaChip from '../../../shared/ui/MetaChip';
@@ -20,6 +23,8 @@ export default function LeaderboardList({
   selfUserId = null,
   /** When true, hide the top “Leading this show” callout (e.g. Standings already shows “Tonight’s winner”). */
   suppressLeadingCallout = false,
+  /** Pre-lock: blur opponent pick titles in expanded rows (#303). */
+  redactOpponentPicksPreLock = false,
 }) {
   if (sortedPicks.length === 0) {
     return (
@@ -74,6 +79,16 @@ export default function LeaderboardList({
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 self-start sm:self-center pt-0.5 sm:pt-0">
           {headerEnd}
+          {redactOpponentPicksPreLock && !selfUserId ? (
+            <button
+              type="button"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-surface-panel text-content-secondary transition-colors hover:bg-surface-panel-strong hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              title={STANDINGS_PICK_PRIVACY_TOOLTIP}
+              aria-label={`${STANDINGS_PICK_PRIVACY_INFO_LABEL}. ${STANDINGS_PICK_PRIVACY_TOOLTIP}`}
+            >
+              <Info className="h-4 w-4" aria-hidden />
+            </button>
+          ) : null}
           <MetaChip>
             {sortedPicks.length} {sortedPicks.length === 1 ? 'player' : 'players'}
           </MetaChip>
@@ -86,6 +101,8 @@ export default function LeaderboardList({
         const isExpanded = expandedUser === uniqueId;
         const rank = index + 1;
         const isSelf = Boolean(selfUserId) && (p.userId || p.uid) === selfUserId;
+        const maskPickTitles =
+          Boolean(redactOpponentPicksPreLock) && !isSelf;
         // Pre-grade, the self row is pinned to rank 1 by `useLeaderboard`;
         // skip the natural rank badge so users don't misread "1" as a
         // scoring result before the setlist lands.
@@ -102,6 +119,7 @@ export default function LeaderboardList({
             isExpanded={isExpanded}
             onToggle={() => onToggle(uniqueId)}
             userPicks={userPicks}
+            maskPickTitles={maskPickTitles}
           />
         );
       })}

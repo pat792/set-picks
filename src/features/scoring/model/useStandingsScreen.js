@@ -6,7 +6,7 @@ import { useNextShowPicksStatus } from '../../picks';
 import { useUserPools } from '../../pools';
 import { useShowCalendar } from '../../show-calendar';
 import { todayYmd } from '../../../shared/utils/dateUtils';
-import { getShowStatus } from '../../../shared/utils/timeLogic';
+import { getShowStatus, shouldRedactOpponentPicksPreLock } from '../../../shared/utils/timeLogic';
 import { showOptionLabelCompact } from '../../../shared/utils/showOptionLabel';
 
 import { resolveCurrentTour } from './resolveCurrentTour';
@@ -60,6 +60,10 @@ export function useStandingsScreen(selectedDate) {
   });
 
   const showStatus = getShowStatus(selectedDate, showDates);
+  const redactOpponentPicksPreLock = shouldRedactOpponentPicksPreLock(
+    actualSetlist,
+    showStatus,
+  );
   const { openScoringRules } = useScoringRulesModal();
 
   // Only fetch pick-status for the "Now picking" active-show card — NEXT is
@@ -161,5 +165,7 @@ export function useStandingsScreen(selectedDate) {
     winnerOfTheNight,
     previousShowWinner,
     showLastShowWinnerBanner,
+
+    redactOpponentPicksPreLock,
   };
 }
