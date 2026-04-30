@@ -11,7 +11,7 @@ export default function DashboardMobileBrandBar({ user }) {
   const wordmarkMarkup = useMemo(() => getBrandChromeWordmarkSvgMarkup(), []);
 
   return (
-    <div className="relative z-20 grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 overflow-visible border-b border-border-subtle/35 bg-brand-bg/98 py-2 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-4 shadow-[0_8px_24px_-16px_rgba(15,10,46,0.95)] backdrop-blur-sm supports-[backdrop-filter]:backdrop-saturate-125 sm:flex sm:justify-between sm:gap-3 sm:pl-4 sm:pr-4">
+    <div className="relative z-20 grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 overflow-visible border-b border-border-subtle/35 bg-[linear-gradient(to_bottom,rgb(var(--brand-bg-deep)_/_0.76),rgb(var(--brand-bg)_/_0.60))] py-2 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-4 shadow-[0_10px_28px_-14px_rgba(15,10,46,0.85)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150 sm:flex sm:justify-between sm:gap-3 sm:pl-4 sm:pr-4">
       <h1 className="flex min-h-0 min-w-0 items-center justify-start justify-self-start self-center overflow-visible text-left leading-none max-sm:-translate-x-[1.125rem] max-sm:translate-y-1 sm:flex-1 sm:translate-x-0 sm:translate-y-0 sm:justify-self-auto">
         <Link
           to="/dashboard"
