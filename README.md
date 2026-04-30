@@ -23,7 +23,7 @@ Setlist automation calls **Phish.net v5** only through the Firebase Callable **`
 
 1. In **`.env`:** `VITE_SETLIST_API_SOURCE=phishnet`, `VITE_USE_CALLABLE_PHISHNET_SETLIST=true`, and **`PHISHNET_API_KEY=…`** (private record; not used by Vite).
 2. **`npm run secrets:sync-phishnet`** then **`npm run deploy:functions:phishnet`** (first time and whenever the key changes).
-3. **`npm run dev`**, sign in as **designated admin**, **Fetch setlist from API**.
+3. **`npm run dev`** (Vite is pinned to **http://localhost:5173/** with `strictPort: true` — free that port or change `vite.config.js`), sign in as **designated admin**, **Fetch setlist from API**.
 
 ### Troubleshooting: fetch still fails
 
