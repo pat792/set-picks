@@ -79,21 +79,24 @@ export default function LeaderboardList({
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 self-start sm:self-center pt-0.5 sm:pt-0">
           {headerEnd}
-          {redactOpponentPicksPreLock && !selfUserId ? (
-            <button
-              type="button"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-surface-panel text-content-secondary transition-colors hover:bg-surface-panel-strong hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-              title={STANDINGS_PICK_PRIVACY_TOOLTIP}
-              aria-label={`${STANDINGS_PICK_PRIVACY_INFO_LABEL}. ${STANDINGS_PICK_PRIVACY_TOOLTIP}`}
-            >
-              <Info className="h-4 w-4" aria-hidden />
-            </button>
-          ) : null}
           <MetaChip>
             {sortedPicks.length} {sortedPicks.length === 1 ? 'player' : 'players'}
           </MetaChip>
         </div>
       </div>
+
+      {redactOpponentPicksPreLock ? (
+        <div
+          role="note"
+          aria-label={STANDINGS_PICK_PRIVACY_INFO_LABEL}
+          className="mx-0.5 mb-2 flex gap-3 rounded-xl border border-brand-primary/30 bg-brand-primary/[0.08] px-4 py-3 shadow-inset-glass"
+        >
+          <Info className="h-5 w-5 shrink-0 text-brand-primary mt-0.5" aria-hidden />
+          <p className="text-sm font-semibold leading-relaxed text-slate-100">
+            {STANDINGS_PICK_PRIVACY_TOOLTIP}
+          </p>
+        </div>
+      ) : null}
 
       {sortedPicks.map((p, index) => {
         const uniqueId = p.uid || p.id;
