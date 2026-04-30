@@ -60,13 +60,17 @@ export default function StandingsWinnerOfTheNightBanner({
     (showViewResultsLink ? viewResults.showDate : '');
 
   return (
-    <section
-      role="status"
+    <div
+      role="region"
       aria-label={`${heading}: ${handlesLabel} — ${max} points`}
-      className="mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3 py-2 shadow-inset-glass"
+      className="relative mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3 py-2 shadow-inset-glass"
     >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <p className="min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300">
+        {/*
+          If the heading flex item ever paints over the pill (min-width / overflow),
+          keep the link above in the hit-test order.
+        */}
+        <p className="relative z-0 min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300">
           {heading}
         </p>
         {showViewResultsLink ? (
@@ -84,10 +88,10 @@ export default function StandingsWinnerOfTheNightBanner({
                 ? `View full standings for ${viewResultsHint}`
                 : 'View full standings for this show'
             }
-            className="shrink-0"
+            className="relative z-10 shrink-0 !border-amber-400/45 !bg-amber-950/35 !text-amber-100 !shadow-none hover:!border-amber-300/55 hover:!bg-amber-500/20 hover:!text-amber-50 focus-visible:!ring-amber-300/70"
           >
             View results
-            <ChevronRight className="h-3 w-3 shrink-0 opacity-90" aria-hidden />
+            <ChevronRight className="pointer-events-none h-3 w-3 shrink-0 opacity-90" aria-hidden />
           </DashboardRowPill>
         ) : null}
       </div>
@@ -112,6 +116,6 @@ export default function StandingsWinnerOfTheNightBanner({
           </span>
         ) : null}
       </p>
-    </section>
+    </div>
   );
 }
