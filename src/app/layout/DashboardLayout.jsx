@@ -53,6 +53,10 @@ import {
   brandWordmarkDashboardSidebarScaleWrapperClassNames,
   brandWordmarkImgClassNames,
 } from '../../shared/config/branding';
+import {
+  dashboardTourDateLabelGradientClasses,
+  dashboardTourDateSelectChromeDesktopWrap,
+} from '../../shared/config/dashboardHeadingTypography';
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
@@ -193,15 +197,18 @@ export default function DashboardLayout() {
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
             <div className="hidden md:flex mb-6 bg-surface-panel-strong backdrop-blur-md p-3 rounded-2xl border border-border-muted/70 items-center justify-between gap-4 min-w-0 shadow-inset-glass ring-1 ring-border-glass/45">
-              <span className="shrink-0 px-2 text-xs font-black uppercase tracking-widest text-content-secondary">
-                Select Show:
+              <span
+                className={`shrink-0 px-2 text-xs font-black uppercase tracking-widest ${dashboardTourDateLabelGradientClasses}`}
+              >
+                Tour Date:
               </span>
               <div className="min-w-0 w-64 max-w-full shrink">
-                <select
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="show-date-select w-full min-w-0 max-w-full appearance-none bg-surface-field border-2 border-border-subtle text-white text-base font-bold py-2.5 px-3 rounded-xl outline-none focus:border-brand-primary transition-colors cursor-pointer"
-                >
+                <div className={dashboardTourDateSelectChromeDesktopWrap}>
+                  <select
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="show-date-select w-full min-w-0 max-w-full appearance-none rounded-[11px] border-0 bg-surface-field py-2.5 px-3 text-base font-bold text-white outline-none ring-0 transition-colors cursor-pointer focus:border-transparent focus:ring-0"
+                  >
                   {showDatesByTour.map(({ tour, shows }, idx) => (
                     <optgroup
                       key={`${tour}-${shows[0]?.date ?? idx}`}
@@ -215,7 +222,8 @@ export default function DashboardLayout() {
                       ))}
                     </optgroup>
                   ))}
-                </select>
+                  </select>
+                </div>
               </div>
             </div>
           )}
