@@ -41,11 +41,15 @@ export default function StandingsShowOrPoolView({ screen }) {
     isSecured,
     picksStatusLoading,
     showLastShowWinnerBanner,
+    lastShowViewResults,
+    onSelectShowDate,
     redactOpponentPicksPreLock,
   } = screen;
 
   const isPoolsView = view === 'pools';
   const isShowView = view === 'show';
+  const lastShowViewResultsForShowTab =
+    isShowView && lastShowViewResults ? lastShowViewResults : null;
 
   if (isPoolsView && !poolId) {
     return (
@@ -91,6 +95,9 @@ export default function StandingsShowOrPoolView({ screen }) {
             winners={previousShowWinner.winners}
             max={previousShowWinner.max}
             beats={previousShowWinner.beats}
+            viewResults={lastShowViewResultsForShowTab}
+            onSelectShowDate={onSelectShowDate}
+            lastShowPoolScopeLabel={isPoolsView ? activePoolName : null}
           />
         ) : null}
         <StandingsActiveShowCard
@@ -175,6 +182,9 @@ export default function StandingsShowOrPoolView({ screen }) {
           winners={previousShowWinner.winners}
           max={previousShowWinner.max}
           beats={previousShowWinner.beats}
+          viewResults={lastShowViewResultsForShowTab}
+          onSelectShowDate={onSelectShowDate}
+          lastShowPoolScopeLabel={isPoolsView ? activePoolName : null}
         />
       ) : null}
 

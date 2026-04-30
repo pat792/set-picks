@@ -6,7 +6,11 @@ import { useNextShowPicksStatus } from '../../picks';
 import { useUserPools } from '../../pools';
 import { useShowCalendar } from '../../show-calendar';
 import { todayYmd } from '../../../shared/utils/dateUtils';
-import { getShowStatus, shouldRedactOpponentPicksPreLock } from '../../../shared/utils/timeLogic';
+import {
+  getShowBeforeDate,
+  getShowStatus,
+  shouldRedactOpponentPicksPreLock,
+} from '../../../shared/utils/timeLogic';
 import { showOptionLabelCompact } from '../../../shared/utils/showOptionLabel';
 
 import { resolveCurrentTour } from './resolveCurrentTour';
@@ -32,8 +36,13 @@ import { useScoringRulesModal } from '../ui/ScoringRulesModalProvider';
  *
  * @param {string} selectedDate `YYYY-MM-DD` selected via the dashboard
  *   date picker (passed through from `DashboardLayout`).
+ * @param {{ onSelectShowDate?: (ymd: string) => void }} [options] —
+ *   `onSelectShowDate` updates the global date picker (layout state). Required
+ *   for **View results** so the picker moves even when `navigate` is a no-op
+ *   (same `?showDate=` already in the URL after the user changed the select).
  */
-export function useStandingsScreen(selectedDate) {
+export function useStandingsScreen(selectedDate, options = {}) {
+  const { onSelectShowDate } = options;
   const location = useLocation();
   const navigate = useNavigate();
   const targetPoolId =
@@ -95,9 +104,31 @@ export function useStandingsScreen(selectedDate) {
     selectedDate,
     showDates,
     lastShowWinnerEnabled,
+    { userPools, activeFilter },
   );
   const showLastShowWinnerBanner =
     !previousShowWinner.loading && previousShowWinner.winners.length > 0;
+
+  /** Calendar night before `selectedDate` (same rule as {@link usePreviousShowNightWinner}). */
+  const priorNightDate = useMemo(() => {
+    if (!selectedDate || !Array.isArray(showDates) || showDates.length === 0) return null;
+    return getShowBeforeDate(selectedDate, showDates)?.date ?? null;
+  }, [selectedDate, showDates]);
+
+  /**
+   * Deep link to full standings for the prior night (Show tab only; see #305).
+   * Do not require `showDates.find` — `prevDate` already comes from that list; a failed
+   * lookup only dropped the pill while the banner still showed (#305 follow-up).
+   */
+  const lastShowViewResults = useMemo(() => {
+    const d = previousShowWinner.prevDate || priorNightDate;
+    if (!d) return null;
+    const show = showDates.find((s) => s.date === d);
+    return {
+      showDate: d,
+      labelCompact: show ? showOptionLabelCompact(show) : d,
+    };
+  }, [previousShowWinner.prevDate, priorNightDate, showDates]);
 
   const currentTour = useMemo(
     () => resolveCurrentTour(selectedDate, todayYmd(), showDatesByTour),
@@ -165,6 +196,8 @@ export function useStandingsScreen(selectedDate) {
     winnerOfTheNight,
     previousShowWinner,
     showLastShowWinnerBanner,
+    lastShowViewResults,
+    onSelectShowDate: onSelectShowDate ?? null,
 
     redactOpponentPicksPreLock,
   };
