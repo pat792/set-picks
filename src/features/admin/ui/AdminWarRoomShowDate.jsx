@@ -21,7 +21,7 @@ export default function AdminWarRoomShowDate({ value, onChange, disabled = false
           </label>
           <p className="text-[11px] font-bold leading-relaxed text-content-secondary">
             Choose the Phish <code className="text-slate-400">YYYY-MM-DD</code> you are editing or
-            polling. This can differ from the global “Select Show” list (e.g. Mexico or test dates).
+            polling. This can differ from the global “Tour Date” list (e.g. Mexico or test dates).
           </p>
           <input
             id="admin-war-room-show-date"

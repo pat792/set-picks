@@ -2,6 +2,8 @@ import React from 'react';
 import {
   dashboardMobileContextTitleGradientClasses,
   dashboardMobileContextTitleWarRoomClasses,
+  dashboardTourDateLabelGradientClasses,
+  dashboardTourDateSelectChromeMobileWrap,
 } from '../../../shared/config/dashboardHeadingTypography';
 import { showOptionLabelCompact, showOptionTitle } from '../../../shared/utils/showOptionLabel.js';
 
@@ -33,14 +35,19 @@ export default function DashboardMobileContextBar({
 
       {showDatePicker && (
         <div className="flex shrink-0 flex-row flex-nowrap items-center gap-1.5 min-w-0">
-          <span className="text-[10px] font-semibold text-slate-200 uppercase tracking-wide whitespace-nowrap leading-none">
-            Select Show:
-          </span>
-          <select
-            value={selectedDate}
-            onChange={(e) => onSelectedDateChange(e.target.value)}
-            className="show-date-select shrink-0 max-w-[180px] min-w-0 appearance-none bg-surface-field border border-border-subtle/45 text-white text-xs font-bold py-1.5 px-2.5 rounded-lg outline-none focus:border-brand-primary transition-colors cursor-pointer"
+          <span
+            className={`font-display text-[10px] font-semibold uppercase tracking-wide whitespace-nowrap leading-none ${dashboardTourDateLabelGradientClasses}`}
           >
+            Tour Date:
+          </span>
+          <div
+            className={`${dashboardTourDateSelectChromeMobileWrap} shrink-0 max-w-[180px] min-w-0`}
+          >
+            <select
+              value={selectedDate}
+              onChange={(e) => onSelectedDateChange(e.target.value)}
+              className="show-date-select w-full max-w-full min-w-0 appearance-none rounded-[7px] border-0 bg-surface-field py-1.5 pl-2.5 pr-2 text-xs font-bold text-white outline-none ring-0 transition-colors cursor-pointer focus:border-transparent focus:ring-0"
+            >
             {showDatesByTour.map(({ tour, shows }, idx) => (
               <optgroup
                 key={`${tour}-${shows[0]?.date ?? idx}`}
@@ -54,7 +61,8 @@ export default function DashboardMobileContextBar({
                 ))}
               </optgroup>
             ))}
-          </select>
+            </select>
+          </div>
         </div>
       )}
     </div>

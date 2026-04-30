@@ -17,3 +17,17 @@ export const dashboardMobileContextTitleGradientClasses =
 
 export const dashboardMobileContextTitleWarRoomClasses =
   'font-display uppercase text-red-500 drop-shadow-[0_0_14px_rgb(239_68_68_/_0.25)]';
+
+/** “Tour Date” label — same white→teal gradient language as route titles, compact glow. */
+export const dashboardTourDateLabelGradientClasses =
+  'text-transparent bg-clip-text bg-gradient-to-r from-white from-[5%] via-white to-brand-primary drop-shadow-[0_0_14px_rgb(var(--brand-primary)/0.2)]';
+
+/**
+ * 1px gradient frame around the global show `<select>` (venue halo).
+ * Inner control should use matching inner radius, `border-0`, field background.
+ */
+export const dashboardTourDateSelectChromeMobileWrap =
+  'rounded-lg bg-gradient-to-r from-white/35 via-brand-primary/85 to-brand-primary p-px shadow-[0_0_18px_rgb(var(--brand-primary)/0.22)] focus-within:ring-2 focus-within:ring-brand-primary/45 focus-within:ring-offset-0 focus-within:ring-offset-transparent';
+
+export const dashboardTourDateSelectChromeDesktopWrap =
+  'rounded-xl bg-gradient-to-r from-white/35 via-brand-primary/85 to-brand-primary p-px shadow-[0_0_20px_rgb(var(--brand-primary)/0.24)] focus-within:ring-2 focus-within:ring-brand-primary/45 focus-within:ring-offset-0 focus-within:ring-offset-transparent';
