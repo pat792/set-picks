@@ -1,10 +1,12 @@
 import React, { Fragment } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import {
   lastShowWinnerHeading,
   tonightsWinnerHeading,
 } from '../../../shared/config/dashboardVocabulary';
+import DashboardRowPill from '../../../shared/ui/DashboardRowPill';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
 
 /**
@@ -63,13 +65,15 @@ export default function StandingsWinnerOfTheNightBanner({
       aria-label={`${heading}: ${handlesLabel} — ${max} points`}
       className="mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3 py-2 shadow-inset-glass"
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <p className="min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300">
           {heading}
         </p>
         {showViewResultsLink ? (
-          <Link
+          <DashboardRowPill
+            as={Link}
             to={`/dashboard/standings?showDate=${encodeURIComponent(viewResults.showDate)}`}
+            tone="accent"
             title={
               viewResultsHint
                 ? `Open full standings for ${viewResultsHint}`
@@ -80,10 +84,11 @@ export default function StandingsWinnerOfTheNightBanner({
                 ? `View full standings for ${viewResultsHint}`
                 : 'View full standings for this show'
             }
-            className="shrink-0 text-[11px] font-bold uppercase tracking-wide text-amber-200/95 underline decoration-amber-200/50 underline-offset-2 transition-colors hover:text-white hover:decoration-white/70"
+            className="shrink-0"
           >
             View results
-          </Link>
+            <ChevronRight className="h-3 w-3 shrink-0 opacity-90" aria-hidden />
+          </DashboardRowPill>
         ) : null}
       </div>
       <p className="mt-0.5 text-sm font-bold leading-snug text-slate-100">
