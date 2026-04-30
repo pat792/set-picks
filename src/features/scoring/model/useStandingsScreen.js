@@ -6,7 +6,11 @@ import { useNextShowPicksStatus } from '../../picks';
 import { useUserPools } from '../../pools';
 import { useShowCalendar } from '../../show-calendar';
 import { todayYmd } from '../../../shared/utils/dateUtils';
-import { getShowStatus, shouldRedactOpponentPicksPreLock } from '../../../shared/utils/timeLogic';
+import {
+  getShowBeforeDate,
+  getShowStatus,
+  shouldRedactOpponentPicksPreLock,
+} from '../../../shared/utils/timeLogic';
 import { showOptionLabelCompact } from '../../../shared/utils/showOptionLabel';
 
 import { resolveCurrentTour } from './resolveCurrentTour';
@@ -104,17 +108,26 @@ export function useStandingsScreen(selectedDate, options = {}) {
   const showLastShowWinnerBanner =
     !previousShowWinner.loading && previousShowWinner.winners.length > 0;
 
-  /** Deep link to full standings for the prior night (Show tab only; see #305). */
+  /** Calendar night before `selectedDate` (same rule as {@link usePreviousShowNightWinner}). */
+  const priorNightDate = useMemo(() => {
+    if (!selectedDate || !Array.isArray(showDates) || showDates.length === 0) return null;
+    return getShowBeforeDate(selectedDate, showDates)?.date ?? null;
+  }, [selectedDate, showDates]);
+
+  /**
+   * Deep link to full standings for the prior night (Show tab only; see #305).
+   * Do not require `showDates.find` — `prevDate` already comes from that list; a failed
+   * lookup only dropped the pill while the banner still showed (#305 follow-up).
+   */
   const lastShowViewResults = useMemo(() => {
-    const d = previousShowWinner.prevDate;
+    const d = previousShowWinner.prevDate || priorNightDate;
     if (!d) return null;
     const show = showDates.find((s) => s.date === d);
-    if (!show) return null;
     return {
       showDate: d,
-      labelCompact: showOptionLabelCompact(show),
+      labelCompact: show ? showOptionLabelCompact(show) : d,
     };
-  }, [previousShowWinner.prevDate, showDates]);
+  }, [previousShowWinner.prevDate, priorNightDate, showDates]);
 
   const currentTour = useMemo(
     () => resolveCurrentTour(selectedDate, todayYmd(), showDatesByTour),

@@ -63,6 +63,16 @@ export function usePreviousShowNightWinner(selectedDate, showDates, enabled) {
   }, [prevDate, showDates]);
 
   return useMemo(() => {
+    if (!prevDate) {
+      return {
+        max: null,
+        winners: [],
+        eligiblePlayers: 0,
+        beats: 0,
+        loading,
+        prevDate: null,
+      };
+    }
     const { max, winners, eligiblePlayers, beats } = computeShowWinnerOfTheNight(picks);
     return {
       max,
