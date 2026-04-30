@@ -9,26 +9,6 @@ function formatPlayingSince(createdAt) {
   return value || null;
 }
 
-function StatCell({ label, value, loading }) {
-  return (
-    <div className="rounded-2xl border border-border-subtle bg-surface-field p-4">
-      <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-content-secondary">
-        {label}
-      </p>
-      {loading ? (
-        <Loader2
-          className="mx-auto h-5 w-5 animate-spin text-brand-primary"
-          aria-label={`Loading ${label.toLowerCase()}`}
-        />
-      ) : (
-        <p className="text-xl font-black tabular-nums text-brand-primary">
-          {value}
-        </p>
-      )}
-    </div>
-  );
-}
-
 /**
  * Read-only public profile: handle, favorite song, pools, and season stats.
  * Stats are the global cross-pool view (points from the user's own graded
@@ -56,6 +36,12 @@ export default function PublicProfileView({
     typeof stats?.totalPoints === 'number' ? stats.totalPoints : 0;
   const wins = typeof stats?.wins === 'number' ? stats.wins : 0;
   const shows = typeof stats?.shows === 'number' ? stats.shows : 0;
+
+  const statColumns = [
+    { key: 'points', label: 'Total points', value: totalPoints },
+    { key: 'wins', label: 'Wins', value: wins },
+    { key: 'shows', label: 'Shows', value: shows },
+  ];
 
   return (
     <div className="min-h-screen bg-transparent text-white">
@@ -106,14 +92,32 @@ export default function PublicProfileView({
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-content-secondary">
             Stats
           </h2>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <StatCell
-              label="Total points"
-              value={totalPoints}
-              loading={statsLoading}
-            />
-            <StatCell label="Wins" value={wins} loading={statsLoading} />
-            <StatCell label="Shows" value={shows} loading={statsLoading} />
+          <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-center">
+            {statColumns.map(({ key, label }) => (
+              <p
+                key={`${key}-label`}
+                className="self-end px-0.5 text-[10px] font-black uppercase leading-snug tracking-wider text-content-secondary"
+              >
+                {label}
+              </p>
+            ))}
+            {statColumns.map(({ key, label, value }) => (
+              <div
+                key={`${key}-value`}
+                className="flex min-h-[3.25rem] items-center justify-center rounded-2xl border border-border-subtle bg-surface-field px-2 py-3"
+              >
+                {statsLoading ? (
+                  <Loader2
+                    className="h-5 w-5 shrink-0 animate-spin text-brand-primary"
+                    aria-label={`Loading ${label}`}
+                  />
+                ) : (
+                  <span className="text-2xl font-black tabular-nums leading-none tracking-tight text-brand-primary">
+                    {value}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
           <p className="mt-3 text-[11px] font-medium leading-relaxed text-content-secondary">
             Running totals across every graded night. Wins count shows where

@@ -1,7 +1,8 @@
 // src/components/SongAutocomplete.jsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { PHISH_SONGS } from '../data/phishSongs.js';
+import { resolveCatalogSongTitle } from '../lib/resolveCatalogSongTitle.js';
 import Input from './Input';
 
 export default function SongAutocomplete({
@@ -13,10 +14,42 @@ export default function SongAutocomplete({
   onBlur,
   readOnly = false,
   disabled = false,
+  /**
+   * When true, blur clears non-catalog text and normalizes casing to the catalog `name`.
+   * Typing still filters suggestions; only selections / exact catalog matches stick.
+   */
+  requireCatalogMatch = false,
+  /** Song titles (other slots) to omit from suggestions — case-insensitive. */
+  excludeTitles = [],
   /** @type {{ name: string, total?: string, gap?: string, last?: string }[] | undefined} */
   songs: songsProp,
 }) {
   const songs = songsProp ?? PHISH_SONGS;
+  const excludedLower = useMemo(
+    () =>
+      new Set(
+        excludeTitles
+          .map((t) => String(t ?? '').trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    [excludeTitles],
+  );
+
+  const filterCatalog = useCallback(
+    (query) => {
+      const q = String(query ?? '').trim().toLowerCase();
+      if (!q) return [];
+      return songs
+        .filter((song) => {
+          const name = typeof song === 'string' ? song : song.name;
+          const n = String(name ?? '').trim().toLowerCase();
+          if (!n || excludedLower.has(n)) return false;
+          return n.includes(q);
+        })
+        .slice(0, 10);
+    },
+    [songs, excludedLower],
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSongs, setFilteredSongs] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -50,10 +83,7 @@ export default function SongAutocomplete({
     onChange?.(val);
 
     if (val.length > 0) {
-      const matches = songs.filter(song => 
-        (typeof song === 'string' ? song : song.name).toLowerCase().includes(val.toLowerCase())
-      ).slice(0, 10);
-      
+      const matches = filterCatalog(val);
       setFilteredSongs(matches);
       setIsOpen(true);
       setActiveIndex(-1);
@@ -103,7 +133,9 @@ export default function SongAutocomplete({
     if (readOnly || disabled) return;
     const v = String(value ?? '');
     if (v.length > 0) {
-      setIsOpen(true);
+      const matches = filterCatalog(v);
+      setFilteredSongs(matches);
+      setIsOpen(matches.length > 0);
     }
   };
 
@@ -112,10 +144,24 @@ export default function SongAutocomplete({
     // Defer close so a mousedown on a suggestion (onMouseDown + preventDefault) can select
     // before the menu unmounts; Tab/click-away still closes on the next tick.
     clearBlurCloseTimeout();
+    const rawValue = e?.target?.value;
     blurCloseTimeoutRef.current = window.setTimeout(() => {
       blurCloseTimeoutRef.current = null;
       setIsOpen(false);
       setActiveIndex(-1);
+      if (requireCatalogMatch && !readOnly && !disabled) {
+        const raw = String(rawValue ?? '').trim();
+        if (!raw) {
+          onChange?.('');
+          return;
+        }
+        const canonical = resolveCatalogSongTitle(rawValue, songs);
+        if (canonical === null) {
+          onChange?.('');
+        } else if (canonical !== raw) {
+          onChange?.(canonical);
+        }
+      }
     }, 0);
   };
 

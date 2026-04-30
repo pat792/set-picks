@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { useSongCatalog } from '../../song-catalog';
 import {
   fetchPickDoc,
   fetchPoolsSnapshotForPick,
@@ -8,6 +9,7 @@ import {
 } from '../api/picksApi';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import { getShowStatus } from '../../../shared/utils/timeLogic';
+import { validatePicksForSave } from './picksCatalogUtils';
 import { trackEditPicks, trackSubmitPicks } from './picksAnalytics';
 
 function tourLabelForShowDate(selectedDate, showDatesByTour) {
@@ -37,6 +39,8 @@ export default function usePicksForm({
   /** True once we've loaded non-empty picks from Firestore for this show (or after first successful save). */
   const [hadPersistedPicksOnServer, setHadPersistedPicksOnServer] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState(null);
+  const [pickConstraintMessage, setPickConstraintMessage] = useState(null);
+  const { songs } = useSongCatalog();
 
   const showStatus =
     selectedDate && Array.isArray(showDates) && showDates.length > 0
@@ -92,7 +96,33 @@ export default function usePicksForm({
   }, [selectedDate, user?.uid]);
 
   const handleInput = useCallback((fieldId, value) => {
-    setFormData((prev) => ({ ...prev, [fieldId]: value }));
+    let rejectedDuplicate = false;
+    setFormData((prev) => {
+      const trimmed = String(value ?? '').trim();
+      if (!trimmed) {
+        return { ...prev, [fieldId]: '' };
+      }
+      const key = trimmed.toLowerCase();
+      for (const f of FORM_FIELDS) {
+        if (f.id === fieldId) continue;
+        const other = prev[f.id];
+        if (other != null && String(other).trim().toLowerCase() === key) {
+          rejectedDuplicate = true;
+          return prev;
+        }
+      }
+      return { ...prev, [fieldId]: value };
+    });
+    if (!String(value ?? '').trim()) {
+      setPickConstraintMessage(null);
+      return;
+    }
+    if (rejectedDuplicate) {
+      setPickConstraintMessage('Each pick must be a different song.');
+      window.setTimeout(() => setPickConstraintMessage(null), 3500);
+    } else {
+      setPickConstraintMessage(null);
+    }
   }, []);
 
   const handleSave = useCallback(
@@ -106,6 +136,16 @@ export default function usePicksForm({
           tone: 'error',
           text: 'Error: You must be logged in to save picks.',
         });
+        return;
+      }
+
+      const validation = validatePicksForSave(formData, songs);
+      if (!validation.ok) {
+        setSaveFeedback({
+          tone: 'error',
+          text: validation.message,
+        });
+        setTimeout(() => setSaveFeedback(null), 4500);
         return;
       }
 
@@ -174,6 +214,7 @@ export default function usePicksForm({
       showDates,
       showDatesByTour,
       formData,
+      songs,
       isLocked,
       isSaving,
       hadPersistedPicksOnServer,
@@ -190,5 +231,6 @@ export default function usePicksForm({
     hasExistingPicks,
     showStatus,
     saveFeedback,
+    pickConstraintMessage,
   };
 }
