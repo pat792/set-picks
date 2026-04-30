@@ -20,6 +20,8 @@ export default function LeaderboardRow({
   isExpanded,
   onToggle,
   userPicks,
+  /** Pre-lock privacy (#303): blur opponent song titles in the breakdown. */
+  maskPickTitles = false,
 }) {
   const uniqueId = p.uid || p.id;
   const playerUserId = p.userId || p.uid;
@@ -102,7 +104,11 @@ export default function LeaderboardRow({
 
       {isExpanded && (
         <div className="p-4 border-t border-border-subtle/30 bg-surface-inset">
-          <ScoreBreakdownGrid userPicks={userPicks} actualSetlist={actualSetlist} />
+          <ScoreBreakdownGrid
+            userPicks={userPicks}
+            actualSetlist={actualSetlist}
+            maskPickTitles={maskPickTitles}
+          />
         </div>
       )}
     </div>

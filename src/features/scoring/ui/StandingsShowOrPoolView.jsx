@@ -41,6 +41,7 @@ export default function StandingsShowOrPoolView({ screen }) {
     isSecured,
     picksStatusLoading,
     showLastShowWinnerBanner,
+    redactOpponentPicksPreLock,
   } = screen;
 
   const isPoolsView = view === 'pools';
@@ -109,6 +110,7 @@ export default function StandingsShowOrPoolView({ screen }) {
               title={leaderboardTitle}
               selfUserId={selfUserId}
               suppressLeadingCallout={Boolean(showWinnerBanner)}
+              redactOpponentPicksPreLock={redactOpponentPicksPreLock}
             />
           </div>
         ) : null}
@@ -235,6 +237,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           title={leaderboardTitle}
           selfUserId={selfUserId}
           suppressLeadingCallout={Boolean(showWinnerBanner)}
+          redactOpponentPicksPreLock={redactOpponentPicksPreLock}
         />
       )}
     </>

@@ -4,9 +4,12 @@ import { ymdInTimeZone } from './dateUtils';
 /** Venue / broadcast schedule — picks lock uses wall time in this zone (not the viewer’s local zone). */
 export const SHOW_SCHEDULE_TIMEZONE = 'America/Los_Angeles';
 
-/** Picks lock at this local time in {@link SHOW_SCHEDULE_TIMEZONE} on the show’s calendar date (15 min before a typical 8pm PT start). */
+/**
+ * Picks lock at this local time in {@link SHOW_SCHEDULE_TIMEZONE} on the show’s calendar date.
+ * Interim 7:55pm PT (#303); venue-local lock tracked in #278.
+ */
 export const SHOW_PICKS_LOCK_HOUR_PT = 19;
-export const SHOW_PICKS_LOCK_MINUTE_PT = 45;
+export const SHOW_PICKS_LOCK_MINUTE_PT = 55;
 
 export function scheduleTodayYmd() {
   return ymdInTimeZone(new Date(), SHOW_SCHEDULE_TIMEZONE);
@@ -58,7 +61,7 @@ export function getNextShow(showDates) {
 
 /**
  * NEXT — only date users can enter picks (the upcoming show from “today” in {@link SHOW_SCHEDULE_TIMEZONE}, before lock).
- * LIVE — that show date in PT and wall time there is at/after 7:45pm PT: picks locked, live standings UX.
+ * LIVE — that show date in PT and wall time there is at/after picks lock ({@link SHOW_PICKS_LOCK_HOUR_PT}:{@link SHOW_PICKS_LOCK_MINUTE_PT} PT): picks locked, live standings UX.
  * PAST — calendar date before schedule “today” in PT (show already happened).
  * FUTURE — any other listed date (e.g. later tour nights): too early until that show becomes "next".
  */
@@ -92,3 +95,15 @@ export const getShowStatus = (selectedDate, showDates) => {
   }
   return 'FUTURE';
 };
+
+/**
+ * Standings pick privacy (#303): opponent song titles stay obscured until picks
+ * lock flips the show to LIVE (wall clock) or an official setlist exists for scoring.
+ *
+ * @param {unknown} actualSetlist — official setlist snapshot when graded (truthy => never redact).
+ * @param {string} showStatus — from {@link getShowStatus}
+ * @returns {boolean}
+ */
+export function shouldRedactOpponentPicksPreLock(actualSetlist, showStatus) {
+  return !actualSetlist && showStatus === 'NEXT';
+}

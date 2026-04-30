@@ -1,8 +1,12 @@
 import React from 'react';
+import { Info } from 'lucide-react';
 
 import {
   LEADING_THIS_SHOW,
   SHOW_STANDINGS_EYEBROW,
+  STANDINGS_PICK_PRIVACY_INFO_LABEL,
+  STANDINGS_PICK_PRIVACY_INLINE,
+  STANDINGS_PICK_PRIVACY_TOOLTIP,
 } from '../../../shared/config/dashboardVocabulary';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
 import MetaChip from '../../../shared/ui/MetaChip';
@@ -20,6 +24,8 @@ export default function LeaderboardList({
   selfUserId = null,
   /** When true, hide the top “Leading this show” callout (e.g. Standings already shows “Tonight’s winner”). */
   suppressLeadingCallout = false,
+  /** Pre-lock: blur opponent pick titles in expanded rows (#303). */
+  redactOpponentPicksPreLock = false,
 }) {
   if (sortedPicks.length === 0) {
     return (
@@ -80,12 +86,42 @@ export default function LeaderboardList({
         </div>
       </div>
 
+      {redactOpponentPicksPreLock ? (
+        <div className="mx-2 mb-1 flex min-h-0 items-center gap-1 border-b border-border-subtle/40 pb-1.5">
+          <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-tight text-content-secondary sm:text-xs">
+            {STANDINGS_PICK_PRIVACY_INLINE}
+          </span>
+          {/*
+            Native `title` on <button> is often delayed, truncated, or ignored (#303 follow-up).
+            <details> gives a reliable tap/click surface with the full message; `title` on
+            <summary> remains a best-effort hover hint where the browser cooperates.
+          */}
+          <details className="relative shrink-0">
+            <summary
+              className="list-none cursor-pointer rounded p-0.5 text-brand-primary/85 transition-colors hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg [&::-webkit-details-marker]:hidden"
+              title={STANDINGS_PICK_PRIVACY_TOOLTIP}
+              aria-label={STANDINGS_PICK_PRIVACY_INFO_LABEL}
+            >
+              <Info className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+            </summary>
+            <div
+              role="tooltip"
+              className="absolute right-0 top-full z-30 mt-1.5 w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-border-subtle bg-surface-panel-strong px-3 py-2 text-left text-xs font-medium leading-snug text-slate-100 shadow-lg"
+            >
+              {STANDINGS_PICK_PRIVACY_TOOLTIP}
+            </div>
+          </details>
+        </div>
+      ) : null}
+
       {sortedPicks.map((p, index) => {
         const uniqueId = p.uid || p.id;
         const userPicks = getPickPayload(p);
         const isExpanded = expandedUser === uniqueId;
         const rank = index + 1;
         const isSelf = Boolean(selfUserId) && (p.userId || p.uid) === selfUserId;
+        const maskPickTitles =
+          Boolean(redactOpponentPicksPreLock) && !isSelf;
         // Pre-grade, the self row is pinned to rank 1 by `useLeaderboard`;
         // skip the natural rank badge so users don't misread "1" as a
         // scoring result before the setlist lands.
@@ -102,6 +138,7 @@ export default function LeaderboardList({
             isExpanded={isExpanded}
             onToggle={() => onToggle(uniqueId)}
             userPicks={userPicks}
+            maskPickTitles={maskPickTitles}
           />
         );
       })}
