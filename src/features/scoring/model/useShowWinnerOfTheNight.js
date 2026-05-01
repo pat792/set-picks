@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import {
+  hasNonEmptyPicksObject,
   pickCountsTowardSeason,
   reduceShowWinners,
 } from '../../../shared/utils/showAggregation';
@@ -10,12 +11,20 @@ import {
  * tests and any non-React caller that needs the same shape (e.g. the Tour
  * standings reducer in #219).
  *
+ * `hasUngradedNonEmptyPick` flags partial-grade state: the show has at least
+ * one non-empty pick that hasn't been graded yet. Callers gate the
+ * "tonight's winner" banner on this so an accidental early manual finalize
+ * (or any other path that grades a subset of picks) doesn't crown a winner
+ * picked from a stale subset while newer ungraded picks dominate the live
+ * leaderboard.
+ *
  * @param {Array<{ isGraded?: boolean, score?: number, picks?: unknown } & Record<string, unknown>>} picks
  * @returns {{
  *   max: number | null,
  *   winners: Array<Record<string, unknown>>,
  *   eligiblePlayers: number,
  *   beats: number,
+ *   hasUngradedNonEmptyPick: boolean,
  * }}
  */
 export function computeShowWinnerOfTheNight(picks) {
@@ -24,7 +33,10 @@ export function computeShowWinnerOfTheNight(picks) {
   const { max, winners } = reduceShowWinners(eligible);
   const eligiblePlayers = eligible.length;
   const beats = Math.max(0, eligiblePlayers - winners.length);
-  return { max, winners, eligiblePlayers, beats };
+  const hasUngradedNonEmptyPick = list.some(
+    (p) => p?.isGraded !== true && hasNonEmptyPicksObject(p?.picks),
+  );
+  return { max, winners, eligiblePlayers, beats, hasUngradedNonEmptyPick };
 }
 
 /**
