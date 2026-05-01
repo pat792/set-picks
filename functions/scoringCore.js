@@ -63,6 +63,11 @@ function buildAllPlayedNormalized(actualSetlist) {
   return [...new Set(combined)];
 }
 
+/** True if the persisted official payload contains at least one played song (slots + ordered list). */
+function setlistHasAnyPlayedSong(actualSetlist) {
+  return buildAllPlayedNormalized(actualSetlist).length > 0;
+}
+
 function calculateSlotScore(fieldId, guessedSong, actualSetlist) {
   if (!actualSetlist || !guessedSong) return 0;
 
@@ -144,6 +149,7 @@ module.exports = {
   normalizeSong,
   guessMatchesEncoreExact,
   buildAllPlayedNormalized,
+  setlistHasAnyPlayedSong,
   calculateSlotScore,
   calculateTotalScore,
   actualSetlistFromOfficialDoc,
