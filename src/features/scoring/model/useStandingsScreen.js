@@ -92,10 +92,17 @@ export function useStandingsScreen(selectedDate, options = {}) {
     view === 'pools' && Boolean(poolId) ? poolWinnerOfTheNight : globalWinnerOfTheNight;
   const showWinnerEligibleView =
     view === 'show' || (view === 'pools' && Boolean(poolId));
+  // Suppress the "tonight's winner" banner whenever any non-empty pick is
+  // still ungraded — that's the partial-grade state, e.g. an admin hit
+  // "Finalize and rollup" early and more picks landed afterwards. The
+  // banner reads stored `pick.score` filtered to `isGraded: true`, which
+  // would otherwise crown a winner from a stale subset while the live
+  // leaderboard (computed across every pick) ranks someone else first.
   const showWinnerBanner =
     showWinnerEligibleView &&
     Boolean(actualSetlist) &&
-    winnerOfTheNight.winners.length > 0;
+    winnerOfTheNight.winners.length > 0 &&
+    !winnerOfTheNight.hasUngradedNonEmptyPick;
 
   const lastShowWinnerEnabled =
     showWinnerEligibleView &&
