@@ -1,7 +1,9 @@
+import { resolveShowTimeZone } from '../../../shared/utils/showTimeZone';
+
 /**
  * Validates Firestore `show_calendar/snapshot` written by Cloud Functions (issue #160).
  * @param {import('firebase/firestore').DocumentData | null | undefined} data
- * @returns {{ showDatesByTour: { tour: string, shows: { date: string, venue: string }[] }[], showDates: { date: string, venue: string }[], syncError?: string | null } | null}
+ * @returns {{ showDatesByTour: { tour: string, shows: { date: string, venue: string, timeZone: string }[] }[], showDates: { date: string, venue: string, timeZone: string }[], syncError?: string | null } | null}
  */
 export function normalizeShowCalendarDoc(data) {
   if (!data || typeof data !== 'object') return null;
@@ -25,7 +27,13 @@ export function normalizeShowCalendarDoc(data) {
         const date = typeof s.date === 'string' ? s.date.trim() : '';
         const venue = typeof s.venue === 'string' ? s.venue.trim() : '';
         if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !venue) return null;
-        normShows.push({ date, venue });
+        normShows.push({
+          date,
+          venue,
+          timeZone: resolveShowTimeZone(
+            /** @type {{ timeZone?: string, timezone?: string, venue: string }} */ (s)
+          ),
+        });
       }
       groups.push({ tour, shows: normShows });
     }
@@ -41,7 +49,13 @@ export function normalizeShowCalendarDoc(data) {
       const date = typeof s.date === 'string' ? s.date.trim() : '';
       const venue = typeof s.venue === 'string' ? s.venue.trim() : '';
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !venue) return null;
-      flat.push({ date, venue });
+      flat.push({
+        date,
+        venue,
+        timeZone: resolveShowTimeZone(
+          /** @type {{ timeZone?: string, timezone?: string, venue: string }} */ (s)
+        ),
+      });
     }
     return {
       showDatesByTour: [{ tour: 'Scheduled shows', shows: flat }],

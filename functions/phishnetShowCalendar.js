@@ -59,6 +59,77 @@ function formatRunTourLabel(firstYmd, lastYmd) {
 
 const GENERIC_TOUR = "Not Part of a Tour";
 const MAX_GAP_DAYS = 14;
+const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
+
+const US_STATE_TIME_ZONES = {
+  AL: "America/Chicago",
+  AK: "America/Anchorage",
+  AZ: "America/Phoenix",
+  AR: "America/Chicago",
+  CA: "America/Los_Angeles",
+  CO: "America/Denver",
+  CT: "America/New_York",
+  DE: "America/New_York",
+  FL: "America/New_York",
+  GA: "America/New_York",
+  HI: "Pacific/Honolulu",
+  IA: "America/Chicago",
+  ID: "America/Denver",
+  IL: "America/Chicago",
+  IN: "America/Indiana/Indianapolis",
+  KS: "America/Chicago",
+  KY: "America/New_York",
+  LA: "America/Chicago",
+  MA: "America/New_York",
+  MD: "America/New_York",
+  ME: "America/New_York",
+  MI: "America/Detroit",
+  MN: "America/Chicago",
+  MO: "America/Chicago",
+  MS: "America/Chicago",
+  MT: "America/Denver",
+  NC: "America/New_York",
+  ND: "America/Chicago",
+  NE: "America/Chicago",
+  NH: "America/New_York",
+  NJ: "America/New_York",
+  NM: "America/Denver",
+  NV: "America/Los_Angeles",
+  NY: "America/New_York",
+  OH: "America/New_York",
+  OK: "America/Chicago",
+  OR: "America/Los_Angeles",
+  PA: "America/New_York",
+  RI: "America/New_York",
+  SC: "America/New_York",
+  SD: "America/Chicago",
+  TN: "America/Chicago",
+  TX: "America/Chicago",
+  UT: "America/Denver",
+  VA: "America/New_York",
+  VT: "America/New_York",
+  WA: "America/Los_Angeles",
+  WI: "America/Chicago",
+  WV: "America/New_York",
+  WY: "America/Denver",
+  DC: "America/New_York",
+};
+
+const CANADA_PROVINCE_TIME_ZONES = {
+  AB: "America/Edmonton",
+  BC: "America/Vancouver",
+  MB: "America/Winnipeg",
+  NB: "America/Moncton",
+  NL: "America/St_Johns",
+  NS: "America/Halifax",
+  NT: "America/Yellowknife",
+  NU: "America/Iqaluit",
+  ON: "America/Toronto",
+  PE: "America/Halifax",
+  QC: "America/Toronto",
+  SK: "America/Regina",
+  YT: "America/Whitehorse",
+};
 
 /**
  * Friendly optgroup titles for Phish.net **"Not Part of a Tour"** clusters only.
@@ -199,13 +270,13 @@ function buildApiNamedTourByDate(shows) {
 
 /**
  * Regroup flat shows when per-date tour strings may differ from Phish.net clustering.
- * @param {{ date: string, venue: string }[]} flatSorted
+ * @param {{ date: string, venue: string, timeZone: string }[]} flatSorted
  * @param {(date: string) => string} tourFor
  */
 function regroupConsecutiveTours(flatSorted, tourFor) {
-  /** @type {{ tour: string, shows: { date: string, venue: string }[] }[]} */
+  /** @type {{ tour: string, shows: { date: string, venue: string, timeZone: string }[] }[]} */
   const out = [];
-  let cur = /** @type {{ tour: string, shows: { date: string, venue: string }[] } | null} */ (
+  let cur = /** @type {{ tour: string, shows: { date: string, venue: string, timeZone: string }[] } | null} */ (
     null
   );
   for (const s of flatSorted) {
@@ -215,14 +286,14 @@ function regroupConsecutiveTours(flatSorted, tourFor) {
       cur = { tour: label, shows: [] };
       out.push(cur);
     }
-    cur.shows.push({ date: s.date, venue: s.venue });
+    cur.shows.push({ date: s.date, venue: s.venue, timeZone: s.timeZone });
   }
   return out;
 }
 
 /**
- * @param {{ date: string, venue: string, tour_name: string }[]} shows — sorted ascending by date
- * @param {{ tour: string, shows: { date: string, venue: string }[] }[]} computedGroups — from buildShowDatesByTour
+ * @param {{ date: string, venue: string, tour_name: string, timeZone: string }[]} shows — sorted ascending by date
+ * @param {{ tour: string, shows: { date: string, venue: string, timeZone: string }[] }[]} computedGroups — from buildShowDatesByTour
  * @param {Map<string, string>} prevTourByDate
  * @param {Map<string, string>} overridesByDate
  * @param {{ isFirstSnapshot: boolean }}
@@ -239,7 +310,7 @@ function mergeToursWithSnapshotPreservation(
 ) {
   const computedByDate = computedTourByDateFromGroups(computedGroups);
   const apiNamedByDate = buildApiNamedTourByDate(shows);
-  const flat = shows.map((s) => ({ date: s.date, venue: s.venue }));
+  const flat = shows.map((s) => ({ date: s.date, venue: s.venue, timeZone: s.timeZone }));
 
   function tourFor(date) {
     if (overridesByDate.has(date)) return /** @type {string} */ (overridesByDate.get(date));
@@ -292,6 +363,24 @@ function buildVenueLine(row) {
   return parts.join(", ") || venue || city || "TBA";
 }
 
+function deriveTimeZoneFromLocationParts({ state, country, city, venue }) {
+  const stateCode = String(state ?? "").trim().toUpperCase();
+  if (US_STATE_TIME_ZONES[stateCode]) return US_STATE_TIME_ZONES[stateCode];
+  if (CANADA_PROVINCE_TIME_ZONES[stateCode]) {
+    return CANADA_PROVINCE_TIME_ZONES[stateCode];
+  }
+
+  const merged = [venue, city, state, country].join(" ").toLowerCase();
+  if (/\bcancun\b|\bmexico\b|\bquintana roo\b/.test(merged)) {
+    return "America/Cancun";
+  }
+  if (/\blondon\b|\bengland\b|\buk\b|\bunited kingdom\b/.test(merged)) {
+    return "Europe/London";
+  }
+
+  return DEFAULT_SHOW_TIME_ZONE;
+}
+
 function phishNetResponseOk(data) {
   const apiErr = data && typeof data === "object" ? data.error : undefined;
   return (
@@ -339,10 +428,10 @@ async function fetchShowsForYear(year, apiKey) {
 
 /**
  * @param {Record<string, unknown>[]} rawRows
- * @returns {{ date: string, venue: string, tour_name: string }[]}
+ * @returns {{ date: string, venue: string, tour_name: string, timeZone: string }[]}
  */
 function normalizePhishShows(rawRows) {
-  /** @type {Map<string, { date: string, venue: string, tour_name: string }>} */
+  /** @type {Map<string, { date: string, venue: string, tour_name: string, timeZone: string }>} */
   const byDate = new Map();
 
   for (const row of rawRows) {
@@ -353,22 +442,28 @@ function normalizePhishShows(rawRows) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
     const venue = buildVenueLine(row);
     const tour_name = String(row.tour_name ?? "").trim() || GENERIC_TOUR;
-    byDate.set(date, { date, venue, tour_name });
+    const timeZone = deriveTimeZoneFromLocationParts({
+      state: row.state,
+      country: row.country,
+      city: row.city,
+      venue,
+    });
+    byDate.set(date, { date, venue, tour_name, timeZone });
   }
 
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /**
- * @param {{ date: string, venue: string, tour_name: string }[]} shows
- * @returns {{ tour: string, shows: { date: string, venue: string }[] }[]}
+ * @param {{ date: string, venue: string, tour_name: string, timeZone: string }[]} shows
+ * @returns {{ tour: string, shows: { date: string, venue: string, timeZone: string }[] }[]}
  */
 function buildShowDatesByTour(shows) {
   if (shows.length === 0) return [];
 
   /** @type {string[]} */
   const orderedKeys = [];
-  /** @type {Map<string, { tour: string, shows: { date: string, venue: string }[], firstDate: string, lastDate: string, isGeneric: boolean }>} */
+  /** @type {Map<string, { tour: string, shows: { date: string, venue: string, timeZone: string }[], firstDate: string, lastDate: string, isGeneric: boolean }>} */
   const map = new Map();
 
   let prev = /** @type {typeof shows[0] | null} */ (null);
@@ -403,7 +498,7 @@ function buildShowDatesByTour(shows) {
 
     const g = map.get(key);
     if (!g) continue;
-    g.shows.push({ date: s.date, venue: s.venue });
+    g.shows.push({ date: s.date, venue: s.venue, timeZone: s.timeZone });
     g.lastDate = s.date;
 
     prev = s;

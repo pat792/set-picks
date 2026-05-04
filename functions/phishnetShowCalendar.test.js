@@ -6,6 +6,7 @@ const {
   buildShowDatesByTour,
   flattenSnapshotTourByDate,
   mergeToursWithSnapshotPreservation,
+  normalizePhishShows,
   parseTourOverridesDoc,
 } = require("./phishnetShowCalendar");
 
@@ -214,4 +215,30 @@ test("parseTourOverridesDoc", () => {
     byShowDate: { "2026-09-04": "Summer Tour 2026" },
   });
   assert.equal(m.get("2026-09-04"), "Summer Tour 2026");
+});
+
+test("normalizePhishShows: stamps per-show IANA timezone from location", () => {
+  const out = normalizePhishShows([
+    {
+      artistid: 1,
+      showdate: "2026-07-07",
+      venue: "Kohl Center",
+      city: "Madison",
+      state: "WI",
+      country: "USA",
+      tour_name: "Not Part of a Tour",
+    },
+    {
+      artistid: 1,
+      showdate: "2026-01-28",
+      venue: "Moon Palace",
+      city: "Cancun",
+      state: "",
+      country: "Mexico",
+      tour_name: "2026 Mexico",
+    },
+  ]);
+
+  assert.equal(out[0].timeZone, "America/Cancun");
+  assert.equal(out[1].timeZone, "America/Chicago");
 });

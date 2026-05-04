@@ -19,9 +19,24 @@ describe('normalizeShowCalendarDoc', () => {
     };
     const n = normalizeShowCalendarDoc(doc);
     expect(n?.showDates).toEqual([
-      { date: '2026-04-16', venue: 'Sphere, Las Vegas, NV' },
+      {
+        date: '2026-04-16',
+        venue: 'Sphere, Las Vegas, NV',
+        timeZone: 'America/Los_Angeles',
+      },
     ]);
-    expect(n?.showDatesByTour).toEqual(doc.showDatesByTour);
+    expect(n?.showDatesByTour).toEqual([
+      {
+        tour: 'Test Tour',
+        shows: [
+          {
+            date: '2026-04-16',
+            venue: 'Sphere, Las Vegas, NV',
+            timeZone: 'America/Los_Angeles',
+          },
+        ],
+      },
+    ]);
   });
 
   it('accepts flat showDates only', () => {
@@ -29,8 +44,28 @@ describe('normalizeShowCalendarDoc', () => {
       showDates: [{ date: '2026-04-16', venue: 'Sphere, Las Vegas, NV' }],
     };
     const n = normalizeShowCalendarDoc(doc);
-    expect(n?.showDates).toEqual(doc.showDates);
+    expect(n?.showDates).toEqual([
+      {
+        date: '2026-04-16',
+        venue: 'Sphere, Las Vegas, NV',
+        timeZone: 'America/Los_Angeles',
+      },
+    ]);
     expect(n?.showDatesByTour?.[0]?.tour).toBe('Scheduled shows');
+  });
+
+  it('uses explicit `timeZone` when provided', () => {
+    const doc = {
+      showDates: [
+        {
+          date: '2026-06-21',
+          venue: 'Royal Albert Hall, London, England',
+          timeZone: 'Europe/London',
+        },
+      ],
+    };
+    const n = normalizeShowCalendarDoc(doc);
+    expect(n?.showDates?.[0]?.timeZone).toBe('Europe/London');
   });
 
   it('rejects bad dates', () => {

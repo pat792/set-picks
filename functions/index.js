@@ -12,8 +12,7 @@ const {
 } = require("./phishnetSongCatalog");
 const {
   candidateShowDates,
-  isWithinLiveSetlistPollWindow,
-  parseShowCalendarSnapshotToDateSet,
+  parseShowCalendarSnapshotToShows,
   pollSingleShowDate,
   scheduledCandidateShowDates,
 } = require("./phishnetLiveSetlistAutomation");
@@ -470,24 +469,20 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
       return null;
     }
     const now = new Date();
-    if (!isWithinLiveSetlistPollWindow(now)) {
-      logger.info("scheduledPhishnetLiveSetlistPoll: outside 4pm–4am ET window; skip.");
-      return null;
-    }
     const calSnap = await db.collection("show_calendar").doc("snapshot").get();
-    const calendarSet = parseShowCalendarSnapshotToDateSet(
+    const calendarShows = parseShowCalendarSnapshotToShows(
       calSnap.exists ? calSnap.data() : null
     );
-    if (!calendarSet) {
+    if (!calendarShows) {
       logger.info(
         "scheduledPhishnetLiveSetlistPoll: show_calendar snapshot missing/empty; strict skip (no Phish.net)."
       );
       return null;
     }
-    const dates = scheduledCandidateShowDates(now, calendarSet);
+    const dates = scheduledCandidateShowDates(now, calendarShows);
     if (!dates.length) {
       logger.info(
-        "scheduledPhishnetLiveSetlistPoll: no matching show dates in calendar; skip."
+        "scheduledPhishnetLiveSetlistPoll: no show currently in local 4pm–4am window; skip."
       );
       return null;
     }

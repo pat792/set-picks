@@ -4,6 +4,7 @@ const LIVE_AUTOMATION_COLLECTION = "live_setlist_automation";
 const OFFICIAL_SETLISTS_COLLECTION = "official_setlists";
 const PHISHNET_API_ROOT = "https://api.phish.net/v5/setlists/showdate";
 const MAX_BACKOFF_MINUTES = 30;
+const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 
 const SLOT_KEYS = ["s1o", "s1c", "s2o", "s2c", "enc"];
 
@@ -121,12 +122,40 @@ function getEtHour(now = new Date()) {
   return Number.parseInt(String(hPart?.value ?? "0"), 10);
 }
 
+/** YYYY-MM-DD in any IANA timezone. */
+function ymdInTimeZone(now = new Date(), timeZone = DEFAULT_SHOW_TIME_ZONE) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+/** Wall-clock hour 0–23 in any IANA timezone. */
+function hourInTimeZone(now = new Date(), timeZone = DEFAULT_SHOW_TIME_ZONE) {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    hour12: false,
+  });
+  const parts = dtf.formatToParts(now);
+  const hPart = parts.find((p) => p.type === "hour");
+  return Number.parseInt(String(hPart?.value ?? "0"), 10);
+}
+
 /**
  * Live setlist scheduled polling window: 4:00 PM ET through 4:00 AM ET the next
  * calendar day (active when hour ≥ 16 or hour < 4, America/New_York wall clock).
  */
 function isWithinLiveSetlistPollWindow(now = new Date()) {
   const h = getEtHour(now);
+  return h >= 16 || h < 4;
+}
+
+/** 4pm–4am local wall-clock window for a specific show timezone. */
+function isWithinShowLocalPollWindow(now = new Date(), timeZone = DEFAULT_SHOW_TIME_ZONE) {
+  const h = hourInTimeZone(now, timeZone);
   return h >= 16 || h < 4;
 }
 
@@ -148,46 +177,80 @@ function candidateShowDates(now = new Date()) {
 }
 
 /**
- * Parse `show_calendar/snapshot` into a Set of YYYY-MM-DD show dates.
+ * Parse `show_calendar/snapshot` into a list of show date records.
  * Returns `null` if missing, empty, or unreadable (strict — scheduled poller must skip).
  */
-function parseShowCalendarSnapshotToDateSet(snapshotData) {
+function parseShowCalendarSnapshotToShows(snapshotData) {
   if (!snapshotData || typeof snapshotData !== "object") return null;
   const raw = snapshotData.showDates;
   if (!Array.isArray(raw) || raw.length === 0) return null;
-  const set = new Set();
+  const shows = [];
+  const dedupe = new Set();
   for (const item of raw) {
-    const d =
+    const date =
       typeof item === "string"
-        ? item
+        ? item.trim()
         : item && typeof item === "object" && typeof item.date === "string"
-        ? item.date
-        : null;
-    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) set.add(d);
+          ? item.date.trim()
+          : "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    if (dedupe.has(date)) continue;
+    const explicitTz =
+      item && typeof item === "object"
+        ? typeof item.timeZone === "string" && item.timeZone.trim()
+          ? item.timeZone.trim()
+          : typeof item.timezone === "string" && item.timezone.trim()
+            ? item.timezone.trim()
+            : ""
+        : "";
+    shows.push({ date, timeZone: explicitTz || DEFAULT_SHOW_TIME_ZONE });
+    dedupe.add(date);
   }
-  return set.size > 0 ? set : null;
+  return shows.length > 0 ? shows : null;
 }
 
 /**
- * Scheduled poller target dates (intersected with show_calendar in the caller).
+ * Back-compat parser used by tests/consumers that only need date membership.
+ * @param {import("firebase-admin").firestore.DocumentData | null | undefined} snapshotData
+ */
+function parseShowCalendarSnapshotToDateSet(snapshotData) {
+  const shows = parseShowCalendarSnapshotToShows(snapshotData);
+  if (!shows) return null;
+  return new Set(shows.map((s) => s.date));
+}
+
+/**
+ * Scheduled poller target dates based on each show's local timezone.
  *
- * - Always consider ET "today" when it is a show date in the calendar set.
- * - Do not include "yesterday" by default (before local ET midnight).
- * - After local midnight ET (hours 0–3), also include "yesterday" when that date
- *   is still a show date — same gig can receive encore/post-midnight updates until
+ * - Always consider local "today" when that local wall clock is in the active window.
+ * - Do not include local "yesterday" by default.
+ * - After local midnight (hours 0–3), also include local "yesterday" so a show
+ *   can receive encore/post-midnight updates until the 4 AM local window end.
  *   the 4 AM window end. This is **not** comparing two setlists: each `showDate`
  *   doc is still diffed only against its own last saved official payload/signature.
  */
-function scheduledCandidateShowDates(now, calendarDateSet) {
-  const etToday = formatEtShowDate(now);
-  const etYesterday = ymdDaysAgo(etToday, 1);
-  const hourEt = getEtHour(now);
-  const out = [];
-  if (calendarDateSet.has(etToday)) out.push(etToday);
-  if (hourEt >= 0 && hourEt < 4 && calendarDateSet.has(etYesterday)) {
-    out.push(etYesterday);
+function scheduledCandidateShowDates(now, calendarShows) {
+  if (!Array.isArray(calendarShows) || calendarShows.length === 0) return [];
+  const todayDates = [];
+  const carryoverDates = [];
+  for (const show of calendarShows) {
+    if (!show || typeof show !== "object") continue;
+    const date = typeof show.date === "string" ? show.date.trim() : "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    const timeZone =
+      typeof show.timeZone === "string" && show.timeZone.trim()
+        ? show.timeZone.trim()
+        : DEFAULT_SHOW_TIME_ZONE;
+    if (!isWithinShowLocalPollWindow(now, timeZone)) continue;
+    const localToday = ymdInTimeZone(now, timeZone);
+    const localYesterday = ymdDaysAgo(localToday, 1);
+    const localHour = hourInTimeZone(now, timeZone);
+    if (date === localToday) todayDates.push(date);
+    if (localHour >= 0 && localHour < 4 && date === localYesterday) {
+      carryoverDates.push(date);
+    }
   }
-  return out;
+  return [...new Set([...todayDates, ...carryoverDates])];
 }
 
 /**
@@ -969,13 +1032,17 @@ module.exports = {
   evaluateSet1CloserStage,
   fetchPhishnetSetlistForDate,
   getEtHour,
+  hourInTimeZone,
   isWithinLiveSetlistPollWindow,
+  isWithinShowLocalPollWindow,
   normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
+  parseShowCalendarSnapshotToShows,
   pollSingleShowDate,
   randomScheduledPollDelayMs,
   scheduledCandidateShowDates,
   set1TitleSignatureFromRows,
   setlistPayloadEqual,
   signatureFromRows,
+  ymdInTimeZone,
 };

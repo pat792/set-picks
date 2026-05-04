@@ -16,7 +16,7 @@ import { normalizeShowCalendarDoc } from './normalizeShowCalendarDoc';
 /** @typedef {'firestore' | 'fallback'} ShowCalendarSource */
 
 const ShowCalendarContext = createContext(
-  /** @type {{ showDatesByTour: { tour: string, shows: { date: string, venue: string }[] }[], showDates: { date: string, venue: string }[], source: ShowCalendarSource, loading: boolean, subscriptionError: Error | null, syncError: string | null } | null} */ (
+  /** @type {{ showDatesByTour: { tour: string, shows: { date: string, venue: string, timeZone: string }[] }[], showDates: { date: string, venue: string, timeZone: string }[], source: ShowCalendarSource, loading: boolean, subscriptionError: Error | null, syncError: string | null } | null} */ (
     null
   )
 );
