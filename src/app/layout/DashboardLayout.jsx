@@ -26,6 +26,7 @@ const AccountSecurity = lazy(() =>
 );
 const PoolsPage = lazy(() => import('../../pages/pools/PoolsPage'));
 const PoolHubPage = lazy(() => import('../../pages/pools/PoolHubPage'));
+const NotificationsPage = lazy(() => import('../../pages/notifications/NotificationsPage'));
 
 // `ScoringRulesModalProvider` must stay eager — it wraps the whole dashboard
 // and owns the modal portal state; lazy-loading it would Suspense-flash the
@@ -151,7 +152,8 @@ export default function DashboardLayout() {
             const isProfileSection =
               item.path === '/dashboard/profile' &&
               (location.pathname === '/dashboard/profile' ||
-                location.pathname === '/dashboard/account-security');
+                location.pathname === '/dashboard/account-security' ||
+                location.pathname === '/dashboard/notifications');
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
               (location.pathname === '/dashboard/pools' ||
@@ -272,6 +274,7 @@ export default function DashboardLayout() {
                 path="account-security"
                 element={<AccountSecurity user={user} />}
               />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="pools" element={<PoolsPage user={user} />} />
               <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
             </Routes>
@@ -287,7 +290,8 @@ export default function DashboardLayout() {
             const isProfileSection =
               item.path === '/dashboard/profile' &&
               (location.pathname === '/dashboard/profile' ||
-                location.pathname === '/dashboard/account-security');
+                location.pathname === '/dashboard/account-security' ||
+                location.pathname === '/dashboard/notifications');
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
               (location.pathname === '/dashboard/pools' ||

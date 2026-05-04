@@ -1,0 +1,163 @@
+import React from 'react';
+import { Bell, Mail, Smartphone } from 'lucide-react';
+
+import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
+import { usePushTokenRegistration } from '../model/usePushTokenRegistration';
+
+/**
+ * Lean placeholder for `/dashboard/notifications` (Option B — dedicated route).
+ * Replace with real preferences + inbox when #273–#274 land; keep this file as the
+ * primary presentational shell and add `model/` + `api/` without renaming the route.
+ */
+export default function NotificationsPrototypeScreen() {
+  const {
+    enablePush,
+    errorMessage,
+    permission,
+    status,
+    lastMessageTitle,
+    triggerPushCanary,
+    canaryStatus,
+    canaryMessageId,
+  } = usePushTokenRegistration();
+
+  const pushStatusLabel = {
+    idle: 'Off',
+    working: 'Enabling...',
+    enabled: 'On',
+    denied: 'Blocked',
+    unsupported: 'Unsupported',
+    error: 'Error',
+  }[status] ?? 'Off';
+
+  return (
+    <div className="max-w-xl mx-auto pb-6 md:pb-12">
+      <div className="mb-6 text-left">
+        <h2
+          className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
+        >
+          Notifications
+        </h2>
+        <p className="mt-2 text-sm font-bold leading-relaxed text-content-secondary md:mt-3">
+          Choose how we reach you about shows, scores, and recaps. This page is a{' '}
+          <span className="text-white">prototype shell</span> — toggles are visual only until web push
+          and saved preferences ship (epic #272 / #274).
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4 text-sm font-bold leading-relaxed text-amber-100/95">
+        Product + eng can reshape this layout freely: add an inbox list, channel sections, or move
+        copy into <code className="rounded bg-black/20 px-1 py-0.5 text-xs">content/comms</code> for
+        non-coder edits. The stable contract is the route <code className="text-xs">/dashboard/notifications</code>{' '}
+        and the <code className="text-xs">notifications</code> feature folder.
+      </div>
+
+      <ul className="mt-8 space-y-4">
+        <li className="rounded-3xl border border-border-subtle bg-surface-panel p-5 shadow-inset-glass">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-brand-primary/30 bg-brand-primary/10">
+              <Smartphone className="h-5 w-5 text-brand-primary" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">
+                Push notifications
+              </h3>
+              <p className="mt-1 text-sm font-bold leading-relaxed text-content-secondary">
+                Alerts after scores finalize, reminders before lock, and recap drops. Requires browser
+                permission and our service worker rollout.
+              </p>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">
+                  {pushStatusLabel}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={enablePush}
+                    disabled={status === 'working' || status === 'enabled'}
+                    className="rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    aria-label="Enable push notifications"
+                  >
+                    {status === 'enabled' ? 'Enabled' : 'Enable'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={triggerPushCanary}
+                    disabled={status !== 'enabled' || canaryStatus === 'working'}
+                    className="rounded-lg border border-border-muted bg-surface-inset px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Send push canary notification"
+                  >
+                    {canaryStatus === 'working' ? 'Sending...' : 'Send test push'}
+                  </button>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-content-secondary">
+                Browser permission: <span className="font-bold text-white">{permission}</span>
+              </p>
+              {canaryStatus === 'sent' && canaryMessageId ? (
+                <p className="mt-2 text-xs text-emerald-300">
+                  Canary sent successfully ({canaryMessageId.slice(0, 16)}...)
+                </p>
+              ) : null}
+              {lastMessageTitle ? (
+                <p className="mt-2 text-xs text-emerald-300">
+                  Foreground message received: <span className="font-bold">{lastMessageTitle}</span>
+                </p>
+              ) : null}
+              {errorMessage ? (
+                <p className="mt-2 text-xs text-amber-300">{errorMessage}</p>
+              ) : null}
+            </div>
+          </div>
+        </li>
+
+        <li className="rounded-3xl border border-border-subtle bg-surface-panel p-5 shadow-inset-glass">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-muted bg-surface-inset">
+              <Mail className="h-5 w-5 text-content-secondary" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">
+                Email
+              </h3>
+              <p className="mt-1 text-sm font-bold leading-relaxed text-content-secondary">
+                Teaser + CTA messages (e.g. tour recaps) tied to your account email. Fine-grained
+                categories can land here later.
+              </p>
+              <div className="mt-4 flex items-center justify-between gap-3 opacity-60">
+                <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">
+                  Off (prototype)
+                </span>
+                <button
+                  type="button"
+                  disabled
+                  className="relative h-8 w-14 shrink-0 rounded-full bg-surface-inset ring-1 ring-border-muted"
+                  aria-label="Email notifications — coming soon"
+                >
+                  <span className="absolute left-1 top-1 h-6 w-6 rounded-full bg-content-secondary/40" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li className="rounded-3xl border border-border-subtle bg-surface-panel p-5 shadow-inset-glass">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-muted bg-surface-inset">
+              <Bell className="h-5 w-5 text-content-secondary" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">
+                In-app
+              </h3>
+              <p className="mt-1 text-sm font-bold leading-relaxed text-content-secondary">
+                Banners and surfaces inside the dashboard (no extra permission). Message history or a
+                bell entry point can attach here later.
+              </p>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  );
+}

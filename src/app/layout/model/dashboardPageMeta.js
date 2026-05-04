@@ -9,6 +9,7 @@
 
 import {
   NAV_LABEL_ACCOUNT_SECURITY,
+  NAV_LABEL_NOTIFICATIONS,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_POOLS,
@@ -63,6 +64,7 @@ export function getDashboardPageMeta(pathname, search) {
 
   const isProfile = normalized === '/dashboard/profile';
   const isAccountSecurity = normalized === '/dashboard/account-security';
+  const isNotifications = normalized === '/dashboard/notifications';
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
   const isStandings = normalized === '/dashboard/standings';
@@ -75,15 +77,22 @@ export function getDashboardPageMeta(pathname, search) {
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
     if (isProfile) return NAV_LABEL_PROFILE;
     if (isAccountSecurity) return NAV_LABEL_ACCOUNT_SECURITY;
+    if (isNotifications) return NAV_LABEL_NOTIFICATIONS;
     if (isAdmin) return 'War Room';
     return NAV_LABEL_PICKS;
   })();
 
   const showDatePicker =
-    !isProfile && !isAccountSecurity && !isPoolHub && !isStandingsTourView;
+    !isProfile &&
+    !isAccountSecurity &&
+    !isNotifications &&
+    !isPoolHub &&
+    !isStandingsTourView;
 
   const layoutDesktopHeading =
-    !isProfile && !isAccountSecurity && !isPoolHub ? contextTitle : null;
+    !isProfile && !isAccountSecurity && !isNotifications && !isPoolHub
+      ? contextTitle
+      : null;
 
   const layoutDetailEyebrow = isPoolHub ? POOL_DETAILS_LAYOUT_EYEBROW : null;
 
