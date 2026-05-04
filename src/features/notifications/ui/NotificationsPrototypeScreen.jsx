@@ -12,6 +12,7 @@ import { usePushTokenRegistration } from '../model/usePushTokenRegistration';
 export default function NotificationsPrototypeScreen() {
   const {
     enablePush,
+    disablePush,
     errorMessage,
     permission,
     status,
@@ -73,12 +74,16 @@ export default function NotificationsPrototypeScreen() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={enablePush}
-                    disabled={status === 'working' || status === 'enabled'}
-                    className="rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
-                    aria-label="Enable push notifications"
+                    onClick={status === 'enabled' ? disablePush : enablePush}
+                    disabled={status === 'working'}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-black uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                      status === 'enabled'
+                        ? 'border-amber-500/40 bg-amber-500/10 text-amber-200 hover:border-amber-500 hover:bg-amber-500/20'
+                        : 'border-brand-primary/40 bg-brand-primary/10 text-brand-primary hover:border-brand-primary hover:bg-brand-primary/20'
+                    }`}
+                    aria-label={status === 'enabled' ? 'Disable push notifications' : 'Enable push notifications'}
                   >
-                    {status === 'enabled' ? 'Enabled' : 'Enable'}
+                    {status === 'enabled' ? 'Disable' : status === 'working' ? 'Working...' : 'Enable'}
                   </button>
                   <button
                     type="button"

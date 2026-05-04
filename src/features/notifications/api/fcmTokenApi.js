@@ -1,4 +1,4 @@
-import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
 
@@ -52,4 +52,11 @@ export async function upsertFcmTokenForUser({
   }
 
   return tokenId;
+}
+
+export async function deleteFcmTokenForUser({ userId, token }) {
+  if (!userId) throw new Error('Missing userId');
+  if (!token) return;
+  const tokenId = await deriveTokenId(token);
+  await deleteDoc(tokenDocRef(userId, tokenId));
 }

@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '../../auth';
 import {
-  requestFcmDeviceToken,
+  refreshFcmDeviceToken,
+  revokeFcmDeviceToken,
   subscribeForegroundFcmMessages,
 } from '../../../shared/lib/firebaseMessaging';
-import { upsertFcmTokenForUser } from '../api/fcmTokenApi';
+import { deleteFcmTokenForUser, upsertFcmTokenForUser } from '../api/fcmTokenApi';
 import { sendPushCanary } from '../api/pushCanaryApi';
 
 function browserPermissionState() {
@@ -63,7 +64,7 @@ export function usePushTokenRegistration() {
     }
 
     try {
-      const token = await requestFcmDeviceToken();
+      const token = await refreshFcmDeviceToken();
       if (!token) {
         setStatus('unsupported');
         setErrorMessage('Web push is not supported in this browser context.');
@@ -104,10 +105,32 @@ export function usePushTokenRegistration() {
     }
   }, [user?.uid, currentFcmToken]);
 
+  const disablePush = useCallback(async () => {
+    if (!user?.uid) {
+      setStatus('error');
+      setErrorMessage('Sign in before changing push notifications.');
+      return;
+    }
+    setStatus('working');
+    setErrorMessage('');
+    try {
+      await revokeFcmDeviceToken();
+      await deleteFcmTokenForUser({ userId: user.uid, token: currentFcmToken });
+      setCurrentFcmToken('');
+      setCanaryStatus('idle');
+      setCanaryMessageId('');
+      setStatus('idle');
+    } catch (error) {
+      setStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to disable push.');
+    }
+  }, [currentFcmToken, user?.uid]);
+
   return useMemo(
     () => ({
       canaryMessageId,
       canaryStatus,
+      disablePush,
       enablePush,
       errorMessage,
       lastMessageTitle,
@@ -118,6 +141,7 @@ export function usePushTokenRegistration() {
     [
       canaryMessageId,
       canaryStatus,
+      disablePush,
       enablePush,
       errorMessage,
       lastMessageTitle,

@@ -57,6 +57,41 @@ export async function requestFcmDeviceToken() {
   return token || null;
 }
 
+export async function refreshFcmDeviceToken() {
+  const vapidKey = getVapidKey();
+  if (!vapidKey) {
+    throw new Error('Missing VITE_FCM_VAPID_KEY');
+  }
+
+  const client = await getMessagingClient();
+  if (!client) return null;
+
+  // Force a remint when sender credentials or VAPID configuration changes.
+  try {
+    await client.mod.deleteToken(client.messaging);
+  } catch {
+    // Ignore delete failures and still attempt to mint a new token.
+  }
+
+  const token = await client.mod.getToken(client.messaging, {
+    vapidKey,
+    serviceWorkerRegistration: client.registration,
+  });
+
+  return token || null;
+}
+
+export async function revokeFcmDeviceToken() {
+  const client = await getMessagingClient();
+  if (!client) return false;
+  try {
+    await client.mod.deleteToken(client.messaging);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function subscribeForegroundFcmMessages(onPayload) {
   const client = await getMessagingClient();
   if (!client) return () => {};
