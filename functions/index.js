@@ -327,6 +327,87 @@ exports.setAdminClaim = onCall(
 );
 
 /**
+ * Send a canary push notification to the caller's most-recent registered FCM
+ * token (issue #273). Intended for manual QA of web push plumbing.
+ */
+exports.sendPushCanary = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const callerUid = request.auth.uid;
+
+    const tokensSnap = await db
+      .collection("users")
+      .doc(callerUid)
+      .collection("private_fcmTokens")
+      .orderBy("lastSeenAt", "desc")
+      .limit(1)
+      .get();
+    if (tokensSnap.empty) {
+      throw new HttpsError(
+        "failed-precondition",
+        "No FCM device token found for this user. Enable push first."
+      );
+    }
+
+    const tokenDoc = tokensSnap.docs[0];
+    const tokenData = tokenDoc.data() || {};
+    const token =
+      typeof tokenData.token === "string" ? tokenData.token.trim() : "";
+    if (!token) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Latest FCM token doc is missing a token value."
+      );
+    }
+
+    const timestamp = new Date().toISOString();
+    try {
+      const response = await admin.messaging().send({
+        token,
+        notification: {
+          title: "Setlist Pick Em canary",
+          body: `Push is wired. Sent at ${timestamp}`,
+        },
+        data: {
+          kind: "canary",
+          sentAt: timestamp,
+        },
+        webpush: {
+          fcmOptions: {
+            link: "https://www.setlistpickem.com/dashboard/notifications",
+          },
+        },
+      });
+      await tokenDoc.ref.set(
+        {
+          lastCanaryAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastCanaryMessageId: response,
+        },
+        { merge: true }
+      );
+      return { ok: true, messageId: response };
+    } catch (error) {
+      const code =
+        typeof error?.code === "string"
+          ? error.code
+          : error?.errorInfo?.code || "unknown";
+      logger.error("sendPushCanary failed", { callerUid, tokenId: tokenDoc.id, code });
+      throw new HttpsError(
+        "internal",
+        `Failed to send push canary (${code}).`
+      );
+    }
+  }
+);
+
+/**
  * Server-side delete of a pool with full member cleanup (issue #138).
  *
  * Required because Firestore rules only let a user update their own `users`

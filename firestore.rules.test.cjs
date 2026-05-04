@@ -154,6 +154,54 @@ test("users: admin claim holder may delete profiles", async () => {
   await assertSucceeds(deleteDoc(doc(db, "users", "ghost")));
 });
 
+// ─── users/{userId}/private_fcmTokens/{tokenId} ─────────────────────────────
+
+test("fcmTokens: owner may create token doc under private subcollection", async () => {
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    setDoc(doc(db, "users", "alice", "private_fcmTokens", "tok1"), {
+      token: "abc",
+      platform: "web",
+    })
+  );
+});
+
+test("fcmTokens: non-owner cannot create token docs for another user", async () => {
+  const db = signedInAs("alice");
+  await assertFails(
+    setDoc(doc(db, "users", "bob", "private_fcmTokens", "tok1"), {
+      token: "abc",
+      platform: "web",
+    })
+  );
+});
+
+test("fcmTokens: owner may read own token doc", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "private_fcmTokens", "tok1"), {
+      token: "abc",
+      platform: "web",
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    getDoc(doc(db, "users", "alice", "private_fcmTokens", "tok1"))
+  );
+});
+
+test("fcmTokens: non-owner cannot read another user's token doc", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob", "private_fcmTokens", "tok1"), {
+      token: "abc",
+      platform: "web",
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    getDoc(doc(db, "users", "bob", "private_fcmTokens", "tok1"))
+  );
+});
+
 // ─── picks/{pickId} ──────────────────────────────────────────────────────────
 
 test("picks: owner may create a pick with matching userId", async () => {

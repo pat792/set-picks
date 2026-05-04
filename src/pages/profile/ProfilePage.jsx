@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Bell, ExternalLink } from 'lucide-react';
 
 import { useSignOut } from '../../features/auth';
+import { InstallAppCard } from '../../features/install';
 import { ProfileEditForm, useUserProfile } from '../../features/profile';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import Button from '../../shared/ui/Button';
@@ -70,6 +71,8 @@ export default function Profile({ user }) {
         isLoading={isLoading}
         message={message}
       />
+
+      <InstallAppCard />
 
       <div className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
         <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">

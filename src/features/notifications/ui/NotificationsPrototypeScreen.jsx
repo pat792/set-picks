@@ -2,6 +2,7 @@ import React from 'react';
 import { Bell, Mail, Smartphone } from 'lucide-react';
 
 import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
+import { usePushTokenRegistration } from '../model/usePushTokenRegistration';
 
 /**
  * Lean placeholder for `/dashboard/notifications` (Option B — dedicated route).
@@ -9,6 +10,26 @@ import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashbo
  * primary presentational shell and add `model/` + `api/` without renaming the route.
  */
 export default function NotificationsPrototypeScreen() {
+  const {
+    enablePush,
+    errorMessage,
+    permission,
+    status,
+    lastMessageTitle,
+    triggerPushCanary,
+    canaryStatus,
+    canaryMessageId,
+  } = usePushTokenRegistration();
+
+  const pushStatusLabel = {
+    idle: 'Off',
+    working: 'Enabling...',
+    enabled: 'On',
+    denied: 'Blocked',
+    unsupported: 'Unsupported',
+    error: 'Error',
+  }[status] ?? 'Off';
+
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <div className="mb-6 text-left">
@@ -45,19 +66,47 @@ export default function NotificationsPrototypeScreen() {
                 Alerts after scores finalize, reminders before lock, and recap drops. Requires browser
                 permission and our service worker rollout.
               </p>
-              <div className="mt-4 flex items-center justify-between gap-3 opacity-60">
+              <div className="mt-4 flex items-center justify-between gap-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">
-                  Off (prototype)
+                  {pushStatusLabel}
                 </span>
-                <button
-                  type="button"
-                  disabled
-                  className="relative h-8 w-14 shrink-0 rounded-full bg-surface-inset ring-1 ring-border-muted"
-                  aria-label="Push notifications — coming soon"
-                >
-                  <span className="absolute left-1 top-1 h-6 w-6 rounded-full bg-content-secondary/40" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={enablePush}
+                    disabled={status === 'working' || status === 'enabled'}
+                    className="rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    aria-label="Enable push notifications"
+                  >
+                    {status === 'enabled' ? 'Enabled' : 'Enable'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={triggerPushCanary}
+                    disabled={status !== 'enabled' || canaryStatus === 'working'}
+                    className="rounded-lg border border-border-muted bg-surface-inset px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Send push canary notification"
+                  >
+                    {canaryStatus === 'working' ? 'Sending...' : 'Send test push'}
+                  </button>
+                </div>
               </div>
+              <p className="mt-2 text-xs text-content-secondary">
+                Browser permission: <span className="font-bold text-white">{permission}</span>
+              </p>
+              {canaryStatus === 'sent' && canaryMessageId ? (
+                <p className="mt-2 text-xs text-emerald-300">
+                  Canary sent successfully ({canaryMessageId.slice(0, 16)}...)
+                </p>
+              ) : null}
+              {lastMessageTitle ? (
+                <p className="mt-2 text-xs text-emerald-300">
+                  Foreground message received: <span className="font-bold">{lastMessageTitle}</span>
+                </p>
+              ) : null}
+              {errorMessage ? (
+                <p className="mt-2 text-xs text-amber-300">{errorMessage}</p>
+              ) : null}
             </div>
           </div>
         </li>
