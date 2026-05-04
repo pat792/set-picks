@@ -341,30 +341,45 @@ exports.sendPushCanary = onCall(
       throw new HttpsError("unauthenticated", "Sign in required.");
     }
     const callerUid = request.auth.uid;
+    const explicitTokenRaw = request.data?.token;
+    const explicitToken =
+      typeof explicitTokenRaw === "string" ? explicitTokenRaw.trim() : "";
+    let tokenDoc = null;
+    let token = "";
 
-    const tokensSnap = await db
-      .collection("users")
-      .doc(callerUid)
-      .collection("private_fcmTokens")
-      .orderBy("lastSeenAt", "desc")
-      .limit(1)
-      .get();
-    if (tokensSnap.empty) {
-      throw new HttpsError(
-        "failed-precondition",
-        "No FCM device token found for this user. Enable push first."
-      );
-    }
-
-    const tokenDoc = tokensSnap.docs[0];
-    const tokenData = tokenDoc.data() || {};
-    const token =
-      typeof tokenData.token === "string" ? tokenData.token.trim() : "";
-    if (!token) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Latest FCM token doc is missing a token value."
-      );
+    if (explicitToken) {
+      token = explicitToken;
+      const matchSnap = await db
+        .collection("users")
+        .doc(callerUid)
+        .collection("private_fcmTokens")
+        .where("token", "==", explicitToken)
+        .limit(1)
+        .get();
+      tokenDoc = matchSnap.empty ? null : matchSnap.docs[0];
+    } else {
+      const tokensSnap = await db
+        .collection("users")
+        .doc(callerUid)
+        .collection("private_fcmTokens")
+        .orderBy("lastSeenAt", "desc")
+        .limit(1)
+        .get();
+      if (tokensSnap.empty) {
+        throw new HttpsError(
+          "failed-precondition",
+          "No FCM device token found for this user. Enable push first."
+        );
+      }
+      tokenDoc = tokensSnap.docs[0];
+      const tokenData = tokenDoc.data() || {};
+      token = typeof tokenData.token === "string" ? tokenData.token.trim() : "";
+      if (!token) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Latest FCM token doc is missing a token value."
+        );
+      }
     }
 
     const timestamp = new Date().toISOString();
@@ -385,24 +400,33 @@ exports.sendPushCanary = onCall(
           },
         },
       });
-      await tokenDoc.ref.set(
-        {
-          lastCanaryAt: admin.firestore.FieldValue.serverTimestamp(),
-          lastCanaryMessageId: response,
-        },
-        { merge: true }
-      );
+      if (tokenDoc) {
+        await tokenDoc.ref.set(
+          {
+            lastCanaryAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastCanaryMessageId: response,
+          },
+          { merge: true }
+        );
+      }
       return { ok: true, messageId: response };
     } catch (error) {
       const code =
         typeof error?.code === "string"
           ? error.code
           : error?.errorInfo?.code || "unknown";
-      logger.error("sendPushCanary failed", { callerUid, tokenId: tokenDoc.id, code });
-      throw new HttpsError(
-        "internal",
-        `Failed to send push canary (${code}).`
-      );
+      logger.error("sendPushCanary failed", {
+        callerUid,
+        tokenId: tokenDoc ? tokenDoc.id : "none",
+        code,
+      });
+      if (code === "messaging/mismatched-credential") {
+        throw new HttpsError(
+          "failed-precondition",
+          "Push token credentials do not match the current Firebase sender configuration. Re-enable push to refresh this device token."
+        );
+      }
+      throw new HttpsError("internal", `Failed to send push canary (${code}).`);
     }
   }
 );

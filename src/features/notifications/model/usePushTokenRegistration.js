@@ -19,6 +19,7 @@ export function usePushTokenRegistration() {
   const [errorMessage, setErrorMessage] = useState('');
   const [permission, setPermission] = useState(browserPermissionState);
   const [lastMessageTitle, setLastMessageTitle] = useState('');
+  const [currentFcmToken, setCurrentFcmToken] = useState('');
   const [canaryStatus, setCanaryStatus] = useState('idle');
   const [canaryMessageId, setCanaryMessageId] = useState('');
 
@@ -74,6 +75,7 @@ export function usePushTokenRegistration() {
         token,
         permission: permissionResult,
       });
+      setCurrentFcmToken(token);
       setStatus('enabled');
     } catch (error) {
       setStatus('error');
@@ -90,7 +92,7 @@ export function usePushTokenRegistration() {
     setCanaryStatus('working');
     setErrorMessage('');
     try {
-      const res = await sendPushCanary();
+      const res = await sendPushCanary({ token: currentFcmToken });
       if (!res.ok) {
         throw new Error('Canary push did not report success.');
       }
@@ -100,7 +102,7 @@ export function usePushTokenRegistration() {
       setCanaryStatus('error');
       setErrorMessage(error instanceof Error ? error.message : 'Failed to send test push.');
     }
-  }, [user?.uid]);
+  }, [user?.uid, currentFcmToken]);
 
   return useMemo(
     () => ({
