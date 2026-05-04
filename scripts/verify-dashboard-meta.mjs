@@ -10,6 +10,7 @@ import {
 } from '../src/app/layout/model/dashboardPageMeta.js';
 import {
   NAV_LABEL_ACCOUNT_SECURITY,
+  NAV_LABEL_NOTIFICATIONS,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_POOLS,
@@ -108,6 +109,15 @@ const CASES = [
     path: '/dashboard/account-security',
     expect: {
       contextTitle: NAV_LABEL_ACCOUNT_SECURITY,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    path: '/dashboard/notifications',
+    expect: {
+      contextTitle: NAV_LABEL_NOTIFICATIONS,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
