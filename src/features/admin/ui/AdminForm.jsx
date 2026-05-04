@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../../../shared/ui/Card';
 import { AlertTriangle } from 'lucide-react';
+import { useShowCalendar } from '../../show-calendar';
+import { resolveShowTimeZone } from '../../../shared/utils/showTimeZone';
 import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
 import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
 import AdminSetlistFetchButton from './AdminSetlistFetchButton';
@@ -18,6 +20,7 @@ function normalizeDashboardShowDate(value) {
 }
 
 export default function AdminForm({ user, selectedDate }) {
+  const { showDates } = useShowCalendar();
   const [warRoomShowDate, setWarRoomShowDate] = useState(() =>
     normalizeDashboardShowDate(selectedDate),
   );
@@ -56,6 +59,8 @@ export default function AdminForm({ user, selectedDate }) {
     handleToggleAutomation,
     handlePollAutomationNow,
   } = useAdminSetlistForm({ user, selectedDate: warRoomShowDate });
+  const warRoomShow = showDates.find((show) => show.date === warRoomShowDate) || null;
+  const warRoomTimeZone = resolveShowTimeZone(warRoomShow);
 
   if (!isAdmin) {
     return (
@@ -72,6 +77,7 @@ export default function AdminForm({ user, selectedDate }) {
         value={warRoomShowDate}
         onChange={setWarRoomShowDate}
         disabled={isSaving}
+        timeZone={warRoomTimeZone}
       />
       <AdminClaimBootstrap user={user} />
       <Card variant="danger" padding="sm" className="mb-6 mt-4">
