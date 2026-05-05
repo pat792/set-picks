@@ -12,6 +12,13 @@ function createFcmTokenError(code, message, details = null) {
   return error;
 }
 
+async function clearPushSubscription(registration) {
+  if (!registration?.pushManager) return false;
+  const subscription = await registration.pushManager.getSubscription();
+  if (!subscription) return false;
+  return subscription.unsubscribe();
+}
+
 function getVapidKey() {
   const value = import.meta.env.VITE_FCM_VAPID_KEY;
   if (typeof value !== 'string') return '';
@@ -92,12 +99,26 @@ export async function refreshFcmDeviceTokenWithDebug() {
   if (!client) return null;
 
   // Force a remint when sender credentials or VAPID configuration changes.
+  let deletedExistingToken = false;
   try {
-    await client.mod.deleteToken(client.messaging);
+    deletedExistingToken = await client.mod.deleteToken(client.messaging);
   } catch (error) {
     throw createFcmTokenError(
       'fcm/delete-token-failed',
       'Failed to delete existing FCM token before remint.',
+      {
+        cause: error instanceof Error ? error.message : String(error ?? 'unknown'),
+      }
+    );
+  }
+
+  let clearedPushSubscription = false;
+  try {
+    clearedPushSubscription = await clearPushSubscription(client.registration);
+  } catch (error) {
+    throw createFcmTokenError(
+      'fcm/clear-subscription-failed',
+      'Failed to clear existing PushManager subscription before token remint.',
       {
         cause: error instanceof Error ? error.message : String(error ?? 'unknown'),
       }
@@ -112,13 +133,15 @@ export async function refreshFcmDeviceTokenWithDebug() {
   if (!token) {
     return {
       token: null,
-      deletedExistingToken: true,
+      deletedExistingToken,
+      clearedPushSubscription,
     };
   }
 
   return {
     token,
-    deletedExistingToken: true,
+    deletedExistingToken,
+    clearedPushSubscription,
   };
 }
 

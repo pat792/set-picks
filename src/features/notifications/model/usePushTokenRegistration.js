@@ -94,14 +94,16 @@ export function usePushTokenRegistration() {
 
     try {
       setDebugState({ phase: 'token_refreshing', code: '', message: '' });
-      const { token, deletedExistingToken } = await refreshFcmDeviceTokenWithDebug();
+      const { token, deletedExistingToken, clearedPushSubscription } =
+        await refreshFcmDeviceTokenWithDebug();
       if (!token) {
         setStatus('unsupported');
         setErrorMessage('Web push is not supported in this browser context.');
         setDebugState({
           phase: 'token_missing',
           code: 'token-null',
-          message: 'FCM getToken returned empty after successful deleteToken.',
+          message:
+            'FCM getToken returned empty after token/subscription reset attempt.',
         });
         return;
       }
@@ -110,7 +112,7 @@ export function usePushTokenRegistration() {
       setDebugState({
         phase: 'token_minted',
         code: '',
-        message: `Token minted (...${tokenTail}) after deleteToken=${deletedExistingToken ? 'ok' : 'no-op'}.`,
+        message: `Token minted (...${tokenTail}) after deleteToken=${deletedExistingToken ? 'ok' : 'no-op'}, subscriptionReset=${clearedPushSubscription ? 'ok' : 'no-op'}.`,
       });
       const tokenId = await upsertFcmTokenForUser({
         userId: user.uid,
