@@ -81,7 +81,32 @@ function firebaseConfigProjectIdFromEnv() {
   }
 }
 
-function getMessagingCredentialContext() {
+async function getRuntimeServiceAccountEmail() {
+  if (typeof fetch !== "function") return "";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 800);
+  try {
+    const res = await fetch(
+      "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email",
+      {
+        method: "GET",
+        headers: {
+          "Metadata-Flavor": "Google",
+        },
+        signal: controller.signal,
+      }
+    );
+    if (!res.ok) return "";
+    const text = (await res.text()).trim();
+    return text || "";
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function getMessagingCredentialContext() {
   return {
     adminAppProjectId: admin.app().options.projectId || "",
     firebaseConfigProjectId: firebaseConfigProjectIdFromEnv(),
@@ -90,6 +115,7 @@ function getMessagingCredentialContext() {
     googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT || "",
     functionTarget: process.env.FUNCTION_TARGET || "",
     functionRegion: process.env.FUNCTION_REGION || "",
+    runtimeServiceAccountEmail: await getRuntimeServiceAccountEmail(),
   };
 }
 
@@ -388,7 +414,7 @@ exports.sendPushCanary = onCall(
 
     const timestamp = new Date().toISOString();
     const tokenTail = token.slice(-12);
-    const credentialContext = getMessagingCredentialContext();
+    const credentialContext = await getMessagingCredentialContext();
     const serverProjectId =
       credentialContext.adminAppProjectId ||
       credentialContext.googleCloudProject ||
@@ -426,10 +452,21 @@ exports.sendPushCanary = onCall(
         typeof error?.code === "string"
           ? error.code
           : error?.errorInfo?.code || "unknown";
+      const errorInfoCode =
+        typeof error?.errorInfo?.code === "string" ? error.errorInfo.code : "";
+      const errorInfoMessage =
+        typeof error?.errorInfo?.message === "string"
+          ? error.errorInfo.message
+          : "";
+      const rawErrorMessage =
+        error instanceof Error ? error.message : String(error ?? "");
       logger.error("sendPushCanary failed", {
         callerUid,
         tokenId: tokenDoc ? tokenDoc.id : "none",
         code,
+        errorInfoCode,
+        errorInfoMessage,
+        rawErrorMessage,
         tokenTail,
         serverProjectId,
         credentialContext,
@@ -444,6 +481,9 @@ exports.sendPushCanary = onCall(
             tokenTail,
             tokenDocMatch: Boolean(tokenDoc),
             tokenDocId: tokenDoc ? tokenDoc.id : null,
+            errorInfoCode,
+            errorInfoMessage,
+            rawErrorMessage,
             credentialContext,
           }
         );
@@ -457,6 +497,9 @@ exports.sendPushCanary = onCall(
           tokenTail,
           tokenDocMatch: Boolean(tokenDoc),
           tokenDocId: tokenDoc ? tokenDoc.id : null,
+          errorInfoCode,
+          errorInfoMessage,
+          rawErrorMessage,
           credentialContext,
         }
       );
