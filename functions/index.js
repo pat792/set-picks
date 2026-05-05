@@ -68,6 +68,31 @@ function assertShowDateString(showDate) {
   return showDate.trim();
 }
 
+function firebaseConfigProjectIdFromEnv() {
+  const raw = process.env.FIREBASE_CONFIG;
+  if (!raw || typeof raw !== "string") return "";
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{")) return "";
+  try {
+    const parsed = JSON.parse(trimmed);
+    return typeof parsed?.projectId === "string" ? parsed.projectId : "";
+  } catch {
+    return "";
+  }
+}
+
+function getMessagingCredentialContext() {
+  return {
+    adminAppProjectId: admin.app().options.projectId || "",
+    firebaseConfigProjectId: firebaseConfigProjectIdFromEnv(),
+    gcloudProject:
+      process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "",
+    googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT || "",
+    functionTarget: process.env.FUNCTION_TARGET || "",
+    functionRegion: process.env.FUNCTION_REGION || "",
+  };
+}
+
 /** Firestore batch write limit (same invariant as `adminRollupApi.js` / `profileApi.js`). */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
 
@@ -363,7 +388,12 @@ exports.sendPushCanary = onCall(
 
     const timestamp = new Date().toISOString();
     const tokenTail = token.slice(-12);
-    const serverProjectId = admin.app().options.projectId || "unknown";
+    const credentialContext = getMessagingCredentialContext();
+    const serverProjectId =
+      credentialContext.adminAppProjectId ||
+      credentialContext.googleCloudProject ||
+      credentialContext.firebaseConfigProjectId ||
+      "unknown";
     try {
       const response = await admin.messaging().send({
         token,
@@ -402,6 +432,7 @@ exports.sendPushCanary = onCall(
         code,
         tokenTail,
         serverProjectId,
+        credentialContext,
       });
       if (code === "messaging/mismatched-credential") {
         throw new HttpsError(
@@ -413,6 +444,7 @@ exports.sendPushCanary = onCall(
             tokenTail,
             tokenDocMatch: Boolean(tokenDoc),
             tokenDocId: tokenDoc ? tokenDoc.id : null,
+            credentialContext,
           }
         );
       }
@@ -425,6 +457,7 @@ exports.sendPushCanary = onCall(
           tokenTail,
           tokenDocMatch: Boolean(tokenDoc),
           tokenDocId: tokenDoc ? tokenDoc.id : null,
+          credentialContext,
         }
       );
     }
