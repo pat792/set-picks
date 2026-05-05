@@ -136,7 +136,7 @@ export function usePushTokenRegistration() {
   const triggerPushCanary = useCallback(async () => {
     if (!user?.uid) {
       setCanaryStatus('error');
-      setErrorMessage('Sign in before sending a test push.');
+      setErrorMessage('Sign in before sending a test notification.');
       setDebugState({ phase: 'canary_auth_missing', code: 'no-user', message: 'Missing auth uid in app session.' });
       return;
     }
@@ -166,7 +166,7 @@ export function usePushTokenRegistration() {
     try {
       const res = await sendPushCanary({ token: currentFcmToken });
       if (!res.ok) {
-        throw new Error('Canary push did not report success.');
+        throw new Error('Test notification did not report success.');
       }
       setCanaryMessageId(res.messageId);
       setCanaryStatus('sent');
@@ -174,7 +174,7 @@ export function usePushTokenRegistration() {
     } catch (error) {
       const parsed = normalizeError(error);
       setCanaryStatus('error');
-      setErrorMessage(parsed.message || 'Failed to send test push.');
+      setErrorMessage(parsed.message || 'Failed to send test notification.');
       setDebugState({
         phase: 'canary_failed',
         code: parsed.code,

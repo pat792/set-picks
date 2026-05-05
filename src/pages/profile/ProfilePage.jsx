@@ -79,8 +79,7 @@ export default function Profile({ user }) {
           Notifications
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-content-secondary">
-          Push, email, and in-app updates for shows and recaps. Preferences are a prototype for now —
-          the destination URL is stable for bookmarks and future wiring (#272 / #274).
+          Manage push notifications for score updates, reminders, and recap drops.
         </p>
         <Link
           to="/dashboard/notifications"

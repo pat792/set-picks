@@ -134,10 +134,10 @@ async function main() {
 
   const title =
     (typeof args.title === "string" && args.title.trim()) ||
-    "Setlist Pick Em canary";
+    "Setlist Pick Em";
   const body =
     (typeof args.body === "string" && args.body.trim()) ||
-    `Terminal-triggered push canary at ${new Date().toISOString()}`;
+    `Test notification delivered at ${new Date().toISOString()}`;
 
   admin.initializeApp({ projectId });
   const db = admin.firestore();

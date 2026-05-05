@@ -9,9 +9,7 @@ export default function NotificationsPrototypeScreen() {
     enablePush,
     disablePush,
     errorMessage,
-    debugState,
     permission,
-    runtimeDebug,
     status,
     lastMessageTitle,
     triggerPushCanary,
@@ -54,7 +52,7 @@ export default function NotificationsPrototypeScreen() {
               </h3>
               <p className="mt-1 text-sm font-bold leading-relaxed text-content-secondary">
                 Alerts after scores finalize, reminders before lock, and recap drops. Requires browser
-                permission and our service worker rollout.
+                notification permission.
               </p>
               <div className="mt-4 flex items-center justify-between gap-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">
@@ -79,9 +77,9 @@ export default function NotificationsPrototypeScreen() {
                     onClick={triggerPushCanary}
                     disabled={status !== 'enabled' || canaryStatus === 'working'}
                     className="rounded-lg border border-border-muted bg-surface-inset px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel disabled:cursor-not-allowed disabled:opacity-50"
-                    aria-label="Send push canary notification"
+                    aria-label="Send test notification"
                   >
-                    {canaryStatus === 'working' ? 'Sending...' : 'Send test push'}
+                    {canaryStatus === 'working' ? 'Sending...' : 'Send test notification'}
                   </button>
                 </div>
               </div>
@@ -90,7 +88,7 @@ export default function NotificationsPrototypeScreen() {
               </p>
               {canaryStatus === 'sent' && canaryMessageId ? (
                 <p className="mt-2 text-xs text-emerald-300">
-                  Canary sent successfully ({canaryMessageId.slice(0, 16)}...)
+                  Test notification sent ({canaryMessageId.slice(0, 16)}...)
                 </p>
               ) : null}
               {lastMessageTitle ? (
@@ -101,37 +99,6 @@ export default function NotificationsPrototypeScreen() {
               {errorMessage ? (
                 <p className="mt-2 text-xs text-amber-300">{errorMessage}</p>
               ) : null}
-              <div className="mt-3 rounded-xl border border-border-muted bg-surface-inset p-3 text-[11px] text-content-secondary">
-                <p>
-                  Debug phase: <span className="font-mono text-white">{debugState.phase}</span>
-                </p>
-                <p>
-                  Debug code:{' '}
-                  <span className="font-mono text-white">{debugState.code || 'n/a'}</span>
-                </p>
-                <p className="break-all">
-                  Debug detail:{' '}
-                  <span className="font-mono text-white">{debugState.message || 'n/a'}</span>
-                </p>
-                <p>
-                  Runtime sender/project:{' '}
-                  <span className="font-mono text-white">
-                    {runtimeDebug.senderId || 'n/a'} / {runtimeDebug.projectId || 'n/a'}
-                  </span>
-                </p>
-                <p>
-                  Runtime VAPID:{' '}
-                  <span className="font-mono text-white">
-                    {runtimeDebug.hasVapidKey
-                      ? `present (...${runtimeDebug.vapidKeyTail || 'tail-missing'})`
-                      : 'missing'}
-                  </span>
-                </p>
-                <p>
-                  Runtime host:{' '}
-                  <span className="font-mono text-white">{runtimeDebug.host || 'n/a'}</span>
-                </p>
-              </div>
             </div>
           </div>
         </li>

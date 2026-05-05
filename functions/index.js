@@ -367,8 +367,8 @@ exports.sendPushCanary = onCall(
       const response = await admin.messaging().send({
         token,
         notification: {
-          title: "Setlist Pick Em canary",
-          body: `Push is wired. Sent at ${timestamp}`,
+          title: "Setlist Pick Em",
+          body: `Test notification delivered at ${timestamp}`,
         },
         data: {
           kind: "canary",
