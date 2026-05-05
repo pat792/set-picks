@@ -68,57 +68,6 @@ function assertShowDateString(showDate) {
   return showDate.trim();
 }
 
-function firebaseConfigProjectIdFromEnv() {
-  const raw = process.env.FIREBASE_CONFIG;
-  if (!raw || typeof raw !== "string") return "";
-  const trimmed = raw.trim();
-  if (!trimmed.startsWith("{")) return "";
-  try {
-    const parsed = JSON.parse(trimmed);
-    return typeof parsed?.projectId === "string" ? parsed.projectId : "";
-  } catch {
-    return "";
-  }
-}
-
-async function getRuntimeServiceAccountEmail() {
-  if (typeof fetch !== "function") return "";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 800);
-  try {
-    const res = await fetch(
-      "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email",
-      {
-        method: "GET",
-        headers: {
-          "Metadata-Flavor": "Google",
-        },
-        signal: controller.signal,
-      }
-    );
-    if (!res.ok) return "";
-    const text = (await res.text()).trim();
-    return text || "";
-  } catch {
-    return "";
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function getMessagingCredentialContext() {
-  return {
-    adminAppProjectId: admin.app().options.projectId || "",
-    firebaseConfigProjectId: firebaseConfigProjectIdFromEnv(),
-    gcloudProject:
-      process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "",
-    googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT || "",
-    functionTarget: process.env.FUNCTION_TARGET || "",
-    functionRegion: process.env.FUNCTION_REGION || "",
-    runtimeServiceAccountEmail: await getRuntimeServiceAccountEmail(),
-  };
-}
-
 /** Firestore batch write limit (same invariant as `adminRollupApi.js` / `profileApi.js`). */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
 
@@ -414,12 +363,6 @@ exports.sendPushCanary = onCall(
 
     const timestamp = new Date().toISOString();
     const tokenTail = token.slice(-12);
-    const credentialContext = await getMessagingCredentialContext();
-    const serverProjectId =
-      credentialContext.adminAppProjectId ||
-      credentialContext.googleCloudProject ||
-      credentialContext.firebaseConfigProjectId ||
-      "unknown";
     try {
       const response = await admin.messaging().send({
         token,
@@ -452,56 +395,21 @@ exports.sendPushCanary = onCall(
         typeof error?.code === "string"
           ? error.code
           : error?.errorInfo?.code || "unknown";
-      const errorInfoCode =
-        typeof error?.errorInfo?.code === "string" ? error.errorInfo.code : "";
-      const errorInfoMessage =
-        typeof error?.errorInfo?.message === "string"
-          ? error.errorInfo.message
-          : "";
-      const rawErrorMessage =
-        error instanceof Error ? error.message : String(error ?? "");
       logger.error("sendPushCanary failed", {
         callerUid,
         tokenId: tokenDoc ? tokenDoc.id : "none",
         code,
-        errorInfoCode,
-        errorInfoMessage,
-        rawErrorMessage,
         tokenTail,
-        serverProjectId,
-        credentialContext,
       });
       if (code === "messaging/mismatched-credential") {
         throw new HttpsError(
           "failed-precondition",
-          "Push token credentials do not match the current Firebase sender configuration. Re-enable push to refresh this device token.",
-          {
-            code,
-            serverProjectId,
-            tokenTail,
-            tokenDocMatch: Boolean(tokenDoc),
-            tokenDocId: tokenDoc ? tokenDoc.id : null,
-            errorInfoCode,
-            errorInfoMessage,
-            rawErrorMessage,
-            credentialContext,
-          }
+          "Push token credentials do not match the current Firebase sender configuration. Re-enable push to refresh this device token."
         );
       }
       throw new HttpsError(
         "internal",
-        `Failed to send push canary (${code}).`,
-        {
-          code,
-          serverProjectId,
-          tokenTail,
-          tokenDocMatch: Boolean(tokenDoc),
-          tokenDocId: tokenDoc ? tokenDoc.id : null,
-          errorInfoCode,
-          errorInfoMessage,
-          rawErrorMessage,
-          credentialContext,
-        }
+        `Failed to send push canary (${code}).`
       );
     }
   }

@@ -12,6 +12,7 @@
     "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow,functions:scheduledPhishnetSongCatalog,functions:refreshPhishnetSongCatalog,functions:scheduledPhishnetLiveSetlistPoll,functions:setLiveSetlistAutomationState,functions:pollLiveSetlistNow,functions:sendPushCanary",
     "diagnose:phishnet": "node ../scripts/diagnose-phishnet-local.mjs",
     "qa:clone-picks-for-show": "node scripts/clonePicksForShowQa.js",
+    "qa:push-canary-for-user": "node scripts/sendPushCanaryForUser.js",
     "backfill:bustouts": "node scripts/backfillBustouts.js",
     "backfill:season-aggregates": "node scripts/backfillSeasonAggregates.js"
   },

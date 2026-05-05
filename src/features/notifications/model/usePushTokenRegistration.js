@@ -19,12 +19,7 @@ function normalizeError(error) {
   const code =
     error && typeof error === 'object' && typeof error.code === 'string' ? error.code : 'unknown';
   const message = error instanceof Error ? error.message : String(error ?? 'Unknown error');
-  const details =
-    error && typeof error === 'object' && 'details' in error && error.details != null
-      ? error.details
-      : null;
-  const detailsText = details ? JSON.stringify(details) : '';
-  return { code, message, detailsText };
+  return { code, message };
 }
 
 export function usePushTokenRegistration() {
@@ -94,8 +89,7 @@ export function usePushTokenRegistration() {
 
     try {
       setDebugState({ phase: 'token_refreshing', code: '', message: '' });
-      const { token, deletedExistingToken, clearedPushSubscription } =
-        await refreshFcmDeviceTokenWithDebug();
+      const { token } = await refreshFcmDeviceTokenWithDebug();
       if (!token) {
         setStatus('unsupported');
         setErrorMessage('Web push is not supported in this browser context.');
@@ -108,13 +102,12 @@ export function usePushTokenRegistration() {
         return;
       }
 
-      const tokenTail = token.slice(-16);
       setDebugState({
         phase: 'token_minted',
         code: '',
-        message: `Token minted (...${tokenTail}) after deleteToken=${deletedExistingToken ? 'ok' : 'no-op'}, subscriptionReset=${clearedPushSubscription ? 'ok' : 'no-op'}.`,
+        message: 'Token minted successfully.',
       });
-      const tokenId = await upsertFcmTokenForUser({
+      await upsertFcmTokenForUser({
         userId: user.uid,
         token,
         permission: permissionResult,
@@ -125,7 +118,7 @@ export function usePushTokenRegistration() {
       setDebugState({
         phase: 'upsert_ok',
         code: '',
-        message: `Token upsert succeeded for token ...${tokenTail} (doc ${tokenId.slice(-12)}).`,
+        message: 'Token upsert succeeded.',
       });
     } catch (error) {
       const parsed = normalizeError(error);
@@ -135,7 +128,7 @@ export function usePushTokenRegistration() {
       setDebugState({
         phase: 'enable_failed',
         code: parsed.code,
-        message: parsed.detailsText ? `${parsed.message} | ${parsed.detailsText}` : parsed.message,
+        message: parsed.message,
       });
     }
   }, [user?.uid]);
@@ -169,11 +162,7 @@ export function usePushTokenRegistration() {
     }
     setCanaryStatus('working');
     setErrorMessage('');
-    setDebugState({
-      phase: 'canary_sending',
-      code: '',
-      message: `Sending canary for token ...${currentFcmToken.slice(-16)}.`,
-    });
+    setDebugState({ phase: 'canary_sending', code: '', message: '' });
     try {
       const res = await sendPushCanary({ token: currentFcmToken });
       if (!res.ok) {
@@ -189,7 +178,7 @@ export function usePushTokenRegistration() {
       setDebugState({
         phase: 'canary_failed',
         code: parsed.code,
-        message: parsed.detailsText ? `${parsed.message} | ${parsed.detailsText}` : parsed.message,
+        message: parsed.message,
       });
     }
   }, [user?.uid, currentFcmToken, hasFreshRotationInSession]);
@@ -220,7 +209,7 @@ export function usePushTokenRegistration() {
       setDebugState({
         phase: 'disable_failed',
         code: parsed.code,
-        message: parsed.detailsText ? `${parsed.message} | ${parsed.detailsText}` : parsed.message,
+        message: parsed.message,
       });
     }
   }, [currentFcmToken, user?.uid]);
