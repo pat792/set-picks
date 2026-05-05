@@ -9,6 +9,17 @@ function getVapidKey() {
   return value.trim();
 }
 
+export function getFcmRuntimeDebugInfo() {
+  const vapid = getVapidKey();
+  return {
+    hasVapidKey: Boolean(vapid),
+    vapidKeyTail: vapid ? vapid.slice(-12) : '',
+    senderId: app?.options?.messagingSenderId || '',
+    projectId: app?.options?.projectId || '',
+    host: typeof window !== 'undefined' ? window.location.host : '',
+  };
+}
+
 function loadMessagingModule() {
   if (!fcmModulePromise) {
     fcmModulePromise = import('firebase/messaging');

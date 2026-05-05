@@ -344,43 +344,22 @@ exports.sendPushCanary = onCall(
     const explicitTokenRaw = request.data?.token;
     const explicitToken =
       typeof explicitTokenRaw === "string" ? explicitTokenRaw.trim() : "";
-    let tokenDoc = null;
-    let token = "";
-
-    if (explicitToken) {
-      token = explicitToken;
-      const matchSnap = await db
-        .collection("users")
-        .doc(callerUid)
-        .collection("private_fcmTokens")
-        .where("token", "==", explicitToken)
-        .limit(1)
-        .get();
-      tokenDoc = matchSnap.empty ? null : matchSnap.docs[0];
-    } else {
-      const tokensSnap = await db
-        .collection("users")
-        .doc(callerUid)
-        .collection("private_fcmTokens")
-        .orderBy("lastSeenAt", "desc")
-        .limit(1)
-        .get();
-      if (tokensSnap.empty) {
-        throw new HttpsError(
-          "failed-precondition",
-          "No FCM device token found for this user. Enable push first."
-        );
-      }
-      tokenDoc = tokensSnap.docs[0];
-      const tokenData = tokenDoc.data() || {};
-      token = typeof tokenData.token === "string" ? tokenData.token.trim() : "";
-      if (!token) {
-        throw new HttpsError(
-          "failed-precondition",
-          "Latest FCM token doc is missing a token value."
-        );
-      }
+    if (!explicitToken) {
+      throw new HttpsError(
+        "failed-precondition",
+        "No explicit FCM token provided by client. Re-enable push and retry canary in the same session."
+      );
     }
+    const token = explicitToken;
+    let tokenDoc = null;
+    const matchSnap = await db
+      .collection("users")
+      .doc(callerUid)
+      .collection("private_fcmTokens")
+      .where("token", "==", explicitToken)
+      .limit(1)
+      .get();
+    tokenDoc = matchSnap.empty ? null : matchSnap.docs[0];
 
     const timestamp = new Date().toISOString();
     try {

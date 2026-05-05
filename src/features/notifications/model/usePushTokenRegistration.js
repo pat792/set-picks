@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '../../auth';
 import {
+  getFcmRuntimeDebugInfo,
   refreshFcmDeviceToken,
   revokeFcmDeviceToken,
   subscribeForegroundFcmMessages,
@@ -31,6 +32,7 @@ export function usePushTokenRegistration() {
   const [canaryStatus, setCanaryStatus] = useState('idle');
   const [canaryMessageId, setCanaryMessageId] = useState('');
   const [debugState, setDebugState] = useState({ phase: 'idle', code: '', message: '' });
+  const [runtimeDebug] = useState(() => getFcmRuntimeDebugInfo());
 
   useEffect(() => {
     let unsubscribe = () => {};
@@ -125,6 +127,16 @@ export function usePushTokenRegistration() {
       setDebugState({ phase: 'canary_auth_missing', code: 'no-user', message: 'Missing auth uid in app session.' });
       return;
     }
+    if (!currentFcmToken) {
+      setCanaryStatus('error');
+      setErrorMessage('No in-session FCM token. Tap Enable first to mint a fresh token.');
+      setDebugState({
+        phase: 'canary_missing_token',
+        code: 'missing-token',
+        message: 'currentFcmToken is empty in client state.',
+      });
+      return;
+    }
     setCanaryStatus('working');
     setErrorMessage('');
     setDebugState({ phase: 'canary_sending', code: '', message: '' });
@@ -180,6 +192,7 @@ export function usePushTokenRegistration() {
       debugState,
       lastMessageTitle,
       permission,
+      runtimeDebug,
       status,
       triggerPushCanary,
     }),
@@ -192,6 +205,7 @@ export function usePushTokenRegistration() {
       debugState,
       lastMessageTitle,
       permission,
+      runtimeDebug,
       status,
       triggerPushCanary,
     ]

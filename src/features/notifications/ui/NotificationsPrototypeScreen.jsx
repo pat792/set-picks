@@ -16,6 +16,7 @@ export default function NotificationsPrototypeScreen() {
     errorMessage,
     debugState,
     permission,
+    runtimeDebug,
     status,
     lastMessageTitle,
     triggerPushCanary,
@@ -124,6 +125,24 @@ export default function NotificationsPrototypeScreen() {
                 <p className="break-all">
                   Debug detail:{' '}
                   <span className="font-mono text-white">{debugState.message || 'n/a'}</span>
+                </p>
+                <p>
+                  Runtime sender/project:{' '}
+                  <span className="font-mono text-white">
+                    {runtimeDebug.senderId || 'n/a'} / {runtimeDebug.projectId || 'n/a'}
+                  </span>
+                </p>
+                <p>
+                  Runtime VAPID:{' '}
+                  <span className="font-mono text-white">
+                    {runtimeDebug.hasVapidKey
+                      ? `present (...${runtimeDebug.vapidKeyTail || 'tail-missing'})`
+                      : 'missing'}
+                  </span>
+                </p>
+                <p>
+                  Runtime host:{' '}
+                  <span className="font-mono text-white">{runtimeDebug.host || 'n/a'}</span>
                 </p>
               </div>
             </div>
