@@ -19,7 +19,12 @@ function normalizeError(error) {
   const code =
     error && typeof error === 'object' && typeof error.code === 'string' ? error.code : 'unknown';
   const message = error instanceof Error ? error.message : String(error ?? 'Unknown error');
-  return { code, message };
+  const details =
+    error && typeof error === 'object' && 'details' in error && error.details != null
+      ? error.details
+      : null;
+  const detailsText = details ? JSON.stringify(details) : '';
+  return { code, message, detailsText };
 }
 
 export function usePushTokenRegistration() {
@@ -116,7 +121,11 @@ export function usePushTokenRegistration() {
       const parsed = normalizeError(error);
       setStatus('error');
       setErrorMessage(parsed.message || 'Failed to enable push.');
-      setDebugState({ phase: 'enable_failed', code: parsed.code, message: parsed.message });
+      setDebugState({
+        phase: 'enable_failed',
+        code: parsed.code,
+        message: parsed.detailsText ? `${parsed.message} | ${parsed.detailsText}` : parsed.message,
+      });
     }
   }, [user?.uid]);
 
@@ -152,7 +161,11 @@ export function usePushTokenRegistration() {
       const parsed = normalizeError(error);
       setCanaryStatus('error');
       setErrorMessage(parsed.message || 'Failed to send test push.');
-      setDebugState({ phase: 'canary_failed', code: parsed.code, message: parsed.message });
+      setDebugState({
+        phase: 'canary_failed',
+        code: parsed.code,
+        message: parsed.detailsText ? `${parsed.message} | ${parsed.detailsText}` : parsed.message,
+      });
     }
   }, [user?.uid, currentFcmToken]);
 
@@ -178,7 +191,11 @@ export function usePushTokenRegistration() {
       const parsed = normalizeError(error);
       setStatus('error');
       setErrorMessage(parsed.message || 'Failed to disable push.');
-      setDebugState({ phase: 'disable_failed', code: parsed.code, message: parsed.message });
+      setDebugState({
+        phase: 'disable_failed',
+        code: parsed.code,
+        message: parsed.detailsText ? `${parsed.message} | ${parsed.detailsText}` : parsed.message,
+      });
     }
   }, [currentFcmToken, user?.uid]);
 

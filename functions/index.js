@@ -362,6 +362,8 @@ exports.sendPushCanary = onCall(
     tokenDoc = matchSnap.empty ? null : matchSnap.docs[0];
 
     const timestamp = new Date().toISOString();
+    const tokenTail = token.slice(-12);
+    const serverProjectId = admin.app().options.projectId || "unknown";
     try {
       const response = await admin.messaging().send({
         token,
@@ -398,14 +400,33 @@ exports.sendPushCanary = onCall(
         callerUid,
         tokenId: tokenDoc ? tokenDoc.id : "none",
         code,
+        tokenTail,
+        serverProjectId,
       });
       if (code === "messaging/mismatched-credential") {
         throw new HttpsError(
           "failed-precondition",
-          "Push token credentials do not match the current Firebase sender configuration. Re-enable push to refresh this device token."
+          "Push token credentials do not match the current Firebase sender configuration. Re-enable push to refresh this device token.",
+          {
+            code,
+            serverProjectId,
+            tokenTail,
+            tokenDocMatch: Boolean(tokenDoc),
+            tokenDocId: tokenDoc ? tokenDoc.id : null,
+          }
         );
       }
-      throw new HttpsError("internal", `Failed to send push canary (${code}).`);
+      throw new HttpsError(
+        "internal",
+        `Failed to send push canary (${code}).`,
+        {
+          code,
+          serverProjectId,
+          tokenTail,
+          tokenDocMatch: Boolean(tokenDoc),
+          tokenDocId: tokenDoc ? tokenDoc.id : null,
+        }
+      );
     }
   }
 );
