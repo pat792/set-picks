@@ -3,6 +3,15 @@ import { app } from './firebase';
 let fcmModulePromise = null;
 let swRegistrationPromise = null;
 
+function createFcmTokenError(code, message, details = null) {
+  const error = new Error(message);
+  error.code = code;
+  if (details) {
+    error.details = details;
+  }
+  return error;
+}
+
 function getVapidKey() {
   const value = import.meta.env.VITE_FCM_VAPID_KEY;
   if (typeof value !== 'string') return '';
@@ -69,6 +78,11 @@ export async function requestFcmDeviceToken() {
 }
 
 export async function refreshFcmDeviceToken() {
+  const result = await refreshFcmDeviceTokenWithDebug();
+  return result.token;
+}
+
+export async function refreshFcmDeviceTokenWithDebug() {
   const vapidKey = getVapidKey();
   if (!vapidKey) {
     throw new Error('Missing VITE_FCM_VAPID_KEY');
@@ -80,8 +94,14 @@ export async function refreshFcmDeviceToken() {
   // Force a remint when sender credentials or VAPID configuration changes.
   try {
     await client.mod.deleteToken(client.messaging);
-  } catch {
-    // Ignore delete failures and still attempt to mint a new token.
+  } catch (error) {
+    throw createFcmTokenError(
+      'fcm/delete-token-failed',
+      'Failed to delete existing FCM token before remint.',
+      {
+        cause: error instanceof Error ? error.message : String(error ?? 'unknown'),
+      }
+    );
   }
 
   const token = await client.mod.getToken(client.messaging, {
@@ -89,7 +109,17 @@ export async function refreshFcmDeviceToken() {
     serviceWorkerRegistration: client.registration,
   });
 
-  return token || null;
+  if (!token) {
+    return {
+      token: null,
+      deletedExistingToken: true,
+    };
+  }
+
+  return {
+    token,
+    deletedExistingToken: true,
+  };
 }
 
 export async function revokeFcmDeviceToken() {

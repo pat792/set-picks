@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../auth';
 import {
   getFcmRuntimeDebugInfo,
-  refreshFcmDeviceToken,
+  refreshFcmDeviceTokenWithDebug,
   revokeFcmDeviceToken,
   subscribeForegroundFcmMessages,
 } from '../../../shared/lib/firebaseMessaging';
@@ -34,6 +34,7 @@ export function usePushTokenRegistration() {
   const [permission, setPermission] = useState(browserPermissionState);
   const [lastMessageTitle, setLastMessageTitle] = useState('');
   const [currentFcmToken, setCurrentFcmToken] = useState('');
+  const [hasFreshRotationInSession, setHasFreshRotationInSession] = useState(false);
   const [canaryStatus, setCanaryStatus] = useState('idle');
   const [canaryMessageId, setCanaryMessageId] = useState('');
   const [debugState, setDebugState] = useState({ phase: 'idle', code: '', message: '' });
@@ -76,6 +77,7 @@ export function usePushTokenRegistration() {
 
     setStatus('working');
     setErrorMessage('');
+    setHasFreshRotationInSession(false);
     setDebugState({ phase: 'requesting_permission', code: '', message: '' });
 
     const permissionResult = await Notification.requestPermission();
@@ -92,34 +94,41 @@ export function usePushTokenRegistration() {
 
     try {
       setDebugState({ phase: 'token_refreshing', code: '', message: '' });
-      const token = await refreshFcmDeviceToken();
+      const { token, deletedExistingToken } = await refreshFcmDeviceTokenWithDebug();
       if (!token) {
         setStatus('unsupported');
         setErrorMessage('Web push is not supported in this browser context.');
         setDebugState({
           phase: 'token_missing',
           code: 'token-null',
-          message: 'FCM getToken returned empty.',
+          message: 'FCM getToken returned empty after successful deleteToken.',
         });
         return;
       }
 
+      const tokenTail = token.slice(-16);
       setDebugState({
         phase: 'token_minted',
         code: '',
-        message: `Token minted (${token.slice(0, 12)}...)`,
+        message: `Token minted (...${tokenTail}) after deleteToken=${deletedExistingToken ? 'ok' : 'no-op'}.`,
       });
-      await upsertFcmTokenForUser({
+      const tokenId = await upsertFcmTokenForUser({
         userId: user.uid,
         token,
         permission: permissionResult,
       });
       setCurrentFcmToken(token);
+      setHasFreshRotationInSession(true);
       setStatus('enabled');
-      setDebugState({ phase: 'upsert_ok', code: '', message: 'Token upsert succeeded.' });
+      setDebugState({
+        phase: 'upsert_ok',
+        code: '',
+        message: `Token upsert succeeded for token ...${tokenTail} (doc ${tokenId.slice(-12)}).`,
+      });
     } catch (error) {
       const parsed = normalizeError(error);
       setStatus('error');
+      setHasFreshRotationInSession(false);
       setErrorMessage(parsed.message || 'Failed to enable push.');
       setDebugState({
         phase: 'enable_failed',
@@ -146,9 +155,23 @@ export function usePushTokenRegistration() {
       });
       return;
     }
+    if (!hasFreshRotationInSession) {
+      setCanaryStatus('error');
+      setErrorMessage('Canary blocked: token was not freshly rotated in this browser session.');
+      setDebugState({
+        phase: 'canary_rotation_required',
+        code: 'stale-session-token',
+        message: 'Enable push again to force deleteToken + getToken before canary.',
+      });
+      return;
+    }
     setCanaryStatus('working');
     setErrorMessage('');
-    setDebugState({ phase: 'canary_sending', code: '', message: '' });
+    setDebugState({
+      phase: 'canary_sending',
+      code: '',
+      message: `Sending canary for token ...${currentFcmToken.slice(-16)}.`,
+    });
     try {
       const res = await sendPushCanary({ token: currentFcmToken });
       if (!res.ok) {
@@ -167,7 +190,7 @@ export function usePushTokenRegistration() {
         message: parsed.detailsText ? `${parsed.message} | ${parsed.detailsText}` : parsed.message,
       });
     }
-  }, [user?.uid, currentFcmToken]);
+  }, [user?.uid, currentFcmToken, hasFreshRotationInSession]);
 
   const disablePush = useCallback(async () => {
     if (!user?.uid) {
@@ -183,6 +206,7 @@ export function usePushTokenRegistration() {
       await revokeFcmDeviceToken();
       await deleteFcmTokenForUser({ userId: user.uid, token: currentFcmToken });
       setCurrentFcmToken('');
+      setHasFreshRotationInSession(false);
       setCanaryStatus('idle');
       setCanaryMessageId('');
       setStatus('idle');
