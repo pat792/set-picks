@@ -14,6 +14,7 @@ export default function NotificationsPrototypeScreen() {
     enablePush,
     disablePush,
     errorMessage,
+    debugState,
     permission,
     status,
     lastMessageTitle,
@@ -112,6 +113,19 @@ export default function NotificationsPrototypeScreen() {
               {errorMessage ? (
                 <p className="mt-2 text-xs text-amber-300">{errorMessage}</p>
               ) : null}
+              <div className="mt-3 rounded-xl border border-border-muted bg-surface-inset p-3 text-[11px] text-content-secondary">
+                <p>
+                  Debug phase: <span className="font-mono text-white">{debugState.phase}</span>
+                </p>
+                <p>
+                  Debug code:{' '}
+                  <span className="font-mono text-white">{debugState.code || 'n/a'}</span>
+                </p>
+                <p className="break-all">
+                  Debug detail:{' '}
+                  <span className="font-mono text-white">{debugState.message || 'n/a'}</span>
+                </p>
+              </div>
             </div>
           </div>
         </li>

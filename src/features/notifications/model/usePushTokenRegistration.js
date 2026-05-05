@@ -14,6 +14,13 @@ function browserPermissionState() {
   return Notification.permission;
 }
 
+function normalizeError(error) {
+  const code =
+    error && typeof error === 'object' && typeof error.code === 'string' ? error.code : 'unknown';
+  const message = error instanceof Error ? error.message : String(error ?? 'Unknown error');
+  return { code, message };
+}
+
 export function usePushTokenRegistration() {
   const { user } = useAuth();
   const [status, setStatus] = useState('idle');
@@ -23,6 +30,7 @@ export function usePushTokenRegistration() {
   const [currentFcmToken, setCurrentFcmToken] = useState('');
   const [canaryStatus, setCanaryStatus] = useState('idle');
   const [canaryMessageId, setCanaryMessageId] = useState('');
+  const [debugState, setDebugState] = useState({ phase: 'idle', code: '', message: '' });
 
   useEffect(() => {
     let unsubscribe = () => {};
@@ -43,6 +51,7 @@ export function usePushTokenRegistration() {
     if (!user?.uid) {
       setStatus('error');
       setErrorMessage('Sign in before enabling push notifications.');
+      setDebugState({ phase: 'auth_missing', code: 'no-user', message: 'Missing auth uid in app session.' });
       return;
     }
 
@@ -50,27 +59,49 @@ export function usePushTokenRegistration() {
       setStatus('error');
       setErrorMessage('This browser does not support web notifications.');
       setPermission('unsupported');
+      setDebugState({
+        phase: 'notification_unsupported',
+        code: 'notification-unsupported',
+        message: 'Notification API unavailable.',
+      });
       return;
     }
 
     setStatus('working');
     setErrorMessage('');
+    setDebugState({ phase: 'requesting_permission', code: '', message: '' });
 
     const permissionResult = await Notification.requestPermission();
     setPermission(permissionResult);
     if (permissionResult !== 'granted') {
       setStatus('denied');
+      setDebugState({
+        phase: 'permission_denied',
+        code: 'permission-denied',
+        message: `Permission result: ${permissionResult}`,
+      });
       return;
     }
 
     try {
+      setDebugState({ phase: 'token_refreshing', code: '', message: '' });
       const token = await refreshFcmDeviceToken();
       if (!token) {
         setStatus('unsupported');
         setErrorMessage('Web push is not supported in this browser context.');
+        setDebugState({
+          phase: 'token_missing',
+          code: 'token-null',
+          message: 'FCM getToken returned empty.',
+        });
         return;
       }
 
+      setDebugState({
+        phase: 'token_minted',
+        code: '',
+        message: `Token minted (${token.slice(0, 12)}...)`,
+      });
       await upsertFcmTokenForUser({
         userId: user.uid,
         token,
@@ -78,9 +109,12 @@ export function usePushTokenRegistration() {
       });
       setCurrentFcmToken(token);
       setStatus('enabled');
+      setDebugState({ phase: 'upsert_ok', code: '', message: 'Token upsert succeeded.' });
     } catch (error) {
+      const parsed = normalizeError(error);
       setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to enable push.');
+      setErrorMessage(parsed.message || 'Failed to enable push.');
+      setDebugState({ phase: 'enable_failed', code: parsed.code, message: parsed.message });
     }
   }, [user?.uid]);
 
@@ -88,10 +122,12 @@ export function usePushTokenRegistration() {
     if (!user?.uid) {
       setCanaryStatus('error');
       setErrorMessage('Sign in before sending a test push.');
+      setDebugState({ phase: 'canary_auth_missing', code: 'no-user', message: 'Missing auth uid in app session.' });
       return;
     }
     setCanaryStatus('working');
     setErrorMessage('');
+    setDebugState({ phase: 'canary_sending', code: '', message: '' });
     try {
       const res = await sendPushCanary({ token: currentFcmToken });
       if (!res.ok) {
@@ -99,9 +135,12 @@ export function usePushTokenRegistration() {
       }
       setCanaryMessageId(res.messageId);
       setCanaryStatus('sent');
+      setDebugState({ phase: 'canary_sent', code: '', message: `Message id: ${res.messageId}` });
     } catch (error) {
+      const parsed = normalizeError(error);
       setCanaryStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to send test push.');
+      setErrorMessage(parsed.message || 'Failed to send test push.');
+      setDebugState({ phase: 'canary_failed', code: parsed.code, message: parsed.message });
     }
   }, [user?.uid, currentFcmToken]);
 
@@ -109,10 +148,12 @@ export function usePushTokenRegistration() {
     if (!user?.uid) {
       setStatus('error');
       setErrorMessage('Sign in before changing push notifications.');
+      setDebugState({ phase: 'disable_auth_missing', code: 'no-user', message: 'Missing auth uid in app session.' });
       return;
     }
     setStatus('working');
     setErrorMessage('');
+    setDebugState({ phase: 'disable_working', code: '', message: '' });
     try {
       await revokeFcmDeviceToken();
       await deleteFcmTokenForUser({ userId: user.uid, token: currentFcmToken });
@@ -120,9 +161,12 @@ export function usePushTokenRegistration() {
       setCanaryStatus('idle');
       setCanaryMessageId('');
       setStatus('idle');
+      setDebugState({ phase: 'disable_ok', code: '', message: 'Push disabled and token removed.' });
     } catch (error) {
+      const parsed = normalizeError(error);
       setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to disable push.');
+      setErrorMessage(parsed.message || 'Failed to disable push.');
+      setDebugState({ phase: 'disable_failed', code: parsed.code, message: parsed.message });
     }
   }, [currentFcmToken, user?.uid]);
 
@@ -133,6 +177,7 @@ export function usePushTokenRegistration() {
       disablePush,
       enablePush,
       errorMessage,
+      debugState,
       lastMessageTitle,
       permission,
       status,
@@ -144,6 +189,7 @@ export function usePushTokenRegistration() {
       disablePush,
       enablePush,
       errorMessage,
+      debugState,
       lastMessageTitle,
       permission,
       status,
