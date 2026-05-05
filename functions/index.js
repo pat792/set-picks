@@ -12,8 +12,7 @@ const {
 } = require("./phishnetSongCatalog");
 const {
   candidateShowDates,
-  isWithinLiveSetlistPollWindow,
-  parseShowCalendarSnapshotToDateSet,
+  parseShowCalendarSnapshotToShows,
   pollSingleShowDate,
   scheduledCandidateShowDates,
 } = require("./phishnetLiveSetlistAutomation");
@@ -328,6 +327,95 @@ exports.setAdminClaim = onCall(
 );
 
 /**
+ * Send a canary push notification to the caller's most-recent registered FCM
+ * token (issue #273). Intended for manual QA of web push plumbing.
+ */
+exports.sendPushCanary = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const callerUid = request.auth.uid;
+    const explicitTokenRaw = request.data?.token;
+    const explicitToken =
+      typeof explicitTokenRaw === "string" ? explicitTokenRaw.trim() : "";
+    if (!explicitToken) {
+      throw new HttpsError(
+        "failed-precondition",
+        "No explicit FCM token provided by client. Re-enable push and retry canary in the same session."
+      );
+    }
+    const token = explicitToken;
+    let tokenDoc = null;
+    const matchSnap = await db
+      .collection("users")
+      .doc(callerUid)
+      .collection("private_fcmTokens")
+      .where("token", "==", explicitToken)
+      .limit(1)
+      .get();
+    tokenDoc = matchSnap.empty ? null : matchSnap.docs[0];
+
+    const timestamp = new Date().toISOString();
+    const tokenTail = token.slice(-12);
+    try {
+      const response = await admin.messaging().send({
+        token,
+        notification: {
+          title: "Setlist Pick Em",
+          body: `Test notification delivered at ${timestamp}`,
+        },
+        data: {
+          kind: "canary",
+          sentAt: timestamp,
+        },
+        webpush: {
+          fcmOptions: {
+            link: "https://www.setlistpickem.com/dashboard/notifications",
+          },
+        },
+      });
+      if (tokenDoc) {
+        await tokenDoc.ref.set(
+          {
+            lastCanaryAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastCanaryMessageId: response,
+          },
+          { merge: true }
+        );
+      }
+      return { ok: true, messageId: response };
+    } catch (error) {
+      const code =
+        typeof error?.code === "string"
+          ? error.code
+          : error?.errorInfo?.code || "unknown";
+      logger.error("sendPushCanary failed", {
+        callerUid,
+        tokenId: tokenDoc ? tokenDoc.id : "none",
+        code,
+        tokenTail,
+      });
+      if (code === "messaging/mismatched-credential") {
+        throw new HttpsError(
+          "failed-precondition",
+          "Push token credentials do not match the current Firebase sender configuration. Re-enable push to refresh this device token."
+        );
+      }
+      throw new HttpsError(
+        "internal",
+        `Failed to send push canary (${code}).`
+      );
+    }
+  }
+);
+
+/**
  * Server-side delete of a pool with full member cleanup (issue #138).
  *
  * Required because Firestore rules only let a user update their own `users`
@@ -470,24 +558,20 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
       return null;
     }
     const now = new Date();
-    if (!isWithinLiveSetlistPollWindow(now)) {
-      logger.info("scheduledPhishnetLiveSetlistPoll: outside 4pm–4am ET window; skip.");
-      return null;
-    }
     const calSnap = await db.collection("show_calendar").doc("snapshot").get();
-    const calendarSet = parseShowCalendarSnapshotToDateSet(
+    const calendarShows = parseShowCalendarSnapshotToShows(
       calSnap.exists ? calSnap.data() : null
     );
-    if (!calendarSet) {
+    if (!calendarShows) {
       logger.info(
         "scheduledPhishnetLiveSetlistPoll: show_calendar snapshot missing/empty; strict skip (no Phish.net)."
       );
       return null;
     }
-    const dates = scheduledCandidateShowDates(now, calendarSet);
+    const dates = scheduledCandidateShowDates(now, calendarShows);
     if (!dates.length) {
       logger.info(
-        "scheduledPhishnetLiveSetlistPoll: no matching show dates in calendar; skip."
+        "scheduledPhishnetLiveSetlistPoll: no show currently in local 4pm–4am window; skip."
       );
       return null;
     }

@@ -62,6 +62,18 @@ service cloud.firestore {
       allow update: if signedIn()
         && (request.auth.uid == userId || isAdmin());
       allow delete: if isAdmin();
+
+      /**
+       * Private per-device FCM token docs (issue #273):
+       * users/{uid}/private_fcmTokens/{tokenId}
+       *
+       * The issue suggested `.../private/fcmTokens/{tokenId}`, but Firestore
+       * doc paths must have an even number of segments. This equivalent keeps
+       * the same isolation semantics while using a valid path.
+       */
+      match /private_fcmTokens/{tokenId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
     }
 
     /**

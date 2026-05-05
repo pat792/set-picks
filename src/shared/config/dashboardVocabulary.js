@@ -32,6 +32,9 @@ export const NAV_LABEL_ADMIN = 'Admin';
 /** Account security route — context bar (matches Profile card + form destination copy) */
 export const NAV_LABEL_ACCOUNT_SECURITY = 'Sign-in & password';
 
+/** Notifications route — context bar; Profile tab stays active (settings cluster). See `docs/DASHBOARD_IA.md`. */
+export const NAV_LABEL_NOTIFICATIONS = 'Notifications';
+
 /** Short tab / mobile context label */
 export const NAV_LABEL_STANDINGS = 'Standings';
 

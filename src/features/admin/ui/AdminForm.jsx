@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../../../shared/ui/Card';
 import { AlertTriangle } from 'lucide-react';
+import { useShowCalendar } from '../../show-calendar';
+import { resolveShowTimeZone } from '../../../shared/utils/showTimeZone';
 import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
 import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
 import AdminSetlistFetchButton from './AdminSetlistFetchButton';
@@ -11,6 +13,7 @@ import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 import AdminWarRoomShowDate from './AdminWarRoomShowDate';
 import AdminClaimBootstrap from './AdminClaimBootstrap';
+import { AdminTourRecapPreview } from '../../tour-recap';
 
 function normalizeDashboardShowDate(value) {
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) return value.trim();
@@ -18,12 +21,14 @@ function normalizeDashboardShowDate(value) {
 }
 
 export default function AdminForm({ user, selectedDate }) {
+  const { showDates } = useShowCalendar();
   const [warRoomShowDate, setWarRoomShowDate] = useState(() =>
     normalizeDashboardShowDate(selectedDate),
   );
   const [setlistActionsOpen, setSetlistActionsOpen] = useState(true);
   const [liveAutomationOpen, setLiveAutomationOpen] = useState(true);
   const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
+  const [tourRecapPreviewOpen, setTourRecapPreviewOpen] = useState(false);
 
   useEffect(() => {
     const next = normalizeDashboardShowDate(selectedDate);
@@ -56,6 +61,8 @@ export default function AdminForm({ user, selectedDate }) {
     handleToggleAutomation,
     handlePollAutomationNow,
   } = useAdminSetlistForm({ user, selectedDate: warRoomShowDate });
+  const warRoomShow = showDates.find((show) => show.date === warRoomShowDate) || null;
+  const warRoomTimeZone = resolveShowTimeZone(warRoomShow);
 
   if (!isAdmin) {
     return (
@@ -72,6 +79,7 @@ export default function AdminForm({ user, selectedDate }) {
         value={warRoomShowDate}
         onChange={setWarRoomShowDate}
         disabled={isSaving}
+        timeZone={warRoomTimeZone}
       />
       <AdminClaimBootstrap user={user} />
       <Card variant="danger" padding="sm" className="mb-6 mt-4">
@@ -134,6 +142,15 @@ export default function AdminForm({ user, selectedDate }) {
                 onToggle={handleToggleAutomation}
                 onPollNow={handlePollAutomationNow}
               />
+            </AdminActionToggle>
+            <AdminActionToggle
+              id="admin-tour-recap-preview"
+              title="Tour recap copy (Sphere '26)"
+              description="Preview in-app recap, teaser email + CTA, optional full narrative, and short FCM lines (#272)."
+              open={tourRecapPreviewOpen}
+              onOpenChange={setTourRecapPreviewOpen}
+            >
+              <AdminTourRecapPreview />
             </AdminActionToggle>
           </div>
         </div>

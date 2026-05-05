@@ -14,9 +14,12 @@ const {
   deriveBustoutsFromRows,
   evaluateAutoFinalize,
   evaluateSet1CloserStage,
+  hourInTimeZone,
   isWithinLiveSetlistPollWindow,
+  isWithinShowLocalPollWindow,
   normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
+  parseShowCalendarSnapshotToShows,
   pollSingleShowDate,
   randomScheduledPollDelayMs,
   scheduledCandidateShowDates,
@@ -29,8 +32,8 @@ const {
 const SHOW_CALENDAR_SNAPSHOT_FIXTURE = {
   schemaVersion: 2,
   showDates: [
-    { date: "2026-07-03", venue: "A" },
-    { date: "2026-07-04", venue: "B" },
+    { date: "2026-07-03", venue: "A", timeZone: "America/New_York" },
+    { date: "2026-07-04", venue: "B", timeZone: "America/New_York" },
   ],
 };
 
@@ -47,6 +50,19 @@ test("parseShowCalendarSnapshotToDateSet reads flat showDates", () => {
   assert.ok(set);
   assert.equal(set.has("2026-07-03"), true);
   assert.equal(set.has("2026-07-04"), true);
+});
+
+test("parseShowCalendarSnapshotToShows reads date + timezone records", () => {
+  const shows = parseShowCalendarSnapshotToShows({
+    showDates: [
+      { date: "2026-07-03", venue: "A", timeZone: "America/Chicago" },
+      { date: "2026-07-04", venue: "B" },
+    ],
+  });
+  assert.deepEqual(shows, [
+    { date: "2026-07-03", timeZone: "America/Chicago" },
+    { date: "2026-07-04", timeZone: "America/Los_Angeles" },
+  ]);
 });
 
 test("parseShowCalendarSnapshotToDateSet accepts string dates", () => {
@@ -102,8 +118,21 @@ test("isWithinLiveSetlistPollWindow: winter EST", () => {
   );
 });
 
+test("isWithinShowLocalPollWindow: evaluates window in provided timezone", () => {
+  const now = new Date("2026-07-04T20:00:00.000Z");
+  assert.equal(isWithinShowLocalPollWindow(now, "America/New_York"), true); // 16:00
+  assert.equal(isWithinShowLocalPollWindow(now, "America/Los_Angeles"), false); // 13:00
+});
+
+test("hourInTimeZone: handles DST fall-back repeated hour", () => {
+  const beforeFallback = new Date("2026-11-01T05:30:00.000Z");
+  const afterFallback = new Date("2026-11-01T06:30:00.000Z");
+  assert.equal(hourInTimeZone(beforeFallback, "America/New_York"), 1);
+  assert.equal(hourInTimeZone(afterFallback, "America/New_York"), 1);
+});
+
 test("scheduledCandidateShowDates: evening uses today only when in calendar", () => {
-  const cal = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
+  const cal = parseShowCalendarSnapshotToShows(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
   const dates = scheduledCandidateShowDates(
     new Date("2026-07-04T22:00:00-04:00"),
     cal
@@ -112,7 +141,7 @@ test("scheduledCandidateShowDates: evening uses today only when in calendar", ()
 });
 
 test("scheduledCandidateShowDates: after midnight adds yesterday when still a show date", () => {
-  const cal = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
+  const cal = parseShowCalendarSnapshotToShows(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
   const dates = scheduledCandidateShowDates(
     new Date("2026-07-04T01:30:00-04:00"),
     cal
@@ -121,7 +150,7 @@ test("scheduledCandidateShowDates: after midnight adds yesterday when still a sh
 });
 
 test("scheduledCandidateShowDates: 3am hour still includes yesterday", () => {
-  const cal = parseShowCalendarSnapshotToDateSet(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
+  const cal = parseShowCalendarSnapshotToShows(SHOW_CALENDAR_SNAPSHOT_FIXTURE);
   const dates = scheduledCandidateShowDates(
     new Date("2026-07-04T03:15:00-04:00"),
     cal
@@ -130,7 +159,7 @@ test("scheduledCandidateShowDates: 3am hour still includes yesterday", () => {
 });
 
 test("scheduledCandidateShowDates: post-midnight only prior night when today not on calendar", () => {
-  const cal = parseShowCalendarSnapshotToDateSet({
+  const cal = parseShowCalendarSnapshotToShows({
     showDates: [{ date: "2026-07-03", venue: "x" }],
   });
   const dates = scheduledCandidateShowDates(
@@ -138,6 +167,18 @@ test("scheduledCandidateShowDates: post-midnight only prior night when today not
     cal
   );
   assert.deepEqual(dates, ["2026-07-03"]);
+});
+
+test("scheduledCandidateShowDates: different zones evaluated independently", () => {
+  const cal = parseShowCalendarSnapshotToShows({
+    showDates: [
+      { date: "2026-07-04", venue: "MSG", timeZone: "America/New_York" },
+      { date: "2026-07-04", venue: "Hollywood Bowl", timeZone: "America/Los_Angeles" },
+    ],
+  });
+  // 20:00Z = 16:00 ET, 13:00 PT
+  const dates = scheduledCandidateShowDates(new Date("2026-07-04T20:00:00.000Z"), cal);
+  assert.deepEqual(dates, ["2026-07-04"]);
 });
 
 test("randomScheduledPollDelayMs is within 3–5 minutes", () => {

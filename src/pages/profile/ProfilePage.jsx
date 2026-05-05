@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
+import { Bell, ExternalLink } from 'lucide-react';
 
 import { useSignOut } from '../../features/auth';
+import { InstallAppCard } from '../../features/install';
 import { ProfileEditForm, useUserProfile } from '../../features/profile';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import Button from '../../shared/ui/Button';
@@ -70,6 +71,24 @@ export default function Profile({ user }) {
         isLoading={isLoading}
         message={message}
       />
+
+      <InstallAppCard />
+
+      <div className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
+        <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">
+          Notifications
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-content-secondary">
+          Manage push notifications for score updates, reminders, and recap drops.
+        </p>
+        <Link
+          to="/dashboard/notifications"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border-subtle bg-surface-field py-3.5 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel"
+        >
+          <Bell className="h-4 w-4 shrink-0" aria-hidden />
+          Open notification settings
+        </Link>
+      </div>
 
       {hasEmailPasswordProvider && user?.email && (
         <div className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">

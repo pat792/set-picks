@@ -7,6 +7,7 @@ import App from './app/App.jsx'
 import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import { initGa4 } from './shared/lib/ga4'
 import { initializeAppCheckDeferred } from './shared/lib/firebaseAppCheck'
+import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
 import './index.css'
 
 initGa4()
@@ -40,3 +41,4 @@ root.render(
 )
 
 initializeAppCheckDeferred()
+registerMessagingServiceWorker()
