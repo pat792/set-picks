@@ -51,9 +51,14 @@ port (production build). `qa:preview-headers` uses `fetch` only — no Playwrigh
 
 Workflow **`.github/workflows/ci.yml`** job **`qa-runners`** runs after **`verify`**:
 
-- Requires repository **Actions secrets**: `QA_PUBLIC_PROFILE_UID`,
-  `QA_APPCHECK_DEBUG_TOKEN`, `QA_TEST_EMAIL`, `QA_TEST_PASSWORD`.
-- Skips **fork** pull requests (secrets are unavailable).
+- Requires repository **Actions secrets** (all four must be **non-empty**):
+  `QA_PUBLIC_PROFILE_UID`, `QA_APPCHECK_DEBUG_TOKEN`, `QA_TEST_EMAIL`,
+  `QA_TEST_PASSWORD`. Add under **Settings → Secrets and variables → Actions**
+  on this repository. If any are missing, the job fails fast with an
+  actionable error (same values as a working `.env.qa.local` on your laptop).
+- Skips **fork** pull requests (secrets are unavailable to those workflows).
+- The workflow **writes a short-lived `.env.qa.local`** from those secrets so
+  `npm run qa:*` matches local `node --env-file-if-exists=…` behavior.
 
 Optional job **`qa-preview-headers`** runs when repository **Variable**
 `QA_PREVIEW_BASE_URL` is set; optional secret **`QA_VERCEL_PROTECTION_BYPASS`**.

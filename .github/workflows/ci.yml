@@ -107,6 +107,22 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      # npm scripts use `--env-file-if-exists=.env.qa.local`; CI has no file unless we
+      # write it. Job `env` already exposes secrets to the process, but materializing
+      # the file avoids "Continuing without it" noise and matches local workflows.
+      - name: Require QA Actions secrets (or skip with clear error)
+        run: |
+          missing=""
+          for v in QA_PUBLIC_PROFILE_UID QA_APPCHECK_DEBUG_TOKEN QA_TEST_EMAIL QA_TEST_PASSWORD; do
+            eval "z=\$$v"
+            if [ -z "${z:-}" ]; then missing="$missing $v"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::qa-runners needs Actions secrets (Settings → Secrets and variables → Actions): QA_PUBLIC_PROFILE_UID, QA_APPCHECK_DEBUG_TOKEN, QA_TEST_EMAIL, QA_TEST_PASSWORD. Missing or empty:$missing — see scripts/qa/README.md."
+            exit 1
+          fi
+          printenv | grep -E '^QA_(PUBLIC_PROFILE_UID|APPCHECK_DEBUG_TOKEN|TEST_EMAIL|TEST_PASSWORD)=' > .env.qa.local
+
       - name: qa:chunks (recipe §A)
         run: npm run qa:chunks
 
