@@ -27,9 +27,10 @@ import { startPreview } from './_lib/preview.mjs';
 // Materialized `users/{uid}` season stats are often **small** WebChannel payloads;
 // the old 5 kB floor assumed a live-compute fan-out — too strict for real accounts.
 const BASELINE_MIN_BYTES = 512;
-// Bytes **saved** on SPA return (baseline − post-nav). Materialized stats + CDP
-// counting often land in the mid‑hundreds (e.g. ~500 B); 1 KiB was too strict.
-const SAVED_MIN_BYTES = 350;
+// Bytes **saved** on SPA return (baseline − post-nav). CDP `encodedDataLength`
+// on multiplexed WebChannel is noisy for small payloads — real passes have
+// landed ~280–600 B; 350 B was still flaky on some accounts; 1 KiB was too strict.
+const SAVED_MIN_BYTES = 250;
 
 const BOUNCE_UID = 'qa-cache-bounce-not-a-real-uid';
 
