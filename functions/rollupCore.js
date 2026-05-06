@@ -23,7 +23,7 @@
 
 const {
   calculateTotalScore,
-  actualSetlistFromOfficialDoc,
+  persistableActualSetlistFromOfficialDoc,
   setlistHasAnyPlayedSong,
 } = require("./scoringCore");
 const {
@@ -43,6 +43,7 @@ const MAX_FIRESTORE_BATCH_WRITES = 500;
  * @param {string | null} [params.callerUid] Firebase UID of the caller (null for scheduler).
  * @param {"manual" | "auto" | "auto-reconcile"} [params.trigger] Audit tag.
  * @param {{ info?: Function, warn?: Function, error?: Function } | undefined} [params.logger]
+ * @param {object | null} [params.manualTimingGate] Manual-callable only (#326): merged into `rollup_audit`.
  * @returns {Promise<{ processedPicks: number, skippedPicks: number, totalPicks: number, setlistExists: boolean, hollowSetlist?: boolean }>}
  */
 async function runRollupForShow({
@@ -52,6 +53,7 @@ async function runRollupForShow({
   callerUid = null,
   trigger = "manual",
   logger = undefined,
+  manualTimingGate = null,
 }) {
   const setlistSnap = await db
     .collection("official_setlists")
@@ -68,7 +70,7 @@ async function runRollupForShow({
     };
   }
   const setlistDoc = setlistSnap.data() || {};
-  const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
+  const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
 
   if (!setlistHasAnyPlayedSong(actualSetlist)) {
     logger?.warn?.("runRollupForShow: hollow setlist (no played songs); skipping rollup", {
@@ -100,6 +102,7 @@ async function runRollupForShow({
       callerUid,
       trigger,
       logger,
+      manualTimingGate,
     });
     logger?.info?.("runRollupForShow", {
       showDate,
@@ -230,6 +233,7 @@ async function runRollupForShow({
     callerUid,
     trigger,
     logger,
+    manualTimingGate,
   });
   logger?.info?.("runRollupForShow", {
     showDate,
@@ -265,8 +269,18 @@ async function writeRollupAuditDoc({
   callerUid,
   trigger,
   logger,
+  manualTimingGate = null,
 }) {
   try {
+    const timingExtras =
+      trigger === "manual" && manualTimingGate && typeof manualTimingGate === "object"
+        ? {
+            manualTimingReason: manualTimingGate.reason ?? null,
+            showStatusAtManualFinalize: manualTimingGate.showStatus ?? null,
+            forceEarlyFinalizeOverride:
+              manualTimingGate.forceEarlyFinalizeOverride === true,
+          }
+        : {};
     await db
       .collection("rollup_audit")
       .doc(showDate)
@@ -278,6 +292,7 @@ async function writeRollupAuditDoc({
           totalPicks,
           callerUid: callerUid || null,
           trigger: trigger || "manual",
+          ...timingExtras,
         },
         { merge: true }
       );
