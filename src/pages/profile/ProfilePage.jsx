@@ -79,7 +79,8 @@ export default function Profile({ user }) {
           Notifications
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-content-secondary">
-          Manage push notifications for score updates, reminders, and recap drops.
+          Lock reminders and score alerts on your phone — add the app to your home screen, then
+          turn on push in settings.
         </p>
         <Link
           to="/dashboard/notifications"

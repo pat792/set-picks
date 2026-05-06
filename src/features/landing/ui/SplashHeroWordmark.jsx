@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
-
-import { getBrandHeroWordmarkSvgMarkup } from '../../../shared/lib/brandGradientWordmarkSvg.js';
+import React from 'react';
 import {
+  BRAND_HERO_WORDMARK_SRC,
   brandHeroWordmarkAspectFrameClassNames,
+  brandHeroWordmarkImgClassNames,
   brandHeroWordmarkScaleWrapperClassNames,
 } from '../../../shared/config/branding';
 
@@ -12,14 +12,15 @@ import {
  * box and reads as a “border” around transparent letter areas (unlike drop-shadow on an img).
  */
 export default function SplashHeroWordmark() {
-  const markup = useMemo(() => getBrandHeroWordmarkSvgMarkup(), []);
-
   return (
     <span className={brandHeroWordmarkScaleWrapperClassNames}>
       <span className={brandHeroWordmarkAspectFrameClassNames}>
-        <span
-          className="isolate block h-full min-h-0 w-full"
-          dangerouslySetInnerHTML={{ __html: markup }}
+        <img
+          className={brandHeroWordmarkImgClassNames}
+          src={BRAND_HERO_WORDMARK_SRC}
+          alt=""
+          aria-hidden="true"
+          loading="eager"
         />
       </span>
     </span>
