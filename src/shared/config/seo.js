@@ -1,3 +1,7 @@
+/**
+ * Landing meta + Helmet (`LandingSeo.jsx`). Facebook and some crawlers do not execute JS:
+ * duplicate Open Graph / Twitter tags for `/` in root `index.html` when changing copy or `ogImageUrl`.
+ */
 export const SEO_CONFIG = {
   siteUrl: 'https://www.setlistpickem.com',
   defaultTitle: "Setlist Pick'em | The Ultimate Live Music Prediction Game",
