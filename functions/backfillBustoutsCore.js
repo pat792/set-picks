@@ -21,7 +21,7 @@ const {
 } = require("./phishnetLiveSetlistAutomation");
 const {
   calculateTotalScore,
-  actualSetlistFromOfficialDoc,
+  persistableActualSetlistFromOfficialDoc,
 } = require("./scoringCore");
 
 /** Firestore batch write limit (same invariant as `adminRollupApi.js` / `profileApi.js`). */
@@ -153,7 +153,7 @@ async function runBackfill({
     // rollup pathway so we don't leave stale totals behind.
     const freshSnap = await setlistRef.get();
     const freshDoc = freshSnap.data() || {};
-    const actualSetlist = actualSetlistFromOfficialDoc(freshDoc);
+    const actualSetlist = persistableActualSetlistFromOfficialDoc(freshDoc);
 
     const picksSnap = await db
       .collection("picks")

@@ -24,6 +24,8 @@ export async function fetchLiveSetlistAutomationState(showDate) {
     enabled: data.enabled !== false,
     lastResult: typeof data.lastResult === 'string' ? data.lastResult : '',
     lastError: typeof data.lastError === 'string' ? data.lastError : '',
+    /** True after post-encore auto-finalize stamped the automation doc (#326). */
+    hasAutoFinalized: data.autoFinalizedAt != null,
   };
 }
 

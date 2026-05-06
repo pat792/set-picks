@@ -2,7 +2,7 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "test": "node --test phishnetShowCalendar.test.js phishnetSongCatalog.test.js phishnetLiveSetlistAutomation.test.js songCatalogSource.test.js adminAuth.test.js poolDelete.test.js rollupSeasonAggregates.test.js scoringCore.test.js",
+    "test": "node --test phishnetShowCalendar.test.js phishnetSongCatalog.test.js phishnetLiveSetlistAutomation.test.js songCatalogSource.test.js adminAuth.test.js poolDelete.test.js rollupSeasonAggregates.test.js scoringCore.test.js showFinalizationGate.test.js revertRollupCore.test.js",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
@@ -14,7 +14,8 @@
     "qa:clone-picks-for-show": "node scripts/clonePicksForShowQa.js",
     "qa:push-canary-for-user": "node scripts/sendPushCanaryForUser.js",
     "backfill:bustouts": "node scripts/backfillBustouts.js",
-    "backfill:season-aggregates": "node scripts/backfillSeasonAggregates.js"
+    "backfill:season-aggregates": "node scripts/backfillSeasonAggregates.js",
+    "rollup:reset-premature-grade": "node scripts/resetPrematureGrade.js"
   },
   "engines": {
     "node": "24"

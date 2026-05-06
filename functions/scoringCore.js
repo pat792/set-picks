@@ -124,6 +124,59 @@ function calculateTotalScore(userPicks, actualSetlist) {
   }, 0);
 }
 
+/** Mirrors `src/shared/utils/officialSetlistSanitize.js` (trim / drop empties). */
+function sanitizeOfficialSongList(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((s) => (typeof s === "string" ? s.trim() : String(s ?? "").trim()))
+    .filter(Boolean);
+}
+
+function sanitizeBustouts(input) {
+  if (!Array.isArray(input)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const raw of input) {
+    const title = typeof raw === "string" ? raw.trim() : "";
+    if (!title) continue;
+    const key = title.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(title);
+  }
+  return out;
+}
+
+/**
+ * Raw Firestore `official_setlists` doc → scoring shape **after** the same
+ * trimming / list hygiene as `saveOfficialSetlistByDate` (#320 server parity).
+ */
+function persistableActualSetlistFromOfficialDoc(setlistDoc) {
+  const rawSetlist =
+    setlistDoc && typeof setlistDoc === "object" ? setlistDoc.setlist || {} : {};
+  const out = {};
+  for (const fieldId of SCORE_FIELDS) {
+    const v = rawSetlist[fieldId];
+    out[fieldId] = typeof v === "string" ? v.trim() : String(v ?? "").trim();
+  }
+  out.officialSetlist = sanitizeOfficialSongList(setlistDoc?.officialSetlist);
+
+  let encoreSongs = [];
+  const rawEnc = setlistDoc?.encoreSongs;
+  if (Array.isArray(rawEnc) && rawEnc.length > 0) {
+    encoreSongs = sanitizeOfficialSongList(rawEnc);
+  } else if (out.enc) {
+    encoreSongs = [out.enc];
+  }
+  if (encoreSongs.length > 0) {
+    out.encoreSongs = encoreSongs;
+  }
+  if (Array.isArray(setlistDoc?.bustouts)) {
+    out.bustouts = sanitizeBustouts(setlistDoc.bustouts);
+  }
+  return out;
+}
+
 function actualSetlistFromOfficialDoc(setlistDoc) {
   const setlistFlat = setlistDoc.setlist || {};
   const out = {
@@ -153,4 +206,5 @@ module.exports = {
   calculateSlotScore,
   calculateTotalScore,
   actualSetlistFromOfficialDoc,
+  persistableActualSetlistFromOfficialDoc,
 };
