@@ -19,7 +19,9 @@
     "print:phishnet-tour-clusters": "node scripts/print-phishnet-tour-clusters.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:rules": "firebase emulators:exec --only firestore --project setlist-pickem-rules-test \"node --test firestore.rules.test.cjs\""
+    "test:rules": "firebase emulators:exec --only firestore --project setlist-pickem-rules-test \"node --test firestore.rules.test.cjs\"",
+    "qa:cache": "node --env-file-if-exists=.env.qa.local scripts/qa/firestore-cache.mjs",
+    "qa:chunks": "node --env-file-if-exists=.env.qa.local scripts/qa/chunk-split.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
@@ -37,6 +39,7 @@
     "autoprefixer": "^10.4.14",
     "eslint": "^9.39.4",
     "eslint-plugin-import": "^2.32.0",
+    "playwright": "^1.59.1",
     "postcss": "^8.4.27",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.3.3",
