@@ -71,6 +71,18 @@ Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
 
 ---
 
+## PR QA codified runners (#251, #347–#349)
+
+- **Playbook:** **`.cursor/skills/pr-qa/SKILL.md`** §2.6, **`recipes.md`** §A–§C.
+- **Scripts:** **`scripts/qa/`** — `qa:chunks`, `qa:cache` (Playwright + `vite preview`), `qa:preview-headers` (fetch against **`QA_PREVIEW_BASE_URL`** for §C). Local env: **`.env.qa.example`** → **`.env.qa.local`** (gitignored).
+- **`qa:cache`** needs **`QA_APPCHECK_DEBUG_TOKEN`**, **`QA_TEST_EMAIL` / `QA_TEST_PASSWORD`** (splash sign-in; Firestore rules require auth), plus **`QA_PUBLIC_PROFILE_UID`**. See **`scripts/qa/README.md`**.
+- **CI:** **`.github/workflows/ci.yml`** — job **`qa-runners`** (secrets: `QA_PUBLIC_PROFILE_UID`, `QA_APPCHECK_DEBUG_TOKEN`, `QA_TEST_EMAIL`, `QA_TEST_PASSWORD`); optional **`qa-preview-headers`** when repo **Variable** `QA_PREVIEW_BASE_URL` is set (secret **`QA_VERCEL_PROTECTION_BYPASS`** optional).
+- **Playbook:** **`.cursor/skills/pr-qa/SKILL.md`** §2.6, **`recipes.md`** §A/§B “Preferred” paths.
+- **Scripts:** **`scripts/qa/`** (`npm run qa:cache`, `npm run qa:chunks`); local env from **`.env.qa.example`** → **`.env.qa.local`** (gitignored). `qa:cache` needs **`QA_APPCHECK_DEBUG_TOKEN`** (UUID registered in Firebase App Check) plus **`QA_PUBLIC_PROFILE_UID`**. Headless Playwright + `vite preview`, not Vercel preview URLs.
+- **Autonomous E2E follow-ups (post-#251):** [#347](https://github.com/pat792/set-picks/issues/347) (CI + same runners + secrets), [#348](https://github.com/pat792/set-picks/issues/348) (Vercel preview / §C / bypass), [#349](https://github.com/pat792/set-picks/issues/349) (auth-gated / emulators vs test harness). Third-party constraints are spelled out in each issue body.
+
+---
+
 ## PRD “Proposed file changes” guidance
 
 Prefer paths such as:

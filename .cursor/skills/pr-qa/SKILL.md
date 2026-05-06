@@ -1,6 +1,6 @@
 ---
 name: pr-qa
-description: Runs QA on an open pull request for the set-picks repo. Covers lint/test/build verification, FSD boundary checks, Vite chunk-graph inspection, Vercel preview URL discovery, and scripted DevTools recipes the user runs in the browser (Firestore read cache, route splitting, cache-control headers, telemetry). Use when the user says "QA this PR", "verify PR #N", "test this pull request", "run QA steps", or asks the agent to review a PR before merge. Also covers `gh pr review` verb conventions so agents know when approval vs request-changes is appropriate.
+description: Runs QA on an open pull request for the set-picks repo. Covers lint/test/build verification, FSD boundary checks, Vite chunk-graph inspection, Vercel preview URL discovery, codified Playwright runners (`npm run qa:cache`, `npm run qa:chunks` — issue #251), and scripted DevTools recipes the user runs in the browser for cases runners do not cover (cache-control on protected previews, telemetry, auth-gated flows). Use when the user says "QA this PR", "verify PR #N", "test this pull request", "run QA steps", or asks the agent to review a PR before merge. Also covers `gh pr review` verb conventions so agents know when approval vs request-changes is appropriate.
 ---
 
 # PR QA Playbook for `set-picks`
@@ -11,9 +11,16 @@ perf epic #239 — follow it instead of improvising.
 ## Non-negotiables
 
 - **Base branch is `staging`**, not `main`.
-- **You cannot open URLs, take screenshots, or run JS.** Every browser
-  step MUST be walked through the user. Never claim you've "verified"
-  something in the browser — you've verified their screenshot of it.
+- **You cannot open remote URLs, take screenshots, or drive a visible
+  browser.** Hand off anything that still needs a human looking at a
+  **per-PR preview** in Chrome (e.g. §C cache headers behind Vercel 401,
+  GA4 DebugView). **Exception (#251):** With a local checkout and
+  `.env.qa.local` configured (see `scripts/qa/README.md`), you **may**
+  run `npm run build` then `npm run qa:cache` / `npm run qa:chunks` —
+  headless Playwright against `vite preview` on localhost. That is not
+  "verifying the Vercel preview"; it's verifying the **same production
+  artifact** the preview would serve. Never claim you verified the
+  **deployed preview URL** without a user screenshot.
 - **Only commit/push/comment/review when the user asks.** QA on an
   already-open PR is read-only by default.
 - **Pre-existing warnings are not regressions.** Check against
@@ -128,11 +135,41 @@ When the diff touches `src/app/App.jsx` or `src/app/layout/DashboardLayout.jsx`:
 - Confirm the `lazy()` wrappers match the PR's claims.
 - If dashboard child routes changed, confirm `src/app/layout/model/dashboardPageMeta.js` AND `scripts/verify-dashboard-meta.mjs` were updated together (`.cursorrules` §6).
 
+### 2.6 Codified browser recipes (Playwright + §C fetch, issues #251, #347–#349)
+
+After **§2.2** has produced a fresh `dist/`, run the matching **npm
+scripts** before asking the user for manual Network-tab work — **if**
+the machine has `scripts/qa` fixtures configured.
+
+| When | Command | Replaces manual |
+|---|---|---|
+| PR touches **route splitting / lazy routes / chunk graph** (recipes §A) | `npm run qa:chunks` | §A scripted nav + chunk assertions for the runner's path |
+| PR touches **`useUserSeasonStats` / React Query cache** on public profile (recipes §B) | `npm run qa:cache` | §B baseline vs SPA-bounce `channel?VER=8` size check |
+| PR touches **`vercel.json`** / long-cache headers (recipes §C) | `npm run qa:preview-headers` | §C on **`QA_PREVIEW_BASE_URL`** (SKIP if unset) |
+
+**Setup (once per machine):** copy `.env.qa.example` → `.env.qa.local` and
+set **`QA_PUBLIC_PROFILE_UID`**, **`QA_APPCHECK_DEBUG_TOKEN`** (registered
+App Check debug UUID), **`QA_TEST_EMAIL` / `QA_TEST_PASSWORD`** (dedicated
+test account for **`qa:cache`** sign-in — see `scripts/qa/README.md`).
+Optional: **`QA_PREVIEW_BASE_URL`** + **`QA_VERCEL_PROTECTION_BYPASS`** for
+§C. `npm ci` installs `playwright`; first Chromium launch may download browsers.
+
+**If env is missing or still placeholder:** the runner exits immediately
+with a pointer to the README — note **`qa:* skipped (no .env.qa.local)`**
+(or **`qa:preview-headers` SKIP**) in the Step 4 report and fall back to the
+**manual** recipes in Step 3.
+
+**If a runner exits non-zero:** treat that as a **blocking** regression
+(same as a failed `npm test`) unless the failure is clearly environmental
+(port bind, offline, etc.).
+
 ## Step 3 — Guided user checks (browser steps)
 
-Match the PR pattern to a recipe in **[recipes.md](recipes.md)**. Each
-recipe specifies: exact URL, exact DevTools flags, click sequence, and
-**pass vs. fail observables**. Don't improvise.
+Prefer **§2.6** (`npm run qa:cache` / `npm run qa:chunks`) when the PR
+matches those runners and env is available. Otherwise match the PR
+pattern to a recipe in **[recipes.md](recipes.md)**. Each recipe
+specifies: exact URL, exact DevTools flags, click sequence, and **pass
+vs. fail observables**. Don't improvise.
 
 Common triggers → recipes.md sections:
 
@@ -160,6 +197,7 @@ Paste this template in chat, filled in:
 ### Agent-side
 - [x] verify matrix: <lint/test/dashboard-meta/dashboard-ui results>
 - [x] `npm run build`: <one-line chunk delta>
+- [x] codified runners (§2.6): `qa:cache` / `qa:chunks` — <passed | skipped — no .env.qa.local | n/a>
 - [x] static-import graph: <what you grepped for, what you found>
 - [x] FSD boundary skim: <clean / violated at <file:line>>
 - [x] CI status: <gh pr checks output summary>
@@ -212,6 +250,13 @@ EOF
 - `gh pr close` — never.
 
 ## Step 6 — When to hand QA back unfinished
+
+**Runners reduce handoff (#251):** If **`npm run qa:cache`** exited **0**,
+treat recipes **§B** (that hook on `/user/:uid`) as satisfied — no
+separate user screenshot for the same cache signal. If
+**`npm run qa:chunks`** exited **0**, treat the runner's **§A** path as
+satisfied. If either runner was **skipped** (missing `.env.qa.local`) or
+**failed**, use the manual recipes in Step 3 or block on the failure.
 
 Don't force a green bill of health when:
 
