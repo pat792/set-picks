@@ -1,6 +1,6 @@
 {
   "name": "Setlist Pick 'Em",
-  "short_name": "Pick 'Em",
+  "short_name": "SPE",
   "icons": [
     {
       "src": "/favicon/web-app-manifest-192x192.png",
@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#a20404",
-  "background_color": "#1664a0",
+  "theme_color": "#ffffff",
+  "background_color": "#2c1919",
   "display": "standalone"
 }
