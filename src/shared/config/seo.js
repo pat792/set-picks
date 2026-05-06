@@ -4,6 +4,8 @@
  */
 export const SEO_CONFIG = {
   siteUrl: 'https://www.setlistpickem.com',
+  /** Shown in meta + JSON-LD; some link previews (e.g. LinkedIn) surface publisher/author from structured data. */
+  publisherName: 'Road2 Media LLC',
   defaultTitle: "Setlist Pick'em | The Ultimate Live Music Prediction Game",
   defaultDescription:
     "Setlist Pick 'Em is a free live setlist prediction game for Phish fans. Pick openers, closers, encore, and a wildcard before each show; scores update in real time as songs are played. Compete in a global pool or create private pools with friends.",

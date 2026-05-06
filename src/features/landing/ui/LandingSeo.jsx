@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { SEO_CONFIG } from '../../../shared/config/seo.js';
 
 const canonicalUrl = `${SEO_CONFIG.siteUrl}/`;
+const organizationId = `${SEO_CONFIG.siteUrl}/#organization`;
 
 /** FAQ copy aligned with splash / `ScoringRulesContent.jsx` and `src/shared/utils/scoring.js`. */
 const LANDING_FAQ_MAIN_ENTITY = [
@@ -61,12 +62,20 @@ const LANDING_JSON_LD = {
   '@context': 'https://schema.org',
   '@graph': [
     {
+      '@type': 'Organization',
+      '@id': organizationId,
+      name: SEO_CONFIG.publisherName,
+      url: SEO_CONFIG.siteUrl,
+    },
+    {
       '@type': 'SoftwareApplication',
       name: "Setlist Pick'em",
       applicationCategory: 'GameApplication',
       operatingSystem: 'WebBrowser',
       description: SEO_CONFIG.defaultDescription,
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      publisher: { '@id': organizationId },
+      provider: { '@id': organizationId },
     },
     {
       '@type': 'HowTo',
@@ -101,6 +110,7 @@ export default function LandingSeo() {
     <Helmet>
       <title>{SEO_CONFIG.defaultTitle}</title>
       <meta name="description" content={SEO_CONFIG.defaultDescription} />
+      <meta name="author" content={SEO_CONFIG.publisherName} />
       <meta property="og:type" content="website" />
       <meta property="og:title" content={SEO_CONFIG.defaultTitle} />
       <meta property="og:description" content={SEO_CONFIG.defaultDescription} />
