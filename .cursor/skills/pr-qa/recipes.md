@@ -90,11 +90,19 @@ still eager on a path it shouldn't be.
 Use for: `perf(stats): React Query caching` (#243), or any PR wrapping a
 hook that calls Firestore in a cache layer.
 
+<<<<<<< feat/347-348-349-ci-qa-e2e
 **Preferred (agent, issue #251 / #349):** On a local checkout, configure
 **`.env.qa.local`** from **`.env.qa.example`**
 (`QA_PUBLIC_PROFILE_UID`, **`QA_APPCHECK_DEBUG_TOKEN`**, **`QA_TEST_EMAIL`** /
 **`QA_TEST_PASSWORD`** for splash sign-in — Firestore rules require
 `signedIn()`), then run `npm run build` then **`npm run qa:cache`**. Exit **0** ⇒ the
+=======
+**Preferred (agent, issue #251):** On a local checkout, configure
+**`.env.qa.local`** from **`.env.qa.example`**
+(`QA_PUBLIC_PROFILE_UID` + **`QA_APPCHECK_DEBUG_TOKEN`** — a UUID registered
+in Firebase App Check → Manage debug tokens; see `scripts/qa/README.md`),
+then run `npm run build` then **`npm run qa:cache`**. Exit **0** ⇒ the
+>>>>>>> staging
 `useUserSeasonStats` cache assertion for `/user/<uid>` SPA bounce passed
 (see `scripts/qa/firestore-cache.mjs` header comments). **Not applicable**
 to auth-gated stats routes (`/dashboard/standings`, etc.) — those still
