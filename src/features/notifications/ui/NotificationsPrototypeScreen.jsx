@@ -51,8 +51,8 @@ export default function NotificationsPrototypeScreen() {
                 Push notifications
               </h3>
               <p className="mt-1 text-sm font-bold leading-relaxed text-content-secondary">
-                Alerts after scores finalize, reminders before lock, and recap drops. Requires browser
-                notification permission.
+                Get lock reminders, score updates, and recap drops on your phone. Add Setlist Pick
+                &apos;Em to your home screen, then tap Enable and allow notifications.
               </p>
               <div className="mt-4 flex items-center justify-between gap-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">

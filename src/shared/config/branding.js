@@ -1,11 +1,14 @@
 /**
- * Primary gradient lockup (cropped viewBox). Used for splash hero, splash header, and dashboard brand.
+ * Primary gradient lockup (cropped viewBox). Used for splash hero and shared wordmark URL;
+ * splash header and post-auth chrome use the vinyl mark.
  * White-only variant: `splash-wordmark.svg` (not wired by default).
  */
 export const BRAND_GRADIENT_WORDMARK_SRC = '/branding/splash-gradient-4x1.svg';
 
 /** Circular vinyl-style mark — splash header A/B (replaces wide gradient wordmark when used). */
 export const BRAND_SPLASH_HEADER_VINYL_MARK_SRC = '/branding/splash-vinyl-mark.webp';
+/** Post-auth app chrome brand mark (mobile H1 + desktop sidebar). */
+export const BRAND_APP_CHROME_MARK_SRC = BRAND_SPLASH_HEADER_VINYL_MARK_SRC;
 
 export const BRAND_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
 export const BRAND_HERO_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
@@ -13,13 +16,13 @@ export const BRAND_HERO_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
 /**
  * Hero frame: the SVG’s painted gradient is taller than the letterforms, leaving a band of empty
  * space below the artwork. A wider aspect + overflow clips that band. The splash hero renders this
- * asset **inline** (`SplashHeroWordmark`) so WebKit keeps vectors crisp; `preserveAspectRatio` is
- * adjusted there to mirror former `object-cover` + `object-top`.
+ * asset as an `<img>` inside `SplashHeroWordmark` with these frame classes; cropping mirrors
+ * former `object-cover` + `object-top`.
  */
 export const brandHeroWordmarkAspectFrameClassNames =
   'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[71/20] sm:w-full sm:max-w-[min(96vw,70rem)] md:max-w-[min(94vw,78rem)] lg:max-w-[min(92vw,86rem)] xl:max-w-[min(90vw,94rem)]';
 
-/** Legacy `<img>` hero classes; splash hero uses inline SVG (`SplashHeroWordmark.jsx`) instead. */
+/** Hero `<img>` classes used by `SplashHeroWordmark.jsx`. */
 export const brandHeroWordmarkImgClassNames =
   'block h-full w-full min-h-0 object-cover object-top';
 
@@ -53,6 +56,12 @@ export const brandWordmarkImgClassNames = {
    */
   dashboardMobileBar:
     'block h-[3.95rem] w-auto max-w-[calc(100vw_-_7rem)] object-contain object-left sm:h-[4.05rem] sm:max-w-[min(68vw,380px)]',
+};
+
+/** Post-auth app chrome uses the square vinyl mark (left in app, centered in sidebar). */
+export const brandAppChromeMarkImgClassNames = {
+  dashboardSidebar: 'block h-auto w-28 object-contain object-center md:w-32',
+  dashboardMobileBar: 'block h-11 w-11 shrink-0 object-contain object-left sm:h-12 sm:w-12',
 };
 
 /** Inline SVG chrome: same box as {@link brandWordmarkImgClassNames} minus `object-*` (img-only). */

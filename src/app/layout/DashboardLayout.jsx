@@ -50,9 +50,9 @@ import { PastShowLockBanner, TooEarlyBanner } from '../../features/picks';
 
 import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
 import {
-  BRAND_WORDMARK_SRC,
+  BRAND_APP_CHROME_MARK_SRC,
+  brandAppChromeMarkImgClassNames,
   brandWordmarkDashboardSidebarScaleWrapperClassNames,
-  brandWordmarkImgClassNames,
 } from '../../shared/config/branding';
 import {
   dashboardTourDateLabelGradientClasses,
@@ -135,11 +135,11 @@ export default function DashboardLayout() {
             >
               <span className={brandWordmarkDashboardSidebarScaleWrapperClassNames}>
                 <img
-                  src={BRAND_WORDMARK_SRC}
+                  src={BRAND_APP_CHROME_MARK_SRC}
                   alt=""
-                  width={300}
-                  height={120}
-                  className={brandWordmarkImgClassNames.dashboardSidebar}
+                  width={128}
+                  height={128}
+                  className={brandAppChromeMarkImgClassNames.dashboardSidebar}
                   decoding="async"
                 />
               </span>
