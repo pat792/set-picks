@@ -30,7 +30,18 @@ Use for: `perf(app): route splitting` (#240), `perf(build): manualChunks`
 (#241), `perf(firebase): defer X` (#242) when confirming a module is
 absent from unrelated routes.
 
-**Script:**
+**Preferred (agent, issue #251):** On a local checkout of the PR branch,
+run `npm run build` then **`npm run qa:chunks`** (loads `vite preview` +
+Playwright). See **`scripts/qa/README.md`**. Exit **0** ⇒ the runner's
+chunk / SPA-nav assertions passed for its scripted path. This does
+**not** replace every §A variant (e.g. "firebase-storage absent on
+profile" is still manual unless extended in the runner).
+
+**Manual fallback:** PR preview URL + user + DevTools — use when the
+runner was skipped, failed for an env reason you fixed by hand, or you
+need a route the runner does not cover.
+
+**Script (manual):**
 
 ```
 1. PR preview URL, fresh incognito, DevTools open.
@@ -79,6 +90,17 @@ still eager on a path it shouldn't be.
 Use for: `perf(stats): React Query caching` (#243), or any PR wrapping a
 hook that calls Firestore in a cache layer.
 
+**Preferred (agent, issue #251):** On a local checkout, configure
+**`.env.qa.local`** from **`.env.qa.example`** (`QA_PUBLIC_PROFILE_UID`),
+then run `npm run build` then **`npm run qa:cache`**. Exit **0** ⇒ the
+`useUserSeasonStats` cache assertion for `/user/<uid>` SPA bounce passed
+(see `scripts/qa/firestore-cache.mjs` header comments). **Not applicable**
+to auth-gated stats routes (`/dashboard/standings`, etc.) — those still
+need manual recipe or a future emulator-backed runner.
+
+**Manual fallback:** Same as below when env is missing, the UID is too
+sparse for thresholds, or you're validating a different hook.
+
 ### Critical facts to communicate up front
 
 Otherwise the user misinterprets every screenshot:
@@ -94,7 +116,7 @@ Otherwise the user misinterprets every screenshot:
   caching is that soft navigation (`<Link>` clicks, `navigate(...)`)
   reuses the cache. Use soft nav, not refresh.
 
-### Script — "is this query cached?"
+### Script — "is this query cached?" (manual)
 
 ```
 1. PR preview URL, fresh incognito, DevTools open.
@@ -227,10 +249,10 @@ when you just didn't see the console line.
 
 | PR pattern | Agent-side (SKILL.md §2) | Recipes to run |
 |---|---|---|
-| `perf(app): route splitting` | 2.1, 2.2, 2.5 | §A on 2–3 routes |
-| `perf(build): manualChunks + headers` | 2.1, 2.2, 2.3 | §A + §C |
+| `perf(app): route splitting` | 2.1, 2.2, 2.5, **2.6** `qa:chunks` | §A (prefer runner, then manual gaps) |
+| `perf(build): manualChunks + headers` | 2.1, 2.2, 2.3, **2.6** `qa:chunks` | §A + §C |
 | `perf(firebase): defer X` | 2.1, 2.2, 2.3 | §A variant "module absent" |
-| `perf(stats): React Query` | 2.1, 2.2 | §B on the wrapped hooks |
+| `perf(stats): React Query` | 2.1, 2.2, **2.6** `qa:cache` | §B (prefer runner for `/user/:uid` hook) |
 | `perf(stats): server aggregates` | 2.1 + `test:rules` | Production-only; defer |
 | `feat(...)` | 2.1, 2.4, 2.5 | §D |
 | Any GA4-touching PR | 2.1 | §E (preferably E.1) |
