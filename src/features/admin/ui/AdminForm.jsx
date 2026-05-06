@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { revertRollupForShow } from '../api/adminRollupApi';
 import Card from '../../../shared/ui/Card';
 import { AlertTriangle } from 'lucide-react';
 import { useShowCalendar } from '../../show-calendar';
@@ -14,6 +15,7 @@ import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 import AdminWarRoomShowDate from './AdminWarRoomShowDate';
 import AdminClaimBootstrap from './AdminClaimBootstrap';
 import { AdminTourRecapPreview } from '../../tour-recap';
+import ConfirmationModal from '../../../shared/ui/ConfirmationModal/ConfirmationModal';
 
 function normalizeDashboardShowDate(value) {
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) return value.trim();
@@ -29,11 +31,20 @@ export default function AdminForm({ user, selectedDate }) {
   const [liveAutomationOpen, setLiveAutomationOpen] = useState(true);
   const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
   const [tourRecapPreviewOpen, setTourRecapPreviewOpen] = useState(false);
+  const [revertModalOpen, setRevertModalOpen] = useState(false);
+  const [isReverting, setIsReverting] = useState(false);
+  const [revertError, setRevertError] = useState('');
+  const [revertSuccess, setRevertSuccess] = useState('');
 
   useEffect(() => {
     const next = normalizeDashboardShowDate(selectedDate);
     if (next) setWarRoomShowDate(next);
   }, [selectedDate]);
+
+  useEffect(() => {
+    setRevertSuccess('');
+    setRevertError('');
+  }, [warRoomShowDate]);
 
   const {
     isAdmin,
@@ -60,7 +71,13 @@ export default function AdminForm({ user, selectedDate }) {
     handleFinalizeAndRollup,
     handleToggleAutomation,
     handlePollAutomationNow,
-  } = useAdminSetlistForm({ user, selectedDate: warRoomShowDate });
+    finalizeAllowedWithoutForce,
+    finalizeTimingTooltip,
+    finalizeForceModalOpen,
+    handleOpenFinalizeEarlyModal,
+    handleCloseFinalizeForceModal,
+    handleConfirmForceFinalizeAndRollup,
+  } = useAdminSetlistForm({ user, selectedDate: warRoomShowDate, showDates });
   const warRoomShow = showDates.find((show) => show.date === warRoomShowDate) || null;
   const warRoomTimeZone = resolveShowTimeZone(warRoomShow);
 
@@ -177,8 +194,80 @@ export default function AdminForm({ user, selectedDate }) {
             isSaving={isSaving}
             onSave={handleSave}
             onFinalize={handleFinalizeAndRollup}
+            finalizeAllowedWithoutForce={finalizeAllowedWithoutForce}
+            finalizeTimingTooltip={finalizeTimingTooltip}
+            onFinalizeEarlyOverride={handleOpenFinalizeEarlyModal}
             message={message}
           />
+          <ConfirmationModal
+            open={finalizeForceModalOpen}
+            title="Finalize early?"
+            message="The server treats this show as not PAST yet (or the calendar is unavailable). Forcing stamps rollup_audit.forceEarlyFinalizeOverride and can mis-credit season totals if the setlist is still incomplete. Only continue if you are correcting an edge case."
+            confirmLabel="Finalize anyway"
+            confirmVariant="danger"
+            busy={isSaving}
+            onClose={handleCloseFinalizeForceModal}
+            onConfirm={handleConfirmForceFinalizeAndRollup}
+          />
+
+          <div className="border-t border-border-muted pt-4 space-y-2">
+            <button
+              type="button"
+              disabled={!selectedShow || isSaving || isReverting}
+              onClick={() => {
+                setRevertError('');
+                setRevertSuccess('');
+                setRevertModalOpen(true);
+              }}
+              className="text-xs font-bold uppercase tracking-widest text-amber-400/90 hover:text-amber-300 disabled:opacity-40 disabled:cursor-not-allowed underline underline-offset-2"
+            >
+              Revert rollup (undo finalize)…
+            </button>
+            {revertSuccess ? (
+              <p className="text-xs font-medium text-teal-300/90" role="status">
+                {revertSuccess}
+              </p>
+            ) : null}
+            <ConfirmationModal
+              open={revertModalOpen}
+              title="Revert rollup for this show?"
+              message="Calls Cloud Function revertRollupForShow: reverses user counters for graded picks on this date, resets picks to live scores from the saved official setlist, and writes rollup_audit. Requires a prior rollup_audit entry. See docs/ROLLUP_RECOVERY_RUNBOOK.md."
+              confirmLabel="Revert rollup"
+              confirmVariant="danger"
+              busy={isReverting}
+              onClose={() => {
+                if (!isReverting) setRevertModalOpen(false);
+              }}
+              onConfirm={async () => {
+                if (!selectedShow) return;
+                setIsReverting(true);
+                setRevertError('');
+                try {
+                  const r = await revertRollupForShow({ showDate: selectedShow });
+                  setRevertModalOpen(false);
+                  setRevertSuccess(
+                    r.noop
+                      ? 'Revert completed (no graded picks were on file).'
+                      : `Revert completed — ${r.revertedPicks} pick(s) reset.`
+                  );
+                } catch (e) {
+                  setRevertModalOpen(false);
+                  const msg =
+                    e && typeof e === 'object' && 'message' in e
+                      ? String(e.message)
+                      : 'Revert failed.';
+                  setRevertError(msg);
+                } finally {
+                  setIsReverting(false);
+                }
+              }}
+            />
+            {revertError ? (
+              <p className="text-xs font-bold text-red-400" role="alert">
+                {revertError}
+              </p>
+            ) : null}
+          </div>
         </div>
       </Card>
     </div>

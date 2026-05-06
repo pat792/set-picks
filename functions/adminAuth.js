@@ -3,7 +3,7 @@
  *
  * Pure functions — no `firebase-admin` dependency so they can be unit-tested
  * without spinning up the Firebase Functions test harness. Consumed by
- * `functions/index.js` to gate `rollupScoresForShow`, `setAdminClaim`, and
+ * `functions/index.js` to gate `rollupScoresForShow`, `revertRollupForShow`, `setAdminClaim`, and
  * every other admin-only callable.
  *
  * PR B tightening: the legacy `pat@road2media.com` email fallback was removed

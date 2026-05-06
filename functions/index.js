@@ -28,10 +28,12 @@ const {
 } = require("./poolDelete");
 const {
   calculateTotalScore,
-  actualSetlistFromOfficialDoc,
+  persistableActualSetlistFromOfficialDoc,
 } = require("./scoringCore");
 const { runBackfill } = require("./backfillBustoutsCore");
 const { runRollupForShow } = require("./rollupCore");
+const { applyRevertRollupForShow } = require("./revertRollupCore");
+const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 
@@ -72,7 +74,7 @@ function assertShowDateString(showDate) {
 const MAX_FIRESTORE_BATCH_WRITES = 500;
 
 async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = null) {
-  const setlistDoc =
+  const actualSetlist =
     actualSetlistFromWrite ||
     (() => {
       throw new Error("actualSetlistFromWrite required when no Firestore fallback");
@@ -98,7 +100,7 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     }
     const pickData = pickDoc.data() || {};
     const userPicks = pickData.picks || {};
-    const score = calculateTotalScore(userPicks, setlistDoc);
+    const score = calculateTotalScore(userPicks, actualSetlist);
 
     // Live scoring only: do not set gradedAt here (pool season uses isGraded from rollup).
     const update = { score };
@@ -125,7 +127,7 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
 
     const showDate = event.params.showDate;
     const setlistDoc = event.data.after.data() || {};
-    const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
+    const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
 
     await recomputeLiveScoresForShow(showDate, actualSetlist);
     return null;
@@ -155,7 +157,7 @@ exports.refreshLiveScoresForShow = onCall(
       );
     }
     const setlistDoc = setlistSnap.data() || {};
-    const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
+    const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
     const result = await recomputeLiveScoresForShow(showDate, actualSetlist);
     return { ok: true, ...result };
   }
@@ -185,6 +187,32 @@ exports.rollupScoresForShow = onCall(
     assertAdminClaim(request);
     const showDate = assertShowDateString(request.data?.showDate);
     const callerUid = request.auth?.uid || null;
+    const force = request.data?.force === true;
+
+    const calSnap = await db.collection("show_calendar").doc("snapshot").get();
+    const calendarShows = parseShowCalendarSnapshotToShows(
+      calSnap.exists ? calSnap.data() : null
+    );
+    const autoSnap = await db
+      .collection("live_setlist_automation")
+      .doc(showDate)
+      .get();
+    const autoData = autoSnap.exists ? autoSnap.data() || {} : {};
+    const autoFinalizedAt = autoData.autoFinalizedAt ?? null;
+
+    const timingGate = evaluateManualFinalizeTimingGate({
+      showDate,
+      calendarShows,
+      autoFinalizedAt,
+      force,
+    });
+    if (!timingGate.allowed) {
+      throw new HttpsError(
+        "failed-precondition",
+        timingGate.message ||
+          "Show is not eligible for manual finalize yet. Pass force: true to override."
+      );
+    }
 
     const result = await runRollupForShow({
       db,
@@ -193,6 +221,11 @@ exports.rollupScoresForShow = onCall(
       callerUid,
       trigger: "manual",
       logger,
+      manualTimingGate: {
+        reason: timingGate.reason,
+        showStatus: timingGate.showStatus,
+        forceEarlyFinalizeOverride: force === true,
+      },
     });
     if (!result.setlistExists) {
       throw new HttpsError(
@@ -211,6 +244,42 @@ exports.rollupScoresForShow = onCall(
       processedPicks: result.processedPicks,
       skippedPicks: result.skippedPicks,
       totalPicks: result.totalPicks,
+    };
+  }
+);
+
+/**
+ * Admin undo for a mistaken rollup (#320): reverse user materialization for
+ * graded picks on `showDate`, reset picks to live-scored state from the
+ * current `official_setlists` doc, merge audit fields on `rollup_audit`.
+ */
+exports.revertRollupForShow = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminClaim(request);
+    const showDate = assertShowDateString(request.data?.showDate);
+    const callerUid = request.auth?.uid || null;
+    const result = await applyRevertRollupForShow({
+      db,
+      admin,
+      showDate,
+      callerUid,
+      logger,
+    });
+    if (!result.ok) {
+      throw new HttpsError(
+        "failed-precondition",
+        result.message || "Revert is not allowed for this show date."
+      );
+    }
+    return {
+      ok: true,
+      revertedPicks: result.revertedPicks,
+      noop: result.noop === true,
     };
   }
 );
@@ -681,7 +750,7 @@ exports.pollLiveSetlistNow = onCall(
       if (result.changed) {
         const setlistSnap = await db.collection("official_setlists").doc(showDate).get();
         const setlistDoc = setlistSnap.data() || {};
-        const actualSetlist = actualSetlistFromOfficialDoc(setlistDoc);
+        const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
         result.updatedPicks = (
           await recomputeLiveScoresForShow(showDate, actualSetlist)
         ).updatedPicks;
