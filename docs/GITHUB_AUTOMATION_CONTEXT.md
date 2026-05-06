@@ -71,6 +71,13 @@ Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
 
 ---
 
+## PR QA codified runners (#251)
+
+- **Playbook:** **`.cursor/skills/pr-qa/SKILL.md`** §2.6, **`recipes.md`** §A/§B “Preferred” paths.
+- **Scripts:** **`scripts/qa/`** (`npm run qa:cache`, `npm run qa:chunks`); local env from **`.env.qa.example`** → **`.env.qa.local`** (gitignored). Headless Playwright + `vite preview`, not Vercel preview URLs.
+
+---
+
 ## PRD “Proposed file changes” guidance
 
 Prefer paths such as:
