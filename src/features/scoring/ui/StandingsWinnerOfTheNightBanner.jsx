@@ -64,19 +64,29 @@ export default function StandingsWinnerOfTheNightBanner({
   const viewResultsHint =
     viewResults?.labelCompact ||
     (showViewResultsLink ? viewResults.showDate : '');
+  const isLastShowVariant = variant === 'lastShow';
+  const containerClassName = isLastShowVariant
+    ? 'relative mx-0.5 mb-4 rounded-xl border border-violet-400/40 bg-gradient-to-br from-brand-primary/[0.2] via-violet-500/[0.14] to-red-500/[0.16] px-3 py-2 shadow-inset-glass'
+    : 'relative mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3 py-2 shadow-inset-glass';
+  const headingClassName = isLastShowVariant
+    ? 'relative z-0 min-w-0 text-[10px] font-black uppercase tracking-widest text-violet-200'
+    : 'relative z-0 min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300';
+  const viewResultsPillClassName = isLastShowVariant
+    ? 'relative z-10 shrink-0 !border-violet-300/50 !bg-gradient-to-r !from-brand-primary/30 !to-red-500/25 !text-violet-100 !shadow-none hover:!border-violet-200/70 hover:!from-brand-primary/40 hover:!to-red-500/35 hover:!text-violet-50 focus-visible:!ring-violet-300/70'
+    : 'relative z-10 shrink-0 !border-amber-400/45 !bg-amber-950/35 !text-amber-100 !shadow-none hover:!border-amber-300/55 hover:!bg-amber-500/20 hover:!text-amber-50 focus-visible:!ring-amber-300/70';
 
   return (
     <div
       role="region"
       aria-label={`${heading}: ${handlesLabel} — ${max} points`}
-      className="relative mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3 py-2 shadow-inset-glass"
+      className={containerClassName}
     >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         {/*
           If the heading flex item ever paints over the pill (min-width / overflow),
           keep the link above in the hit-test order.
         */}
-        <p className="relative z-0 min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300">
+        <p className={headingClassName}>
           {heading}
         </p>
         {showViewResultsLink ? (
@@ -94,7 +104,7 @@ export default function StandingsWinnerOfTheNightBanner({
                 ? `View full standings for ${viewResultsHint}`
                 : 'View full standings for this show'
             }
-            className="relative z-10 shrink-0 !border-amber-400/45 !bg-amber-950/35 !text-amber-100 !shadow-none hover:!border-amber-300/55 hover:!bg-amber-500/20 hover:!text-amber-50 focus-visible:!ring-amber-300/70"
+            className={viewResultsPillClassName}
             onClick={() => {
               const d = viewResults.showDate;
               // Layout `selectedDate` can differ from URL (picker does not write
