@@ -79,18 +79,47 @@ async function spaNavigate(page, path) {
 }
 
 /**
- * Wait until react-router has rendered for `expectedPath` and the
- * network has gone idle (proxy for "all lazy chunks resolved").
+ * SPA-navigate and wait until the destination route's lazy chunk has
+ * finished loading.
+ *
+ * **Why not rely on `networkidle` alone:** after `pushState`, the URL
+ * updates immediately but React may schedule the route `lazy()` import
+ * on a later task. `networkidle` can therefore resolve *before* the
+ * chunk request starts — `loadedChunks` snapshots looked empty (#351).
+ *
+ * Register `waitForResponse` **before** navigation so we never miss a
+ * fast chunk response.
  *
  * @param {import('playwright').Page} page
- * @param {string} expectedPath
+ * @param {string} previewOrigin e.g. `http://localhost:14193`
+ * @param {string} path argument to `spaNavigate`
+ * @param {string} expectedPath `window.location.pathname` after nav
+ * @param {string} expectedChunk Vite `[name]` segment, e.g. `PublicProfilePage`
  */
-async function settleAt(page, expectedPath) {
+async function spaNavigateAndWaitForChunk(
+  page,
+  previewOrigin,
+  path,
+  expectedPath,
+  expectedChunk,
+) {
+  const chunkResponse = page.waitForResponse(
+    (response) => {
+      const url = response.url();
+      if (!url.startsWith(previewOrigin)) return false;
+      return chunkNameFromUrl(url) === expectedChunk;
+    },
+    { timeout: NAV_TIMEOUT_MS },
+  );
+
+  await spaNavigate(page, path);
   await page.waitForFunction(
     (expected) => window.location.pathname === expected,
     expectedPath,
     { timeout: NAV_TIMEOUT_MS },
   );
+
+  await chunkResponse;
   await page.waitForLoadState('networkidle');
 }
 
@@ -129,8 +158,13 @@ async function run() {
     const initialChunks = new Set(loadedChunks);
 
     // Scenario 1: / -> /user/<UID> expects PublicProfilePage chunk.
-    await spaNavigate(page, `/user/${PUBLIC_PROFILE_UID}`);
-    await settleAt(page, `/user/${PUBLIC_PROFILE_UID}`);
+    await spaNavigateAndWaitForChunk(
+      page,
+      preview.url,
+      `/user/${PUBLIC_PROFILE_UID}`,
+      `/user/${PUBLIC_PROFILE_UID}`,
+      'PublicProfilePage',
+    );
     const afterUser = new Set(loadedChunks);
     const userDelta = [...afterUser].filter((c) => !initialChunks.has(c));
 
@@ -139,8 +173,13 @@ async function run() {
     // <Navigate>'s straight back to /, making the chunk transient and
     // the assertion racy) and /setup (which redirects when not
     // authenticated, same problem).
-    await spaNavigate(page, '/password-reset-complete');
-    await settleAt(page, '/password-reset-complete');
+    await spaNavigateAndWaitForChunk(
+      page,
+      preview.url,
+      '/password-reset-complete',
+      '/password-reset-complete',
+      'PasswordResetCompletePage',
+    );
     const afterReset = new Set(loadedChunks);
     const resetDelta = [...afterReset].filter((c) => !afterUser.has(c));
 
