@@ -1,0 +1,22 @@
+# Setlist Pick 'Em
+
+> Free live setlist prediction game for Phish fans. Predict openers, closers, encore, and a wildcard before each show; compete live as songs are played.
+
+## How it works
+
+- Lock picks before showtime
+- Scoring updates live during the show
+- Global and private leaderboards
+
+## Scoring (per slot)
+
+- In setlist: 5 pts
+- Exact slot: 10 pts
+- Wildcard hit: 10 pts
+- Encore: 15 pts
+- Bustout Boost (song gap 30+ shows): +20 pts on top of base
+
+## Links
+
+- Home: https://www.setlistpickem.com/
+- Setlist data: https://phish.net (The Mockingbird Foundation)
