@@ -15,11 +15,15 @@ export async function signInViaSplashEmailPassword(page, origin, email, password
     timeout: 90_000,
   });
 
-  await page.locator('#si-email').waitFor({ state: 'visible', timeout: 30_000 });
-  await page.locator('#si-email').fill(email);
-  await page.locator('#si-pass').fill(password);
+  const dialog = page.getByRole('dialog', { name: /^sign in$/i });
 
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  await dialog.locator('#si-email').waitFor({ state: 'visible', timeout: 30_000 });
+  await dialog.locator('#si-email').fill(email);
+  await dialog.locator('#si-pass').fill(password);
+
+  // Splash also exposes several “Sign in” controls outside this modal; submit
+  // inside the dialog only (`SplashSignInModal` title="Sign in").
+  await dialog.locator('button[type="submit"]').click();
 
   await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
   await page.waitForLoadState('networkidle');

@@ -23,8 +23,13 @@ import { enableFirebaseAppCheckDebug } from './_lib/qaBrowserInit.mjs';
 import { PUBLIC_PROFILE_UID } from './fixtures.js';
 import { startPreview } from './_lib/preview.mjs';
 
-const BASELINE_MIN_BYTES = 5 * 1024;
-const SAVED_MIN_BYTES = 5 * 1024;
+// Baseline must show real Firestore traffic (not a broken / empty session).
+// Materialized `users/{uid}` season stats are often **small** WebChannel payloads;
+// the old 5 kB floor assumed a live-compute fan-out — too strict for real accounts.
+const BASELINE_MIN_BYTES = 512;
+// Bytes **saved** on SPA return (baseline − post-nav). Materialized stats + CDP
+// counting often land in the mid‑hundreds (e.g. ~500 B); 1 KiB was too strict.
+const SAVED_MIN_BYTES = 350;
 
 const BOUNCE_UID = 'qa-cache-bounce-not-a-real-uid';
 
@@ -78,6 +83,34 @@ function fmtBytes(bytes) {
   return `${bytes}B (${(bytes / 1024).toFixed(1)}kB)`;
 }
 
+/**
+ * Sum **encoded** bytes for `firestore.googleapis.com` per phase. Playwright's
+ * `response.body()` is unreliable for Firestore's streaming WebChannel (often
+ * ~100 B); CDP `Network.loadingFinished.encodedDataLength` matches DevTools.
+ *
+ * @param {import('playwright').CDPSession} session
+ * @param {() => 'idle'|'baseline'|'postNav'} getPhase
+ * @param {{ baseline: number, postNav: number }} phaseBytes
+ */
+function attachFirestoreCdpByteCounter(session, getPhase, phaseBytes) {
+  /** @type {Map<string, string>} */
+  const urlByRequestId = new Map();
+
+  session.on('Network.responseReceived', (e) => {
+    urlByRequestId.set(e.requestId, e.response.url);
+  });
+
+  session.on('Network.loadingFinished', (e) => {
+    const url = urlByRequestId.get(e.requestId);
+    urlByRequestId.delete(e.requestId);
+    if (!url?.includes('firestore.googleapis.com')) return;
+    const phase = getPhase();
+    if (phase !== 'baseline' && phase !== 'postNav') return;
+    const n = e.encodedDataLength ?? 0;
+    phaseBytes[phase] += n;
+  });
+}
+
 function requireCacheEnv() {
   const appCheckToken = process.env.QA_APPCHECK_DEBUG_TOKEN?.trim();
   if (!appCheckToken || appCheckToken === QA_APPCHECK_DEBUG_TOKEN_PLACEHOLDER) {
@@ -125,18 +158,9 @@ async function run() {
     let phase = /** @type {'idle'|'baseline'|'postNav'} */ ('idle');
     const phaseBytes = { baseline: 0, postNav: 0 };
 
-    page.on('response', async (response) => {
-      const url = response.url();
-      if (!url.includes('firestore.googleapis.com')) return;
-      if (!url.includes('channel?VER=8')) return;
-      if (!(phase in phaseBytes)) return;
-      try {
-        const body = await response.body();
-        phaseBytes[/** @type {'baseline'|'postNav'} */ (phase)] += body.length;
-      } catch {
-        // best-effort
-      }
-    });
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Network.enable');
+    attachFirestoreCdpByteCounter(cdp, () => phase, phaseBytes);
 
     await signInViaSplashEmailPassword(page, preview.url, email, password);
 
@@ -150,9 +174,8 @@ async function run() {
           `expected >= ${fmtBytes(BASELINE_MIN_BYTES)}.`,
       );
       console.error(
-        '[qa:cache]   The configured QA_PUBLIC_PROFILE_UID does not have ' +
-          'enough Firestore-heavy season-stats data for the cache assertion ' +
-          'to be meaningful. See scripts/qa/README.md.',
+        '[qa:cache]   Baseline Firestore bytes are near zero — check App Check, auth, ' +
+          'or WebChannel measurement. See scripts/qa/README.md.',
       );
       return;
     }
@@ -178,8 +201,9 @@ async function run() {
 
     if (verdict !== 'PASS') {
       console.error(
-        '[qa:cache] FAIL: post-nav re-fetched approximately the same ' +
-          'channel?VER=8 payload as baseline.',
+        `[qa:cache] FAIL: saved ${fmtBytes(saved)} is below ${fmtBytes(SAVED_MIN_BYTES)} ` +
+          `(baseline ${fmtBytes(phaseBytes.baseline)}, post-nav ${fmtBytes(phaseBytes.postNav)}). ` +
+          'Likely React Query cache miss on season stats, or threshold needs tuning — see recipes §B.',
       );
       console.error(
         '[qa:cache]   See `.cursor/skills/pr-qa/recipes.md` §B for context.',
