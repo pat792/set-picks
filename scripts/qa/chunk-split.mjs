@@ -28,6 +28,7 @@
 
 import { chromium } from 'playwright';
 
+import { enableFirebaseAppCheckDebug } from './_lib/qaBrowserInit.mjs';
 import { PUBLIC_PROFILE_UID } from './fixtures.js';
 import { startPreview } from './_lib/preview.mjs';
 
@@ -103,6 +104,7 @@ async function run() {
 
   try {
     const ctx = await browser.newContext();
+    await enableFirebaseAppCheckDebug(ctx);
     const page = await ctx.newPage();
 
     // Cumulative set of every chunk URL that resolved. We snapshot

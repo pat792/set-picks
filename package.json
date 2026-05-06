@@ -21,7 +21,8 @@
     "test:watch": "vitest",
     "test:rules": "firebase emulators:exec --only firestore --project setlist-pickem-rules-test \"node --test firestore.rules.test.cjs\"",
     "qa:cache": "node --env-file-if-exists=.env.qa.local scripts/qa/firestore-cache.mjs",
-    "qa:chunks": "node --env-file-if-exists=.env.qa.local scripts/qa/chunk-split.mjs"
+    "qa:chunks": "node --env-file-if-exists=.env.qa.local scripts/qa/chunk-split.mjs",
+    "qa:preview-headers": "node --env-file-if-exists=.env.qa.local scripts/qa/preview-cache-headers.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",

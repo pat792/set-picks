@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 
 /**
  * Read-only public profile by Firebase uid (`users/{uid}`).
@@ -17,6 +18,7 @@ import { db } from '../../../shared/lib/firebase';
 export async function fetchPublicProfileByUid(uid) {
   const id = uid?.trim();
   if (!id) return null;
+  await whenFirebaseReady();
   const snap = await getDoc(doc(db, 'users', id));
   if (!snap.exists()) return null;
   return snap.data();
@@ -29,6 +31,7 @@ export async function fetchPublicProfileByUid(uid) {
 export async function fetchPublicProfileByHandle(handle) {
   const h = handle?.trim();
   if (!h) return null;
+  await whenFirebaseReady();
   const q = query(
     collection(db, 'users'),
     where('handle', '==', h),
@@ -46,6 +49,7 @@ export async function fetchPublicProfileByHandle(handle) {
 export async function fetchPoolsForMember(uid) {
   const id = uid?.trim();
   if (!id) return [];
+  await whenFirebaseReady();
   const poolsQuery = query(
     collection(db, 'pools'),
     where('members', 'array-contains', id)
