@@ -148,12 +148,16 @@ the machine has `scripts/qa` fixtures configured.
 
 **Setup (once per machine):** copy `.env.qa.example` → `.env.qa.local`
 and set `QA_PUBLIC_PROFILE_UID` to a real Firebase UID with rich graded
-data (see `scripts/qa/README.md`). `npm ci` installs `playwright`; first
-Chromium launch may download browsers.
+data (see `scripts/qa/README.md`). For **`qa:cache`**, also set
+**`QA_APPCHECK_DEBUG_TOKEN`** to a UUID registered under Firebase App Check
+→ Manage debug tokens (headless Chromium cannot use ReCAPTCHA Enterprise
+otherwise; see `scripts/qa/README.md`). `npm ci` installs `playwright`;
+first Chromium launch may download browsers.
 
 **If env is missing or still placeholder:** the runner exits immediately
 with a pointer to the README — note **`qa:* skipped (no .env.qa.local)`**
-in the Step 4 report and fall back to the **manual** recipes in Step 3.
+or **`qa:cache` skipped (no `QA_APPCHECK_DEBUG_TOKEN`)** in the Step 4 report
+and fall back to the **manual** recipes in Step 3.
 
 **If a runner exits non-zero:** treat that as a **blocking** regression
 (same as a failed `npm test`) unless the failure is clearly environmental

@@ -74,7 +74,8 @@ Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
 ## PR QA codified runners (#251)
 
 - **Playbook:** **`.cursor/skills/pr-qa/SKILL.md`** §2.6, **`recipes.md`** §A/§B “Preferred” paths.
-- **Scripts:** **`scripts/qa/`** (`npm run qa:cache`, `npm run qa:chunks`); local env from **`.env.qa.example`** → **`.env.qa.local`** (gitignored). Headless Playwright + `vite preview`, not Vercel preview URLs.
+- **Scripts:** **`scripts/qa/`** (`npm run qa:cache`, `npm run qa:chunks`); local env from **`.env.qa.example`** → **`.env.qa.local`** (gitignored). `qa:cache` needs **`QA_APPCHECK_DEBUG_TOKEN`** (UUID registered in Firebase App Check) plus **`QA_PUBLIC_PROFILE_UID`**. Headless Playwright + `vite preview`, not Vercel preview URLs.
+- **Autonomous E2E follow-ups (post-#251):** [#347](https://github.com/pat792/set-picks/issues/347) (CI + same runners + secrets), [#348](https://github.com/pat792/set-picks/issues/348) (Vercel preview / §C / bypass), [#349](https://github.com/pat792/set-picks/issues/349) (auth-gated / emulators vs test harness). Third-party constraints are spelled out in each issue body.
 
 ---
 

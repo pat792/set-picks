@@ -35,6 +35,7 @@
 
 import { chromium } from 'playwright';
 
+import { enableFirebaseAppCheckDebug } from './_lib/qaBrowserInit.mjs';
 import { PUBLIC_PROFILE_UID } from './fixtures.js';
 import { startPreview } from './_lib/preview.mjs';
 
@@ -124,7 +125,21 @@ function fmtBytes(bytes) {
   return `${bytes}B (${(bytes / 1024).toFixed(1)}kB)`;
 }
 
+const QA_APPCHECK_DEBUG_TOKEN_PLACEHOLDER = 'YOUR_REGISTERED_APPCHECK_DEBUG_UUID';
+
 async function run() {
+  const appCheckToken = process.env.QA_APPCHECK_DEBUG_TOKEN?.trim();
+  if (!appCheckToken || appCheckToken === QA_APPCHECK_DEBUG_TOKEN_PLACEHOLDER) {
+    console.error(
+      '[qa:cache] QA_APPCHECK_DEBUG_TOKEN is not set (or still the placeholder ' +
+        'from `.env.qa.example`). Headless Playwright hits App Check–enforced ' +
+        'Firestore; use a **registered** debug UUID in `.env.qa.local` — same ' +
+        'value as in Firebase Console → App Check → your web app → Manage ' +
+        'debug tokens. See `scripts/qa/README.md`.',
+    );
+    process.exit(1);
+  }
+
   console.log('[qa:cache] building production artifact + starting vite preview…');
   const preview = await startPreview();
   console.log(`[qa:cache] preview ready at ${preview.url}`);
@@ -134,6 +149,7 @@ async function run() {
 
   try {
     const ctx = await browser.newContext();
+    await enableFirebaseAppCheckDebug(ctx);
     const page = await ctx.newPage();
 
     // Phase-tagged byte counter. The response listener routes each
