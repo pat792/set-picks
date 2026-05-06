@@ -34,6 +34,21 @@ The npm scripts load the file via Node's `--env-file-if-exists` flag, so
 a missing file fails inside the runner with a clear pointer back to this
 README rather than a cryptic "undefined" error.
 
+### App Check (`qa:cache` only)
+
+`npm run qa:chunks` does not talk to Firestore. `npm run qa:cache` does, and
+the production build uses App Check with the ReCAPTCHA Enterprise provider —
+headless Chromium cannot pass that without a **debug token**.
+
+1. Generate a UUID (any v4).
+2. Firebase Console → **App Check** → your **Web** app → **Manage debug
+   tokens** → add that UUID.
+3. Put the same string in `.env.qa.local` as **`QA_APPCHECK_DEBUG_TOKEN`**.
+
+If this variable is missing or not registered, the runner used to hang on
+“Total points” while Firestore logged `403` / offline errors in the browser
+console.
+
 ## Available runners
 
 | Script | npm task | Recipe (recipes.md) |

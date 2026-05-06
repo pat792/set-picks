@@ -91,7 +91,9 @@ Use for: `perf(stats): React Query caching` (#243), or any PR wrapping a
 hook that calls Firestore in a cache layer.
 
 **Preferred (agent, issue #251):** On a local checkout, configure
-**`.env.qa.local`** from **`.env.qa.example`** (`QA_PUBLIC_PROFILE_UID`),
+**`.env.qa.local`** from **`.env.qa.example`**
+(`QA_PUBLIC_PROFILE_UID` + **`QA_APPCHECK_DEBUG_TOKEN`** — a UUID registered
+in Firebase App Check → Manage debug tokens; see `scripts/qa/README.md`),
 then run `npm run build` then **`npm run qa:cache`**. Exit **0** ⇒ the
 `useUserSeasonStats` cache assertion for `/user/<uid>` SPA bounce passed
 (see `scripts/qa/firestore-cache.mjs` header comments). **Not applicable**
