@@ -147,7 +147,6 @@ the machine has `scripts/qa` fixtures configured.
 | PR touches **`useUserSeasonStats` / React Query cache** on public profile (recipes §B) | `npm run qa:cache` | §B baseline vs SPA-bounce `channel?VER=8` size check |
 | PR touches **`vercel.json`** / long-cache headers (recipes §C) | `npm run qa:preview-headers` | §C on **`QA_PREVIEW_BASE_URL`** (SKIP if unset) |
 
-<<<<<<< feat/347-348-349-ci-qa-e2e
 **Setup (once per machine):** copy `.env.qa.example` → `.env.qa.local` and
 set **`QA_PUBLIC_PROFILE_UID`**, **`QA_APPCHECK_DEBUG_TOKEN`** (registered
 App Check debug UUID), **`QA_TEST_EMAIL` / `QA_TEST_PASSWORD`** (dedicated
@@ -159,20 +158,6 @@ Optional: **`QA_PREVIEW_BASE_URL`** + **`QA_VERCEL_PROTECTION_BYPASS`** for
 with a pointer to the README — note **`qa:* skipped (no .env.qa.local)`**
 (or **`qa:preview-headers` SKIP**) in the Step 4 report and fall back to the
 **manual** recipes in Step 3.
-=======
-**Setup (once per machine):** copy `.env.qa.example` → `.env.qa.local`
-and set `QA_PUBLIC_PROFILE_UID` to a real Firebase UID with rich graded
-data (see `scripts/qa/README.md`). For **`qa:cache`**, also set
-**`QA_APPCHECK_DEBUG_TOKEN`** to a UUID registered under Firebase App Check
-→ Manage debug tokens (headless Chromium cannot use ReCAPTCHA Enterprise
-otherwise; see `scripts/qa/README.md`). `npm ci` installs `playwright`;
-first Chromium launch may download browsers.
-
-**If env is missing or still placeholder:** the runner exits immediately
-with a pointer to the README — note **`qa:* skipped (no .env.qa.local)`**
-or **`qa:cache` skipped (no `QA_APPCHECK_DEBUG_TOKEN`)** in the Step 4 report
-and fall back to the **manual** recipes in Step 3.
->>>>>>> staging
 
 **If a runner exits non-zero:** treat that as a **blocking** regression
 (same as a failed `npm test`) unless the failure is clearly environmental
