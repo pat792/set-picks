@@ -104,8 +104,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright Chromium
+      # Browser binaries are large; cache by lockfile so most PRs skip re-download.
+      # System deps still run via --with-deps (cheap vs Chromium fetch).
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright Chromium (full, cold cache)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright Chromium (warm cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install chromium
 
       # npm scripts use `--env-file-if-exists=.env.qa.local`; CI has no file unless we
       # write it. Job `env` already exposes secrets to the process, but materializing
