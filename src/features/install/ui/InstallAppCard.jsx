@@ -75,9 +75,8 @@ export default function InstallAppCard() {
 
       {!canPrompt && !shouldShowIosFlow ? (
         <p className="mt-4 rounded-2xl border border-border-muted bg-surface-inset p-4 text-sm leading-relaxed text-content-secondary">
-          Install is not available in this browser yet. To test this flow now, open the app in iPhone
-          Safari for guided steps. Chromium native install prompt support arrives with the service worker
-          foundation.
+          Install is not available in this browser yet. For the best install experience, open Setlist
+          Pick &apos;Em in Safari on iPhone and use Add to Home Screen.
         </p>
       ) : null}
     </section>
