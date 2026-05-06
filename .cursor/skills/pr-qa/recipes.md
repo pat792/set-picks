@@ -90,11 +90,13 @@ still eager on a path it shouldn't be.
 Use for: `perf(stats): React Query caching` (#243), or any PR wrapping a
 hook that calls Firestore in a cache layer.
 
-**Preferred (agent, issue #251):** On a local checkout, configure
+**Preferred (agent, issue #251 / #349):** On a local checkout, configure
 **`.env.qa.local`** from **`.env.qa.example`**
-(`QA_PUBLIC_PROFILE_UID` + **`QA_APPCHECK_DEBUG_TOKEN`** — a UUID registered
-in Firebase App Check → Manage debug tokens; see `scripts/qa/README.md`),
-then run `npm run build` then **`npm run qa:cache`**. Exit **0** ⇒ the
+(`QA_PUBLIC_PROFILE_UID`, **`QA_APPCHECK_DEBUG_TOKEN`** registered in Firebase
+App Check → Manage debug tokens, **`QA_TEST_EMAIL`** / **`QA_TEST_PASSWORD`**
+for splash sign-in — Firestore rules require `signedIn()`; see
+`scripts/qa/README.md`), then run `npm run build` then **`npm run qa:cache`**.
+Exit **0** ⇒ the
 `useUserSeasonStats` cache assertion for `/user/<uid>` SPA bounce passed
 (see `scripts/qa/firestore-cache.mjs` header comments). **Not applicable**
 to auth-gated stats routes (`/dashboard/standings`, etc.) — those still
@@ -148,10 +150,16 @@ re-fetching via its own effect.
 
 Use for: any PR touching `vercel.json`.
 
-**Agent limitation:** `curl` against Vercel previews returns 401 due to
-deployment protection. You MUST walk the user through this.
+**Preferred (agent, issue #348):** With **`QA_PREVIEW_BASE_URL`** (and optional
+**`QA_VERCEL_PROTECTION_BYPASS`**) in **`.env.qa.local`**, run
+**`npm run qa:preview-headers`**. Exits **0 SKIP** when the base URL is unset.
+CI runs the same script when repo **Variable** `QA_PREVIEW_BASE_URL` is
+configured.
 
-**Script:**
+**Agent limitation:** Without bypass credentials, `curl` against protected
+previews returns **401** — use the runner or walk the user through DevTools.
+
+**Manual script:**
 
 ```
 1. PR preview URL. DevTools → Network → All → Disable cache = OFF.

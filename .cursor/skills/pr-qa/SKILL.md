@@ -135,7 +135,7 @@ When the diff touches `src/app/App.jsx` or `src/app/layout/DashboardLayout.jsx`:
 - Confirm the `lazy()` wrappers match the PR's claims.
 - If dashboard child routes changed, confirm `src/app/layout/model/dashboardPageMeta.js` AND `scripts/verify-dashboard-meta.mjs` were updated together (`.cursorrules` §6).
 
-### 2.6 Codified browser recipes (Playwright, issue #251)
+### 2.6 Codified browser recipes (Playwright + §C fetch, issues #251, #347–#349)
 
 After **§2.2** has produced a fresh `dist/`, run the matching **npm
 scripts** before asking the user for manual Network-tab work — **if**
@@ -145,19 +145,19 @@ the machine has `scripts/qa` fixtures configured.
 |---|---|---|
 | PR touches **route splitting / lazy routes / chunk graph** (recipes §A) | `npm run qa:chunks` | §A scripted nav + chunk assertions for the runner's path |
 | PR touches **`useUserSeasonStats` / React Query cache** on public profile (recipes §B) | `npm run qa:cache` | §B baseline vs SPA-bounce `channel?VER=8` size check |
+| PR touches **`vercel.json`** / long-cache headers (recipes §C) | `npm run qa:preview-headers` | §C on **`QA_PREVIEW_BASE_URL`** (SKIP if unset) |
 
-**Setup (once per machine):** copy `.env.qa.example` → `.env.qa.local`
-and set `QA_PUBLIC_PROFILE_UID` to a real Firebase UID with rich graded
-data (see `scripts/qa/README.md`). For **`qa:cache`**, also set
-**`QA_APPCHECK_DEBUG_TOKEN`** to a UUID registered under Firebase App Check
-→ Manage debug tokens (headless Chromium cannot use ReCAPTCHA Enterprise
-otherwise; see `scripts/qa/README.md`). `npm ci` installs `playwright`;
-first Chromium launch may download browsers.
+**Setup (once per machine):** copy `.env.qa.example` → `.env.qa.local` and
+set **`QA_PUBLIC_PROFILE_UID`**, **`QA_APPCHECK_DEBUG_TOKEN`** (registered
+App Check debug UUID), **`QA_TEST_EMAIL` / `QA_TEST_PASSWORD`** (dedicated
+test account for **`qa:cache`** sign-in — see `scripts/qa/README.md`).
+Optional: **`QA_PREVIEW_BASE_URL`** + **`QA_VERCEL_PROTECTION_BYPASS`** for
+§C. `npm ci` installs `playwright`; first Chromium launch may download browsers.
 
 **If env is missing or still placeholder:** the runner exits immediately
 with a pointer to the README — note **`qa:* skipped (no .env.qa.local)`**
-or **`qa:cache` skipped (no `QA_APPCHECK_DEBUG_TOKEN`)** in the Step 4 report
-and fall back to the **manual** recipes in Step 3.
+(or **`qa:preview-headers` SKIP**) in the Step 4 report and fall back to the
+**manual** recipes in Step 3.
 
 **If a runner exits non-zero:** treat that as a **blocking** regression
 (same as a failed `npm test`) unless the failure is clearly environmental
