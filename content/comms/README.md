@@ -8,11 +8,15 @@
 
 ### In-app inbox (dashboard)
 
-Variable recap copy **renders in the product** from the same template builders as email/push once a message exists in Firestore:
+**Where the variable copy “lives” editorially:** Under **`content/comms/`** (e.g. tour recap Markdown like **`content/comms/tours/sphere-2026-inaugural.md`** — placeholders such as `{{rank}}`, sections for per-player branches). That file is the human-facing contract; **`implementationModule`** in the metadata table is still the shipped runtime source until a loader reads Markdown directly.
+
+**What Firestore stores for delivery:** Not the Markdown file. Each inbox row is **`templateId`** (matches registry + draft edition) plus a **`payload`** map of **values** for that template (e.g. numeric `rank`, `points`, `wins`, `showsPlayed`). Those fields align with the variables described in the **`content/comms`** draft and implemented in JS (e.g. `getSphere2026PersonalParagraph`).
+
+Once that doc exists, variable recap copy **renders in the app** from the same builders / UI as other channels:
 
 - **Path:** `users/{uid}/commsInbox/{messageId}` (see **`COMMS_INBOX_COLLECTION_ID`** in `src/features/notifications/api/commsInboxApi.js`).
 - **Writes:** Admin SDK / Cloud Functions only (clients **cannot** create rows). Owners may set **`readAt`** when they open a message.
-- **Shape:** `templateId` (registry key, e.g. `sphere-2026-inaugural`), `payload` (variables for the template — rank, points, wins, showsPlayed, optional `participantCount`), **`createdAt`** (server timestamp at delivery).
+- **Shape:** `templateId`, **`payload`** (per-user values), **`createdAt`** (server timestamp at delivery).
 - **UI:** Notifications screen (`/dashboard/notifications`) — **Messages** section + bell in dashboard chrome. Renderer maps `templateId` to components such as **`Sphere2026TourRecapInApp`** (see `src/features/notifications/ui/CommsRecapMessageBody.jsx`).
 
 **Manual QA:** In Firebase Console, add a doc under your test user’s `commsInbox` subcollection using the shape above, reload the app, open the bell → message should expand with personalized paragraphs. Automated delivery from standings / rollups is tracked in **#370**; a manual QA runbook is **#371**.
