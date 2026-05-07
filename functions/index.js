@@ -32,6 +32,11 @@ const {
 } = require("./scoringCore");
 const { runBackfill } = require("./backfillBustoutsCore");
 const { runRollupForShow } = require("./rollupCore");
+const { runPicksLockReminderFanout } = require("./picksLockReminder");
+const {
+  deleteFcmTokenDocForRawToken,
+  isInvalidOrUnregisteredToken,
+} = require("./fcmMessagingCore");
 const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
 
@@ -470,6 +475,9 @@ exports.sendPushCanary = onCall(
         code,
         tokenTail,
       });
+      if (isInvalidOrUnregisteredToken(code)) {
+        await deleteFcmTokenDocForRawToken(db, callerUid, token).catch(() => {});
+      }
       if (code === "messaging/mismatched-credential") {
         throw new HttpsError(
           "failed-precondition",
@@ -606,6 +614,27 @@ exports.deletePoolWithCleanup = onCall(
     });
 
     return { ok: true, poolId, memberUpdates };
+  }
+);
+
+/**
+ * Pre-lock pick reminders (issue #276): venue-local show day, 4pm–lock window,
+ * deduped per user+show in `fcm_notification_log`.
+ */
+exports.scheduledPicksLockReminder = onSchedule(
+  {
+    schedule: "*/15 * * * *",
+    timeZone: "America/Los_Angeles",
+    region: PHISHNET_FUNCTIONS_REGION,
+  },
+  async () => {
+    try {
+      await runPicksLockReminderFanout({ db, admin, logger, now: new Date() });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledPicksLockReminder failed", { msg, err: e });
+    }
+    return null;
   }
 );
 
