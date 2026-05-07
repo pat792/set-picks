@@ -181,13 +181,13 @@ test("scheduledCandidateShowDates: different zones evaluated independently", () 
   assert.deepEqual(dates, ["2026-07-04"]);
 });
 
-test("randomScheduledPollDelayMs is within 3–5 minutes", () => {
+test("randomScheduledPollDelayMs is within 90–150 seconds (#311)", () => {
   for (let i = 0; i < 50; i += 1) {
     const ms = randomScheduledPollDelayMs(Math.random);
-    assert.ok(ms >= 3 * 60 * 1000 && ms <= 5 * 60 * 1000);
+    assert.ok(ms >= 90 * 1000 && ms <= 150 * 1000);
   }
-  assert.equal(randomScheduledPollDelayMs(() => 0), 3 * 60 * 1000);
-  assert.equal(randomScheduledPollDelayMs(() => 0.999999), 5 * 60 * 1000);
+  assert.equal(randomScheduledPollDelayMs(() => 0), 90 * 1000);
+  assert.equal(randomScheduledPollDelayMs(() => 0.999999), 150 * 1000);
 });
 
 test("normalizeSetlistRows parses + sorts phish.net row shape", () => {

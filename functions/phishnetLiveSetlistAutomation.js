@@ -284,10 +284,14 @@ function evaluateSet1CloserStage(state) {
   return null;
 }
 
-/** Uniform random delay in [3, 5] minutes — scheduled cadence jitter (issue #180). */
+/**
+ * Uniform random delay in [90, 150] seconds (~2–3 min) — per-show spacing vs
+ * Phish.net after each scheduled wake (#311). Scheduler runs every 2 minutes
+ * so `nextPollAt` is re-evaluated promptly.
+ */
 function randomScheduledPollDelayMs(rng = Math.random) {
-  const min = 3 * 60 * 1000;
-  const max = 5 * 60 * 1000;
+  const min = 90 * 1000;
+  const max = 150 * 1000;
   return min + Math.floor(rng() * (max - min + 1));
 }
 

@@ -1,10 +1,42 @@
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
 import {
   sanitizeBustouts,
   sanitizeOfficialSongList,
 } from '../../../shared/utils/officialSetlistSanitize.js';
+
+/**
+ * Normalizes `official_setlists/{showDate}` document data for scoring UIs.
+ * Shared by one-shot reads and realtime snapshots (#311).
+ *
+ * @param {Record<string, unknown> | undefined} data
+ * @returns {null | { officialSetlist: unknown[] } & Record<string, unknown>}
+ */
+export function normalizeOfficialSetlistDocData(data) {
+  if (!data || typeof data !== 'object') return null;
+
+  const rawEnc = data.encoreSongs;
+  const encoreSongs =
+    Array.isArray(rawEnc) && rawEnc.length > 0
+      ? sanitizeOfficialSongList(rawEnc)
+      : [];
+  const bustouts = sanitizeBustouts(data.bustouts);
+  return {
+    ...(data.setlist || {}),
+    officialSetlist: Array.isArray(data.officialSetlist) ? data.officialSetlist : [],
+    ...(encoreSongs.length > 0 ? { encoreSongs } : {}),
+    bustouts,
+  };
+}
 
 /**
  * @param {string} showDate
@@ -34,19 +66,55 @@ export async function fetchOfficialSetlistForShow(showDate) {
 
   if (!setlistSnap.exists()) return null;
 
-  const data = setlistSnap.data();
-  const rawEnc = data.encoreSongs;
-  const encoreSongs =
-    Array.isArray(rawEnc) && rawEnc.length > 0
-      ? sanitizeOfficialSongList(rawEnc)
-      : [];
-  const bustouts = sanitizeBustouts(data.bustouts);
-  return {
-    ...(data.setlist || {}),
-    officialSetlist: Array.isArray(data.officialSetlist) ? data.officialSetlist : [],
-    ...(encoreSongs.length > 0 ? { encoreSongs } : {}),
-    // Always include the bustouts key (even when empty) so downstream scoring
-    // treats absence = empty without ambiguity (#214).
-    bustouts,
-  };
+  return normalizeOfficialSetlistDocData(setlistSnap.data());
+}
+
+/**
+ * LIVE standings: subscribe to all picks for a show (same query as fetch).
+ *
+ * @param {string} showDate
+ * @param {(picks: Array<{ id: string } & Record<string, unknown>>) => void} onNext
+ * @param {(err: Error) => void} onError
+ * @returns {() => void}
+ */
+export function subscribePicksForShowDate(showDate, onNext, onError) {
+  if (!showDate) {
+    return () => {};
+  }
+  const picksQuery = query(collection(db, 'picks'), where('showDate', '==', showDate));
+  return onSnapshot(
+    picksQuery,
+    (snapshot) => {
+      onNext(
+        snapshot.docs.map((pickDoc) => ({
+          id: pickDoc.id,
+          ...pickDoc.data(),
+        }))
+      );
+    },
+    onError
+  );
+}
+
+/**
+ * LIVE standings: subscribe to official setlist doc for a show.
+ *
+ * @param {string} showDate
+ * @param {(setlist: null | ReturnType<typeof normalizeOfficialSetlistDocData>) => void} onNext
+ * @param {(err: Error) => void} onError
+ * @returns {() => void}
+ */
+export function subscribeOfficialSetlistForShow(showDate, onNext, onError) {
+  if (!showDate) {
+    return () => {};
+  }
+  const setlistRef = doc(db, 'official_setlists', showDate);
+  return onSnapshot(
+    setlistRef,
+    (snap) => {
+      if (!snap.exists()) onNext(null);
+      else onNext(normalizeOfficialSetlistDocData(snap.data()));
+    },
+    onError
+  );
 }
