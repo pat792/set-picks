@@ -640,9 +640,9 @@ exports.scheduledPicksLockReminder = onSchedule(
 
 exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
   {
-    // Wake every 3m; in-window spacing vs Phish.net is enforced by per-date
-    // `nextPollAt` (3–5m jitter after each scheduled fetch — issue #180).
-    schedule: "*/3 * * * *",
+    // Wake every 2m; in-window spacing vs Phish.net is enforced by per-date
+    // `nextPollAt` (~90–150s jitter — issue #311).
+    schedule: "*/2 * * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
     secrets: [phishnetApiKey],
