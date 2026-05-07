@@ -12,6 +12,29 @@ const DASHBOARD_NOTIFICATIONS_URL =
   "https://www.setlistpickem.com/dashboard/notifications";
 
 /**
+ * `admin.messaging().send()` often returns a full resource path such as
+ * `projects/{project}/messages/0:167…`. Collapse to the final segment for
+ * client-visible copy, Firestore metadata, and logs.
+ *
+ * @param {unknown} raw
+ * @returns {string}
+ */
+function normalizeFcmSendMessageId(raw) {
+  if (raw == null) return "";
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    const slash = trimmed.lastIndexOf("/");
+    const tail = slash >= 0 ? trimmed.slice(slash + 1) : trimmed;
+    return tail.length > 80 ? `${tail.slice(0, 80)}…` : tail;
+  }
+  if (typeof raw === "object" && raw !== null && typeof raw.name === "string") {
+    return normalizeFcmSendMessageId(raw.name);
+  }
+  return String(raw);
+}
+
+/**
  * @param {string | undefined} code
  * @returns {boolean}
  */
@@ -60,7 +83,7 @@ async function sendWebPushToToken({
   logger = undefined,
 }) {
   try {
-    const messageId = await admin.messaging().send({
+    const rawId = await admin.messaging().send({
       token,
       notification: { title, body },
       data,
@@ -68,7 +91,7 @@ async function sendWebPushToToken({
         fcmOptions: { link: DASHBOARD_NOTIFICATIONS_URL },
       },
     });
-    return { ok: true, messageId };
+    return { ok: true, messageId: normalizeFcmSendMessageId(rawId) };
   } catch (error) {
     const code =
       typeof error?.code === "string"
@@ -90,6 +113,7 @@ module.exports = {
   DASHBOARD_NOTIFICATIONS_URL,
   deleteFcmTokenDocForRawToken,
   isInvalidOrUnregisteredToken,
+  normalizeFcmSendMessageId,
   sendWebPushToToken,
 };
 

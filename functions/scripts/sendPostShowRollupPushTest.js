@@ -17,7 +17,11 @@
  *   --global-max=<n>        For nearMiss body only (default 9).
  *   --project=<project-id>  Override project (else GOOGLE_CLOUD_PROJECT / .env VITE_FIREBASE_PROJECT_ID).
  *
- * Auth: `gcloud auth application-default login` (same as sendPushCanaryForUser.js).
+ * Auth (pick one):
+ *   - User ADC: `gcloud auth application-default login` (same as sendPushCanaryForUser.js).
+ *   - If you see `invalid_rapt` / `invalid_grant` / "reauth": revoke and log in again, or use a
+ *     **service account** JSON via `GOOGLE_APPLICATION_CREDENTIALS` (org policy often blocks
+ *     long-lived user ADC for Firestore). https://support.google.com/a/answer/9368756
  *
  * Re-runs: after a successful send, the same --pick-id is skipped (log exists). Use a new
  * --pick-id or delete the matching `fcm_notification_log` doc to test again.
@@ -183,7 +187,22 @@ async function main() {
 }
 
 main().catch((err) => {
+  const msg = err instanceof Error ? err.message : String(err);
   console.error("\nsendPostShowRollupPushTest.js failed:");
   console.error(err instanceof Error ? err.stack || err.message : err);
+  if (/invalid_rapt|invalid_grant|reauth/i.test(msg)) {
+    console.error(`
+Google rejected Application Default Credentials (often Google Workspace / session policy).
+
+Try:
+  gcloud auth application-default revoke
+  gcloud auth application-default login
+
+Or set a service account key (must have Firestore + Cloud Messaging access to this project):
+  export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to-key.json
+
+https://support.google.com/a/answer/9368756
+`);
+  }
   process.exit(1);
 });

@@ -106,7 +106,6 @@ export default function NotificationsPrototypeScreen() {
     lastMessageTitle,
     triggerPushCanary,
     canaryStatus,
-    canaryMessageId,
   } = usePushTokenRegistration();
   const {
     prefs,
@@ -189,11 +188,12 @@ export default function NotificationsPrototypeScreen() {
           <p className="mt-2 text-xs text-content-secondary">
             Browser permission: <span className="font-bold text-white">{permission}</span>
           </p>
-          {canaryStatus === 'sent' && canaryMessageId ? (
-            <p className="mt-2 text-xs text-emerald-300">
-              Test notification sent ({canaryMessageId.slice(0, 16)}...)
-            </p>
-          ) : null}
+              {canaryStatus === 'sent' ? (
+                <p className="mt-2 text-xs text-emerald-300">
+                  Test notification sent. Check this device for the alert (including the system
+                  notification tray if the app is in the background).
+                </p>
+              ) : null}
           {lastMessageTitle ? (
             <p className="mt-2 text-xs text-emerald-300">
               Foreground message received: <span className="font-bold">{lastMessageTitle}</span>

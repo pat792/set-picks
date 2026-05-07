@@ -36,6 +36,7 @@ const { runPicksLockReminderFanout } = require("./picksLockReminder");
 const {
   deleteFcmTokenDocForRawToken,
   isInvalidOrUnregisteredToken,
+  normalizeFcmSendMessageId,
 } = require("./fcmMessagingCore");
 const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
@@ -438,7 +439,7 @@ exports.sendPushCanary = onCall(
     const timestamp = new Date().toISOString();
     const tokenTail = token.slice(-12);
     try {
-      const response = await admin.messaging().send({
+      const rawMessageId = await admin.messaging().send({
         token,
         notification: {
           title: "Setlist Pick Em",
@@ -454,16 +455,17 @@ exports.sendPushCanary = onCall(
           },
         },
       });
+      const messageId = normalizeFcmSendMessageId(rawMessageId);
       if (tokenDoc) {
         await tokenDoc.ref.set(
           {
             lastCanaryAt: admin.firestore.FieldValue.serverTimestamp(),
-            lastCanaryMessageId: response,
+            lastCanaryMessageId: messageId,
           },
           { merge: true }
         );
       }
-      return { ok: true, messageId: response };
+      return { ok: true, messageId };
     } catch (error) {
       const code =
         typeof error?.code === "string"
