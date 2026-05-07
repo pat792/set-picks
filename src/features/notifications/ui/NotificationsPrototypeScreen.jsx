@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Bell, ChevronDown, Mail, Smartphone } from 'lucide-react';
 
 import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
+import CommsInboxSection from './CommsInboxSection.jsx';
 import { useNotificationPrefs } from '../model/useNotificationPrefs';
 import { usePushTokenRegistration } from '../model/usePushTokenRegistration';
 
@@ -154,11 +155,17 @@ export default function NotificationsPrototypeScreen() {
           Notifications
         </h2>
         <p className="mt-2 text-sm font-bold leading-relaxed text-content-secondary md:mt-3">
-          Choose how we reach you about shows, scores, and recaps.
+          Read messages below, then choose how we reach you about shows, scores, and recaps.
         </p>
       </div>
 
-      <ul className="mt-8 space-y-3">
+      <CommsInboxSection />
+
+      <p className="mb-3 mt-10 text-xs font-black uppercase tracking-widest text-content-secondary">
+        Preferences
+      </p>
+
+      <ul className="mt-3 space-y-3">
         <NotificationAccordionSection
           sectionId="notif-push"
           title="Push notifications"

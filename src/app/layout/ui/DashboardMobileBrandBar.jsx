@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import { DashboardNotificationsBell } from '../../../features/notifications';
+
 import {
   BRAND_APP_CHROME_MARK_SRC,
   brandAppChromeMarkImgClassNames,
@@ -31,8 +33,11 @@ export default function DashboardMobileBrandBar({ user }) {
           </Link>
         </h1>
 
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border-subtle/35 bg-surface-panel-strong text-xs">
-          {user?.email?.charAt(0).toUpperCase() || '👤'}
+        <div className="flex shrink-0 items-center gap-2">
+          <DashboardNotificationsBell />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border-subtle/35 bg-surface-panel-strong text-xs">
+            {user?.email?.charAt(0).toUpperCase() || '👤'}
+          </div>
         </div>
       </BrandWordmarkBarRow>
     </div>
