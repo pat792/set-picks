@@ -18,6 +18,8 @@ const admin = require("firebase-admin");
 const fs = require("node:fs");
 const path = require("node:path");
 
+const { normalizeFcmSendMessageId } = require("../fcmMessagingCore");
+
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const ENV_PATH = path.join(REPO_ROOT, ".env");
 
@@ -166,7 +168,7 @@ async function main() {
     return;
   }
 
-  const response = await admin.messaging().send({
+  const rawMessageId = await admin.messaging().send({
     token,
     notification: { title, body },
     data: {
@@ -180,17 +182,18 @@ async function main() {
       },
     },
   });
+  const messageId = normalizeFcmSendMessageId(rawMessageId);
 
   await tokenDoc.ref.set(
     {
       lastCanaryAt: admin.firestore.FieldValue.serverTimestamp(),
-      lastCanaryMessageId: response,
+      lastCanaryMessageId: messageId,
       lastCanaryBy: `script:${process.env.USER || "unknown"}`,
     },
     { merge: true }
   );
 
-  console.log(`Sent canary. Message id: ${response}`);
+  console.log(`Sent canary. Message id: ${messageId}`);
 }
 
 main().catch((err) => {
