@@ -19,7 +19,16 @@ Once that doc exists, variable recap copy **renders in the app** from the same b
 - **Shape:** `templateId`, **`payload`** (per-user values), **`createdAt`** (server timestamp at delivery).
 - **UI:** Notifications screen (`/dashboard/notifications`) — **Messages** section + bell in dashboard chrome. Renderer maps `templateId` to components such as **`Sphere2026TourRecapInApp`** (see `src/features/notifications/ui/CommsRecapMessageBody.jsx`).
 
-**Manual QA:** In Firebase Console, add a doc under your test user’s `commsInbox` subcollection using the shape above, reload the app, open the bell → message should expand with personalized paragraphs. Automated delivery from standings / rollups is tracked in **#370**; a manual QA runbook is **#371**.
+**Manual QA:** In Firebase Console, add a doc under your test user’s `commsInbox` subcollection using the shape above, reload the app, open the bell → message should expand with personalized paragraphs.
+
+**Phased delivery (orchestration):**
+
+| Phase | Who triggers | Mechanism |
+|-------|----------------|-----------|
+| **1 — Ship today** | Admin / PM (War Room) | HTTPS callable **`deliverSphere2026TourRecapInbox`** (`functions/index.js`): **`dryRun`** defaults to **true**; pass **`dryRun: false`** to write rows. Aggregates **graded** picks on the nine **Sphere Run** dates (same math as dashboard Tour standings) and writes **`users/{uid}/commsInbox/sphere-2026-inaugural`**. UI: **War Room → Tour recap copy → Deliver recap to user inboxes** (`AdminSphereTourRecapDelivery`). CLI (ADC): `functions/scripts/deliverSphere2026TourRecapInbox.js` — omit flag for dry run, **`--execute`** to write. |
+| **2** | Automation | Scheduled or rollup-triggered job calling the same delivery helper (extend **`sphereTourRecapDelivery.js`** or add registry-driven modules). Tracked in **#370** / epic **#272**. |
+
+Sphere inaugural **show-date list** in code must stay aligned with **`src/shared/data/showDates.js`** (`Sphere Run`). Follow-up runbook: **#371**.
 
 ---
 
