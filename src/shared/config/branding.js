@@ -93,3 +93,29 @@ export const brandWordmarkDashboardMobileBarScaleWrapperClassNames =
  */
 export const brandWordmarkDashboardSidebarScaleWrapperClassNames =
   'block w-full max-w-full origin-left scale-[1.02] motion-reduce:scale-100 md:flex md:origin-center md:justify-center md:scale-100';
+
+/**
+ * Shared two-column shell for splash header + dashboard mobile brand bar (#174).
+ * Keeps safe-area insets, grid track widths, and `sm:flex` handoff aligned.
+ */
+export const brandWordmarkBarRowGridBaseClassNames =
+  'grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 overflow-visible pl-[max(1rem,env(safe-area-inset-left,0px))] pr-4 sm:flex sm:justify-between sm:gap-3';
+
+/** Full-bleed row inside fixed splash header (`max-w-7xl` + responsive horizontal padding). */
+export const brandWordmarkBarRowSplashExtrasClassNames =
+  'h-full w-full max-w-7xl min-w-0 sm:px-6 lg:px-8';
+
+/** Mobile dashboard bar: z-index stacks above scroll content; `sm:` horizontal matches legacy chrome. */
+export const brandWordmarkBarRowDashboardExtrasClassNames =
+  'relative z-20 sm:pl-4 sm:pr-4';
+
+/**
+ * Leading cell: splash vinyl / wordmark control — optical left edge (#174).
+ * (Former ad-hoc `max-sm:-translate-x-*` lives here when we reintroduce it.)
+ */
+export const brandWordmarkSplashHeaderLeadingClassNames =
+  'inline-flex min-w-0 items-center justify-start justify-self-start overflow-visible pl-0 pr-1 text-left outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm sm:shrink-0 sm:justify-self-auto sm:pr-2';
+
+/** Leading cell: dashboard mobile H1 + link — micro nudge for vinyl square vs safe area (#174). */
+export const brandWordmarkDashboardMobileLeadingClassNames =
+  'flex min-h-0 min-w-0 items-center justify-start justify-self-start self-center overflow-visible text-left leading-none max-sm:ml-1 max-sm:translate-y-1 sm:flex-1 sm:ml-0 sm:translate-y-0 sm:justify-self-auto';

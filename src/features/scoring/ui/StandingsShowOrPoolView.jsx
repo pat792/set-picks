@@ -92,6 +92,7 @@ export default function StandingsShowOrPoolView({ screen }) {
         {showLastShowWinnerBanner ? (
           <StandingsWinnerOfTheNightBanner
             variant="lastShow"
+            compact
             winners={previousShowWinner.winners}
             max={previousShowWinner.max}
             beats={previousShowWinner.beats}
@@ -107,7 +108,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           picksStatusLoading={Boolean(picksStatusLoading)}
         />
         {displayedPicks.length > 0 ? (
-          <div className="mt-6">
+          <div className="mt-4 md:mt-6">
             {!actualSetlist && picks.length > 0 ? (
               <StandingsBannerWaitingSetlist />
             ) : null}
@@ -179,6 +180,7 @@ export default function StandingsShowOrPoolView({ screen }) {
       {showLastShowWinnerBanner ? (
         <StandingsWinnerOfTheNightBanner
           variant="lastShow"
+          compact={Boolean(showWinnerBanner)}
           winners={previousShowWinner.winners}
           max={previousShowWinner.max}
           beats={previousShowWinner.beats}
