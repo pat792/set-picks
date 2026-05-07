@@ -137,5 +137,13 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    /**
+     * FCM delivery dedupe log (issues #275–#276). Written only by Cloud Functions
+     * Admin SDK; clients must not read or tamper with send state.
+     */
+    match /fcm_notification_log/{docId} {
+      allow read, write: if false;
+    }
+
   }
 }
