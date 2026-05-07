@@ -31,6 +31,10 @@ const {
   computePerPickRollup,
   resolveTourKeyForDate,
 } = require("./rollupSeasonAggregates");
+const {
+  sendPostShowRollupPush,
+  CLOSE_CALL_MAX_GAP,
+} = require("./postShowRollupPush");
 
 /** Same invariant as `adminRollupApi.js` / `profileApi.js`. */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
@@ -161,6 +165,9 @@ async function runRollupForShow({
   let processedPicks = 0;
   let skippedPicks = 0;
 
+  /** @type {{ kind: "win" | "nearMiss", userId: string, pickId: string, newScore?: number }[]} */
+  const rollupPushHints = [];
+
   for (const pickDoc of picksSnap.docs) {
     const pickData = pickDoc.data() || {};
     if (!pickData.userId) {
@@ -178,6 +185,30 @@ async function runRollupForShow({
       newScore,
       newGlobalMax,
     });
+
+    if (pickData.userId && plan.isFirstGrade) {
+      if (plan.newIsWin) {
+        rollupPushHints.push({
+          kind: "win",
+          userId: pickData.userId,
+          pickId: pickDoc.id,
+        });
+      } else if (
+        plan.countsTowardSeason &&
+        typeof newGlobalMax === "number" &&
+        newGlobalMax > 0 &&
+        !plan.newIsWin &&
+        newScore >= 0 &&
+        newGlobalMax - newScore <= CLOSE_CALL_MAX_GAP
+      ) {
+        rollupPushHints.push({
+          kind: "nearMiss",
+          userId: pickData.userId,
+          pickId: pickDoc.id,
+          newScore,
+        });
+      }
+    }
 
     const pickUpdate = {
       score: newScore,
@@ -243,6 +274,26 @@ async function runRollupForShow({
     totalPicks,
     callerUid,
   });
+
+  if (rollupPushHints.length > 0) {
+    try {
+      await sendPostShowRollupPush({
+        db,
+        admin,
+        showDate,
+        newGlobalMax,
+        hints: rollupPushHints,
+        logger,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger?.warn?.("runRollupForShow.postShowPush failed", {
+        showDate,
+        trigger,
+        msg,
+      });
+    }
+  }
 
   return {
     processedPicks,
