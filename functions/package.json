@@ -13,6 +13,7 @@
     "diagnose:phishnet": "node ../scripts/diagnose-phishnet-local.mjs",
     "qa:clone-picks-for-show": "node scripts/clonePicksForShowQa.js",
     "qa:push-canary-for-user": "node scripts/sendPushCanaryForUser.js",
+    "qa:post-show-push-test": "node scripts/sendPostShowRollupPushTest.js",
     "backfill:bustouts": "node scripts/backfillBustouts.js",
     "backfill:season-aggregates": "node scripts/backfillSeasonAggregates.js",
     "rollup:reset-premature-grade": "node scripts/resetPrematureGrade.js"
