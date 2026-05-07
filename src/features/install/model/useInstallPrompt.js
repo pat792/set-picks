@@ -1,22 +1,36 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ga4Event } from '../../../shared/lib/ga4';
-import { isInstalled, isIosSafariBrowser } from './installPromptPlatform';
+import {
+  isInstalled,
+  isIosNonSafariBrowser,
+  isIosSafariBrowser,
+} from './installPromptPlatform';
+import { SESSION_PUSH_NUDGE_AFTER_INSTALL_KEY } from './installEngageKeys';
 
 const IOS_DISMISS_KEY = 'set-picks-install-ios-dismissed';
+const DASHBOARD_INSTALL_SNOOZE_KEY = 'set-picks-install-dashboard-snooze-until';
 
 function getIosDismissed() {
   if (typeof window === 'undefined') return false;
   return window.localStorage.getItem(IOS_DISMISS_KEY) === '1';
 }
 
-function setIosDismissed(value) {
+function setIosDismissedStorage(value) {
   if (typeof window === 'undefined') return;
   if (value) {
     window.localStorage.setItem(IOS_DISMISS_KEY, '1');
   } else {
     window.localStorage.removeItem(IOS_DISMISS_KEY);
   }
+}
+
+function isDashboardInstallSnoozed() {
+  if (typeof window === 'undefined') return false;
+  const raw = window.localStorage.getItem(DASHBOARD_INSTALL_SNOOZE_KEY);
+  if (!raw) return false;
+  const t = Number(raw);
+  return Number.isFinite(t) && t > Date.now();
 }
 
 export function useInstallPrompt() {
@@ -27,8 +41,12 @@ export function useInstallPrompt() {
   const [isIosSafari, setIsIosSafari] = useState(() =>
     typeof window === 'undefined' ? false : isIosSafariBrowser(navigator)
   );
+  const [isIosNonSafari, setIsIosNonSafari] = useState(() =>
+    typeof navigator === 'undefined' ? false : isIosNonSafariBrowser(navigator)
+  );
   const [iosDismissed, setIosDismissedState] = useState(getIosDismissed);
   const [showIosGuide, setShowIosGuide] = useState(false);
+  const [snoozeTick, setSnoozeTick] = useState(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -43,6 +61,11 @@ export function useInstallPrompt() {
       setInstalled(true);
       setDeferredPrompt(null);
       ga4Event('a2hs_installed');
+      try {
+        window.sessionStorage.setItem(SESSION_PUSH_NUDGE_AFTER_INSTALL_KEY, '1');
+      } catch {
+        /* ignore quota / privacy mode */
+      }
     };
     const onBeforeInstallPrompt = (event) => {
       event.preventDefault();
@@ -51,6 +74,7 @@ export function useInstallPrompt() {
 
     updateInstalled();
     setIsIosSafari(isIosSafariBrowser(navigator));
+    setIsIosNonSafari(isIosNonSafariBrowser(navigator));
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', onDisplayModeChange);
     } else if (typeof mediaQuery.addListener === 'function') {
@@ -70,17 +94,50 @@ export function useInstallPrompt() {
     };
   }, []);
 
+  /** iOS “Add to Home Screen” / display-mode standalone may not fire `appinstalled`. */
+  const prevInstalledRef = useRef(null);
+  useEffect(() => {
+    if (prevInstalledRef.current === null) {
+      prevInstalledRef.current = installed;
+      return;
+    }
+    if (!prevInstalledRef.current && installed) {
+      try {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(SESSION_PUSH_NUDGE_AFTER_INSTALL_KEY, '1');
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    prevInstalledRef.current = installed;
+  }, [installed]);
+
   const canPrompt = Boolean(deferredPrompt) && !installed;
   const shouldShowIosFlow = isIosSafari && !installed && !iosDismissed;
-  const shouldShowCard = canPrompt || shouldShowIosFlow;
+  const shouldShowIosNonSafariFlow = isIosNonSafari && !installed && !iosDismissed;
+  const shouldShowCard = canPrompt || shouldShowIosFlow || shouldShowIosNonSafariFlow;
+
+  const dashboardSnoozed = useMemo(() => {
+    void snoozeTick;
+    return isDashboardInstallSnoozed();
+  }, [snoozeTick, installed]);
+
+  const shouldShowDashboardInstallBanner =
+    !installed &&
+    !dashboardSnoozed &&
+    (canPrompt || shouldShowIosFlow || shouldShowIosNonSafariFlow);
 
   useEffect(() => {
     if (!shouldShowCard) return;
-    ga4Event('a2hs_cta_shown', { platform: canPrompt ? 'chromium' : 'ios_safari' });
-  }, [shouldShowCard, canPrompt]);
+    let platform = 'ios_safari';
+    if (canPrompt) platform = 'chromium';
+    else if (isIosNonSafari) platform = 'ios_non_safari';
+    ga4Event('a2hs_cta_shown', { platform });
+  }, [shouldShowCard, canPrompt, isIosNonSafari]);
 
   const dismissIos = useCallback(() => {
-    setIosDismissed(true);
+    setIosDismissedStorage(true);
     setIosDismissedState(true);
     setShowIosGuide(false);
     ga4Event('a2hs_ios_dismissed');
@@ -93,6 +150,14 @@ export function useInstallPrompt() {
 
   const closeIosGuide = useCallback(() => {
     setShowIosGuide(false);
+  }, []);
+
+  const snoozeInstallDashboard = useCallback((days = 7) => {
+    if (typeof window === 'undefined') return;
+    const until = Date.now() + days * 86_400_000;
+    window.localStorage.setItem(DASHBOARD_INSTALL_SNOOZE_KEY, String(until));
+    setSnoozeTick((t) => t + 1);
+    ga4Event('a2hs_dashboard_snoozed', { days });
   }, []);
 
   const promptInstall = useCallback(async () => {
@@ -110,26 +175,34 @@ export function useInstallPrompt() {
     () => ({
       canPrompt,
       isIosSafari,
+      isIosNonSafari,
       isInstalled: installed,
       showIosGuide,
       shouldShowCard,
+      shouldShowIosFlow,
+      shouldShowIosNonSafariFlow,
+      shouldShowDashboardInstallBanner,
       promptInstall,
       dismissIos,
       openIosGuide,
       closeIosGuide,
-      shouldShowIosFlow,
+      snoozeInstallDashboard,
     }),
     [
       canPrompt,
       isIosSafari,
+      isIosNonSafari,
       installed,
       showIosGuide,
       shouldShowCard,
+      shouldShowIosFlow,
+      shouldShowIosNonSafariFlow,
+      shouldShowDashboardInstallBanner,
       promptInstall,
       dismissIos,
       openIosGuide,
       closeIosGuide,
-      shouldShowIosFlow,
+      snoozeInstallDashboard,
     ]
   );
 }

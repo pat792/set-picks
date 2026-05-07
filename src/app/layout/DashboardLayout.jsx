@@ -47,6 +47,7 @@ import {
   showOptionTitle,
 } from '../../shared/utils/showOptionLabel.js';
 import { PastShowLockBanner, TooEarlyBanner } from '../../features/picks';
+import { DashboardInstallEngageBanner } from '../../features/install';
 
 import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
 import {
@@ -234,6 +235,8 @@ export default function DashboardLayout() {
           {showTooEarlyBanner && (
             <TooEarlyBanner priorShowLabel={tooEarlyPriorLabel} />
           )}
+
+          <DashboardInstallEngageBanner userId={user?.uid} pathname={location.pathname} />
 
           {meta.layoutDetailEyebrow ? (
             <p className="mb-3 ml-1 hidden text-xs font-bold uppercase tracking-widest text-content-secondary md:block">

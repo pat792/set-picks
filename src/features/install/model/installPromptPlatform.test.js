@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   isInstalled,
+  isIosDevice,
+  isIosNonSafariBrowser,
   isIosSafariBrowser,
   isStandaloneDisplayMode,
   isStandaloneNavigator,
@@ -32,6 +34,9 @@ describe('installPromptPlatform', () => {
 
     expect(isIosSafariBrowser(iosSafari)).toBe(true);
     expect(isIosSafariBrowser(iosChrome)).toBe(false);
+    expect(isIosDevice(iosSafari)).toBe(true);
+    expect(isIosNonSafariBrowser(iosSafari)).toBe(false);
+    expect(isIosNonSafariBrowser(iosChrome)).toBe(true);
   });
 
   it('combines display and navigator standalone detection', () => {
