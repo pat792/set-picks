@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Bell, ChevronDown, Mail, Smartphone } from 'lucide-react';
 
 import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
@@ -91,7 +92,21 @@ function NotificationAccordionSection({
 }
 
 export default function NotificationsPrototypeScreen() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [openSection, setOpenSection] = useState(null);
+
+  useEffect(() => {
+    const open =
+      searchParams.get('openPush') === '1' || searchParams.get('section') === 'push';
+    if (!open) return;
+    setOpenSection('push');
+    const next = new URLSearchParams(searchParams);
+    next.delete('openPush');
+    next.delete('section');
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleAccordion = useCallback((id) => {
     setOpenSection((prev) => (prev === id ? null : id));

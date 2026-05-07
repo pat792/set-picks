@@ -13,6 +13,7 @@ export default function InstallAppCard() {
     openIosGuide,
     closeIosGuide,
     shouldShowIosFlow,
+    shouldShowIosNonSafariFlow,
   } = useInstallPrompt();
 
   if (isInstalled) return null;
@@ -73,10 +74,28 @@ export default function InstallAppCard() {
         </>
       ) : null}
 
-      {!canPrompt && !shouldShowIosFlow ? (
+      {shouldShowIosNonSafariFlow ? (
+        <>
+          <p className="mt-4 rounded-2xl border border-amber-500/35 bg-amber-500/5 p-4 text-sm font-bold leading-relaxed text-content-secondary">
+            On iPhone, <span className="text-white">Chrome and other browsers can&apos;t install</span>{' '}
+            this app. Open <span className="text-white">setlistpickem.com</span> in{' '}
+            <span className="text-white">Safari</span>, then use Share → Add to Home Screen.
+          </p>
+          <button
+            type="button"
+            onClick={dismissIos}
+            className="mt-3 text-xs font-black uppercase tracking-widest text-content-secondary underline decoration-border-muted underline-offset-4 transition-colors hover:text-white"
+          >
+            Don&apos;t show this again
+          </button>
+        </>
+      ) : null}
+
+      {!canPrompt && !shouldShowIosFlow && !shouldShowIosNonSafariFlow ? (
         <p className="mt-4 rounded-2xl border border-border-muted bg-surface-inset p-4 text-sm leading-relaxed text-content-secondary">
-          Install is not available in this browser yet. For the best install experience, open Setlist
-          Pick &apos;Em in Safari on iPhone and use Add to Home Screen.
+          Install is not available in this browser yet. For the best install experience on iPhone,
+          open Setlist Pick &apos;Em in <span className="font-bold text-white">Safari</span> and use
+          Add to Home Screen.
         </p>
       ) : null}
     </section>
