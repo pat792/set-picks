@@ -12,7 +12,7 @@ export default function DashboardNotificationsBell() {
 
   const label =
     unreadCount > 0
-      ? `Notifications — ${unreadCount} unread`
+      ? `Notifications — new message waiting (${unreadCount} unread)`
       : 'Notifications';
 
   return (
@@ -22,6 +22,9 @@ export default function DashboardNotificationsBell() {
       aria-label={label}
     >
       <Bell className="h-5 w-5" aria-hidden />
+      {ready && unreadCount > 0 ? (
+        <span className="absolute -left-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-brand-primary ring-2 ring-surface-panel-strong" />
+      ) : null}
       {ready && unreadCount > 0 ? (
         <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-primary px-1 text-[10px] font-black leading-none text-[rgb(var(--brand-bg-deep))]">
           {unreadCount > 9 ? '9+' : unreadCount}
