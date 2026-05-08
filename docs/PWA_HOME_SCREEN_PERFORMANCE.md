@@ -1,6 +1,6 @@
 # PWA / home screen launch performance
 
-**Status:** Tracking spike — see GitHub issue (search “PWA precache” or labels `performance`, `PWA`).
+**Status:** Tracking spike — [GitHub issue #383](https://github.com/pat792/set-picks/issues/383).
 
 ## Problem statement
 
