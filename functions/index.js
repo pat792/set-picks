@@ -41,6 +41,7 @@ const {
 const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { deliverSphere2026TourRecapInbox } = require("./sphereTourRecapDelivery");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
+const { runAccountDeletionForCaller } = require("./accountDelete");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 
@@ -640,6 +641,30 @@ exports.deletePoolWithCleanup = onCall(
     });
 
     return { ok: true, poolId, memberUpdates };
+  }
+);
+
+/**
+ * Self-serve account deletion (Terms of Service): gated confirmation on the client;
+ * server writes `account_deletion_reports/{id}`, removes pool membership / picks /
+ * user subcollections / profile doc, then deletes the Firebase Auth user.
+ */
+exports.deleteAccountWithAudit = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    return runAccountDeletionForCaller({
+      db,
+      admin,
+      callerUid: request.auth.uid,
+      requestData: request.data,
+    });
   }
 );
 
