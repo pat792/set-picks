@@ -44,7 +44,7 @@ export default function Sphere2026TourRecapInApp({
   });
 
   return (
-    <article className="space-y-3 text-sm font-bold leading-relaxed text-content-secondary">
+    <article className="space-y-3 text-sm font-normal leading-relaxed text-content-secondary">
       <header className="space-y-2 border-b border-border-muted/40 pb-6">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-teal-400/90">
           <Globe2 className="h-4 w-4 shrink-0" aria-hidden />
