@@ -16,7 +16,14 @@
 
 ### Lint / Test / Build (CI matrix)
 
-Standard commands are in `package.json` scripts. The CI matrix that must pass:
+Standard commands are in `package.json` scripts.
+
+CI is now risk-weighted:
+- Baseline checks run on all PRs/pushes (`verify` + Vercel).
+- `functions`, `rules`, and `qa-runners` are conditional based on changed paths/risk.
+- Nightly scheduled CI runs the full matrix as a backstop.
+
+Core local commands:
 
 | Check | Command |
 |-------|---------|
@@ -25,6 +32,8 @@ Standard commands are in `package.json` scripts. The CI matrix that must pass:
 | Verify dashboard meta | `npm run verify:dashboard-meta` |
 | Verify dashboard UI tokens | `npm run verify:dashboard-ui` |
 | Functions unit tests | `cd functions && npm test` |
+| Firestore rules tests | `npm run test:rules` |
+| QA runners | `npm run qa:chunks && npm run qa:cache` |
 | Build | `npm run build` |
 
 ### PR workflow notes
