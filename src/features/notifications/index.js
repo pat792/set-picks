@@ -1,4 +1,6 @@
 export { default as NotificationsPrototypeScreen } from './ui/NotificationsPrototypeScreen.jsx';
+export { CommsInboxProvider, useCommsInbox } from './model/commsInboxContext.jsx';
+export { default as DashboardNotificationsBell } from './ui/DashboardNotificationsBell.jsx';
 export {
   DEFAULT_NOTIFICATION_PREFS,
   mergeNotificationPrefs,

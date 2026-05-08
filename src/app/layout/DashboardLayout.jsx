@@ -49,6 +49,10 @@ import {
 import { PastShowLockBanner, TooEarlyBanner } from '../../features/picks';
 import { DashboardInstallEngageBanner } from '../../features/install';
 
+import {
+  CommsInboxProvider,
+  DashboardNotificationsBell,
+} from '../../features/notifications';
 import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
 import {
   BRAND_APP_CHROME_MARK_SRC,
@@ -123,6 +127,7 @@ export default function DashboardLayout() {
 
   return (
     <ScoringRulesModalProvider>
+    <CommsInboxProvider userId={user?.uid}>
     <div className="flex h-[100dvh] min-h-0 w-full bg-transparent text-white overflow-hidden md:h-screen">
       
       {/* DESKTOP SIDEBAR */}
@@ -146,6 +151,9 @@ export default function DashboardLayout() {
               </span>
             </Link>
           </h1>
+        </div>
+        <div className="mb-3 flex justify-end px-1">
+          <DashboardNotificationsBell />
         </div>
         <div className="flex flex-col gap-2 flex-1">
           {navItems.map((item) => {
@@ -336,6 +344,7 @@ export default function DashboardLayout() {
       </nav>
 
     </div>
+    </CommsInboxProvider>
     </ScoringRulesModalProvider>
   );
 }

@@ -74,6 +74,21 @@ service cloud.firestore {
       match /private_fcmTokens/{tokenId} {
         allow read, write: if signedIn() && request.auth.uid == userId;
       }
+
+      /**
+       * In-app comms inbox (issue #120 / epic #272): recap + editorial messages.
+       * Clients read; Admin SDK / Cloud Functions create. Owners may set `readAt` only.
+       */
+      match /commsInbox/{messageId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create, delete: if false;
+        allow update: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.templateId == resource.data.templateId
+          && request.resource.data.payload == resource.data.payload
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']);
+      }
     }
 
     /**

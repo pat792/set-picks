@@ -15,6 +15,7 @@ import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 import AdminWarRoomShowDate from './AdminWarRoomShowDate';
 import AdminClaimBootstrap from './AdminClaimBootstrap';
 import { AdminTourRecapPreview } from '../../tour-recap';
+import AdminSphereTourRecapDelivery from './AdminSphereTourRecapDelivery';
 import ConfirmationModal from '../../../shared/ui/ConfirmationModal/ConfirmationModal';
 
 function normalizeDashboardShowDate(value) {
@@ -168,6 +169,12 @@ export default function AdminForm({ user, selectedDate }) {
               onOpenChange={setTourRecapPreviewOpen}
             >
               <AdminTourRecapPreview />
+              <div className="mt-6 border-t border-border-muted pt-6">
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-content-secondary">
+                  Deliver recap to user inboxes
+                </p>
+                <AdminSphereTourRecapDelivery />
+              </div>
             </AdminActionToggle>
           </div>
         </div>
