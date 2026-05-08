@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 import useSplashDocumentScrollPadding from '../model/useSplashDocumentScrollPadding';
 import SplashAboutSection from './SplashAboutSection';
@@ -70,6 +71,20 @@ export default function SplashPageShell({
               The Mockingbird Foundation / Phish.Net
             </a>
             .
+          </p>
+          <p className="mt-2 space-x-3">
+            <Link
+              to="/privacy"
+              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              to="/terms"
+              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
+            >
+              Terms of Service
+            </Link>
           </p>
         </footer>
 
