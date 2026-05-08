@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   getAdditionalUserInfo,
   GoogleAuthProvider,
   sendPasswordResetEmail,
@@ -38,6 +39,19 @@ export async function signInWithGoogle(auth) {
 
 export function registerWithEmail(auth, email, password) {
   return createUserWithEmailAndPassword(auth, email.trim(), password);
+}
+
+/**
+ * Best-effort rollback when post-sign-up Firestore writes fail (e.g. legal consent).
+ * @param {import('firebase/auth').User | null} user
+ */
+export async function deleteAuthUserIfPresent(user) {
+  if (!user) return;
+  try {
+    await deleteUser(user);
+  } catch {
+    // Caller logs; deletion may fail if session already invalidated.
+  }
 }
 
 export function signInWithEmail(auth, email, password) {

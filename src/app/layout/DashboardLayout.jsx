@@ -290,14 +290,6 @@ export default function DashboardLayout() {
               <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
             </Routes>
           </Suspense>
-
-          <footer className="mt-12 border-t border-border-muted/40 pb-2 pt-4 text-center text-[11px] font-medium text-content-secondary/60">
-            <span className="space-x-2">
-              <Link to="/privacy" className="underline decoration-border-muted underline-offset-2 transition-colors hover:text-white">Privacy</Link>
-              <span aria-hidden>&middot;</span>
-              <Link to="/terms" className="underline decoration-border-muted underline-offset-2 transition-colors hover:text-white">Terms</Link>
-            </span>
-          </footer>
         </div>
       </main>
 
