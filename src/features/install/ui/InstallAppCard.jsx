@@ -2,6 +2,7 @@ import React from 'react';
 import { Download, Share2 } from 'lucide-react';
 
 import { useInstallPrompt } from '../model/useInstallPrompt';
+import IosInstallScreenshotGallery from './IosInstallScreenshotGallery.jsx';
 
 export default function InstallAppCard() {
   const {
@@ -51,17 +52,22 @@ export default function InstallAppCard() {
           </button>
 
           {showIosGuide ? (
-            <ol className="mt-4 space-y-2 rounded-2xl border border-border-muted bg-surface-inset p-4 text-sm text-content-secondary">
-              <li>
-                1. Tap the <span className="font-bold text-white">Share</span> button in Safari.
-              </li>
-              <li>
-                2. Scroll and tap <span className="font-bold text-white">Add to Home Screen</span>.
-              </li>
-              <li>
-                3. Confirm the title, then tap <span className="font-bold text-white">Add</span>.
-              </li>
-            </ol>
+            <div className="mt-4 space-y-3">
+              <ol className="space-y-2 rounded-2xl border border-border-muted bg-surface-inset p-4 text-sm text-content-secondary">
+                <li>
+                  1. Tap the three-dot menu <span className="font-bold text-white">(...)</span>, then tap{' '}
+                  <span className="font-bold text-white">Share</span> (share icon).
+                </li>
+                <li>
+                  2. Scroll down and tap{' '}
+                  <span className="font-bold text-white">Add to Home Screen</span>.
+                </li>
+                <li>
+                  3. Tap the <span className="font-bold text-white">+</span> icon to confirm.
+                </li>
+              </ol>
+              <IosInstallScreenshotGallery />
+            </div>
           ) : null}
 
           <button
