@@ -4,6 +4,7 @@ import { Copy, Download, Share2 } from 'lucide-react';
 import {
   buildGradedPicksShareSlots,
   buildGradedPicksShareText,
+  GRADED_PICKS_SHARE_RECAP_TITLE,
   renderGradedPicksSharePngBlob,
 } from '../model/gradedPicksShareCore';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
@@ -60,7 +61,7 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
         type: 'image/png',
       });
 
-      const shareData = { text, title: 'My graded picks' };
+      const shareData = { text, title: GRADED_PICKS_SHARE_RECAP_TITLE };
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ ...shareData, files: [file] });
         clearNoticeSoon('Shared');

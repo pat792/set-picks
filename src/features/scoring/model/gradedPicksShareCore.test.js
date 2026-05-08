@@ -5,6 +5,7 @@ import {
   buildGradedPicksShareSlots,
   buildGradedPicksShareText,
   GRADED_PICKS_SHARE_BRAND,
+  GRADED_PICKS_SHARE_RECAP_TITLE,
 } from './gradedPicksShareCore.js';
 
 describe('gradedPicksShareCore', () => {
@@ -42,7 +43,7 @@ describe('gradedPicksShareCore', () => {
     expect(slots[2].kind).toBe('miss');
   });
 
-  it('buildGradedPicksShareText includes brand, bustout star line, and emoji rows', () => {
+  it('buildGradedPicksShareText uses recap title, letter grid, and Bustout Boost™ legend (no emoji)', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -57,12 +58,13 @@ describe('gradedPicksShareCore', () => {
       actualSetlist: actual,
       showLabel: '2025-01-01 Miami',
     });
+    expect(text).toContain(GRADED_PICKS_SHARE_RECAP_TITLE);
     expect(text).toContain(GRADED_PICKS_SHARE_BRAND);
     expect(text).toContain('2025-01-01 Miami');
-    expect(text).toContain('⭐');
-    expect(text).toContain(
-      `🟩⭐${SCORING_RULES.EXACT_SLOT + SCORING_RULES.BUSTOUT_BOOST}`,
-    );
-    expect(text).toContain('⬛0');
+    expect(text).toContain('BB=Bustout Boost™');
+    expect(text).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u);
+    const bustPts = SCORING_RULES.EXACT_SLOT + SCORING_RULES.BUSTOUT_BOOST;
+    expect(text).toContain(`X${bustPts} BB`);
+    expect(text).toContain('M0');
   });
 });

@@ -4,6 +4,7 @@ export {
 } from './api/globalShowAggregation';
 export { default as Leaderboard } from './ui/Leaderboard';
 export { default as GradedPicksShareBar } from './ui/GradedPicksShareBar';
+export { GRADED_PICKS_SHARE_RECAP_TITLE } from './model/gradedPicksShareCore';
 export { useOfficialSetlistForShow } from './model/useOfficialSetlistForShow';
 export { useDisplayedPicks } from './model/useDisplayedPicks';
 export { useStandings } from './model/useStandings';

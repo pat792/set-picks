@@ -10,8 +10,8 @@ This feature ships a **Wordle-style** graded picks summary once an official setl
 2. Find your row (**You** badge / expanded breakdown).
 3. Expand the row.
 4. Below the six-slot breakdown, use **Share graded card**:
-   - **Copy text grid** — emoji-ish 2×3 grid with per-slot points and a bustout marker (`⭐`).
-   - **Download PNG** — 2 rows × 3 columns, color-first cells, per-slot points, amber **Bustout** label when the bustout boost applied.
+   - **Copy text grid** — monospace-friendly 2×3 letter codes (X/E/W/I/M) with per-slot points and ` BB` when **Bustout Boost™** applied (plain text; no emoji).
+   - **Download PNG** — 2 rows × 3 columns, rounded tiles aligned with the in-app breakdown colors, per-slot points centered in each cell, amber **Bustout Boost™** pill when applicable.
    - **Share…** — Web Share API with PNG + caption when supported; falls back to text-only share or clipboard.
 
 ### 2. Picks
@@ -22,12 +22,14 @@ This feature ships a **Wordle-style** graded picks summary once an official setl
 
 ## Output semantics
 
-| Slot result (kind) | PNG fill | Text tile |
+| Slot result (kind) | PNG fill | Text code |
 |--------------------|----------|-----------|
-| Exact / encore exact / wildcard | Teal family | 🟩 |
-| In setlist (blue lane) | Blue family | 🟦 |
-| Miss / empty | Muted slate | ⬛ |
-| Bustout boost | Amber **border** + “Bustout” chip (PNG); `⭐` adjacent to emoji (text) | |
+| Exact slot | Teal-tinted fill + teal border | `X` + points |
+| Encore exact | Same teal family | `E` + points |
+| Wildcard | Same teal family | `W` + points |
+| In setlist (blue lane) | Blue-tinted fill + blue border | `I` + points |
+| Miss / no pick | Muted panel fill | `M` + points or `—` when empty |
+| Bustout Boost™ | Amber **frame** + pill label (PNG); suffix **` BB`** on that cell (text) | |
 
 **Order** matches **`FORM_FIELDS`**: Set 1 Opener → Set 1 Closer → Set 2 Opener → Set 2 Closer → Encore → Wildcard (two rows of three).
 
