@@ -160,5 +160,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    /**
+     * Self-serve account deletion audit (`deleteAccountWithAudit` callable).
+     * Written only via Admin SDK; no client access.
+     */
+    match /account_deletion_reports/{reportId} {
+      allow read, write: if false;
+    }
+
   }
 }

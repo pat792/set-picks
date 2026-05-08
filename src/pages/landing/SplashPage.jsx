@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { consumeSplashResumeAuthModal } from '../../features/auth';
 import {
   SplashAuthModals,
   SplashPageShell,
@@ -23,6 +24,8 @@ export default function Splash() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const didHandleLoginFlagRef = useRef(false);
+  /** One-shot bootstrap for resume-from-legal + pool-invite (Strict Mode safe). */
+  const splashResumeAndInviteRef = useRef(false);
   const {
     howItWorksSectionRef,
     howItWorksHeadingRef,
@@ -48,6 +51,15 @@ export default function Splash() {
   }, [navigate, openSignInModal, searchParams]);
 
   useEffect(() => {
+    if (splashResumeAndInviteRef.current) return;
+    splashResumeAndInviteRef.current = true;
+
+    const resume = consumeSplashResumeAuthModal();
+    if (resume) {
+      setAuthModal(resume);
+      return;
+    }
+
     const pending = getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim();
     if (!pending) return;
     const now = Date.now();

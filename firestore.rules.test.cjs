@@ -484,6 +484,21 @@ test("rollup_audit: client writes always rejected (even admin)", async () => {
   );
 });
 
+// ─── account_deletion_reports/{reportId} ─────────────────────────────────────
+
+test("account_deletion_reports: no client read or write (even admin claim)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "account_deletion_reports", "r1"), {
+      uid: "alice",
+    });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertFails(getDoc(doc(db, "account_deletion_reports", "r1")));
+  await assertFails(
+    setDoc(doc(db, "account_deletion_reports", "r2"), { uid: "bob" })
+  );
+});
+
 // ─── cross-collection: a pool member profiles query (standings-style) ────────
 
 test("users: signed-in user may query profiles (standings/pool lookup)", async () => {

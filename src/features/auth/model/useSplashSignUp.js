@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { auth } from '../../../shared/lib/firebase';
+import { recordTermsPrivacyConsent } from '../api/legalConsentApi';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
-import { registerWithEmail, signInWithGoogle } from '../api/splashAuthApi';
+import {
+  deleteAuthUserIfPresent,
+  registerWithEmail,
+  signInWithGoogle,
+} from '../api/splashAuthApi';
 import { trackAuthError, trackAuthLogin, trackAuthSignUp } from './authAnalytics';
 
 export function useSplashSignUp(isOpen, onClose) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,6 +22,7 @@ export function useSplashSignUp(isOpen, onClose) {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setLegalAccepted(false);
     setError('');
   }, []);
 
@@ -43,10 +50,22 @@ export function useSplashSignUp(isOpen, onClose) {
 
   const handleGoogle = useCallback(async () => {
     setError('');
+    if (!legalAccepted) {
+      setError('Confirm you agree to the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
     setBusy(true);
     try {
       const { isNewUser } = await signInWithGoogle(auth);
       if (isNewUser) {
+        try {
+          await recordTermsPrivacyConsent(auth.currentUser.uid);
+        } catch (consentErr) {
+          console.error('Consent write after Google sign-up:', consentErr);
+          await deleteAuthUserIfPresent(auth.currentUser);
+          setError('Could not finish creating your account. Please try again.');
+          return;
+        }
         trackAuthSignUp('google');
       } else {
         trackAuthLogin('google');
@@ -59,12 +78,16 @@ export function useSplashSignUp(isOpen, onClose) {
     } finally {
       setBusy(false);
     }
-  }, [closeModal]);
+  }, [closeModal, legalAccepted]);
 
   const handleEmailSignUp = useCallback(
     async (e) => {
       e.preventDefault();
       setError('');
+      if (!legalAccepted) {
+        setError('Confirm you agree to the Terms of Service and Privacy Policy to continue.');
+        return;
+      }
       if (password !== confirmPassword) {
         setError('Passwords do not match.');
         return;
@@ -75,7 +98,15 @@ export function useSplashSignUp(isOpen, onClose) {
       }
       setBusy(true);
       try {
-        await registerWithEmail(auth, email, password);
+        const cred = await registerWithEmail(auth, email, password);
+        try {
+          await recordTermsPrivacyConsent(cred.user.uid);
+        } catch (consentErr) {
+          console.error('Consent write after email sign-up:', consentErr);
+          await deleteAuthUserIfPresent(cred.user);
+          setError('Could not finish creating your account. Please try again.');
+          return;
+        }
         trackAuthSignUp('email');
         closeModal();
       } catch (err) {
@@ -86,7 +117,7 @@ export function useSplashSignUp(isOpen, onClose) {
         setBusy(false);
       }
     },
-    [closeModal, confirmPassword, email, password]
+    [closeModal, confirmPassword, email, legalAccepted, password]
   );
 
   return {
@@ -96,6 +127,8 @@ export function useSplashSignUp(isOpen, onClose) {
     setPassword,
     confirmPassword,
     setConfirmPassword,
+    legalAccepted,
+    setLegalAccepted,
     busy,
     error,
     closeModal,

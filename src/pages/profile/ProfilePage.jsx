@@ -4,7 +4,7 @@ import { Bell, ExternalLink } from 'lucide-react';
 
 import { useSignOut } from '../../features/auth';
 import { InstallAppCard } from '../../features/install';
-import { ProfileEditForm, useUserProfile } from '../../features/profile';
+import { DeleteAccountSection, ProfileEditForm, useUserProfile } from '../../features/profile';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import Button from '../../shared/ui/Button';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
@@ -119,6 +119,28 @@ export default function Profile({ user }) {
           Log Out
         </Button>
       </div>
+
+      <DeleteAccountSection />
+
+      {user?.uid ? (
+        <footer className="mt-10 border-t border-border-muted/40 pb-2 pt-6 text-center text-[11px] font-medium text-content-secondary/70">
+          <span className="space-x-2">
+            <Link
+              to="/privacy"
+              className="underline decoration-border-muted underline-offset-2 transition-colors hover:text-white"
+            >
+              Privacy
+            </Link>
+            <span aria-hidden>&middot;</span>
+            <Link
+              to="/terms"
+              className="underline decoration-border-muted underline-offset-2 transition-colors hover:text-white"
+            >
+              Terms
+            </Link>
+          </span>
+        </footer>
+      ) : null}
     </div>
   );
 }
