@@ -4,7 +4,31 @@
 
 **Authoritative for production:** The owning **`implementationModule`** path listed in each recap Markdown front matter / metadata table (and in **`src/features/comms/registry.js`**). Keep **`content/comms/**`** and that module **in sync** when copy ships.
 
-**Push / in-app / email epic:** Channel behavior and orchestration are tracked in GitHub **#272**. This folder does **not** send messages; it documents copy. Orchestration should read **`src/features/comms/registry.js`** for template IDs and supported channels (`inApp`, `emailAbbreviated`, `emailFull`, `push`).
+**Push / in-app / email epic:** Channel behavior and orchestration are tracked in GitHub **#272**. Broader in-app comms (inbox, toasts, confirmations) align with **#120**. This folder does **not** send messages; it documents copy. Orchestration should read **`src/features/comms/registry.js`** for template IDs and supported channels (`inApp`, `emailAbbreviated`, `emailFull`, `push`).
+
+### In-app inbox (dashboard)
+
+**Where the variable copy “lives” editorially:** Under **`content/comms/`** (e.g. tour recap Markdown like **`content/comms/tours/sphere-2026-inaugural.md`** — placeholders such as `{{rank}}`, sections for per-player branches). That file is the human-facing contract; **`implementationModule`** in the metadata table is still the shipped runtime source until a loader reads Markdown directly.
+
+**What Firestore stores for delivery:** Not the Markdown file. Each inbox row is **`templateId`** (matches registry + draft edition) plus a **`payload`** map of **values** for that template (e.g. numeric `rank`, `points`, `wins`, `showsPlayed`). Those fields align with the variables described in the **`content/comms`** draft and implemented in JS (e.g. `getSphere2026PersonalParagraph`).
+
+Once that doc exists, variable recap copy **renders in the app** from the same builders / UI as other channels:
+
+- **Path:** `users/{uid}/commsInbox/{messageId}` (see **`COMMS_INBOX_COLLECTION_ID`** in `src/features/notifications/api/commsInboxApi.js`).
+- **Writes:** Admin SDK / Cloud Functions only (clients **cannot** create rows). Owners may set **`readAt`** when they open a message.
+- **Shape:** `templateId`, **`payload`** (per-user values), **`createdAt`** (server timestamp at delivery).
+- **UI:** Notifications screen (`/dashboard/notifications`) — **Messages** section + bell in dashboard chrome. Renderer maps `templateId` to components such as **`Sphere2026TourRecapInApp`** (see `src/features/notifications/ui/CommsRecapMessageBody.jsx`).
+
+**Manual QA:** In Firebase Console, add a doc under your test user’s `commsInbox` subcollection using the shape above, reload the app, open the bell → message should expand with personalized paragraphs.
+
+**Phased delivery (orchestration):**
+
+| Phase | Who triggers | Mechanism |
+|-------|----------------|-----------|
+| **1 — Ship today** | Admin / PM (War Room) | HTTPS callable **`deliverSphere2026TourRecapInbox`** (`functions/index.js`): **`dryRun`** defaults to **true**; pass **`dryRun: false`** to write rows. Aggregates **graded** picks on the nine **Sphere Run** dates (same math as dashboard Tour standings) and writes **`users/{uid}/commsInbox/sphere-2026-inaugural`**. UI: **War Room → Tour recap copy → Deliver recap to user inboxes** (`AdminSphereTourRecapDelivery`). CLI (ADC): `functions/scripts/deliverSphere2026TourRecapInbox.js` — omit flag for dry run, **`--execute`** to write. |
+| **2** | Automation | Scheduled or rollup-triggered job calling the same delivery helper (extend **`sphereTourRecapDelivery.js`** or add registry-driven modules). Tracked in **#370** / epic **#272**. |
+
+Sphere inaugural **show-date list** in code must stay aligned with **`src/shared/data/showDates.js`** (`Sphere Run`). Follow-up runbook: **#371**.
 
 ---
 

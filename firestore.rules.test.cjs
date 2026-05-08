@@ -33,6 +33,7 @@ const {
   getDocs,
   query,
   where,
+  Timestamp,
 } = require("firebase/firestore");
 
 const PROJECT_ID = "setlist-pickem-rules-test";
@@ -199,6 +200,78 @@ test("fcmTokens: non-owner cannot read another user's token doc", async () => {
   const db = signedInAs("alice");
   await assertFails(
     getDoc(doc(db, "users", "bob", "private_fcmTokens", "tok1"))
+  );
+});
+
+// ─── users/{userId}/commsInbox/{messageId} ───────────────────────────────────
+
+test("commsInbox: owner may read own inbox doc", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3, points: 120, wins: 1, showsPlayed: 9 },
+      createdAt: Timestamp.fromMillis(1_700_000_000_000),
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(getDoc(doc(db, "users", "alice", "commsInbox", "msg1")));
+});
+
+test("commsInbox: non-owner cannot read another user's inbox doc", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: {},
+      createdAt: Timestamp.fromMillis(1_700_000_000_000),
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(getDoc(doc(db, "users", "bob", "commsInbox", "msg1")));
+});
+
+test("commsInbox: client cannot create inbox docs", async () => {
+  const db = signedInAs("alice");
+  await assertFails(
+    setDoc(doc(db, "users", "alice", "commsInbox", "msgX"), {
+      templateId: "x",
+      payload: {},
+      createdAt: Timestamp.now(),
+    })
+  );
+});
+
+test("commsInbox: owner may set readAt only (preserves payload)", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3, points: 120, wins: 1, showsPlayed: 9 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      readAt: Timestamp.now(),
+    })
+  );
+});
+
+test("commsInbox: owner cannot rewrite templateId", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "other",
+      readAt: Timestamp.now(),
+    })
   );
 });
 

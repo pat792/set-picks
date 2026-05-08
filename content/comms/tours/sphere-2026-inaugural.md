@@ -6,6 +6,7 @@
 | **Implementation** | `src/features/tour-recap/model/sphere2026Recap.js` |
 | **In-app UI** | `src/features/tour-recap/ui/Sphere2026TourRecapInApp.jsx` |
 | **Admin preview** | War Room → “Tour recap copy (Sphere '26)” (`AdminTourRecapPreview`) |
+| **Inbox delivery** | Callable `deliverSphere2026TourRecapInbox` + War Room “Deliver recap to user inboxes” (graded picks on Sphere dates → `users/{uid}/commsInbox/sphere-2026-inaugural`) |
 
 Edit **either** this file (proposal / source draft) **or** the implementation module. Production strings are the **JS module** until a content loader exists; keep this doc aligned when marketing copy changes.
 

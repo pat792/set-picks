@@ -39,6 +39,7 @@ const {
   normalizeFcmSendMessageId,
 } = require("./fcmMessagingCore");
 const { applyRevertRollupForShow } = require("./revertRollupCore");
+const { deliverSphere2026TourRecapInbox } = require("./sphereTourRecapDelivery");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
@@ -287,6 +288,29 @@ exports.revertRollupForShow = onCall(
       revertedPicks: result.revertedPicks,
       noop: result.noop === true,
     };
+  }
+);
+
+/**
+ * Admin-only: write Sphere ’26 inaugural recap rows to each player’s
+ * `users/{uid}/commsInbox/sphere-2026-inaugural` using tour standings math
+ * (same as dashboard tour leaderboard). Use `dryRun: true` first (#120).
+ */
+exports.deliverSphere2026TourRecapInbox = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminClaim(request);
+    const dryRun = request.data?.dryRun !== false;
+    return deliverSphere2026TourRecapInbox({
+      db,
+      admin,
+      dryRun,
+      logger,
+    });
   }
 );
 
