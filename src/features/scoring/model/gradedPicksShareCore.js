@@ -1,4 +1,4 @@
-import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+import { FORM_FIELDS, SHARE_RECAP_ARTIST_NAME } from '../../../shared/data/gameConfig';
 import {
   calculateTotalScore,
   getSlotScoreBreakdown,
@@ -54,6 +54,39 @@ export function buildGradedPicksShareSlots(userPicks, actualSetlist) {
  *
  * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
  */
+/**
+ * Colored block + points + optional BB (plain-text / SMS friendly).
+ * Uses large colored squares (not custom icons — plain text cannot embed SVG).
+ *
+ * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
+ * @param {Record<string, unknown>} userPicks
+ */
+function shareEmojiCellToken(slot, userPicks) {
+  const raw = userPicks?.[slot.fieldId];
+  const hasPick = raw != null && String(raw).trim() !== '';
+  let block = '⬛';
+  if (hasPick) {
+    if (slot.kind === 'miss' || slot.kind === 'none') block = '⬛';
+    else if (slot.kind === 'in_setlist') block = '🟦';
+    else block = '🟩';
+  }
+  const bust = slot.bustoutBoost ? ' BB' : '';
+  return `${block}${slot.points}${bust}`;
+}
+
+/**
+ * Two rows × three columns, padded for monospace alignment.
+ *
+ * @param {ReturnType<typeof buildGradedPicksShareSlots>} slots
+ * @param {Record<string, unknown>} userPicks
+ */
+export function buildGradedPicksShareEmojiGrid(slots, userPicks) {
+  const cells = slots.map((s) => shareEmojiCellToken(s, userPicks));
+  const w = Math.max(...cells.map((c) => c.length), 5);
+  const pad = (c) => c.padEnd(w, ' ');
+  return `${pad(cells[0])} ${pad(cells[1])} ${pad(cells[2])}\n${pad(cells[3])} ${pad(cells[4])} ${pad(cells[5])}`;
+}
+
 function paletteForSlot(slot) {
   if (slot.kind === 'none' || slot.kind === 'miss') {
     return {
@@ -83,12 +116,18 @@ function paletteForSlot(slot) {
  * @param {{ userPicks: Record<string, unknown>, actualSetlist: unknown, showLabel: string }} args
  */
 export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showLabel }) {
+  const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
   const total = calculateTotalScore(userPicks, actualSetlist);
+  const grid = buildGradedPicksShareEmojiGrid(slots, userPicks);
   return [
-    `${GRADED_PICKS_SHARE_BRAND} · ${showLabel}`,
+    `${SHARE_RECAP_ARTIST_NAME} · ${showLabel}`,
     `Total: ${total} pts`,
     '',
-    'Free live setlist picks for Phish shows — join the pool:',
+    grid,
+    '',
+    '🟩 strong pick · 🟦 in setlist · ⬛ miss or empty · BB = Bustout Boost™',
+    '',
+    'Free setlist game:',
     GRADED_PICKS_SHARE_SITE_URL,
   ].join('\n');
 }
@@ -113,6 +152,7 @@ export function buildGradedPicksShareText(args) {
  */
 export function buildGradedPicksShareClipboardHtml({ imageDataUrl, showLabel, totalPoints }) {
   const esc = escapeHtml(showLabel);
+  const artistEsc = escapeHtml(SHARE_RECAP_ARTIST_NAME);
   const alt = escapeHtml(`${GRADED_PICKS_SHARE_RECAP_TITLE} — ${showLabel}`);
   const href = escapeHtml(GRADED_PICKS_SHARE_SITE_URL);
   const host = 'setlistpickem.com';
@@ -120,7 +160,7 @@ export function buildGradedPicksShareClipboardHtml({ imageDataUrl, showLabel, to
   return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body bgcolor="#0f172a" style="margin:0;padding:16px;background-color:#0f172a;text-align:center;font-family:Arial,Helvetica,sans-serif;">
   <img src="${imageDataUrl}" alt="${alt}" width="320" style="max-width:100%;height:auto;display:block;margin:0 auto 12px auto;border-radius:12px;" />
-  <p style="color:#94a3b8;font-size:13px;margin:0 0 10px;line-height:1.4;">${escapeHtml(GRADED_PICKS_SHARE_BRAND)} · ${esc}<br/><span style="color:#2dd4bf;font-weight:700;">${totalPoints} pts</span></p>
+  <p style="color:#94a3b8;font-size:13px;margin:0 0 10px;line-height:1.4;">${artistEsc} · ${esc}<br/><span style="color:#2dd4bf;font-weight:700;">${totalPoints} pts</span></p>
   <p style="margin:0;font-size:14px;"><a href="${href}" style="color:#2dd4bf;font-weight:800;">Play free · ${host} →</a></p>
 </body></html>`;
 }
@@ -156,7 +196,7 @@ function drawBoostPill(ctx, x, y, w) {
  * @param {{ showLabel: string, totalPoints: number, scale?: number }} opts
  * @returns {Promise<Blob>}
  */
-export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, scale = 2 }) {
+export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, scale = 2, artistName = SHARE_RECAP_ARTIST_NAME }) {
   const W = 640;
   const H = 440;
 
@@ -180,7 +220,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
 
   ctx.fillStyle = 'rgb(148, 163, 184)';
   ctx.font = '12px Inter, system-ui, -apple-system, sans-serif';
-  ctx.fillText(`${GRADED_PICKS_SHARE_BRAND} · ${showLabel}`, 22, 54);
+  ctx.fillText(`${artistName} · ${showLabel}`, 22, 54);
 
   const ptsLabel = `${totalPoints} pts`;
   ctx.font = 'bold 15px Inter, system-ui, -apple-system, sans-serif';

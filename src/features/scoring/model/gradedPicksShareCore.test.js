@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
+import { SHARE_RECAP_ARTIST_NAME } from '../../../shared/data/gameConfig';
 import {
   buildGradedPicksShareBodyPlain,
   buildGradedPicksShareClipboardHtml,
+  buildGradedPicksShareEmojiGrid,
   buildGradedPicksShareFullPlainText,
   buildGradedPicksShareSlots,
-  GRADED_PICKS_SHARE_BRAND,
   GRADED_PICKS_SHARE_RECAP_TITLE,
   GRADED_PICKS_SHARE_SITE_URL,
 } from './gradedPicksShareCore.js';
@@ -45,7 +46,7 @@ describe('gradedPicksShareCore', () => {
     expect(slots[2].kind).toBe('miss');
   });
 
-  it('buildGradedPicksShareBodyPlain is succinct with CTA (no per-slot lines)', () => {
+  it('buildGradedPicksShareBodyPlain uses artist · date and colored block grid', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -61,11 +62,27 @@ describe('gradedPicksShareCore', () => {
       showLabel: '2025-01-01 Miami',
     });
     expect(body).not.toContain(GRADED_PICKS_SHARE_RECAP_TITLE);
-    expect(body).not.toContain('Set 1 Opener');
-    expect(body).toContain(GRADED_PICKS_SHARE_BRAND);
-    expect(body).toContain('2025-01-01 Miami');
+    expect(body).toContain(`${SHARE_RECAP_ARTIST_NAME} · 2025-01-01 Miami`);
+    expect(body).toContain('🟩');
+    expect(body).toContain('🟦');
+    expect(body).toContain('⬛');
+    expect(body).toContain('BB = Bustout Boost™');
     expect(body).toContain(GRADED_PICKS_SHARE_SITE_URL);
-    expect(body).toContain('join the pool');
+  });
+
+  it('buildGradedPicksShareEmojiGrid pads bustout slot with BB suffix', () => {
+    const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
+    const picks = {
+      s1o: 'AC/DC Bag',
+      s1c: 'Bathtub Gin',
+      s2o: 'Wrong',
+      s2c: 'Down with Disease',
+      enc: 'Tweezer Reprise',
+      wild: 'AC/DC Bag',
+    };
+    const slots = buildGradedPicksShareSlots(picks, actual);
+    const grid = buildGradedPicksShareEmojiGrid(slots, picks);
+    expect(grid).toContain('BB');
   });
 
   it('buildGradedPicksShareFullPlainText includes headline once', () => {
@@ -88,7 +105,7 @@ describe('gradedPicksShareCore', () => {
     expect(n).toBe(1);
   });
 
-  it('buildGradedPicksShareClipboardHtml embeds image and CTA link', () => {
+  it('buildGradedPicksShareClipboardHtml embeds image and artist · date', () => {
     const html = buildGradedPicksShareClipboardHtml({
       imageDataUrl: 'data:image/png;base64,AAA',
       showLabel: '2025-01-01 <em>x</em>',
@@ -97,7 +114,7 @@ describe('gradedPicksShareCore', () => {
     expect(html).toContain('data:image/png;base64,AAA');
     expect(html).toContain('&lt;em&gt;');
     expect(html).toContain('55 pts');
-    expect(html).toContain('setlistpickem.com');
+    expect(html).toContain(SHARE_RECAP_ARTIST_NAME);
     expect(html).toMatch(/href="https:\/\/www\.setlistpickem\.com\/"/);
   });
 });

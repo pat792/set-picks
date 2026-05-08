@@ -8,6 +8,7 @@ export {
   GRADED_PICKS_SHARE_RECAP_TITLE,
   GRADED_PICKS_SHARE_SITE_URL,
 } from './model/gradedPicksShareCore';
+export { SHARE_RECAP_ARTIST_NAME } from '../../shared/data/gameConfig';
 export { useOfficialSetlistForShow } from './model/useOfficialSetlistForShow';
 export { useDisplayedPicks } from './model/useDisplayedPicks';
 export { useStandings } from './model/useStandings';
