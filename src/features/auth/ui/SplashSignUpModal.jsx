@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
@@ -78,6 +79,17 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
             />
           </div>
           {error ? <StatusBanner type="error" message={error} /> : null}
+          <p className="text-center text-[11px] font-semibold leading-relaxed text-slate-400">
+            By creating an account you agree to our{' '}
+            <Link to="/terms" className="text-slate-300 underline decoration-slate-500 underline-offset-2 hover:text-white hover:decoration-slate-300">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" className="text-slate-300 underline decoration-slate-500 underline-offset-2 hover:text-white hover:decoration-slate-300">
+              Privacy Policy
+            </Link>
+            .
+          </p>
           <Button
             variant="secondary"
             type="submit"
