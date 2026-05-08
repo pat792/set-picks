@@ -5,6 +5,7 @@ import { Bell, Download, Share2 } from 'lucide-react';
 import { ga4Event } from '../../../shared/lib/ga4';
 import { useDashboardPushNudge } from '../model/useDashboardPushNudge';
 import { useInstallPrompt } from '../model/useInstallPrompt';
+import IosInstallScreenshotGallery from './IosInstallScreenshotGallery.jsx';
 
 /**
  * Routes where the compact install + push nudge may appear (#334). Profile keeps
@@ -85,17 +86,22 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
                 {install.showIosGuide ? 'Hide steps' : 'iPhone: Add to Home Screen'}
               </button>
               {install.showIosGuide ? (
-                <ol className="space-y-1.5 rounded-xl border border-border-muted bg-surface-inset p-3 text-xs text-content-secondary">
-                  <li>
-                    1. Tap <span className="font-bold text-white">Share</span> in Safari.
-                  </li>
-                  <li>
-                    2. Tap <span className="font-bold text-white">Add to Home Screen</span>.
-                  </li>
-                  <li>
-                    3. Tap <span className="font-bold text-white">Add</span>.
-                  </li>
-                </ol>
+                <div className="space-y-2">
+                  <ol className="space-y-1.5 rounded-xl border border-border-muted bg-surface-inset p-3 text-xs text-content-secondary">
+                    <li>
+                      1. Tap the three-dot menu <span className="font-bold text-white">(...)</span>, then tap{' '}
+                      <span className="font-bold text-white">Share</span> (share icon).
+                    </li>
+                    <li>
+                      2. Scroll down and tap{' '}
+                      <span className="font-bold text-white">Add to Home Screen</span>.
+                    </li>
+                    <li>
+                      3. Tap the <span className="font-bold text-white">+</span> icon.
+                    </li>
+                  </ol>
+                  <IosInstallScreenshotGallery compact />
+                </div>
               ) : null}
               <button
                 type="button"
