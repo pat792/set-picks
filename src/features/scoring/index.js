@@ -3,6 +3,8 @@ export {
   fetchGlobalShowWinners,
 } from './api/globalShowAggregation';
 export { default as Leaderboard } from './ui/Leaderboard';
+export { default as GradedPicksShareBar } from './ui/GradedPicksShareBar';
+export { useOfficialSetlistForShow } from './model/useOfficialSetlistForShow';
 export { useDisplayedPicks } from './model/useDisplayedPicks';
 export { useStandings } from './model/useStandings';
 export { useStandingsLeaderboardView } from './model/useStandingsLeaderboardView';
