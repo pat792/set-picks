@@ -1,6 +1,6 @@
 # Walkthrough: Graded picks share card (issue #304)
 
-This feature ships a **Wordle-style** graded picks summary once an official setlist exists (`actualSetlist` on `official_setlists/{date}`). Colors and points follow **`getSlotScoreBreakdown`** / **`ScoreBreakdownGrid`** so share output cannot drift from live scoring.
+This feature ships a graded recap once an official setlist exists (`actualSetlist` on `official_setlists/{date}`). Colors and points follow **`getSlotScoreBreakdown`** / **`ScoreBreakdownGrid`** so share output cannot drift from live scoring.
 
 ## Surfaces
 
@@ -10,9 +10,9 @@ This feature ships a **Wordle-style** graded picks summary once an official setl
 2. Find your row (**You** badge / expanded breakdown).
 3. Expand the row.
 4. Below the six-slot breakdown, use **Share graded card**:
-   - **Copy text grid** — monospace-friendly 2×3 letter codes (X/E/W/I/M) with per-slot points and ` BB` when **Bustout Boost™** applied (plain text; no emoji).
-   - **Download PNG** — 2 rows × 3 columns, rounded tiles aligned with the in-app breakdown colors, per-slot points centered in each cell, amber **Bustout Boost™** pill when applicable.
-   - **Share…** — Web Share API with PNG + caption when supported; falls back to text-only share or clipboard.
+   - **Copy recap** — writes **plain text** (headline once + human-readable lines per slot using the same result labels as the app) plus **`text/html`** when the browser supports it, so Mail / Notes / Slack often show a **small color grid** when you paste. Also includes a **Unicode block** mini-grid (`█` / `▓` / `░`, not emoji) for plain SMS.
+   - **Download PNG** — 2 rows × 3 columns, rounded tiles, per-slot points, **Bustout Boost™** pill when applicable.
+   - **Share…** — Web Share uses **`title`** = recap headline and **`text`** = body **without** repeating that headline (many apps merge title + body without a newline and would corrupt or duplicate lines).
 
 ### 2. Picks
 
@@ -20,22 +20,15 @@ This feature ships a **Wordle-style** graded picks summary once an official setl
 2. With picks on file and the official setlist present, a **Share graded card** block appears **above** the pick fields.
 3. Same three actions as Standings.
 
-## Output semantics
+## Plain text vs color
 
-| Slot result (kind) | PNG fill | Text code |
-|--------------------|----------|-----------|
-| Exact slot | Teal-tinted fill + teal border | `X` + points |
-| Encore exact | Same teal family | `E` + points |
-| Wildcard | Same teal family | `W` + points |
-| In setlist (blue lane) | Blue-tinted fill + blue border | `I` + points |
-| Miss / no pick | Muted panel fill | `M` + points or `—` when empty |
-| Bustout Boost™ | Amber **frame** + pill label (PNG); suffix **` BB`** on that cell (text) | |
-
-**Order** matches **`FORM_FIELDS`**: Set 1 Opener → Set 1 Closer → Set 2 Opener → Set 2 Closer → Encore → Wildcard (two rows of three).
+- **SMS / plain clients:** Readable slot lines + block legend; attach **PNG** for the full color card.
+- **Rich paste:** Prefer **Copy recap** into apps that accept HTML from the clipboard.
+- **Icons:** Lucide only exists in the React app; the recap uses **canvas PNG**, **inline-styled HTML**, and **Unicode block characters** (geometric, not colorful emoji) for plain-text “tiles.”
 
 ## Implementation map
 
-- Core: `src/features/scoring/model/gradedPicksShareCore.js` (slots, caption text, canvas PNG).
+- Core: `src/features/scoring/model/gradedPicksShareCore.js` (slots, plain body, HTML, canvas PNG).
 - Picks tab setlist load: `src/features/scoring/model/useOfficialSetlistForShow.js`.
 - UI: `src/features/scoring/ui/GradedPicksShareBar.jsx`; wired from `LeaderboardRow` (self + graded) and `PicksPage`.
 

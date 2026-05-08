@@ -2,8 +2,10 @@ import React, { useCallback, useState } from 'react';
 import { Copy, Download, Share2 } from 'lucide-react';
 
 import {
+  buildGradedPicksShareBodyPlain,
+  buildGradedPicksShareFullPlainText,
+  buildGradedPicksShareHtml,
   buildGradedPicksShareSlots,
-  buildGradedPicksShareText,
   GRADED_PICKS_SHARE_RECAP_TITLE,
   renderGradedPicksSharePngBlob,
 } from '../model/gradedPicksShareCore';
@@ -23,12 +25,29 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
   }, []);
 
   const onCopy = useCallback(async () => {
-    const text = buildGradedPicksShareText({ userPicks, actualSetlist, showLabel });
+    const plain = buildGradedPicksShareFullPlainText({ userPicks, actualSetlist, showLabel });
+    const html = buildGradedPicksShareHtml({ userPicks, actualSetlist, showLabel });
     try {
-      await navigator.clipboard.writeText(text);
-      clearNoticeSoon('Copied grid to clipboard');
-    } catch {
-      clearNoticeSoon('Could not copy — try again');
+      if (navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': new Blob([html], { type: 'text/html' }),
+            'text/plain': new Blob([plain], { type: 'text/plain' }),
+          }),
+        ]);
+        clearNoticeSoon('Copied recap (color card in rich apps)');
+        return;
+      }
+      await navigator.clipboard.writeText(plain);
+      clearNoticeSoon('Copied recap');
+    } catch (e) {
+      console.warn('Rich clipboard failed, falling back to plain text.', e);
+      try {
+        await navigator.clipboard.writeText(plain);
+        clearNoticeSoon('Copied recap');
+      } catch {
+        clearNoticeSoon('Could not copy — try again');
+      }
     }
   }, [actualSetlist, clearNoticeSoon, showLabel, userPicks]);
 
@@ -51,7 +70,8 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
   }, [actualSetlist, clearNoticeSoon, showLabel, userPicks]);
 
   const onShare = useCallback(async () => {
-    const text = buildGradedPicksShareText({ userPicks, actualSetlist, showLabel });
+    /** Body only — many targets merge `title` + `text` without a newline; repeating the headline corrupts the thread. */
+    const text = buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showLabel });
     const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
     const totalPoints = calculateTotalScore(userPicks, actualSetlist);
 
@@ -72,8 +92,10 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
         clearNoticeSoon('Shared');
         return;
       }
-      await navigator.clipboard.writeText(text);
-      clearNoticeSoon('Share not available — copied text instead');
+      await navigator.clipboard.writeText(
+        [GRADED_PICKS_SHARE_RECAP_TITLE, '', text].join('\n'),
+      );
+      clearNoticeSoon('Share not available — copied recap instead');
     } catch (e) {
       if (e && (e.name === 'AbortError' || e.name === 'NotAllowedError')) return;
       console.error(e);
@@ -93,7 +115,7 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
           className="inline-flex items-center gap-1.5 rounded-lg border border-border-muted bg-surface-inset px-3 py-2 text-xs font-bold text-slate-200 transition-colors hover:bg-surface-panel-strong hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
         >
           <Copy className="h-3.5 w-3.5" aria-hidden />
-          Copy text grid
+          Copy recap
         </button>
         <button
           type="button"

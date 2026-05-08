@@ -2,13 +2,25 @@ import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import {
   calculateTotalScore,
   getSlotScoreBreakdown,
+  SCORE_BREAKDOWN_KIND_LABEL,
 } from '../../../shared/utils/scoring';
 
 /** Matches splash / marketing copy (`SplashHeader`, `SplashAboutSection`). */
 export const GRADED_PICKS_SHARE_BRAND = "Setlist Pick 'Em";
 
-/** Web Share API title + recap headline (plain language). */
+/** Web Share API `title` + first line when copying full plain text. */
 export const GRADED_PICKS_SHARE_RECAP_TITLE = "My Setlist Pick 'Em Recap";
+
+/**
+ * @param {string} s
+ */
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 /**
  * @param {Record<string, unknown>} userPicks
@@ -35,67 +47,6 @@ export function buildGradedPicksShareSlots(userPicks, actualSetlist) {
   });
 }
 
-/**
- * Single-letter slot tier for plain-text share (no emoji — SMS/social safe).
- * @param {string} kind
- * @param {boolean} hasPick
- */
-export function shareTextKindLetter(kind, hasPick) {
-  if (!hasPick) return '—';
-  switch (kind) {
-    case 'exact_slot':
-      return 'X';
-    case 'encore_exact':
-      return 'E';
-    case 'wildcard_hit':
-      return 'W';
-    case 'in_setlist':
-      return 'I';
-    case 'miss':
-      return 'M';
-    default:
-      return '—';
-  }
-}
-
-function formatShareTextCell(slot, userPicks) {
-  const raw = userPicks?.[slot.fieldId];
-  const hasPick = raw != null && String(raw).trim() !== '';
-  const letter = shareTextKindLetter(slot.kind, hasPick);
-  const bust = slot.bustoutBoost ? ' BB' : '';
-  return `${letter}${slot.points}${bust}`;
-}
-
-function padShareCells(cells, cellWidth) {
-  return cells.map((c) => c.padEnd(cellWidth, ' '));
-}
-
-/**
- * Compact share caption: recap title, brand, show, total, 2×3 letter grid + legend (no emoji).
- *
- * @param {{ userPicks: Record<string, unknown>, actualSetlist: unknown, showLabel: string }} args
- */
-export function buildGradedPicksShareText({ userPicks, actualSetlist, showLabel }) {
-  const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
-  const total = calculateTotalScore(userPicks, actualSetlist);
-  const cells = slots.map((s) => formatShareTextCell(s, userPicks));
-  const cellW = Math.max(...cells.map((c) => c.length), 6);
-  const [a, b, c, d, e, f] = padShareCells(cells, cellW);
-  const row1 = `${a} ${b} ${c}`;
-  const row2 = `${d} ${e} ${f}`;
-  return [
-    GRADED_PICKS_SHARE_RECAP_TITLE,
-    `${GRADED_PICKS_SHARE_BRAND} · ${showLabel}`,
-    `Total: ${total} pts`,
-    '',
-    row1,
-    row2,
-    '',
-    'X=Exact slot · E=Encore exact · W=Wildcard · I=In setlist · M=Miss · —=No pick',
-    'BB=Bustout Boost™',
-  ].join('\n');
-}
-
 /** @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot */
 function paletteForSlot(slot) {
   if (slot.kind === 'none' || slot.kind === 'miss') {
@@ -117,6 +68,104 @@ function paletteForSlot(slot) {
     stroke: 'rgba(45, 212, 191, 0.5)',
     text: 'rgb(204, 251, 241)',
   };
+}
+
+/**
+ * Monochrome “block” row for plain-text clients (█ strong · ▓ in-setlist · ░ miss / empty).
+ * Not emoji; Unicode block elements.
+ */
+export function buildGradedPicksShareBlockRow(slots, userPicks) {
+  const ch = (slot) => {
+    const raw = userPicks?.[slot.fieldId];
+    const hasPick = raw != null && String(raw).trim() !== '';
+    if (!hasPick) return '░';
+    if (slot.kind === 'miss' || slot.kind === 'none') return '░';
+    if (slot.kind === 'in_setlist') return '▓';
+    return '█';
+  };
+  return `${ch(slots[0])}${ch(slots[1])}${ch(slots[2])}\n${ch(slots[3])}${ch(slots[4])}${ch(slots[5])}`;
+}
+
+function slotReadableLine(field, slot, userPicks) {
+  const raw = userPicks?.[field.id];
+  const hasPick = raw != null && String(raw).trim() !== '';
+  const kindLabel = hasPick ? SCORE_BREAKDOWN_KIND_LABEL[slot.kind] || '—' : 'No pick';
+  const bb = slot.bustoutBoost ? ' · Bustout Boost™' : '';
+  return `${field.label}: ${slot.points} pts — ${kindLabel}${bb}`;
+}
+
+/**
+ * Readable recap body (no top headline). Safe to pair with `navigator.share({ title })`
+ * so clients do not concatenate two identical titles.
+ *
+ * @param {{ userPicks: Record<string, unknown>, actualSetlist: unknown, showLabel: string }} args
+ */
+export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showLabel }) {
+  const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
+  const total = calculateTotalScore(userPicks, actualSetlist);
+  const lines = [
+    `${GRADED_PICKS_SHARE_BRAND} · ${showLabel}`,
+    `Total: ${total} pts`,
+    '',
+  ];
+  FORM_FIELDS.forEach((field, i) => {
+    const slot = slots[i];
+    lines.push(slotReadableLine(field, slot, userPicks));
+  });
+  lines.push('');
+  lines.push(buildGradedPicksShareBlockRow(slots, userPicks));
+  lines.push('█ hit · ▓ in setlist · ░ miss or empty');
+  lines.push('');
+  lines.push('Tip: Paste into Mail, Notes, or Slack for a color card if you used Copy recap; or use Download PNG.');
+  return lines.join('\n');
+}
+
+/**
+ * Full plain text for clipboard fallback (headline once, then body).
+ */
+export function buildGradedPicksShareFullPlainText(args) {
+  return [GRADED_PICKS_SHARE_RECAP_TITLE, '', buildGradedPicksShareBodyPlain(args)].join('\n');
+}
+
+/** @deprecated Prefer {@link buildGradedPicksShareFullPlainText}; alias for older imports. */
+export function buildGradedPicksShareText(args) {
+  return buildGradedPicksShareFullPlainText(args);
+}
+
+/**
+ * Minimal HTML for rich clipboard / some mail clients — colored 2×3 grid, no Lucide (not possible in HTML string).
+ *
+ * @param {{ userPicks: Record<string, unknown>, actualSetlist: unknown, showLabel: string }} args
+ */
+export function buildGradedPicksShareHtml({ userPicks, actualSetlist, showLabel }) {
+  const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
+  const total = calculateTotalScore(userPicks, actualSetlist);
+  const esc = escapeHtml(showLabel);
+
+  function tdHtml(slot) {
+    const { fill, stroke, text } = paletteForSlot(slot);
+    const bust = slot.bustoutBoost;
+    const border = bust ? '2.5px solid rgba(245,158,11,0.75)' : `1.75px solid ${stroke}`;
+    const boost = bust
+      ? '<div style="font-size:8px;font-weight:700;color:#fbbf24;margin-bottom:2px;">Bustout Boost™</div>'
+      : '';
+    return `<td style="padding:6px;border-radius:12px;background:${fill};border:${border};color:${text};text-align:center;width:33%;vertical-align:middle;">
+      ${boost}<div style="font:800 20px system-ui,-apple-system,BlinkMacSystemFont,sans-serif;">${slot.points}</div>
+    </td>`;
+  }
+
+  const row1 = `<tr>${tdHtml(slots[0])}${tdHtml(slots[1])}${tdHtml(slots[2])}</tr>`;
+  const row2 = `<tr>${tdHtml(slots[3])}${tdHtml(slots[4])}${tdHtml(slots[5])}</tr>`;
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#0f172a;color:#f8fafc;font-family:system-ui,-apple-system,sans-serif;padding:16px;">
+<div style="max-width:360px;">
+  <div style="font-weight:800;font-size:17px;margin-bottom:6px;">${escapeHtml(GRADED_PICKS_SHARE_RECAP_TITLE)}</div>
+  <div style="color:#94a3b8;font-size:12px;margin-bottom:4px;">${escapeHtml(GRADED_PICKS_SHARE_BRAND)} · ${esc}</div>
+  <div style="font-weight:700;color:#2dd4bf;font-size:14px;margin-bottom:12px;">${total} pts</div>
+  <table role="presentation" cellspacing="8" cellpadding="0" style="width:100%;border-collapse:separate;">${row1}${row2}</table>
+  <p style="color:#94a3b8;font-size:10px;margin-top:12px;line-height:1.4;">Amber frame = Bustout Boost™ on that slot.</p>
+</div>
+</body></html>`;
 }
 
 /**
@@ -145,7 +194,6 @@ function drawBoostPill(ctx, x, y, w) {
 
 /**
  * Draws a 2×3 graded grid (slot order = {@link FORM_FIELDS}) to PNG.
- * Layout matches in-app breakdown: rounded-xl tiles, points centered in cell.
  *
  * @param {ReturnType<typeof buildGradedPicksShareSlots>} slots
  * @param {{ showLabel: string, totalPoints: number, scale?: number }} opts
