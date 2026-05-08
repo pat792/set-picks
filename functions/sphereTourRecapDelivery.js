@@ -8,6 +8,8 @@
  * Template ID / inbox doc id: `sphere-2026-inaugural`
  */
 
+const { sendWebPushToToken } = require("./fcmMessagingCore");
+
 const SPHERE_2026_INAUGURAL_TEMPLATE_ID = "sphere-2026-inaugural";
 
 /** Doc id under `users/{uid}/commsInbox` — fixed for idempotent admin re-runs. */
@@ -136,6 +138,151 @@ function aggregateTourStandings(picksByDate) {
 }
 
 const MAX_FIRESTORE_BATCH = 500;
+const MAX_RECAP_PUSH_SENDS_PER_INVOCATION = 400;
+const MAX_TOKENS_PER_USER_FOR_RECAP = 5;
+const FCM_LOG_COLLECTION = "fcm_notification_log";
+
+/**
+ * @param {string} templateId
+ * @param {string} uid
+ * @returns {string}
+ */
+function recapPushLogDocId(templateId, uid) {
+  return `recap_${templateId}_${uid}`;
+}
+
+/**
+ * Reuses existing prefs posture: recap alerts count as results-style updates.
+ * @param {import("firebase-admin").firestore.DocumentData | null | undefined} userData
+ * @returns {boolean}
+ */
+function userWantsRecapPush(userData) {
+  const prefs = userData?.notificationPrefs;
+  if (!prefs || typeof prefs !== "object") return true;
+  return prefs.results !== false;
+}
+
+/**
+ * @param {{
+ *   db: import('firebase-admin').firestore.Firestore,
+ *   admin: typeof import('firebase-admin'),
+ *   templateId: string,
+ *   preview: Array<{ uid: string, payload: Record<string, number> }>,
+ *   logger?: { info?: Function, warn?: Function },
+ * }} params
+ */
+async function sendRecapPushFanout({ db, admin, templateId, preview, logger }) {
+  if (!Array.isArray(preview) || preview.length === 0) {
+    return { sent: 0, skipped: 0 };
+  }
+
+  let sent = 0;
+  let skipped = 0;
+  const userCache = new Map();
+
+  async function loadUser(uid) {
+    if (userCache.has(uid)) return userCache.get(uid);
+    const snap = await db.collection("users").doc(uid).get();
+    const data = snap.exists ? snap.data() || {} : {};
+    userCache.set(uid, data);
+    return data;
+  }
+
+  async function latestTokensForUser(uid) {
+    const snap = await db
+      .collection("users")
+      .doc(uid)
+      .collection("private_fcmTokens")
+      .limit(MAX_TOKENS_PER_USER_FOR_RECAP)
+      .get();
+    return snap.docs
+      .map((d) => {
+        const token = d.data()?.token;
+        return typeof token === "string" && token.trim() ? token.trim() : "";
+      })
+      .filter(Boolean);
+  }
+
+  for (const item of preview) {
+    if (sent >= MAX_RECAP_PUSH_SENDS_PER_INVOCATION) {
+      logger?.warn?.("sendRecapPushFanout: cap reached", {
+        templateId,
+        sent,
+        cap: MAX_RECAP_PUSH_SENDS_PER_INVOCATION,
+      });
+      break;
+    }
+
+    const logId = recapPushLogDocId(templateId, item.uid);
+    const logRef = db.collection(FCM_LOG_COLLECTION).doc(logId);
+    const existing = await logRef.get();
+    if (existing.exists) {
+      skipped += 1;
+      continue;
+    }
+
+    const userData = await loadUser(item.uid);
+    if (!userWantsRecapPush(userData)) {
+      skipped += 1;
+      continue;
+    }
+
+    const tokens = await latestTokensForUser(item.uid);
+    if (tokens.length === 0) {
+      skipped += 1;
+      continue;
+    }
+
+    const rank = Number.isFinite(item?.payload?.rank) ? item.payload.rank : null;
+    const title = "New tour recap in Messages";
+    const body =
+      typeof rank === "number" && rank > 0
+        ? `Your Sphere '26 recap is ready. Current rank: #${rank}.`
+        : "Your Sphere '26 recap is ready. Open Notifications to read it.";
+
+    let anyDelivered = false;
+    for (const token of tokens) {
+      const res = await sendWebPushToToken({
+        admin,
+        db,
+        token,
+        userId: item.uid,
+        title,
+        body,
+        data: {
+          kind: "tourRecap",
+          templateId,
+        },
+        logger,
+      });
+      if (res.ok) anyDelivered = true;
+    }
+
+    if (anyDelivered) {
+      await logRef.set(
+        {
+          kind: "tourRecap",
+          templateId,
+          userId: item.uid,
+          delivered: true,
+          decidedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      sent += 1;
+    } else {
+      skipped += 1;
+    }
+  }
+
+  logger?.info?.("sendRecapPushFanout complete", {
+    templateId,
+    sent,
+    skipped,
+    candidates: preview.length,
+  });
+  return { sent, skipped };
+}
 
 /**
  * @param {import('firebase-admin').firestore.Firestore} db
@@ -225,6 +372,8 @@ async function deliverSphere2026TourRecapInbox({ db, admin, dryRun, logger }) {
       showDates: [...SPHERE_2026_INAUGURAL_SHOW_DATES],
       participantCount,
       delivered: 0,
+      pushSent: 0,
+      pushSkipped: 0,
       preview,
     };
   }
@@ -266,6 +415,14 @@ async function deliverSphere2026TourRecapInbox({ db, admin, dryRun, logger }) {
     participantCount,
   });
 
+  const pushResult = await sendRecapPushFanout({
+    db,
+    admin,
+    templateId: SPHERE_2026_INAUGURAL_TEMPLATE_ID,
+    preview,
+    logger,
+  });
+
   return {
     ok: true,
     dryRun: false,
@@ -274,6 +431,8 @@ async function deliverSphere2026TourRecapInbox({ db, admin, dryRun, logger }) {
     showDates: [...SPHERE_2026_INAUGURAL_SHOW_DATES],
     participantCount,
     delivered,
+    pushSent: pushResult.sent,
+    pushSkipped: pushResult.skipped,
     preview: preview.slice(0, 50),
   };
 }
@@ -282,6 +441,8 @@ module.exports = {
   SPHERE_2026_INAUGURAL_SHOW_DATES,
   SPHERE_2026_INAUGURAL_TEMPLATE_ID,
   COMMS_INBOX_DOC_ID,
+  recapPushLogDocId,
+  userWantsRecapPush,
   aggregateTourStandings,
   deliverSphere2026TourRecapInbox,
 };

@@ -1,6 +1,10 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { aggregateTourStandings } = require("./sphereTourRecapDelivery");
+const {
+  aggregateTourStandings,
+  recapPushLogDocId,
+  userWantsRecapPush,
+} = require("./sphereTourRecapDelivery");
 
 test("aggregateTourStandings: sums points, wins, shows like tour leaderboard", () => {
   const picksByDate = [
@@ -72,4 +76,21 @@ test("aggregateTourStandings: skips ungraded picks", () => {
     },
   ]);
   assert.equal(rows.length, 0);
+});
+
+test("recapPushLogDocId: deterministic by template + user", () => {
+  assert.equal(
+    recapPushLogDocId("sphere-2026-inaugural", "uid_123"),
+    "recap_sphere-2026-inaugural_uid_123"
+  );
+});
+
+test("userWantsRecapPush: defaults on, honors results=false", () => {
+  assert.equal(userWantsRecapPush(undefined), true);
+  assert.equal(userWantsRecapPush({}), true);
+  assert.equal(userWantsRecapPush({ notificationPrefs: {} }), true);
+  assert.equal(
+    userWantsRecapPush({ notificationPrefs: { results: false } }),
+    false
+  );
 });

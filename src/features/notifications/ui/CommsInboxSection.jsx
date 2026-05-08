@@ -147,9 +147,8 @@ export default function CommsInboxSection() {
                             </span>
                           ) : null}
                         </span>
-                        <span className="text-xs font-bold text-content-secondary">
-                          Template: {m.templateId || '—'}
-                          {delivered ? ` · ${delivered}` : ''}
+                        <span className="text-xs font-medium text-content-secondary">
+                          {delivered ? `Delivered ${delivered}` : 'Delivered recently'}
                         </span>
                       </span>
                       <ChevronDown

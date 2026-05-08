@@ -25,10 +25,12 @@ Once that doc exists, variable recap copy **renders in the app** from the same b
 
 | Phase | Who triggers | Mechanism |
 |-------|----------------|-----------|
-| **1 — Ship today** | Admin / PM (War Room) | HTTPS callable **`deliverSphere2026TourRecapInbox`** (`functions/index.js`): **`dryRun`** defaults to **true**; pass **`dryRun: false`** to write rows. Aggregates **graded** picks on the nine **Sphere Run** dates (same math as dashboard Tour standings) and writes **`users/{uid}/commsInbox/sphere-2026-inaugural`**. UI: **War Room → Tour recap copy → Deliver recap to user inboxes** (`AdminSphereTourRecapDelivery`). CLI (ADC): `functions/scripts/deliverSphere2026TourRecapInbox.js` — omit flag for dry run, **`--execute`** to write. |
+| **1 — Ship today** | Admin / PM (War Room) | HTTPS callable **`deliverSphere2026TourRecapInbox`** (`functions/index.js`): **`dryRun`** defaults to **true**; pass **`dryRun: false`** to write rows. Aggregates **graded** picks on the nine **Sphere Run** dates (same math as dashboard Tour standings) and writes **`users/{uid}/commsInbox/sphere-2026-inaugural`**. On execute mode it also sends a concise push alert (when the user has push tokens + `notificationPrefs.results !== false`) pointing users to Notifications for the full in-app message. UI: **War Room → Tour recap copy → Deliver recap to user inboxes** (`AdminSphereTourRecapDelivery`). CLI (ADC): `functions/scripts/deliverSphere2026TourRecapInbox.js` — omit flag for dry run, **`--execute`** to write. Re-runs are idempotent for inbox docs and push fan-out is deduped per `templateId + uid` via `fcm_notification_log`. |
 | **2** | Automation | Scheduled or rollup-triggered job calling the same delivery helper (extend **`sphereTourRecapDelivery.js`** or add registry-driven modules). Tracked in **#370** / epic **#272**. |
 
 Sphere inaugural **show-date list** in code must stay aligned with **`src/shared/data/showDates.js`** (`Sphere Run`). Follow-up runbook: **#371**.
+
+**Rollout gotcha (rules vs functions):** If delivery writes succeed but `/dashboard/notifications` still shows **"Missing or insufficient permissions"**, deploy Firestore rules (`firebase deploy --only firestore:rules`). Callable/Admin-SDK writes can succeed before the client read rule for `users/{uid}/commsInbox/{messageId}` is deployed.
 
 ---
 
