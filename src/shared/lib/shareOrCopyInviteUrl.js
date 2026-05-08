@@ -3,7 +3,10 @@ import { showSuccessToast } from '../ui/toast';
 const DEFAULT_SHARE_TITLE = "Join My Setlist Pick 'Em Pool!";
 
 /**
- * Try Web Share API with title + text + url (text mirrors title for iMessage pre-fill); on unsupported share or user cancel/error, copy message + URL to clipboard and toast.
+ * Try Web Share API with URL only for the native sheet payload.
+ * On iOS, passing `title`/`text` with `url` often prevents Messages/Mail from
+ * fetching Open Graph for the link (Chrome WKWebView shows a blank preview;
+ * Safari share still works). Clipboard fallback still uses title + URL.
  * @param {string} url
  * @param {{ title?: string, copyToastMessage?: string }} [options]
  * @returns {Promise<{ ok: boolean, via?: 'share' | 'copy', reason?: string }>}
@@ -23,11 +26,7 @@ export async function shareOrCopyInviteUrl(url, options = {}) {
 
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     try {
-      await navigator.share({
-        title: shareText,
-        text: shareText,
-        url: trimmedUrl,
-      });
+      await navigator.share({ url: trimmedUrl });
       return { ok: true, via: 'share' };
     } catch (e) {
       if (e?.name === 'AbortError') {
