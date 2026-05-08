@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './app/App.jsx'
 import Ga4RouteListener from './app/Ga4RouteListener.jsx'
+import ScrollToTop from './app/ScrollToTop.jsx'
 import { initGa4 } from './shared/lib/ga4'
 import { initializeAppCheckDeferred } from './shared/lib/firebaseAppCheck'
 import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
@@ -32,6 +33,7 @@ root.render(
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
+          <ScrollToTop />
           <Ga4RouteListener />
           <App />
         </HelmetProvider>

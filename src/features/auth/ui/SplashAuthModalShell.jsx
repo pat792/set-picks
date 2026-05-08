@@ -8,10 +8,17 @@ export default function SplashAuthModalShell({
   title,
   handleGoogle,
   busy,
+  /** When set, overrides default Google disabled state (`busy` only). */
+  googleDisabled,
+  /** Rendered after the title row and before “Continue with Google” (e.g. sign-up legal consent). */
+  prependContent,
   googleFootnote,
   children,
 }) {
   if (!isOpen) return null;
+
+  const isGoogleDisabled =
+    typeof googleDisabled === 'boolean' ? googleDisabled : busy;
 
   return (
     <div
@@ -38,11 +45,13 @@ export default function SplashAuthModalShell({
           </Button>
         </div>
 
+        {prependContent ? <div className="mb-6">{prependContent}</div> : null}
+
         <Button
           variant="text"
           type="button"
           onClick={handleGoogle}
-          disabled={busy}
+          disabled={isGoogleDisabled}
           className="w-full bg-white text-slate-900 py-3.5 rounded-xl gap-3 shadow-[0_8px_24px_-12px_rgba(255,255,255,0.35)] ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-[0_12px_28px_-12px_rgba(255,255,255,0.45)]"
         >
           <img src="https://www.google.com/favicon.ico" alt="" className="w-5 h-5" />
