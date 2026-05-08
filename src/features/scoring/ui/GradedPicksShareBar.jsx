@@ -3,8 +3,8 @@ import { Copy, Download, Share2 } from 'lucide-react';
 
 import {
   buildGradedPicksShareBodyPlain,
+  buildGradedPicksShareClipboardHtml,
   buildGradedPicksShareFullPlainText,
-  buildGradedPicksShareHtml,
   buildGradedPicksShareSlots,
   GRADED_PICKS_SHARE_RECAP_TITLE,
   renderGradedPicksSharePngBlob,
@@ -16,6 +16,15 @@ function ymdForFilename(showLabel) {
   return m ? m[1] : 'show';
 }
 
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(new Error('readAsDataURL failed'));
+    r.readAsDataURL(blob);
+  });
+}
+
 export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabel }) {
   const [notice, setNotice] = useState(null);
 
@@ -25,9 +34,19 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
   }, []);
 
   const onCopy = useCallback(async () => {
+    const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
+    const totalPoints = calculateTotalScore(userPicks, actualSetlist);
     const plain = buildGradedPicksShareFullPlainText({ userPicks, actualSetlist, showLabel });
-    const html = buildGradedPicksShareHtml({ userPicks, actualSetlist, showLabel });
+
     try {
+      const pngBlob = await renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints });
+      const imageDataUrl = await blobToDataUrl(pngBlob);
+      const html = buildGradedPicksShareClipboardHtml({
+        imageDataUrl,
+        showLabel,
+        totalPoints,
+      });
+
       if (navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
         await navigator.clipboard.write([
           new ClipboardItem({
@@ -35,13 +54,13 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
             'text/plain': new Blob([plain], { type: 'text/plain' }),
           }),
         ]);
-        clearNoticeSoon('Copied recap (color card in rich apps)');
+        clearNoticeSoon('Copied recap (image + link in rich apps)');
         return;
       }
       await navigator.clipboard.writeText(plain);
       clearNoticeSoon('Copied recap');
     } catch (e) {
-      console.warn('Rich clipboard failed, falling back to plain text.', e);
+      console.warn('Copy recap failed, falling back to plain text.', e);
       try {
         await navigator.clipboard.writeText(plain);
         clearNoticeSoon('Copied recap');
@@ -70,7 +89,6 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
   }, [actualSetlist, clearNoticeSoon, showLabel, userPicks]);
 
   const onShare = useCallback(async () => {
-    /** Body only — many targets merge `title` + `text` without a newline; repeating the headline corrupts the thread. */
     const text = buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showLabel });
     const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
     const totalPoints = calculateTotalScore(userPicks, actualSetlist);

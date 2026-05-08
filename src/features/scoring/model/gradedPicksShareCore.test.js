@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 
-import { SCORING_RULES } from '../../../shared/utils/scoring.js';
 import {
   buildGradedPicksShareBodyPlain,
+  buildGradedPicksShareClipboardHtml,
   buildGradedPicksShareFullPlainText,
-  buildGradedPicksShareHtml,
   buildGradedPicksShareSlots,
   GRADED_PICKS_SHARE_BRAND,
   GRADED_PICKS_SHARE_RECAP_TITLE,
+  GRADED_PICKS_SHARE_SITE_URL,
 } from './gradedPicksShareCore.js';
 
 describe('gradedPicksShareCore', () => {
@@ -45,7 +45,7 @@ describe('gradedPicksShareCore', () => {
     expect(slots[2].kind).toBe('miss');
   });
 
-  it('buildGradedPicksShareBodyPlain omits recap headline (safe with Web Share title)', () => {
+  it('buildGradedPicksShareBodyPlain is succinct with CTA (no per-slot lines)', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -61,15 +61,14 @@ describe('gradedPicksShareCore', () => {
       showLabel: '2025-01-01 Miami',
     });
     expect(body).not.toContain(GRADED_PICKS_SHARE_RECAP_TITLE);
+    expect(body).not.toContain('Set 1 Opener');
     expect(body).toContain(GRADED_PICKS_SHARE_BRAND);
-    expect(body).toContain('Set 1 Opener');
-    const bustPts = SCORING_RULES.EXACT_SLOT + SCORING_RULES.BUSTOUT_BOOST;
-    expect(body).toContain(`${bustPts} pts`);
-    expect(body).toContain('Bustout Boost™');
-    expect(body).toContain('█');
+    expect(body).toContain('2025-01-01 Miami');
+    expect(body).toContain(GRADED_PICKS_SHARE_SITE_URL);
+    expect(body).toContain('join the pool');
   });
 
-  it('buildGradedPicksShareFullPlainText includes headline once then body', () => {
+  it('buildGradedPicksShareFullPlainText includes headline once', () => {
     const actual = { ...baseSetlist, bustouts: [] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -89,23 +88,16 @@ describe('gradedPicksShareCore', () => {
     expect(n).toBe(1);
   });
 
-  it('buildGradedPicksShareHtml escapes show label and includes colored table', () => {
-    const actual = { ...baseSetlist, bustouts: [] };
-    const picks = {
-      s1o: 'AC/DC Bag',
-      s1c: 'Bathtub Gin',
-      s2o: "Colonel Forbin's Ascent",
-      s2c: 'Down with Disease',
-      enc: 'Tweezer Reprise',
-      wild: 'AC/DC Bag',
-    };
-    const html = buildGradedPicksShareHtml({
-      userPicks: picks,
-      actualSetlist: actual,
-      showLabel: '2025-01-01 <script>',
+  it('buildGradedPicksShareClipboardHtml embeds image and CTA link', () => {
+    const html = buildGradedPicksShareClipboardHtml({
+      imageDataUrl: 'data:image/png;base64,AAA',
+      showLabel: '2025-01-01 <em>x</em>',
+      totalPoints: 55,
     });
-    expect(html).toContain('&lt;script&gt;');
-    expect(html).toContain('#134e4a');
-    expect(html).toContain('<table');
+    expect(html).toContain('data:image/png;base64,AAA');
+    expect(html).toContain('&lt;em&gt;');
+    expect(html).toContain('55 pts');
+    expect(html).toContain('setlistpickem.com');
+    expect(html).toMatch(/href="https:\/\/www\.setlistpickem\.com\/"/);
   });
 });

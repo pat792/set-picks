@@ -2,7 +2,6 @@ import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import {
   calculateTotalScore,
   getSlotScoreBreakdown,
-  SCORE_BREAKDOWN_KIND_LABEL,
 } from '../../../shared/utils/scoring';
 
 /** Matches splash / marketing copy (`SplashHeader`, `SplashAboutSection`). */
@@ -10,6 +9,9 @@ export const GRADED_PICKS_SHARE_BRAND = "Setlist Pick 'Em";
 
 /** Web Share API `title` + first line when copying full plain text. */
 export const GRADED_PICKS_SHARE_RECAP_TITLE = "My Setlist Pick 'Em Recap";
+
+/** Canonical marketing URL (see `InstallAppCard`, Firebase auth notes). */
+export const GRADED_PICKS_SHARE_SITE_URL = 'https://www.setlistpickem.com/';
 
 /**
  * @param {string} s
@@ -48,8 +50,7 @@ export function buildGradedPicksShareSlots(userPicks, actualSetlist) {
 }
 
 /**
- * Opaque fills so PNG + HTML paste read clearly on dark canvas and on white
- * rich-text targets (translucent rgba on white looked like blank white tiles).
+ * Opaque fills — PNG card (and any raster preview) reads clearly everywhere.
  *
  * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
  */
@@ -76,57 +77,24 @@ function paletteForSlot(slot) {
 }
 
 /**
- * Monochrome “block” row for plain-text clients (█ strong · ▓ in-setlist · ░ miss / empty).
- * Not emoji; Unicode block elements.
- */
-export function buildGradedPicksShareBlockRow(slots, userPicks) {
-  const ch = (slot) => {
-    const raw = userPicks?.[slot.fieldId];
-    const hasPick = raw != null && String(raw).trim() !== '';
-    if (!hasPick) return '░';
-    if (slot.kind === 'miss' || slot.kind === 'none') return '░';
-    if (slot.kind === 'in_setlist') return '▓';
-    return '█';
-  };
-  return `${ch(slots[0])}${ch(slots[1])}${ch(slots[2])}\n${ch(slots[3])}${ch(slots[4])}${ch(slots[5])}`;
-}
-
-function slotReadableLine(field, slot, userPicks) {
-  const raw = userPicks?.[field.id];
-  const hasPick = raw != null && String(raw).trim() !== '';
-  const kindLabel = hasPick ? SCORE_BREAKDOWN_KIND_LABEL[slot.kind] || '—' : 'No pick';
-  const bb = slot.bustoutBoost ? ' · Bustout Boost™' : '';
-  return `${field.label}: ${slot.points} pts — ${kindLabel}${bb}`;
-}
-
-/**
- * Readable recap body (no top headline). Safe to pair with `navigator.share({ title })`
- * so clients do not concatenate two identical titles.
+ * Succinct body for SMS / Web Share `text` (no per-slot prose). Pair with
+ * `title: GRADED_PICKS_SHARE_RECAP_TITLE` so clients do not duplicate the headline.
  *
  * @param {{ userPicks: Record<string, unknown>, actualSetlist: unknown, showLabel: string }} args
  */
 export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showLabel }) {
-  const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
   const total = calculateTotalScore(userPicks, actualSetlist);
-  const lines = [
+  return [
     `${GRADED_PICKS_SHARE_BRAND} · ${showLabel}`,
     `Total: ${total} pts`,
     '',
-  ];
-  FORM_FIELDS.forEach((field, i) => {
-    const slot = slots[i];
-    lines.push(slotReadableLine(field, slot, userPicks));
-  });
-  lines.push('');
-  lines.push(buildGradedPicksShareBlockRow(slots, userPicks));
-  lines.push('█ hit · ▓ in setlist · ░ miss or empty');
-  lines.push('');
-  lines.push('Tip: Use Download PNG for the full color card everywhere; Copy recap adds color in Mail/Notes/Slack when rich paste is supported.');
-  return lines.join('\n');
+    'Free live setlist picks for Phish shows — join the pool:',
+    GRADED_PICKS_SHARE_SITE_URL,
+  ].join('\n');
 }
 
 /**
- * Full plain text for clipboard fallback (headline once, then body).
+ * Full plain text for clipboard fallback (headline once, then succinct body).
  */
 export function buildGradedPicksShareFullPlainText(args) {
   return [GRADED_PICKS_SHARE_RECAP_TITLE, '', buildGradedPicksShareBodyPlain(args)].join('\n');
@@ -138,43 +106,22 @@ export function buildGradedPicksShareText(args) {
 }
 
 /**
- * Minimal HTML for rich clipboard / some mail clients — colored 2×3 grid, no Lucide (not possible in HTML string).
+ * Rich clipboard: embedded PNG (data URL) so colors survive Mail/Notes/Slack,
+ * plus a short CTA link. `imageDataUrl` must be `data:image/png;base64,...`.
  *
- * @param {{ userPicks: Record<string, unknown>, actualSetlist: unknown, showLabel: string }} args
+ * @param {{ imageDataUrl: string, showLabel: string, totalPoints: number }} args
  */
-export function buildGradedPicksShareHtml({ userPicks, actualSetlist, showLabel }) {
-  const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
-  const total = calculateTotalScore(userPicks, actualSetlist);
+export function buildGradedPicksShareClipboardHtml({ imageDataUrl, showLabel, totalPoints }) {
   const esc = escapeHtml(showLabel);
+  const alt = escapeHtml(`${GRADED_PICKS_SHARE_RECAP_TITLE} — ${showLabel}`);
+  const href = escapeHtml(GRADED_PICKS_SHARE_SITE_URL);
+  const host = 'setlistpickem.com';
 
-  /**
-   * Inner div carries fill (many clients strip td backgrounds); bgcolor on td is a fallback.
-   */
-  function tdHtml(slot) {
-    const { fill, stroke, text } = paletteForSlot(slot);
-    const bust = slot.bustoutBoost;
-    const borderColor = bust ? '#f59e0b' : stroke;
-    const borderW = bust ? '3px' : '2px';
-    const boost = bust
-      ? '<div style="font-size:8px;font-weight:700;color:#fbbf24;margin:0 0 4px 0;line-height:1.2;">Bustout Boost™</div>'
-      : '';
-    const inner = `<div style="background-color:${fill};border:${borderW} solid ${borderColor};border-radius:14px;padding:10px 6px 12px 6px;text-align:center;min-height:52px;">
-      ${boost}<div style="font-weight:800;font-size:22px;font-family:Arial,Helvetica,sans-serif;color:${text};line-height:1.15;">${slot.points}</div>
-    </div>`;
-    return `<td width="33%" bgcolor="#0f172a" style="padding:6px;background-color:#0f172a;vertical-align:top;border:none;">${inner}</td>`;
-  }
-
-  const row1 = `<tr>${tdHtml(slots[0])}${tdHtml(slots[1])}${tdHtml(slots[2])}</tr>`;
-  const row2 = `<tr>${tdHtml(slots[3])}${tdHtml(slots[4])}${tdHtml(slots[5])}</tr>`;
-
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body bgcolor="#0f172a" style="margin:0;background-color:#0f172a;color:#f8fafc;font-family:Arial,Helvetica,sans-serif;padding:16px;">
-<div bgcolor="#0f172a" style="max-width:360px;background-color:#0f172a;">
-  <div style="font-weight:800;font-size:17px;margin-bottom:6px;color:#f8fafc;">${escapeHtml(GRADED_PICKS_SHARE_RECAP_TITLE)}</div>
-  <div style="color:#94a3b8;font-size:12px;margin-bottom:4px;">${escapeHtml(GRADED_PICKS_SHARE_BRAND)} · ${esc}</div>
-  <div style="font-weight:700;color:#2dd4bf;font-size:14px;margin-bottom:12px;">${total} pts</div>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#0f172a" style="width:100%;border-collapse:separate;border-spacing:10px;background-color:#0f172a;">${row1}${row2}</table>
-  <p style="color:#94a3b8;font-size:10px;margin-top:12px;line-height:1.4;">Amber frame = Bustout Boost™ on that slot.</p>
-</div>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body bgcolor="#0f172a" style="margin:0;padding:16px;background-color:#0f172a;text-align:center;font-family:Arial,Helvetica,sans-serif;">
+  <img src="${imageDataUrl}" alt="${alt}" width="320" style="max-width:100%;height:auto;display:block;margin:0 auto 12px auto;border-radius:12px;" />
+  <p style="color:#94a3b8;font-size:13px;margin:0 0 10px;line-height:1.4;">${escapeHtml(GRADED_PICKS_SHARE_BRAND)} · ${esc}<br/><span style="color:#2dd4bf;font-weight:700;">${totalPoints} pts</span></p>
+  <p style="margin:0;font-size:14px;"><a href="${href}" style="color:#2dd4bf;font-weight:800;">Play free · ${host} →</a></p>
 </body></html>`;
 }
 
@@ -211,7 +158,7 @@ function drawBoostPill(ctx, x, y, w) {
  */
 export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, scale = 2 }) {
   const W = 640;
-  const H = 420;
+  const H = 440;
 
   const canvas = document.createElement('canvas');
   canvas.width = Math.round(W * scale);
@@ -245,7 +192,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
 
   const padX = 20;
   const padTop = 72;
-  const footerH = 28;
+  const footerH = 48;
   const gap = 12;
   const rowGap = 12;
   const cellW = (W - padX * 2 - gap * 2) / 3;
@@ -298,11 +245,14 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
     ctx.stroke();
   });
 
-  ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
-  ctx.font = '10px Inter, system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText('Amber frame = Bustout Boost™ on that slot.', W / 2, H - 12);
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.9)';
+  ctx.font = '9px Inter, system-ui, -apple-system, sans-serif';
+  ctx.fillText('Amber frame = Bustout Boost™ on that slot.', W / 2, H - 32);
+  ctx.fillStyle = 'rgb(45, 212, 191)';
+  ctx.font = 'bold 11px Inter, system-ui, -apple-system, sans-serif';
+  ctx.fillText('setlistpickem.com · Free to play', W / 2, H - 12);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
