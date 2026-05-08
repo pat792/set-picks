@@ -19,6 +19,7 @@
 ## Stack
 
 - **Frontend:** React (Vite), Tailwind, React Router.
+- **PWA / home screen performance (spike):** `docs/PWA_HOME_SCREEN_PERFORMANCE.md` — precache vs FCM service worker, measurement, deploy freshness.
 - **Public landing SEO:** `src/shared/config/seo.js`, `src/features/landing/ui/LandingSeo.jsx` (Helmet + JSON-LD), `public/llms.txt`, `public/branding/og-card-1200x630.png` (regenerate via `npm run generate:og-card` after changing splash SVGs).
 - **Backend / data:** Firebase Auth, Firestore, App Check; **Firebase Cloud Functions** live under repo root **`functions/`** (e.g. `functions/index.js`), not `firebase/functions/`.
 - **Official setlists (Firestore):** `official_setlists/{showDate}` field semantics, scoring, save vs finalize — **`docs/OFFICIAL_SETLISTS_SCHEMA.md`**.
