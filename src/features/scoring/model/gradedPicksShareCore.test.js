@@ -66,11 +66,11 @@ describe('gradedPicksShareCore', () => {
     expect(body).toContain('🟩');
     expect(body).toContain('🟦');
     expect(body).toContain('⬛');
-    expect(body).toContain('BB = Bustout Boost™');
+    expect(body).toContain('🟧 Bustout Boost™');
     expect(body).toContain(GRADED_PICKS_SHARE_SITE_URL);
   });
 
-  it('buildGradedPicksShareEmojiGrid pads bustout slot with BB suffix', () => {
+  it('buildGradedPicksShareEmojiGrid is six squares only; bust uses 🟧', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -82,7 +82,10 @@ describe('gradedPicksShareCore', () => {
     };
     const slots = buildGradedPicksShareSlots(picks, actual);
     const grid = buildGradedPicksShareEmojiGrid(slots, picks);
-    expect(grid).toContain('BB');
+    expect(grid).toContain('🟧');
+    expect(grid).not.toMatch(/\d/);
+    const tiles = grid.split(/\s+/).filter(Boolean);
+    expect(tiles.length).toBe(6);
   });
 
   it('buildGradedPicksShareFullPlainText includes headline once', () => {

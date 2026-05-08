@@ -8,7 +8,7 @@ Graded recap once an official setlist exists. Scoring colors come from **`getSlo
 
 1. **Dashboard → Standings** (graded show) → expand **your** row.
 2. **Share graded card**
-   - **Copy recap** — **Rich paste:** HTML includes the **PNG as a data-URL image** plus **setlistpickem.com** CTA. **Plain text:** **Artist · date** line (from `SHARE_RECAP_ARTIST_NAME` in `gameConfig.js`, today `Phish`), total, a **2×3 colored block grid** (`🟩` / `🟦` / `⬛` + points + ` BB` for Bustout Boost™), short legend, then the site URL.
+   - **Copy recap** — **Rich paste:** HTML includes the **PNG as a data-URL image** plus **setlistpickem.com** CTA. **Plain text:** **Artist · date** (from `SHARE_RECAP_ARTIST_NAME` in `gameConfig.js`, today `Phish`), total, a **2×3 grid of six colored squares only** (`🟩` / `🟦` / `⬛` / `🟧` for **Bustout Boost™**), one legend line, then the site URL.
    - **Download PNG** — full card; footer includes **setlistpickem.com · Free to play**.
    - **Share…** — image + succinct caption + **title** (headline not repeated in `text`, to avoid client merge bugs).
 

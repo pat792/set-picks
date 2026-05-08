@@ -50,44 +50,42 @@ export function buildGradedPicksShareSlots(userPicks, actualSetlist) {
 }
 
 /**
- * Opaque fills — PNG card (and any raster preview) reads clearly everywhere.
- *
- * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
- */
-/**
- * Colored block + points + optional BB (plain-text / SMS friendly).
- * Uses large colored squares (not custom icons — plain text cannot embed SVG).
+ * One colored square per slot (no digits). Bustout = 🟧 (amber); yellow 🟨 is
+ * reserved if we ever need a second warm tone — plain text cannot pick per-font.
  *
  * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
  * @param {Record<string, unknown>} userPicks
  */
-function shareEmojiCellToken(slot, userPicks) {
+function shareEmojiCellChar(slot, userPicks) {
   const raw = userPicks?.[slot.fieldId];
   const hasPick = raw != null && String(raw).trim() !== '';
-  let block = '⬛';
-  if (hasPick) {
-    if (slot.kind === 'miss' || slot.kind === 'none') block = '⬛';
-    else if (slot.kind === 'in_setlist') block = '🟦';
-    else block = '🟩';
-  }
-  const bust = slot.bustoutBoost ? ' BB' : '';
-  return `${block}${slot.points}${bust}`;
+  if (!hasPick) return '⬛';
+  if (slot.bustoutBoost) return '🟧';
+  if (slot.kind === 'miss' || slot.kind === 'none') return '⬛';
+  if (slot.kind === 'in_setlist') return '🟦';
+  return '🟩';
 }
 
 /**
- * Two rows × three columns, padded for monospace alignment.
+ * Two rows × three columns (spaced for readability in SMS).
  *
  * @param {ReturnType<typeof buildGradedPicksShareSlots>} slots
  * @param {Record<string, unknown>} userPicks
  */
 export function buildGradedPicksShareEmojiGrid(slots, userPicks) {
-  const cells = slots.map((s) => shareEmojiCellToken(s, userPicks));
-  const w = Math.max(...cells.map((c) => c.length), 5);
-  const pad = (c) => c.padEnd(w, ' ');
-  return `${pad(cells[0])} ${pad(cells[1])} ${pad(cells[2])}\n${pad(cells[3])} ${pad(cells[4])} ${pad(cells[5])}`;
+  const ch = (s) => shareEmojiCellChar(s, userPicks);
+  return `${ch(slots[0])} ${ch(slots[1])} ${ch(slots[2])}\n${ch(slots[3])} ${ch(slots[4])} ${ch(slots[5])}`;
 }
 
+/** Opaque fills for PNG tiles (bust = full amber tile, same idea as emoji 🟧). */
 function paletteForSlot(slot) {
+  if (slot.bustoutBoost) {
+    return {
+      fill: '#713f12',
+      stroke: '#fbbf24',
+      text: '#fef3c7',
+    };
+  }
   if (slot.kind === 'none' || slot.kind === 'miss') {
     return {
       fill: '#1e293b',
@@ -125,7 +123,7 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
     '',
     grid,
     '',
-    '🟩 strong pick · 🟦 in setlist · ⬛ miss or empty · BB = Bustout Boost™',
+    '🟩 strong pick · 🟦 in setlist · ⬛ miss or empty · 🟧 Bustout Boost™',
     '',
     'Free setlist game:',
     GRADED_PICKS_SHARE_SITE_URL,
@@ -163,30 +161,6 @@ export function buildGradedPicksShareClipboardHtml({ imageDataUrl, showLabel, to
   <p style="color:#94a3b8;font-size:13px;margin:0 0 10px;line-height:1.4;">${artistEsc} · ${esc}<br/><span style="color:#2dd4bf;font-weight:700;">${totalPoints} pts</span></p>
   <p style="margin:0;font-size:14px;"><a href="${href}" style="color:#2dd4bf;font-weight:800;">Play free · ${host} →</a></p>
 </body></html>`;
-}
-
-/**
- * @param {CanvasRenderingContext2D} ctx
- */
-function drawBoostPill(ctx, x, y, w) {
-  const pillH = 17;
-  const pillR = pillH / 2;
-  const label = 'Bustout Boost™';
-  ctx.font = '600 8.5px Inter, system-ui, -apple-system, sans-serif';
-  const tw = ctx.measureText(label).width;
-  const pillW = Math.min(w - 10, tw + 14);
-  const px = x + (w - pillW) / 2;
-  ctx.beginPath();
-  ctx.roundRect(px, y, pillW, pillH, pillR);
-  ctx.fillStyle = 'rgba(245, 158, 11, 0.16)';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(245, 158, 11, 0.38)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.fillStyle = 'rgb(251, 191, 36)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(label, px + pillW / 2, y + pillH / 2);
 }
 
 /**
@@ -245,8 +219,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
     const x = padX + col * (cellW + gap);
     const y = padTop + row * (cellH + rowGap);
     const { fill, stroke, text } = paletteForSlot(slot);
-    const bust = slot.bustoutBoost;
-    const borderW = bust ? 2.5 : 1.75;
+    const borderW = 1.75;
 
     ctx.beginPath();
     ctx.roundRect(x, y, cellW, cellH, cornerR);
@@ -259,12 +232,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
     ctx.clip();
 
     const innerPad = 10;
-    let contentTop = y + innerPad;
-    if (bust) {
-      drawBoostPill(ctx, x, contentTop, cellW);
-      contentTop += 22;
-    }
-
+    const contentTop = y + innerPad;
     const contentBottom = y + cellH - innerPad;
     const centerY = (contentTop + contentBottom) / 2;
     const mainSize = Math.min(32, Math.max(20, cellH * 0.38));
@@ -280,7 +248,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
 
     ctx.beginPath();
     ctx.roundRect(x, y, cellW, cellH, cornerR);
-    ctx.strokeStyle = bust ? '#f59e0b' : stroke;
+    ctx.strokeStyle = stroke;
     ctx.lineWidth = borderW;
     ctx.stroke();
   });
@@ -289,7 +257,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = 'rgba(148, 163, 184, 0.9)';
   ctx.font = '9px Inter, system-ui, -apple-system, sans-serif';
-  ctx.fillText('Amber frame = Bustout Boost™ on that slot.', W / 2, H - 32);
+  ctx.fillText('Amber tile = Bustout Boost™ on that slot.', W / 2, H - 32);
   ctx.fillStyle = 'rgb(45, 212, 191)';
   ctx.font = 'bold 11px Inter, system-ui, -apple-system, sans-serif';
   ctx.fillText('setlistpickem.com · Free to play', W / 2, H - 12);
