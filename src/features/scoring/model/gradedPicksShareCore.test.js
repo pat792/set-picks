@@ -105,7 +105,7 @@ describe('gradedPicksShareCore', () => {
       showLabel: '2025-01-01 <script>',
     });
     expect(html).toContain('&lt;script&gt;');
-    expect(html).toContain('rgba(45, 212, 191');
+    expect(html).toContain('#134e4a');
     expect(html).toContain('<table');
   });
 });

@@ -10,7 +10,7 @@ This feature ships a graded recap once an official setlist exists (`actualSetlis
 2. Find your row (**You** badge / expanded breakdown).
 3. Expand the row.
 4. Below the six-slot breakdown, use **Share graded card**:
-   - **Copy recap** — writes **plain text** (headline once + human-readable lines per slot using the same result labels as the app) plus **`text/html`** when the browser supports it, so Mail / Notes / Slack often show a **small color grid** when you paste. Also includes a **Unicode block** mini-grid (`█` / `▓` / `░`, not emoji) for plain SMS.
+   - **Copy recap** — writes **plain text** (headline once + human-readable lines per slot using the same result labels as the app) plus **`text/html`** when the browser supports it. The HTML grid uses **opaque** teal / blue / slate tiles (plus inner `div` + `bgcolor` fallbacks) so pasted cells stay colored on white backgrounds, not washed-out rgba. Also includes a **Unicode block** mini-grid (`█` / `▓` / `░`) for plain SMS.
    - **Download PNG** — 2 rows × 3 columns, rounded tiles, per-slot points, **Bustout Boost™** pill when applicable.
    - **Share…** — Web Share uses **`title`** = recap headline and **`text`** = body **without** repeating that headline (many apps merge title + body without a newline and would corrupt or duplicate lines).
 

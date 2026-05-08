@@ -47,26 +47,31 @@ export function buildGradedPicksShareSlots(userPicks, actualSetlist) {
   });
 }
 
-/** @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot */
+/**
+ * Opaque fills so PNG + HTML paste read clearly on dark canvas and on white
+ * rich-text targets (translucent rgba on white looked like blank white tiles).
+ *
+ * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
+ */
 function paletteForSlot(slot) {
   if (slot.kind === 'none' || slot.kind === 'miss') {
     return {
-      fill: 'rgba(30, 41, 59, 0.95)',
-      stroke: 'rgba(100, 116, 139, 0.55)',
-      text: 'rgb(148, 163, 184)',
+      fill: '#1e293b',
+      stroke: '#64748b',
+      text: '#94a3b8',
     };
   }
   if (slot.kind === 'in_setlist') {
     return {
-      fill: 'rgba(59, 130, 246, 0.12)',
-      stroke: 'rgba(59, 130, 246, 0.5)',
-      text: 'rgb(147, 197, 253)',
+      fill: '#172554',
+      stroke: '#3b82f6',
+      text: '#93c5fd',
     };
   }
   return {
-    fill: 'rgba(45, 212, 191, 0.12)',
-    stroke: 'rgba(45, 212, 191, 0.5)',
-    text: 'rgb(204, 251, 241)',
+    fill: '#134e4a',
+    stroke: '#2dd4bf',
+    text: '#ccfbf1',
   };
 }
 
@@ -116,7 +121,7 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
   lines.push(buildGradedPicksShareBlockRow(slots, userPicks));
   lines.push('█ hit · ▓ in setlist · ░ miss or empty');
   lines.push('');
-  lines.push('Tip: Paste into Mail, Notes, or Slack for a color card if you used Copy recap; or use Download PNG.');
+  lines.push('Tip: Use Download PNG for the full color card everywhere; Copy recap adds color in Mail/Notes/Slack when rich paste is supported.');
   return lines.join('\n');
 }
 
@@ -142,27 +147,32 @@ export function buildGradedPicksShareHtml({ userPicks, actualSetlist, showLabel 
   const total = calculateTotalScore(userPicks, actualSetlist);
   const esc = escapeHtml(showLabel);
 
+  /**
+   * Inner div carries fill (many clients strip td backgrounds); bgcolor on td is a fallback.
+   */
   function tdHtml(slot) {
     const { fill, stroke, text } = paletteForSlot(slot);
     const bust = slot.bustoutBoost;
-    const border = bust ? '2.5px solid rgba(245,158,11,0.75)' : `1.75px solid ${stroke}`;
+    const borderColor = bust ? '#f59e0b' : stroke;
+    const borderW = bust ? '3px' : '2px';
     const boost = bust
-      ? '<div style="font-size:8px;font-weight:700;color:#fbbf24;margin-bottom:2px;">Bustout Boost™</div>'
+      ? '<div style="font-size:8px;font-weight:700;color:#fbbf24;margin:0 0 4px 0;line-height:1.2;">Bustout Boost™</div>'
       : '';
-    return `<td style="padding:6px;border-radius:12px;background:${fill};border:${border};color:${text};text-align:center;width:33%;vertical-align:middle;">
-      ${boost}<div style="font:800 20px system-ui,-apple-system,BlinkMacSystemFont,sans-serif;">${slot.points}</div>
-    </td>`;
+    const inner = `<div style="background-color:${fill};border:${borderW} solid ${borderColor};border-radius:14px;padding:10px 6px 12px 6px;text-align:center;min-height:52px;">
+      ${boost}<div style="font-weight:800;font-size:22px;font-family:Arial,Helvetica,sans-serif;color:${text};line-height:1.15;">${slot.points}</div>
+    </div>`;
+    return `<td width="33%" bgcolor="#0f172a" style="padding:6px;background-color:#0f172a;vertical-align:top;border:none;">${inner}</td>`;
   }
 
   const row1 = `<tr>${tdHtml(slots[0])}${tdHtml(slots[1])}${tdHtml(slots[2])}</tr>`;
   const row2 = `<tr>${tdHtml(slots[3])}${tdHtml(slots[4])}${tdHtml(slots[5])}</tr>`;
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#0f172a;color:#f8fafc;font-family:system-ui,-apple-system,sans-serif;padding:16px;">
-<div style="max-width:360px;">
-  <div style="font-weight:800;font-size:17px;margin-bottom:6px;">${escapeHtml(GRADED_PICKS_SHARE_RECAP_TITLE)}</div>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body bgcolor="#0f172a" style="margin:0;background-color:#0f172a;color:#f8fafc;font-family:Arial,Helvetica,sans-serif;padding:16px;">
+<div bgcolor="#0f172a" style="max-width:360px;background-color:#0f172a;">
+  <div style="font-weight:800;font-size:17px;margin-bottom:6px;color:#f8fafc;">${escapeHtml(GRADED_PICKS_SHARE_RECAP_TITLE)}</div>
   <div style="color:#94a3b8;font-size:12px;margin-bottom:4px;">${escapeHtml(GRADED_PICKS_SHARE_BRAND)} · ${esc}</div>
   <div style="font-weight:700;color:#2dd4bf;font-size:14px;margin-bottom:12px;">${total} pts</div>
-  <table role="presentation" cellspacing="8" cellpadding="0" style="width:100%;border-collapse:separate;">${row1}${row2}</table>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#0f172a" style="width:100%;border-collapse:separate;border-spacing:10px;background-color:#0f172a;">${row1}${row2}</table>
   <p style="color:#94a3b8;font-size:10px;margin-top:12px;line-height:1.4;">Amber frame = Bustout Boost™ on that slot.</p>
 </div>
 </body></html>`;
@@ -283,7 +293,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
 
     ctx.beginPath();
     ctx.roundRect(x, y, cellW, cellH, cornerR);
-    ctx.strokeStyle = bust ? 'rgba(245, 158, 11, 0.55)' : stroke;
+    ctx.strokeStyle = bust ? '#f59e0b' : stroke;
     ctx.lineWidth = borderW;
     ctx.stroke();
   });
