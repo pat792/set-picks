@@ -6,6 +6,7 @@ import Input from '../../../shared/ui/Input';
 import { StatusBanner } from '../../../shared';
 import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignUp } from '../model/useSplashSignUp';
+import { stashSplashResumeAuthModal } from '../utils/splashAuthResumeStorage';
 
 export default function SplashSignUpModal({ isOpen, onClose }) {
   const {
@@ -15,12 +16,51 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
     setPassword,
     confirmPassword,
     setConfirmPassword,
+    legalAccepted,
+    setLegalAccepted,
     busy,
     error,
     closeModal,
     handleGoogle,
     handleEmailSignUp,
   } = useSplashSignUp(isOpen, onClose);
+
+  const consentBlock = (
+    <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border-subtle bg-surface-field/80 p-4 text-left text-sm font-semibold leading-snug text-slate-200">
+      <input
+        type="checkbox"
+        checked={legalAccepted}
+        onChange={(e) => setLegalAccepted(e.target.checked)}
+        className="mt-1 h-4 w-4 shrink-0 rounded border-slate-500 bg-surface-panel text-brand-primary focus-visible:ring-2 focus-visible:ring-brand"
+        aria-describedby="signup-legal-hint"
+      />
+      <span id="signup-legal-hint">
+        I agree to the{' '}
+        <Link
+          to="/terms"
+          className="text-teal-300 underline decoration-teal-500/60 underline-offset-2 hover:text-white"
+          onClick={(e) => {
+            e.stopPropagation();
+            stashSplashResumeAuthModal('signup');
+          }}
+        >
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link
+          to="/privacy"
+          className="text-teal-300 underline decoration-teal-500/60 underline-offset-2 hover:text-white"
+          onClick={(e) => {
+            e.stopPropagation();
+            stashSplashResumeAuthModal('signup');
+          }}
+        >
+          Privacy Policy
+        </Link>
+        .
+      </span>
+    </label>
+  );
 
   return (
     <SplashAuthModalShell
@@ -29,7 +69,9 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
       title="Create account"
       handleGoogle={handleGoogle}
       busy={busy}
-      googleFootnote="You'll set your handle on the next page. Your personal info will never be shared with users."
+      googleDisabled={busy || !legalAccepted}
+      prependContent={consentBlock}
+      googleFootnote="You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
     >
         <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">
           <div>
@@ -79,21 +121,10 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
             />
           </div>
           {error ? <StatusBanner type="error" message={error} /> : null}
-          <p className="text-center text-[11px] font-semibold leading-relaxed text-slate-400">
-            By creating an account you agree to our{' '}
-            <Link to="/terms" className="text-slate-300 underline decoration-slate-500 underline-offset-2 hover:text-white hover:decoration-slate-300">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-slate-300 underline decoration-slate-500 underline-offset-2 hover:text-white hover:decoration-slate-300">
-              Privacy Policy
-            </Link>
-            .
-          </p>
           <Button
             variant="secondary"
             type="submit"
-            disabled={busy}
+            disabled={busy || !legalAccepted}
             className="w-full py-3.5 rounded-xl uppercase tracking-widest"
           >
             {busy ? 'Creating…' : 'Create account'}

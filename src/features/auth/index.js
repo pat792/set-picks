@@ -13,3 +13,7 @@ export { useProfileSetup } from './model/useProfileSetup';
 export { useSignOut } from './model/useSignOut';
 export { getFirebaseAuthErrorMessage } from './utils/firebaseAuthMessages';
 export { getPasswordResetActionCodeSettings } from './utils/passwordResetActionSettings';
+export {
+  stashSplashResumeAuthModal,
+  consumeSplashResumeAuthModal,
+} from './utils/splashAuthResumeStorage';
