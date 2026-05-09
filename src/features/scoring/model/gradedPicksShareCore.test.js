@@ -7,6 +7,7 @@ import {
   buildGradedPicksShareEmojiGrid,
   buildGradedPicksShareFullPlainText,
   buildGradedPicksShareSlots,
+  GRADED_PICKS_SHARE_INTRO,
   GRADED_PICKS_SHARE_RECAP_TITLE,
 } from './gradedPicksShareCore.js';
 
@@ -45,7 +46,7 @@ describe('gradedPicksShareCore', () => {
     expect(slots[2].kind).toBe('miss');
   });
 
-  it('buildGradedPicksShareBodyPlain uses artist · date · pts and colored block grid', () => {
+  it('buildGradedPicksShareBodyPlain has intro, artist · date · pts, grid, legend, CTA', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -60,7 +61,7 @@ describe('gradedPicksShareCore', () => {
       actualSetlist: actual,
       showLabel: '2025-01-01 Miami',
     });
-    expect(body).not.toContain(GRADED_PICKS_SHARE_RECAP_TITLE);
+    expect(body.startsWith(GRADED_PICKS_SHARE_INTRO)).toBe(true);
     expect(body).toContain(`${SHARE_RECAP_ARTIST_NAME} · 2025-01-01 Miami`);
     expect(body).toMatch(/\d+ pts/);
     expect(body).toContain('🟩');
@@ -97,7 +98,7 @@ describe('gradedPicksShareCore', () => {
     expect(tiles).toHaveLength(6);
   });
 
-  it('buildGradedPicksShareFullPlainText includes headline once', () => {
+  it('buildGradedPicksShareFullPlainText starts with intro and includes it once', () => {
     const actual = { ...baseSetlist, bustouts: [] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -112,8 +113,8 @@ describe('gradedPicksShareCore', () => {
       actualSetlist: actual,
       showLabel: '2025-01-01 Miami',
     });
-    expect(full.startsWith(GRADED_PICKS_SHARE_RECAP_TITLE)).toBe(true);
-    const n = full.split(GRADED_PICKS_SHARE_RECAP_TITLE).length - 1;
+    expect(full.startsWith(GRADED_PICKS_SHARE_INTRO)).toBe(true);
+    const n = full.split(GRADED_PICKS_SHARE_INTRO).length - 1;
     expect(n).toBe(1);
   });
 

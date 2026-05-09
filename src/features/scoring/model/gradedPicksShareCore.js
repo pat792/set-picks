@@ -7,8 +7,11 @@ import {
 /** Matches splash / marketing copy (`SplashHeader`, `SplashAboutSection`). */
 export const GRADED_PICKS_SHARE_BRAND = "Setlist Pick 'Em";
 
-/** Web Share API `title` + first line when copying full plain text. */
-export const GRADED_PICKS_SHARE_RECAP_TITLE = "My Setlist Pick 'Em Recap";
+/** Web Share API `title` (brief brand for OS share sheet chrome). */
+export const GRADED_PICKS_SHARE_RECAP_TITLE = "Setlist Pick 'Em";
+
+/** Conversational opener that contextualizes the grid for recipients. */
+export const GRADED_PICKS_SHARE_INTRO = "Check out my Setlist Pick 'Em score!";
 
 /** Canonical marketing URL (see `InstallAppCard`, Firebase auth notes). */
 export const GRADED_PICKS_SHARE_SITE_URL = 'https://www.setlistpickem.com/';
@@ -128,6 +131,7 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
   const total = calculateTotalScore(userPicks, actualSetlist);
   const grid = buildGradedPicksShareEmojiGrid(slots, userPicks);
   return [
+    GRADED_PICKS_SHARE_INTRO,
     `${SHARE_RECAP_ARTIST_NAME} · ${showLabel} · ${total} pts`,
     '',
     grid,
@@ -139,10 +143,11 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
 }
 
 /**
- * Full plain text for clipboard fallback (headline once, then succinct body).
+ * Full plain text for clipboard copy. Now identical to body since the intro
+ * line is embedded in the body itself.
  */
 export function buildGradedPicksShareFullPlainText(args) {
-  return [GRADED_PICKS_SHARE_RECAP_TITLE, '', buildGradedPicksShareBodyPlain(args)].join('\n');
+  return buildGradedPicksShareBodyPlain(args);
 }
 
 /** @deprecated Prefer {@link buildGradedPicksShareFullPlainText}; alias for older imports. */

@@ -6,6 +6,7 @@ export { default as Leaderboard } from './ui/Leaderboard';
 export { default as GradedPicksShareBar } from './ui/GradedPicksShareBar';
 export {
   GRADED_PICKS_SHARE_DOMAIN,
+  GRADED_PICKS_SHARE_INTRO,
   GRADED_PICKS_SHARE_RECAP_TITLE,
   GRADED_PICKS_SHARE_SITE_URL,
 } from './model/gradedPicksShareCore';
