@@ -63,7 +63,7 @@ describe('gradedPicksShareCore', () => {
     });
     expect(body.startsWith(GRADED_PICKS_SHARE_INTRO)).toBe(true);
     expect(body).toContain(`${SHARE_RECAP_ARTIST_NAME} · 2025-01-01 Miami`);
-    expect(body).toMatch(/5\/6/);
+    expect(body).toContain('correct picks: 5/6');
     expect(body).toMatch(/\d+ pts/);
     expect(body).toContain('🟩');
     expect(body).toContain('🟦');

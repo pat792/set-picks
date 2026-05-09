@@ -146,7 +146,7 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
   const hits = countShareHits(slots, userPicks);
   return [
     GRADED_PICKS_SHARE_INTRO,
-    `${SHARE_RECAP_ARTIST_NAME} · ${showLabel} · ${hits}/${slots.length} · ${total} pts`,
+    `${SHARE_RECAP_ARTIST_NAME} · ${showLabel} · correct picks: ${hits}/${slots.length} · ${total} pts`,
     '',
     grid,
     '',
