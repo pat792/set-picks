@@ -115,6 +115,7 @@ export default function PicksPage({ user, selectedDate }) {
               userPicks={formData}
               actualSetlist={gradedSetlist}
               showLabel={shareShowLabel}
+              className="mt-4"
             />
           ) : null}
           {pickConstraintMessage ? (

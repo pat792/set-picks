@@ -1,7 +1,6 @@
 import React from 'react';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
-import GradedPicksShareBar from './GradedPicksShareBar';
 import ScoreBreakdownGrid from './ScoreBreakdownGrid';
 
 const rankBadgeClass = (rank) => {
@@ -23,7 +22,6 @@ export default function LeaderboardRow({
   userPicks,
   /** Pre-lock privacy (#303): blur opponent song titles in the breakdown. */
   maskPickTitles = false,
-  shareShowLabel = '',
 }) {
   const uniqueId = p.uid || p.id;
   const playerUserId = p.userId || p.uid;
@@ -111,13 +109,6 @@ export default function LeaderboardRow({
             actualSetlist={actualSetlist}
             maskPickTitles={maskPickTitles}
           />
-          {isSelf && actualSetlist && !maskPickTitles && shareShowLabel ? (
-            <GradedPicksShareBar
-              userPicks={userPicks}
-              actualSetlist={actualSetlist}
-              showLabel={shareShowLabel}
-            />
-          ) : null}
         </div>
       )}
     </div>

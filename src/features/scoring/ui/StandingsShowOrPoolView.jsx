@@ -3,6 +3,7 @@ import { Inbox, Loader2, Music } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
+import GradedPicksShareBar from './GradedPicksShareBar';
 import Leaderboard from './Leaderboard';
 import StandingsActiveShowCard from './StandingsActiveShowCard';
 import StandingsBannerWaitingSetlist from './StandingsBannerWaitingSetlist';
@@ -38,6 +39,7 @@ export default function StandingsShowOrPoolView({ screen }) {
     winnerOfTheNight,
     activePoolName,
     selfUserId,
+    selfUserPicks,
     isSecured,
     picksStatusLoading,
     showLastShowWinnerBanner,
@@ -119,7 +121,6 @@ export default function StandingsShowOrPoolView({ screen }) {
               selfUserId={selfUserId}
               suppressLeadingCallout={Boolean(showWinnerBanner)}
               redactOpponentPicksPreLock={redactOpponentPicksPreLock}
-              shareShowLabel={showLabel}
             />
           </div>
         ) : null}
@@ -199,6 +200,15 @@ export default function StandingsShowOrPoolView({ screen }) {
         />
       ) : null}
 
+      {actualSetlist && selfUserPicks ? (
+        <GradedPicksShareBar
+          userPicks={selfUserPicks}
+          actualSetlist={actualSetlist}
+          showLabel={showLabel}
+          className="mb-2"
+        />
+      ) : null}
+
       {!actualSetlist && picks.length > 0 ? (
         <StandingsBannerWaitingSetlist />
       ) : null}
@@ -251,7 +261,6 @@ export default function StandingsShowOrPoolView({ screen }) {
           selfUserId={selfUserId}
           suppressLeadingCallout={Boolean(showWinnerBanner)}
           redactOpponentPicksPreLock={redactOpponentPicksPreLock}
-          shareShowLabel={showLabel}
         />
       )}
     </>

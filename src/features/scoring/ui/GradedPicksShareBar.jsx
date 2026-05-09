@@ -7,7 +7,7 @@ import {
   GRADED_PICKS_SHARE_RECAP_TITLE,
 } from '../model/gradedPicksShareCore';
 
-export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabel }) {
+export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabel, className = '' }) {
   const [notice, setNotice] = useState(null);
 
   const clearNoticeSoon = useCallback((msg) => {
@@ -44,7 +44,7 @@ export default function GradedPicksShareBar({ userPicks, actualSetlist, showLabe
   }, [actualSetlist, clearNoticeSoon, showLabel, userPicks]);
 
   return (
-    <div className="mt-4 rounded-xl border border-border-subtle/50 bg-surface-panel/40 px-3 py-3">
+    <div className={`rounded-xl border border-border-subtle/50 bg-surface-panel/40 px-3 py-3 ${className}`}>
       <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-content-secondary">
         Share your score
       </p>
