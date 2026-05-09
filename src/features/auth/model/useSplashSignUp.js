@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { auth } from '../../../shared/lib/firebase';
-import { recordTermsPrivacyConsent } from '../api/legalConsentApi';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import {
   deleteAuthUserIfPresent,
   registerWithEmail,
   signInWithGoogle,
+  signOutUser,
 } from '../api/splashAuthApi';
+import { upsertUserLegalConsentIfOutdated } from '../api/userLegalConsentApi';
 import { trackAuthError, trackAuthLogin, trackAuthSignUp } from './authAnalytics';
 
 export function useSplashSignUp(isOpen, onClose) {
@@ -57,15 +58,26 @@ export function useSplashSignUp(isOpen, onClose) {
     setBusy(true);
     try {
       const { isNewUser } = await signInWithGoogle(auth);
-      if (isNewUser) {
-        try {
-          await recordTermsPrivacyConsent(auth.currentUser.uid);
-        } catch (consentErr) {
-          console.error('Consent write after Google sign-up:', consentErr);
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        throw new Error('Missing user after Google sign-in.');
+      }
+      try {
+        await upsertUserLegalConsentIfOutdated(uid, { method: 'google' });
+      } catch (consentErr) {
+        console.error('Legal consent write (Google):', consentErr);
+        if (isNewUser) {
           await deleteAuthUserIfPresent(auth.currentUser);
           setError('Could not finish creating your account. Please try again.');
-          return;
+        } else {
+          await signOutUser(auth);
+          setError(
+            'Could not save your terms acceptance. Check your connection and try again.'
+          );
         }
+        return;
+      }
+      if (isNewUser) {
         trackAuthSignUp('google');
       } else {
         trackAuthLogin('google');
@@ -100,9 +112,9 @@ export function useSplashSignUp(isOpen, onClose) {
       try {
         const cred = await registerWithEmail(auth, email, password);
         try {
-          await recordTermsPrivacyConsent(cred.user.uid);
+          await upsertUserLegalConsentIfOutdated(cred.user.uid, { method: 'email' });
         } catch (consentErr) {
-          console.error('Consent write after email sign-up:', consentErr);
+          console.error('Legal consent write (email sign-up):', consentErr);
           await deleteAuthUserIfPresent(cred.user);
           setError('Could not finish creating your account. Please try again.');
           return;

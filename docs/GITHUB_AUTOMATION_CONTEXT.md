@@ -25,6 +25,7 @@
 - **Official setlists (Firestore):** `official_setlists/{showDate}` field semantics, scoring, save vs finalize — **`docs/OFFICIAL_SETLISTS_SCHEMA.md`**.
 - **Pool admin callables:** `deletePoolWithCleanup` (issue #138) handles server-side pool delete + member cleanup via Admin SDK — **`docs/POOL_DELETE_RUNBOOK.md`**. Owner-auth + activity check mirror `src/features/pools/api/poolFirestore.js`.
 - **Rules:** `firestore.rules` (referenced from `firebase.json`).
+- **Legal / in-app consent (ToS, Privacy, Firestore `legalConsent`):** **`docs/LEGAL_UPDATES_RUNBOOK.md`** — bump markdown, UI `lastUpdated`, and `src/shared/constants/legalDocVersions.js` together; see GitHub **#392**.
 
 Do **not** propose new non-Firebase backends. Avoid unnecessary npm packages.
 

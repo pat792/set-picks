@@ -119,6 +119,27 @@ test("users: owner may update their own profile", async () => {
   );
 });
 
+test("users: owner may merge-set legalConsent on their profile", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice"), { handle: "alice" });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    setDoc(
+      doc(db, "users", "alice"),
+      {
+        legalConsent: {
+          termsVersion: "2026-05-08",
+          privacyVersion: "2026-05-08",
+          acceptedAt: Timestamp.fromDate(new Date("2026-05-08T12:00:00Z")),
+          method: "google",
+        },
+      },
+      { merge: true }
+    )
+  );
+});
+
 test("users: non-owner non-admin cannot update another profile", async () => {
   await seed(async (adminDb) => {
     await setDoc(doc(adminDb, "users", "bob"), { handle: "bob" });

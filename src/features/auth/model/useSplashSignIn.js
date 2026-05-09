@@ -2,7 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { auth } from '../../../shared/lib/firebase';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
-import { sendResetEmail, signInWithEmail, signInWithGoogle } from '../api/splashAuthApi';
+import {
+  sendResetEmail,
+  signInWithEmail,
+  signInWithGoogle,
+  signOutUser,
+} from '../api/splashAuthApi';
+import { upsertUserLegalConsentIfOutdated } from '../api/userLegalConsentApi';
 import { trackAuthError, trackAuthLogin } from './authAnalytics';
 
 export function useSplashSignIn(isOpen, onClose) {
@@ -46,6 +52,20 @@ export function useSplashSignIn(isOpen, onClose) {
     setBusy(true);
     try {
       await signInWithGoogle(auth);
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        throw new Error('Missing user after Google sign-in.');
+      }
+      try {
+        await upsertUserLegalConsentIfOutdated(uid, { method: 'google' });
+      } catch (consentErr) {
+        console.error('Legal consent write (Google sign-in):', consentErr);
+        await signOutUser(auth);
+        setError(
+          'Could not save your terms acceptance. Check your connection and try again.'
+        );
+        return;
+      }
       trackAuthLogin('google');
       closeModal();
     } catch (err) {
@@ -63,7 +83,17 @@ export function useSplashSignIn(isOpen, onClose) {
       setError('');
       setBusy(true);
       try {
-        await signInWithEmail(auth, email, password);
+        const cred = await signInWithEmail(auth, email, password);
+        try {
+          await upsertUserLegalConsentIfOutdated(cred.user.uid, { method: 'email' });
+        } catch (consentErr) {
+          console.error('Legal consent write (email sign-in):', consentErr);
+          await signOutUser(auth);
+          setError(
+            'Could not save your terms acceptance. Check your connection and try again.'
+          );
+          return;
+        }
         trackAuthLogin('email');
         closeModal();
       } catch (err) {

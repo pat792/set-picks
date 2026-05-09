@@ -6,6 +6,7 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signOut,
 } from 'firebase/auth';
 
 import { getPasswordResetActionCodeSettings } from '../utils/passwordResetActionSettings';
@@ -60,4 +61,9 @@ export function signInWithEmail(auth, email, password) {
 
 export function sendResetEmail(auth, email) {
   return sendPasswordResetEmail(auth, email.trim(), getPasswordResetActionCodeSettings());
+}
+
+/** @param {import('firebase/auth').Auth} auth */
+export function signOutUser(auth) {
+  return signOut(auth);
 }
