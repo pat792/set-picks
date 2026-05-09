@@ -13,6 +13,9 @@ export const GRADED_PICKS_SHARE_RECAP_TITLE = "My Setlist Pick 'Em Recap";
 /** Canonical marketing URL (see `InstallAppCard`, Firebase auth notes). */
 export const GRADED_PICKS_SHARE_SITE_URL = 'https://www.setlistpickem.com/';
 
+/** Bare domain for plain-text CTA; auto-links on iOS, Android, WhatsApp, etc. */
+export const GRADED_PICKS_SHARE_DOMAIN = 'setlistpickem.com';
+
 /**
  * @param {string} s
  */
@@ -67,14 +70,16 @@ function shareEmojiCellChar(slot, userPicks) {
 }
 
 /**
- * Two rows × three columns (spaced for readability in SMS).
+ * Two rows × three columns, no inter-tile spacing. Tight grid matches Wordle
+ * convention and eliminates cross-platform alignment issues caused by variable
+ * emoji+space width rendering (especially iOS Messages / iMessage).
  *
  * @param {ReturnType<typeof buildGradedPicksShareSlots>} slots
  * @param {Record<string, unknown>} userPicks
  */
 export function buildGradedPicksShareEmojiGrid(slots, userPicks) {
   const ch = (s) => shareEmojiCellChar(s, userPicks);
-  return `${ch(slots[0])} ${ch(slots[1])} ${ch(slots[2])}\n${ch(slots[3])} ${ch(slots[4])} ${ch(slots[5])}`;
+  return `${ch(slots[0])}${ch(slots[1])}${ch(slots[2])}\n${ch(slots[3])}${ch(slots[4])}${ch(slots[5])}`;
 }
 
 /** Opaque fills for PNG tiles (bust = full amber tile, same idea as emoji 🟧). */
@@ -111,6 +116,11 @@ function paletteForSlot(slot) {
  * Succinct body for SMS / Web Share `text` (no per-slot prose). Pair with
  * `title: GRADED_PICKS_SHARE_RECAP_TITLE` so clients do not duplicate the headline.
  *
+ * Optimized for two audiences:
+ * - Sender: compact, visually clean → lowers friction to share.
+ * - Recipient (non-user): curiosity via grid + score, minimal legend, clear
+ *   action-oriented CTA with bare domain (auto-links on all major platforms).
+ *
  * @param {{ userPicks: Record<string, unknown>, actualSetlist: unknown, showLabel: string }} args
  */
 export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showLabel }) {
@@ -118,15 +128,13 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
   const total = calculateTotalScore(userPicks, actualSetlist);
   const grid = buildGradedPicksShareEmojiGrid(slots, userPicks);
   return [
-    `${SHARE_RECAP_ARTIST_NAME} · ${showLabel}`,
-    `Total: ${total} pts`,
+    `${SHARE_RECAP_ARTIST_NAME} · ${showLabel} · ${total} pts`,
     '',
     grid,
     '',
-    '🟩 strong pick · 🟦 in setlist · ⬛ miss or empty · 🟧 Bustout Boost™',
+    '🟩 nailed it · 🟦 in setlist · ⬛ miss · 🟧 bustout bonus',
     '',
-    'Free setlist game:',
-    GRADED_PICKS_SHARE_SITE_URL,
+    `Play free → ${GRADED_PICKS_SHARE_DOMAIN}`,
   ].join('\n');
 }
 

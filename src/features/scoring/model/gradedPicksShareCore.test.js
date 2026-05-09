@@ -8,7 +8,6 @@ import {
   buildGradedPicksShareFullPlainText,
   buildGradedPicksShareSlots,
   GRADED_PICKS_SHARE_RECAP_TITLE,
-  GRADED_PICKS_SHARE_SITE_URL,
 } from './gradedPicksShareCore.js';
 
 describe('gradedPicksShareCore', () => {
@@ -46,7 +45,7 @@ describe('gradedPicksShareCore', () => {
     expect(slots[2].kind).toBe('miss');
   });
 
-  it('buildGradedPicksShareBodyPlain uses artist · date and colored block grid', () => {
+  it('buildGradedPicksShareBodyPlain uses artist · date · pts and colored block grid', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -63,14 +62,17 @@ describe('gradedPicksShareCore', () => {
     });
     expect(body).not.toContain(GRADED_PICKS_SHARE_RECAP_TITLE);
     expect(body).toContain(`${SHARE_RECAP_ARTIST_NAME} · 2025-01-01 Miami`);
+    expect(body).toMatch(/\d+ pts/);
     expect(body).toContain('🟩');
     expect(body).toContain('🟦');
     expect(body).toContain('⬛');
-    expect(body).toContain('🟧 Bustout Boost™');
-    expect(body).toContain(GRADED_PICKS_SHARE_SITE_URL);
+    expect(body).toContain('🟧 bustout bonus');
+    expect(body).toContain('nailed it');
+    expect(body).toContain('setlistpickem.com');
+    expect(body).toContain('Play free');
   });
 
-  it('buildGradedPicksShareEmojiGrid is six squares only; bust uses 🟧', () => {
+  it('buildGradedPicksShareEmojiGrid is tight 2×3 grid; bust uses 🟧; no spaces between tiles', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -84,8 +86,15 @@ describe('gradedPicksShareCore', () => {
     const grid = buildGradedPicksShareEmojiGrid(slots, picks);
     expect(grid).toContain('🟧');
     expect(grid).not.toMatch(/\d/);
-    const tiles = grid.split(/\s+/).filter(Boolean);
-    expect(tiles.length).toBe(6);
+    const rows = grid.split('\n');
+    expect(rows).toHaveLength(2);
+    rows.forEach((row) => {
+      expect(row).not.toContain(' ');
+    });
+    const allEmoji = grid.replace(/\n/g, '');
+    const tilePattern = /🟩|🟦|⬛|🟧/g;
+    const tiles = allEmoji.match(tilePattern);
+    expect(tiles).toHaveLength(6);
   });
 
   it('buildGradedPicksShareFullPlainText includes headline once', () => {
