@@ -119,6 +119,7 @@ export default function StandingsShowOrPoolView({ screen }) {
               selfUserId={selfUserId}
               suppressLeadingCallout={Boolean(showWinnerBanner)}
               redactOpponentPicksPreLock={redactOpponentPicksPreLock}
+              shareShowLabel={showLabel}
             />
           </div>
         ) : null}
@@ -250,6 +251,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           selfUserId={selfUserId}
           suppressLeadingCallout={Boolean(showWinnerBanner)}
           redactOpponentPicksPreLock={redactOpponentPicksPreLock}
+          shareShowLabel={showLabel}
         />
       )}
     </>
