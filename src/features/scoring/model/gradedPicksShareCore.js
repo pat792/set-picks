@@ -65,11 +65,24 @@ export function buildGradedPicksShareSlots(userPicks, actualSetlist) {
 function shareEmojiCellChar(slot, userPicks) {
   const raw = userPicks?.[slot.fieldId];
   const hasPick = raw != null && String(raw).trim() !== '';
-  if (!hasPick) return '⬛';
+  if (!hasPick) return '⬜';
   if (slot.bustoutBoost) return '🟧';
-  if (slot.kind === 'miss' || slot.kind === 'none') return '⬛';
+  if (slot.kind === 'miss' || slot.kind === 'none') return '⬜';
   if (slot.kind === 'in_setlist') return '🟦';
   return '🟩';
+}
+
+/**
+ * Count slots where the user's pick was found in the setlist (hit).
+ * A hit = has a pick AND kind is not miss/none.
+ */
+function countShareHits(slots, userPicks) {
+  return slots.filter((slot) => {
+    const raw = userPicks?.[slot.fieldId];
+    const hasPick = raw != null && String(raw).trim() !== '';
+    if (!hasPick) return false;
+    return slot.kind !== 'miss' && slot.kind !== 'none';
+  }).length;
 }
 
 /**
@@ -130,13 +143,14 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
   const slots = buildGradedPicksShareSlots(userPicks, actualSetlist);
   const total = calculateTotalScore(userPicks, actualSetlist);
   const grid = buildGradedPicksShareEmojiGrid(slots, userPicks);
+  const hits = countShareHits(slots, userPicks);
   return [
     GRADED_PICKS_SHARE_INTRO,
-    `${SHARE_RECAP_ARTIST_NAME} · ${showLabel} · ${total} pts`,
+    `${SHARE_RECAP_ARTIST_NAME} · ${showLabel} · ${hits}/${slots.length} · ${total} pts`,
     '',
     grid,
     '',
-    '🟩 nailed it · 🟦 in setlist · ⬛ miss · 🟧 bustout bonus',
+    '🟩 nailed it · 🟦 in setlist · ⬜ miss · 🟧 bustout bonus',
     '',
     `Play free → ${GRADED_PICKS_SHARE_DOMAIN}`,
   ].join('\n');

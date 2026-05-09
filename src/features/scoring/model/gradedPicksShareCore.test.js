@@ -46,7 +46,7 @@ describe('gradedPicksShareCore', () => {
     expect(slots[2].kind).toBe('miss');
   });
 
-  it('buildGradedPicksShareBodyPlain has intro, artist · date · pts, grid, legend, CTA', () => {
+  it('buildGradedPicksShareBodyPlain has intro, hits/total, artist · date · pts, grid, legend, CTA', () => {
     const actual = { ...baseSetlist, bustouts: ['AC/DC Bag'] };
     const picks = {
       s1o: 'AC/DC Bag',
@@ -63,10 +63,11 @@ describe('gradedPicksShareCore', () => {
     });
     expect(body.startsWith(GRADED_PICKS_SHARE_INTRO)).toBe(true);
     expect(body).toContain(`${SHARE_RECAP_ARTIST_NAME} · 2025-01-01 Miami`);
+    expect(body).toMatch(/5\/6/);
     expect(body).toMatch(/\d+ pts/);
     expect(body).toContain('🟩');
     expect(body).toContain('🟦');
-    expect(body).toContain('⬛');
+    expect(body).toContain('⬜');
     expect(body).toContain('🟧 bustout bonus');
     expect(body).toContain('nailed it');
     expect(body).toContain('setlistpickem.com');
@@ -93,7 +94,7 @@ describe('gradedPicksShareCore', () => {
       expect(row).not.toContain(' ');
     });
     const allEmoji = grid.replace(/\n/g, '');
-    const tilePattern = /🟩|🟦|⬛|🟧/g;
+    const tilePattern = /🟩|🟦|⬜|🟧/g;
     const tiles = allEmoji.match(tilePattern);
     expect(tiles).toHaveLength(6);
   });
