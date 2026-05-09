@@ -70,9 +70,9 @@ export default function ScoreBreakdownGrid({ userPicks, actualSetlist, maskPickT
                 {bustoutBoost && (
                   <span
                     className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/35"
-                    title={`+${SCORING_RULES.BUSTOUT_BOOST} bustout bonus`}
+                    title={`+${SCORING_RULES.BUSTOUT_BOOST} Bustout Boost™`}
                   >
-                    Bustout boost
+                    Bustout Boost™
                   </span>
                 )}
               </div>

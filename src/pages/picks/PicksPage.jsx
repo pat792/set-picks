@@ -3,12 +3,16 @@ import { CheckCircle2, ChevronDown, Lock, Scale } from 'lucide-react';
 
 import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features/picks';
 import { useShowCalendar } from '../../features/show-calendar';
-import { useScoringRulesModal } from '../../features/scoring';
+import { GradedPicksShareBar, useOfficialSetlistForShow, useScoringRulesModal } from '../../features/scoring';
+import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel';
 import Card from '../../shared/ui/Card';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
 export default function PicksPage({ user, selectedDate }) {
   const { showDates, showDatesByTour } = useShowCalendar();
+  const { actualSetlist: gradedSetlist } = useOfficialSetlistForShow(selectedDate, showDates);
+  const showForShare = selectedDate ? showDates?.find((s) => s.date === selectedDate) : null;
+  const shareShowLabel = showForShare ? showOptionLabelCompact(showForShare) : selectedDate || '';
   const {
     formData,
     handleInput,
@@ -106,6 +110,13 @@ export default function PicksPage({ user, selectedDate }) {
           variant="venue"
           className="space-y-4 transition-all duration-300"
         >
+          {gradedSetlist && hasExistingPicks ? (
+            <GradedPicksShareBar
+              userPicks={formData}
+              actualSetlist={gradedSetlist}
+              showLabel={shareShowLabel}
+            />
+          ) : null}
           {pickConstraintMessage ? (
             <div
               className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-100"
