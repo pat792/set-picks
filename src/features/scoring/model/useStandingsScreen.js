@@ -17,8 +17,12 @@ import { showOptionLabelCompact } from '../../../shared/utils/showOptionLabel';
 import { resolveCurrentTour } from './resolveCurrentTour';
 import { useDisplayedPicks } from './useDisplayedPicks';
 import { usePreviousShowNightWinner } from './usePreviousShowNightWinner';
-import { useShowWinnerOfTheNight } from './useShowWinnerOfTheNight';
+import {
+  computeShowWinnerOfTheNight,
+  useShowWinnerOfTheNight,
+} from './useShowWinnerOfTheNight';
 import { useStandings } from './useStandings';
+import { computeStandingsSelfRecap } from './standingsSelfRecap';
 import { useStandingsLeaderboardView } from './useStandingsLeaderboardView';
 import { useStandingsView } from './useStandingsView';
 import { useTourStandings } from './useTourStandings';
@@ -169,6 +173,17 @@ export function useStandingsScreen(selectedDate, options = {}) {
     }, {});
   }, [user?.uid, displayedPicks]);
 
+  const selfStandingsRecap = useMemo(
+    () => computeStandingsSelfRecap(displayedPicks, actualSetlist, user?.uid),
+    [displayedPicks, actualSetlist, user?.uid],
+  );
+
+  /** Same rule as the “winner of the night” banner: no share until global finalize. */
+  const shareGradedRecapAllowed = useMemo(() => {
+    if (!actualSetlist || !selfUserPicks) return false;
+    return !computeShowWinnerOfTheNight(picks).hasUngradedNonEmptyPick;
+  }, [actualSetlist, selfUserPicks, picks]);
+
   const leaderboardTitle =
     view === 'pools' ? activePoolName || 'This pool' : 'Everyone';
 
@@ -209,6 +224,8 @@ export function useStandingsScreen(selectedDate, options = {}) {
     activePoolName,
     selfUserId: user?.uid || null,
     selfUserPicks,
+    selfStandingsRecap,
+    shareGradedRecapAllowed,
     isSecured: hasSubmittedPicksForNextShow,
     picksStatusLoading,
 

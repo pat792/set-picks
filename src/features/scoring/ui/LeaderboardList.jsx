@@ -139,6 +139,9 @@ export default function LeaderboardList({
             onToggle={() => onToggle(uniqueId)}
             userPicks={userPicks}
             maskPickTitles={maskPickTitles}
+            anchorId={
+              isSelf && selfUserId ? `standings-player-${selfUserId}` : undefined
+            }
           />
         );
       })}

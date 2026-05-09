@@ -1,16 +1,21 @@
 import React, { useEffect, useId, useState } from 'react';
 import { CheckCircle2, ChevronDown, Lock, Scale } from 'lucide-react';
 
-import { PicksFieldsForm, PicksSubmitButton, usePicksForm } from '../../features/picks';
+import {
+  PicksFieldsForm,
+  PicksSelfRecapSection,
+  PicksSubmitButton,
+  usePicksForm,
+  usePicksSelfRecap,
+} from '../../features/picks';
 import { useShowCalendar } from '../../features/show-calendar';
-import { GradedPicksShareBar, useOfficialSetlistForShow, useScoringRulesModal } from '../../features/scoring';
+import { useScoringRulesModal } from '../../features/scoring';
 import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel';
 import Card from '../../shared/ui/Card';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
 export default function PicksPage({ user, selectedDate }) {
   const { showDates, showDatesByTour } = useShowCalendar();
-  const { actualSetlist: gradedSetlist } = useOfficialSetlistForShow(selectedDate, showDates);
   const showForShare = selectedDate ? showDates?.find((s) => s.date === selectedDate) : null;
   const shareShowLabel = showForShare ? showOptionLabelCompact(showForShare) : selectedDate || '';
   const {
@@ -24,6 +29,8 @@ export default function PicksPage({ user, selectedDate }) {
     saveFeedback,
     pickConstraintMessage,
   } = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
+
+  const picksRecap = usePicksSelfRecap({ user, selectedDate, showDates, formData });
 
   const { openScoringRules } = useScoringRulesModal();
   const statusContentId = useId();
@@ -104,20 +111,26 @@ export default function PicksPage({ user, selectedDate }) {
             </div>
           </>
         ) : null}
+        {!isLoadingPicks && picksRecap.recap ? (
+          <PicksSelfRecapSection
+            recap={picksRecap.recap}
+            shareGradedRecapAllowed={picksRecap.shareGradedRecapAllowed}
+            showLabel={shareShowLabel}
+            formData={formData}
+            actualSetlist={picksRecap.actualSetlist}
+            standingsTo={
+              selectedDate
+                ? `/dashboard/standings?showDate=${encodeURIComponent(selectedDate)}`
+                : '/dashboard/standings'
+            }
+          />
+        ) : null}
         <Card
           as="form"
           onSubmit={handleSave}
           variant="venue"
           className="space-y-4 transition-all duration-300"
         >
-          {gradedSetlist && hasExistingPicks ? (
-            <GradedPicksShareBar
-              userPicks={formData}
-              actualSetlist={gradedSetlist}
-              showLabel={shareShowLabel}
-              className="mt-4"
-            />
-          ) : null}
           {pickConstraintMessage ? (
             <div
               className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-100"

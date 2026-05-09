@@ -52,6 +52,28 @@ Implemented as CSS variables in `src/index.css` and mapped in `tailwind.config.j
 - **Rank 1 Gold**: `#d97706` (or standard `text-amber-500`/`bg-amber-500`) — Used exclusively for 1st place leaderboard indicators.
 - **Success/Score Teal**: `text-brand-primary` — Used to highlight user scores (e.g., "45 PTS").
 
+### Tertiary+ accents & dashboard “slices”
+
+As each **menu tab** (Standings, Picks, Pools, Profile, etc.) gains more **card stacks**—recaps, banners, list rows, and tool-specific panels—the palette needs **roles beyond primary + secondary** so every block does not collapse into the same teal ring or the same meta gray.
+
+**Role ladder (conceptual — implement as Tailwind today, promote to CSS tokens when a pattern repeats):**
+
+| Tier | Role | Examples (non-exhaustive) | Guardrails |
+|------|------|---------------------------|------------|
+| **Primary** | Money path, scores, main CTA | `brand-primary`, `shadow-glow-brand` | One dominant teal action per dense viewport when possible. |
+| **Secondary** | Labels, helpers, inactive meta | `text-content-secondary`, `border-border-subtle` | Default for uppercase eyebrows and hint copy. |
+| **Tertiary** | **Card identity / wayfinding** — “this slice is different from its neighbor” without competing with CTAs | Muted violet/slate/blue **borders or text** at low saturation; optional **named** ring (e.g. recap card) | Must not read as “click me” like primary teal; avoid amber/gold except true 1st-place badges. |
+| **Quaternary+** | Rare emphasis inside a tertiary card (badges, inline status) | Chip fills, icon tint | Prefer **semantic names** in code (`status-live`, `recap-border`) even if mapped to Tailwind for now; **promote to `index.css` + `tailwind.config.js`** once the same pairing appears in **two or more** tabs or features. |
+
+**When to introduce a new color token (checklist):**
+
+1. The same accent pairing (border + text + background) appears in **two or more** surfaces or tabs.  
+2. It **cannot** be expressed with existing `brand-*`, `surface-*`, `content-secondary`, or Rank 1 gold without breaking the roles above.  
+3. It passes **contrast** on the intended surface (`surface-panel`, `surface-inset`, or `brand-bg`).  
+4. It is documented here with a **one-line role** so agents and humans do not reuse it for a conflicting meaning later.
+
+**Tab-specific card variation:** Prefer **surface elevation + border weight + typography** first; add a **tertiary accent** only when those are not enough to separate stacked modules (e.g. “your rank” recap above a frosted leaderboard list). Do not let tertiary colors multiply into a rainbow per screen—**one tertiary family per major column** is a good default.
+
 ## 3. Typography Rules
 
 ### Font Families
@@ -115,6 +137,7 @@ Because the app uses a dark theme, traditional black drop-shadows do not work. D
 - Use `font-display` exclusively for large headings, keeping `font-sans` for dense UI to ensure readability.
 - Rely on `surface-panel` with opacity for cards so the underlying `brand-bg` bleeds through slightly.
 - Use `brand-primary` for scores and ranks to draw the user's eye immediately to the gamification elements.
+- Use **tertiary** accents (see **§2 Tertiary+ accents**) for dense dashboard **slices**—recaps, anchors, tab-specific modules—when teal would over-compete or meta gray would under-differentiate.
 - Strictly adhere to the shape rules: `rounded-xl` for CTAs and inputs, `rounded-full` for chips and filters.
 
 ### Don't
@@ -154,6 +177,7 @@ Do **not** hardcode `/branding/…` paths in components; import from **`shared/c
 ### Quick Tailwind Class Reference
 - **Brand wordmark (img):** import `BRAND_WORDMARK_SRC`, `brandWordmarkImgClassNames`, and the matching scale wrapper from `src/shared/config/branding.js` — do not duplicate `/branding/…` paths in feature or layout files.
 - **Background:** `bg-brand-bg`
+- **Tertiary slice (conceptual):** differentiate stacked cards with border/ring + `text-content-secondary` eyebrows first; add a dedicated token only after the pattern repeats (see **§2 Tertiary+ accents**).
 - **Standard Card:** `bg-surface-panel border border-border-subtle rounded-xl`
 - **Frosted list card:** `Card` `variant="frosted"` — teal border + blur + inset glass
 - **Primary Text:** `text-white font-sans`

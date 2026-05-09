@@ -135,3 +135,19 @@ export const STANDINGS_PICK_PRIVACY_INFO_LABEL = 'About hidden picks';
 /** Full detail: disclosure panel + optional native `title` on summary (#303). */
 export const STANDINGS_PICK_PRIVACY_TOOLTIP =
   "We've made a key change our users have asked for: hiding other players' picks until showtime. You'll still see players and their picks, but those picks are now blurred to improve competition!";
+
+/** Standings self-recap card eyebrow (rank + points snapshot). */
+export const STANDINGS_SELF_RECAP_EYEBROW = 'Your rank';
+
+/** Scroll target from self-recap card to the user’s leaderboard row. */
+export const STANDINGS_SELF_RECAP_JUMP_LINK = 'Jump to your score card';
+
+/**
+ * Shown under the recap when the official setlist exists but share is gated
+ * until every non-empty pick for the show has been finalized (`isGraded`).
+ */
+export const STANDINGS_SHARE_AFTER_FINALIZE_INLINE =
+  'Share unlocks after this show is fully finalized (every submitted pick graded).';
+
+/** Picks tab self-recap: link to global standings for the same show date. */
+export const PICKS_SELF_RECAP_STANDINGS_LINK = 'View standings';

@@ -3,7 +3,7 @@ import { Inbox, Loader2, Music } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
-import GradedPicksShareBar from './GradedPicksShareBar';
+import StandingsSelfRecapCard from './StandingsSelfRecapCard';
 import Leaderboard from './Leaderboard';
 import StandingsActiveShowCard from './StandingsActiveShowCard';
 import StandingsBannerWaitingSetlist from './StandingsBannerWaitingSetlist';
@@ -40,6 +40,8 @@ export default function StandingsShowOrPoolView({ screen }) {
     activePoolName,
     selfUserId,
     selfUserPicks,
+    selfStandingsRecap,
+    shareGradedRecapAllowed,
     isSecured,
     picksStatusLoading,
     showLastShowWinnerBanner,
@@ -113,6 +115,18 @@ export default function StandingsShowOrPoolView({ screen }) {
           <div className="mt-4 md:mt-6">
             {!actualSetlist && picks.length > 0 ? (
               <StandingsBannerWaitingSetlist />
+            ) : null}
+            {selfStandingsRecap ? (
+              <StandingsSelfRecapCard
+                recap={selfStandingsRecap}
+                showLabel={showLabel}
+                poolLabel={isPoolsView ? activePoolName : null}
+                userPicks={selfUserPicks}
+                actualSetlist={actualSetlist}
+                shareGradedRecapAllowed={shareGradedRecapAllowed}
+                collapsible
+                className="mb-3"
+              />
             ) : null}
             <Leaderboard
               poolPicks={displayedPicks}
@@ -200,11 +214,15 @@ export default function StandingsShowOrPoolView({ screen }) {
         />
       ) : null}
 
-      {actualSetlist && selfUserPicks ? (
-        <GradedPicksShareBar
+      {selfStandingsRecap ? (
+        <StandingsSelfRecapCard
+          recap={selfStandingsRecap}
+          showLabel={showLabel}
+          poolLabel={isPoolsView ? activePoolName : null}
           userPicks={selfUserPicks}
           actualSetlist={actualSetlist}
-          showLabel={showLabel}
+          shareGradedRecapAllowed={shareGradedRecapAllowed}
+          collapsible
           className="mb-2"
         />
       ) : null}
