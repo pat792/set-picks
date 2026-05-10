@@ -17,7 +17,7 @@ export default function SetupRoute() {
     return <Navigate to="/" replace />;
   }
 
-  if (userProfile) {
+  if (userProfile?.handle) {
     return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;
   }
 

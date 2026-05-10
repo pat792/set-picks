@@ -17,7 +17,7 @@ export default function DashboardRoute() {
     return <Navigate to="/" replace />;
   }
 
-  if (!userProfile) {
+  if (!userProfile?.handle) {
     return <Navigate to="/setup" replace />;
   }
 
