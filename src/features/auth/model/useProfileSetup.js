@@ -1,8 +1,6 @@
 import { useCallback, useState } from 'react';
 
 import { fetchPublicProfileByHandle } from '../../profile';
-import { getDashboardEntryHref } from '../../../shared/lib/dashboardLastPath';
-import { resolveIsAdmin } from '../api/authApi';
 import { createInitialUserProfile } from '../api/profileSetupApi';
 
 export function useProfileSetup(user) {
@@ -24,6 +22,7 @@ export function useProfileSetup(user) {
         const existing = await fetchPublicProfileByHandle(trimmed);
         if (existing && existing.uid !== user.uid) {
           setError('That handle is already taken. Pick another.');
+          setIsSaving(false);
           return;
         }
 
@@ -32,18 +31,17 @@ export function useProfileSetup(user) {
           favoriteSong,
           email: user.email,
         });
-
-        // Force a reload so `useAuth` re-reads the Firestore users doc.
-        // Otherwise `/dashboard/*` can redirect back to `/setup` because `userProfile`
-        // is not live-updated after the write.
-        const isAdminUser = await resolveIsAdmin(user);
-        window.location.href = getDashboardEntryHref({ isAdminUser });
+        // No explicit navigation: `useAuth` now subscribes to `users/{uid}`
+        // via `onSnapshot`, so the moment Firestore acks the local write
+        // the snapshot delivers a profile with `handle`, `SetupRoute`'s
+        // decision flips to `redirect-dashboard`, and the route system
+        // takes care of the rest. Keeping `isSaving` true after the
+        // successful write means the form stays disabled until the route
+        // change unmounts this component, preventing a double-submit
+        // window.
       } catch (err) {
         console.error(err);
         setError('Failed to create profile. Try again.');
-      } finally {
-        // If navigation is redirected back to `/setup` (e.g., userProfile gatekeeper),
-        // we still need the form to unlock.
         setIsSaving(false);
       }
     },
