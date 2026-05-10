@@ -42,4 +42,4 @@ These Terms are governed by the laws of the State of Colorado, United States, wi
 We may update these Terms from time to time. When we make material changes we will update the "Last updated" date at the top of this page and, where practicable, provide at least 30 days' notice before the changes take effect. Continued use of the App after the effective date constitutes acceptance of the updated Terms.
 
 ## Contact
-Questions about these Terms? Email us at [support@setlistpickem.com](mailto:support@setlistpickem.com)
+Questions about these Terms? Email us at [support@road2media.com](mailto:support@road2media.com)
