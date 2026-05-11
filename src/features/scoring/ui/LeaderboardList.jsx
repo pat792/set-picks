@@ -26,7 +26,6 @@ export default function LeaderboardList({
   suppressLeadingCallout = false,
   /** Pre-lock: blur opponent pick titles in expanded rows (#303). */
   redactOpponentPicksPreLock = false,
-  shareShowLabel = '',
 }) {
   if (sortedPicks.length === 0) {
     return (
@@ -140,7 +139,9 @@ export default function LeaderboardList({
             onToggle={() => onToggle(uniqueId)}
             userPicks={userPicks}
             maskPickTitles={maskPickTitles}
-            shareShowLabel={shareShowLabel}
+            anchorId={
+              isSelf && selfUserId ? `standings-player-${selfUserId}` : undefined
+            }
           />
         );
       })}

@@ -3,6 +3,7 @@ import { Inbox, Loader2, Music } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
+import StandingsSelfRecapCard from './StandingsSelfRecapCard';
 import Leaderboard from './Leaderboard';
 import StandingsActiveShowCard from './StandingsActiveShowCard';
 import StandingsBannerWaitingSetlist from './StandingsBannerWaitingSetlist';
@@ -38,6 +39,9 @@ export default function StandingsShowOrPoolView({ screen }) {
     winnerOfTheNight,
     activePoolName,
     selfUserId,
+    selfUserPicks,
+    selfStandingsRecap,
+    shareGradedRecapAllowed,
     isSecured,
     picksStatusLoading,
     showLastShowWinnerBanner,
@@ -112,6 +116,18 @@ export default function StandingsShowOrPoolView({ screen }) {
             {!actualSetlist && picks.length > 0 ? (
               <StandingsBannerWaitingSetlist />
             ) : null}
+            {selfStandingsRecap ? (
+              <StandingsSelfRecapCard
+                recap={selfStandingsRecap}
+                showLabel={showLabel}
+                poolLabel={isPoolsView ? activePoolName : null}
+                userPicks={selfUserPicks}
+                actualSetlist={actualSetlist}
+                shareGradedRecapAllowed={shareGradedRecapAllowed}
+                collapsible
+                className="mb-3"
+              />
+            ) : null}
             <Leaderboard
               poolPicks={displayedPicks}
               actualSetlist={actualSetlist}
@@ -119,7 +135,6 @@ export default function StandingsShowOrPoolView({ screen }) {
               selfUserId={selfUserId}
               suppressLeadingCallout={Boolean(showWinnerBanner)}
               redactOpponentPicksPreLock={redactOpponentPicksPreLock}
-              shareShowLabel={showLabel}
             />
           </div>
         ) : null}
@@ -199,6 +214,19 @@ export default function StandingsShowOrPoolView({ screen }) {
         />
       ) : null}
 
+      {selfStandingsRecap ? (
+        <StandingsSelfRecapCard
+          recap={selfStandingsRecap}
+          showLabel={showLabel}
+          poolLabel={isPoolsView ? activePoolName : null}
+          userPicks={selfUserPicks}
+          actualSetlist={actualSetlist}
+          shareGradedRecapAllowed={shareGradedRecapAllowed}
+          collapsible
+          className="mb-2"
+        />
+      ) : null}
+
       {!actualSetlist && picks.length > 0 ? (
         <StandingsBannerWaitingSetlist />
       ) : null}
@@ -251,7 +279,6 @@ export default function StandingsShowOrPoolView({ screen }) {
           selfUserId={selfUserId}
           suppressLeadingCallout={Boolean(showWinnerBanner)}
           redactOpponentPicksPreLock={redactOpponentPicksPreLock}
-          shareShowLabel={showLabel}
         />
       )}
     </>
