@@ -1,16 +1,15 @@
 import React from 'react';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
 import { calculateTotalScore } from '../../../shared/utils/scoring';
-import GradedPicksShareBar from './GradedPicksShareBar';
 import ScoreBreakdownGrid from './ScoreBreakdownGrid';
 
-const rankBadgeClass = (rank) => {
+export function rankBadgeClass(rank) {
   if (rank === 1) return 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40';
   if (rank === 2)
     return 'bg-brand-accent-blue/15 text-blue-200 ring-1 ring-brand-accent-blue/35';
   if (rank === 3) return 'bg-orange-900/40 text-orange-200 ring-1 ring-orange-700/40';
   return 'bg-surface-inset text-slate-300 ring-1 ring-border-muted';
-};
+}
 
 export default function LeaderboardRow({
   rank,
@@ -23,7 +22,8 @@ export default function LeaderboardRow({
   userPicks,
   /** Pre-lock privacy (#303): blur opponent song titles in the breakdown. */
   maskPickTitles = false,
-  shareShowLabel = '',
+  /** In-page anchor for “jump to your card” from StandingsSelfRecapCard. */
+  anchorId = null,
 }) {
   const uniqueId = p.uid || p.id;
   const playerUserId = p.userId || p.uid;
@@ -39,7 +39,8 @@ export default function LeaderboardRow({
 
   return (
     <div
-      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-inset-glass transition-all ${borderTone}`}
+      id={anchorId || undefined}
+      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-inset-glass transition-all scroll-mt-24 md:scroll-mt-28 ${borderTone}`}
     >
       <div
         role="button"
@@ -111,13 +112,6 @@ export default function LeaderboardRow({
             actualSetlist={actualSetlist}
             maskPickTitles={maskPickTitles}
           />
-          {isSelf && actualSetlist && !maskPickTitles && shareShowLabel ? (
-            <GradedPicksShareBar
-              userPicks={userPicks}
-              actualSetlist={actualSetlist}
-              showLabel={shareShowLabel}
-            />
-          ) : null}
         </div>
       )}
     </div>

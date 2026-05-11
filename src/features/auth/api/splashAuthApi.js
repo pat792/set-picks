@@ -43,14 +43,20 @@ export function registerWithEmail(auth, email, password) {
 
 /**
  * Best-effort rollback when post-sign-up Firestore writes fail (e.g. legal consent).
+ * Returns a status object so the caller can fire `auth_rollback_failed`
+ * telemetry when the delete itself fails — historically the bare `catch`
+ * here swallowed phantom-Auth-account creation entirely.
+ *
  * @param {import('firebase/auth').User | null} user
+ * @returns {Promise<{ deleted: boolean, errorCode?: string }>}
  */
 export async function deleteAuthUserIfPresent(user) {
-  if (!user) return;
+  if (!user) return { deleted: false };
   try {
     await deleteUser(user);
-  } catch {
-    // Caller logs; deletion may fail if session already invalidated.
+    return { deleted: true };
+  } catch (err) {
+    return { deleted: false, errorCode: err?.code || 'unknown' };
   }
 }
 

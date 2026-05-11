@@ -8,7 +8,13 @@ import {
   registerWithEmail,
   signInWithGoogle,
 } from '../api/splashAuthApi';
-import { trackAuthError, trackAuthLogin, trackAuthSignUp } from './authAnalytics';
+import {
+  trackAuthError,
+  trackAuthLogin,
+  trackAuthRollback,
+  trackAuthRollbackFailed,
+  trackAuthSignUp,
+} from './authAnalytics';
 
 export function useSplashSignUp(isOpen, onClose) {
   const [email, setEmail] = useState('');
@@ -62,7 +68,18 @@ export function useSplashSignUp(isOpen, onClose) {
           await recordTermsPrivacyConsent(auth.currentUser.uid);
         } catch (consentErr) {
           console.error('Consent write after Google sign-up:', consentErr);
-          await deleteAuthUserIfPresent(auth.currentUser);
+          trackAuthRollback({ method: 'google', stage: 'consent_write' });
+          const rollback = await deleteAuthUserIfPresent(auth.currentUser);
+          if (!rollback.deleted) {
+            trackAuthRollbackFailed({
+              method: 'google',
+              error_code: rollback.errorCode || 'unknown',
+            });
+            console.error(
+              'Auth rollback delete failed after Google sign-up:',
+              rollback.errorCode
+            );
+          }
           setError('Could not finish creating your account. Please try again.');
           return;
         }
@@ -103,7 +120,18 @@ export function useSplashSignUp(isOpen, onClose) {
           await recordTermsPrivacyConsent(cred.user.uid);
         } catch (consentErr) {
           console.error('Consent write after email sign-up:', consentErr);
-          await deleteAuthUserIfPresent(cred.user);
+          trackAuthRollback({ method: 'email', stage: 'consent_write' });
+          const rollback = await deleteAuthUserIfPresent(cred.user);
+          if (!rollback.deleted) {
+            trackAuthRollbackFailed({
+              method: 'email',
+              error_code: rollback.errorCode || 'unknown',
+            });
+            console.error(
+              'Auth rollback delete failed after email sign-up:',
+              rollback.errorCode
+            );
+          }
           setError('Could not finish creating your account. Please try again.');
           return;
         }

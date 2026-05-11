@@ -4,6 +4,9 @@ export {
 } from './api/globalShowAggregation';
 export { default as Leaderboard } from './ui/Leaderboard';
 export { default as GradedPicksShareBar } from './ui/GradedPicksShareBar';
+export { default as StandingsSelfRecapCard } from './ui/StandingsSelfRecapCard';
+export { computeStandingsSelfRecap } from './model/standingsSelfRecap';
+export { computeShowWinnerOfTheNight } from './model/useShowWinnerOfTheNight';
 export {
   GRADED_PICKS_SHARE_DOMAIN,
   GRADED_PICKS_SHARE_INTRO,

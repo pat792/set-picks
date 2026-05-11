@@ -20,3 +20,4 @@ firebase-debug.log
 secrets/
 .vercel
 .env*.local
+gcp-service-account.json
