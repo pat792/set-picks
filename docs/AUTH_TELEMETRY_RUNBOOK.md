@@ -51,30 +51,96 @@ Historical data is **not backfilled**. New events landing after
 registration become queryable via `run_report` with
 `customEvent:method`, `customEvent:error_code`, etc.
 
-## 3. Required alerts / conversions
+### 2.1 Admin API (optional automation)
 
-Mark `auth_partial_profile` and `auth_rollback_failed` as **conversions**
-in GA4 admin (Configure → Events → mark as conversion).
+Same OAuth scope as manual setup: `https://www.googleapis.com/auth/analytics.edit`
+(user `gcloud auth print-access-token --scopes=...` or a service account
+with **Editor** on the GA4 property — Viewer is not enough for creates).
 
-Then in GA4 → Insights → Create insight:
+Repo scripts (property **527619709** / GCP header **set-picks** by default;
+override with `GA4_PROPERTY_ID` / `GOOGLE_USER_PROJECT`):
 
-- **Trigger:** `auth_partial_profile` count > 0 in the past day.
-- **Frequency:** daily, with an email alert to the on-call channel.
+- `scripts/ga4-create-auth-custom-dimensions-remaining.sh` — creates the
+  four EVENT dimensions after `method` / `auth_method` exists.
+- First dimension (`method`): `POST …/properties/{id}/customDimensions`
+  with body
+  `{"parameterName":"method","displayName":"auth_method","description":"Auth provider — email or google","scope":"EVENT"}`.
 
-Same alert for `auth_rollback_failed`. Both should be zero in steady
-state; any non-zero is actionable.
+Verify: `GET …/properties/{id}/customDimensions`.
 
-## 4. Recommended dashboard
+## 3. Key events and daily alerts
 
-Pin in GA4 → Explore → Funnel exploration → New exploration:
+GA4 now treats “mark as conversion” for many workflows as **key events**
+(Admin API: `properties.keyEvents.create`). The two anomaly events below
+should be key events so they surface in conversion-oriented reports and
+are easy to target for alerts.
 
-> Step 1: `first_visit`
-> Step 2: `sign_up` OR `login`
-> Step 3: `page_view` on `/setup`
-> Step 4: `page_view` on `/dashboard*`
+### 3.1 Register key events (required)
 
-A regression like the May 2026 bug shows as a Step 3 dropoff to ~0% for
-new users within an hour of deploy.
+**Automated (recommended):** from repo root, with `gcloud` user creds that
+include `analytics.edit`:
+
+```bash
+./scripts/ga4-register-auth-key-events.sh
+```
+
+This registers **`auth_partial_profile`** and **`auth_rollback_failed`**
+with `countingMethod: ONCE_PER_EVENT`.
+
+If the API returns an error that the **event name is unknown**, GA4 has
+not seen that event yet: ship a test hit from prod (`setlistpickem.com`)
+or wait for real traffic, then re-run the script.
+
+**UI fallback:** Admin → **Data display** → **Events** → open each event →
+mark as **Key event** (wording may be “Mark as conversion” on older
+layouts).
+
+Verify: `GET https://analyticsadmin.googleapis.com/v1beta/properties/{PROPERTY_ID}/keyEvents`
+(same auth headers as the custom-dimension scripts).
+
+### 3.2 Daily email alerts (required; UI)
+
+There is no stable, documented Admin API for GA4 **custom insights**
+email delivery as of this writing — configure in the GA4 UI.
+
+1. In the GA4 property, open **Insights** (left nav, or use the property
+   search / command palette and search for **“Custom insight”**).
+2. **Create** a custom insight for **`auth_partial_profile`**: condition
+   **event count greater than 0** over **the last day** (or “yesterday”
+   depending on UI wording).
+3. Set **frequency** to **daily** and **email** to your on-call / team
+   channel.
+4. Repeat for **`auth_rollback_failed`**.
+
+Both counts should stay **zero** in steady state; any non-zero day is
+actionable (see §5).
+
+## 4. Recommended funnel (Explore)
+
+Build once in **Explore** and pin or bookmark.
+
+1. GA4 → **Explore** → **Funnel exploration** → blank template.
+2. **Segments** (optional): “New users” if you want to narrow (e.g. first
+   visit in date range).
+3. **Steps** (add in order):
+   - Step 1: Event **`first_visit`** (or `session_start` if you prefer a
+     wider funnel).
+   - Step 2: Event **`sign_up`** OR **`login`** (configure as OR step per
+     Explore UI — e.g. two branches or alternate condition your edition
+     supports).
+   - Step 3: Event **`page_view`** with dimension filter **page path**
+     contains or equals **`/setup`** (exact match depends on how you send
+     `page_location` / path).
+   - Step 4: Event **`page_view`** with **page path** matching
+     **`/dashboard`** (wildcard `*` if the UI supports “starts with” for
+     dashboard routes).
+4. Set the date range to **today** or **last 7 days** when validating after
+   a deploy.
+
+**How to read it:** a regression like the May 2026 consent-only bug shows
+as **Step 3 collapsing toward ~0%** for affected new users (they never hit
+`/setup`) while Step 4 still receives traffic — often visible within an
+hour of a bad deploy if there is sign-up volume.
 
 ## 5. Repair scripts
 
