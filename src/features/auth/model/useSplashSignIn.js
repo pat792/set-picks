@@ -9,6 +9,10 @@ import {
   signInWithEmail,
   signInWithGoogle,
 } from '../api/splashAuthApi';
+import {
+  clearSplashGoogleModalInflight,
+  setSplashGoogleModalInflight,
+} from '../utils/splashGoogleModalInflight';
 import { trackAuthError, trackAuthLogin } from './authAnalytics';
 import { decideSignInModalGoogleAction } from './signInModalGuard';
 
@@ -51,6 +55,7 @@ export function useSplashSignIn(isOpen, onClose) {
   const handleGoogle = useCallback(async () => {
     setError('');
     setBusy(true);
+    setSplashGoogleModalInflight();
     try {
       const { isNewUser } = await signInWithGoogle(auth);
       const action = decideSignInModalGoogleAction(isNewUser);
@@ -81,6 +86,7 @@ export function useSplashSignIn(isOpen, onClose) {
       trackAuthError({ method: 'google', error_code: err.code });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
+      clearSplashGoogleModalInflight();
       setBusy(false);
     }
   }, [closeModal]);

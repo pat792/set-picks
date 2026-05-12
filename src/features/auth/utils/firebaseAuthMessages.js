@@ -10,7 +10,12 @@ export function getFirebaseAuthErrorMessage(code) {
     case 'auth/user-not-found':
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
-      return 'Incorrect email or password. If you recently updated your password, Chrome/autofill may still use an old password—try typing it manually or use Google.';
+      return [
+        'Sign-in failed: either the password is wrong, or there is no account for this email',
+        '(Firebase uses one message for both so addresses cannot be guessed).',
+        'New here? Use Create account on the splash page—this form is for returning users.',
+        'If you do have an account and recently changed your password, autofill may still use an old one—try typing it manually or use Google.',
+      ].join(' ');
     case 'auth/too-many-requests':
       return 'Too many attempts. Wait a moment and try again.';
     case 'auth/popup-closed-by-user':
