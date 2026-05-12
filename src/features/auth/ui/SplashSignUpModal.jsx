@@ -72,6 +72,7 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
       googleDisabled={busy || !legalAccepted}
       prependContent={consentBlock}
       googleFootnote="You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
+      closeOnBackdropClick={false}
     >
         <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">
           <div>
