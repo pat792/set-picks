@@ -31,6 +31,7 @@ export function useProfileSetup(user) {
           handle: trimmed,
           favoriteSong,
           email: user.email,
+          authCreationTime: user.metadata?.creationTime ?? null,
         });
 
         // Force a reload so `useAuth` re-reads the Firestore users doc.
@@ -47,7 +48,7 @@ export function useProfileSetup(user) {
         setIsSaving(false);
       }
     },
-    [user?.uid, user?.email, handle, favoriteSong]
+    [user?.uid, user?.email, user?.metadata?.creationTime, handle, favoriteSong]
   );
 
   return {
