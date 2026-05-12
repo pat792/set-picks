@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { auth } from '../../../shared/lib/firebase';
+import { signOutUser } from '../api/authApi';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
-import { sendResetEmail, signInWithEmail, signInWithGoogle } from '../api/splashAuthApi';
+import {
+  deleteAuthUserIfPresent,
+  sendResetEmail,
+  signInWithEmail,
+  signInWithGoogle,
+} from '../api/splashAuthApi';
 import { trackAuthError, trackAuthLogin } from './authAnalytics';
+import { decideSignInModalGoogleAction } from './signInModalGuard';
 
 export function useSplashSignIn(isOpen, onClose) {
   const [email, setEmail] = useState('');
@@ -45,7 +52,28 @@ export function useSplashSignIn(isOpen, onClose) {
     setError('');
     setBusy(true);
     try {
-      await signInWithGoogle(auth);
+      const { isNewUser } = await signInWithGoogle(auth);
+      const action = decideSignInModalGoogleAction(isNewUser);
+      if (action.kind === 'block-new-user') {
+        // Sign-in modal is for returning users only — it never presented
+        // the Terms/Privacy clickwrap. Roll back the auth account
+        // (best-effort) and force a sign-out so a partially-rolled-back
+        // account can't sit in a signed-in but unconsented state. Route
+        // them to the Create Account modal where the consent checkbox is
+        // enforced.
+        await deleteAuthUserIfPresent(auth.currentUser);
+        try {
+          await signOutUser();
+        } catch (signOutErr) {
+          console.error('signOut after sign-in modal block:', signOutErr);
+        }
+        trackAuthError({
+          method: 'google',
+          error_code: action.telemetryErrorCode,
+        });
+        setError(action.errorMessage);
+        return;
+      }
       trackAuthLogin('google');
       closeModal();
     } catch (err) {

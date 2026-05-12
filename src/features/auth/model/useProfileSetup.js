@@ -30,6 +30,7 @@ export function useProfileSetup(user) {
           handle: trimmed,
           favoriteSong,
           email: user.email,
+          authCreationTime: user.metadata?.creationTime ?? null,
         });
         // No explicit navigation: `useAuth` now subscribes to `users/{uid}`
         // via `onSnapshot`, so the moment Firestore acks the local write
@@ -45,7 +46,7 @@ export function useProfileSetup(user) {
         setIsSaving(false);
       }
     },
-    [user?.uid, user?.email, handle, favoriteSong]
+    [user?.uid, user?.email, user?.metadata?.creationTime, handle, favoriteSong]
   );
 
   return {
