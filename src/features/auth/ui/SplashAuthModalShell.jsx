@@ -14,6 +14,12 @@ export default function SplashAuthModalShell({
   prependContent,
   googleFootnote,
   children,
+  /**
+   * When false, clicking the dimmed backdrop does not close the dialog.
+   * OAuth popups can leave a stray click that would otherwise dismiss the
+   * modal before the user reads post-Google error copy (sign-in modal).
+   */
+  closeOnBackdropClick = true,
 }) {
   if (!isOpen) return null;
 
@@ -26,7 +32,10 @@ export default function SplashAuthModalShell({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => {
+        if (!closeOnBackdropClick) return;
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div
         className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2rem] border border-border-subtle bg-surface-panel-strong p-8 shadow-inset-glass ring-1 ring-border-glass/20"

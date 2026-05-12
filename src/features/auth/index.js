@@ -18,3 +18,7 @@ export {
   stashSplashResumeAuthModal,
   consumeSplashResumeAuthModal,
 } from './utils/splashAuthResumeStorage';
+export {
+  isSplashGoogleModalInflight,
+  SPLASH_GOOGLE_MODAL_STORAGE_EVENT,
+} from './utils/splashGoogleModalInflight';
