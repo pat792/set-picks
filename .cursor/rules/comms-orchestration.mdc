@@ -1,0 +1,21 @@
+---
+description: Orchestration rules for comms delivery in functions and notifications features
+globs: functions/**/*.{js,cjs},src/features/comms/**,src/features/notifications/**
+alwaysApply: false
+---
+
+# Comms orchestration rules
+
+When implementing or changing comms delivery:
+
+1. **Catalog required** — Implementation must match a row in `docs/comms-triggers/catalog.json` (`triggerId`, `dedupKey`, `prefKeys`).
+2. **Server-only inbox writes** — Only Admin SDK / Cloud Functions create `users/{uid}/commsInbox/{messageId}`. Clients may set `readAt` only.
+3. **Dedup before send** — Check `fcm_notification_log` or use fixed inbox doc id. Never double-send on scheduler retries.
+4. **Prefs** — Respect `notificationPrefs` (default allow when key missing, match existing `picksLockReminder` / `postShowRollupPush` patterns).
+5. **Dry run** — New callables default `dryRun: true`; document execute flag in admin UI or script.
+6. **Push limits** — Cap sends per tick (`MAX_REMINDER_SENDS_PER_TICK` pattern); document fatigue in catalog.
+7. **Measurement** — Log delivery with `trigger_id`, `template_id`, `channel`, `variant: control` (see `docs/comms-triggers/MEASUREMENT_PLAN.md`).
+8. **Invoke architect skill** — Follow `.cursor/skills/comms-architect/SKILL.md` for rollout and deploy steps.
+9. **Firestore rules** — If inbox read rules change, deploy `firestore.rules` with functions.
+
+P0 triggers must not depend on commercial slot injection.
