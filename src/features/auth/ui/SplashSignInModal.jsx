@@ -30,6 +30,12 @@ export default function SplashSignInModal({ isOpen, onClose }) {
       title="Sign in"
       handleGoogle={handleGoogle}
       busy={busy}
+      prependContent={
+        error ? (
+          <StatusBanner type="error" message={error} className="text-left" />
+        ) : null
+      }
+      closeOnBackdropClick={false}
     >
         <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">
           <div>
@@ -139,7 +145,6 @@ export default function SplashSignInModal({ isOpen, onClose }) {
               />
             ) : null}
           </div>
-          {error ? <StatusBanner type="error" message={error} /> : null}
           <Button
             variant="secondary"
             type="submit"

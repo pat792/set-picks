@@ -1,5 +1,5 @@
 import { onAuthStateChanged, onIdTokenChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { auth, db } from '../../../shared/lib/firebase';
 import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
@@ -45,6 +45,35 @@ export async function fetchUserProfile(uid) {
   const userRef = doc(db, 'users', uid);
   const userSnap = await getDoc(userRef);
   return userSnap.exists() ? userSnap.data() : null;
+}
+
+/**
+ * Real-time subscription to `users/{uid}`. Use instead of `fetchUserProfile`
+ * when the caller needs the profile to live-update — for example, the
+ * splash → setup → dashboard flow, where the route guard needs to react
+ * to the user completing setup without forcing a full page reload.
+ *
+ * Waits for App Check before attaching the listener so an unwarmed App
+ * Check token can't cause a permission-denied snapshot error on first
+ * render.
+ *
+ * @param {string} uid
+ * @param {(profile: object | null) => void} onNext  Receives `data()` or null.
+ * @param {(err: unknown) => void} [onError]
+ * @returns {Promise<() => void>}  Resolves to an unsubscribe function once
+ *   Firebase / App Check are ready. The caller MUST invoke the returned
+ *   function when the subscription is no longer needed.
+ */
+export async function subscribeToUserProfile(uid, onNext, onError) {
+  await whenFirebaseReady();
+  const userRef = doc(db, 'users', uid);
+  return onSnapshot(
+    userRef,
+    (snap) => onNext(snap.exists() ? snap.data() : null),
+    (err) => {
+      if (onError) onError(err);
+    }
+  );
 }
 
 export async function signOutUser() {

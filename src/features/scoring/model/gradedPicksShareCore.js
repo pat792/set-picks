@@ -73,6 +73,16 @@ function shareEmojiCellChar(slot, userPicks) {
 }
 
 /**
+ * One Wordle-style cell emoji (same as {@link buildGradedPicksShareEmojiGrid}).
+ *
+ * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
+ * @param {Record<string, unknown>} userPicks
+ */
+export function getGradedPicksShareEmojiCell(slot, userPicks) {
+  return shareEmojiCellChar(slot, userPicks);
+}
+
+/**
  * Count slots where the user's pick was found in the setlist (hit).
  * A hit = has a pick AND kind is not miss/none.
  */
@@ -98,8 +108,13 @@ export function buildGradedPicksShareEmojiGrid(slots, userPicks) {
   return `${ch(slots[0])}${ch(slots[1])}${ch(slots[2])}\n${ch(slots[3])}${ch(slots[4])}${ch(slots[5])}`;
 }
 
-/** Opaque fills for PNG tiles (bust = full amber tile, same idea as emoji 🟧). */
-function paletteForSlot(slot) {
+/**
+ * Opaque fills for PNG tiles and in-app share preview (bust = full amber tile, same idea
+ * as emoji 🟧).
+ *
+ * @param {ReturnType<typeof buildGradedPicksShareSlots>[number]} slot
+ */
+export function getGradedShareSlotPreviewColors(slot) {
   if (slot.bustoutBoost) {
     return {
       fill: '#713f12',
@@ -245,7 +260,7 @@ export function renderGradedPicksSharePngBlob(slots, { showLabel, totalPoints, s
     const row = Math.floor(i / 3);
     const x = padX + col * (cellW + gap);
     const y = padTop + row * (cellH + rowGap);
-    const { fill, stroke, text } = paletteForSlot(slot);
+    const { fill, stroke, text } = getGradedShareSlotPreviewColors(slot);
     const borderW = 1.75;
 
     ctx.beginPath();

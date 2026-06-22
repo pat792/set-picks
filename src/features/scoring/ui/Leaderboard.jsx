@@ -10,7 +10,6 @@ const Leaderboard = ({
   selfUserId = null,
   suppressLeadingCallout = false,
   redactOpponentPicksPreLock = false,
-  shareShowLabel = '',
 }) => {
   const { sortedPicks, getPickPayload, expandedUser, toggleUserExpansion } = useLeaderboard(
     poolPicks,
@@ -30,7 +29,6 @@ const Leaderboard = ({
       selfUserId={selfUserId}
       suppressLeadingCallout={suppressLeadingCallout}
       redactOpponentPicksPreLock={redactOpponentPicksPreLock}
-      shareShowLabel={shareShowLabel}
     />
   );
 };
