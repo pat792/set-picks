@@ -7,7 +7,7 @@ import {
   revokeFcmDeviceToken,
   subscribeForegroundFcmMessages,
 } from '../../../shared/lib/firebaseMessaging';
-import { deleteFcmTokenForUser, upsertFcmTokenForUser } from '../api/fcmTokenApi';
+import { deleteFcmTokenForUser, getFirstFcmTokenForUser, upsertFcmTokenForUser } from '../api/fcmTokenApi';
 import { sendPushCanary } from '../api/pushCanaryApi';
 
 function browserPermissionState() {
@@ -49,6 +49,31 @@ export function usePushTokenRegistration() {
 
     return () => unsubscribe();
   }, []);
+
+  // Hydrate enabled state from Firestore on mount so the UI reflects "On"
+  // immediately when the browser already has notification permission and a
+  // token was previously registered (without requiring another Enable tap).
+  useEffect(() => {
+    if (!user?.uid) return;
+    if (browserPermissionState() !== 'granted') return;
+
+    let cancelled = false;
+    getFirstFcmTokenForUser(user.uid)
+      .then((token) => {
+        if (cancelled) return;
+        if (token) {
+          setCurrentFcmToken(token);
+          setStatus('enabled');
+        }
+      })
+      .catch(() => {
+        // Silent failure — user can still tap Enable to re-register.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
 
   const enablePush = useCallback(async () => {
     if (!user?.uid) {

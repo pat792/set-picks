@@ -306,10 +306,12 @@ exports.deliverSphere2026TourRecapInbox = onCall(
   async (request) => {
     assertAdminClaim(request);
     const dryRun = request.data?.dryRun !== false;
+    const forceResend = request.data?.forceResend === true;
     return deliverSphere2026TourRecapInbox({
       db,
       admin,
       dryRun,
+      forceResend,
       logger,
     });
   }
