@@ -1,8 +1,10 @@
 import React, { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
+import { useServiceWorkerUpdate } from '../../shared/lib/useServiceWorkerUpdate';
 import AppBackground from '../../shared/ui/AppBackground';
 import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
+import UpdateAvailableBanner from '../../shared/ui/UpdateAvailableBanner';
 
 /**
  * Global chrome: ambient background + top-level route outlet with enter animation.
@@ -15,6 +17,7 @@ import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
  */
 export default function RootAppShell() {
   const { pathname } = useLocation();
+  const { updateAvailable, applyUpdate } = useServiceWorkerUpdate();
 
   return (
     <>
@@ -26,6 +29,7 @@ export default function RootAppShell() {
           </Suspense>
         </div>
       </div>
+      {updateAvailable && <UpdateAvailableBanner onReload={applyUpdate} />}
     </>
   );
 }
