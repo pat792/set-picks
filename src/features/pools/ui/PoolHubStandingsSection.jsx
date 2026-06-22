@@ -7,6 +7,7 @@ import {
   POOL_TOUR_STANDINGS_DESCRIPTION,
   POOL_TOUR_STANDINGS_HEADING,
 } from '../../../shared/config/dashboardVocabulary';
+import { TourPicker } from '../../scoring';
 import PoolHubLeaderboard from './PoolHubLeaderboard';
 
 /**
@@ -27,6 +28,9 @@ import PoolHubLeaderboard from './PoolHubLeaderboard';
  *   onScopeChange: (scope: 'all-time' | 'tour') => void,
  *   tourName?: string | null,
  *   tourAvailable?: boolean,
+ *   selectableTours?: Array<{ tour: string }>,
+ *   selectedTourKey?: string | null,
+ *   onSelectTour?: (tourKey: string) => void,
  * }} props
  */
 export default function PoolHubStandingsSection({
@@ -36,6 +40,9 @@ export default function PoolHubStandingsSection({
   onScopeChange,
   tourName,
   tourAvailable = false,
+  selectableTours,
+  selectedTourKey,
+  onSelectTour,
 }) {
   const heading =
     scope === 'tour' ? POOL_TOUR_STANDINGS_HEADING : POOL_ALL_TIME_STANDINGS_HEADING;
@@ -61,6 +68,14 @@ export default function PoolHubStandingsSection({
           tourAvailable={tourAvailable}
         />
       </div>
+      {scope === 'tour' && (
+        <TourPicker
+          tours={selectableTours ?? []}
+          selectedTourKey={selectedTourKey}
+          onSelect={onSelectTour ?? (() => {})}
+          className="mb-3"
+        />
+      )}
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border-subtle bg-surface-panel py-10 font-bold text-content-secondary shadow-inset-glass">
           <Loader2 className="h-8 w-8 animate-spin text-brand-primary" aria-hidden />
