@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/invite/[code].js": {
+      "includeFiles": "dist/index.html"
+    }
+  },
   "rewrites": [
     {
       "source": "/__/firebase/init.json",
@@ -7,6 +12,10 @@
     {
       "source": "/__/auth/(.*)",
       "destination": "https://set-picks.firebaseapp.com/__/auth/$1"
+    },
+    {
+      "source": "/join/:code",
+      "destination": "/api/invite/:code"
     },
     {
       "source": "/(.*)",
