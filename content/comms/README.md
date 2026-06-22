@@ -2,6 +2,8 @@
 
 **Purpose:** Give editors and agents a **repo-native** place to draft and revise copy **without** hunting through React files. Runtime text still lives in `src/features/**/model/` until (or unless) you add a loader; this folder is the **editorial surface** and **contract** for what exists.
 
+**Operating system:** Trigger specs, measurement, experiments, and the Cursor **comms squad** live in **`docs/comms-triggers/`** (TTDMOM framework). Invoke squad skills: `comms-analyst`, `comms-triggers`, `comms-drafter`, `comms-architect` under `.cursor/skills/`.
+
 **Authoritative for production:** The owning **`implementationModule`** path listed in each recap Markdown front matter / metadata table (and in **`src/features/comms/registry.js`**). Keep **`content/comms/**`** and that module **in sync** when copy ships.
 
 **Push / in-app / email epic:** Channel behavior and orchestration are tracked in GitHub **#272**. Broader in-app comms (inbox, toasts, confirmations) align with **#120**. This folder does **not** send messages; it documents copy. Orchestration should read **`src/features/comms/registry.js`** for template IDs and supported channels (`inApp`, `emailAbbreviated`, `emailFull`, `push`).
@@ -69,6 +71,7 @@ Use when changing wording for a recap that already has code + registry entry (e.
 |------|-----|
 | `tours/` | Tour wrap-ups (multi-show). One file per edition; include **shared** and **per-player** copy (e.g. “Your Final … Result” branches). |
 | `shows/` | Single-show recaps (add files as you add products). |
+| `lifecycle/` | Welcome, nudge, re-engagement (see `lifecycle/README.md`). |
 | `show-recap.template.md` | Scaffold for new show recaps. |
 | `README.md` | This file — workflow and links. |
 

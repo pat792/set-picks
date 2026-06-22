@@ -1,0 +1,75 @@
+# Project Architecture: Strict Pragmatic FSD (Reduced)
+
+You are an expert React engineer. Every code change MUST follow these rules.
+
+## 1) Canonical Layers
+- `src/pages/`: route binding and composition only.
+- `src/features/<domain>/`: business capabilities.
+- `src/shared/`: domain-agnostic reusable primitives.
+- This repo uses **reduced FSD**: no required `entities` layer. Keep entity-specific logic inside the owning feature unless we explicitly introduce `src/entities/`.
+
+## 2) Pages Layer Rules (`src/pages/`)
+- Pages are for routing, URL params, and composing feature components.
+- Pages MUST NOT call Firebase/Firestore directly (`getDoc`, `setDoc`, etc.).
+- Pages MUST NOT contain complex forms, business orchestration, or large Tailwind-heavy UI blocks.
+- Pages consume feature hooks (`features/*/model`) and pass props into feature UI components.
+- When a page accumulates non-trivial derived state, navigation callbacks, and wiring across multiple feature hooks, prefer a single feature-owned screen hook in `features/<domain>/model` (e.g. `useStandingsScreen`) so the page stays declarative. This is a **preference** for maintainability, not a hard cap on page file length.
+
+## 3) Features Layer Rules (`src/features/<domain>/`)
+- Each domain feature owns its business logic and data access.
+- Use this structure for non-trivial features:
+  - `ui/`: presentational components only (no direct DB/network calls).
+  - `model/`: hooks/state/orchestration/business rules.
+  - `api/`: async IO functions (Firestore/HTTP/etc.).
+- Prefer `ui/` as the canonical UI folder name. Do not create new `components/` folders under features.
+- If legacy `components/` exists, treat it as technical debt and migrate to `ui/` when touching nearby code.
+
+## 4) Import Boundaries (Strict)
+- `pages` may import from: `features`, `shared`.
+- `features` may import from: same feature internals, `shared`.
+- `shared` may import only from: `shared`.
+- Never import `pages` from any other layer.
+- Never import private internals of another feature (`features/a/model/*` from `features/b/*`).
+- Cross-feature reuse must happen through explicit public entry points (for example, feature index exports) or be moved to `shared` if truly generic.
+- **Feature public API:** Root `index.js` (or `index.ts`) under `features/<domain>/` is the intentional outward surface. Re-export what `pages` and other features need; keep leaf UI and model modules **unexported** when they are implementation details. A growing barrel line count is normal if each export is purposeful.
+- **Splitting barrels:** If a feature’s public exports become large or fall into clear subdomains (e.g. splash-only vs dashboard-only), you may add a secondary barrel (e.g. `features/auth/splash.js`) and re-export from the root `index.js`. Do **not** split barrels preemptively while the root file remains small and readable.
+
+## 5) Shared Layer Guardrails (`src/shared/`)
+- `shared` contains only domain-agnostic UI kit, utilities, hooks, constants, and types.
+- No product/business rules in `shared`.
+- No feature-specific naming, data-shape coupling, or workflow logic in `shared`.
+
+## 6) Agent Behavior Requirements
+- When adding UI requested in a page, build it in `features/<domain>/ui` and compose from the page.
+- When adding data access, place IO in `features/<domain>/api` and consume via `features/<domain>/model`.
+- If a requested change conflicts with these rules, propose an FSD-compliant alternative first.
+- **Dashboard routes:** Treat `src/app/layout/model/dashboardPageMeta.js` and nav `isActive` logic in `DashboardLayout.jsx` as part of the feature when adding or renaming `/dashboard/*` paths. For child routes, mirror **Profile + account-security** or **Pools + pool details** active-state patterns. After changing meta, extend `scripts/verify-dashboard-meta.mjs` and run `npm run verify:dashboard-meta`. Canonical IA + vocabulary: `docs/DASHBOARD_IA.md`.
+
+## 7) Enforcement Expectations (Lint + CI)
+- Treat architectural boundaries as enforceable, not advisory.
+- Prefer and maintain lint rules such as import boundaries/path restrictions to fail PRs on layer violations.
+- If lint/enforcement is missing, do not ignore boundaries; follow this file as source of truth.
+
+## 8) Exception Protocol (Temporary Only)
+- Exceptions are allowed only when delivery is blocked and no compliant option is feasible in time.
+- Any exception MUST include:
+  - a `TODO(FSD-EXCEPTION): <reason>` comment near the code,
+  - a clear owner,
+  - a removal target (date or milestone),
+  - and a follow-up task to restore compliance.
+- Do not introduce silent or permanent rule bypasses.
+## 9) GitHub Issue Creation & MCP Rules
+- When you are asked to create, draft, or update a GitHub issue using the GitHub MCP, you MUST always include the exact text `[SKIP-PRD]` at the very top of the issue body (unless the user explicitly wants auto-PRD).
+- Why: **`.github/workflows/gemini-pm.yml`** runs on `issues: opened` and replaces the body with a Gemini PRD unless skipped. Skips when: (1) the first non-empty body line is `[SKIP-PRD]` (workflow refetches issue via REST; strips BOM), or (2) labels **`skip-prd`** or **`cursor-authored`**. **Merge workflow YAML to the repo default branch** — otherwise Actions still runs the old workflow without these checks.
+- **Automation context** shared with that workflow and **`scripts/groom-backlog.js`**: **`docs/GITHUB_AUTOMATION_CONTEXT.md`** — keep it accurate when architecture changes.
+- Never omit `[SKIP-PRD]` on agent-authored technical tickets, or the workflow will overwrite them. The groom script also skips issues with that prefix or labels **`skip-groom`**, **`skip-prd`**, **`cursor-authored`**, or **`AI-PRD`**.
+
+## 10) PR Workflow & QA
+- **Base branch for every PR is `staging`**, not `main`. Staging auto-promotes to main via a rolled-up PR.
+- **Branch naming:** `feat/<issue#>-<kebab-slug>`. Commit messages follow `perf(area): headline` / `feat(area): headline` and include `Closes #<n>` so the issue auto-closes on merge.
+- **PR bodies** include `Closes #<n>`, a `## Summary`, and a `## Test plan` checklist. Create with HEREDOC: `gh pr create --body "$(cat <<'EOF' ... EOF )"`.
+- **CI policy is risk-weighted for throughput:** required baseline on PRs is `verify` (lint + vitest + `verify:dashboard-meta` + `verify:dashboard-ui`) plus Vercel preview. `functions`, `rules`, and `qa-runners` are required when their risk/path gates match, can be forced with labels (`ci/full`, `ci/qa`), and the workflow runs a nightly scheduled full matrix backstop.
+- **`gh` GraphQL writes (`pr create`, `pr comment`, `pr review`, `pr merge`, `label list`) are sandbox-blocked.** Request `required_permissions: ["all"]` on the Shell call. REST reads (`pr view --json`, `pr diff`, `pr checks`, `issue view`) work in the default sandbox.
+- **PR QA playbook lives at `.cursor/skills/pr-qa/SKILL.md`** (project skill). Read it at the start of any PR QA pass — it covers triage, agent-side chunk-graph + lint/test checks, browser-verification recipes the user must run, and the reporting template. The skill's `recipes.md` has the exact DevTools scripts per PR type; `traps.md` documents 11 specific failure modes (staging-vs-PR preview URL mix-up, JS filter tab hiding Firestore, Firebase v10 WebChannel multiplexing, etc.) — do NOT re-derive these.
+- **Review verbs are human-gated.** Agents may post `gh pr review --comment` with QA reports when asked. Agents MUST NOT autonomously call `--approve`, `--request-changes`, or `gh pr merge`: those require an explicit user command naming the verb. Never force-push, `--amend`, or rewrite history on a PR branch after pushing unless the user explicitly asks.
+- **Agents cannot verify browser behavior.** Vercel previews return 401 to `curl`, and agents cannot run JS. Any "did it work on the preview" claim must be backed by a user screenshot or console paste — never hedge and call it verified.

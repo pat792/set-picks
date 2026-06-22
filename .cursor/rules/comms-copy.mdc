@@ -1,0 +1,18 @@
+---
+description: Editorial rules for comms copy drafts under content/comms/
+globs: content/comms/**
+alwaysApply: false
+---
+
+# Comms copy rules
+
+When editing files under `content/comms/`:
+
+1. **Trigger first** — Every template maps to a `triggerId` in `docs/comms-triggers/TRIGGER_CATALOG.md`. Do not draft orphan copy.
+2. **Placeholders only** — Use `{{variable}}`; never real user PII, tokens, or secrets.
+3. **One edition per file** — Clear filenames (`sphere-2026-inaugural.md`, `welcome-first-login.md`).
+4. **Channel sections** — Document push, inApp, email variants in the draft or metadata table.
+5. **Sync rule** — Markdown edits ship in the **same PR** as `implementationModule` updates (see `content/comms/README.md`).
+6. **Registry** — New `templateId` requires `src/features/comms/registry.js` entry.
+7. **Commercial** — Copy under `content/comms/commercial/` only after `docs/comms-triggers/COMMERCIAL_PHASE3.md` gates; include disclosure labels.
+8. **Invoke drafter skill** — Follow `.cursor/skills/comms-drafter/SKILL.md` for full workflow.
