@@ -25,3 +25,11 @@ messaging.onBackgroundMessage((payload) => {
   };
   self.registration.showNotification(title, options);
 });
+
+// Allow the app shell to trigger skipWaiting so a waiting SW activates
+// immediately when the user taps "Reload" in the UpdateAvailableBanner.
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});

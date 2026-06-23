@@ -1,4 +1,14 @@
-import { deleteDoc, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  limit,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
 
@@ -59,4 +69,17 @@ export async function deleteFcmTokenForUser({ userId, token }) {
   if (!token) return;
   const tokenId = await deriveTokenId(token);
   await deleteDoc(tokenDocRef(userId, tokenId));
+}
+
+/**
+ * Returns the first registered FCM token string for `userId`, or `null` if none exist.
+ * Used to hydrate UI state on mount without requiring the user to re-tap Enable.
+ */
+export async function getFirstFcmTokenForUser(userId) {
+  if (!userId) return null;
+  const colRef = collection(db, 'users', userId, 'private_fcmTokens');
+  const snap = await getDocs(query(colRef, limit(1)));
+  if (snap.empty) return null;
+  const token = snap.docs[0].data()?.token;
+  return typeof token === 'string' && token.trim() ? token.trim() : null;
 }

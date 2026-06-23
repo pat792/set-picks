@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { resolveCurrentTour } from '../../scoring';
+import { getTourByKey, resolveSelectableTours } from '../../scoring';
 import { useShowCalendar } from '../../show-calendar';
 import { todayYmd } from '../../../shared/utils/dateUtils';
 import { floorShowsAtGameLaunch } from '../../../shared/config/gameLaunch';
@@ -49,23 +49,32 @@ import { emitPoolStandingsTelemetry } from './poolStandingsTelemetry';
 export function usePoolStandingsSection(poolId, pool, memberProfiles) {
   const { showDates, showDatesByTour } = useShowCalendar();
 
-  const currentTour = useMemo(
-    () => resolveCurrentTour(null, todayYmd(), showDatesByTour),
-    [showDatesByTour]
+  const selectableTours = useMemo(
+    () => resolveSelectableTours(showDatesByTour, todayYmd()),
+    [showDatesByTour],
   );
 
   const [scope, setScope] = useState(/** @type {PoolStandingsScope} */ ('all-time'));
+  const [selectedTourKey, setTourKey] = useState(/** @type {string | null} */ (null));
 
-  const tourKey = scope === 'tour' && currentTour ? currentTour.tour : null;
+  const selectedTour = useMemo(
+    () =>
+      (selectedTourKey ? getTourByKey(selectableTours, selectedTourKey) : null) ??
+      selectableTours[0] ??
+      null,
+    [selectableTours, selectedTourKey],
+  );
+
+  const tourKey = scope === 'tour' && selectedTour ? selectedTour.tour : null;
 
   const effectiveShowDates = useMemo(() => {
-    if (scope === 'tour' && currentTour) {
+    if (scope === 'tour' && selectedTour) {
       return floorShowsAtGameLaunch(
-        currentTour.shows.map((s) => ({ date: s.date }))
+        selectedTour.shows.map((s) => ({ date: s.date }))
       );
     }
     return floorShowsAtGameLaunch(showDates);
-  }, [scope, currentTour, showDates]);
+  }, [scope, selectedTour, showDates]);
 
   const memberIds = useMemo(
     () => (Array.isArray(pool?.members) ? pool.members.filter(Boolean) : []),
@@ -220,8 +229,6 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
     return rows;
   }, [memberProfiles, totalsByUser]);
 
-  // Public shape stays identical to the pre-#254 hook so the page and UI
-  // consumers don't need updates.
   const loading =
     enabled && (query.isPending || query.isFetching) && !query.isSuccess;
   const error = query.isError
@@ -233,8 +240,11 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
   return {
     scope,
     setScope,
-    tourName: currentTour?.tour ?? null,
-    tourAvailable: Boolean(currentTour),
+    selectableTours,
+    selectedTourKey: selectedTour?.tour ?? null,
+    setTourKey,
+    tourName: selectedTour?.tour ?? null,
+    tourAvailable: selectableTours.length > 0,
     leaderboardMembers,
     loading,
     error,

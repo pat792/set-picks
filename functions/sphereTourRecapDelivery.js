@@ -137,6 +137,36 @@ function aggregateTourStandings(picksByDate) {
   });
 }
 
+/**
+ * Build the FCM title + body for a recap push notification.
+ *
+ * Keep in sync with `buildSphere2026PushPayload` in
+ * `src/features/tour-recap/model/sphere2026Recap.js` — that function is the
+ * authoritative preview/client copy; this is its server-side mirror.
+ *
+ * @param {{ rank: number | null, points: number, wins: number }} ctx
+ * @returns {{ title: string, body: string }}
+ */
+function buildRecapPushPayload({ rank, points, wins }) {
+  const title = "Sphere '26 recap is in";
+  if (typeof rank === "number" && rank === 1) {
+    return {
+      title,
+      body: `You took #1 with ${points} pts and ${wins} nightly wins. Open the app for the full wrap-up.`,
+    };
+  }
+  if (typeof rank === "number" && rank > 0) {
+    return {
+      title,
+      body: `You finished #${rank} (${points} pts, ${wins} wins). Open the app for your personalized recap.`,
+    };
+  }
+  return {
+    title,
+    body: "Your Sphere '26 recap is in. Open the app to read it.",
+  };
+}
+
 const MAX_FIRESTORE_BATCH = 500;
 const MAX_RECAP_PUSH_SENDS_PER_INVOCATION = 400;
 const MAX_TOKENS_PER_USER_FOR_RECAP = 5;
@@ -168,12 +198,13 @@ function userWantsRecapPush(userData) {
  *   admin: typeof import('firebase-admin'),
  *   templateId: string,
  *   preview: Array<{ uid: string, payload: Record<string, number> }>,
+ *   forceResend?: boolean,
  *   logger?: { info?: Function, warn?: Function },
  * }} params
  */
-async function sendRecapPushFanout({ db, admin, templateId, preview, logger }) {
+async function sendRecapPushFanout({ db, admin, templateId, preview, forceResend = false, logger }) {
   if (!Array.isArray(preview) || preview.length === 0) {
-    return { sent: 0, skipped: 0 };
+    return { sent: 0, skipped: 0, pushSent: false, pushSkipReason: "no_candidates" };
   }
 
   let sent = 0;
@@ -215,10 +246,13 @@ async function sendRecapPushFanout({ db, admin, templateId, preview, logger }) {
 
     const logId = recapPushLogDocId(templateId, item.uid);
     const logRef = db.collection(FCM_LOG_COLLECTION).doc(logId);
-    const existing = await logRef.get();
-    if (existing.exists) {
-      skipped += 1;
-      continue;
+
+    if (!forceResend) {
+      const existing = await logRef.get();
+      if (existing.exists) {
+        skipped += 1;
+        continue;
+      }
     }
 
     const userData = await loadUser(item.uid);
@@ -234,11 +268,9 @@ async function sendRecapPushFanout({ db, admin, templateId, preview, logger }) {
     }
 
     const rank = Number.isFinite(item?.payload?.rank) ? item.payload.rank : null;
-    const title = "New tour recap in Messages";
-    const body =
-      typeof rank === "number" && rank > 0
-        ? `Your Sphere '26 recap is ready. Current rank: #${rank}.`
-        : "Your Sphere '26 recap is ready. Open Notifications to read it.";
+    const points = typeof item?.payload?.points === "number" ? item.payload.points : 0;
+    const wins = typeof item?.payload?.wins === "number" ? item.payload.wins : 0;
+    const { title, body } = buildRecapPushPayload({ rank, points, wins });
 
     let anyDelivered = false;
     for (const token of tokens) {
@@ -265,6 +297,7 @@ async function sendRecapPushFanout({ db, admin, templateId, preview, logger }) {
           templateId,
           userId: item.uid,
           delivered: true,
+          forceResend: forceResend || false,
           decidedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -275,13 +308,23 @@ async function sendRecapPushFanout({ db, admin, templateId, preview, logger }) {
     }
   }
 
+  const pushSent = sent > 0;
+  const pushSkipReason = pushSent
+    ? null
+    : skipped > 0
+      ? "all_skipped"
+      : "no_tokens_or_prefs";
+
   logger?.info?.("sendRecapPushFanout complete", {
     templateId,
     sent,
     skipped,
     candidates: preview.length,
+    forceResend,
+    pushSent,
+    pushSkipReason,
   });
-  return { sent, skipped };
+  return { sent, skipped, pushSent, pushSkipReason };
 }
 
 /**
@@ -319,10 +362,11 @@ async function loadPicksByDateForSphereTour(db) {
  *   db: import('firebase-admin').firestore.Firestore,
  *   admin: typeof import('firebase-admin'),
  *   dryRun: boolean,
+ *   forceResend?: boolean,
  *   logger?: { info?: Function, warn?: Function },
  * }} params
  */
-async function deliverSphere2026TourRecapInbox({ db, admin, dryRun, logger }) {
+async function deliverSphere2026TourRecapInbox({ db, admin, dryRun, forceResend = false, logger }) {
   const picksByDate = await loadPicksByDateForSphereTour(db);
   const leaders = aggregateTourStandings(picksByDate);
   const participantCount = leaders.length;
@@ -420,6 +464,7 @@ async function deliverSphere2026TourRecapInbox({ db, admin, dryRun, logger }) {
     admin,
     templateId: SPHERE_2026_INAUGURAL_TEMPLATE_ID,
     preview,
+    forceResend,
     logger,
   });
 
@@ -431,8 +476,11 @@ async function deliverSphere2026TourRecapInbox({ db, admin, dryRun, logger }) {
     showDates: [...SPHERE_2026_INAUGURAL_SHOW_DATES],
     participantCount,
     delivered,
-    pushSent: pushResult.sent,
+    pushSent: pushResult.pushSent,
+    pushSentCount: pushResult.sent,
     pushSkipped: pushResult.skipped,
+    pushSkipReason: pushResult.pushSkipReason,
+    forceResend,
     preview: preview.slice(0, 50),
   };
 }

@@ -7,3 +7,4 @@ export { default as PicksSelfRecapSection } from './ui/PicksSelfRecapSection';
 export { default as usePicksForm } from './model/usePicksForm';
 export { usePicksSelfRecap } from './model/usePicksSelfRecap';
 export { useNextShowPicksStatus } from './model/useNextShowPicksStatus';
+export { useSetlistLockToast } from './model/useSetlistLockToast';

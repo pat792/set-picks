@@ -37,6 +37,9 @@ export default function PoolHubPage({ user }) {
     loading: standingsLoading,
     scope: standingsScope,
     setScope: setStandingsScope,
+    selectableTours: standingsSelectableTours,
+    selectedTourKey: standingsSelectedTourKey,
+    setTourKey: setStandingsTourKey,
     tourName: standingsTourName,
     tourAvailable: standingsTourAvailable,
   } = usePoolStandingsSection(poolId, pool, members);
@@ -168,6 +171,9 @@ export default function PoolHubPage({ user }) {
           onScopeChange={setStandingsScope}
           tourName={standingsTourName}
           tourAvailable={standingsTourAvailable}
+          selectableTours={standingsSelectableTours}
+          selectedTourKey={standingsSelectedTourKey}
+          onSelectTour={setStandingsTourKey}
         />
         <PoolHubShowArchive poolId={poolId} />
       </div>

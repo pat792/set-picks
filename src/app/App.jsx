@@ -17,6 +17,8 @@ const PoolInviteMissingCodePage = lazy(() =>
   import('../pages/pool-invite/PoolInviteMissingCodePage')
 );
 const PoolInvitePage = lazy(() => import('../pages/pool-invite/PoolInvitePage'));
+const HowItWorksPage = lazy(() => import('../pages/marketing/HowItWorksPage'));
+const HowScoringWorksPage = lazy(() => import('../pages/marketing/HowScoringWorksPage'));
 const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
 const SetupRoute = lazy(() => import('./routes/SetupRoute'));
@@ -31,6 +33,10 @@ function App() {
 
         {/* Public player profile (e.g. from leaderboard links) */}
         <Route path="/user/:userId" element={<PublicProfilePage />} />
+
+        {/* Marketing / educational pages — public, crawlable, no auth */}
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/how-scoring-works" element={<HowScoringWorksPage />} />
 
         {/* Legal pages — public, no auth (required for GCP OAuth consent screen) */}
         <Route path="/privacy" element={<PrivacyPolicyPage />} />

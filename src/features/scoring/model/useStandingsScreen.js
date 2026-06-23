@@ -24,6 +24,7 @@ import {
 import { useStandings } from './useStandings';
 import { computeStandingsSelfRecap } from './standingsSelfRecap';
 import { useStandingsLeaderboardView } from './useStandingsLeaderboardView';
+import { useStandingsTourSelection } from './useStandingsTourSelection';
 import { useStandingsView } from './useStandingsView';
 import { useTourStandings } from './useTourStandings';
 import { useScoringRulesModal } from '../ui/ScoringRulesModalProvider';
@@ -146,11 +147,15 @@ export function useStandingsScreen(selectedDate, options = {}) {
     () => resolveCurrentTour(selectedDate, todayYmd(), showDatesByTour),
     [selectedDate, showDatesByTour],
   );
+
+  const { selectedTour, setTourKey, selectableTours } =
+    useStandingsTourSelection(showDatesByTour);
+
   const {
     leaders: tourLeaders,
     loading: tourLoading,
     error: tourError,
-  } = useTourStandings(view === 'tour' ? currentTour?.shows : null);
+  } = useTourStandings(view === 'tour' ? (selectedTour?.shows ?? null) : null);
 
   const showLabel = useMemo(() => {
     const show = showDates.find((s) => s.date === selectedDate);
@@ -209,6 +214,9 @@ export function useStandingsScreen(selectedDate, options = {}) {
     openScoringRules,
 
     currentTour,
+    selectedTour,
+    setTourKey,
+    selectableTours,
     tourLeaders,
     tourLoading,
     tourError,
