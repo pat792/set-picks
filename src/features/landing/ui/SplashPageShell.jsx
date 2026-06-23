@@ -74,6 +74,18 @@ export default function SplashPageShell({
           </p>
           <p className="mt-2 space-x-3">
             <Link
+              to="/how-it-works"
+              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
+            >
+              How It Works
+            </Link>
+            <Link
+              to="/how-scoring-works"
+              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
+            >
+              How Scoring Works
+            </Link>
+            <Link
               to="/privacy"
               className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
             >
