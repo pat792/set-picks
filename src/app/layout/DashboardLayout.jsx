@@ -46,7 +46,7 @@ import {
   showOptionLabelDesktop,
   showOptionTitle,
 } from '../../shared/utils/showOptionLabel.js';
-import { PastShowLockBanner, TooEarlyBanner } from '../../features/picks';
+import { PastShowLockBanner, TooEarlyBanner, useSetlistLockToast } from '../../features/picks';
 import { DashboardInstallEngageBanner } from '../../features/install';
 
 import {
@@ -116,6 +116,7 @@ export default function DashboardLayout() {
 
   const meta = getDashboardPageMeta(location.pathname, location.search);
   const datePickerStatus = getShowStatus(selectedDate, showDates);
+  useSetlistLockToast(datePickerStatus);
   const priorShowForTooEarly = getShowBeforeDate(selectedDate, showDates);
   const tooEarlyPriorLabel =
     priorShowForTooEarly != null ? showOptionLabelCompact(priorShowForTooEarly) : null;

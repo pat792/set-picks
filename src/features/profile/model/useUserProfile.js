@@ -5,6 +5,7 @@ import {
   fetchUserProfileDocument,
   updateUserProfileWithPickHandles,
 } from '../api/profileApi';
+import { showSuccessToast } from '../../../shared/ui/toast';
 
 /**
  * Loads the signed-in user's profile, holds edit form state, and persists updates.
@@ -84,6 +85,7 @@ export function useUserProfile(user) {
           favoriteSong,
         });
         setMessage({ text: 'Profile updated successfully! 🎸', type: 'success' });
+        showSuccessToast('Profile updated! 🎸');
         return true;
       } catch (error) {
         console.error('Error updating profile:', error);
