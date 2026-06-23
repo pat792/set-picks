@@ -31,11 +31,14 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
 
       {screen.view === 'tour' ? (
         <StandingsTourView
-          tourName={screen.currentTour?.tour}
+          tourName={screen.selectedTour?.tour}
           leaders={screen.tourLeaders}
           loading={screen.tourLoading}
           error={screen.tourError}
-          hasCurrentTour={Boolean(screen.currentTour)}
+          hasCurrentTour={Boolean(screen.selectedTour)}
+          selectableTours={screen.selectableTours}
+          selectedTourKey={screen.selectedTour?.tour ?? null}
+          onSelectTour={screen.setTourKey}
         />
       ) : (
         <StandingsShowOrPoolView screen={screen} />

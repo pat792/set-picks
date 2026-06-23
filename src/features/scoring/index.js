@@ -39,6 +39,12 @@ export { default as StandingsViewToggle } from './ui/StandingsViewToggle';
 export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinnerOfTheNightBanner';
 export { default as TourStandingsSection } from './ui/TourStandingsSection';
 export { resolveCurrentTour } from './model/resolveCurrentTour';
+export {
+  resolveSelectableTours,
+  getTourByKey,
+} from './model/resolveSelectableTours';
+export { useStandingsTourSelection } from './model/useStandingsTourSelection';
 export { useShowWinnerOfTheNight } from './model/useShowWinnerOfTheNight';
 export { usePreviousShowNightWinner } from './model/usePreviousShowNightWinner';
 export { useTourStandings } from './model/useTourStandings';
+export { default as TourPicker } from './ui/TourPicker';
