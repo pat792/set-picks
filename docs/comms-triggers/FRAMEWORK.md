@@ -8,7 +8,7 @@ This framework governs how the comms squad develops triggered, templated communi
 
 1. **No message ships without a Trigger Spec** in [TRIGGER_CATALOG.md](./TRIGGER_CATALOG.md) and [catalog.json](./catalog.json).
 2. **Templates are versioned** (`v1.0.0` semver) and registered in `src/features/comms/registry.js`.
-3. **Delivery is server-orchestrated** — Cloud Functions / Admin SDK only; clients never create inbox rows.
+3. **Delivery is server-orchestrated _and fully automated_** — Cloud Functions / Admin SDK only; clients never create inbox rows. Every production trigger fires from a **system event** (Firestore write, scheduler tick, scoring hook) — there is **no manual admin/War Room step** in the production happy path. See [Layer 3 — DELIVER](#layer-3--deliver).
 4. **Measurement hooks ship with v1** — even single-variant templates log `variant: control` for future A/B.
 5. **Commercial comms are a separate class** — gated until Phase 3 criteria in [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md).
 
@@ -64,32 +64,75 @@ Templates link editorial drafts to runtime builders.
 |---------|-----|
 | `inApp` | Rich personalized body in `commsInbox` |
 | `push` | Short teaser + deep link (often → inbox) |
-| `emailAbbreviated` | Re-engagement subject + CTA |
-| `emailFull` | Long-form recap (#272) |
+| `emailAbbreviated` | Re-engagement subject + CTA (Resend) |
+| `emailFull` | Long-form recap (Resend; #442) |
 
 **Proven v1 pattern:** push tease → full message in inbox (Sphere recap).
 
 ## Layer 3 — DELIVER
 
+**Target architecture — full automation (epic #441).** One shared orchestrator, many thin event adapters, and pluggable per-channel workers. No manual sends in production.
+
 ```text
-Event → Orchestrator → registry + prefs + dedup → channel writers
+EVENT (Firestore onCreate/onUpdate · scheduler cron · post-grade hook · live-scoring hook)
+  → commsDelivery orchestrator (resolve trigger from catalog.json)
+     → per uid:  prefs gate → dedup → fatigue cap → render(registry)
+        → inApp worker  (Admin SDK → users/{uid}/commsInbox/{messageId})
+        → push worker   (FCM → fcmMessagingCore)
+        → email worker  (Resend → functions/commsEmailWorker.js)
+     → delivery log + comms_delivered
 ```
+
+### Design rules
+
+1. **One orchestrator, thin adapters.** Each trigger contributes only a *resolver* (audience + payload + dedup scope) and declares `channels`/`prefKeys` in `catalog.json`. The orchestrator owns the uniform path: prefs → dedup → fatigue → render → dispatch → log.
+2. **Fully event-driven sources** (no human in the loop):
+
+   | Event source | Trigger(s) |
+   |--------------|-----------|
+   | Firestore `onCreate users/{uid}` | `account_welcome` |
+   | Firestore `onUpdate picks/{pickId}` (lock) | `picks_confirmed` |
+   | `onSchedule` cron | `tour_countdown`, `tour_rankings_daily` |
+   | post-grade hook after `rollupScoresForShow` | `show_recap`, `tour_engagement_reminder` |
+   | live-scoring hook | `score_first_points`, `score_leader` |
+
+3. **Pluggable, idempotent channel workers** — each returns `{ ok, skipReason }` and shares one delivery-log contract so re-ticks / retries never double-send:
+
+   | Channel | Worker | Storage / transport |
+   |---------|--------|---------------------|
+   | `inApp` | Admin SDK batch write | `users/{uid}/commsInbox/{messageId}` |
+   | `push` | `functions/fcmMessagingCore.js` | FCM + `private_fcmTokens` |
+   | `email` | `functions/commsEmailWorker.js` (**Resend**) | Resend API + delivery log |
+
+4. **Independent fan-out, per-channel prefs** (v1): send to every eligible channel. Eligibility precedence: `notificationPrefs[family]` → channel availability (FCM token / verified email, not suppressed) → dedup → fatigue cap.
+5. **War Room callable is QA/replay only.** The admin callable (`deliverSphere2026TourRecapInbox` today; `replayComms(triggerId, audienceFilter, dryRun)` going forward) exists for dry-run preview, backfill, and incident replay — **never** as the production trigger.
 
 ### Non-negotiables
 
-- **Idempotency** — `fcm_notification_log` or fixed `commsInbox` doc id
-- **Prefs** — `notificationPrefs.reminders`, `.results`, `.nearMiss`, etc.
-- **Dry run** — callables default `dryRun: true` before execute
-- **Rollout** — canary user → cohort % → full audience
+- **Idempotency** — shared key `<triggerId>/<uid>:<scope>` recorded in the delivery log (`fcm_notification_log`) and/or a fixed `commsInbox` doc id; same key used as the Resend `idempotencyKey`.
+- **Prefs** — `notificationPrefs.reminders`, `.results`, `.nearMiss`, `.lifecycle` (new), `.commercial` (Phase 3).
+- **Dry run** — the QA/replay callable defaults `dryRun: true`; production event paths run live but are idempotent.
+- **Rollout** — canary uid → cohort % → full audience, by enabling event adapters / schedules (not by manual sends).
+- **Measurement** — log `comms_delivered` server-side with `trigger_id`, `template_id`, `channel`, `variant: control`.
+
+### Email channel — Resend
+
+- **Secret:** `RESEND_API_KEY` via Functions v2 `defineSecret` (`firebase functions:secrets:set RESEND_API_KEY`). Cloud Functions only; never client-side.
+- **Send:** `resend.emails.send({...}, { idempotencyKey })`; fan-out via `resend.batch.send([...], { idempotencyKey })` (≤100/call) with exponential backoff on 429/500.
+- **Domain:** `from` uses the verified setlistpickem.com sender (SPF/DKIM/DMARC); fail closed if unverified.
+- **Compliance:** marketing/lifecycle mail sets `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) wired to `notificationPrefs`; transactional (`picks_confirmed`, auth) kept separate from marketing.
+- **Reputation:** Resend webhook handler — `email.bounced` (Permanent) → hard-suppress; `email.complained` → unsubscribe + flag; optionally `email.delivered/opened/clicked` → measurement. Idempotent (webhooks are at-least-once, possibly out of order).
+- **Agent tooling:** the official **Resend MCP** (`npx -y resend-mcp`) lets agents draft, send, and manage broadcasts/domains/webhooks directly; see [comms-architect skill](../../.cursor/skills/comms-architect/SKILL.md).
 
 ### Implementation types
 
 | Type | When |
 |------|------|
-| `scheduled` | Picks lock window, nightly cohort jobs |
-| `event_driven` | Firestore `onCreate` / auth lifecycle |
-| `batch` | Tour recap aggregation |
-| `realtime` | Live setlist poll hooks (P2) |
+| `event_driven` | Firestore `onCreate`/`onUpdate`, auth lifecycle (primary path) |
+| `scheduled` | Picks lock window, nightly cohort jobs (`onSchedule`) |
+| `batch` | Post-grade fan-out (recaps) after the scoring pipeline |
+| `realtime` | Live scoring hooks (P2) |
+| `replay` | Admin QA / backfill callable only — not a production trigger |
 
 ## Layer 4 — MEASURE
 
@@ -129,6 +172,8 @@ See [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md). Commercial never overrides P
 | W4 | `score_leader` | `event_triggered` | Live leaderboard hook |
 | W5 | A/B on W1–W3 copy | — | Requires measurement baseline |
 | Phase 3 | `commercial_sponsor_recap_footer` | — | After W5 gates |
+
+All waves deliver through the **single automated orchestrator** across `inApp` + `push` + `email` (Resend); a wave "ships" by enabling its event adapter / schedule, not by a manual send. Tracking: epic #441 (automation), #439 (orchestrator), #440 (triggers), #442 (Resend email channel).
 
 ## Squad RACI
 
