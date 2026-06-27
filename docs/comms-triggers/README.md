@@ -7,6 +7,7 @@ This directory is the **canonical home** for triggered, templated communications
 | File | Purpose |
 |------|---------|
 | [FRAMEWORK.md](./FRAMEWORK.md) | **TTDMOM** operating model: Trigger → Template → Deliver → Measure → Optimize → Monetize |
+| [ECOSYSTEM.md](./ECOSYSTEM.md) | **Flow diagram + process descriptions** — event → orchestrator → channels → measurement, and the develop/curate/deploy/optimize processes |
 | [TRIGGER_CATALOG.md](./TRIGGER_CATALOG.md) | Human-readable v1 trigger inventory (status, channels, prefs, dedup) |
 | [catalog.json](./catalog.json) | Machine-readable trigger specs for agents and future orchestration |
 | [MEASUREMENT_PLAN.md](./MEASUREMENT_PLAN.md) | GA4 comms events, dimensions, funnels |
@@ -18,7 +19,10 @@ This directory is the **canonical home** for triggered, templated communications
 | Path | Role |
 |------|------|
 | `content/comms/` | Editorial drafts (drafter skill) |
-| `src/features/comms/registry.js` | Template registry + supported channels |
+| `src/features/comms/registry.js` | Recap template registry + supported channels |
+| `src/features/notifications/ui/commsTemplates/commsTemplateRegistry.jsx` | In-app template renderer registry (`templateId` → body) |
+| `src/features/comms/model/commsAnalytics.js` | Client comms measurement (opened/cta/push_tap/pref_changed) |
+| `/comms-preview` (dev build) | In-app template preview gallery |
 | `users/{uid}/commsInbox/{messageId}` | In-app delivery |
 | `fcm_notification_log` | Push dedup log |
 | `functions/*` | Orchestration (architect skill) |
