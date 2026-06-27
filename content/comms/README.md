@@ -19,7 +19,7 @@ Once that doc exists, variable recap copy **renders in the app** from the same b
 - **Path:** `users/{uid}/commsInbox/{messageId}` (see **`COMMS_INBOX_COLLECTION_ID`** in `src/features/notifications/api/commsInboxApi.js`).
 - **Writes:** Admin SDK / Cloud Functions only (clients **cannot** create rows). Owners may set **`readAt`** when they open a message.
 - **Shape:** `templateId`, **`payload`** (per-user values), **`createdAt`** (server timestamp at delivery).
-- **UI:** Notifications screen (`/dashboard/notifications`) — **Messages** section + bell in dashboard chrome. Renderer maps `templateId` to components such as **`Sphere2026TourRecapInApp`** (see `src/features/notifications/ui/CommsRecapMessageBody.jsx`).
+- **UI:** Notifications screen (`/dashboard/notifications`) — **Messages** section + bell in dashboard chrome. Renderer dispatches `templateId` → in-app template via `src/features/notifications/ui/CommsMessageBody.jsx` + the registry `src/features/notifications/ui/commsTemplates/commsTemplateRegistry.jsx` (structured `build(payload)` templates + bespoke components such as **`Sphere2026TourRecapInApp`**).
 
 **Manual QA:** In Firebase Console, add a doc under your test user’s `commsInbox` subcollection using the shape above, reload the app, open the bell → message should expand with personalized paragraphs.
 
