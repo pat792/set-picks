@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Bell, ChevronDown, Mail, Smartphone } from 'lucide-react';
 
 import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
+import { logCommsPrefChanged } from '../../comms';
 import CommsInboxSection from './CommsInboxSection.jsx';
 import { useNotificationPrefs } from '../model/useNotificationPrefs';
 import { usePushTokenRegistration } from '../model/usePushTokenRegistration';
@@ -130,6 +131,14 @@ export default function NotificationsPrototypeScreen() {
     error: prefsError,
   } = useNotificationPrefs();
 
+  const handlePrefChange = useCallback(
+    (key, value) => {
+      logCommsPrefChanged({ prefKey: key, enabled: value });
+      setField(key, value);
+    },
+    [setField],
+  );
+
   const pushStatusLabel = {
     idle: 'Off',
     working: 'Enabling...',
@@ -227,7 +236,7 @@ export default function NotificationsPrototypeScreen() {
         <NotificationAccordionSection
           sectionId="notif-categories"
           title="Push categories"
-          summary="Reminders, wins & scores, and close calls — tap to adjust."
+          summary="Reminders, scores, close calls, and tour updates — tap to adjust."
           open={openSection === 'categories'}
           onToggle={() => handleAccordion('categories')}
         >
@@ -242,21 +251,28 @@ export default function NotificationsPrototypeScreen() {
               description="Same-day nudge before picks lock in each show’s local timezone."
               checked={prefs.reminders}
               disabled={prefsSaving}
-              onChange={(v) => setField('reminders', v)}
+              onChange={(v) => handlePrefChange('reminders', v)}
             />
             <ChannelToggle
               label="Wins & final scores"
               description="When a show is graded, including if you topped the night."
               checked={prefs.results}
               disabled={prefsSaving}
-              onChange={(v) => setField('results', v)}
+              onChange={(v) => handlePrefChange('results', v)}
             />
             <ChannelToggle
               label="Close calls"
               description="When you finished within a couple points of the top score but did not win."
               checked={prefs.nearMiss}
               disabled={prefsSaving}
-              onChange={(v) => setField('nearMiss', v)}
+              onChange={(v) => handlePrefChange('nearMiss', v)}
+            />
+            <ChannelToggle
+              label="Tour & onboarding updates"
+              description="Welcome notes, tour countdowns, pick confirmations, and post-show nudges."
+              checked={prefs.lifecycle}
+              disabled={prefsSaving}
+              onChange={(v) => handlePrefChange('lifecycle', v)}
             />
           </div>
           {prefsError ? <p className="mt-3 text-xs text-amber-300">{prefsError}</p> : null}
