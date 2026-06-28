@@ -35,6 +35,7 @@ const {
   sendPostShowRollupPush,
   CLOSE_CALL_MAX_GAP,
 } = require("./postShowRollupPush");
+const { deliverPostRollupComms } = require("./commsEventAdapters");
 
 /** Same invariant as `adminRollupApi.js` / `profileApi.js`. */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
@@ -293,6 +294,23 @@ async function runRollupForShow({
         msg,
       });
     }
+  }
+
+  try {
+    await deliverPostRollupComms({
+      db,
+      admin,
+      showDate,
+      picksSnap,
+      newScoresById,
+      tourKey,
+      showDatesByTour,
+      resendApiKey: process.env.RESEND_API_KEY,
+      logger,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger?.warn?.("runRollupForShow.comms failed", { showDate, trigger, msg });
   }
 
   return {
