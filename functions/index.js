@@ -42,8 +42,14 @@ const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { deliverSphere2026TourRecapInbox } = require("./sphereTourRecapDelivery");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
 const { runAccountDeletionForCaller } = require("./accountDelete");
+const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
+const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
+const { getTriggerSpec } = require("./commsCatalog");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
+// Resend transactional/marketing email (epic #441 / #442). Stored in Cloud Secret
+// Manager; surfaced to bound functions as process.env.RESEND_API_KEY.
+const resendApiKey = defineSecret("RESEND_API_KEY");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -310,6 +316,71 @@ exports.deliverSphere2026TourRecapInbox = onCall(
     return deliverSphere2026TourRecapInbox({
       db,
       admin,
+      dryRun,
+      forceResend,
+      logger,
+    });
+  }
+);
+
+/**
+ * Admin-only canary / replay entry point for the generalized comms delivery
+ * orchestrator (epic #441 / #439). This is **not** the production path for v1
+ * triggers (those fan out from their own event adapters) — it exists so the squad
+ * can dry-run, canary, and replay any trigger for an explicit set of users through
+ * the same prefs → dedup → fatigue → render → dispatch → log pipeline.
+ *
+ * Request: `{ triggerId, recipients: [{ uid, payload?, vars? }], dryRun?, forceResend? }`.
+ * Defaults to `dryRun: true`. User prefs + email are hydrated from Firestore.
+ */
+exports.runCommsTrigger = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+    secrets: [resendApiKey],
+  },
+  async (request) => {
+    assertAdminClaim(request);
+    const triggerId = String(request.data?.triggerId || "");
+    const spec = getTriggerSpec(triggerId);
+    if (!spec) {
+      throw new HttpsError("invalid-argument", `Unknown triggerId: ${triggerId}`);
+    }
+
+    const dryRun = request.data?.dryRun !== false;
+    const forceResend = request.data?.forceResend === true;
+    const requested = Array.isArray(request.data?.recipients) ? request.data.recipients : [];
+    if (requested.length === 0) {
+      throw new HttpsError("invalid-argument", "recipients[] is required.");
+    }
+
+    // Hydrate user docs (prefs + email) for each recipient.
+    const recipients = [];
+    for (const r of requested) {
+      const uid = typeof r?.uid === "string" ? r.uid.trim() : "";
+      if (!uid) continue;
+      // eslint-disable-next-line no-await-in-loop
+      const snap = await db.collection("users").doc(uid).get();
+      recipients.push({
+        uid,
+        userData: snap.exists ? snap.data() || {} : {},
+        payload: r.payload && typeof r.payload === "object" ? r.payload : {},
+        vars: r.vars && typeof r.vars === "object" ? r.vars : {},
+      });
+    }
+
+    const emailWorker = createCommsEmailWorker({
+      resendClient: buildResendClient(process.env.RESEND_API_KEY, logger),
+      logger,
+    });
+
+    return deliverCommsTrigger({
+      db,
+      admin,
+      triggerId,
+      recipients,
+      workers: buildDefaultWorkers({ emailWorker }),
       dryRun,
       forceResend,
       logger,

@@ -2,16 +2,39 @@ import { doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore'
 
 import { db } from '../../../shared/lib/firebase';
 
-/** Defaults when `notificationPrefs` is missing — all channels on (issue #274). */
+/**
+ * Defaults when `notificationPrefs` is missing.
+ *
+ * - `reminders`, `results`, `nearMiss`: existing categories, default on (issue #274).
+ * - `lifecycle`: onboarding / countdown / engagement family (welcome, tour countdown,
+ *   picks confirmed, tour engagement). Default on — these are P0/P1 retention messages.
+ * - `commercial`: Phase 3 sponsor / affiliate slots. Default OFF — commercial sends are
+ *   strictly opt-in and gated by `COMMERCIAL_PHASE3.md`; we never default users in.
+ *
+ * Keys here map 1:1 to `prefKeys` in `docs/comms-triggers/catalog.json`, which is what the
+ * server-side delivery orchestrator gates on.
+ */
 export const DEFAULT_NOTIFICATION_PREFS = Object.freeze({
   reminders: true,
   results: true,
   nearMiss: true,
+  lifecycle: true,
+  commercial: false,
 });
 
 /**
+ * @typedef {{
+ *   reminders: boolean,
+ *   results: boolean,
+ *   nearMiss: boolean,
+ *   lifecycle: boolean,
+ *   commercial: boolean,
+ * }} NotificationPrefs
+ */
+
+/**
  * @param {import('firebase/firestore').DocumentData | null | undefined} userData
- * @returns {{ reminders: boolean, results: boolean, nearMiss: boolean }}
+ * @returns {NotificationPrefs}
  */
 export function resolveNotificationPrefs(userData) {
   const raw = userData?.notificationPrefs;
@@ -19,21 +42,19 @@ export function resolveNotificationPrefs(userData) {
     return { ...DEFAULT_NOTIFICATION_PREFS };
   }
   return {
+    // Default-allow categories: only `false` opts out.
     reminders: raw.reminders !== false,
     results: raw.results !== false,
     nearMiss: raw.nearMiss !== false,
+    lifecycle: raw.lifecycle !== false,
+    // Default-deny category: only an explicit `true` opts in.
+    commercial: raw.commercial === true,
   };
 }
 
 /**
- * Merge-updates `users/{uid}.notificationPrefs` (partial keys allowed).
- *
  * @param {string} uid
- * @param {Partial<{ reminders: boolean, results: boolean, nearMiss: boolean }>} patch
- */
-/**
- * @param {string} uid
- * @param {(prefs: { reminders: boolean, results: boolean, nearMiss: boolean }) => void} onPrefs
+ * @param {(prefs: NotificationPrefs) => void} onPrefs
  * @param {(err: unknown) => void} onError
  * @returns {() => void} unsubscribe
  */
@@ -51,6 +72,12 @@ export function subscribeNotificationPrefs(uid, onPrefs, onError) {
   );
 }
 
+/**
+ * Merge-updates `users/{uid}.notificationPrefs` (partial keys allowed).
+ *
+ * @param {string} uid
+ * @param {Partial<NotificationPrefs>} patch
+ */
 export async function mergeNotificationPrefs(uid, patch) {
   if (!uid) throw new Error('Missing uid');
   const ref = doc(db, 'users', uid);
