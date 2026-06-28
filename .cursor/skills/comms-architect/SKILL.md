@@ -17,12 +17,19 @@ You design and implement **how** triggered messages reach users safely and at sc
 1. `docs/comms-triggers/FRAMEWORK.md` — DELIVER layer
 2. `docs/comms-triggers/TRIGGER_CATALOG.md` + `catalog.json`
 3. `src/features/comms/registry.js`
-4. Reference implementations:
+4. **Shared substrate (use this first; epic #441 / #439):**
+   - `functions/commsDelivery.js` — `deliverCommsTrigger()` orchestrator (prefs → dedup → fatigue → render → dispatch → log)
+   - `functions/commsCatalog.js` — `TRIGGER_SPECS` (channels/prefKeys/dedupKey/templateId), kept in sync with `catalog.json`
+   - `functions/commsTemplates.js` — server render (`push` / `email` / `inApp`)
+   - `functions/commsInboxWorker.js`, `functions/commsPushWorker.js`, `functions/commsEmailWorker.js`
+   - `exports.runCommsTrigger` (in `index.js`) — admin canary/replay callable, `dryRun: true` default
+5. Reference (per-trigger, pre-substrate) implementations:
    - `functions/sphereTourRecapDelivery.js` — inbox + push + dedup
    - `functions/picksLockReminder.js` — scheduled push
    - `functions/postShowRollupPush.js` — post-grade push + prefs
-5. `firestore.rules` — `commsInbox`, `fcm_notification_log`
-6. `src/features/notifications/api/commsInboxApi.js`
+6. `firestore.rules` — `commsInbox`, `fcm_notification_log`
+7. `src/features/notifications/api/commsInboxApi.js`
+8. `docs/comms-triggers/ECOSYSTEM.md` — flow diagram + process descriptions
 
 ## Architecture — full automation (epic #441)
 
@@ -30,21 +37,21 @@ You design and implement **how** triggered messages reach users safely and at sc
 
 ```text
 EVENT (Firestore onCreate/onUpdate · scheduler · post-grade hook · live-scoring hook)
-  → commsDelivery orchestrator (resolve trigger from catalog.json)
+  → deliverCommsTrigger() orchestrator (resolve trigger from commsCatalog / catalog.json)
      → per uid: prefs gate → dedup → fatigue cap → render(registry)
         → channel workers (inApp · push · email)
      → delivery log + comms_delivered
 ```
 
-**One orchestrator, thin adapters:** each trigger contributes a *resolver* (audience + payload + dedup scope) and declares `channels`/`prefKeys` in `catalog.json`; the orchestrator owns prefs → dedup → fatigue → render → dispatch → log.
+**One orchestrator, thin adapters:** add a new trigger by writing a thin **event adapter** that builds `recipients` (`{ uid, userData, payload, vars }`) and calls `deliverCommsTrigger({ triggerId, recipients, workers })`. Do **not** re-implement prefs/dedup/log — the orchestrator owns them. Each trigger declares `channels`/`prefKeys` in `catalog.json`. No manual War Room execute step on the production path.
 
-| Channel | Writer | Storage / transport |
+| Channel | Worker | Storage / transport |
 |---------|--------|---------------------|
-| inApp | Admin SDK | `users/{uid}/commsInbox/{messageId}` |
-| push | FCM (`fcmMessagingCore`) | `private_fcmTokens` + `fcm_notification_log` |
-| email | **Resend** (`functions/commsEmailWorker.js`, #442) | Resend API + delivery log |
+| inApp | `commsInboxWorker.js` (Admin SDK) | `users/{uid}/commsInbox/{messageId}` |
+| push | `commsPushWorker.js` (FCM via `fcmMessagingCore`) | `private_fcmTokens` + `fcm_notification_log` |
+| email | `commsEmailWorker.js` (**Resend**, #442) | `resend.emails.send` w/ `idempotencyKey` |
 
-Each worker returns `{ ok, skipReason }` and shares one delivery-log contract so re-ticks/retries never double-send.
+Each worker returns `{ ok, skipReason }` and shares one delivery-log contract (key `<triggerId>/<uid>:<scope>`) so re-ticks/retries never double-send. See **Email channel — Resend** below for the email specifics.
 
 ## Non-negotiables
 
@@ -110,9 +117,12 @@ Use the MCP for QA, broadcast drafting, and domain/webhook setup — **not** as 
 3. **Enable the event adapter / schedule** for the cohort %, then full audience
 4. Monitor `fcm_notification_log`, Resend webhooks, and CF error logs
 
-## Registry extension (future)
+## Registry / template extension
 
-When adding templates, extend `RECAP_TEMPLATE_REGISTRY` or add `LIFECYCLE_TEMPLATE_REGISTRY` — keep channel lists accurate.
+- Server copy: add a builder in `functions/commsTemplates.js` (push title/body + email subject/text).
+- Add the delivery spec to `functions/commsCatalog.js` `TRIGGER_SPECS` (kept in sync with `catalog.json` by `commsCatalog.test.js`).
+- In-app body: add a `templateId` entry to `src/features/notifications/ui/commsTemplates/commsTemplateRegistry.jsx` (structured `build(payload)` or a bespoke component). Preview at `/comms-preview` (dev build).
+- Prefs: ensure the trigger's `prefKeys` exist in `notificationPrefsApi.js` (`reminders`/`results`/`nearMiss`/`lifecycle`/`commercial`).
 
 ## Output: implementation plan
 
