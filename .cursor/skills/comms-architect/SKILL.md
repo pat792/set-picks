@@ -17,24 +17,43 @@ You design and implement **how** triggered messages reach users safely and at sc
 1. `docs/comms-triggers/FRAMEWORK.md` — DELIVER layer
 2. `docs/comms-triggers/TRIGGER_CATALOG.md` + `catalog.json`
 3. `src/features/comms/registry.js`
-4. Reference implementations:
+4. **Shared substrate (use this first; epic #441 / #439):**
+   - `functions/commsDelivery.js` — `deliverCommsTrigger()` orchestrator (prefs → dedup → fatigue → render → dispatch → log)
+   - `functions/commsCatalog.js` — `TRIGGER_SPECS` (channels/prefKeys/dedupKey/templateId), kept in sync with `catalog.json`
+   - `functions/commsTemplates.js` — server render (`push` / `email` / `inApp`)
+   - `functions/commsInboxWorker.js`, `functions/commsPushWorker.js`, `functions/commsEmailWorker.js`
+   - `exports.runCommsTrigger` (in `index.js`) — admin canary/replay callable, `dryRun: true` default
+5. Reference (per-trigger, pre-substrate) implementations:
    - `functions/sphereTourRecapDelivery.js` — inbox + push + dedup
    - `functions/picksLockReminder.js` — scheduled push
    - `functions/postShowRollupPush.js` — post-grade push + prefs
-5. `firestore.rules` — `commsInbox`, `fcm_notification_log`
-6. `src/features/notifications/api/commsInboxApi.js`
+6. `firestore.rules` — `commsInbox`, `fcm_notification_log`
+7. `src/features/notifications/api/commsInboxApi.js`
+8. `docs/comms-triggers/ECOSYSTEM.md` — flow diagram + process descriptions
 
 ## Architecture
 
 ```text
-Event → Orchestrator (CF) → registry + prefs + dedup → channel writers
+Event adapter → deliverCommsTrigger() → prefs → dedup → fatigue → render → channel workers → comms_delivered
 ```
 
-| Channel | Writer | Storage |
-|---------|--------|---------|
-| inApp | Admin SDK | `users/{uid}/commsInbox/{messageId}` |
-| push | FCM | `private_fcmTokens` + `fcm_notification_log` |
-| email | TBD (#272) | ESP / queue |
+Add a new trigger by writing a thin **event adapter** that builds `recipients`
+(`{ uid, userData, payload, vars }`) and calls `deliverCommsTrigger({ triggerId, recipients, workers })`.
+Do **not** re-implement prefs/dedup/log — the orchestrator owns them. No manual
+War Room execute step on the production path.
+
+| Channel | Worker | Storage / transport |
+|---------|--------|---------------------|
+| inApp | `commsInboxWorker.js` (Admin SDK) | `users/{uid}/commsInbox/{messageId}` |
+| push | `commsPushWorker.js` (FCM) | `private_fcmTokens` + `fcm_notification_log` |
+| email | `commsEmailWorker.js` (**Resend**) | `resend.emails.send` w/ `idempotencyKey` |
+
+### Resend email
+
+- Secret: `defineSecret("RESEND_API_KEY")`, bound on email-sending functions; `buildResendClient(process.env.RESEND_API_KEY)` (returns `null` → email skips with `no_email_provider`, never throws).
+- Idempotency key = `${triggerId}/${uid}:${dedupId}` → shares dedup scope with push/inApp.
+- `List-Unsubscribe` + one-click (RFC 8058) headers wired to `/dashboard/notifications`.
+- The **Resend MCP** is for drafting/QA/broadcasts only — production sends always go through `commsEmailWorker.js`.
 
 ## Non-negotiables
 
@@ -79,9 +98,12 @@ Firestore `onCreate` / `onUpdate` on `users/{uid}` for lifecycle triggers.
 3. Production execute or enable schedule
 4. Monitor `fcm_notification_log` and CF error logs
 
-## Registry extension (future)
+## Registry / template extension
 
-When adding templates, extend `RECAP_TEMPLATE_REGISTRY` or add `LIFECYCLE_TEMPLATE_REGISTRY` — keep channel lists accurate.
+- Server copy: add a builder in `functions/commsTemplates.js` (push title/body + email subject/text).
+- Add the delivery spec to `functions/commsCatalog.js` `TRIGGER_SPECS` (kept in sync with `catalog.json` by `commsCatalog.test.js`).
+- In-app body: add a `templateId` entry to `src/features/notifications/ui/commsTemplates/commsTemplateRegistry.jsx` (structured `build(payload)` or a bespoke component). Preview at `/comms-preview` (dev build).
+- Prefs: ensure the trigger's `prefKeys` exist in `notificationPrefsApi.js` (`reminders`/`results`/`nearMiss`/`lifecycle`/`commercial`).
 
 ## Output: implementation plan
 
