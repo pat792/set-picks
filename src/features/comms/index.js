@@ -11,6 +11,16 @@ export {
 } from './registry.js';
 
 export {
+  COMMS_VARIANT_CONTROL,
+  COMMS_CHANNEL,
+  logCommsOpened,
+  logCommsDismissed,
+  logCommsCtaClick,
+  logCommsPushTap,
+  logCommsPrefChanged,
+} from './model/commsAnalytics.js';
+
+export {
   SPHERE_2026_RECAP_ID,
   SPHERE_2026_META,
   SPHERE_2026_PODIUM,

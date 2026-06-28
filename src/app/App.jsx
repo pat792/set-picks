@@ -23,6 +23,8 @@ const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'))
 const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
 const SetupRoute = lazy(() => import('./routes/SetupRoute'));
 const DashboardRoute = lazy(() => import('./routes/DashboardRoute'));
+// Dev-only comms template gallery (redirects home in production builds).
+const CommsPreviewPage = lazy(() => import('../pages/dev/CommsPreviewPage'));
 
 function App() {
   return (
@@ -50,6 +52,9 @@ function App() {
         <Route path="/join/" element={<PoolInviteMissingCodePage />} />
         {/* Deep link — saves valid code and sends user through auth funnel */}
         <Route path="/join/:code" element={<PoolInvitePage />} />
+
+        {/* Dev-only: comms template preview gallery (no auth; prod redirects home) */}
+        <Route path="/comms-preview" element={<CommsPreviewPage />} />
 
         <Route path="/setup" element={<SetupRoute />} />
 

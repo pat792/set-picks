@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, Inbox } from 'lucide-react';
 
+import { logCommsCtaClick, logCommsDismissed, logCommsOpened } from '../../comms';
 import { useCommsInbox } from '../model/commsInboxContext.jsx';
-import CommsRecapMessageBody from './CommsRecapMessageBody.jsx';
+import CommsMessageBody from './CommsMessageBody.jsx';
+import { triggerIdForTemplate } from './commsTemplates/commsTemplateRegistry.jsx';
 
 function formatDeliveredAt(createdAt) {
   if (!createdAt?.toDate) return '';
@@ -35,6 +37,12 @@ export default function CommsInboxSection() {
       setOpenId(nextOpen ? id : null);
       if (nextOpen) {
         const row = messages.find((m) => m.id === id);
+        if (row) {
+          logCommsOpened({
+            triggerId: triggerIdForTemplate(row.templateId),
+            templateId: row.templateId,
+          });
+        }
         if (row && row.readAt == null) {
           try {
             await markRead(id);
@@ -50,6 +58,12 @@ export default function CommsInboxSection() {
   const handleDismiss = useCallback(
     async (id) => {
       const row = messages.find((m) => m.id === id);
+      if (row) {
+        logCommsDismissed({
+          triggerId: triggerIdForTemplate(row.templateId),
+          templateId: row.templateId,
+        });
+      }
       if (row && row.readAt == null) {
         try {
           await markRead(id);
@@ -60,6 +74,16 @@ export default function CommsInboxSection() {
       setOpenId((prev) => (prev === id ? null : prev));
     },
     [messages, markRead],
+  );
+
+  const handleCtaClick = useCallback(
+    (row) => {
+      logCommsCtaClick({
+        triggerId: triggerIdForTemplate(row.templateId),
+        templateId: row.templateId,
+      });
+    },
+    [],
   );
 
   return (
@@ -165,7 +189,11 @@ export default function CommsInboxSection() {
                         aria-labelledby={headerId}
                         className="border-t border-border-muted/80 px-5 pb-6 pt-4"
                       >
-                        <CommsRecapMessageBody templateId={m.templateId} payload={m.payload} />
+                        <CommsMessageBody
+                          templateId={m.templateId}
+                          payload={m.payload}
+                          onCtaClick={() => handleCtaClick(m)}
+                        />
                         <div className="mt-4 flex items-center justify-end gap-2">
                           <button
                             type="button"
