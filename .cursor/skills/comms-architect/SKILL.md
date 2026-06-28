@@ -31,37 +31,35 @@ You design and implement **how** triggered messages reach users safely and at sc
 7. `src/features/notifications/api/commsInboxApi.js`
 8. `docs/comms-triggers/ECOSYSTEM.md` — flow diagram + process descriptions
 
-## Architecture
+## Architecture — full automation (epic #441)
+
+**Goal:** every production trigger fires from a system event and self-delivers across all eligible channels. **No manual admin/War Room step** in the production path.
 
 ```text
-Event adapter → deliverCommsTrigger() → prefs → dedup → fatigue → render → channel workers → comms_delivered
+EVENT (Firestore onCreate/onUpdate · scheduler · post-grade hook · live-scoring hook)
+  → deliverCommsTrigger() orchestrator (resolve trigger from commsCatalog / catalog.json)
+     → per uid: prefs gate → dedup → fatigue cap → render(registry)
+        → channel workers (inApp · push · email)
+     → delivery log + comms_delivered
 ```
 
-Add a new trigger by writing a thin **event adapter** that builds `recipients`
-(`{ uid, userData, payload, vars }`) and calls `deliverCommsTrigger({ triggerId, recipients, workers })`.
-Do **not** re-implement prefs/dedup/log — the orchestrator owns them. No manual
-War Room execute step on the production path.
+**One orchestrator, thin adapters:** add a new trigger by writing a thin **event adapter** that builds `recipients` (`{ uid, userData, payload, vars }`) and calls `deliverCommsTrigger({ triggerId, recipients, workers })`. Do **not** re-implement prefs/dedup/log — the orchestrator owns them. Each trigger declares `channels`/`prefKeys` in `catalog.json`. No manual War Room execute step on the production path.
 
 | Channel | Worker | Storage / transport |
 |---------|--------|---------------------|
 | inApp | `commsInboxWorker.js` (Admin SDK) | `users/{uid}/commsInbox/{messageId}` |
-| push | `commsPushWorker.js` (FCM) | `private_fcmTokens` + `fcm_notification_log` |
-| email | `commsEmailWorker.js` (**Resend**) | `resend.emails.send` w/ `idempotencyKey` |
+| push | `commsPushWorker.js` (FCM via `fcmMessagingCore`) | `private_fcmTokens` + `fcm_notification_log` |
+| email | `commsEmailWorker.js` (**Resend**, #442) | `resend.emails.send` w/ `idempotencyKey` |
 
-### Resend email
-
-- Secret: `defineSecret("RESEND_API_KEY")`, bound on email-sending functions; `buildResendClient(process.env.RESEND_API_KEY)` (returns `null` → email skips with `no_email_provider`, never throws).
-- Idempotency key = `${triggerId}/${uid}:${dedupId}` → shares dedup scope with push/inApp.
-- `List-Unsubscribe` + one-click (RFC 8058) headers wired to `/dashboard/notifications`.
-- The **Resend MCP** is for drafting/QA/broadcasts only — production sends always go through `commsEmailWorker.js`.
+Each worker returns `{ ok, skipReason }` and shares one delivery-log contract (key `<triggerId>/<uid>:<scope>`) so re-ticks/retries never double-send. See **Email channel — Resend** below for the email specifics.
 
 ## Non-negotiables
 
 1. **Clients never create** `commsInbox` docs
-2. **Idempotent** delivery — fixed messageId or log doc id
+2. **Idempotent** delivery — shared key `<triggerId>/<uid>:<scope>` in the delivery log and/or fixed messageId; reuse as the Resend `idempotencyKey`
 3. **Prefs** — check `notificationPrefs` before send:
    - `reminders`, `results`, `nearMiss`, `lifecycle` (new), `commercial` (Phase 3)
-4. **Dry run default** on callables (`dryRun: true`)
+4. **Event-driven by default** — production triggers fire from events; the admin callable is **QA/replay only**, `dryRun: true` default
 5. **Log** `comms_delivered` server-side per MEASUREMENT_PLAN.md
 
 ## Dedup patterns (existing)
@@ -75,28 +73,49 @@ War Room execute step on the production path.
 
 ## Implementation patterns
 
+Prefer **event-driven**; fall back to scheduled/batch only where no precise event exists. The callable is for QA/replay, never the production trigger.
+
+### Event-driven (primary)
+
+Firestore `onCreate users/{uid}` (welcome), `onUpdate picks/{pickId}` (picks confirmed), live-scoring hooks (`score_first_points`, `score_leader`). Idempotent — background triggers auto-retry.
+
 ### Scheduled (`onSchedule`)
 
-Use for: picks lock windows, nightly cohort batches. Mirror `scheduledPicksLockReminder`.
-
-### Callable (admin)
-
-Use for: one-off recap delivery. Default `dryRun: true`; War Room UI triggers.
+Use for: picks lock windows, nightly cohort batches (`tour_countdown`, `tour_rankings_daily`). Mirror `scheduledPicksLockReminder`.
 
 ### Batch post-grade
 
-Use for: `postShowRollupPush` after scoring pipeline.
+Use for: `show_recap` / `tour_engagement_reminder` after the scoring pipeline (`rollupScoresForShow`). Mirror `postShowRollupPush`.
 
-### Event-driven (planned)
+### Replay / QA callable (not a production trigger)
 
-Firestore `onCreate` / `onUpdate` on `users/{uid}` for lifecycle triggers.
+`replayComms(triggerId, audienceFilter, dryRun)` (generalizes `deliverSphere2026TourRecapInbox`). For dry-run preview, backfill, and incident replay only. Default `dryRun: true`.
 
-## Rollout
+## Email channel — Resend (#442)
 
-1. `sendPushCanary` / single-user dry run
-2. Admin execute with `dryRun: false` for test uid
-3. Production execute or enable schedule
-4. Monitor `fcm_notification_log` and CF error logs
+- **Secret:** `RESEND_API_KEY` via Functions v2 `defineSecret` (`firebase functions:secrets:set RESEND_API_KEY`). For cloud agents, add it as a Cursor Cloud secret (Dashboard → Cloud Agents → Secrets). Never client-side.
+- **Send:** `resend.emails.send({...}, { idempotencyKey })`; fan-out `resend.batch.send([...], { idempotencyKey })` (≤100/call), backoff on 429/500 (~2 req/s default).
+- **Idempotency key:** `<triggerId>/<uid>:<scope>` — same key recorded in the delivery log so push/inApp/email dedup identically. Treat 409 as success-skip.
+- **Domain:** verified setlistpickem.com sender (SPF/DKIM/DMARC); fail closed if unverified.
+- **Compliance:** `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) → `notificationPrefs`; transactional vs marketing separation.
+- **Webhook:** `onRequest` handler (verify signature) — `email.bounced` → hard-suppress; `email.complained` → unsubscribe + flag; idempotent.
+
+### Resend MCP (agent tooling)
+
+The official `resend-mcp` server lets agents draft, send, and manage emails/broadcasts/domains/webhooks during development. Add in Cursor → Settings → MCP:
+
+```json
+{ "mcpServers": { "resend": { "command": "npx", "args": ["-y", "resend-mcp"], "env": { "RESEND_API_KEY": "re_xxx" } } } }
+```
+
+Use the MCP for QA, broadcast drafting, and domain/webhook setup — **not** as the production delivery path. Production sends always go through `commsEmailWorker.js` so prefs/dedup/fatigue/measurement are enforced.
+
+## Rollout (enable adapters, don't send manually)
+
+1. Single-user dry run via the replay callable / `sendPushCanary`
+2. Replay with `dryRun: false` for a test uid (all channels)
+3. **Enable the event adapter / schedule** for the cohort %, then full audience
+4. Monitor `fcm_notification_log`, Resend webhooks, and CF error logs
 
 ## Registry / template extension
 
