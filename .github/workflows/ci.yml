@@ -69,6 +69,20 @@ jobs:
       - name: Client tests (vitest)
         run: npm test
 
+      - name: Version bumped (SemVer gate)
+        if: github.base_ref != 'main' && !contains(github.event.pull_request.labels.*.name, 'skip-version-bump')
+        run: |
+          TAGGED=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CURRENT=$(node -p "require('./package.json').version")
+          if [ "v$CURRENT" = "$TAGGED" ]; then
+            echo "❌ package.json version ($CURRENT) matches the last release tag ($TAGGED)."
+            echo "   Bump the version in package.json and add a CHANGELOG.md entry before merging."
+            echo "   See docs/API.md §6 for the bump decision table."
+            echo "   Add the 'skip-version-bump' label if this PR has no API or feature impact."
+            exit 1
+          fi
+          echo "✓ version $CURRENT > last tag $TAGGED"
+
   functions:
     needs: changes
     if: github.event_name == 'schedule' || needs.changes.outputs.functions == 'true'
