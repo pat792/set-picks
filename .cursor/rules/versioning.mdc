@@ -1,0 +1,64 @@
+---
+description: Semantic versioning rules — triggers when touching package.json, CHANGELOG.md, docs/API.md, or when opening/merging PRs
+globs: package.json,CHANGELOG.md,docs/API.md
+alwaysApply: false
+---
+
+# Semantic Versioning Rules
+
+This project follows **SemVer 2.0.0**. The public API is declared in `docs/API.md`.
+
+## Before touching `package.json version`
+
+1. Read `docs/API.md` §6 (Version Bump Decision Table).
+2. Classify every changed surface in the PR as PATCH / MINOR / MAJOR.
+3. Apply the highest classification — e.g. one MAJOR change makes the whole release MAJOR.
+4. Set `version` in `package.json` accordingly (`X.Y.Z`, no `v` prefix).
+
+## Before opening any PR
+
+- If the diff touches any surface listed in `docs/API.md` (routes, callable signatures, Firestore fields, env vars, security rules), update that document **in the same PR**.
+- Add a `CHANGELOG.md` entry under `## [X.Y.Z] — YYYY-MM-DD`.
+- Use Added / Changed / Fixed / Removed sub-headings (Keep a Changelog format).
+
+## MAJOR changes (breaking) — require explicit user approval
+
+Never introduce a MAJOR bump silently. If your diff contains a breaking change:
+1. Flag it in the PR description under `## ⚠️ Breaking changes`.
+2. List the affected API surface and migration path.
+3. Do not merge without explicit user sign-off.
+
+## CHANGELOG format
+
+```markdown
+## [X.Y.Z] — YYYY-MM-DD
+
+### Added
+- Description of new feature or API surface
+
+### Changed
+- Description of non-breaking change to existing behavior
+
+### Fixed
+- Description of bug fix
+
+### Removed / Deprecated
+- Description of removed or deprecated surface
+```
+
+## What is NOT a version bump
+
+- Changes to `docs/` that don't alter a declared API surface (runbooks, design notes)
+- Changes to `scripts/` test/QA tooling
+- Changes to CI workflow YAML
+- Dependency bumps with no API impact (treat as PATCH)
+- Changes to `src/` implementation details with no change to public routes, callables, or Firestore schema
+
+## Git tag (human step only)
+
+After `staging → main` merges, a human runs:
+```bash
+git tag v<version> -m "Release <version>"
+git push origin v<version>
+```
+Agents MUST NOT create git tags autonomously.
