@@ -12,6 +12,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.7.0] — 2026-06-30
+
+### Added
+- **Comms v1 event adapters** — thin Firestore/scheduler hooks for all 8 planned triggers: `account_welcome`, `picks_confirmed`, `show_recap`, `tour_engagement_reminder`, `score_first_points`, `score_leader`, `tour_countdown`, `tour_rankings_daily` (issue #440, PR #448)
+- **New Cloud Functions:** `commsOnUserProfileWrite`, `commsOnPickWrite`, `scheduledTourCountdownComms`, `scheduledTourRankingsDailyComms`; post-rollup and live-scoring hooks in `rollupCore.js` / `recomputeLiveScoresForShow`
+- **`COMMS_EVENT_ADAPTERS_ENABLED`** runtime gate — adapters no-op unless set to `true` (default off; enable after canary)
+
+### Changed
+- Comms trigger catalog: all 8 v1 triggers marked `shipped` in `catalog.json` + `TRIGGER_CATALOG.md`
+
+---
+
 ## [1.6.0] — 2026-06-28
 
 ### Added
@@ -104,7 +116,8 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-[Unreleased]: https://github.com/pat792/set-picks/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/pat792/set-picks/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/pat792/set-picks/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/pat792/set-picks/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/pat792/set-picks/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/pat792/set-picks/compare/v1.3.0...v1.4.0

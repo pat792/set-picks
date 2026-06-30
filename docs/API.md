@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.6.0  
+**Version:** 1.7.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -142,6 +142,21 @@ General-purpose comms delivery callable. Runs a named trigger through the full p
 
 Phish.net integration and live scoring functions. Deployed via `npm run deploy:functions:phishnet`. Internal admin use — request/response shapes documented in `docs/PHISHNET_CALLABLE_RUNBOOK.md`.
 
+### 2.4 Comms event adapters (v1.7.0+)
+
+Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-scoring hooks, and scheduled jobs. All adapters route through `deliverCommsTrigger` and are **gated** by `COMMS_EVENT_ADAPTERS_ENABLED=true` (default off).
+
+| Export | Trigger | Event source |
+|--------|---------|--------------|
+| `commsOnUserProfileWrite` | `account_welcome` | `users/{uid}` write when handle first appears |
+| `commsOnPickWrite` | `picks_confirmed` | `picks/{pickId}` create with non-empty picks |
+| Post-rollup hook | `show_recap`, `tour_engagement_reminder` | `rollupScoresForShow` completion |
+| Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
+| `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-1) |
+| `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
+
+Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
+
 ---
 
 ## 3. Public URL Routes
@@ -182,6 +197,16 @@ These `VITE_*` variables are read at build time. Adding or removing one is a MIN
 | `VITE_SETLIST_API_SOURCE` | No | Setlist data source override |
 | `VITE_USE_CALLABLE_PHISHNET_SETLIST` | No | Route fetches through callable |
 | `VITE_SONG_CATALOG_URL` | No | CDN URL override for song catalog |
+
+### 4.1 Cloud Functions runtime env vars
+
+Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR change; removing or renaming is MAJOR.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger` and comms adapters |
+| `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |
+| `PHISHNET_API_KEY` | For Phish.net callables | Phish.net API key (Secret Manager) |
 
 ---
 

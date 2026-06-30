@@ -76,7 +76,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `event_triggered` |
 | **Event** | `users/{uid}` document created (first account setup complete, `handle` present) |
 | **Channels** | `inApp`, `push`, `email` |
@@ -122,7 +122,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `automated` |
 | **Schedule** | Daily cron; fires when a tour's first show is exactly 10, 5, or 1 day(s) away |
 | **Channels** | `inApp`, `push`, `email` |
@@ -185,7 +185,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `event_triggered` |
 | **Event** | User submits/locks their picks for a show |
 | **Channels** | `inApp`, `push` |
@@ -225,7 +225,7 @@ Scores update live during the show. Check back tonight.
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `event_triggered` |
 | **Event** | First correct pick scored for a user in a show (live during show) |
 | **Channels** | `inApp`, `push` |
@@ -258,7 +258,7 @@ Scores update live during the show. Check back tonight.
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `event_triggered` |
 | **Event** | User moves into first place on the global leaderboard or any pool leaderboard during a show |
 | **Channels** | `inApp`, `push` |
@@ -291,7 +291,7 @@ Scores update live during the show. Check back tonight.
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `event_triggered` |
 | **Event** | Grading finalized for a show (all picks scored, rollup complete) |
 | **Channels** | `inApp`, `push`, `email` |
@@ -348,7 +348,7 @@ Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the r
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `automated` |
 | **Schedule** | Morning after each show night (10:00 AM ET); only fires on days following a show |
 | **Channels** | `inApp`, `push`, `email` |
@@ -439,7 +439,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
 | Field | Value |
 |-------|-------|
-| **Status** | `planned` |
+| **Status** | `shipped` |
 | **Automation** | `event_triggered` |
 | **Event** | User's first show in the current tour is graded (fires once per tour, after show 1) |
 | **Channels** | `inApp`, `push`, `email` |
