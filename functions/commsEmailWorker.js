@@ -16,6 +16,9 @@
 
 "use strict";
 
+const { isEmailSuppressed } = require("./commsEmailSuppression");
+const { buildOneClickUnsubscribeUrl } = require("./commsEmailUnsubscribe");
+
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
 const UNSUB_PATH = "/dashboard/notifications";
@@ -43,11 +46,24 @@ function buildResendClient(apiKey, logger) {
   }
 }
 
-function unsubscribeHeaders(siteUrl) {
+/**
+ * @param {string} [siteUrl]
+ * @param {{ uid?: string, email?: string, signingSecret?: string, baseUrl?: string }} [opts]
+ */
+function unsubscribeHeaders(siteUrl, opts = {}) {
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
-  const url = `${base}${UNSUB_PATH}`;
+  const settingsUrl = `${base}${UNSUB_PATH}`;
+  const oneClickUrl =
+    opts.uid && opts.email && opts.signingSecret
+      ? buildOneClickUnsubscribeUrl(base, {
+          uid: opts.uid,
+          email: opts.email,
+          signingSecret: opts.signingSecret,
+          baseUrl: opts.baseUrl,
+        })
+      : settingsUrl;
   return {
-    "List-Unsubscribe": `<${url}>, <mailto:unsubscribe@setlistpickem.com>`,
+    "List-Unsubscribe": `<${oneClickUrl}>, <mailto:unsubscribe@setlistpickem.com>`,
     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   };
 }
@@ -55,8 +71,11 @@ function unsubscribeHeaders(siteUrl) {
 /**
  * @param {{
  *   resendClient: object | null,
+ *   db?: import("firebase-admin").firestore.Firestore,
  *   fromAddress?: string,
  *   siteUrl?: string,
+ *   unsubscribeSigningSecret?: string,
+ *   unsubscribeBaseUrl?: string,
  *   logger?: { info?: Function, warn?: Function, error?: Function },
  * }} config
  * @returns {(ctx: {
@@ -68,9 +87,16 @@ function unsubscribeHeaders(siteUrl) {
  *   dryRun?: boolean,
  * }) => Promise<{ ok: boolean, skipReason?: string, id?: string }>}
  */
-function createCommsEmailWorker({ resendClient, fromAddress, siteUrl, logger } = {}) {
+function createCommsEmailWorker({
+  resendClient,
+  db,
+  fromAddress,
+  siteUrl,
+  unsubscribeSigningSecret,
+  unsubscribeBaseUrl,
+  logger,
+} = {}) {
   const from = fromAddress || DEFAULT_FROM;
-  const headers = unsubscribeHeaders(siteUrl);
 
   return async function deliverCommsEmail(ctx) {
     const { uid, userData, triggerId, rendered, dedupId, dryRun } = ctx;
@@ -82,6 +108,12 @@ function createCommsEmailWorker({ resendClient, fromAddress, siteUrl, logger } =
     if (typeof to !== "string" || !to.includes("@")) {
       return { ok: false, skipReason: "no_email" };
     }
+    if (db) {
+      const suppressed = await isEmailSuppressed(db, to);
+      if (suppressed) {
+        return { ok: false, skipReason: "email_suppressed" };
+      }
+    }
     if (!resendClient) {
       return { ok: false, skipReason: "no_email_provider" };
     }
@@ -89,6 +121,12 @@ function createCommsEmailWorker({ resendClient, fromAddress, siteUrl, logger } =
       return { ok: true, skipReason: "dry_run" };
     }
 
+    const headers = unsubscribeHeaders(siteUrl, {
+      uid,
+      email: to,
+      signingSecret: unsubscribeSigningSecret,
+      baseUrl: unsubscribeBaseUrl,
+    });
     const idempotencyKey = `${triggerId}/${uid}:${dedupId || "default"}`;
 
     try {

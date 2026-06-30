@@ -12,6 +12,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.7.1] — 2026-06-30
+
+### Added
+- **Resend deliverability (#442)** — `commsResendWebhook` (bounce/complaint/suppression → `email_suppression`), `commsEmailUnsubscribe` (RFC 8058 one-click), email worker suppression gate
+- **Firestore** — `email_suppression/{sha256(email)}` server-only collection
+
+### Changed
+- Comms email `List-Unsubscribe` headers now include signed one-click unsubscribe URLs when `RESEND_WEBHOOK_SECRET` is set
+
+---
+
 ## [1.7.0] — 2026-06-30
 
 ### Added

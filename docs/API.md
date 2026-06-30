@@ -76,6 +76,10 @@ Deduplication log shared by all comms channels. Document ID is the `dedupKey` fr
 
 Tour and show date metadata. Read by `resolveCurrentTour` and `resolveSelectableTours`.
 
+### 1.9 `email_suppression/{sha256(email)}`
+
+Server-only email suppression list (issue #442). Document ID is SHA-256 of the normalized recipient address. Presence of `{ suppressed: true }` blocks comms email sends. Written by `commsResendWebhook` and `commsEmailUnsubscribe`.
+
 ---
 
 ## 2. Cloud Function Callables
@@ -157,6 +161,15 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
 
+### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
+
+| Export | Method | Auth | Description |
+|--------|--------|------|-------------|
+| `commsResendWebhook` | POST | Svix signature (`RESEND_WEBHOOK_SECRET`) | Resend bounce/complaint/suppression events → `email_suppression` |
+| `commsEmailUnsubscribe` | GET/POST | HMAC query params (`uid`, `email`, `sig`) | RFC 8058 one-click unsubscribe; opts user out of lifecycle email |
+
+Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` HTTPS endpoint. Signing secret: `firebase functions:secrets:set RESEND_WEBHOOK_SECRET`.
+
 ---
 
 ## 3. Public URL Routes
@@ -205,6 +218,7 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger` and comms adapters |
+| `RESEND_WEBHOOK_SECRET` | For email deliverability | Resend/Svix webhook signing secret (`whsec_…`); also signs one-click unsubscribe URLs |
 | `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |
 | `PHISHNET_API_KEY` | For Phish.net callables | Phish.net API key (Secret Manager) |
 

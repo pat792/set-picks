@@ -29,9 +29,11 @@ function isCommsEventAdaptersEnabled() {
  *   logger?: { info?: Function, warn?: Function, error?: Function },
  * }} deps
  */
-function createCommsAdapterRuntime({ db, admin, resendApiKey, logger } = {}) {
+function createCommsAdapterRuntime({ db, admin, resendApiKey, resendWebhookSecret, logger } = {}) {
   const emailWorker = createCommsEmailWorker({
     resendClient: buildResendClient(resendApiKey, logger),
+    db,
+    unsubscribeSigningSecret: resendWebhookSecret,
     logger,
   });
   const workers = buildDefaultWorkers({ emailWorker });
