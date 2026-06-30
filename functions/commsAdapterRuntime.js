@@ -26,6 +26,7 @@ function isCommsEventAdaptersEnabled() {
  *   db: import("firebase-admin").firestore.Firestore,
  *   admin: typeof import("firebase-admin"),
  *   resendApiKey?: string,
+ *   resendWebhookSecret?: string,
  *   logger?: { info?: Function, warn?: Function, error?: Function },
  * }} deps
  */
