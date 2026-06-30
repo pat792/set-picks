@@ -1,13 +1,13 @@
 {
   "schemaVersion": "2.0.0",
-  "updatedAt": "2026-06-22",
+  "updatedAt": "2026-06-28",
   "framework": "TTDMOM",
   "automationTypes": ["automated", "event_triggered"],
   "triggers": [
     {
       "triggerId": "account_welcome",
       "displayName": "Welcome",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "lifecycle",
       "priority": "P0",
@@ -18,7 +18,7 @@
       "prefKeys": ["lifecycle"],
       "dedupKey": "welcome:{uid}",
       "templateId": "account-welcome",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
@@ -30,7 +30,7 @@
     {
       "triggerId": "tour_countdown",
       "displayName": "Tour countdown",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "show_calendar",
       "priority": "P0",
@@ -41,7 +41,7 @@
       "prefKeys": ["lifecycle"],
       "dedupKey": "tour_countdown:{tourId}:{uid}:{days_remaining}",
       "templateId": "tour-countdown",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variants": ["t10", "t5", "t1"],
       "variables": [
@@ -57,7 +57,7 @@
     {
       "triggerId": "picks_confirmed",
       "displayName": "Picks locked (confirmation)",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "show_calendar",
       "priority": "P0",
@@ -68,7 +68,7 @@
       "prefKeys": ["lifecycle"],
       "dedupKey": "picks_confirmed:{uid}:{showDate}",
       "templateId": "picks-confirmed",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
@@ -84,7 +84,7 @@
     {
       "triggerId": "score_first_points",
       "displayName": "Score update — first points",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "live_game",
       "priority": "P1",
@@ -95,7 +95,7 @@
       "prefKeys": ["results"],
       "dedupKey": "first_points:{uid}:{showDate}",
       "templateId": "score-first-points",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
@@ -109,7 +109,7 @@
     {
       "triggerId": "score_leader",
       "displayName": "Score update — leader",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "live_game",
       "priority": "P1",
@@ -120,7 +120,7 @@
       "prefKeys": ["results"],
       "dedupKey": "leader:{uid}:{showDate}:{leaderboard}",
       "templateId": "score-leader",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
@@ -132,7 +132,7 @@
     {
       "triggerId": "show_recap",
       "displayName": "Show recap",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "results_recap",
       "priority": "P1",
@@ -143,7 +143,7 @@
       "prefKeys": ["results"],
       "dedupKey": "show_recap:{uid}:{showDate}",
       "templateId": "show-recap",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
@@ -171,7 +171,7 @@
     {
       "triggerId": "tour_rankings_daily",
       "displayName": "Tour rankings (next-day)",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "results_recap",
       "priority": "P1",
@@ -182,7 +182,7 @@
       "prefKeys": ["results"],
       "dedupKey": "tour_rank:{uid}:{showDate}",
       "templateId": "tour-rankings-daily",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
@@ -228,7 +228,7 @@
     {
       "triggerId": "tour_engagement_reminder",
       "displayName": "Tour reminder (post-show 1)",
-      "status": "planned",
+      "status": "shipped",
       "phase": "v1",
       "family": "lifecycle",
       "priority": "P1",
@@ -239,7 +239,7 @@
       "prefKeys": ["lifecycle"],
       "dedupKey": "tour_engage:{uid}:{tourId}",
       "templateId": "tour-engagement-reminder",
-      "implementationModule": null,
+      "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },

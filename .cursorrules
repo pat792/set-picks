@@ -64,7 +64,35 @@ You are an expert React engineer. Every code change MUST follow these rules.
 - **Automation context** shared with that workflow and **`scripts/groom-backlog.js`**: **`docs/GITHUB_AUTOMATION_CONTEXT.md`** — keep it accurate when architecture changes.
 - Never omit `[SKIP-PRD]` on agent-authored technical tickets, or the workflow will overwrite them. The groom script also skips issues with that prefix or labels **`skip-groom`**, **`skip-prd`**, **`cursor-authored`**, or **`AI-PRD`**.
 
-## 10) PR Workflow & QA
+## 10) Semantic Versioning (SemVer 2.0.0)
+
+This repo follows **Semantic Versioning 2.0.0** (https://semver.org). The public API is declared in **`docs/API.md`** — every agent and contributor MUST treat that document as the source of truth for what constitutes a breaking change.
+
+### Version bump rules
+
+| Change | Bump | Examples |
+|--------|------|---------|
+| Bug fix, copy change, style tweak, dependency update with no API impact | **PATCH** `x.y.Z` | Fix toast wording, broken query, UI color |
+| New feature, new route, new callable, new env var, new Firestore collection, deprecating a field | **MINOR** `x.Y.0` | New comms trigger, new standings view, new marketing page |
+| Rename/remove route, rename/remove callable, rename Firestore field/collection, remove env var, break callable request shape, widen security rules | **MAJOR** `X.0.0` | Rename `commsInbox`, remove `/how-it-works`, break callable response |
+
+### Agent obligations on every PR
+
+1. **Determine the bump type** from the diff using the table above.
+2. **Update `package.json` `version`** to the new version string before opening the PR.
+3. **Add a `CHANGELOG.md` entry** under `## [X.Y.Z] — YYYY-MM-DD` with Added / Changed / Fixed / Removed sections.
+4. **Update `docs/API.md`** if any declared surface changed (new route, renamed field, new callable, etc.).
+5. **Never tag a release commit** — tagging `vX.Y.Z` on `main` is a human step done after the staging→main merge.
+6. **Never modify a tagged version** — if a mistake is found in a released version, ship a new version.
+
+### Naming and format
+
+- Version string in `package.json` MUST be `X.Y.Z` (no `v` prefix).
+- Git tags MUST be `vX.Y.Z` (with `v` prefix, per common convention).
+- Pre-release staging builds MAY use `vX.Y.Z-rc.N`; only `main` tags carry official versions.
+- `package.json` `name` is `setlistpickem` — do not change it.
+
+## 11) PR Workflow & QA
 - **Base branch for every PR is `staging`**, not `main`. Staging auto-promotes to main via a rolled-up PR.
 - **Branch naming:** `feat/<issue#>-<kebab-slug>`. Commit messages follow `perf(area): headline` / `feat(area): headline` and include `Closes #<n>` so the issue auto-closes on merge.
 - **PR bodies** include `Closes #<n>`, a `## Summary`, and a `## Test plan` checklist. Create with HEREDOC: `gh pr create --body "$(cat <<'EOF' ... EOF )"`.

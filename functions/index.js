@@ -45,6 +45,13 @@ const { runAccountDeletionForCaller } = require("./accountDelete");
 const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { getTriggerSpec } = require("./commsCatalog");
+const {
+  handleAccountWelcome,
+  handlePicksConfirmed,
+  deliverLiveScoreComms,
+  runScheduledTourCountdown,
+  runScheduledTourRankingsDaily,
+} = require("./commsEventAdapters");
 
 const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 // Resend transactional/marketing email (epic #441 / #442). Stored in Cloud Secret
@@ -86,6 +93,7 @@ function assertShowDateString(showDate) {
 
 /** Firestore batch write limit (same invariant as `adminRollupApi.js` / `profileApi.js`). */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
+const PHISHNET_FUNCTIONS_REGION = "us-central1";
 
 async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = null) {
   const actualSetlist =
@@ -102,6 +110,11 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     return { updatedPicks: 0 };
   }
 
+  /** @type {Map<string, number>} */
+  const beforeScores = new Map();
+  /** @type {Map<string, number>} */
+  const afterScores = new Map();
+
   let batch = db.batch();
   let opCount = 0;
   let updatedPicks = 0;
@@ -114,7 +127,10 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
     }
     const pickData = pickDoc.data() || {};
     const userPicks = pickData.picks || {};
+    const prevScore = typeof pickData.score === "number" ? pickData.score : 0;
+    beforeScores.set(pickDoc.id, prevScore);
     const score = calculateTotalScore(userPicks, actualSetlist);
+    afterScores.set(pickDoc.id, score);
 
     // Live scoring only: do not set gradedAt here (pool season uses isGraded from rollup).
     const update = { score };
@@ -129,6 +145,23 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
   if (opCount > 0) {
     await batch.commit();
   }
+
+  try {
+    await deliverLiveScoreComms({
+      db,
+      admin,
+      showDate,
+      beforeScores,
+      afterScores,
+      picksSnap,
+      resendApiKey: process.env.RESEND_API_KEY,
+      logger,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger.warn("recomputeLiveScoresForShow.comms failed", { showDate, msg });
+  }
+
   return { updatedPicks };
 }
 
@@ -148,7 +181,66 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
   }
 );
 
-const PHISHNET_FUNCTIONS_REGION = "us-central1";
+/**
+ * Event adapter: account_welcome (#440) — fires when `users/{uid}` gains a handle.
+ * Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
+ */
+exports.commsOnUserProfileWrite = onDocumentWritten(
+  {
+    document: "users/{uid}",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendApiKey],
+  },
+  async (event) => {
+    if (!event.data?.after?.exists) return null;
+    try {
+      await handleAccountWelcome({
+        db,
+        admin,
+        uid: event.params.uid,
+        beforeData: event.data.before?.exists ? event.data.before.data() : null,
+        afterData: event.data.after.data() || {},
+        resendApiKey: process.env.RESEND_API_KEY,
+        logger,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("commsOnUserProfileWrite failed", { uid: event.params.uid, msg });
+    }
+    return null;
+  }
+);
+
+/**
+ * Event adapter: picks_confirmed (#440) — fires on first pick doc create.
+ * Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
+ */
+exports.commsOnPickWrite = onDocumentWritten(
+  {
+    document: "picks/{pickId}",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendApiKey],
+  },
+  async (event) => {
+    if (!event.data?.after?.exists) return null;
+    try {
+      await handlePicksConfirmed({
+        db,
+        admin,
+        pickId: event.params.pickId,
+        beforeExists: event.data.before?.exists === true,
+        beforeData: event.data.before?.exists ? event.data.before.data() : null,
+        afterData: event.data.after.data() || {},
+        resendApiKey: process.env.RESEND_API_KEY,
+        logger,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("commsOnPickWrite failed", { pickId: event.params.pickId, msg });
+    }
+    return null;
+  }
+);
 
 exports.refreshLiveScoresForShow = onCall(
   {
@@ -757,6 +849,62 @@ exports.scheduledPicksLockReminder = onSchedule(
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       logger.error("scheduledPicksLockReminder failed", { msg, err: e });
+    }
+    return null;
+  }
+);
+
+/**
+ * Scheduled tour countdown comms (#440) — daily check for T-10/T-5/T-1.
+ * Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
+ */
+exports.scheduledTourCountdownComms = onSchedule(
+  {
+    schedule: "0 9 * * *",
+    timeZone: "America/Los_Angeles",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendApiKey],
+  },
+  async () => {
+    try {
+      await runScheduledTourCountdown({
+        db,
+        admin,
+        resendApiKey: process.env.RESEND_API_KEY,
+        logger,
+        now: new Date(),
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledTourCountdownComms failed", { msg, err: e });
+    }
+    return null;
+  }
+);
+
+/**
+ * Morning-after tour rankings comms (#440).
+ * Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
+ */
+exports.scheduledTourRankingsDailyComms = onSchedule(
+  {
+    schedule: "0 8 * * *",
+    timeZone: "America/Los_Angeles",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendApiKey],
+  },
+  async () => {
+    try {
+      await runScheduledTourRankingsDaily({
+        db,
+        admin,
+        resendApiKey: process.env.RESEND_API_KEY,
+        logger,
+        now: new Date(),
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledTourRankingsDailyComms failed", { msg, err: e });
     }
     return null;
   }
