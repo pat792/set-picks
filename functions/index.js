@@ -1,5 +1,5 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, HttpsError, onRequest } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
@@ -46,6 +46,11 @@ const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { getTriggerSpec } = require("./commsCatalog");
 const {
+  verifyResendWebhookPayload,
+  handleResendWebhookEvent,
+} = require("./commsResendWebhook");
+const { processOneClickUnsubscribe } = require("./commsEmailUnsubscribe");
+const {
   handleAccountWelcome,
   handlePicksConfirmed,
   deliverLiveScoreComms,
@@ -57,9 +62,20 @@ const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 // Resend transactional/marketing email (epic #441 / #442). Stored in Cloud Secret
 // Manager; surfaced to bound functions as process.env.RESEND_API_KEY.
 const resendApiKey = defineSecret("RESEND_API_KEY");
+// Resend webhook signing secret (Svix) for bounce/complaint suppression (#442).
+const resendWebhookSecret = defineSecret("RESEND_WEBHOOK_SECRET");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+function buildCommsEmailWorkerInstance() {
+  return createCommsEmailWorker({
+    resendClient: buildResendClient(process.env.RESEND_API_KEY, logger),
+    db,
+    unsubscribeSigningSecret: process.env.RESEND_WEBHOOK_SECRET,
+    logger,
+  });
+}
 
 /**
  * Gate an admin-only callable on the `admin: true` custom claim (issue #139).
@@ -189,7 +205,7 @@ exports.commsOnUserProfileWrite = onDocumentWritten(
   {
     document: "users/{uid}",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (event) => {
     if (!event.data?.after?.exists) return null;
@@ -219,7 +235,7 @@ exports.commsOnPickWrite = onDocumentWritten(
   {
     document: "picks/{pickId}",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (event) => {
     if (!event.data?.after?.exists) return null;
@@ -430,7 +446,7 @@ exports.runCommsTrigger = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (request) => {
     assertAdminClaim(request);
@@ -462,10 +478,7 @@ exports.runCommsTrigger = onCall(
       });
     }
 
-    const emailWorker = createCommsEmailWorker({
-      resendClient: buildResendClient(process.env.RESEND_API_KEY, logger),
-      logger,
-    });
+    const emailWorker = buildCommsEmailWorkerInstance();
 
     return deliverCommsTrigger({
       db,
@@ -477,6 +490,88 @@ exports.runCommsTrigger = onCall(
       forceResend,
       logger,
     });
+  }
+);
+
+/**
+ * Resend deliverability webhook — hard bounces + spam complaints (#442).
+ * Configure in Resend dashboard → Webhooks → endpoint URL for this function.
+ * Events: `email.bounced`, `email.complained`, `email.suppressed`.
+ */
+exports.commsResendWebhook = onRequest(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendWebhookSecret],
+    invoker: "public",
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+    const rawBody =
+      typeof req.rawBody === "string"
+        ? req.rawBody
+        : req.rawBody instanceof Buffer
+          ? req.rawBody.toString("utf8")
+          : JSON.stringify(req.body || {});
+    try {
+      const event = verifyResendWebhookPayload(
+        rawBody,
+        req.headers,
+        process.env.RESEND_WEBHOOK_SECRET
+      );
+      const eventId = req.headers["svix-id"] ? String(req.headers["svix-id"]) : null;
+      const result = await handleResendWebhookEvent({
+        db,
+        admin,
+        event,
+        eventId,
+        logger,
+      });
+      logger.info("commsResendWebhook processed", { type: event?.type, ...result });
+      res.status(200).json({ ok: true });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      logger.warn("commsResendWebhook rejected", { msg });
+      res.status(400).send("Invalid webhook");
+    }
+  }
+);
+
+/**
+ * RFC 8058 one-click unsubscribe for comms marketing/lifecycle email (#442).
+ * GET/POST with `uid`, `email`, and HMAC `sig` query params.
+ */
+exports.commsEmailUnsubscribe = onRequest(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendWebhookSecret],
+    invoker: "public",
+  },
+  async (req, res) => {
+    const uid = String(req.query?.uid || "").trim();
+    const email = String(req.query?.email || "").trim();
+    const sig = String(req.query?.sig || "").trim();
+    const result = await processOneClickUnsubscribe({
+      db,
+      admin,
+      uid,
+      email,
+      sig,
+      signingSecret: process.env.RESEND_WEBHOOK_SECRET,
+      logger,
+    });
+    if (!result.ok) {
+      res.status(400).send("Invalid unsubscribe link");
+      return;
+    }
+    res
+      .status(200)
+      .set("Content-Type", "text/html; charset=utf-8")
+      .send(
+        "<!DOCTYPE html><html><body><p>You have been unsubscribed from Setlist Pick'em email updates.</p></body></html>"
+      );
   }
 );
 
@@ -863,7 +958,7 @@ exports.scheduledTourCountdownComms = onSchedule(
     schedule: "0 9 * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async () => {
     try {
@@ -891,7 +986,7 @@ exports.scheduledTourRankingsDailyComms = onSchedule(
     schedule: "0 8 * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async () => {
     try {
