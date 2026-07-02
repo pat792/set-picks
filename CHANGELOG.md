@@ -153,10 +153,8 @@ Bundled comms phase-1 release to production: rolls up staging-only increments 1.
 
 ---
 
-[Unreleased]: https://github.com/pat792/set-picks/compare/v1.8.0...HEAD
-[1.8.0]: https://github.com/pat792/set-picks/compare/v1.7.2...v1.8.0
-[1.7.2]: https://github.com/pat792/set-picks/compare/v1.7.1...v1.7.2
-[1.7.1]: https://github.com/pat792/set-picks/compare/v1.7.0...v1.7.1
+[Unreleased]: https://github.com/pat792/set-picks/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/pat792/set-picks/compare/v1.7.0...v1.10.0
 [1.7.0]: https://github.com/pat792/set-picks/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/pat792/set-picks/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/pat792/set-picks/compare/v1.4.0...v1.5.0
