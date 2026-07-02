@@ -18,6 +18,7 @@
 
 const { isEmailSuppressed } = require("./commsEmailSuppression");
 const { buildOneClickUnsubscribeUrl } = require("./commsEmailUnsubscribe");
+const { reserveEmailDailyCapSlot } = require("./commsEmailDailyCap");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
@@ -72,6 +73,7 @@ function unsubscribeHeaders(siteUrl, opts = {}) {
  * @param {{
  *   resendClient: object | null,
  *   db?: import("firebase-admin").firestore.Firestore,
+ *   admin?: typeof import("firebase-admin"),
  *   fromAddress?: string,
  *   siteUrl?: string,
  *   unsubscribeSigningSecret?: string,
@@ -90,6 +92,7 @@ function unsubscribeHeaders(siteUrl, opts = {}) {
 function createCommsEmailWorker({
   resendClient,
   db,
+  admin,
   fromAddress,
   siteUrl,
   unsubscribeSigningSecret,
@@ -119,6 +122,18 @@ function createCommsEmailWorker({
     }
     if (dryRun) {
       return { ok: true, skipReason: "dry_run" };
+    }
+    if (db && admin) {
+      const cap = await reserveEmailDailyCapSlot(db, admin, { uid, triggerId, logger });
+      if (!cap.allowed) {
+        logger?.info?.("comms_capped", {
+          comms_trigger_id: triggerId,
+          comms_channel: "email",
+          comms_cap_winner: cap.winningTriggerId || null,
+          uid,
+        });
+        return { ok: false, skipReason: "daily_email_cap" };
+      }
     }
 
     const headers = unsubscribeHeaders(siteUrl, {

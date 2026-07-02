@@ -34,6 +34,7 @@ function createCommsAdapterRuntime({ db, admin, resendApiKey, resendWebhookSecre
   const emailWorker = createCommsEmailWorker({
     resendClient: buildResendClient(resendApiKey, logger),
     db,
+    admin,
     unsubscribeSigningSecret: resendWebhookSecret,
     logger,
   });

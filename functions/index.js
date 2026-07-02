@@ -72,6 +72,7 @@ function buildCommsEmailWorkerInstance() {
   return createCommsEmailWorker({
     resendClient: buildResendClient(process.env.RESEND_API_KEY, logger),
     db,
+    admin,
     unsubscribeSigningSecret: process.env.RESEND_WEBHOOK_SECRET,
     logger,
   });
