@@ -233,6 +233,8 @@ subset with the `deploy:functions:*` script in `package.json`.
 
 Manifest source of truth: `functions/commsDeployManifest.js`. Full workflow: `.cursor/skills/comms-architect/SKILL.md` § Release + deploy tooling.
 
+Scripts live in root `package.json`; **`functions/package.json` forwards the same names** so `cd functions && npm run comms:deploy:list` works.
+
 ## 8 — Common gotchas
 
 - **No Auth emulator for the web app.** The Vite SPA always talks to
