@@ -17,7 +17,14 @@
     "backfill:bustouts": "node scripts/backfillBustouts.js",
     "backfill:season-aggregates": "node scripts/backfillSeasonAggregates.js",
     "rollup:reset-premature-grade": "node scripts/resetPrematureGrade.js",
-    "comms:deliver-sphere-inbox": "node scripts/deliverSphere2026TourRecapInbox.js"
+    "comms:deliver-sphere-inbox": "node scripts/deliverSphere2026TourRecapInbox.js",
+    "release:gate": "node ../scripts/release-gate.mjs",
+    "release:gate:full": "node ../scripts/release-gate.mjs --verify",
+    "release:publish": "node ../scripts/release-publish.mjs",
+    "comms:deploy:validate": "node ../scripts/comms-deploy-validate.mjs",
+    "comms:deploy:list": "node ../scripts/deploy-comms-functions.mjs --list",
+    "comms:deploy:dry": "node ../scripts/deploy-comms-functions.mjs --dry-run",
+    "comms:deploy": "node ../scripts/deploy-comms-functions.mjs"
   },
   "engines": {
     "node": "24"

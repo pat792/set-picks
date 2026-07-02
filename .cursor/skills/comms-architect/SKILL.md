@@ -143,6 +143,8 @@ Use the MCP for QA, broadcast drafting, and domain/webhook setup — **not** as 
 
 **Node 24** required for Functions deploy (`export PATH="$HOME/.nvm/versions/node/v24.17.0/bin:$PATH"`).
 
+Run from **repo root** (`npm run comms:deploy:list`) or from **`functions/`** (same script names are forwarded in `functions/package.json`).
+
 **Post-deploy verify** (production):
 
 ```bash
