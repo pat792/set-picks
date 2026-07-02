@@ -193,7 +193,11 @@ async function recomputeLiveScoresForShow(showDate, actualSetlistFromWrite = nul
 }
 
 exports.gradePicksOnSetlistWrite = onDocumentWritten(
-  "official_setlists/{showDate}",
+  {
+    document: "official_setlists/{showDate}",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendApiKey, resendWebhookSecret],
+  },
   async (event) => {
     if (!event.data.after.exists) {
       return null;
@@ -274,6 +278,7 @@ exports.refreshLiveScoresForShow = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (request) => {
     assertAdminClaim(request);
@@ -315,6 +320,7 @@ exports.rollupScoresForShow = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (request) => {
     assertAdminClaim(request);
@@ -1124,7 +1130,7 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
     schedule: "*/2 * * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [phishnetApiKey],
+    secrets: [phishnetApiKey, resendApiKey, resendWebhookSecret],
   },
   async () => {
     const key = phishnetApiKey.value();
@@ -1225,7 +1231,7 @@ exports.setLiveSetlistAutomationState = onCall(
 exports.pollLiveSetlistNow = onCall(
   {
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [phishnetApiKey],
+    secrets: [phishnetApiKey, resendApiKey, resendWebhookSecret],
     invoker: "public",
     enforceAppCheck: false,
   },
