@@ -19,7 +19,7 @@ const {
 } = require("./commsAdapterRuntime");
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
-const COUNTDOWN_DAYS = [10, 5, 1];
+const COUNTDOWN_DAYS = [10, 5, 3, 1];
 
 /**
  * @param {unknown} data

@@ -145,6 +145,30 @@ export const COMMS_TEMPLATE_REGISTRY = {
         },
       },
       {
+        name: 'T-5',
+        payload: {
+          handle: 'ArmenianMan',
+          tour_name: 'Summer Tour 2026',
+          days_remaining: 5,
+          first_show_date: 'Jul 18',
+          first_show_venue: 'MSG',
+          first_show_city: 'New York, NY',
+          lock_time_local: '7:55 PM',
+        },
+      },
+      {
+        name: 'T-3',
+        payload: {
+          handle: 'ArmenianMan',
+          tour_name: 'Summer Tour 2026',
+          days_remaining: 3,
+          first_show_date: 'Jul 7',
+          first_show_venue: 'Kohl Center',
+          first_show_city: 'Madison, WI',
+          lock_time_local: '7:55 PM',
+        },
+      },
+      {
         name: 'T-1',
         payload: {
           handle: 'ArmenianMan',

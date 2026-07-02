@@ -1068,7 +1068,7 @@ exports.scheduledPicksLockReminder = onSchedule(
 );
 
 /**
- * Scheduled tour countdown comms (#440) — daily check for T-10/T-5/T-1.
+ * Scheduled tour countdown comms (#440) — daily check for T-10/T-5/T-3/T-1.
  * Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
  */
 exports.scheduledTourCountdownComms = onSchedule(

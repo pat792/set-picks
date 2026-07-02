@@ -35,7 +35,7 @@
       "family": "show_calendar",
       "priority": "P0",
       "automation": "automated",
-      "schedule": "daily cron; fires when tour first show is exactly 10, 5, or 1 day(s) away",
+      "schedule": "daily cron; fires when tour first show is exactly 10, 5, 3, or 1 day(s) away",
       "audience": "users_active_60d",
       "channels": ["inApp", "push", "email"],
       "prefKeys": ["lifecycle"],
@@ -43,7 +43,7 @@
       "templateId": "tour-countdown",
       "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": null,
-      "variants": ["t10", "t5", "t1"],
+      "variants": ["t10", "t5", "t3", "t1"],
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "tour_name", "source": "tour metadata", "fallback": null },

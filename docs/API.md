@@ -161,7 +161,7 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | `commsOnPickWrite` | `picks_confirmed` | `picks/{pickId}` create with non-empty picks |
 | Post-rollup hook | `show_recap`, `tour_engagement_reminder` | `rollupScoresForShow` completion |
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
-| `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-1) |
+| `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).

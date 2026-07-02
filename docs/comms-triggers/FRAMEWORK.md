@@ -164,7 +164,7 @@ See [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md). Commercial never overrides P
 | W0 | `picks_lock_reminder` | `automated` | Shipped; push-only today |
 | W1 | `account_welcome` | `event_triggered` | Firestore onCreate |
 | W1 | `picks_confirmed` | `event_triggered` | Picks locked confirmation |
-| W2 | `tour_countdown` | `automated` | Daily cron T-10/5/1 |
+| W2 | `tour_countdown` | `automated` | Daily cron T-10/5/3/1 |
 | W2 | `tour_engagement_reminder` | `event_triggered` | After show 1 graded |
 | W3 | `show_recap` | `event_triggered` | After grading; replaces Sphere one-off |
 | W3 | `tour_rankings_daily` | `automated` | Next-morning standings |
