@@ -12,53 +12,33 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.9.0] — 2026-07-02
+## [1.10.0] — 2026-07-02
 
-### Added
-- **Branded HTML email body (#455)** — comms email now sends a branded `html` part (logo, CTA button, footer with "Manage preferences"/"Unsubscribe" links) alongside the existing plain-text fallback, instead of plain text only. Body copy renders as a single `<p>` with `<br>` line breaks rather than one `<p>` per line, avoiding a Gmail content-folding quirk that collapsed multi-line bodies behind a clickable "..." pill.
-- **`bypassDailyCap` (admin-only, `runCommsTrigger`)** — skips the #453 daily email fatigue cap reservation so a reviewer can preview every email-capable trigger template in one sitting without being capped to one send/day. Never set by production event adapters. See `scripts/canary-comms-preview.mjs`.
-- **Push notification click-through** — `firebase-messaging-sw.js` now handles `notificationclick`, focusing an existing app window or opening one to the notification's deep link. Previously clicking a desktop push notification did nothing.
-- `functions/commsEmailUnsubscribe.test.js` — direct unit coverage for `processOneClickUnsubscribe`, `buildOneClickUnsubscribeUrl`, the signed-token round trip, and the new GET-confirmation helpers (closes out #456's test-coverage gap).
-
-### Changed
-- **`forceResend` (`runCommsTrigger`)** now also varies the Resend `idempotencyKey` (timestamp + random suffix) in addition to bypassing dedup, so repeated QA sends with changed template content no longer collide with Resend's 24h idempotency window.
-- The branded HTML body no longer repeats the plain-text "Open the app: `<url>`" line — the HTML already has its own CTA button to the same destination. The plain-text-only fallback (no button available there) still includes it.
-- **`commsEmailUnsubscribe` is now method-gated (#456, security hardening):** POST (the real RFC 8058 one-click action mail clients issue automatically) suppresses immediately, same as before. GET (the visible footer link, or a link-scanner/antivirus gateway prefetching it) no longer suppresses by itself — it now renders a confirmation page requiring one explicit form submit. Any other method returns `405`. Live-verified against the deployed endpoint.
-- The branded HTML footer's visible "Unsubscribe" link now points at the `/dashboard/notifications` preferences page instead of the raw signed one-click suppression URL, which is now reserved exclusively for the invisible `List-Unsubscribe` header.
-
-### Fixed
-- Executed the #453 daily-cap manual test plan for real (no bypass): two non-exempt triggers same day → first sends, second is capped with `comms_capped` logging the winning trigger. Previously unverified in production.
-
----
-
-## [1.8.0] — 2026-07-02
-
-### Added
-- **Per-user daily email fatigue cap (#453)** — at most one discretionary email per user per `America/Los_Angeles` day, enforced transactionally via a new `email_cap:{uid}:{day}` doc-id shape inside the existing `fcm_notification_log` collection (no new collection/rules entry). Checked in `commsEmailWorker.js` after the suppression check, before the real Resend send; fails open on transaction errors so a Firestore hiccup can never silently swallow a legitimate email.
-- `account_welcome` is exempt from the cap (one-time-ever send, can't cause fatigue).
-- New `comms_capped` structured log event (Cloud Logging, not yet GA4 — see epic #441) fired when a trigger's email is skipped due to the cap.
-
-### Changed
-- **Known limitation:** the cap is first-reservation-wins (whichever trigger's email worker runs first that day keeps the slot) rather than a true priority queue — a higher-value trigger firing later in the day cannot preempt an already-sent lower-value one, since an email can't be unsent. In practice this means the two morning crons (`tour_rankings_daily` 8am PT, `tour_countdown` 9am PT) will usually win over the evening-firing `tour_engagement_reminder` on a contested day. Revisit if `comms_capped` data shows this ordering is hurting engagement.
-
----
-
-## [1.7.2] — 2026-07-02
-
-### Changed
-- **Comms fatigue reduction (#451)** — `show_recap` no longer emails; its "your night" recap content (score, rank) is folded into `tour_rankings_daily`'s next-morning email instead. Eliminates the dominant same-day email collision (both triggers previously fired for the same `(uid, showDate)` on every single-tour-night). `inApp`/`push` channels are unchanged — night-of delivery still fires immediately from `show_recap`.
-- Fixed stale `tour_rankings_daily` schedule description in `docs/comms-triggers/` (documented as "10:00 AM ET"; actual `onSchedule` cron is 8:00 AM `America/Los_Angeles`)
-
----
-
-## [1.7.1] — 2026-06-30
+Bundled comms phase-1 release to production: rolls up staging-only increments 1.7.1–1.9.0 plus #455 email preferences UI. Main was at 1.7.0 (event adapters, gated off). `COMMS_EVENT_ADAPTERS_ENABLED` remains off until post-deploy canary (#438).
 
 ### Added
 - **Resend deliverability (#442)** — `commsResendWebhook` (bounce/complaint/suppression → `email_suppression`), `commsEmailUnsubscribe` (RFC 8058 one-click), email worker suppression gate
 - **Firestore** — `email_suppression/{sha256(email)}` server-only collection
+- **Per-user daily email fatigue cap (#453)** — at most one discretionary email per user per `America/Los_Angeles` day, enforced transactionally via `email_cap:{uid}:{day}` inside `fcm_notification_log`. `account_welcome` is exempt. New `comms_capped` structured log event (Cloud Logging, not yet GA4 — see epic #441).
+- **Branded HTML email body (#456)** — comms email sends a branded `html` part (logo, CTA button, footer with "Manage preferences"/"Unsubscribe" links) alongside plain-text fallback. Body copy renders as a single `<p>` with `<br>` line breaks (avoids Gmail content-folding quirk).
+- **`bypassDailyCap` (admin-only, `runCommsTrigger`)** — skips the #453 daily cap for QA template preview runs. See `scripts/canary-comms-preview.mjs`.
+- **Push notification click-through** — `firebase-messaging-sw.js` handles `notificationclick`, focusing an existing app window or opening the deep link.
+- **Notifications email preferences UI (#455)** — Email accordion on `/dashboard/notifications` shows lifecycle email status, suppression reason, and unsubscribe / re-enable actions. "Tour & onboarding updates" copy now states it applies to push, in-app, and email.
+- **Comms email subscription callables (#455)** — `getCommsEmailStatus`, `unsubscribeCommsEmail`, `resubscribeCommsEmail` (clients cannot read `email_suppression` directly). Self-serve resubscribe clears `one_click_unsubscribe` and `user_preferences` suppressions; hard bounces and spam complaints stay blocked.
+- `functions/commsEmailUnsubscribe.test.js`, `functions/commsEmailPrefs.test.js` — unit coverage for unsubscribe and prefs callables.
 
 ### Changed
-- Comms email `List-Unsubscribe` headers now include signed one-click unsubscribe URLs when `RESEND_WEBHOOK_SECRET` is set
+- Comms email `List-Unsubscribe` headers include signed one-click unsubscribe URLs when `RESEND_WEBHOOK_SECRET` is set
+- **Comms fatigue reduction (#451)** — `show_recap` no longer emails; recap content folded into `tour_rankings_daily`'s next-morning email. `inApp`/`push` unchanged.
+- Fixed stale `tour_rankings_daily` schedule description in `docs/comms-triggers/` (documented as "10:00 AM ET"; actual cron is 8:00 AM `America/Los_Angeles`)
+- **Known daily-cap limitation:** first-reservation-wins per day — morning crons (`tour_rankings_daily`, `tour_countdown`) usually win over evening `tour_engagement_reminder`.
+- **`forceResend` (`runCommsTrigger`)** varies the Resend `idempotencyKey` (timestamp + random suffix) in addition to bypassing dedup.
+- Branded HTML body no longer repeats the plain-text "Open the app: `<url>`" line (HTML has its own CTA).
+- **`commsEmailUnsubscribe` method gating (#456):** POST suppresses immediately (RFC 8058 one-click); GET renders a confirmation form (link-scanner safe); other methods return `405`.
+- Branded HTML footer "Unsubscribe" link points at `/dashboard/notifications`; raw one-click URL is only in the `List-Unsubscribe` header.
+
+### Fixed
+- Executed the #453 daily-cap manual test plan: two non-exempt triggers same day → first sends, second capped with `comms_capped` logging.
 
 ---
 
