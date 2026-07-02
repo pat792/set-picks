@@ -117,6 +117,48 @@ Use the MCP for QA, broadcast drafting, and domain/webhook setup — **not** as 
 3. **Enable the event adapter / schedule** for the cohort %, then full audience
 4. Monitor `fcm_notification_log`, Resend webhooks, and CF error logs
 
+## Release + deploy tooling (agents)
+
+**Canonical manifest:** `functions/commsDeployManifest.js` — three groups (`eventAdapters`, `hookHosts`, `infra`). When adapter count grows from 6 to 6+N, append **one row** per new export; scripts derive deploy targets dynamically.
+
+| npm script | Purpose |
+|------------|---------|
+| `npm run release:gate` | SemVer gate (version > latest GH release + CHANGELOG entry) |
+| `npm run release:gate:full` | Gate + lint + vitest + functions tests |
+| `npm run release:publish -- --confirm` | Gate → `git tag` → `gh release create` (**user must request**) |
+| `npm run comms:deploy:validate` | Manifest ↔ `index.js` export + secret binding check |
+| `npm run comms:deploy:list` | Print manifest groups + firebase `--only` targets |
+| `npm run comms:deploy:dry` | Print deploy command without running |
+| `npm run comms:deploy -- --confirm` | Deploy all manifest exports (default `--group all`) |
+| `npm run comms:deploy -- --confirm --group eventAdapters` | Deploy only scheduled/Firestore adapters |
+
+### Agent workflow after a comms PR merges to `main`
+
+1. **`npm run release:gate:full`** — must pass before tag/release (mirrors CI SemVer step on staging PRs).
+2. **`npm run release:publish -- --confirm`** — only when the user explicitly asks to tag/publish.
+3. **`npm run comms:deploy:validate`** — catch manifest drift before deploy.
+4. **`npm run comms:deploy -- --confirm --group eventAdapters`** — after adapter-only changes (e.g. `scheduledTourCountdownComms` cadence tweak).
+5. **`npm run comms:deploy -- --confirm --group hookHosts`** — after live-score/rollup secret or comms hook changes.
+6. **`npm run comms:deploy -- --confirm`** — full comms stack (adapters + hooks + infra).
+
+**Node 24** required for Functions deploy (`export PATH="$HOME/.nvm/versions/node/v24.17.0/bin:$PATH"`).
+
+**Post-deploy verify** (production):
+
+```bash
+gcloud functions describe <export> --gen2 --region=us-central1 --project=set-picks \
+  --format='value(updateTime,serviceConfig.environmentVariables.COMMS_EVENT_ADAPTERS_ENABLED,serviceConfig.secretEnvironmentVariables.key)'
+```
+
+**Cron readiness:** code on `main` ≠ live until deploy completes. Scheduled jobs can fire HTTP 200 while adapters no-op if `COMMS_EVENT_ADAPTERS_ENABLED` was off on that revision — check deploy timestamp vs cron time.
+
+### Adding a new comms adapter (checklist)
+
+1. Export in `functions/index.js` with correct `secrets:` + gate comment.
+2. Append row to `functions/commsDeployManifest.js` → `eventAdapters` (or `hookHosts` / `infra`).
+3. `npm run comms:deploy:validate` + `cd functions && npm test`.
+4. Ship PR; after merge deploy the affected `--group` (not necessarily full `all`).
+
 ## Registry / template extension
 
 - Server copy: add a builder in `functions/commsTemplates.js` (push title/body + email subject/text).
@@ -135,7 +177,7 @@ Use the MCP for QA, broadcast drafting, and domain/webhook setup — **not** as 
 **Dedup:** ...
 **Prefs:** ...
 **Dry run:** callable flag / script
-**Deploy:** firebase deploy --only functions:...
+**Deploy:** firebase deploy --only functions:... (prefer `npm run comms:deploy:list` / `comms:deploy -- --confirm --group …` — see **Release + deploy tooling** below)
 **Rules:** firestore deploy if inbox reads affected
 **Measurement:** server log fields
 ```
@@ -149,6 +191,6 @@ Use the MCP for QA, broadcast drafting, and domain/webhook setup — **not** as 
 ## Constraints
 
 - PR base branch: **staging**
-- Deploy functions per `functions/package.json` scripts
+- Deploy functions per `functions/package.json` scripts; **comms** exports use `npm run comms:deploy:*` (manifest-driven — see **Release + deploy tooling**)
 - Fatigue: max 2 push/user/show day (document in catalog notes)
 - Commercial slots only via `COMMERCIAL_PHASE3.md` gates
