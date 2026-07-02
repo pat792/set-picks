@@ -124,12 +124,12 @@ Every template draws from this shared set. Each trigger declares the subset it u
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Daily cron; fires when a tour's first show is exactly 10, 5, or 1 day(s) away |
+| **Schedule** | Daily cron; fires when a tour's first show is exactly 10, 5, 3, or 1 day(s) away |
 | **Channels** | `inApp`, `push`, `email` |
 | **Audience** | All users who have logged in within the last 60 days |
 | **Prefs key** | `lifecycle` |
 | **Dedup** | `tour_countdown:{tourId}:{uid}:{days_remaining}` |
-| **Implementation** | `onSchedule` daily; checks tour start date vs today; fires 3 times per tour |
+| **Implementation** | `onSchedule` daily; checks tour start date vs today; fires 4 times per tour |
 
 #### Variables used
 
@@ -141,6 +141,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 |------|-----------|-----------|
 | `10` | `{{tour_name}} starts in 10 days` | `Picks open soon. Start thinking about your openers, {{handle}}.` |
 | `5` | `5 days until {{tour_name}}` | `Picks are open for the first show. Lock in early, {{handle}}.` |
+| `3` | `3 days until {{tour_name}}` | `First show is {{first_show_date}}. Get your picks in before the weekend, {{handle}}.` |
 | `1` | `{{tour_name}} starts tomorrow` | `{{first_show_city}} — {{first_show_date}}. Have you picked your opener?` |
 
 **Deep link:** `/dashboard/picks`
@@ -158,6 +159,14 @@ Every template draws from this shared set. Each trigger declares the subset it u
 **Heading:** `5 days — {{tour_name}}`
 
 **Body:** Picks are open for the first show at {{first_show_venue}}. Get your opener, closer, encore, and wildcard locked in before the deadline. Every show counts toward the tour standings.
+
+**CTA:** `Make picks for show 1 →`
+
+#### Template — In-App (T-3)
+
+**Heading:** `3 days — {{tour_name}}`
+
+**Body:** {{first_show_venue}}, {{first_show_city}} — show 1 is in three days. If you haven't locked picks yet, now's the time before the weekend rush.
 
 **CTA:** `Make picks for show 1 →`
 

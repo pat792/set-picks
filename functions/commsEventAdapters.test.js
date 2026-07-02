@@ -60,7 +60,7 @@ test("computeGlobalRankByUid ranks by score with ties", () => {
   assert.equal(ranks.get("u1")?.total, 3);
 });
 
-test("findTourCountdownTargets hits T-10/T-5/T-1", () => {
+test("findTourCountdownTargets hits T-10/T-5/T-3/T-1", () => {
   const now = new Date("2026-04-06T18:00:00Z");
   const shows = [
     {
@@ -75,6 +75,23 @@ test("findTourCountdownTargets hits T-10/T-5/T-1", () => {
   assert.equal(hits.length, 1);
   assert.equal(hits[0].days_remaining, 10);
   assert.equal(hits[0].tourId, "Sphere '26");
+});
+
+test("findTourCountdownTargets hits T-3 for Summer Tour Jul 7 kickoff", () => {
+  const now = new Date("2026-07-04T16:00:00Z");
+  const shows = [
+    {
+      date: "2026-07-07",
+      venue: "Kohl Center",
+      city: "Madison, WI",
+      timeZone: "America/Chicago",
+      tour: "Summer Tour 2026",
+    },
+  ];
+  const hits = findTourCountdownTargets(shows, now);
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].days_remaining, 3);
+  assert.equal(hits[0].tourId, "Summer Tour 2026");
 });
 
 test("leaderUidFromScores returns sole leader only", () => {
