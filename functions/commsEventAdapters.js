@@ -559,6 +559,10 @@ async function runScheduledTourRankingsDaily({
     const picksSnap = await db.collection("picks").where("showDate", "==", showDate).get();
     if (picksSnap.empty) continue;
     const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
+    // #451: reuse the same rank helper show_recap uses so this email's folded-in
+    // "your night" section (show_score/global_rank) matches what show_recap
+    // would have reported, without a second Firestore pass.
+    const globalRanks = computeGlobalRankByUid(picksSnap.docs, new Map());
 
     /** @type {{ uid: string, tourPoints: number }[]} */
     const tourRows = [];
@@ -584,13 +588,18 @@ async function runScheduledTourRankingsDaily({
       // eslint-disable-next-line no-await-in-loop
       const userSnap = await db.collection("users").doc(row.uid).get();
       const userData = userSnap.exists ? userSnap.data() || {} : {};
+      const rankInfo = globalRanks.get(row.uid) || null;
       recipients.push({
         uid: row.uid,
         userData,
         payload: {
           handle: handleFromUser(userData),
           show_date: showDate,
+          venue_name: show.venue || "",
           venue_city: show.city || "",
+          show_score: rankInfo?.score ?? null,
+          global_rank: rankInfo?.rank ?? null,
+          global_total_pickers: rankInfo?.total ?? null,
           tour_rank: i + 1,
           tour_points: row.tourPoints,
           total_tour_pickers: tourRows.length,
