@@ -7,6 +7,9 @@ const {
   createCommsEmailWorker,
   unsubscribeHeaders,
   buildResendClient,
+  buildBrandedEmailHtml,
+  stripRedundantCtaLine,
+  escapeHtml,
 } = require("./commsEmailWorker");
 
 function fakeResend(captured) {
@@ -43,6 +46,27 @@ test("sends via Resend with idempotency key + unsubscribe headers", async () => 
   assert.equal(captured[0].options.idempotencyKey, "show_recap/u1:show_recap:u1:2026-07-18");
   assert.match(captured[0].message.headers["List-Unsubscribe"], /commsEmailUnsubscribe/);
   assert.equal(captured[0].message.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
+});
+
+test("idempotencyKey is stable (no forceResend) — production retries never double-send", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({ resendClient: fakeResend(captured) });
+  await worker(baseCtx);
+  await worker(baseCtx);
+  assert.equal(captured[0].options.idempotencyKey, captured[1].options.idempotencyKey);
+});
+
+test("forceResend varies the idempotencyKey so Resend doesn't reject a re-run with different content", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({ resendClient: fakeResend(captured) });
+  await worker({ ...baseCtx, forceResend: true });
+  await worker({ ...baseCtx, forceResend: true });
+  assert.notEqual(
+    captured[0].options.idempotencyKey,
+    captured[1].options.idempotencyKey,
+    "each forceResend call must get a unique Resend idempotency key"
+  );
+  assert.match(captured[0].options.idempotencyKey, /^show_recap\/u1:show_recap:u1:2026-07-18:\d+:[a-z0-9]+$/);
 });
 
 test("dry run does not send", async () => {
@@ -122,6 +146,105 @@ test("unsubscribeHeaders point at the notifications screen when unsigned", () =>
   assert.match(headers["List-Unsubscribe"], /\/dashboard\/notifications/);
 });
 
+test("sends a branded HTML body alongside the plain-text fallback", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({
+    resendClient: fakeResend(captured),
+    unsubscribeSigningSecret: "test-secret",
+  });
+  await worker(baseCtx);
+
+  const { html, headers } = captured[0].message;
+  assert.ok(html.includes("<!DOCTYPE html>"));
+  assert.match(html, /web-app-manifest-512x512\.png/, "includes the hosted app logo");
+  assert.match(html, /Setlist Pick&apos;em/, "includes the brand name");
+  assert.match(html, /Manage preferences/);
+  assert.match(html, /Unsubscribe/);
+  assert.match(html, /\/dashboard\/notifications/, "visible footer link goes to the preferences page");
+  // #456: the visible body link must be a safe GET (preferences page), never the
+  // raw signed one-click suppression URL — that's reserved for the invisible
+  // List-Unsubscribe header, which mail clients only ever invoke via POST.
+  assert.ok(
+    !html.includes("commsEmailUnsubscribe"),
+    "visible body link must not be the one-click suppression endpoint"
+  );
+  assert.match(
+    headers["List-Unsubscribe"],
+    /commsEmailUnsubscribe/,
+    "the true one-click action still lives in the header, for mail clients"
+  );
+});
+
+test("stripRedundantCtaLine drops the plain-text 'Open the app' line", () => {
+  const text = "Hi Pat!\n\nOpen the app: https://www.setlistpickem.com/dashboard\n\nSee you there.";
+  assert.equal(
+    stripRedundantCtaLine(text),
+    "Hi Pat!\n\n\nSee you there."
+  );
+});
+
+test("branded HTML body omits the redundant plain-text app link (button already covers it)", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({
+    resendClient: fakeResend(captured),
+    unsubscribeSigningSecret: "test-secret",
+  });
+  const ctx = {
+    ...baseCtx,
+    rendered: {
+      email: {
+        subject: "Your recap",
+        text: [
+          "Hi Pat, here is your recap.",
+          "",
+          "Open the app: https://www.setlistpickem.com/dashboard",
+          "",
+          "Manage which updates you get in Notifications settings.",
+          "— Setlist Pick'em",
+        ].join("\n"),
+      },
+    },
+  };
+  await worker(ctx);
+
+  const { html, text } = captured[0].message;
+  // The plain-text fallback (no button available) still needs the link.
+  assert.match(text, /Open the app: https:\/\/www\.setlistpickem\.com\/dashboard/);
+  // The HTML body has its own CTA button pointing at the same URL, so the
+  // bare-text duplicate would just look like clutter next to it.
+  assert.ok(!html.includes("Open the app:"));
+  assert.match(html, /Open Setlist Pick&apos;em/, "the CTA button is still present");
+});
+
+test("buildBrandedEmailHtml joins multi-line bodies into a single <p> with <br> breaks", () => {
+  // Gmail's content-folding heuristic collapses stacked short <p> blocks
+  // behind a clickable "..." pill; a single <p> with <br> line breaks avoids it.
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "Line one.\nLine two.\nLine three.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/notifications",
+  });
+  const bodyParagraphCount = (html.match(/<p style="margin:0 0 20px 0/g) || []).length;
+  assert.equal(bodyParagraphCount, 1, "body text should render as a single <p> block");
+  assert.match(html, /Line one\.<br \/>Line two\.<br \/>Line three\./);
+});
+
+test("buildBrandedEmailHtml escapes body text to avoid HTML injection", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "Hi <script>alert(1)</script>",
+    ctaUrl: "https://www.setlistpickem.com/dashboard",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/notifications",
+  });
+  assert.ok(!html.includes("<script>alert(1)</script>"));
+  assert.match(html, /&lt;script&gt;/);
+});
+
+test("escapeHtml escapes the standard entity set", () => {
+  assert.equal(escapeHtml(`<a href="x">'&'</a>`), "&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
+});
+
 const fakeAdmin = {
   firestore: { FieldValue: { serverTimestamp: () => "ts" } },
 };
@@ -183,6 +306,21 @@ test("daily cap (#453): account_welcome always sends even after the day's slot i
   const welcome = await worker({ ...baseCtx, triggerId: "account_welcome", dedupId: "welcome:u1" });
   assert.equal(welcome.ok, true);
   assert.equal(captured.length, 2, "account_welcome must not be blocked by an already-used slot");
+});
+
+test("daily cap: bypassDailyCap lets every trigger send in one sitting (admin QA preview)", async () => {
+  const captured = [];
+  const db = makeFakeTxDb();
+  const worker = createCommsEmailWorker({ resendClient: fakeResend(captured), db, admin: fakeAdmin });
+
+  const first = await worker({ ...baseCtx, triggerId: "tour_countdown", bypassDailyCap: true });
+  const second = await worker({ ...baseCtx, triggerId: "tour_rankings_daily", bypassDailyCap: true });
+  const third = await worker({ ...baseCtx, triggerId: "tour_engagement_reminder", bypassDailyCap: true });
+
+  assert.equal(first.ok, true);
+  assert.equal(second.ok, true);
+  assert.equal(third.ok, true);
+  assert.equal(captured.length, 3, "bypassDailyCap must skip the cap reservation entirely");
 });
 
 test("daily cap (#453): skipped entirely when admin is not provided (backward compatible)", async () => {

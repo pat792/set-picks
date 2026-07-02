@@ -49,7 +49,12 @@ const {
   verifyResendWebhookPayload,
   handleResendWebhookEvent,
 } = require("./commsResendWebhook");
-const { processOneClickUnsubscribe } = require("./commsEmailUnsubscribe");
+const {
+  processOneClickUnsubscribe,
+  verifyOneClickUnsubscribeToken,
+  renderUnsubscribeConfirmPage,
+  renderUnsubscribeSuccessPage,
+} = require("./commsEmailUnsubscribe");
 const {
   handleAccountWelcome,
   handlePicksConfirmed,
@@ -459,6 +464,11 @@ exports.runCommsTrigger = onCall(
 
     const dryRun = request.data?.dryRun !== false;
     const forceResend = request.data?.forceResend === true;
+    // QA/canary-only: skips the #453 per-user daily email cap so an admin can
+    // preview every template's real rendered email in one sitting. Never set
+    // by the production event adapters — those always go through the default
+    // (capped) path.
+    const bypassDailyCap = request.data?.bypassDailyCap === true;
     const requested = Array.isArray(request.data?.recipients) ? request.data.recipients : [];
     if (requested.length === 0) {
       throw new HttpsError("invalid-argument", "recipients[] is required.");
@@ -489,6 +499,7 @@ exports.runCommsTrigger = onCall(
       workers: buildDefaultWorkers({ emailWorker }),
       dryRun,
       forceResend,
+      bypassDailyCap,
       logger,
     });
   }
@@ -542,7 +553,14 @@ exports.commsResendWebhook = onRequest(
 
 /**
  * RFC 8058 one-click unsubscribe for comms marketing/lifecycle email (#442).
- * GET/POST with `uid`, `email`, and HMAC `sig` query params.
+ *
+ * Method-gated by design (#456): mail clients honor `List-Unsubscribe-Post`
+ * by issuing a real POST with no human interaction — that's the true
+ * "one-click" action and suppresses immediately. A GET (the visible footer
+ * link, or a link-scanner/antivirus gateway prefetching it) must NOT
+ * suppress by itself, since scanners only ever issue GET/HEAD — it renders
+ * a confirmation page requiring one explicit form submit (a real POST)
+ * before anything is written to `email_suppression`.
  */
 exports.commsEmailUnsubscribe = onRequest(
   {
@@ -554,25 +572,42 @@ exports.commsEmailUnsubscribe = onRequest(
     const uid = String(req.query?.uid || "").trim();
     const email = String(req.query?.email || "").trim();
     const sig = String(req.query?.sig || "").trim();
-    const result = await processOneClickUnsubscribe({
-      db,
-      admin,
-      uid,
-      email,
-      sig,
-      signingSecret: process.env.RESEND_WEBHOOK_SECRET,
-      logger,
-    });
-    if (!result.ok) {
-      res.status(400).send("Invalid unsubscribe link");
+    const signingSecret = process.env.RESEND_WEBHOOK_SECRET;
+
+    if (req.method === "POST") {
+      const result = await processOneClickUnsubscribe({
+        db,
+        admin,
+        uid,
+        email,
+        sig,
+        signingSecret,
+        logger,
+      });
+      if (!result.ok) {
+        res.status(400).send("Invalid unsubscribe link");
+        return;
+      }
+      res
+        .status(200)
+        .set("Content-Type", "text/html; charset=utf-8")
+        .send(renderUnsubscribeSuccessPage());
       return;
     }
-    res
-      .status(200)
-      .set("Content-Type", "text/html; charset=utf-8")
-      .send(
-        "<!DOCTYPE html><html><body><p>You have been unsubscribed from Setlist Pick'em email updates.</p></body></html>"
-      );
+
+    if (req.method === "GET") {
+      if (!verifyOneClickUnsubscribeToken({ uid, email, sig, signingSecret })) {
+        res.status(400).send("Invalid unsubscribe link");
+        return;
+      }
+      res
+        .status(200)
+        .set("Content-Type", "text/html; charset=utf-8")
+        .send(renderUnsubscribeConfirmPage({ uid, email, sig }));
+      return;
+    }
+
+    res.status(405).send("Method Not Allowed");
   }
 );
 

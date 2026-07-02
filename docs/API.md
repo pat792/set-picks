@@ -118,9 +118,12 @@ General-purpose comms delivery callable. Runs a named trigger through the full p
   "triggerId": "account_welcome",
   "recipients": [{ "uid": "...", "payload": {}, "vars": {} }],
   "dryRun": true,
-  "forceResend": false
+  "forceResend": false,
+  "bypassDailyCap": false
 }
 ```
+
+`bypassDailyCap` (v1.9.0+, admin-only QA) skips the #453 per-user daily email fatigue cap reservation entirely — never set by the production event adapters, only used by this callable so a reviewer can preview every template's rendered email in one sitting (see `scripts/canary-comms-preview.mjs`). `forceResend` bypasses dedup *and* varies the Resend idempotency key (timestamp + random suffix), so repeated QA sends with changed content don't collide with Resend's 24h idempotency window ("request body was modified and doesn't match the original request").
 
 **Response:**
 ```json
@@ -171,6 +174,13 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 | `commsEmailUnsubscribe` | GET/POST | HMAC query params (`uid`, `email`, `sig`) | RFC 8058 one-click unsubscribe; opts user out of lifecycle email |
 
 Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` HTTPS endpoint. Signing secret: `firebase functions:secrets:set RESEND_WEBHOOK_SECRET`.
+
+**`commsEmailUnsubscribe` method gating (v1.9.0+, #456):** the two HTTP methods behave differently by design —
+- **POST** with a valid signature (the real RFC 8058 one-click action; mail clients issue this automatically via `List-Unsubscribe-Post`) suppresses immediately and returns a success page.
+- **GET** with a valid signature (the visible footer "Unsubscribe"/"Manage preferences" link, or any link-scanner/antivirus gateway prefetching it) never suppresses by itself — it renders an HTML confirmation page with a form that must be explicitly submitted (a real POST) to complete the unsubscribe.
+- Any other method, or an invalid/missing signature, returns `400`/`405` without touching `email_suppression`.
+
+The branded HTML email body's visible footer link points at the `/dashboard/notifications` settings page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header.
 
 ---
 
