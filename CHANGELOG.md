@@ -12,6 +12,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.8.0] — 2026-07-02
+
+### Added
+- **Per-user daily email fatigue cap (#453)** — at most one discretionary email per user per `America/Los_Angeles` day, enforced transactionally via a new `email_cap:{uid}:{day}` doc-id shape inside the existing `fcm_notification_log` collection (no new collection/rules entry). Checked in `commsEmailWorker.js` after the suppression check, before the real Resend send; fails open on transaction errors so a Firestore hiccup can never silently swallow a legitimate email.
+- `account_welcome` is exempt from the cap (one-time-ever send, can't cause fatigue).
+- New `comms_capped` structured log event (Cloud Logging, not yet GA4 — see epic #441) fired when a trigger's email is skipped due to the cap.
+
+### Changed
+- **Known limitation:** the cap is first-reservation-wins (whichever trigger's email worker runs first that day keeps the slot) rather than a true priority queue — a higher-value trigger firing later in the day cannot preempt an already-sent lower-value one, since an email can't be unsent. In practice this means the two morning crons (`tour_rankings_daily` 8am PT, `tour_countdown` 9am PT) will usually win over the evening-firing `tour_engagement_reminder` on a contested day. Revisit if `comms_capped` data shows this ordering is hurting engagement.
+
+---
+
 ## [1.7.2] — 2026-07-02
 
 ### Changed
@@ -135,7 +147,8 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-[Unreleased]: https://github.com/pat792/set-picks/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/pat792/set-picks/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/pat792/set-picks/compare/v1.7.2...v1.8.0
 [1.7.2]: https://github.com/pat792/set-picks/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/pat792/set-picks/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/pat792/set-picks/compare/v1.6.0...v1.7.0
