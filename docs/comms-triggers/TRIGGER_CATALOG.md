@@ -294,11 +294,12 @@ Scores update live during the show. Check back tonight.
 | **Status** | `shipped` |
 | **Automation** | `event_triggered` |
 | **Event** | Grading finalized for a show (all picks scored, rollup complete) |
-| **Channels** | `inApp`, `push`, `email` |
+| **Channels** | `inApp`, `push` |
 | **Audience** | All users who submitted picks for the show |
 | **Prefs key** | `results` |
 | **Dedup** | `show_recap:{uid}:{showDate}` in `commsInbox` + `fcm_notification_log` |
 | **Implementation** | Batch fan-out triggered after `rollupScoresForShow` completes |
+| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. |
 
 #### Variables used
 
@@ -330,17 +331,7 @@ Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the r
 
 **CTA:** `Full standings →`
 
-#### Template — Email
-
-**Subject:** `Your {{venue_city}} recap — {{show_score}} pts, rank #{{global_rank}}`  
-**Preview:** `{{correct_picks_count}} of {{total_picks_count}} picks correct. {{setlist_highlight}}`
-
-**Body sections:**
-1. **Your night** — score, rank (global + pool if applicable), correct picks count.
-2. **Pick-by-pick** — opener, closer, encore, wildcard results with song names. Bustout bonus called out if earned.
-3. **Setlist context** — `{{setlist_highlight}}` (e.g., "It was the first time Reba opened a show in 6 years").
-4. **Leaderboard** — top scorer tonight + user's standing vs pool.
-5. **CTA:** `See full standings` + next show date if applicable.
+*(No email template — the "your night" content below now ships inside `tour_rankings_daily`'s email, see #451.)*
 
 ---
 
@@ -350,16 +341,17 @@ Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the r
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Morning after each show night (10:00 AM ET); only fires on days following a show |
+| **Schedule** | Morning after each show night, 8:00 AM `America/Los_Angeles` (`onSchedule "0 8 * * *"`); only fires on days following a show |
 | **Channels** | `inApp`, `push`, `email` |
 | **Audience** | Users who have picks in at least one show this tour |
 | **Prefs key** | `results` |
 | **Dedup** | `tour_rank:{uid}:{showDate}` |
 | **Implementation** | `onSchedule` daily; checks if yesterday was a show night; fans out standings update |
+| **Note** | Email absorbs `show_recap`'s "your night" section (#451) — one email per `(uid, showDate)` instead of two. inApp/push are unaffected; those still fire immediately, night-of, from `show_recap`. |
 
 #### Variables used
 
-`{{handle}}`, `{{show_date}}`, `{{venue_city}}`, `{{tour_rank}}`, `{{total_tour_pickers}}`, `{{tour_points}}`, `{{rank_change}}`, `{{shows_played}}`, `{{pool_tour_rank}}`, `{{pool_name}}`, `{{next_show_date}}`, `{{next_show_venue}}`
+`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{pool_name}}`, `{{pool_rank}}`, `{{pool_total_pickers}}`, `{{correct_picks_count}}`, `{{total_picks_count}}`, `{{opener_result}}`, `{{closer_result}}`, `{{encore_result}}`, `{{wildcard_result}}`, `{{bustout_bonus}}`, `{{setlist_highlight}}`, `{{top_scorer_handle}}`, `{{top_score}}`, `{{tour_rank}}`, `{{total_tour_pickers}}`, `{{tour_points}}`, `{{rank_change}}`, `{{shows_played}}`, `{{pool_tour_rank}}`, `{{next_show_date}}`, `{{next_show_venue}}`
 
 #### Template — Push
 
@@ -380,14 +372,17 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
 #### Template — Email
 
-**Subject:** `Tour update — {{handle}} is #{{tour_rank}} after {{venue_city}}`  
-**Preview:** `{{tour_points}} pts · {{shows_played}} shows · {{rank_change}}`
+**Subject:** `Your {{venue_city}} recap + tour update — #{{tour_rank}} on tour`  
+**Preview:** `{{correct_picks_count}} of {{total_picks_count}} correct last night. Now #{{tour_rank}} on tour ({{rank_change}}).`
 
 **Body sections:**
-1. **Your tour position** — rank, points, shows played, rank change vs yesterday.
-2. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
-3. **Next show** — {{next_show_venue}}, {{next_show_date}}. Picks are open.
-4. **CTA:** `Make picks for next show`
+1. **Your night** *(absorbed from `show_recap`, #451)* — score, rank (global + pool if applicable), correct picks count.
+2. **Pick-by-pick** — opener, closer, encore, wildcard results with song names. Bustout bonus called out if earned.
+3. **Setlist context** — `{{setlist_highlight}}` (e.g., "It was the first time Reba opened a show in 6 years").
+4. **Your tour position** — rank, points, shows played, rank change vs yesterday.
+5. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
+6. **Next show** — {{next_show_venue}}, {{next_show_date}}. Picks are open.
+7. **CTA:** `Make picks for next show`
 
 ---
 

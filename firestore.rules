@@ -161,6 +161,14 @@ service cloud.firestore {
     }
 
     /**
+     * Email suppression list for comms deliverability (#442). Written only by
+     * Cloud Functions (webhooks + unsubscribe endpoint); clients must not access.
+     */
+    match /email_suppression/{docId} {
+      allow read, write: if false;
+    }
+
+    /**
      * Self-serve account deletion audit (`deleteAccountWithAudit` callable).
      * Written only via Admin SDK; no client access.
      */

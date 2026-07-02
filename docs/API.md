@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.7.0  
+**Version:** 1.10.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -72,9 +72,15 @@ Stores per-user, per-show slot picks and computed scores.
 
 Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). Presence of a doc = trigger already delivered; delete to allow re-send.
 
+Also hosts the per-user daily email fatigue cap (#453): doc ID `email_cap:{uid}:{day}` (`day` = `YYYY-MM-DD` in `America/Los_Angeles`), `{ kind: "email_daily_cap", count, cap, lastTriggerId, lastEmailSentAt }`. Written transactionally by `commsEmailDailyCap.js`. `account_welcome` is exempt and never creates one of these docs. Not a new collection — same server-only rules entry as the dedup docs above.
+
 ### 1.8 `show_calendar` (singleton or subcollection — see `docs/SHOW_CALENDAR_TOUR_LABELS.md`)
 
 Tour and show date metadata. Read by `resolveCurrentTour` and `resolveSelectableTours`.
+
+### 1.9 `email_suppression/{sha256(email)}`
+
+Server-only email suppression list (issue #442). Document ID is SHA-256 of the normalized recipient address. Presence of `{ suppressed: true }` blocks comms email sends. Written by `commsResendWebhook` and `commsEmailUnsubscribe`.
 
 ---
 
@@ -112,9 +118,12 @@ General-purpose comms delivery callable. Runs a named trigger through the full p
   "triggerId": "account_welcome",
   "recipients": [{ "uid": "...", "payload": {}, "vars": {} }],
   "dryRun": true,
-  "forceResend": false
+  "forceResend": false,
+  "bypassDailyCap": false
 }
 ```
+
+`bypassDailyCap` (v1.9.0+, admin-only QA) skips the #453 per-user daily email fatigue cap reservation entirely — never set by the production event adapters, only used by this callable so a reviewer can preview every template's rendered email in one sitting (see `scripts/canary-comms-preview.mjs`). `forceResend` bypasses dedup *and* varies the Resend idempotency key (timestamp + random suffix), so repeated QA sends with changed content don't collide with Resend's 24h idempotency window ("request body was modified and doesn't match the original request").
 
 **Response:**
 ```json
@@ -156,6 +165,32 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
+
+### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
+
+| Export | Method | Auth | Description |
+|--------|--------|------|-------------|
+| `commsResendWebhook` | POST | Svix signature (`RESEND_WEBHOOK_SECRET`) | Resend bounce/complaint/suppression events → `email_suppression` |
+| `commsEmailUnsubscribe` | GET/POST | HMAC query params (`uid`, `email`, `sig`) | RFC 8058 one-click unsubscribe; opts user out of lifecycle email |
+
+Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` HTTPS endpoint. Signing secret: `firebase functions:secrets:set RESEND_WEBHOOK_SECRET`.
+
+**`commsEmailUnsubscribe` method gating (v1.9.0+, #456):** the two HTTP methods behave differently by design —
+- **POST** with a valid signature (the real RFC 8058 one-click action; mail clients issue this automatically via `List-Unsubscribe-Post`) suppresses immediately and returns a success page.
+- **GET** with a valid signature (the visible footer "Unsubscribe"/"Manage preferences" link, or any link-scanner/antivirus gateway prefetching it) never suppresses by itself — it renders an HTML confirmation page with a form that must be explicitly submitted (a real POST) to complete the unsubscribe.
+- Any other method, or an invalid/missing signature, returns `400`/`405` without touching `email_suppression`.
+
+The branded HTML email body's visible footer link points at the `/dashboard/notifications` settings page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header.
+
+### 2.6 Comms email subscription callables (v1.10.0, #455)
+
+Authenticated callables backing the Notifications screen email section. Clients cannot read `email_suppression` directly.
+
+| Export | Auth | Description |
+|--------|------|-------------|
+| `getCommsEmailStatus` | Signed-in user | Returns `{ hasEmail, suppressed, reason, canResubscribe, message, lifecycleEnabled }` for the caller's account email |
+| `unsubscribeCommsEmail` | Signed-in user | Writes `email_suppression` with `reason: user_preferences` and opts out `notificationPrefs.lifecycle` |
+| `resubscribeCommsEmail` | Signed-in user | Clears self-serve suppressions (`one_click_unsubscribe`, `user_preferences`) and re-enables `notificationPrefs.lifecycle`; hard bounces and spam complaints are rejected |
 
 ---
 
@@ -205,6 +240,7 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger` and comms adapters |
+| `RESEND_WEBHOOK_SECRET` | For email deliverability | Resend/Svix webhook signing secret (`whsec_…`); also signs one-click unsubscribe URLs |
 | `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |
 | `PHISHNET_API_KEY` | For Phish.net callables | Phish.net API key (Secret Manager) |
 

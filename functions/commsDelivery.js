@@ -59,6 +59,7 @@ function recipientAllowsTrigger(userData, prefKeys) {
  *   workers?: { inApp?: Function, push?: Function, email?: Function },
  *   dryRun?: boolean,
  *   forceResend?: boolean,
+ *   bypassDailyCap?: boolean,
  *   fatigueCap?: number,
  *   variant?: string,
  *   logger?: { info?: Function, warn?: Function, error?: Function },
@@ -72,6 +73,7 @@ async function deliverCommsTrigger({
   workers = {},
   dryRun = true,
   forceResend = false,
+  bypassDailyCap = false,
   fatigueCap = DEFAULT_FATIGUE_CAP,
   variant = "control",
   logger,
@@ -150,6 +152,8 @@ async function deliverCommsTrigger({
       rendered,
       dedupId,
       dryRun,
+      forceResend,
+      bypassDailyCap,
       logger,
     };
 

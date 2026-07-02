@@ -71,6 +71,57 @@ test("recipientAllowsTrigger requires every prefKey to allow", () => {
   assert.equal(recipientAllowsTrigger({ notificationPrefs: { results: false } }, ["results"]), false);
 });
 
+test("bypassDailyCap threads through to the channel worker ctx (admin QA preview)", async () => {
+  const db = makeFakeDb();
+  const email = recordingWorker("email", { ok: true });
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "account_welcome",
+    recipients: [{ uid: "u1", userData: { email: "u1@example.com" } }],
+    workers: { email },
+    dryRun: false,
+    bypassDailyCap: true,
+  });
+
+  assert.equal(email.calls.length, 1);
+  assert.equal(email.calls[0].bypassDailyCap, true);
+});
+
+test("bypassDailyCap defaults to false when not passed", async () => {
+  const db = makeFakeDb();
+  const email = recordingWorker("email", { ok: true });
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "account_welcome",
+    recipients: [{ uid: "u1", userData: { email: "u1@example.com" } }],
+    workers: { email },
+    dryRun: false,
+  });
+
+  assert.equal(email.calls[0].bypassDailyCap, false);
+});
+
+test("forceResend threads through to the channel worker ctx (so email can vary its Resend idempotency key)", async () => {
+  const db = makeFakeDb();
+  const email = recordingWorker("email", { ok: true });
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "account_welcome",
+    recipients: [{ uid: "u1", userData: { email: "u1@example.com" } }],
+    workers: { email },
+    dryRun: false,
+    forceResend: true,
+  });
+
+  assert.equal(email.calls[0].forceResend, true);
+});
+
 test("dry run reports would_deliver and writes nothing", async () => {
   const db = makeFakeDb();
   const inApp = recordingWorker("inApp", { ok: true, skipReason: "dry_run" });

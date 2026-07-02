@@ -71,10 +71,15 @@ const TRIGGER_SPECS = {
     family: "live_game",
     priority: "P1",
   },
+  // Email intentionally dropped (#451): the next-morning `tour_rankings_daily`
+  // send absorbs the "your night" recap content into one email per showDate,
+  // eliminating the dominant same-day fatigue collision (both triggers used
+  // to fire for the same user on the same show). inApp/push keep the
+  // immediate night-of delivery unchanged.
   show_recap: {
     triggerId: "show_recap",
     templateId: "show-recap",
-    channels: ["inApp", "push", "email"],
+    channels: ["inApp", "push"],
     prefKeys: ["results"],
     dedupKey: "show_recap:{uid}:{showDate}",
     family: "results_recap",

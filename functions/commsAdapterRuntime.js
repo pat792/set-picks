@@ -26,12 +26,16 @@ function isCommsEventAdaptersEnabled() {
  *   db: import("firebase-admin").firestore.Firestore,
  *   admin: typeof import("firebase-admin"),
  *   resendApiKey?: string,
+ *   resendWebhookSecret?: string,
  *   logger?: { info?: Function, warn?: Function, error?: Function },
  * }} deps
  */
-function createCommsAdapterRuntime({ db, admin, resendApiKey, logger } = {}) {
+function createCommsAdapterRuntime({ db, admin, resendApiKey, resendWebhookSecret, logger } = {}) {
   const emailWorker = createCommsEmailWorker({
     resendClient: buildResendClient(resendApiKey, logger),
+    db,
+    admin,
+    unsubscribeSigningSecret: resendWebhookSecret,
     logger,
   });
   const workers = buildDefaultWorkers({ emailWorker });

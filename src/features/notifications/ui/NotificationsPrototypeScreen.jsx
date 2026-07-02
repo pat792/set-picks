@@ -5,6 +5,7 @@ import { Bell, ChevronDown, Mail, Smartphone } from 'lucide-react';
 import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
 import { logCommsPrefChanged } from '../../comms';
 import CommsInboxSection from './CommsInboxSection.jsx';
+import { useCommsEmailStatus } from '../model/useCommsEmailStatus';
 import { useNotificationPrefs } from '../model/useNotificationPrefs';
 import { usePushTokenRegistration } from '../model/usePushTokenRegistration';
 
@@ -130,6 +131,14 @@ export default function NotificationsPrototypeScreen() {
     isSaving: prefsSaving,
     error: prefsError,
   } = useNotificationPrefs();
+  const {
+    status: emailStatus,
+    loading: emailLoading,
+    working: emailWorking,
+    error: emailError,
+    unsubscribe: unsubscribeEmail,
+    resubscribe: resubscribeEmail,
+  } = useCommsEmailStatus();
 
   const handlePrefChange = useCallback(
     (key, value) => {
@@ -147,7 +156,24 @@ export default function NotificationsPrototypeScreen() {
     unsupported: 'Unsupported',
     error: 'Error',
   }[status] ?? 'Off';
+
+  const emailSummary = emailLoading
+    ? 'Checking status…'
+    : !emailStatus.hasEmail
+      ? 'Add an account email to receive updates.'
+      : emailStatus.suppressed
+        ? 'Email paused.'
+        : emailStatus.lifecycleEnabled
+          ? 'On — tour and onboarding emails are enabled.'
+          : 'Off — turn on Tour & onboarding updates below.';
+
   const showUpcomingChannels = false;
+
+  const emailLeading = (
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-brand-primary/30 bg-brand-primary/10">
+      <Mail className="h-5 w-5 text-brand-primary" aria-hidden />
+    </span>
+  );
 
   const pushLeading = (
     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-brand-primary/30 bg-brand-primary/10">
@@ -175,6 +201,69 @@ export default function NotificationsPrototypeScreen() {
       </p>
 
       <ul className="mt-3 space-y-3">
+        <NotificationAccordionSection
+          sectionId="notif-email"
+          title="Email"
+          summary={emailSummary}
+          leading={emailLeading}
+          open={openSection === 'email'}
+          onToggle={() => handleAccordion('email')}
+        >
+          <p className="text-sm font-bold leading-relaxed text-content-secondary">
+            Tour countdowns, pick reminders, and post-show recaps can arrive at the email
+            address on your account. These use the same &ldquo;Tour &amp; onboarding updates&rdquo;
+            preference as push for that message family.
+          </p>
+
+          {emailStatus.suppressed && emailStatus.message ? (
+            <p className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs font-bold leading-relaxed text-amber-100">
+              {emailStatus.message}
+            </p>
+          ) : null}
+
+          {!emailStatus.hasEmail ? (
+            <p className="mt-3 text-xs font-bold leading-relaxed text-content-secondary">
+              Add an email address to your account to receive tour and onboarding updates by email.
+            </p>
+          ) : null}
+
+          {emailStatus.hasEmail ? (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">
+                {emailStatus.suppressed
+                  ? 'Paused'
+                  : emailStatus.lifecycleEnabled
+                    ? 'Receiving emails'
+                    : 'Off (preference)'}
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                {emailStatus.suppressed && emailStatus.canResubscribe ? (
+                  <button
+                    type="button"
+                    onClick={resubscribeEmail}
+                    disabled={emailWorking}
+                    className="rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {emailWorking ? 'Working…' : 'Re-enable email'}
+                  </button>
+                ) : null}
+                {!emailStatus.suppressed && emailStatus.lifecycleEnabled ? (
+                  <button
+                    type="button"
+                    onClick={unsubscribeEmail}
+                    disabled={emailWorking}
+                    className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-amber-200 transition-colors hover:border-amber-500 hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {emailWorking ? 'Working…' : 'Unsubscribe from email'}
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {emailError ? <p className="mt-3 text-xs text-amber-300">{emailError}</p> : null}
+        </NotificationAccordionSection>
+
         <NotificationAccordionSection
           sectionId="notif-push"
           title="Push notifications"
@@ -269,7 +358,7 @@ export default function NotificationsPrototypeScreen() {
             />
             <ChannelToggle
               label="Tour & onboarding updates"
-              description="Welcome notes, tour countdowns, pick confirmations, and post-show nudges."
+              description="Welcome notes, tour countdowns, pick confirmations, and post-show nudges — on push, in-app, and email."
               checked={prefs.lifecycle}
               disabled={prefsSaving}
               onChange={(v) => handlePrefChange('lifecycle', v)}
@@ -302,38 +391,6 @@ export default function NotificationsPrototypeScreen() {
             </p>
           </div>
         </NotificationAccordionSection>
-
-        {showUpcomingChannels ? (
-          <NotificationAccordionSection
-            sectionId="notif-email"
-            title="Email"
-            summary="Coming soon — tap for details."
-            leading={
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-muted bg-surface-inset">
-                <Mail className="h-5 w-5 text-content-secondary" aria-hidden />
-              </span>
-            }
-            open={openSection === 'email'}
-            onToggle={() => handleAccordion('email')}
-          >
-            <p className="text-sm font-bold leading-relaxed text-content-secondary">
-              Teaser + CTA messages (e.g. tour recaps) tied to your account email.
-            </p>
-            <div className="mt-4 flex items-center justify-between gap-3 opacity-60">
-              <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">
-                Off
-              </span>
-              <button
-                type="button"
-                disabled
-                className="relative h-8 w-14 shrink-0 rounded-full bg-surface-inset ring-1 ring-border-muted"
-                aria-label="Email notifications — coming soon"
-              >
-                <span className="absolute left-1 top-1 h-6 w-6 rounded-full bg-content-secondary/40" />
-              </button>
-            </div>
-          </NotificationAccordionSection>
-        ) : null}
 
         {showUpcomingChannels ? (
           <NotificationAccordionSection

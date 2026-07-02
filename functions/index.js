@@ -1,5 +1,5 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, HttpsError, onRequest } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
@@ -46,6 +46,21 @@ const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { getTriggerSpec } = require("./commsCatalog");
 const {
+  verifyResendWebhookPayload,
+  handleResendWebhookEvent,
+} = require("./commsResendWebhook");
+const {
+  processOneClickUnsubscribe,
+  verifyOneClickUnsubscribeToken,
+  renderUnsubscribeConfirmPage,
+  renderUnsubscribeSuccessPage,
+} = require("./commsEmailUnsubscribe");
+const {
+  getCommsEmailStatusForUser,
+  resubscribeCommsEmailForUser,
+  unsubscribeCommsEmailForUser,
+} = require("./commsEmailPrefs");
+const {
   handleAccountWelcome,
   handlePicksConfirmed,
   deliverLiveScoreComms,
@@ -57,9 +72,21 @@ const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 // Resend transactional/marketing email (epic #441 / #442). Stored in Cloud Secret
 // Manager; surfaced to bound functions as process.env.RESEND_API_KEY.
 const resendApiKey = defineSecret("RESEND_API_KEY");
+// Resend webhook signing secret (Svix) for bounce/complaint suppression (#442).
+const resendWebhookSecret = defineSecret("RESEND_WEBHOOK_SECRET");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+function buildCommsEmailWorkerInstance() {
+  return createCommsEmailWorker({
+    resendClient: buildResendClient(process.env.RESEND_API_KEY, logger),
+    db,
+    admin,
+    unsubscribeSigningSecret: process.env.RESEND_WEBHOOK_SECRET,
+    logger,
+  });
+}
 
 /**
  * Gate an admin-only callable on the `admin: true` custom claim (issue #139).
@@ -189,7 +216,7 @@ exports.commsOnUserProfileWrite = onDocumentWritten(
   {
     document: "users/{uid}",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (event) => {
     if (!event.data?.after?.exists) return null;
@@ -219,7 +246,7 @@ exports.commsOnPickWrite = onDocumentWritten(
   {
     document: "picks/{pickId}",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (event) => {
     if (!event.data?.after?.exists) return null;
@@ -430,7 +457,7 @@ exports.runCommsTrigger = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async (request) => {
     assertAdminClaim(request);
@@ -442,6 +469,11 @@ exports.runCommsTrigger = onCall(
 
     const dryRun = request.data?.dryRun !== false;
     const forceResend = request.data?.forceResend === true;
+    // QA/canary-only: skips the #453 per-user daily email cap so an admin can
+    // preview every template's real rendered email in one sitting. Never set
+    // by the production event adapters — those always go through the default
+    // (capped) path.
+    const bypassDailyCap = request.data?.bypassDailyCap === true;
     const requested = Array.isArray(request.data?.recipients) ? request.data.recipients : [];
     if (requested.length === 0) {
       throw new HttpsError("invalid-argument", "recipients[] is required.");
@@ -462,10 +494,7 @@ exports.runCommsTrigger = onCall(
       });
     }
 
-    const emailWorker = createCommsEmailWorker({
-      resendClient: buildResendClient(process.env.RESEND_API_KEY, logger),
-      logger,
-    });
+    const emailWorker = buildCommsEmailWorkerInstance();
 
     return deliverCommsTrigger({
       db,
@@ -475,8 +504,186 @@ exports.runCommsTrigger = onCall(
       workers: buildDefaultWorkers({ emailWorker }),
       dryRun,
       forceResend,
+      bypassDailyCap,
       logger,
     });
+  }
+);
+
+/**
+ * Resend deliverability webhook — hard bounces + spam complaints (#442).
+ * Configure in Resend dashboard → Webhooks → endpoint URL for this function.
+ * Events: `email.bounced`, `email.complained`, `email.suppressed`.
+ */
+exports.commsResendWebhook = onRequest(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendWebhookSecret],
+    invoker: "public",
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+    const rawBody =
+      typeof req.rawBody === "string"
+        ? req.rawBody
+        : req.rawBody instanceof Buffer
+          ? req.rawBody.toString("utf8")
+          : JSON.stringify(req.body || {});
+    try {
+      const event = verifyResendWebhookPayload(
+        rawBody,
+        req.headers,
+        process.env.RESEND_WEBHOOK_SECRET
+      );
+      const eventId = req.headers["svix-id"] ? String(req.headers["svix-id"]) : null;
+      const result = await handleResendWebhookEvent({
+        db,
+        admin,
+        event,
+        eventId,
+        logger,
+      });
+      logger.info("commsResendWebhook processed", { type: event?.type, ...result });
+      res.status(200).json({ ok: true });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      logger.warn("commsResendWebhook rejected", { msg });
+      res.status(400).send("Invalid webhook");
+    }
+  }
+);
+
+/**
+ * RFC 8058 one-click unsubscribe for comms marketing/lifecycle email (#442).
+ *
+ * Method-gated by design (#456): mail clients honor `List-Unsubscribe-Post`
+ * by issuing a real POST with no human interaction — that's the true
+ * "one-click" action and suppresses immediately. A GET (the visible footer
+ * link, or a link-scanner/antivirus gateway prefetching it) must NOT
+ * suppress by itself, since scanners only ever issue GET/HEAD — it renders
+ * a confirmation page requiring one explicit form submit (a real POST)
+ * before anything is written to `email_suppression`.
+ */
+exports.commsEmailUnsubscribe = onRequest(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendWebhookSecret],
+    invoker: "public",
+  },
+  async (req, res) => {
+    const uid = String(req.query?.uid || "").trim();
+    const email = String(req.query?.email || "").trim();
+    const sig = String(req.query?.sig || "").trim();
+    const signingSecret = process.env.RESEND_WEBHOOK_SECRET;
+
+    if (req.method === "POST") {
+      const result = await processOneClickUnsubscribe({
+        db,
+        admin,
+        uid,
+        email,
+        sig,
+        signingSecret,
+        logger,
+      });
+      if (!result.ok) {
+        res.status(400).send("Invalid unsubscribe link");
+        return;
+      }
+      res
+        .status(200)
+        .set("Content-Type", "text/html; charset=utf-8")
+        .send(renderUnsubscribeSuccessPage());
+      return;
+    }
+
+    if (req.method === "GET") {
+      if (!verifyOneClickUnsubscribeToken({ uid, email, sig, signingSecret })) {
+        res.status(400).send("Invalid unsubscribe link");
+        return;
+      }
+      res
+        .status(200)
+        .set("Content-Type", "text/html; charset=utf-8")
+        .send(renderUnsubscribeConfirmPage({ uid, email, sig }));
+      return;
+    }
+
+    res.status(405).send("Method Not Allowed");
+  }
+);
+
+/**
+ * Read lifecycle email subscription status for the signed-in user (#455).
+ * Clients cannot query `email_suppression` directly.
+ */
+exports.getCommsEmailStatus = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    return getCommsEmailStatusForUser(db, request.auth.uid);
+  }
+);
+
+/**
+ * Self-serve lifecycle email unsubscribe from Notifications preferences (#455).
+ */
+exports.unsubscribeCommsEmail = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const result = await unsubscribeCommsEmailForUser(db, admin, request.auth.uid);
+    if (!result.ok) {
+      throw new HttpsError("failed-precondition", result.reason || "unsubscribe_failed");
+    }
+    logger.info("comms_email_unsubscribed", {
+      comms_channel: "email",
+      uid: request.auth.uid,
+      source: "notifications_preferences",
+    });
+    return { ok: true };
+  }
+);
+
+/**
+ * Clear a self-serve email suppression and re-enable lifecycle prefs (#455).
+ * Only allowed for user-initiated reasons — not hard bounces or spam complaints.
+ */
+exports.resubscribeCommsEmail = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const result = await resubscribeCommsEmailForUser(db, admin, request.auth.uid);
+    if (!result.ok) {
+      throw new HttpsError("failed-precondition", result.reason || "resubscribe_failed");
+    }
+    logger.info("comms_email_resubscribed", {
+      comms_channel: "email",
+      uid: request.auth.uid,
+      source: "notifications_preferences",
+    });
+    return { ok: true };
   }
 );
 
@@ -863,7 +1070,7 @@ exports.scheduledTourCountdownComms = onSchedule(
     schedule: "0 9 * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async () => {
     try {
@@ -891,7 +1098,7 @@ exports.scheduledTourRankingsDailyComms = onSchedule(
     schedule: "0 8 * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey],
+    secrets: [resendApiKey, resendWebhookSecret],
   },
   async () => {
     try {

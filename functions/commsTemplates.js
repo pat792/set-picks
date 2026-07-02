@@ -135,11 +135,22 @@ const BUILDERS = {
       body: `${p.tour_rank != null ? `#${p.tour_rank} on tour` : "New standings are in"}${p.tour_points != null ? ` · ${p.tour_points} pts` : ""}.`,
     },
     email: {
-      subject: "Your tour standings update",
+      // Absorbs show_recap's "your night" content (#451) so a user gets one
+      // email per (uid, showDate) instead of two on the common single-tour-
+      // night path — the dominant same-day email fatigue collision.
+      subject: p.venue_city
+        ? `Your ${p.venue_city} recap + tour update`
+        : "Your show recap + tour standings",
       text: [
-        `${handleOf(p)}, after ${p.venue_city || "last night"} you're ${p.tour_rank != null ? `#${p.tour_rank}` : "on the board"}${p.total_tour_pickers != null ? ` of ${p.total_tour_pickers}` : ""}.`,
+        `${handleOf(p)}, here's how last night at ${p.venue_name || p.venue_city || "the show"} went.`,
+        p.show_score != null ? `Show score: ${p.show_score}.` : "",
+        p.global_rank != null ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.` : "",
+        p.correct_picks_count != null ? `Correct picks: ${p.correct_picks_count}${p.total_picks_count != null ? ` of ${p.total_picks_count}` : ""}.` : "",
+        "",
+        `Now ${p.tour_rank != null ? `#${p.tour_rank}` : "on the board"}${p.total_tour_pickers != null ? ` of ${p.total_tour_pickers}` : ""} on tour${p.tour_points != null ? ` with ${p.tour_points} pts` : ""}${p.rank_change ? ` (${p.rank_change})` : ""}.`,
+        p.next_show_venue ? `Next show: ${p.next_show_date || ""} ${p.next_show_venue}.`.trim() : "",
         ...emailFooter(),
-      ].join("\n"),
+      ].filter(Boolean).join("\n"),
     },
   }),
 
