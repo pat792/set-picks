@@ -8,10 +8,27 @@
  *
  * Idempotency: the orchestrator's dedup scope becomes the Resend `idempotencyKey`,
  * so email shares the same idempotency guarantee as push + in-app — retries / re-ticks
- * never double-send.
+ * never double-send. Resend rejects reusing a key with a *different* request body
+ * within 24h ("idempotency key ... doesn't match the original request"), so a
+ * `forceResend` (admin QA re-run, or `runCommsTrigger` replay) also appends a
+ * timestamp to the key — otherwise iterating on template content and re-sending
+ * the same (triggerId, uid, dedupId) QA case would collide with the prior send's
+ * cached key instead of actually resending.
  *
  * Compliance: marketing/lifecycle mail carries `List-Unsubscribe` + one-click
- * (RFC 8058) headers wired to the Notifications settings screen.
+ * (RFC 8058) headers wired to the Notifications settings screen, *and* a
+ * visible "Unsubscribe" / "Manage preferences" link in the HTML body itself
+ * (headers alone satisfy RFC 8058 but most inboxes never surface them to a
+ * human reader).
+ *
+ * Every send carries both `html` (branded — logo, button, footer links) and
+ * `text` (plain-text fallback derived from the same content) parts.
+ *
+ * `ctx.bypassDailyCap` skips the #453 daily fatigue-cap reservation entirely.
+ * Only the admin-only `runCommsTrigger` QA/canary callable ever sets this
+ * (never the production event adapters), so a reviewer can preview every
+ * template's rendered email in one sitting without burning through — or being
+ * blocked by — the real per-user daily cap.
  */
 
 "use strict";
@@ -50,8 +67,9 @@ function buildResendClient(apiKey, logger) {
 /**
  * @param {string} [siteUrl]
  * @param {{ uid?: string, email?: string, signingSecret?: string, baseUrl?: string }} [opts]
+ * @returns {{ settingsUrl: string, oneClickUrl: string }}
  */
-function unsubscribeHeaders(siteUrl, opts = {}) {
+function resolveUnsubscribeLinks(siteUrl, opts = {}) {
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
   const settingsUrl = `${base}${UNSUB_PATH}`;
   const oneClickUrl =
@@ -63,10 +81,124 @@ function unsubscribeHeaders(siteUrl, opts = {}) {
           baseUrl: opts.baseUrl,
         })
       : settingsUrl;
+  return { settingsUrl, oneClickUrl };
+}
+
+/**
+ * @param {string} [siteUrl]
+ * @param {{ uid?: string, email?: string, signingSecret?: string, baseUrl?: string }} [opts]
+ */
+function unsubscribeHeaders(siteUrl, opts = {}) {
+  const { oneClickUrl } = resolveUnsubscribeLinks(siteUrl, opts);
   return {
     "List-Unsubscribe": `<${oneClickUrl}>, <mailto:unsubscribe@setlistpickem.com>`,
     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   };
+}
+
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+
+// Template bodies (`commsTemplates.js`) append a plain "Open the app: <url>"
+// line so the plain-text MIME part (no clickable button available) still has
+// a way to click through. The HTML part renders its own CTA button pointing
+// at the same URL, so re-printing it as a bare link right above the button
+// is a redundant, less-trustworthy-looking duplicate — strip it for HTML only.
+const APP_LINK_LINE_RE = /^open the app:\s*https?:\/\/\S+\s*$/i;
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function stripRedundantCtaLine(text) {
+  return String(text || "")
+    .split("\n")
+    .filter((line) => !APP_LINK_LINE_RE.test(line.trim()))
+    .join("\n");
+}
+
+/**
+ * Wrap plain-text email content in a small branded HTML shell: logo, a CTA
+ * button back into the app, and a visible unsubscribe / preferences footer.
+ * Uses inline styles + a table layout (no external CSS/JS) for broad email
+ * client compatibility.
+ *
+ * The visible footer link intentionally points at `settingsUrl` (the
+ * preferences screen) rather than a one-click suppression URL: a plain
+ * `<a href>` is a GET request that any link-scanner/antivirus gateway can
+ * trigger, and RFC 8058's instant, no-confirmation one-click action is
+ * reserved for the invisible `List-Unsubscribe` header, which mail clients
+ * only ever invoke via POST (see `unsubscribeHeaders`).
+ *
+ * @param {{
+ *   siteUrl: string,
+ *   bodyText: string,
+ *   ctaUrl: string,
+ *   settingsUrl: string,
+ * }} opts
+ * @returns {string}
+ */
+function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl }) {
+  const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
+  const logoUrl = `${base}/favicon/web-app-manifest-512x512.png`;
+  // A stack of several short, single-line <p> blocks is a well-known trigger
+  // for Gmail's content-folding heuristic (it renders a clickable "..." pill
+  // in place of the text, which most recipients never think to expand). A
+  // single <p> with <br> between lines reads identically but avoids it.
+  const bodyLines = stripRedundantCtaLine(bodyText)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => escapeHtml(line))
+    .join("<br />");
+  const paragraphs = bodyLines
+    ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#1a1a2e;">${bodyLines}</p>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:0;background-color:#0b0b14;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0b14;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="padding:32px 32px 8px 32px;text-align:center;">
+                <img src="${logoUrl}" width="48" height="48" alt="Setlist Pick'em" style="border-radius:12px;display:inline-block;" />
+                <div style="margin-top:12px;font-size:18px;font-weight:800;color:#1a1a2e;font-family:-apple-system,Helvetica,Arial,sans-serif;">Setlist Pick&apos;em</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 8px 32px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                ${paragraphs}
+                <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:12px 24px;background-color:#7c3aed;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">Open Setlist Pick&apos;em</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px;border-top:1px solid #eeeeee;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                <p style="margin:0 0 8px 0;font-size:12px;color:#888888;">
+                  You&apos;re receiving this because you have a Setlist Pick&apos;em account.
+                </p>
+                <p style="margin:0;font-size:12px;color:#888888;">
+                  <a href="${escapeHtml(settingsUrl)}" style="color:#7c3aed;text-decoration:underline;">Manage preferences</a>
+                  &nbsp;&middot;&nbsp;
+                  <a href="${escapeHtml(settingsUrl)}" style="color:#7c3aed;text-decoration:underline;">Unsubscribe</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
 }
 
 /**
@@ -87,6 +219,8 @@ function unsubscribeHeaders(siteUrl, opts = {}) {
  *   rendered: { email: { subject: string, text: string } },
  *   dedupId: string,
  *   dryRun?: boolean,
+ *   forceResend?: boolean,
+ *   bypassDailyCap?: boolean,
  * }) => Promise<{ ok: boolean, skipReason?: string, id?: string }>}
  */
 function createCommsEmailWorker({
@@ -102,7 +236,7 @@ function createCommsEmailWorker({
   const from = fromAddress || DEFAULT_FROM;
 
   return async function deliverCommsEmail(ctx) {
-    const { uid, userData, triggerId, rendered, dedupId, dryRun } = ctx;
+    const { uid, userData, triggerId, rendered, dedupId, dryRun, forceResend, bypassDailyCap } = ctx;
     const to = userData?.email;
 
     if (!rendered?.email?.subject) {
@@ -123,7 +257,7 @@ function createCommsEmailWorker({
     if (dryRun) {
       return { ok: true, skipReason: "dry_run" };
     }
-    if (db && admin) {
+    if (db && admin && !bypassDailyCap) {
       const cap = await reserveEmailDailyCapSlot(db, admin, { uid, triggerId, logger });
       if (!cap.allowed) {
         logger?.info?.("comms_capped", {
@@ -136,13 +270,26 @@ function createCommsEmailWorker({
       }
     }
 
-    const headers = unsubscribeHeaders(siteUrl, {
+    const { settingsUrl, oneClickUrl } = resolveUnsubscribeLinks(siteUrl, {
       uid,
       email: to,
       signingSecret: unsubscribeSigningSecret,
       baseUrl: unsubscribeBaseUrl,
     });
-    const idempotencyKey = `${triggerId}/${uid}:${dedupId || "default"}`;
+    const headers = {
+      "List-Unsubscribe": `<${oneClickUrl}>, <mailto:unsubscribe@setlistpickem.com>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    };
+    const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
+    const html = buildBrandedEmailHtml({
+      siteUrl,
+      bodyText: rendered.email.text,
+      ctaUrl: `${base}/dashboard`,
+      settingsUrl,
+    });
+    const idempotencyKey = forceResend
+      ? `${triggerId}/${uid}:${dedupId || "default"}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`
+      : `${triggerId}/${uid}:${dedupId || "default"}`;
 
     try {
       const result = await resendClient.emails.send(
@@ -151,6 +298,7 @@ function createCommsEmailWorker({
           to: [to],
           subject: rendered.email.subject,
           text: rendered.email.text,
+          html,
           headers,
         },
         { idempotencyKey }
@@ -179,5 +327,9 @@ module.exports = {
   createCommsEmailWorker,
   buildResendClient,
   unsubscribeHeaders,
+  resolveUnsubscribeLinks,
+  buildBrandedEmailHtml,
+  stripRedundantCtaLine,
+  escapeHtml,
   DEFAULT_FROM,
 };
