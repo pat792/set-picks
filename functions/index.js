@@ -56,6 +56,11 @@ const {
   renderUnsubscribeSuccessPage,
 } = require("./commsEmailUnsubscribe");
 const {
+  getCommsEmailStatusForUser,
+  resubscribeCommsEmailForUser,
+  unsubscribeCommsEmailForUser,
+} = require("./commsEmailPrefs");
+const {
   handleAccountWelcome,
   handlePicksConfirmed,
   deliverLiveScoreComms,
@@ -608,6 +613,77 @@ exports.commsEmailUnsubscribe = onRequest(
     }
 
     res.status(405).send("Method Not Allowed");
+  }
+);
+
+/**
+ * Read lifecycle email subscription status for the signed-in user (#455).
+ * Clients cannot query `email_suppression` directly.
+ */
+exports.getCommsEmailStatus = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    return getCommsEmailStatusForUser(db, request.auth.uid);
+  }
+);
+
+/**
+ * Self-serve lifecycle email unsubscribe from Notifications preferences (#455).
+ */
+exports.unsubscribeCommsEmail = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const result = await unsubscribeCommsEmailForUser(db, admin, request.auth.uid);
+    if (!result.ok) {
+      throw new HttpsError("failed-precondition", result.reason || "unsubscribe_failed");
+    }
+    logger.info("comms_email_unsubscribed", {
+      comms_channel: "email",
+      uid: request.auth.uid,
+      source: "notifications_preferences",
+    });
+    return { ok: true };
+  }
+);
+
+/**
+ * Clear a self-serve email suppression and re-enable lifecycle prefs (#455).
+ * Only allowed for user-initiated reasons — not hard bounces or spam complaints.
+ */
+exports.resubscribeCommsEmail = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const result = await resubscribeCommsEmailForUser(db, admin, request.auth.uid);
+    if (!result.ok) {
+      throw new HttpsError("failed-precondition", result.reason || "resubscribe_failed");
+    }
+    logger.info("comms_email_resubscribed", {
+      comms_channel: "email",
+      uid: request.auth.uid,
+      source: "notifications_preferences",
+    });
+    return { ok: true };
   }
 );
 

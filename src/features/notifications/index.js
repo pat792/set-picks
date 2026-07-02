@@ -9,4 +9,5 @@ export {
   subscribeNotificationPrefs,
 } from './api/notificationPrefsApi';
 export { useNotificationPrefs } from './model/useNotificationPrefs';
+export { useCommsEmailStatus } from './model/useCommsEmailStatus';
 export { usePushTokenRegistration } from './model/usePushTokenRegistration';

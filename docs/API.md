@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.8.0  
+**Version:** 1.10.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -181,6 +181,16 @@ Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` 
 - Any other method, or an invalid/missing signature, returns `400`/`405` without touching `email_suppression`.
 
 The branded HTML email body's visible footer link points at the `/dashboard/notifications` settings page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header.
+
+### 2.6 Comms email subscription callables (v1.10.0, #455)
+
+Authenticated callables backing the Notifications screen email section. Clients cannot read `email_suppression` directly.
+
+| Export | Auth | Description |
+|--------|------|-------------|
+| `getCommsEmailStatus` | Signed-in user | Returns `{ hasEmail, suppressed, reason, canResubscribe, message, lifecycleEnabled }` for the caller's account email |
+| `unsubscribeCommsEmail` | Signed-in user | Writes `email_suppression` with `reason: user_preferences` and opts out `notificationPrefs.lifecycle` |
+| `resubscribeCommsEmail` | Signed-in user | Clears self-serve suppressions (`one_click_unsubscribe`, `user_preferences`) and re-enables `notificationPrefs.lifecycle`; hard bounces and spam complaints are rejected |
 
 ---
 
