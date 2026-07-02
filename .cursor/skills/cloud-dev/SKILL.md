@@ -220,6 +220,19 @@ npm run shell             # firebase functions:shell (REPL)
 Functions use `firebase-admin` + `firebase-functions` v7. Deploy a
 subset with the `deploy:functions:*` script in `package.json`.
 
+### Release gate + comms deploy (agents)
+
+| Command | When |
+|---------|------|
+| `npm run release:gate` | Before tag/release; mirrors CI SemVer check |
+| `npm run release:gate:full` | Gate + full verify matrix |
+| `npm run release:publish -- --confirm` | Tag + GitHub Release (**user must request**) |
+| `npm run comms:deploy:validate` | After editing comms exports or `commsDeployManifest.js` |
+| `npm run comms:deploy:list` | Inspect dynamic deploy targets (6+N adapters) |
+| `npm run comms:deploy -- --confirm --group eventAdapters` | Deploy adapter cron/Firestore exports only |
+
+Manifest source of truth: `functions/commsDeployManifest.js`. Full workflow: `.cursor/skills/comms-architect/SKILL.md` § Release + deploy tooling.
+
 ## 8 — Common gotchas
 
 - **No Auth emulator for the web app.** The Vite SPA always talks to

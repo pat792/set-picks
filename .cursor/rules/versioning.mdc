@@ -56,9 +56,11 @@ Never introduce a MAJOR bump silently. If your diff contains a breaking change:
 
 ## Git tag (human step only)
 
-After `staging → main` merges, a human runs:
+After `staging → main` merges, publish with:
+
 ```bash
-git tag v<version> -m "Release <version>"
-git push origin v<version>
+npm run release:gate:full
+npm run release:publish -- --confirm
 ```
-Agents MUST NOT create git tags autonomously.
+
+(`release:publish` creates the tag, pushes it, and opens the GitHub Release.) Agents MUST NOT run `release:publish` unless the user explicitly requests a tag/release.
