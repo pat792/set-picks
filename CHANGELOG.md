@@ -12,6 +12,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.7.2] — 2026-07-02
+
+### Changed
+- **Comms fatigue reduction (#451)** — `show_recap` no longer emails; its "your night" recap content (score, rank) is folded into `tour_rankings_daily`'s next-morning email instead. Eliminates the dominant same-day email collision (both triggers previously fired for the same `(uid, showDate)` on every single-tour-night). `inApp`/`push` channels are unchanged — night-of delivery still fires immediately from `show_recap`.
+- Fixed stale `tour_rankings_daily` schedule description in `docs/comms-triggers/` (documented as "10:00 AM ET"; actual `onSchedule` cron is 8:00 AM `America/Los_Angeles`)
+
+---
+
 ## [1.7.1] — 2026-06-30
 
 ### Added
@@ -127,7 +135,8 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-[Unreleased]: https://github.com/pat792/set-picks/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/pat792/set-picks/compare/v1.7.2...HEAD
+[1.7.2]: https://github.com/pat792/set-picks/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/pat792/set-picks/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/pat792/set-picks/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/pat792/set-picks/compare/v1.5.0...v1.6.0
