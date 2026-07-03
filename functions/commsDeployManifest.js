@@ -45,6 +45,12 @@ const COMMS_DEPLOY_GROUPS = {
    */
   infra: [
     { export: "runCommsTrigger", note: "admin canary/replay", secretExpectation: "resend" },
+    {
+      export: "deliverMarketingSummerTour2026Launch",
+      triggerId: "marketing_summer_tour_2026_launch",
+      note: "admin batch marketing email #468",
+      secretExpectation: "resend",
+    },
     { export: "commsResendWebhook", note: "Resend bounce/complaint webhook", secretExpectation: "webhook" },
     { export: "commsEmailUnsubscribe", note: "RFC 8058 one-click unsubscribe", secretExpectation: "none" },
     { export: "getCommsEmailStatus", note: "email prefs status", secretExpectation: "none" },
