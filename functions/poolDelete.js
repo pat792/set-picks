@@ -21,22 +21,76 @@ function hasNonEmptyPicksObject(picks) {
   );
 }
 
+const STANDINGS_SCOPE_FROM_MEMBERSHIP = "from_membership";
+const MEMBERSHIP_DAY_TIME_ZONE = "America/Los_Angeles";
+
+/**
+ * @param {unknown} scope
+ * @returns {boolean}
+ */
+function isFromMembershipStandingsScope(scope) {
+  return scope === STANDINGS_SCOPE_FROM_MEMBERSHIP;
+}
+
+/**
+ * @param {string | Date | null | undefined} isoOrDate
+ * @returns {string | null}
+ */
+function membershipCalendarDay(isoOrDate) {
+  if (isoOrDate == null || isoOrDate === "") return null;
+  const date =
+    isoOrDate instanceof Date ? isoOrDate : new Date(String(isoOrDate));
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: MEMBERSHIP_DAY_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
 /**
  * Whether a pick document counts toward this pool. Legacy picks without an
  * embedded `pools` snapshot count toward any pool (matches client).
+ * `from_membership` pools (#417) require an explicit snapshot + showDate
+ * on/after the author's membership calendar day.
  *
  * @param {Record<string, unknown> | null | undefined} pickData
  * @param {string} poolId
+ * @param {{
+ *   standingsScope?: string | null,
+ *   memberJoinedOn?: string | null,
+ *   showDate?: string | null,
+ * }} [ctx]
  */
-function pickDataCountsForPool(pickData, poolId) {
+function pickDataCountsForPool(pickData, poolId, ctx = {}) {
   if (!poolId || typeof poolId !== "string" || !poolId.trim()) return false;
   if (!pickData || typeof pickData !== "object") return false;
   const pools = /** @type {unknown} */ (pickData.pools);
-  if (Array.isArray(pools) && pools.length > 0) {
-    return pools.some(
+  const hasSnapshot = Array.isArray(pools) && pools.length > 0;
+  const inSnapshot =
+    hasSnapshot &&
+    pools.some(
       (p) => p && typeof p === "object" && /** @type {any} */ (p).id === poolId
     );
+
+  if (isFromMembershipStandingsScope(ctx.standingsScope)) {
+    if (!inSnapshot) return false;
+    const showDate =
+      typeof ctx.showDate === "string" && ctx.showDate
+        ? ctx.showDate
+        : typeof /** @type {any} */ (pickData).showDate === "string"
+          ? /** @type {any} */ (pickData).showDate
+          : null;
+    const joinedOn =
+      typeof ctx.memberJoinedOn === "string" && ctx.memberJoinedOn
+        ? ctx.memberJoinedOn
+        : null;
+    if (!showDate || !joinedOn) return false;
+    return showDate >= joinedOn;
   }
+
+  if (hasSnapshot) return inSnapshot;
   return true;
 }
 
@@ -46,9 +100,14 @@ function pickDataCountsForPool(pickData, poolId) {
  *
  * @param {Record<string, unknown> | null | undefined} pickData
  * @param {string} poolId
+ * @param {{
+ *   standingsScope?: string | null,
+ *   memberJoinedOn?: string | null,
+ *   showDate?: string | null,
+ * }} [ctx]
  */
-function pickDocHasPoolActivity(pickData, poolId) {
-  if (!pickDataCountsForPool(pickData, poolId)) return false;
+function pickDocHasPoolActivity(pickData, poolId, ctx = {}) {
+  if (!pickDataCountsForPool(pickData, poolId, ctx)) return false;
   if (!pickData || typeof pickData !== "object") return false;
   if (hasNonEmptyPicksObject(/** @type {any} */ (pickData).picks)) return true;
   if (/** @type {any} */ (pickData).isGraded === true) return true;
@@ -121,6 +180,8 @@ function pickDocId(showDate, userId) {
  *   memberIds: string[],
  *   showDates: string[],
  *   chunkSize?: number,
+ *   standingsScope?: string | null,
+ *   memberJoinedAt?: Record<string, string> | null,
  * }} opts
  * @returns {Promise<boolean>}
  */
@@ -130,6 +191,8 @@ async function findPoolPickActivity({
   memberIds,
   showDates,
   chunkSize = 24,
+  standingsScope = null,
+  memberJoinedAt = null,
 }) {
   const pid = typeof poolId === "string" ? poolId.trim() : "";
   const members = Array.isArray(memberIds)
@@ -159,10 +222,24 @@ async function findPoolPickActivity({
         db.collection("picks").doc(pickDocId(date, uid)).get()
       )
     );
-    for (const snap of snaps) {
+    for (let j = 0; j < slice.length; j += 1) {
+      const snap = snaps[j];
+      const { date, uid } = slice[j];
       if (!snap || !snap.exists) continue;
       const data = snap.data ? snap.data() : null;
-      if (pickDocHasPoolActivity(data || {}, pid)) return true;
+      const joinedOn =
+        memberJoinedAt && typeof memberJoinedAt === "object"
+          ? membershipCalendarDay(memberJoinedAt[uid])
+          : null;
+      if (
+        pickDocHasPoolActivity(data || {}, pid, {
+          standingsScope,
+          memberJoinedOn: joinedOn,
+          showDate: date,
+        })
+      ) {
+        return true;
+      }
     }
   }
   return false;

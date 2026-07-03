@@ -1008,6 +1008,16 @@ exports.deletePoolWithCleanup = onCall(
       poolId,
       memberIds,
       showDates,
+      standingsScope:
+        typeof poolData.standingsScope === "string"
+          ? poolData.standingsScope
+          : null,
+      memberJoinedAt:
+        poolData.memberJoinedAt &&
+        typeof poolData.memberJoinedAt === "object" &&
+        !Array.isArray(poolData.memberJoinedAt)
+          ? poolData.memberJoinedAt
+          : null,
     });
     if (hasActivity) {
       throw new HttpsError(

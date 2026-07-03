@@ -107,4 +107,34 @@ describe('filterPicksToAudience', () => {
       filterPicksToAudience({ picks, userPools: null, activeFilter: 'pool-a' }),
     ).toBe(picks);
   });
+
+  it('from_membership: excludes legacy empty-pools and pre-join shows', () => {
+    const pools = [
+      {
+        id: 'pool-new',
+        members: ['u-alice', 'u-bob'],
+        standingsScope: 'from_membership',
+        memberJoinedAt: {
+          'u-alice': '2026-07-03T18:00:00.000Z',
+          'u-bob': '2026-07-05T18:00:00.000Z',
+        },
+      },
+    ];
+    const picks = [
+      { ...pickLegacy('u-alice'), showDate: '2026-07-10' },
+      { ...pickSnapshotIn('u-alice', ['pool-new']), showDate: '2026-07-02' },
+      { ...pickSnapshotIn('u-alice', ['pool-new']), showDate: '2026-07-04' },
+      { ...pickSnapshotIn('u-bob', ['pool-new']), showDate: '2026-07-04' },
+      { ...pickSnapshotIn('u-bob', ['pool-new']), showDate: '2026-07-06' },
+    ];
+    const result = filterPicksToAudience({
+      picks,
+      userPools: pools,
+      activeFilter: 'pool-new',
+    });
+    expect(result).toEqual([
+      picks[2], // alice on/after join
+      picks[4], // bob on/after join
+    ]);
+  });
 });

@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.12.0] — 2026-07-03
+
+### Added
+- **Pool standings from membership (#417)** — new pools write `standingsScope: 'from_membership'` and `memberJoinedAt.{uid}`; pool-scoped standings (hub + Standings Pools filter) count only picks that list the pool and whose `showDate` is on/after that member’s join day (`America/Los_Angeles`). Existing pools (no field) keep legacy retroactive carryover and create/join backfill.
+
+### Changed
+- `deletePoolWithCleanup` activity scan honors `from_membership` so pre-join legacy pick docs do not block delete on new-mode pools.
+
+---
+
 ## [1.11.0] — 2026-07-03
 
 ### Added
