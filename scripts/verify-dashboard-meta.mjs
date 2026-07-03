@@ -9,8 +9,8 @@ import {
   normalizeDashboardPathname,
 } from '../src/app/layout/model/dashboardPageMeta.js';
 import {
-  NAV_LABEL_ACCOUNT_SECURITY,
-  NAV_LABEL_NOTIFICATIONS,
+  NAV_LABEL_ACCOUNT,
+  NAV_LABEL_MESSAGES,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_POOLS,
@@ -106,9 +106,28 @@ const CASES = [
     },
   },
   {
+    path: '/dashboard/profile/notifications',
+    expect: {
+      contextTitle: NAV_LABEL_MESSAGES,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    path: '/dashboard/profile/account',
+    expect: {
+      contextTitle: NAV_LABEL_ACCOUNT,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      layoutDetailEyebrow: null,
+    },
+  },
+  // Legacy paths (SPA redirects) — meta must still hide date picker.
+  {
     path: '/dashboard/account-security',
     expect: {
-      contextTitle: NAV_LABEL_ACCOUNT_SECURITY,
+      contextTitle: NAV_LABEL_ACCOUNT,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
@@ -117,7 +136,7 @@ const CASES = [
   {
     path: '/dashboard/notifications',
     expect: {
-      contextTitle: NAV_LABEL_NOTIFICATIONS,
+      contextTitle: NAV_LABEL_MESSAGES,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,

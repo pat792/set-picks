@@ -1,7 +1,7 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError, onRequest } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { defineSecret } = require("firebase-functions/params");
+const { defineSecret, defineString } = require("firebase-functions/params");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const {
@@ -29,6 +29,7 @@ const {
 const {
   calculateTotalScore,
   persistableActualSetlistFromOfficialDoc,
+  shouldSkipLiveScoreRecompute,
 } = require("./scoringCore");
 const { runBackfill } = require("./backfillBustoutsCore");
 const { runRollupForShow } = require("./rollupCore");
@@ -75,6 +76,17 @@ const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 const resendApiKey = defineSecret("RESEND_API_KEY");
 // Resend webhook signing secret (Svix) for bounce/complaint suppression (#442).
 const resendWebhookSecret = defineSecret("RESEND_WEBHOOK_SECRET");
+// GA4 Measurement Protocol (#461). Measurement id is public (same as VITE_GA_MEASUREMENT_ID);
+// API secret is created in GA4 Admin → Data streams → Measurement Protocol API secrets.
+// Both surface as process.env for `commsGa4Measurement.js`. Unset → no-op send.
+const ga4MeasurementId = defineString("GA4_MEASUREMENT_ID", { default: "" });
+const ga4MpApiSecret = defineSecret("GA4_MP_API_SECRET");
+// Keep the defineString in the module graph for deploy-time param discovery;
+// runtime reads `process.env.GA4_MEASUREMENT_ID` inside `commsGa4Measurement.js`.
+void ga4MeasurementId;
+
+/** Secrets bound on every export that can call `deliverCommsTrigger`. */
+const commsDeliverySecrets = [resendApiKey, resendWebhookSecret, ga4MpApiSecret];
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -197,7 +209,7 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
   {
     document: "official_setlists/{showDate}",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async (event) => {
     if (!event.data.after.exists) {
@@ -206,10 +218,24 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
 
     const showDate = event.params.showDate;
     const setlistDoc = event.data.after.data() || {};
-    const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
+    const beforeDoc = event.data.before.exists ? event.data.before.data() || {} : null;
 
-    await recomputeLiveScoresForShow(showDate, actualSetlist);
-    return null;
+    // #416: skip full picks scan when playable scoring payload is unchanged
+    // (metadata-only admin/Phish.net writes).
+    if (shouldSkipLiveScoreRecompute(beforeDoc, setlistDoc)) {
+      logger.info("gradePicksOnSetlistWrite skip: playable setlist unchanged", {
+        showDate,
+      });
+      return { skipped: true, reason: "setlist_unchanged" };
+    }
+
+    const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
+    const result = await recomputeLiveScoresForShow(showDate, actualSetlist);
+    logger.info("gradePicksOnSetlistWrite complete", {
+      showDate,
+      updatedPicks: result?.updatedPicks ?? 0,
+    });
+    return result;
   }
 );
 
@@ -221,7 +247,7 @@ exports.commsOnUserProfileWrite = onDocumentWritten(
   {
     document: "users/{uid}",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async (event) => {
     if (!event.data?.after?.exists) return null;
@@ -251,7 +277,7 @@ exports.commsOnPickWrite = onDocumentWritten(
   {
     document: "picks/{pickId}",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async (event) => {
     if (!event.data?.after?.exists) return null;
@@ -279,7 +305,7 @@ exports.refreshLiveScoresForShow = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async (request) => {
     assertAdminClaim(request);
@@ -321,7 +347,7 @@ exports.rollupScoresForShow = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async (request) => {
     assertAdminClaim(request);
@@ -458,7 +484,7 @@ exports.deliverMarketingSummerTour2026Launch = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async (request) => {
     assertAdminClaim(request);
@@ -495,7 +521,7 @@ exports.runCommsTrigger = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async (request) => {
     assertAdminClaim(request);
@@ -886,7 +912,7 @@ exports.sendPushCanary = onCall(
         },
         webpush: {
           fcmOptions: {
-            link: "https://www.setlistpickem.com/dashboard/notifications",
+            link: "https://www.setlistpickem.com/dashboard/profile/notifications",
           },
         },
       });
@@ -1008,6 +1034,16 @@ exports.deletePoolWithCleanup = onCall(
       poolId,
       memberIds,
       showDates,
+      standingsScope:
+        typeof poolData.standingsScope === "string"
+          ? poolData.standingsScope
+          : null,
+      memberJoinedAt:
+        poolData.memberJoinedAt &&
+        typeof poolData.memberJoinedAt === "object" &&
+        !Array.isArray(poolData.memberJoinedAt)
+          ? poolData.memberJoinedAt
+          : null,
     });
     if (hasActivity) {
       throw new HttpsError(
@@ -1108,7 +1144,7 @@ exports.scheduledTourCountdownComms = onSchedule(
     schedule: "0 9 * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async () => {
     try {
@@ -1136,7 +1172,7 @@ exports.scheduledTourRankingsDailyComms = onSchedule(
     schedule: "0 8 * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [resendApiKey, resendWebhookSecret],
+    secrets: commsDeliverySecrets,
   },
   async () => {
     try {
@@ -1162,7 +1198,7 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
     schedule: "*/2 * * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [phishnetApiKey, resendApiKey, resendWebhookSecret],
+    secrets: [phishnetApiKey, ...commsDeliverySecrets],
   },
   async () => {
     const key = phishnetApiKey.value();
@@ -1263,7 +1299,7 @@ exports.setLiveSetlistAutomationState = onCall(
 exports.pollLiveSetlistNow = onCall(
   {
     region: PHISHNET_FUNCTIONS_REGION,
-    secrets: [phishnetApiKey, resendApiKey, resendWebhookSecret],
+    secrets: [phishnetApiKey, ...commsDeliverySecrets],
     invoker: "public",
     enforceAppCheck: false,
   },

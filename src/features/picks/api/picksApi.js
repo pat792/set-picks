@@ -109,10 +109,14 @@ function normalizeCalendarDates(showDates) {
 }
 
 /**
- * After creating or joining a pool, merge `{ id, name }` into `pools` on every
- * existing pick doc for this user across the season calendar. Idempotent via
- * {@link arrayUnion}. Picks saved before the pool existed otherwise stay
- * invisible to `pickDataCountsForPool` / pool standings.
+ * After creating or joining a **legacy** pool, merge `{ id, name }` into
+ * `pools` on every existing pick doc for this user across the season
+ * calendar. Idempotent via {@link arrayUnion}. Picks saved before the pool
+ * existed otherwise stay invisible to `pickDataCountsForPool` / pool
+ * standings.
+ *
+ * Not used for `standingsScope: 'from_membership'` pools (#417) — those
+ * start at zero and only count picks saved while the user is a member.
  *
  * Failures are swallowed by callers (pool membership still succeeds); this
  * only repairs snapshot alignment.

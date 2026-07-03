@@ -153,6 +153,7 @@ test("real delivery dispatches channels, writes dedup, logs comms_delivered", as
   const inApp = recordingWorker("inApp", { ok: true });
   const push = recordingWorker("push", { ok: true, sent: 1 });
   const logger = makeLogger();
+  const ga4Calls = [];
 
   const summary = await deliverCommsTrigger({
     db,
@@ -162,6 +163,10 @@ test("real delivery dispatches channels, writes dedup, logs comms_delivered", as
     workers: { inApp, push },
     dryRun: false,
     logger,
+    sendGa4Delivered: async (input) => {
+      ga4Calls.push(input);
+      return { sent: true };
+    },
   });
 
   assert.equal(summary.delivered, 1);
@@ -174,6 +179,31 @@ test("real delivery dispatches channels, writes dedup, logs comms_delivered", as
   assert.equal(delivered.length, 2);
   assert.equal(delivered[0].data.comms_trigger_id, "picks_confirmed");
   assert.equal(delivered[0].data.comms_variant, "control");
+  assert.equal(ga4Calls.length, 2);
+  assert.equal(ga4Calls[0].triggerId, "picks_confirmed");
+  assert.equal(ga4Calls[0].uid, "u1");
+  assert.ok(["inApp", "push"].includes(ga4Calls[0].channel));
+});
+
+test("dry run does not call GA4 MP", async () => {
+  const db = makeFakeDb();
+  const inApp = recordingWorker("inApp", { ok: true, skipReason: "dry_run" });
+  const ga4Calls = [];
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "picks_confirmed",
+    recipients: [{ uid: "u1", userData: {}, vars: { showDate: "2026-07-18" } }],
+    workers: { inApp },
+    dryRun: true,
+    sendGa4Delivered: async (input) => {
+      ga4Calls.push(input);
+      return { sent: true };
+    },
+  });
+
+  assert.equal(ga4Calls.length, 0);
 });
 
 test("prefs_off short-circuits before any channel work", async () => {

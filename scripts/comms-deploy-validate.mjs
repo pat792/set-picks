@@ -37,13 +37,16 @@ function validateEntry(entry) {
     return `exports.${entry.export} not found in functions/index.js`;
   }
   const exp = entry.secretExpectation || "none";
-  const hasResend = block.includes("resendApiKey");
-  const hasWebhook = block.includes("resendWebhookSecret");
+  // `commsDeliverySecrets` = [resendApiKey, resendWebhookSecret, ga4MpApiSecret] (#461).
+  const hasResend =
+    block.includes("resendApiKey") || block.includes("commsDeliverySecrets");
+  const hasWebhook =
+    block.includes("resendWebhookSecret") || block.includes("commsDeliverySecrets");
   if (exp === "resend" && !hasResend) {
-    return `${entry.export}: expected secrets: [resendApiKey, …] in index.js`;
+    return `${entry.export}: expected secrets: [resendApiKey, …] or commsDeliverySecrets in index.js`;
   }
   if (exp === "webhook" && !hasWebhook) {
-    return `${entry.export}: expected resendWebhookSecret in index.js`;
+    return `${entry.export}: expected resendWebhookSecret or commsDeliverySecrets in index.js`;
   }
   if (exp === "none" && hasResend) {
     return `${entry.export}: secretExpectation is 'none' but index.js binds resendApiKey (update manifest or export)`;

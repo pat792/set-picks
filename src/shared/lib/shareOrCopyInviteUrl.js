@@ -1,6 +1,18 @@
 import { showSuccessToast } from '../ui/toast';
 
-const DEFAULT_SHARE_TITLE = "Join My Setlist Pick 'Em Pool!";
+const DEFAULT_SHARE_TITLE = "Join my Setlist Pick 'Em pool!";
+
+/**
+ * Share / clipboard headline for pool invites (also mirrored in invite OG copy).
+ *
+ * @param {string | null | undefined} poolName
+ * @returns {string}
+ */
+export function buildPoolInviteShareTitle(poolName) {
+  const name = typeof poolName === 'string' ? poolName.trim() : '';
+  if (name) return `Join my Setlist Pick 'Em pool: ${name}`;
+  return DEFAULT_SHARE_TITLE;
+}
 
 /**
  * Try Web Share API with URL only for the native sheet payload.
@@ -8,12 +20,13 @@ const DEFAULT_SHARE_TITLE = "Join My Setlist Pick 'Em Pool!";
  * fetching Open Graph for the link (Chrome WKWebView shows a blank preview;
  * Safari share still works). Clipboard fallback still uses title + URL.
  * @param {string} url
- * @param {{ title?: string, copyToastMessage?: string }} [options]
+ * @param {{ title?: string, poolName?: string, copyToastMessage?: string }} [options]
  * @returns {Promise<{ ok: boolean, via?: 'share' | 'copy', reason?: string }>}
  */
 export async function shareOrCopyInviteUrl(url, options = {}) {
   const {
-    title = DEFAULT_SHARE_TITLE,
+    title,
+    poolName,
     copyToastMessage = 'Link copied!',
   } = options;
 
@@ -22,7 +35,7 @@ export async function shareOrCopyInviteUrl(url, options = {}) {
   }
 
   const trimmedUrl = url.trim();
-  const shareText = title.trim();
+  const shareText = (title ?? buildPoolInviteShareTitle(poolName)).trim();
 
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     try {

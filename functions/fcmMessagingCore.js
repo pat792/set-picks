@@ -9,7 +9,7 @@ const INVALID_TOKEN_CODES = new Set([
 ]);
 
 const DASHBOARD_NOTIFICATIONS_URL =
-  "https://www.setlistpickem.com/dashboard/notifications";
+  "https://www.setlistpickem.com/dashboard/profile/notifications";
 
 /**
  * `admin.messaging().send()` often returns a full resource path such as

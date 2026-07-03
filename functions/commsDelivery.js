@@ -18,6 +18,7 @@ const { getTriggerSpec, resolveDedupKey } = require("./commsCatalog");
 const { renderCommsTemplate } = require("./commsTemplates");
 const { deliverCommsInbox } = require("./commsInboxWorker");
 const { deliverCommsPush } = require("./commsPushWorker");
+const { sendCommsDeliveredEvent } = require("./commsGa4Measurement");
 
 const DEDUP_COLLECTION = "fcm_notification_log";
 const DEFAULT_FATIGUE_CAP = 2; // max comms per user per delivery run (FRAMEWORK §OPTIMIZE)
@@ -63,6 +64,7 @@ function recipientAllowsTrigger(userData, prefKeys) {
  *   fatigueCap?: number,
  *   variant?: string,
  *   logger?: { info?: Function, warn?: Function, error?: Function },
+ *   sendGa4Delivered?: typeof sendCommsDeliveredEvent,
  * }} params
  */
 async function deliverCommsTrigger({
@@ -77,6 +79,7 @@ async function deliverCommsTrigger({
   fatigueCap = DEFAULT_FATIGUE_CAP,
   variant = "control",
   logger,
+  sendGa4Delivered = sendCommsDeliveredEvent,
 }) {
   const spec = getTriggerSpec(triggerId);
   if (!spec) {
@@ -171,7 +174,7 @@ async function deliverCommsTrigger({
       if (res?.ok && res.skipReason !== "dry_run") {
         deliveredChannels.push(channel);
         summary.byChannel[channel] = (summary.byChannel[channel] || 0) + 1;
-        // 6) Measurement — structured server log per channel.
+        // 6) Measurement — structured server log + GA4 MP per channel (#461).
         logger?.info?.("comms_delivered", {
           comms_trigger_id: triggerId,
           comms_template_id: spec.templateId,
@@ -179,6 +182,20 @@ async function deliverCommsTrigger({
           comms_variant: variant,
           uid,
         });
+        // Await MP so the request stays alive until the POST finishes.
+        // Fire-and-forget is unsafe on Cloud Functions (instance freezes after return).
+        // sendCommsDeliveredEvent never throws; failures only log + no-op.
+        // eslint-disable-next-line no-await-in-loop
+        await sendGa4Delivered(
+          {
+            uid,
+            triggerId,
+            templateId: spec.templateId,
+            channel,
+            variant,
+          },
+          { logger }
+        );
       }
     }
 

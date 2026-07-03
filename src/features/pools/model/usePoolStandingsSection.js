@@ -84,6 +84,15 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
     () => [...memberIds].sort().join('|'),
     [memberIds]
   );
+  const standingsScope = pool?.standingsScope ?? null;
+  const memberJoinedAt = pool?.memberJoinedAt ?? null;
+  const membershipKey = useMemo(() => {
+    if (!memberJoinedAt || typeof memberJoinedAt !== 'object') return '';
+    return Object.keys(memberJoinedAt)
+      .sort()
+      .map((uid) => `${uid}:${memberJoinedAt[uid] ?? ''}`)
+      .join('|');
+  }, [memberJoinedAt]);
   const showDatesKey = useMemo(
     () => effectiveShowDates.map((s) => s.date).join('|'),
     [effectiveShowDates]
@@ -115,6 +124,8 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
       tourKey || '',
       memberKey,
       showDatesKey,
+      standingsScope || '',
+      membershipKey,
     ],
     enabled,
     queryFn: async () => {
@@ -137,6 +148,8 @@ export function usePoolStandingsSection(poolId, pool, memberProfiles) {
           effectiveShowDates,
           {
             scope: tourKey ? 'tour' : 'all-time',
+            standingsScope,
+            memberJoinedAt,
             onTelemetry: (t) => {
               captured = { ...t };
             },

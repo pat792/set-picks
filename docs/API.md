@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.10.0  
+**Version:** 1.18.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -59,10 +59,13 @@ All collections live in the default `(default)` Firestore database for project `
 | Field | Type | Notes |
 |-------|------|-------|
 | `name` | string | Pool display name |
-| `hostUid` | string | Owner uid |
+| `ownerId` | string | Owner uid |
 | `inviteCode` | string | Used in `/join/:code` URLs |
-| `memberUids` | string[] | |
-| `createdAt` | Timestamp | |
+| `members` | string[] | Member uids |
+| `createdAt` | string (ISO8601) | Pool create time |
+| `status` | `'active' \| 'archived'` | |
+| `standingsScope` | `'legacy' \| 'from_membership'`? | **Absent = `legacy`.** New pools write `from_membership` (#417): pool standings count only picks that list this pool in `pick.pools` **and** whose `showDate` is on/after that member’s membership calendar day (`America/Los_Angeles`). Legacy pools keep retroactive carryover + create/join backfill. |
+| `memberJoinedAt` | map `{ [uid]: ISO8601 }`? | Per-member join/create anchor for `from_membership` pools. Set for creator on create; updated on join. |
 
 ### 1.6 `picks/{pickId}` (subcollection: `pools/{poolId}/picks/{uid}`)
 
@@ -213,7 +216,7 @@ Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` 
 - **GET** with a valid signature (the visible footer "Unsubscribe"/"Manage preferences" link, or any link-scanner/antivirus gateway prefetching it) never suppresses by itself — it renders an HTML confirmation page with a form that must be explicitly submitted (a real POST) to complete the unsubscribe.
 - Any other method, or an invalid/missing signature, returns `400`/`405` without touching `email_suppression`.
 
-The branded HTML email body's visible footer link points at the `/dashboard/notifications` settings page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header.
+The branded HTML email body's visible footer link points at the `/dashboard/profile/notifications` Messages settings page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header. Legacy `/dashboard/notifications` redirects there in the SPA.
 
 ### 2.6 Comms email subscription callables (v1.10.0, #455)
 
@@ -246,6 +249,20 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
 
+### 3.1 HTTP security headers (Vercel)
+
+Applied via `vercel.json` to all routes. Policy details: `docs/SECURITY_HEADERS.md`.
+
+| Header | Mode | Notes |
+|--------|------|-------|
+| `X-Content-Type-Options` | Enforce | `nosniff` |
+| `Referrer-Policy` | Enforce | `strict-origin-when-cross-origin` |
+| `X-Frame-Options` | Enforce | `DENY` |
+| `Permissions-Policy` | Enforce | camera/microphone/geolocation disabled |
+| `Content-Security-Policy-Report-Only` | Report-only | Flip to `Content-Security-Policy` after soak (promote-day) |
+
+Adding or tightening enforced CSP is MINOR; removing a security header is MAJOR.
+
 ---
 
 ## 4. Environment Variable Interface
@@ -274,6 +291,8 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 |----------|----------|-------------|
 | `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger`, `deliverMarketingSummerTour2026Launch`, and comms adapters |
 | `RESEND_WEBHOOK_SECRET` | For email deliverability | Resend/Svix webhook signing secret (`whsec_…`); also signs one-click unsubscribe URLs |
+| `GA4_MEASUREMENT_ID` | For server `comms_delivered` MP | Same `G-…` id as `VITE_GA_MEASUREMENT_ID`; Functions `defineString` / `.env.set-picks` |
+| `GA4_MP_API_SECRET` | For server `comms_delivered` MP | GA4 Measurement Protocol API secret (Secret Manager); bound on all `deliverCommsTrigger` hosts; unset → no-op |
 | `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |
 | `PHISHNET_API_KEY` | For Phish.net callables | Phish.net API key (Secret Manager) |
 

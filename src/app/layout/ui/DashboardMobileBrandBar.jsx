@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import { useAuth } from '../../../features/auth';
 import { DashboardNotificationsBell } from '../../../features/notifications';
 
 import {
@@ -9,9 +10,21 @@ import {
   brandWordmarkDashboardMobileBarScaleWrapperClassNames,
   brandWordmarkDashboardMobileLeadingClassNames,
 } from '../../../shared/config/branding';
+import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
 import BrandWordmarkBarRow from '../../../shared/ui/BrandWordmarkBarRow';
 
+function avatarInitial(userProfile, user) {
+  const handle = userProfile?.handle?.trim?.();
+  if (handle) return handle.charAt(0).toUpperCase();
+  const email = user?.email?.trim?.();
+  if (email) return email.charAt(0).toUpperCase();
+  return '👤';
+}
+
 export default function DashboardMobileBrandBar({ user }) {
+  const { userProfile } = useAuth();
+  const initial = avatarInitial(userProfile, user);
+
   return (
     <div className="border-b border-border-subtle/35 bg-[linear-gradient(to_bottom,rgb(var(--brand-bg-deep)_/_0.76),rgb(var(--brand-bg)_/_0.60))] py-2 shadow-[0_10px_28px_-14px_rgba(15,10,46,0.85)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150">
       <BrandWordmarkBarRow variant="dashboard">
@@ -35,9 +48,13 @@ export default function DashboardMobileBrandBar({ user }) {
 
         <div className="flex shrink-0 items-center gap-2">
           <DashboardNotificationsBell />
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border-subtle/35 bg-surface-panel-strong text-xs">
-            {user?.email?.charAt(0).toUpperCase() || '👤'}
-          </div>
+          <Link
+            to={PROFILE_CLUSTER_PATHS.account}
+            className="flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border-subtle/35 bg-surface-panel-strong text-xs font-bold text-white transition-colors hover:border-brand-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+            aria-label="Account"
+          >
+            {initial}
+          </Link>
         </div>
       </BrandWordmarkBarRow>
     </div>

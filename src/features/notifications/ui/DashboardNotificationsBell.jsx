@@ -2,22 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 
+import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
 import { useCommsInbox } from '../model/commsInboxContext.jsx';
 
 /**
- * Header/sidebar affordance for `/dashboard/notifications` with unread badge.
+ * Header/sidebar affordance for Profile-cluster Messages with unread badge.
  */
 export default function DashboardNotificationsBell() {
   const { unreadCount, ready } = useCommsInbox();
 
   const label =
     unreadCount > 0
-      ? `Notifications — new message waiting (${unreadCount} unread)`
-      : 'Notifications';
+      ? `Messages — new message waiting (${unreadCount} unread)`
+      : 'Messages';
 
   return (
     <Link
-      to="/dashboard/notifications"
+      to={PROFILE_CLUSTER_PATHS.notifications}
       className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle/60 bg-surface-panel-strong text-content-secondary transition-colors hover:border-brand-primary/40 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
       aria-label={label}
     >
