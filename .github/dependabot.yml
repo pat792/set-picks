@@ -1,9 +1,11 @@
 # Dependabot — weekly npm updates for the SPA and Cloud Functions (#414).
 # Grouped PRs reduce noise; triage notes in AGENTS.md.
+# PRs target `staging` (repo PR base), not `main`.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: "/"
+    target-branch: "staging"
     schedule:
       interval: weekly
       day: monday
@@ -18,6 +20,7 @@ updates:
 
   - package-ecosystem: npm
     directory: "/functions"
+    target-branch: "staging"
     schedule:
       interval: weekly
       day: monday
@@ -32,6 +35,7 @@ updates:
 
   - package-ecosystem: github-actions
     directory: "/"
+    target-branch: "staging"
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
