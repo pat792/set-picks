@@ -120,15 +120,15 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 
 ## Promote-day checklist
 
-- [ ] All **IN** issues merged to `staging` (or explicitly waived in this doc)
-- [ ] `npm run lint` / `npm test` / `npm run verify:dashboard-meta` / `npm run verify:dashboard-ui` green on staging tip
-- [ ] Functions tests green if Functions touched (`cd functions && npm test`)
-- [ ] Manual QA: new pool starts at zero; legacy pool unchanged; profile cluster redirects; push/install smoke
-- [ ] `staging → main` PR opened and merged
-- [ ] Release tag published
-- [ ] #438 ops completed (or residual items filed as post-release follow-ups)
-- [ ] #291 / #461 GA4 dimensions registered (no backfill — register before relying on reports)
-- [ ] Close epics/placeholders that met AC
+- [x] All **IN** issues merged to `staging` (or explicitly waived in this doc)
+- [x] `npm run lint` / `npm test` / `npm run verify:dashboard-meta` / `npm run verify:dashboard-ui` green on staging tip
+- [x] Functions tests green if Functions touched (`cd functions && npm test`)
+- [x] Manual QA: new pool starts at zero; legacy pool unchanged; profile cluster redirects; push/install smoke
+- [x] `staging → main` PR opened and merged ([#478](https://github.com/pat792/set-picks/pull/478))
+- [x] Release tag published ([v1.18.0](https://github.com/pat792/set-picks/releases/tag/v1.18.0))
+- [x] #438 ops completed (or residual items filed as post-release follow-ups) — Auth email templates residual
+- [x] #291 / #461 GA4 dimensions registered (no backfill — register before relying on reports)
+- [x] Close epics/placeholders that met AC (#272, #438; #441 stays open for remaining AC; #418 Phases 2–4 → Sprint 6)
 
 ---
 
@@ -153,4 +153,5 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 | 2026-07-03 | 3 | fix commits on staging | `commsDeliverySecrets` validate; await MP posts (Cloud Functions freeze) |
 | 2026-07-03 | 4 | PR #475 | #412 CSP Report-Only + security headers (1.16.0); **#412 closed** |
 | 2026-07-03 | 1 | PR #476 | Wave 1 catch-up: #413 indexes + #414 Dependabot/audit (1.17.0); **#413 #414 closed** |
-| 2026-07-03 | 5 | `feat/415-416-pool-reads-live-grade-skip` | #415/#416 moved to Sprint 5; pool read caps + live-grade early-exit (1.18.0) |
+| 2026-07-03 | 5 | PR #477 | #415/#416 pool read caps + live-grade early-exit (1.18.0); **#415 #416 closed**; Functions `gradePicksOnSetlistWrite` deployed |
+| 2026-07-03 | Promote | PR #478 + tag **v1.18.0** | `staging` → `main`; release published; #272/#438 closed; #418 → Sprint 6; #441 left open for residual AC |
