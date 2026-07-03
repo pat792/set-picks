@@ -186,16 +186,23 @@ export default async function handler(req, res) {
   const inviteUrl = `${SITE_URL}/join/${code}`;
 
   // 1. Resolve OG copy (best-effort; fall back to defaults on any error).
+  // Keep "Join my … pool" wording aligned with client share/clipboard copy
+  // (`buildPoolInviteShareTitle` in shareOrCopyInviteUrl.js).
   let title = DEFAULT_TITLE;
   let description = DEFAULT_DESCRIPTION;
 
   if (code) {
+    title = "Join my Setlist Pick 'Em pool!";
+    description =
+      "You've been invited to a private Setlist Pick 'Em pool. Pick your setlist and compete to win.";
     try {
       const pool = await fetchPoolByCode(code);
       if (pool?.name) {
         const poolName = String(pool.name).trim();
-        title = `${poolName} - Setlist Pick 'Em Invite`;
-        description = `You've been invited to join ${poolName}! Pick your setlist and compete to win.`;
+        if (poolName) {
+          title = `Join my Setlist Pick 'Em pool: ${poolName}`;
+          description = `Join my Setlist Pick 'Em pool — ${poolName}. Pick openers, closers, and more before each show.`;
+        }
       }
     } catch (err) {
       console.error('[og-invite] Firestore lookup failed:', err?.message ?? err);

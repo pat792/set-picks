@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { createPoolInviteLink } from '../../../shared/lib/createPoolInviteLink';
-import { shareOrCopyInviteUrl } from '../../../shared/lib/shareOrCopyInviteUrl';
+import {
+  buildPoolInviteShareTitle,
+  shareOrCopyInviteUrl,
+} from '../../../shared/lib/shareOrCopyInviteUrl';
 
 /**
  * Orchestrates pool invite link sharing (Web Share API or clipboard).
  */
-export function usePoolInviteShare({ inviteCode, onSuccess, disabled = false }) {
+export function usePoolInviteShare({
+  inviteCode,
+  poolName,
+  onSuccess,
+  disabled = false,
+}) {
   const [status, setStatus] = useState('idle');
 
   useEffect(() => {
@@ -17,7 +25,8 @@ export function usePoolInviteShare({ inviteCode, onSuccess, disabled = false }) 
     if (disabled || !inviteCode) return;
     const url = createPoolInviteLink(inviteCode);
     const result = await shareOrCopyInviteUrl(url, {
-      copyToastMessage: 'Link copied!',
+      poolName,
+      copyToastMessage: 'Invite link copied!',
     });
 
     if (result.ok) {
@@ -28,7 +37,7 @@ export function usePoolInviteShare({ inviteCode, onSuccess, disabled = false }) 
       setStatus('error');
       window.setTimeout(() => setStatus('idle'), 2000);
     }
-  }, [inviteCode, onSuccess, disabled]);
+  }, [inviteCode, poolName, onSuccess, disabled]);
 
   const label =
     status === 'shared'
@@ -43,6 +52,6 @@ export function usePoolInviteShare({ inviteCode, onSuccess, disabled = false }) 
     label,
     onShareClick: handleShareClick,
     disabled: disabled || !inviteCode,
-    title: 'Invite friends to this pool',
+    title: buildPoolInviteShareTitle(poolName),
   };
 }
