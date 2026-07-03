@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.10.0  
+**Version:** 1.12.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -59,10 +59,13 @@ All collections live in the default `(default)` Firestore database for project `
 | Field | Type | Notes |
 |-------|------|-------|
 | `name` | string | Pool display name |
-| `hostUid` | string | Owner uid |
+| `ownerId` | string | Owner uid |
 | `inviteCode` | string | Used in `/join/:code` URLs |
-| `memberUids` | string[] | |
-| `createdAt` | Timestamp | |
+| `members` | string[] | Member uids |
+| `createdAt` | string (ISO8601) | Pool create time |
+| `status` | `'active' \| 'archived'` | |
+| `standingsScope` | `'legacy' \| 'from_membership'`? | **Absent = `legacy`.** New pools write `from_membership` (#417): pool standings count only picks that list this pool in `pick.pools` **and** whose `showDate` is on/after that member’s membership calendar day (`America/Los_Angeles`). Legacy pools keep retroactive carryover + create/join backfill. |
+| `memberJoinedAt` | map `{ [uid]: ISO8601 }`? | Per-member join/create anchor for `from_membership` pools. Set for creator on create; updated on join. |
 
 ### 1.6 `picks/{pickId}` (subcollection: `pools/{poolId}/picks/{uid}`)
 

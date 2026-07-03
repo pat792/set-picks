@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 
-import { pickDataCountsForPool } from '../../pools';
+import {
+  memberJoinedOnForUser,
+  pickDataCountsForPool,
+} from '../../pools';
 
 /**
  * Pure derivation: filter the show-scoped picks array down to a target
@@ -12,8 +15,14 @@ import { pickDataCountsForPool } from '../../pools';
  * `@testing-library/react` (the repo avoids that dep).
  *
  * @param {{
- *   picks: Array<{ userId?: string } & Record<string, unknown>>,
- *   userPools?: Array<{ id: string, members?: string[], name?: string }> | null,
+ *   picks: Array<{ userId?: string, showDate?: string } & Record<string, unknown>>,
+ *   userPools?: Array<{
+ *     id: string,
+ *     members?: string[],
+ *     name?: string,
+ *     standingsScope?: string,
+ *     memberJoinedAt?: Record<string, string>,
+ *   }> | null,
  *   activeFilter: 'global' | string,
  * }} options
  */
@@ -23,11 +32,17 @@ export function filterPicksToAudience({ picks, userPools, activeFilter }) {
   const selectedPool = userPools?.find((p) => p.id === activeFilter);
   if (!selectedPool) return picks;
 
-  return picks.filter(
-    (pick) =>
-      selectedPool.members?.includes(pick.userId) &&
-      pickDataCountsForPool(pick, selectedPool.id),
-  );
+  return picks.filter((pick) => {
+    if (!selectedPool.members?.includes(pick.userId)) return false;
+    return pickDataCountsForPool(pick, selectedPool.id, {
+      standingsScope: selectedPool.standingsScope,
+      memberJoinedOn: memberJoinedOnForUser(
+        selectedPool.memberJoinedAt,
+        pick.userId,
+      ),
+      showDate: typeof pick.showDate === 'string' ? pick.showDate : null,
+    });
+  });
 }
 
 /**

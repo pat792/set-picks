@@ -68,6 +68,27 @@ test("pickDataCountsForPool: embedded pools snapshot scopes to id match", () => 
   assert.equal(pickDataCountsForPool(data, "p3"), false);
 });
 
+test("pickDataCountsForPool: from_membership requires snapshot + showDate floor", () => {
+  const ctx = {
+    standingsScope: "from_membership",
+    memberJoinedOn: "2026-07-03",
+    showDate: "2026-07-05",
+  };
+  assert.equal(pickDataCountsForPool({ picks: { s1o: "Foo" } }, "p1", ctx), false);
+  assert.equal(
+    pickDataCountsForPool({ pools: [{ id: "p1" }] }, "p1", ctx),
+    true
+  );
+  assert.equal(
+    pickDataCountsForPool(
+      { pools: [{ id: "p1" }] },
+      "p1",
+      { ...ctx, showDate: "2026-07-02" }
+    ),
+    false
+  );
+});
+
 test("pickDocHasPoolActivity: non-empty picks triggers activity", () => {
   assert.equal(
     pickDocHasPoolActivity({ picks: { s1o: "Bag" } }, "p1"),
@@ -219,6 +240,39 @@ test("findPoolPickActivity: scopes to embedded pools array when present", async 
     showDates: ["2026-04-16"],
   });
   assert.equal(got, false);
+});
+
+test("findPoolPickActivity: from_membership ignores legacy empty-pools activity", async () => {
+  const db = createFakeDb({
+    "2026-07-01_u1": { picks: { s1o: "Foo" } },
+  });
+  const got = await findPoolPickActivity({
+    db,
+    poolId: "p1",
+    memberIds: ["u1"],
+    showDates: ["2026-07-01"],
+    standingsScope: "from_membership",
+    memberJoinedAt: { u1: "2026-07-03T12:00:00.000Z" },
+  });
+  assert.equal(got, false);
+});
+
+test("findPoolPickActivity: from_membership counts post-join snapshot picks", async () => {
+  const db = createFakeDb({
+    "2026-07-05_u1": {
+      pools: [{ id: "p1" }],
+      picks: { s1o: "Foo" },
+    },
+  });
+  const got = await findPoolPickActivity({
+    db,
+    poolId: "p1",
+    memberIds: ["u1"],
+    showDates: ["2026-07-05"],
+    standingsScope: "from_membership",
+    memberJoinedAt: { u1: "2026-07-03T12:00:00.000Z" },
+  });
+  assert.equal(got, true);
 });
 
 test("findPoolPickActivity: treats legacy (no pools) pick doc as in-pool activity", async () => {

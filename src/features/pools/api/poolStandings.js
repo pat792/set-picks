@@ -4,7 +4,10 @@ import { db } from '../../../shared/lib/firebase';
 import { GAME_LAUNCH_SHOW_DATE } from '../../../shared/config/gameLaunch';
 import { pickCountsTowardSeason } from '../../../shared/utils/showAggregation';
 import { fetchGlobalMaxScoreForShow } from '../../scoring';
-import { pickDataCountsForPool } from './poolFirestore';
+import {
+  memberJoinedOnForUser,
+  pickDataCountsForPool,
+} from './poolFirestore';
 
 /**
  * @typedef {Object} PoolStandingsRow
@@ -127,6 +130,8 @@ export function aggregatePoolStandings(memberIds, picks, globalMaxByShow) {
  * @param {{
  *   onTelemetry?: (t: PoolStandingsTelemetry) => void,
  *   scope?: 'all-time' | 'tour',
+ *   standingsScope?: string | null,
+ *   memberJoinedAt?: Record<string, string> | null,
  * }} [options]
  * @returns {Promise<Map<string, PoolStandingsRow>>}
  */
@@ -136,7 +141,12 @@ export async function loadPoolStandings(
   effectiveShowDates,
   options = {}
 ) {
-  const { onTelemetry, scope = 'all-time' } = options;
+  const {
+    onTelemetry,
+    scope = 'all-time',
+    standingsScope = null,
+    memberJoinedAt = null,
+  } = options;
 
   const pid = poolId?.trim();
   const members = Array.isArray(memberIds) ? memberIds.filter(Boolean) : [];
@@ -201,7 +211,15 @@ export async function loadPoolStandings(
       const { showDate, userId } = slice[j];
       if (!snap.exists()) continue;
       const data = snap.data() || {};
-      if (!pickDataCountsForPool(data, pid)) continue;
+      if (
+        !pickDataCountsForPool(data, pid, {
+          standingsScope,
+          memberJoinedOn: memberJoinedOnForUser(memberJoinedAt, userId),
+          showDate,
+        })
+      ) {
+        continue;
+      }
       if (!pickCountsTowardSeason(data)) continue;
       const score = typeof data.score === 'number' ? data.score : 0;
       eligiblePicks.push({ showDate, userId, score });
