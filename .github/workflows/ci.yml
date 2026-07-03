@@ -70,7 +70,11 @@ jobs:
         run: npm test
 
       - name: Version bumped (SemVer gate)
-        if: github.base_ref != 'main' && !contains(github.event.pull_request.labels.*.name, 'skip-version-bump')
+        # PR-only check: ensures PRs targeting staging bump package.json past the
+        # last release. Skipped on push/schedule where github.base_ref is empty
+        # (so `!= 'main'` was accidentally true) and package.json legitimately
+        # equals the last release tag once a release has been cut.
+        if: github.event_name == 'pull_request' && github.base_ref != 'main' && !contains(github.event.pull_request.labels.*.name, 'skip-version-bump')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
