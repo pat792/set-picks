@@ -182,9 +182,11 @@ async function deliverCommsTrigger({
           comms_variant: variant,
           uid,
         });
-        // Fire-and-forget: MP failures must not block delivery.
-        // eslint-disable-next-line no-void
-        void sendGa4Delivered(
+        // Await MP so the request stays alive until the POST finishes.
+        // Fire-and-forget is unsafe on Cloud Functions (instance freezes after return).
+        // sendCommsDeliveredEvent never throws; failures only log + no-op.
+        // eslint-disable-next-line no-await-in-loop
+        await sendGa4Delivered(
           {
             uid,
             triggerId,

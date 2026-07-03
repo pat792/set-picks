@@ -34,7 +34,9 @@ function readGa4MpConfig(env = process.env) {
  */
 function isGa4MpEnabled(env = process.env) {
   if (env.FUNCTIONS_EMULATOR === "true") return false;
-  const projectId = String(env.GCLOUD_PROJECT || env.GCP_PROJECT || "").trim();
+  const projectId = String(
+    env.GCLOUD_PROJECT || env.GCP_PROJECT || env.GOOGLE_CLOUD_PROJECT || ""
+  ).trim();
   if (projectId && !PROD_PROJECT_IDS.has(projectId)) return false;
   const { measurementId, apiSecret } = readGa4MpConfig(env);
   return Boolean(measurementId && apiSecret);
