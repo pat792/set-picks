@@ -140,7 +140,9 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 | Date | Wave | PR / action | Notes |
 |------|------|-------------|-------|
 | 2026-07-03 | 0 | Manifest authored | Train defined |
-| 2026-07-03 | 2 | PR #471 | #417 pool standings from membership merged to staging (1.12.0) |
-| 2026-07-03 | 2 | PR #472 | #418 Profile cluster Phase 1 (1.13.0) |
+| 2026-07-03 | 2 | PR #471 | #417 pool standings from membership merged to staging (1.12.0); **issue #417 closed** |
+| 2026-07-03 | 2 | PR #472 | #418 Profile cluster Phase 1 (1.13.0); **#418 Phase 1 noted, epic left open for Phases 2–4** |
 | 2026-07-03 | 2 | PR #473 | Visible invite code + join-my-pool share copy (1.14.0) |
-| 2026-07-03 | 3 | `feat/461-comms-ga4-measurement-protocol` | #461 GA4 MP for `comms_delivered` (1.15.0); #291 is GA4 Admin (human) |
+| 2026-07-03 | 3 | PR #474 | #461 GA4 MP for `comms_delivered` (1.15.0); Functions deploy + canary; **#461 and #291 closed**; #441 measurement bullets updated |
+| 2026-07-03 | 3 | fix commits on staging | `commsDeliverySecrets` validate; await MP posts (Cloud Functions freeze) |
+| 2026-07-03 | 4 | `feat/412-csp-security-headers` | #412 CSP Report-Only + security headers (1.16.0) |
