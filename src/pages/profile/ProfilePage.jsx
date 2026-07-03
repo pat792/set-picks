@@ -1,18 +1,19 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Bell, ExternalLink } from 'lucide-react';
+import { Link, useOutletContext } from 'react-router-dom';
+import { ExternalLink } from 'lucide-react';
 
-import { useSignOut } from '../../features/auth';
-import { InstallAppCard } from '../../features/install';
-import { DeleteAccountSection, ProfileEditForm, useUserProfile } from '../../features/profile';
+import { ProfileEditForm, useUserProfile } from '../../features/profile';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
-import Button from '../../shared/ui/Button';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
 
-export default function Profile({ user }) {
-  const navigate = useNavigate();
-  const signOut = useSignOut();
+/**
+ * Profile cluster — identity surface (handle, favorite song, public preview, join date).
+ */
+export default function ProfilePage({ user: userProp }) {
+  const outlet = useOutletContext();
+  const user = userProp ?? outlet?.user;
+
   const {
     handle,
     favoriteSong,
@@ -25,20 +26,8 @@ export default function Profile({ user }) {
     saveProfile,
   } = useUserProfile(user);
 
-  const hasEmailPasswordProvider =
-    user?.providerData?.some((p) => p.providerId === 'password') ?? false;
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Error logging out: ', error);
-    }
-  };
-
   return (
-    <div className="max-w-xl mx-auto pb-6 md:pb-12">
+    <div>
       <DashboardActionRow>
         {user?.uid ? (
           <DashboardRowPill as={Link} to={`/user/${user.uid}`} tone="muted">
@@ -71,76 +60,6 @@ export default function Profile({ user }) {
         isLoading={isLoading}
         message={message}
       />
-
-      <InstallAppCard />
-
-      <div className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
-        <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">
-          Notifications
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-content-secondary">
-          Lock reminders and score alerts on your phone — add the app to your home screen, then
-          turn on push in settings.
-        </p>
-        <Link
-          to="/dashboard/notifications"
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border-subtle bg-surface-field py-3.5 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel"
-        >
-          <Bell className="h-4 w-4 shrink-0" aria-hidden />
-          Open notification settings
-        </Link>
-      </div>
-
-      {hasEmailPasswordProvider && user?.email && (
-        <div className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
-          <h3 className="text-sm font-black uppercase tracking-widest text-content-secondary">
-            Sign-in &amp; password
-          </h3>
-          <p className="mt-2 text-sm leading-relaxed text-content-secondary">
-            Update the email or password you use to sign in (you&apos;ll need your current password on
-            the next screen, or a reset link if you forgot it).
-          </p>
-          <Link
-            to="/dashboard/account-security"
-            className="mt-4 flex w-full items-center justify-center rounded-xl border-2 border-border-subtle bg-surface-field py-3.5 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel"
-          >
-            Update email or password
-          </Link>
-        </div>
-      )}
-
-      <div className="mt-8 border-t border-border-muted pt-6">
-        <Button
-          variant="text"
-          onClick={handleLogout}
-          type="button"
-          className="w-full bg-transparent hover:bg-red-500/10 border-2 border-red-500/30 hover:border-red-500 text-red-400 text-sm py-4 rounded-xl uppercase tracking-widest"
-        >
-          Log Out
-        </Button>
-      </div>
-
-      <DeleteAccountSection />
-
-      {user?.uid ? (
-        <footer className="mt-10 border-t border-border-muted/40 pb-2 pt-6 text-center text-[11px] font-medium text-content-secondary/70">
-          <span className="space-x-2">
-            <Link
-              to="/privacy"
-              className="underline decoration-border-muted underline-offset-2 transition-colors hover:text-white"
-            >
-              Privacy
-            </Link>
-            <span aria-hidden>&middot;</span>
-            <Link
-              to="/terms"
-              className="underline decoration-border-muted underline-offset-2 transition-colors hover:text-white"
-            >
-              Terms
-            </Link>
-          </span>
-        </footer>
-      ) : null}
     </div>
   );
 }

@@ -12,6 +12,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.13.0] — 2026-07-03
+
+### Added
+- **Profile cluster IA (#418 Phase 1)** — nested routes under `/dashboard/profile` with sub-nav **Profile** / **Messages** / **Account**; `ProfileClusterLayout`, `AccountPage`, and `features/account` (moved account security + delete from `features/profile`). Avatar shortcut → Account; bell → Messages.
+- **Legacy redirects** — `/dashboard/notifications` → `/dashboard/profile/notifications` and `/dashboard/account-security` → `/dashboard/profile/account` (query string preserved).
+
+### Changed
+- Comms/email/push deep links and unsubscribe footer targets use `/dashboard/profile/notifications`.
+- Dashboard last-path restore excludes the entire Profile cluster.
+
+---
+
 ## [1.12.0] — 2026-07-03
 
 ### Added

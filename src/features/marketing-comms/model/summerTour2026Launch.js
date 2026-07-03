@@ -16,7 +16,7 @@ export const SUMMER_TOUR_2026_OPENER = {
 };
 
 const SITE_URL = 'https://www.setlistpickem.com';
-const NOTIFICATIONS_PATH = '/dashboard/notifications';
+const NOTIFICATIONS_PATH = '/dashboard/profile/notifications';
 
 /**
  * @typedef {'sphere_alum' | 'post_sphere_signup' | 'sphere_alum_and_new'} MarketingAudienceSegment

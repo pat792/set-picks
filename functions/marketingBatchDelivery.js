@@ -67,7 +67,7 @@ function buildEmailPayload(segment, handle, inviteCode) {
     audienceSegment: segment,
     openerLabel: "Tuesday, July 7",
     siteUrl: base,
-    settingsUrl: `${base}/dashboard/notifications`,
+    settingsUrl: `${base}/dashboard/profile/notifications`,
     shareUrl: buildInviteShareUrl(base, inviteCode),
     ...(inviteCode ? { inviteCode } : {}),
   };

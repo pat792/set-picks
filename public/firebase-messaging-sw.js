@@ -16,7 +16,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-const DEFAULT_CLICK_URL = '/dashboard/notifications';
+const DEFAULT_CLICK_URL = '/dashboard/profile/notifications';
 
 // Registering `onBackgroundMessage` takes over notification display from the
 // FCM SDK's own default handler, which means its automatic `fcmOptions.link`

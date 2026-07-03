@@ -139,4 +139,5 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 | Date | Wave | PR / action | Notes |
 |------|------|-------------|-------|
 | 2026-07-03 | 0 | Manifest authored | Train defined |
-| 2026-07-03 | 2 | `feat/417-pool-standings-from-membership` | #417 implementation in progress |
+| 2026-07-03 | 2 | PR #471 | #417 pool standings from membership merged to staging (1.12.0) |
+| 2026-07-03 | 2 | PR #472 | #418 Profile cluster Phase 1 (1.13.0) |

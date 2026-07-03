@@ -18,15 +18,11 @@ const PicksPage = lazy(() => import('../../pages/picks/PicksPage'));
 const AdminPage = lazy(() => import('../../pages/admin/AdminPage'));
 const StandingsPage = lazy(() => import('../../pages/standings/StandingsPage'));
 const ProfilePage = lazy(() => import('../../pages/profile/ProfilePage'));
-// `AccountSecurity` ships through the `profile` feature barrel — preserve
-// that public API by dynamic-importing the barrel and picking the named
-// export for `React.lazy`'s default-module contract.
-const AccountSecurity = lazy(() =>
-  import('../../features/profile').then((m) => ({ default: m.AccountSecurity }))
-);
+const AccountPage = lazy(() => import('../../pages/profile/AccountPage'));
 const PoolsPage = lazy(() => import('../../pages/pools/PoolsPage'));
 const PoolHubPage = lazy(() => import('../../pages/pools/PoolHubPage'));
 const NotificationsPage = lazy(() => import('../../pages/notifications/NotificationsPage'));
+const ProfileClusterLayout = lazy(() => import('./ui/ProfileClusterLayout'));
 
 // `ScoringRulesModalProvider` must stay eager — it wraps the whole dashboard
 // and owns the modal portal state; lazy-loading it would Suspense-flash the
@@ -39,6 +35,10 @@ import {
   NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
 } from '../../shared/config/dashboardVocabulary';
+import {
+  PROFILE_CLUSTER_PATHS,
+  isProfileClusterPath,
+} from '../../shared/config/dashboardRoutes';
 import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
 import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
 import {
@@ -160,10 +160,8 @@ export default function DashboardLayout() {
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
             const isProfileSection =
-              item.path === '/dashboard/profile' &&
-              (location.pathname === '/dashboard/profile' ||
-                location.pathname === '/dashboard/account-security' ||
-                location.pathname === '/dashboard/notifications');
+              item.path === PROFILE_CLUSTER_PATHS.profile &&
+              isProfileClusterPath(location.pathname);
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
               (location.pathname === '/dashboard/pools' ||
@@ -281,12 +279,29 @@ export default function DashboardLayout() {
                 path="admin"
                 element={<AdminPage user={user} selectedDate={selectedDate} />}
               />
-              <Route path="profile" element={<ProfilePage user={user} />} />
+              <Route path="profile" element={<ProfileClusterLayout user={user} />}>
+                <Route index element={<ProfilePage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="account" element={<AccountPage />} />
+              </Route>
               <Route
                 path="account-security"
-                element={<AccountSecurity user={user} />}
+                element={
+                  <Navigate
+                    to={`${PROFILE_CLUSTER_PATHS.account}${location.search}`}
+                    replace
+                  />
+                }
               />
-              <Route path="notifications" element={<NotificationsPage />} />
+              <Route
+                path="notifications"
+                element={
+                  <Navigate
+                    to={`${PROFILE_CLUSTER_PATHS.notifications}${location.search}`}
+                    replace
+                  />
+                }
+              />
               <Route path="pools" element={<PoolsPage user={user} />} />
               <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
             </Routes>
@@ -300,10 +315,8 @@ export default function DashboardLayout() {
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
             const isProfileSection =
-              item.path === '/dashboard/profile' &&
-              (location.pathname === '/dashboard/profile' ||
-                location.pathname === '/dashboard/account-security' ||
-                location.pathname === '/dashboard/notifications');
+              item.path === PROFILE_CLUSTER_PATHS.profile &&
+              isProfileClusterPath(location.pathname);
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
               (location.pathname === '/dashboard/pools' ||

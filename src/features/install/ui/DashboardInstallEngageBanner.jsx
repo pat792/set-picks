@@ -2,26 +2,25 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Download, Share2 } from 'lucide-react';
 
+import {
+  PROFILE_CLUSTER_PATHS,
+  isProfileClusterPath,
+} from '../../../shared/config/dashboardRoutes';
 import { ga4Event } from '../../../shared/lib/ga4';
 import { useDashboardPushNudge } from '../model/useDashboardPushNudge';
 import { useInstallPrompt } from '../model/useInstallPrompt';
 import IosInstallScreenshotGallery from './IosInstallScreenshotGallery.jsx';
 
 /**
- * Routes where the compact install + push nudge may appear (#334). Profile keeps
- * the full `InstallAppCard`; pool detail and settings routes stay focused.
+ * Routes where the compact install + push nudge may appear (#334). Profile
+ * cluster and pool detail stay focused (no engage banner).
  *
  * @param {string} pathname
  * @returns {boolean}
  */
 export function dashboardRouteShowsInstallEngage(pathname) {
   const n = pathname.replace(/\/$/, '') || '/dashboard';
-  if (
-    n === '/dashboard/profile' ||
-    n === '/dashboard/account-security' ||
-    n === '/dashboard/notifications' ||
-    n === '/dashboard/admin'
-  ) {
+  if (isProfileClusterPath(n) || n === '/dashboard/admin') {
     return false;
   }
   if (n.startsWith('/dashboard/pool/')) return false;
@@ -154,7 +153,7 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Link
-              to="/dashboard/notifications?openPush=1"
+              to={`${PROFILE_CLUSTER_PATHS.notifications}?openPush=1`}
               onClick={() => {
                 ga4Event('push_nudge_cta_clicked', { surface: 'dashboard' });
                 push.clearSessionInstallFlag();
