@@ -1,7 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.10.2",
+  "version": "1.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -29,7 +29,9 @@
     "comms:deploy:validate": "node scripts/comms-deploy-validate.mjs",
     "comms:deploy:list": "node scripts/deploy-comms-functions.mjs --list",
     "comms:deploy:dry": "node scripts/deploy-comms-functions.mjs --dry-run",
-    "comms:deploy": "node scripts/deploy-comms-functions.mjs"
+    "comms:deploy": "node scripts/deploy-comms-functions.mjs",
+    "emails:build": "npm run build --prefix emails",
+    "emails:preview": "npm run preview --prefix emails"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",

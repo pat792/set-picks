@@ -281,12 +281,15 @@ function createCommsEmailWorker({
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     };
     const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
-    const html = buildBrandedEmailHtml({
-      siteUrl,
-      bodyText: rendered.email.text,
-      ctaUrl: `${base}/dashboard`,
-      settingsUrl,
-    });
+    const html =
+      typeof rendered.email.html === "string" && rendered.email.html.trim()
+        ? rendered.email.html
+        : buildBrandedEmailHtml({
+            siteUrl,
+            bodyText: rendered.email.text,
+            ctaUrl: rendered.email.ctaUrl || `${base}/dashboard`,
+            settingsUrl,
+          });
     const idempotencyKey = forceResend
       ? `${triggerId}/${uid}:${dedupId || "default"}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`
       : `${triggerId}/${uid}:${dedupId || "default"}`;

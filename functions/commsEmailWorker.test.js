@@ -146,6 +146,29 @@ test("unsubscribeHeaders point at the notifications screen when unsigned", () =>
   assert.match(headers["List-Unsubscribe"], /\/dashboard\/notifications/);
 });
 
+test("uses pre-rendered html when rendered.email.html is provided", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({
+    resendClient: fakeResend(captured),
+    unsubscribeSigningSecret: "test-secret",
+  });
+  const customHtml = "<!DOCTYPE html><html><body><p>Marketing letter</p></body></html>";
+  await worker({
+    ...baseCtx,
+    rendered: {
+      email: {
+        subject: "Summer Tour",
+        text: "Plain fallback",
+        html: customHtml,
+        ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+      },
+    },
+  });
+
+  assert.equal(captured[0].message.html, customHtml);
+  assert.doesNotMatch(captured[0].message.html, /web-app-manifest-512x512/);
+});
+
 test("sends a branded HTML body alongside the plain-text fallback", async () => {
   const captured = [];
   const worker = createCommsEmailWorker({

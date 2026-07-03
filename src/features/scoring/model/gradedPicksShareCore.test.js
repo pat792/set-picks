@@ -68,7 +68,7 @@ describe('gradedPicksShareCore', () => {
     expect(body).toContain('🟩');
     expect(body).toContain('🟦');
     expect(body).toContain('⬜');
-    expect(body).toContain('🟧 bustout bonus');
+    expect(body).toContain('🟧 Bustout Boost');
     expect(body).toContain('nailed it');
     expect(body).toContain('setlistpickem.com');
     expect(body).toContain('Play free');

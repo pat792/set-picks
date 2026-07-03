@@ -40,6 +40,7 @@ const {
 } = require("./fcmMessagingCore");
 const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { deliverSphere2026TourRecapInbox } = require("./sphereTourRecapDelivery");
+const { deliverMarketingSummerTour2026Launch } = require("./marketingBatchDelivery");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
 const { runAccountDeletionForCaller } = require("./accountDelete");
 const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
@@ -443,6 +444,37 @@ exports.deliverSphere2026TourRecapInbox = onCall(
       admin,
       dryRun,
       forceResend,
+      logger,
+    });
+  }
+);
+
+/**
+ * Admin-only batch send — Summer Tour 2026 pre-opener marketing email (#468).
+ * Defaults to dryRun. Pass dryRun: false to send via Resend (email channel only).
+ */
+exports.deliverMarketingSummerTour2026Launch = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+    secrets: [resendApiKey, resendWebhookSecret],
+  },
+  async (request) => {
+    assertAdminClaim(request);
+    const dryRun = request.data?.dryRun !== false;
+    const forceResend = request.data?.forceResend === true;
+    const onlyUids = Array.isArray(request.data?.onlyUids)
+      ? request.data.onlyUids.map((u) => String(u).trim()).filter(Boolean)
+      : undefined;
+    return deliverMarketingSummerTour2026Launch({
+      db,
+      admin,
+      dryRun,
+      forceResend,
+      onlyUids,
+      resendApiKey: process.env.RESEND_API_KEY,
+      resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET,
       logger,
     });
   }

@@ -8,6 +8,9 @@
  */
 
 import { SPHERE_2026_RECAP_ID } from '../tour-recap';
+import {
+  SUMMER_TOUR_2026_LAUNCH_TEMPLATE_ID,
+} from '../marketing-comms/model/summerTour2026Launch.js';
 
 /**
  * @typedef {'inApp' | 'emailAbbreviated' | 'emailFull' | 'push'} CommsChannel
@@ -38,6 +41,13 @@ export const RECAP_TEMPLATE_REGISTRY = {
     sourceDraftPath: 'content/comms/tours/sphere-2026-inaugural.md',
     implementationModule: 'src/features/tour-recap/model/sphere2026Recap.js',
     supportedChannels: ['inApp', 'emailAbbreviated', 'emailFull', 'push'],
+  },
+  [SUMMER_TOUR_2026_LAUNCH_TEMPLATE_ID]: {
+    kind: 'broadcast',
+    displayName: 'Summer Tour 2026 — pre-opener marketing launch',
+    sourceDraftPath: 'content/comms/lifecycle/summer-tour-2026-launch.md',
+    implementationModule: 'src/features/marketing-comms/model/summerTour2026Launch.js',
+    supportedChannels: ['emailFull'],
   },
 };
 

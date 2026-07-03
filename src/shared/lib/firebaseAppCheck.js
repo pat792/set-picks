@@ -11,9 +11,14 @@ const APP_CHECK_SITE_KEY = '6LdmOKAsAAAAACN1guy_JoAMDhjN6eljCiLLyMSJ';
 
 let readyPromise = null;
 
+/** Registered in Firebase Console → App Check → debug tokens (see docs/TESTING.md). */
+const DEV_APPCHECK_DEBUG_TOKEN = '38422efd-029f-45b4-b028-7cf7fcaeeffc';
+
 function runInitialization() {
   if (import.meta.env.DEV && typeof self !== 'undefined') {
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    // Use the registered UUID directly — `true` mints a random token that 403s until
+    // manually added to the Console and seeded in IndexedDB.
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = DEV_APPCHECK_DEBUG_TOKEN;
   }
   return import('firebase/app-check').then(
     ({ initializeAppCheck, ReCaptchaEnterpriseProvider }) =>

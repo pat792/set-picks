@@ -332,7 +332,7 @@ Scores update live during the show. Check back tonight.
 - Opener: {{opener_result}}
 - Closer: {{closer_result}}
 - Encore: {{encore_result}}
-- Wildcard: {{wildcard_result}}{{#if bustout_bonus}} (+{{bustout_bonus}} bustout bonus){{/if}}
+- Wildcard: {{wildcard_result}}{{#if bustout_bonus}} (+{{bustout_bonus}} Bustout Boost){{/if}}
 
 **Tonight:** {{setlist_highlight}}
 
@@ -386,7 +386,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
 **Body sections:**
 1. **Your night** *(absorbed from `show_recap`, #451)* — score, rank (global + pool if applicable), correct picks count.
-2. **Pick-by-pick** — opener, closer, encore, wildcard results with song names. Bustout bonus called out if earned.
+2. **Pick-by-pick** — opener, closer, encore, wildcard results with song names. Bustout Boost called out if earned.
 3. **Setlist context** — `{{setlist_highlight}}` (e.g., "It was the first time Reba opened a show in 6 years").
 4. **Your tour position** — rank, points, shows played, rank change vs yesterday.
 5. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
@@ -482,6 +482,33 @@ The more shows you pick, the better your tour rank. Don't let the tour slip by.
 2. The tour keeps going — `{{shows_remaining}}` shows remaining, next one is at `{{next_show_venue}}` on `{{next_show_date}}`.
 3. Tour standings work differently from single shows — cumulative points determine the tour winner.
 4. CTA button: `Pick the next show`
+
+---
+
+## 10 — `marketing_summer_tour_2026_launch`
+
+| Field | Value |
+|-------|-------|
+| **Status** | `shipped` |
+| **Automation** | `batch` (admin callable / CLI — **not** event-driven) |
+| **Event** | Manual execute via `deliverMarketingSummerTour2026Launch` or CLI script |
+| **Channels** | `email` only (`emailFull` / React Email) |
+| **Audience** | Sphere Run seed players (graded picks on any Sphere date) ∪ users who signed up on/after Sphere go-live |
+| **Prefs key** | `lifecycle` |
+| **Dedup** | `marketing:{campaignId}:{uid}` (`campaignId` = `summer_tour_2026`) |
+| **Implementation** | `functions/marketingBatchDelivery.js` · GitHub #468 |
+| **Editorial** | `content/comms/lifecycle/summer-tour-2026-launch.md` |
+
+#### Variables used
+
+`{{greeting_name}}`, `{{audience_segment}}`, `{{opener_label}}`, `{{share_url}}`, `{{invite_code}}`
+
+#### Template — Email (full)
+
+**Subject:** `Summer Tour's almost here — bring your crew →`  
+**Preview:** `Bring your crew → Summer Tour starts Tuesday, July 7.`
+
+Founder letter (Pat) with feature blocks + primary CTA (share with friends via `/join/:code` invite OG link). Rendered via React Email; see `emails/src/templates/SummerTour2026Launch.jsx`.
 
 ---
 
