@@ -69,6 +69,17 @@ jobs:
       - name: Client tests (vitest)
         run: npm test
 
+      # Informational only (#414) — does not fail the job. Triage notes in AGENTS.md.
+      - name: npm audit (informational)
+        continue-on-error: true
+        run: |
+          echo "::group::root"
+          npm audit --omit=dev || true
+          echo "::endgroup::"
+          echo "::group::functions"
+          npm audit --omit=dev --prefix functions || true
+          echo "::endgroup::"
+
       - name: Version bumped (SemVer gate)
         # PR-only check: ensures PRs targeting staging bump package.json past the
         # last release. Skipped on push/schedule where github.base_ref is empty

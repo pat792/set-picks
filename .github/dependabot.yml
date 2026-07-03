@@ -1,0 +1,39 @@
+# Dependabot — weekly npm updates for the SPA and Cloud Functions (#414).
+# Grouped PRs reduce noise; triage notes in AGENTS.md.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    groups:
+      root-production:
+        dependency-type: production
+      root-development:
+        dependency-type: development
+
+  - package-ecosystem: npm
+    directory: "/functions"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    groups:
+      functions-production:
+        dependency-type: production
+      functions-development:
+        dependency-type: development
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies

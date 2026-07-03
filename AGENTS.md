@@ -40,6 +40,18 @@ Core local commands:
 | QA runners | `npm run qa:chunks && npm run qa:cache` |
 | Build | `npm run build` |
 
+### Dependabot / npm audit (#414)
+
+- **Dependabot** (`.github/dependabot.yml`) opens weekly grouped PRs for root and `functions/` npm deps, plus monthly GitHub Actions updates. Base branch is the repo default; retarget to `staging` if GitHub opens against `main` only.
+- **CI `npm audit`** on the `verify` job is **informational** (`continue-on-error: true`). It does not block merge.
+- **Triage:** Critical/high in **production** deps → fix or upgrade in a normal PR. Dev-only / low noise → defer or group into a maintenance PR. Do not mass-upgrade without running `npm test` and `cd functions && npm test`.
+
+### Firestore indexes (#413)
+
+- Composite indexes live in `firestore.indexes.json` (wired from `firebase.json`). Refresh from prod:
+  `firebase firestore:indexes --project set-picks > firestore.indexes.json`
+- Empty `indexes: []` is valid when production has no composites (single-field indexes are automatic). Add composites here when a new query requires them (Console link or CLI), then deploy with `firebase deploy --only firestore:indexes`.
+
 ### PR workflow notes
 
 - **Base branch is `staging`**, not `main` (per `.cursorrules` §10).

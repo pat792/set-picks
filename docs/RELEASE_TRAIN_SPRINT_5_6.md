@@ -145,4 +145,5 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 | 2026-07-03 | 2 | PR #473 | Visible invite code + join-my-pool share copy (1.14.0) |
 | 2026-07-03 | 3 | PR #474 | #461 GA4 MP for `comms_delivered` (1.15.0); Functions deploy + canary; **#461 and #291 closed**; #441 measurement bullets updated |
 | 2026-07-03 | 3 | fix commits on staging | `commsDeliverySecrets` validate; await MP posts (Cloud Functions freeze) |
-| 2026-07-03 | 4 | `feat/412-csp-security-headers` | #412 CSP Report-Only + security headers (1.16.0) |
+| 2026-07-03 | 4 | PR #475 | #412 CSP Report-Only + security headers (1.16.0); **#412 closed** |
+| 2026-07-03 | 1 | `feat/413-414-indexes-dependabot` | Wave 1 catch-up: #413 indexes + #414 Dependabot/audit (1.17.0) |
