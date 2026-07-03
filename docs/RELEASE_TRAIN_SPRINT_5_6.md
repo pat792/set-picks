@@ -93,7 +93,8 @@ Wave 5  Stretch (optional) then promote freeze
 |------|------------------|--------------------|
 | `COMMS_EVENT_ADAPTERS_ENABLED` | Already canaried per #461 notes; verify on live revisions | Confirm `"true"` on all adapter + hook-host exports via deploy manifest |
 | `RESEND_API_KEY` / `RESEND_WEBHOOK_SECRET` | Bound on email path | Confirm bound on scoring/rollup hosts (#460) |
-| GA4 MP API secret (new, #461) | Unset → no-op send | Set secret, bind, canary one `runCommsTrigger` |
+| `GA4_MEASUREMENT_ID` + `GA4_MP_API_SECRET` (#461) | Unset → no-op send | Set measurement id param + MP secret, redeploy comms hosts, canary one `runCommsTrigger` |
+| GA4 custom dimensions (#291 + #461) | Not registered | Human: Admin → register `method`, `error_code`, `comms_*` event params |
 | CSP (#412) | Report-Only on preview first | Flip to enforce only after report-only is clean |
 | `pools.standingsScope` (#417) | Absent = `legacy` | New pools write `from_membership`; no migration |
 | Multi-band (#301) | Phish-only registry | No user-visible switcher |
@@ -142,3 +143,4 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 | 2026-07-03 | 2 | PR #471 | #417 pool standings from membership merged to staging (1.12.0) |
 | 2026-07-03 | 2 | PR #472 | #418 Profile cluster Phase 1 (1.13.0) |
 | 2026-07-03 | 2 | PR #473 | Visible invite code + join-my-pool share copy (1.14.0) |
+| 2026-07-03 | 3 | `feat/461-comms-ga4-measurement-protocol` | #461 GA4 MP for `comms_delivered` (1.15.0); #291 is GA4 Admin (human) |

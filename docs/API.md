@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.14.0  
+**Version:** 1.15.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -277,6 +277,8 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 |----------|----------|-------------|
 | `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger`, `deliverMarketingSummerTour2026Launch`, and comms adapters |
 | `RESEND_WEBHOOK_SECRET` | For email deliverability | Resend/Svix webhook signing secret (`whsec_…`); also signs one-click unsubscribe URLs |
+| `GA4_MEASUREMENT_ID` | For server `comms_delivered` MP | Same `G-…` id as `VITE_GA_MEASUREMENT_ID`; Functions `defineString` / `.env.set-picks` |
+| `GA4_MP_API_SECRET` | For server `comms_delivered` MP | GA4 Measurement Protocol API secret (Secret Manager); bound on all `deliverCommsTrigger` hosts; unset → no-op |
 | `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |
 | `PHISHNET_API_KEY` | For Phish.net callables | Phish.net API key (Secret Manager) |
 

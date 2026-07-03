@@ -6,11 +6,11 @@ GA4 property: **set-picks** (`527619709`). Comms events should register on **pro
 
 ## 1. Events to emit
 
-Deliver through a future `src/features/comms/model/commsAnalytics.js` (or extend `authAnalytics` only where lifecycle overlaps). Client events use `ga4Event`; server delivery logs use Cloud Functions structured logs + optional GA4 Measurement Protocol.
+Client engagement events use `ga4Event` via `src/features/comms/model/commsAnalytics.js`. Server delivery emits structured Cloud Logging **and** GA4 Measurement Protocol (`functions/commsGa4Measurement.js`, wired from `deliverCommsTrigger` on real non-dry-run channel success — #461).
 
 | Event | When | Params |
 |-------|------|--------|
-| `comms_delivered` | Server wrote inbox row or sent FCM | `trigger_id`, `template_id`, `channel`, `variant`, `message_id` |
+| `comms_delivered` | Server wrote inbox row, sent FCM, or sent email (per channel) | `comms_trigger_id`, `comms_template_id`, `comms_channel`, `comms_variant` (MP + logs; `user_id` = Firebase uid on MP) |
 | `comms_opened` | User opens inbox message or expands bell item | `trigger_id`, `template_id`, `channel`, `message_id` |
 | `comms_dismissed` | User dismisses without reading | `trigger_id`, `template_id`, `message_id` |
 | `comms_cta_click` | User taps CTA in message | `trigger_id`, `template_id`, `cta`, `destination` |
@@ -23,17 +23,28 @@ Even single-variant templates pass `variant: control` on every `comms_*` event s
 
 ## 2. GA4 custom dimensions (register once)
 
-Admin → Property → Custom definitions → Event-scoped:
+Admin → Property → Custom definitions → Event-scoped. Event parameter names match client + server emitters (`comms_*` prefix):
 
 | Display name | Event parameter |
 |--------------|-----------------|
-| `comms_trigger_id` | `trigger_id` |
-| `comms_template_id` | `template_id` |
-| `comms_channel` | `channel` |
-| `comms_variant` | `variant` |
-| `comms_cta` | `cta` |
+| Comms trigger id | `comms_trigger_id` |
+| Comms template id | `comms_template_id` |
+| Comms channel | `comms_channel` |
+| Comms variant | `comms_variant` |
+| Comms CTA | `comms_cta` |
+
+Also register auth dimensions from #291 (`method`, `error_code`) in the same Admin pass.
 
 Historical data is not backfilled after registration.
+
+### Server MP credentials (ops)
+
+| Var | Where | Notes |
+|-----|-------|-------|
+| `GA4_MEASUREMENT_ID` | Functions param / `.env.set-picks` | Same `G-…` as `VITE_GA_MEASUREMENT_ID` |
+| `GA4_MP_API_SECRET` | Secret Manager (`firebase functions:secrets:set GA4_MP_API_SECRET`) | GA4 Admin → Data stream → Measurement Protocol API secrets |
+
+Gate: both set, project `set-picks`, not Functions emulator. Unset secret → no-op (safe for local/CI).
 
 ## 3. Funnels per trigger family
 
@@ -72,7 +83,8 @@ Eligible → comms_delivered → comms_opened → dashboard visit within 24h
 | GA4 MCP `run_report` | Event counts, cohorts |
 | GA4 MCP `run_realtime_report` | Show-day spikes |
 | Firestore | `fcm_notification_log` delivery counts, `commsInbox` readAt |
-| Cloud Functions logs | Server-side `comms_delivered` audit |
+| Cloud Functions logs | Server-side `comms_delivered` audit (always) |
+| GA4 MP (`comms_delivered`) | Server delivery counts in GA4 (when MP secret bound) |
 
 ## 5. Squad KPIs
 
