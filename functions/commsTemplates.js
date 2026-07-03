@@ -13,8 +13,6 @@
 
 "use strict";
 
-const { buildSummerTour2026LaunchChannels } = require("./marketingCommsTemplates");
-
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
 
@@ -196,6 +194,9 @@ const BUILDERS = {
  */
 async function renderCommsTemplate(templateId, payload = {}) {
   if (templateId === "summer-tour-2026-launch") {
+    // Lazy: marketing bundle is gitignored and only needed for this templateId.
+    // eslint-disable-next-line global-require
+    const { buildSummerTour2026LaunchChannels } = require("./marketingCommsTemplates");
     const channels = await buildSummerTour2026LaunchChannels(payload);
     return {
       inApp: { templateId, payload },
