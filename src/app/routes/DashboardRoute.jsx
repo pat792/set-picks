@@ -5,7 +5,9 @@ import {
   AuthLoadingScreen,
   trackAuthPartialProfile,
   useAuth,
+  useLegalReconsent,
 } from '../../features/auth';
+import { LegalReconsentModal } from '../../features/legal';
 
 import { ShowCalendarProvider } from '../../features/show-calendar';
 import DashboardLayout from '../layout/DashboardLayout';
@@ -14,6 +16,14 @@ import { decideDashboardRoute } from './profileGuardDecision';
 export default function DashboardRoute() {
   const { user, userProfile, loading } = useAuth();
   const decision = decideDashboardRoute({ loading, user, userProfile });
+  const {
+    needsReconsent,
+    accepted,
+    setAccepted,
+    accept,
+    busy: reconsentBusy,
+    error: reconsentError,
+  } = useLegalReconsent(user, userProfile);
 
   // Anomaly signal for the consent-only orphan regression (May 2026).
   // Keyed on uid so a single mount fires once per user, even across
@@ -39,6 +49,14 @@ export default function DashboardRoute() {
   return (
     <ShowCalendarProvider>
       <DashboardLayout />
+      <LegalReconsentModal
+        open={needsReconsent}
+        accepted={accepted}
+        onAcceptedChange={setAccepted}
+        onAccept={accept}
+        busy={reconsentBusy}
+        error={reconsentError}
+      />
     </ShowCalendarProvider>
   );
 }

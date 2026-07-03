@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.18.1  
+**Version:** 1.19.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -19,11 +19,26 @@ All collections live in the default `(default)` Firestore database for project `
 | `handle` | string | Display name |
 | `email` | string | Auth email — used for comms delivery |
 | `photoURL` | string? | Avatar URL |
-| `termsPrivacyAcceptedAt` | Timestamp? | Legal consent gate |
+| `termsPrivacyAcceptedAt` | Timestamp? | Legal consent gate (legacy timestamp) |
+| `legalConsent` | map? | Versioned Terms/Privacy acceptance (see §1.1a) |
 | `createdAt` | Timestamp | Account creation |
 | `isAdmin` | boolean? | Admin custom claim mirror |
 | `notificationPrefs` | map | Channel opt-in flags (see §1.2) |
 | `seasonStats.{tourKey}` | map | Per-tour aggregated scoring |
+
+### 1.1a `users/{uid}` — `legalConsent` shape
+
+Written by `recordTermsPrivacyConsent` on sign-up and on the dashboard re-consent gate (#396). Version ids are defined in `src/shared/constants/legalDocVersions.js`.
+
+```json
+{
+  "termsVersion": "2026-05-08",
+  "privacyVersion": "2026-05-08",
+  "acceptedAt": "<Timestamp>"
+}
+```
+
+Dashboard users whose stored versions do not match the published constants are blocked by `LegalReconsentModal` until they accept.
 
 ### 1.2 `users/{uid}` — `notificationPrefs` shape
 

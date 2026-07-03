@@ -8,10 +8,12 @@ export { default as ProfileSetupForm } from './ui/ProfileSetupForm';
 export { useAuth } from './model/useAuth';
 export { useAuthSession } from './model/useAuthSession';
 export { trackAuthPartialProfile } from './model/authAnalytics';
+export { useLegalReconsent } from './model/useLegalReconsent';
 export { usePasswordReset } from './model/usePasswordReset';
 export { usePasswordResetCompleteState } from './model/usePasswordResetCompleteState';
 export { useProfileSetup } from './model/useProfileSetup';
 export { useSignOut } from './model/useSignOut';
+export { needsLegalReconsent, recordTermsPrivacyConsent } from './api/legalConsentApi';
 export { getFirebaseAuthErrorMessage } from './utils/firebaseAuthMessages';
 export { getPasswordResetActionCodeSettings } from './utils/passwordResetActionSettings';
 export {

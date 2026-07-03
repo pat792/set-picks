@@ -12,6 +12,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.19.0] — 2026-07-03
+
+### Added
+- **Legal re-consent gate (#396)** — dashboard users missing or outdated versioned consent see a blocking modal (checkbox + Terms/Privacy links). Accept writes `users.legalConsent` (`termsVersion`, `privacyVersion`, `acceptedAt`) and refreshes `termsPrivacyAcceptedAt`.
+- **Legal version constants** — `LEGAL_TERMS_VERSION` / `LEGAL_PRIVACY_VERSION` in `src/shared/constants/legalDocVersions.js`; runbook at `docs/LEGAL_UPDATES_RUNBOOK.md`.
+
+---
+
 ## [1.18.1] — 2026-07-03
 
 ### Fixed
