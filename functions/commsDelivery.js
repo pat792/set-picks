@@ -140,7 +140,7 @@ async function deliverCommsTrigger({
     }
 
     // 4) Render
-    const rendered = renderCommsTemplate(spec.templateId, recipient.payload || {});
+    const rendered = await renderCommsTemplate(spec.templateId, recipient.payload || {});
 
     // 5) Dispatch to each declared channel that has a worker
     const ctxBase = {

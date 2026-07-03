@@ -147,6 +147,39 @@ General-purpose comms delivery callable. Runs a named trigger through the full p
 }
 ```
 
+### 2.2a `deliverMarketingSummerTour2026Launch` (admin-only, #468)
+
+Batch marketing email for Summer Tour 2026 pre-opener. Resolves Sphere alum ∪ post-Sphere signup cohort, renders React Email HTML, sends email channel only via Resend. Defaults to dry-run.
+
+**Request:**
+```json
+{
+  "dryRun": true,
+  "forceResend": false,
+  "onlyUids": ["optional-canary-uid"]
+}
+```
+
+`onlyUids` limits the cohort to the listed UIDs (canary). `forceResend` bypasses marketing dedup (`marketing:summer_tour_2026:{uid}`). Daily email fatigue cap is bypassed for this batch (`bypassDailyCap: true`).
+
+**Response (dry-run):**
+```json
+{
+  "ok": true,
+  "dryRun": true,
+  "triggerId": "marketing_summer_tour_2026_launch",
+  "campaignId": "summer_tour_2026",
+  "cohortSize": 1,
+  "sendable": 1,
+  "skippedNoEmail": 0,
+  "preview": [{ "uid": "...", "segment": "sphere_alum", "handle": "...", "email": "...", "inviteCode": "ABC12" }]
+}
+```
+
+**Response (execute):** same fields plus `delivery` (orchestrator result: `processed`, `delivered`, `skipped`, `byChannel`, `results`).
+
+CLI: `functions/scripts/deliverMarketingSummerTour2026Launch.js` (`--execute`, `--uid <uid>`, `--force-resend`). Secrets: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` (Secret Manager on the callable).
+
 ### 2.3 `getPhishnetSetlist`, `scheduledPhishnetShowCalendar`, `refreshPhishnetShowCalendar`, `refreshLiveScoresForShow`, `scheduledPhishnetSongCatalog`, `refreshPhishnetSongCatalog`, `scheduledPhishnetLiveSetlistPoll`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `sendPushCanary`
 
 Phish.net integration and live scoring functions. Deployed via `npm run deploy:functions:phishnet`. Internal admin use — request/response shapes documented in `docs/PHISHNET_CALLABLE_RUNBOOK.md`.
@@ -239,7 +272,7 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger` and comms adapters |
+| `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger`, `deliverMarketingSummerTour2026Launch`, and comms adapters |
 | `RESEND_WEBHOOK_SECRET` | For email deliverability | Resend/Svix webhook signing secret (`whsec_…`); also signs one-click unsubscribe URLs |
 | `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |
 | `PHISHNET_API_KEY` | For Phish.net callables | Phish.net API key (Secret Manager) |

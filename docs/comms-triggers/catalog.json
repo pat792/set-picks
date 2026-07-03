@@ -269,6 +269,31 @@
         { "name": "next_show_date", "source": "show_calendar", "fallback": null },
         { "name": "next_show_venue", "source": "show_calendar", "fallback": null }
       ]
+    },
+    {
+      "triggerId": "marketing_summer_tour_2026_launch",
+      "displayName": "Marketing — Summer Tour 2026 pre-opener launch",
+      "status": "shipped",
+      "phase": "v1",
+      "family": "lifecycle",
+      "priority": "P1",
+      "automation": "batch",
+      "event": "admin batch send (callable / CLI); not event-driven",
+      "audience": "sphere_seed_players_and_post_sphere_signups",
+      "channels": ["email"],
+      "prefKeys": ["lifecycle"],
+      "dedupKey": "marketing:{campaignId}:{uid}",
+      "templateId": "summer-tour-2026-launch",
+      "implementationModule": "functions/marketingBatchDelivery.js",
+      "githubIssue": 468,
+      "variables": [
+        { "name": "greeting_name", "source": "users/{uid}.handle", "fallback": "friend" },
+        { "name": "audience_segment", "source": "marketingAudience resolver", "fallback": "sphere_alum" },
+        { "name": "opener_label", "source": "tour calendar", "fallback": "Tuesday, July 7" },
+        { "name": "share_url", "source": "pool invite /join/:code or homepage", "fallback": null },
+        { "name": "invite_code", "source": "users.pools[0] → pools.inviteCode", "fallback": null },
+        { "name": "campaignId", "source": "vars.campaignId", "fallback": "summer_tour_2026" }
+      ]
     }
   ],
   "system": [

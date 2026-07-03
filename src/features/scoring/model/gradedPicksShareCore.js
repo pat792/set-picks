@@ -165,7 +165,7 @@ export function buildGradedPicksShareBodyPlain({ userPicks, actualSetlist, showL
     '',
     grid,
     '',
-    '🟩 nailed it · 🟦 in setlist · ⬜ miss · 🟧 bustout bonus',
+    '🟩 nailed it · 🟦 in setlist · ⬜ miss · 🟧 Bustout Boost',
     '',
     `Play free → ${GRADED_PICKS_SHARE_DOMAIN}`,
   ].join('\n');

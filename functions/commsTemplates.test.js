@@ -6,39 +6,53 @@ const assert = require("node:assert/strict");
 const { renderCommsTemplate, hasTemplate } = require("./commsTemplates");
 const { TRIGGER_SPECS } = require("./commsCatalog");
 
-test("every catalog template renders push + email + inApp payloads", () => {
+test("every catalog template renders push + email + inApp payloads", async () => {
   for (const spec of Object.values(TRIGGER_SPECS)) {
-    const out = renderCommsTemplate(spec.templateId, { handle: "RiverTranced" });
+    const payload =
+      spec.templateId === "summer-tour-2026-launch"
+        ? {
+            greetingName: "RiverTranced",
+            audienceSegment: "sphere_alum",
+            siteUrl: "https://www.setlistpickem.com",
+            settingsUrl: "https://www.setlistpickem.com/dashboard/notifications",
+          }
+        : { handle: "RiverTranced" };
+    const out = await renderCommsTemplate(spec.templateId, payload);
     assert.equal(out.inApp.templateId, spec.templateId, `${spec.templateId} inApp`);
     assert.ok(out.push.title, `${spec.templateId} push.title`);
     assert.ok(out.push.body, `${spec.templateId} push.body`);
     assert.ok(out.email.subject, `${spec.templateId} email.subject`);
-    assert.ok(out.email.text.includes("Setlist Pick'em"), `${spec.templateId} email footer`);
+    if (spec.templateId === "summer-tour-2026-launch") {
+      assert.ok(out.email.html, `${spec.templateId} email.html`);
+      assert.match(out.email.text, /RiverTranced|Rivertranced/i, `${spec.templateId} personalized text`);
+    } else {
+      assert.ok(out.email.text.includes("Setlist Pick'em"), `${spec.templateId} email footer`);
+    }
     assert.ok(hasTemplate(spec.templateId), `${spec.templateId} hasTemplate`);
   }
 });
 
-test("inApp payload passes variables through unchanged", () => {
+test("inApp payload passes variables through unchanged", async () => {
   const payload = { handle: "Bob", show_score: 70 };
-  const out = renderCommsTemplate("show-recap", payload);
+  const out = await renderCommsTemplate("show-recap", payload);
   assert.deepEqual(out.inApp.payload, payload);
 });
 
-test("unknown template falls back to a generic payload", () => {
-  const out = renderCommsTemplate("does-not-exist", {});
+test("unknown template falls back to a generic payload", async () => {
+  const out = await renderCommsTemplate("does-not-exist", {});
   assert.ok(out.push.title);
   assert.ok(out.email.subject);
   assert.equal(hasTemplate("does-not-exist"), false);
 });
 
-test("show-recap push surfaces score + rank when present", () => {
-  const out = renderCommsTemplate("show-recap", { show_score: 70, global_rank: 4 });
+test("show-recap push surfaces score + rank when present", async () => {
+  const out = await renderCommsTemplate("show-recap", { show_score: 70, global_rank: 4 });
   assert.match(out.push.body, /70/);
   assert.match(out.push.body, /#4/);
 });
 
-test("tour-rankings-daily email folds in show_recap's night-of content (#451)", () => {
-  const out = renderCommsTemplate("tour-rankings-daily", {
+test("tour-rankings-daily email folds in show_recap's night-of content (#451)", async () => {
+  const out = await renderCommsTemplate("tour-rankings-daily", {
     handle: "RiverTranced",
     venue_name: "Sphere",
     venue_city: "Las Vegas",
@@ -62,8 +76,8 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   assert.match(out.email.text, /2026-07-19/, "next show date");
 });
 
-test("tour-rankings-daily email degrades gracefully with only tour fields (no recap data)", () => {
-  const out = renderCommsTemplate("tour-rankings-daily", {
+test("tour-rankings-daily email degrades gracefully with only tour fields (no recap data)", async () => {
+  const out = await renderCommsTemplate("tour-rankings-daily", {
     handle: "RiverTranced",
     tour_rank: 3,
     tour_points: 210,

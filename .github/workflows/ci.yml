@@ -70,7 +70,11 @@ jobs:
         run: npm test
 
       - name: Version bumped (SemVer gate)
-        if: github.base_ref != 'main' && !contains(github.event.pull_request.labels.*.name, 'skip-version-bump')
+        # PR-only check: ensures PRs targeting staging bump package.json past the
+        # last release. Skipped on push/schedule where github.base_ref is empty
+        # (so `!= 'main'` was accidentally true) and package.json legitimately
+        # equals the last release tag once a release has been cut.
+        if: github.event_name == 'pull_request' && github.base_ref != 'main' && !contains(github.event.pull_request.labels.*.name, 'skip-version-bump')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -92,9 +96,6 @@ jobs:
     needs: changes
     if: github.event_name == 'schedule' || needs.changes.outputs.functions == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: functions
     steps:
       - uses: actions/checkout@v4
 
@@ -102,12 +103,22 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: functions/package-lock.json
+          cache-dependency-path: |
+            functions/package-lock.json
+            emails/package-lock.json
 
-      - name: Install dependencies
+      - name: Install functions dependencies
+        working-directory: functions
         run: npm ci
 
+      # Marketing React Email bundle is gitignored; build before tests that render it.
+      - name: Install emails dependencies and build marketing templates
+        run: |
+          npm ci --prefix emails
+          npm run emails:build
+
       - name: Functions unit tests
+        working-directory: functions
         run: npm test
 
   rules:

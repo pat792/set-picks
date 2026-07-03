@@ -190,9 +190,21 @@ const BUILDERS = {
  *
  * @param {string} templateId
  * @param {Record<string, unknown>} payload
- * @returns {{ inApp: { templateId: string, payload: Record<string, unknown> }, push: { title: string, body: string }, email: { subject: string, text: string } }}
+ * @returns {Promise<{ inApp: { templateId: string, payload: Record<string, unknown> }, push: { title: string, body: string }, email: { subject: string, text: string, html?: string, ctaUrl?: string } }>}
  */
-function renderCommsTemplate(templateId, payload = {}) {
+async function renderCommsTemplate(templateId, payload = {}) {
+  if (templateId === "summer-tour-2026-launch") {
+    // Lazy: marketing bundle is gitignored and only needed for this templateId.
+    // eslint-disable-next-line global-require
+    const { buildSummerTour2026LaunchChannels } = require("./marketingCommsTemplates");
+    const channels = await buildSummerTour2026LaunchChannels(payload);
+    return {
+      inApp: { templateId, payload },
+      push: channels.push,
+      email: channels.email,
+    };
+  }
+
   const builder = BUILDERS[templateId];
   const channels = builder
     ? builder(payload)
@@ -211,6 +223,7 @@ function renderCommsTemplate(templateId, payload = {}) {
 }
 
 function hasTemplate(templateId) {
+  if (templateId === "summer-tour-2026-launch") return true;
   return Object.prototype.hasOwnProperty.call(BUILDERS, templateId);
 }
 

@@ -112,6 +112,15 @@ const TRIGGER_SPECS = {
     family: "lifecycle",
     priority: "P1",
   },
+  marketing_summer_tour_2026_launch: {
+    triggerId: "marketing_summer_tour_2026_launch",
+    templateId: "summer-tour-2026-launch",
+    channels: ["email"],
+    prefKeys: ["lifecycle"],
+    dedupKey: "marketing:{campaignId}:{uid}",
+    family: "lifecycle",
+    priority: "P1",
+  },
 };
 
 /**
