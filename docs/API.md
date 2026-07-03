@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.15.0  
+**Version:** 1.16.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -248,6 +248,20 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/dashboard/*` | Auth | Full game dashboard |
 
 Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
+
+### 3.1 HTTP security headers (Vercel)
+
+Applied via `vercel.json` to all routes. Policy details: `docs/SECURITY_HEADERS.md`.
+
+| Header | Mode | Notes |
+|--------|------|-------|
+| `X-Content-Type-Options` | Enforce | `nosniff` |
+| `Referrer-Policy` | Enforce | `strict-origin-when-cross-origin` |
+| `X-Frame-Options` | Enforce | `DENY` |
+| `Permissions-Policy` | Enforce | camera/microphone/geolocation disabled |
+| `Content-Security-Policy-Report-Only` | Report-only | Flip to `Content-Security-Policy` after soak (promote-day) |
+
+Adding or tightening enforced CSP is MINOR; removing a security header is MAJOR.
 
 ---
 
