@@ -12,6 +12,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.17.0] — 2026-07-03
+
+### Added
+- **Versioned Firestore indexes (#413)** — `firestore.indexes.json` wired in `firebase.json` (exported baseline from prod; currently no composites).
+- **Dependabot + informational npm audit (#414)** — weekly npm updates for root and `functions/`, monthly Actions; CI audit step is non-blocking. Triage notes in `AGENTS.md`.
+
+---
+
 ## [1.16.0] — 2026-07-03
 
 ### Added
