@@ -12,6 +12,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.0] — 2026-07-03
+
+### Added
+- **Pool read caps (#415)** — pool hub loads members via `pool.members` (capped at 100); user pool lists capped at 50 (`MAX_POOL_MEMBERS_FETCH` / `MAX_USER_POOLS_FETCH`).
+- **Live grading early-exit (#416)** — `gradePicksOnSetlistWrite` skips the full picks scan when the playable scoring setlist is unchanged (metadata-only writes).
+
+---
+
 ## [1.17.0] — 2026-07-03
 
 ### Added

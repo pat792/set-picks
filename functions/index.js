@@ -29,6 +29,7 @@ const {
 const {
   calculateTotalScore,
   persistableActualSetlistFromOfficialDoc,
+  shouldSkipLiveScoreRecompute,
 } = require("./scoringCore");
 const { runBackfill } = require("./backfillBustoutsCore");
 const { runRollupForShow } = require("./rollupCore");
@@ -217,10 +218,24 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
 
     const showDate = event.params.showDate;
     const setlistDoc = event.data.after.data() || {};
-    const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
+    const beforeDoc = event.data.before.exists ? event.data.before.data() || {} : null;
 
-    await recomputeLiveScoresForShow(showDate, actualSetlist);
-    return null;
+    // #416: skip full picks scan when playable scoring payload is unchanged
+    // (metadata-only admin/Phish.net writes).
+    if (shouldSkipLiveScoreRecompute(beforeDoc, setlistDoc)) {
+      logger.info("gradePicksOnSetlistWrite skip: playable setlist unchanged", {
+        showDate,
+      });
+      return { skipped: true, reason: "setlist_unchanged" };
+    }
+
+    const actualSetlist = persistableActualSetlistFromOfficialDoc(setlistDoc);
+    const result = await recomputeLiveScoresForShow(showDate, actualSetlist);
+    logger.info("gradePicksOnSetlistWrite complete", {
+      showDate,
+      updatedPicks: result?.updatedPicks ?? 0,
+    });
+    return result;
   }
 );
 

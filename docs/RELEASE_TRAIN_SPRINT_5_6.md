@@ -18,6 +18,8 @@
 |-------|--------|------|-------|
 | [#417](https://github.com/pat792/set-picks/issues/417) | 5 | Code | Pool standings from membership (new pools only) |
 | [#418](https://github.com/pat792/set-picks/issues/418) | 5 | Code | Profile cluster **Phase 1** (IA split + redirects) |
+| [#415](https://github.com/pat792/set-picks/issues/415) | 5 | Code | Cap large pool / member Firestore reads |
+| [#416](https://github.com/pat792/set-picks/issues/416) | 5 | Code | Reduce redundant live grading on setlist writes |
 | [#461](https://github.com/pat792/set-picks/issues/461) | 5 / #441 | Code + secret | Server `comms_delivered` → GA4 Measurement Protocol |
 | [#291](https://github.com/pat792/set-picks/issues/291) | 5 | Ops (GA4 Admin) | Register `method` / `error_code` custom dimensions |
 | [#438](https://github.com/pat792/set-picks/issues/438) | 5 | Ops | Remaining post-deploy checklist (Functions, Auth templates, adapter gate) |
@@ -34,8 +36,13 @@
 | Issue | Notes |
 |-------|-------|
 | [#301](https://github.com/pat792/set-picks/issues/301) | Multi-band Phase 0 — additive contracts only, no UX/Firestore writes |
-| [#415](https://github.com/pat792/set-picks/issues/415) | Cap/paginate large pool reads |
-| [#416](https://github.com/pat792/set-picks/issues/416) | Reduce redundant live grading on setlist writes |
+
+### Moved into Sprint 5 (train)
+
+| Issue | Notes |
+|-------|-------|
+| [#415](https://github.com/pat792/set-picks/issues/415) | Cap large pool / member reads (was stretch) |
+| [#416](https://github.com/pat792/set-picks/issues/416) | Live grading early-exit on unchanged playable setlist (was stretch) |
 
 ### OUT — explicit defer (Sprint 7+ / separate train)
 
@@ -74,8 +81,7 @@ Wave 3  Comms observability closeout
 Wave 4  Security headers
         • #412 CSP report-only on preview → enforce on prod (tiered)
 
-Wave 5  Stretch (optional) then promote freeze
-        • #415 / #416 if ready
+Wave 5  Promote freeze
         • Staging soak + QA checklist
         • One staging → main PR
         • Tag vX.Y.0 (MINOR — new routes/schema fields/callables as applicable)
@@ -146,4 +152,5 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 | 2026-07-03 | 3 | PR #474 | #461 GA4 MP for `comms_delivered` (1.15.0); Functions deploy + canary; **#461 and #291 closed**; #441 measurement bullets updated |
 | 2026-07-03 | 3 | fix commits on staging | `commsDeliverySecrets` validate; await MP posts (Cloud Functions freeze) |
 | 2026-07-03 | 4 | PR #475 | #412 CSP Report-Only + security headers (1.16.0); **#412 closed** |
-| 2026-07-03 | 1 | `feat/413-414-indexes-dependabot` | Wave 1 catch-up: #413 indexes + #414 Dependabot/audit (1.17.0) |
+| 2026-07-03 | 1 | PR #476 | Wave 1 catch-up: #413 indexes + #414 Dependabot/audit (1.17.0); **#413 #414 closed** |
+| 2026-07-03 | 5 | `feat/415-416-pool-reads-live-grade-skip` | #415/#416 moved to Sprint 5; pool read caps + live-grade early-exit (1.18.0) |
