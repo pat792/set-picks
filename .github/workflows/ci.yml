@@ -19,7 +19,7 @@ jobs:
       rules: ${{ steps.filter.outputs.rules }}
       qa_risk: ${{ steps.filter.outputs.qa_risk }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: filter
         uses: dorny/paths-filter@v3
         with:
@@ -46,7 +46,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -108,7 +108,7 @@ jobs:
     if: github.event_name == 'schedule' || needs.changes.outputs.functions == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -137,7 +137,7 @@ jobs:
     if: github.event_name == 'schedule' || needs.changes.outputs.rules == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -178,7 +178,7 @@ jobs:
       QA_TEST_EMAIL: ${{ secrets.QA_TEST_EMAIL }}
       QA_TEST_PASSWORD: ${{ secrets.QA_TEST_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -237,7 +237,7 @@ jobs:
       QA_PREVIEW_BASE_URL: ${{ vars.QA_PREVIEW_BASE_URL }}
       QA_VERCEL_PROTECTION_BYPASS: ${{ secrets.QA_VERCEL_PROTECTION_BYPASS }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:

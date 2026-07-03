@@ -11,7 +11,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout (automation context doc)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Generate PRD with Gemini
         uses: actions/github-script@v7
