@@ -143,7 +143,7 @@ test("skips when email is on suppression list", async () => {
 
 test("unsubscribeHeaders point at the notifications screen when unsigned", () => {
   const headers = unsubscribeHeaders("https://www.setlistpickem.com");
-  assert.match(headers["List-Unsubscribe"], /\/dashboard\/notifications/);
+  assert.match(headers["List-Unsubscribe"], /\/dashboard\/profile\/notifications/);
 });
 
 test("uses pre-rendered html when rendered.email.html is provided", async () => {
@@ -183,7 +183,7 @@ test("sends a branded HTML body alongside the plain-text fallback", async () => 
   assert.match(html, /Setlist Pick&apos;em/, "includes the brand name");
   assert.match(html, /Manage preferences/);
   assert.match(html, /Unsubscribe/);
-  assert.match(html, /\/dashboard\/notifications/, "visible footer link goes to the preferences page");
+  assert.match(html, /\/dashboard\/profile\/notifications/, "visible footer link goes to the preferences page");
   // #456: the visible body link must be a safe GET (preferences page), never the
   // raw signed one-click suppression URL — that's reserved for the invisible
   // List-Unsubscribe header, which mail clients only ever invoke via POST.
@@ -246,7 +246,7 @@ test("buildBrandedEmailHtml joins multi-line bodies into a single <p> with <br> 
     siteUrl: "https://www.setlistpickem.com",
     bodyText: "Line one.\nLine two.\nLine three.",
     ctaUrl: "https://www.setlistpickem.com/dashboard",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
   });
   const bodyParagraphCount = (html.match(/<p style="margin:0 0 20px 0/g) || []).length;
   assert.equal(bodyParagraphCount, 1, "body text should render as a single <p> block");
@@ -258,7 +258,7 @@ test("buildBrandedEmailHtml escapes body text to avoid HTML injection", () => {
     siteUrl: "https://www.setlistpickem.com",
     bodyText: "Hi <script>alert(1)</script>",
     ctaUrl: "https://www.setlistpickem.com/dashboard",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
   });
   assert.ok(!html.includes("<script>alert(1)</script>"));
   assert.match(html, /&lt;script&gt;/);

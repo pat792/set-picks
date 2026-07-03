@@ -8,8 +8,8 @@
  */
 
 import {
-  NAV_LABEL_ACCOUNT_SECURITY,
-  NAV_LABEL_NOTIFICATIONS,
+  NAV_LABEL_ACCOUNT,
+  NAV_LABEL_MESSAGES,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_POOLS,
@@ -17,13 +17,15 @@ import {
   NAV_LABEL_STANDINGS,
   POOL_DETAILS_LAYOUT_EYEBROW,
 } from '../../../shared/config/dashboardVocabulary.js';
+import {
+  PROFILE_CLUSTER_LEGACY_PATHS,
+  PROFILE_CLUSTER_PATHS,
+  isProfileClusterPath,
+  normalizeDashboardPathname,
+} from '../../../shared/config/dashboardRoutes.js';
 
 /** Exported for `scripts/verify-dashboard-meta.mjs` (keep in sync with route paths). */
-export function normalizeDashboardPathname(pathname) {
-  const raw = pathname?.toString?.() || '';
-  if (!raw.startsWith('/dashboard')) return raw;
-  return raw.replace(/\/+$/, '') || '/dashboard';
-}
+export { normalizeDashboardPathname };
 
 /**
  * Read the `?view=` query from a search string or URLSearchParams.
@@ -62,9 +64,14 @@ export function getDashboardPageMeta(pathname, search) {
     };
   }
 
-  const isProfile = normalized === '/dashboard/profile';
-  const isAccountSecurity = normalized === '/dashboard/account-security';
-  const isNotifications = normalized === '/dashboard/notifications';
+  const isProfileIdentity = normalized === PROFILE_CLUSTER_PATHS.profile;
+  const isProfileMessages =
+    normalized === PROFILE_CLUSTER_PATHS.notifications ||
+    normalized === PROFILE_CLUSTER_LEGACY_PATHS.notifications;
+  const isProfileAccount =
+    normalized === PROFILE_CLUSTER_PATHS.account ||
+    normalized === PROFILE_CLUSTER_LEGACY_PATHS.accountSecurity;
+  const isProfileCluster = isProfileClusterPath(normalized);
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
   const isStandings = normalized === '/dashboard/standings';
@@ -75,24 +82,18 @@ export function getDashboardPageMeta(pathname, search) {
     if (isStandings) return NAV_LABEL_STANDINGS;
     if (normalized === '/dashboard/pools') return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
-    if (isProfile) return NAV_LABEL_PROFILE;
-    if (isAccountSecurity) return NAV_LABEL_ACCOUNT_SECURITY;
-    if (isNotifications) return NAV_LABEL_NOTIFICATIONS;
+    if (isProfileIdentity) return NAV_LABEL_PROFILE;
+    if (isProfileMessages) return NAV_LABEL_MESSAGES;
+    if (isProfileAccount) return NAV_LABEL_ACCOUNT;
     if (isAdmin) return 'War Room';
     return NAV_LABEL_PICKS;
   })();
 
-  const showDatePicker =
-    !isProfile &&
-    !isAccountSecurity &&
-    !isNotifications &&
-    !isPoolHub &&
-    !isStandingsTourView;
+  const showDatePicker = !isProfileCluster && !isPoolHub && !isStandingsTourView;
 
+  // Profile cluster owns in-page headings; layout does not duplicate them.
   const layoutDesktopHeading =
-    !isProfile && !isAccountSecurity && !isNotifications && !isPoolHub
-      ? contextTitle
-      : null;
+    !isProfileCluster && !isPoolHub ? contextTitle : null;
 
   const layoutDetailEyebrow = isPoolHub ? POOL_DETAILS_LAYOUT_EYEBROW : null;
 

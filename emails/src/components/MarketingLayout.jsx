@@ -73,7 +73,7 @@ export function MarketingLayout({
 }) {
   const base = siteUrl.replace(/\/+$/, "");
   const logoUrl = `${base}/favicon/web-app-manifest-512x512.png`;
-  const prefsUrl = settingsUrl || `${base}/dashboard/notifications`;
+  const prefsUrl = settingsUrl || `${base}/dashboard/profile/notifications`;
 
   return (
     <Html>

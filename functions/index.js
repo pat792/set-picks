@@ -886,7 +886,7 @@ exports.sendPushCanary = onCall(
         },
         webpush: {
           fcmOptions: {
-            link: "https://www.setlistpickem.com/dashboard/notifications",
+            link: "https://www.setlistpickem.com/dashboard/profile/notifications",
           },
         },
       });

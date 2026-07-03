@@ -23,16 +23,28 @@ export const NAV_LABEL_PICKS = 'Picks';
 /** Pools list tab + context + desktop H1 (`/dashboard/pools`) */
 export const NAV_LABEL_POOLS = 'Pools';
 
-/** Profile tab + context (`/dashboard/profile`); in-page desktop subheading matches */
+/** Profile tab + cluster identity surface (`/dashboard/profile`) */
 export const NAV_LABEL_PROFILE = 'Profile';
+
+/** Profile-cluster messages surface (`/dashboard/profile/notifications`) — inbox + prefs */
+export const NAV_LABEL_MESSAGES = 'Messages';
+
+/** Profile-cluster account surface (`/dashboard/profile/account`) */
+export const NAV_LABEL_ACCOUNT = 'Account';
 
 /** Admin tab label (`/dashboard/admin`); context/desktop title stays War Room */
 export const NAV_LABEL_ADMIN = 'Admin';
 
-/** Account security route — context bar (matches Profile card + form destination copy) */
+/**
+ * @deprecated Prefer {@link NAV_LABEL_ACCOUNT} for the cluster Account tab.
+ * Retained for legacy `/dashboard/account-security` meta until redirects settle.
+ */
 export const NAV_LABEL_ACCOUNT_SECURITY = 'Sign-in & password';
 
-/** Notifications route — context bar; Profile tab stays active (settings cluster). See `docs/DASHBOARD_IA.md`. */
+/**
+ * @deprecated Prefer {@link NAV_LABEL_MESSAGES} for the cluster Messages tab.
+ * Retained for legacy `/dashboard/notifications` meta until redirects settle.
+ */
 export const NAV_LABEL_NOTIFICATIONS = 'Notifications';
 
 /** Short tab / mobile context label */

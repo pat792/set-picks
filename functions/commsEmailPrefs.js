@@ -2,7 +2,7 @@
  * Signed-in email subscription status + self-serve subscribe/unsubscribe (#455).
  *
  * Clients cannot read `email_suppression` directly (server-only collection).
- * These helpers back authenticated callables used by `/dashboard/notifications`.
+ * These helpers back authenticated callables used by `/dashboard/profile/notifications`.
  */
 
 "use strict";

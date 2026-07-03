@@ -318,7 +318,7 @@ Scores update live during the show. Check back tonight.
 
 **Title:** `{{venue_city}} recap — {{show_score}} pts, #{{global_rank}}`  
 **Body:** `{{correct_picks_count}} of {{total_picks_count}} correct. {{handle}}, your full recap is ready.`  
-**Deep link:** `/dashboard/notifications`
+**Deep link:** `/dashboard/profile/notifications`
 
 #### Template — In-App
 

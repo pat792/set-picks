@@ -182,12 +182,12 @@ export default function NotificationsPrototypeScreen() {
   );
 
   return (
-    <div className="max-w-xl mx-auto pb-6 md:pb-12">
+    <div>
       <div className="mb-6 text-left">
         <h2
           className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
         >
-          Notifications
+          Messages
         </h2>
         <p className="mt-2 text-sm font-bold leading-relaxed text-content-secondary md:mt-3">
           Read messages below, then choose how we reach you about shows, scores, and recaps.

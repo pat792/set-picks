@@ -14,7 +14,7 @@ test("every catalog template renders push + email + inApp payloads", async () =>
             greetingName: "RiverTranced",
             audienceSegment: "sphere_alum",
             siteUrl: "https://www.setlistpickem.com",
-            settingsUrl: "https://www.setlistpickem.com/dashboard/notifications",
+            settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
           }
         : { handle: "RiverTranced" };
     const out = await renderCommsTemplate(spec.templateId, payload);

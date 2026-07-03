@@ -39,7 +39,7 @@ const { reserveEmailDailyCapSlot } = require("./commsEmailDailyCap");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
-const UNSUB_PATH = "/dashboard/notifications";
+const UNSUB_PATH = "/dashboard/profile/notifications";
 
 /**
  * Lazily construct a Resend client from an API key. Returns `null` when no key is

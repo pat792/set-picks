@@ -28,6 +28,6 @@ describe('summerTour2026Launch', () => {
     expect(props.greetingName).toBe('Picker1');
     expect(props.shareUrl).toContain('/join/ABC12');
     expect(props.shareUrl).toContain('utm_content=share_friends');
-    expect(props.settingsUrl).toContain('/dashboard/notifications');
+    expect(props.settingsUrl).toContain('/dashboard/profile/notifications');
   });
 });

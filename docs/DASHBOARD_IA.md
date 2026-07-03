@@ -9,14 +9,29 @@ Single reference for **support**, **product**, and **engineering** when adding r
 | **Picks** | `/dashboard` | Lock/edit song picks for the **selected show** (global date picker). |
 | **Pools** | `/dashboard/pools` | List pools; create/join. |
 | **Standings** | `/dashboard/standings` | **Show standings** for the selected show (everyone or one pool). |
-| **Profile** | `/dashboard/profile` | Handle, favorite song, sign-out; links to **Notifications** (`/dashboard/notifications`) and account security. |
+| **Profile** | `/dashboard/profile` | Profile **cluster**: identity, **Messages**, **Account** (sub-nav). |
 
 **Admin** (fifth item, single admin user): `/dashboard/admin` — War Room.
+
+### Profile cluster (#418)
+
+| Sub-nav | Path | Responsibility |
+|---------|------|----------------|
+| **Profile** | `/dashboard/profile` | Handle, favorite song, public preview, join date |
+| **Messages** | `/dashboard/profile/notifications` | `commsInbox` + push/category/email prefs |
+| **Account** | `/dashboard/profile/account` | Sign-in method, logout, delete, Privacy/Terms |
+
+Legacy redirects (preserve bookmarks + email deep links):
+
+- `/dashboard/notifications` → `/dashboard/profile/notifications` (query string preserved, e.g. `?openPush=1`)
+- `/dashboard/account-security` → `/dashboard/profile/account`
+
+Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
 
 ### Pools parent / child (active state)
 
 - **Pools** tab stays active on `/dashboard/pools` **and** `/dashboard/pool/:poolId` (**pool details**).
-- **Profile** tab stays active on `/dashboard/profile`, **`/dashboard/notifications`**, and `/dashboard/account-security`.
+- **Profile** tab stays active on the entire Profile cluster (including legacy redirect paths).
 
 ## Pool details desktop chrome (decision: Option C)
 
@@ -38,8 +53,8 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Picks** | Tab + context + desktop H1 for `/dashboard` (`NAV_LABEL_PICKS`). |
 | **Pools** | Tab + context + desktop H1 for `/dashboard/pools` (`NAV_LABEL_POOLS`) — same word in nav and shell. |
 | **Profile** | Tab + context for `/dashboard/profile` (`NAV_LABEL_PROFILE`); desktop in-page subheading matches. |
-| **Notifications** | `/dashboard/notifications` context (`NAV_LABEL_NOTIFICATIONS`); dedicated settings/inbox surface (prototype shell; Profile tab active). |
-| **Sign-in & password** | Account security route context (`NAV_LABEL_ACCOUNT_SECURITY`); Profile card and form use the same phrase. |
+| **Messages** | Profile-cluster inbox + prefs (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. |
+| **Account** | Profile-cluster account surface (`NAV_LABEL_ACCOUNT`); path `/dashboard/profile/account`. |
 | **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
 | **Standings** | Tab, context bar, and desktop H1 for `/dashboard/standings` (`NAV_LABEL_STANDINGS`) — aligned so the shell does not repeat two headings. In-page surface opens with a three-way pill toggle **Show / Tour / Pools** (#255); view is URL-synced via `?view=show\|tour\|pools` and the Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker (tour standings are cumulative). |
 | **Show standings** | Ordered points for **one show date** only (Standings screen); use this phrase in glossary, help, and cross-links where the “one night” nuance matters. |
@@ -62,8 +77,8 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | Pool details (desktop eyebrow) | Pool hub | `POOL_DETAILS_LAYOUT_EYEBROW` |
 | Standings | `/dashboard/standings` | `NAV_LABEL_STANDINGS` |
 | Profile | `/dashboard/profile` | `NAV_LABEL_PROFILE` |
-| Notifications | `/dashboard/notifications` | `NAV_LABEL_NOTIFICATIONS` |
-| Sign-in & password | `/dashboard/account-security` | `NAV_LABEL_ACCOUNT_SECURITY` |
+| Messages | `/dashboard/profile/notifications` | `NAV_LABEL_MESSAGES` |
+| Account | `/dashboard/profile/account` | `NAV_LABEL_ACCOUNT` |
 | War Room | `/dashboard/admin` | `getDashboardPageMeta` (admin branch) |
 | Admin (tab only) | `/dashboard/admin` | `NAV_LABEL_ADMIN` in `DashboardLayout.jsx` |
 
@@ -115,12 +130,12 @@ flowchart TB
   Po --> PoolDetail["/dashboard/pool/:id\nPool details"]
   S --> StandingsRoute["/dashboard/standings"]
   Pr --> ProfileRoute["/dashboard/profile"]
-  Pr --> NotifRoute["/dashboard/notifications"]
-  Pr --> AccountSec["/dashboard/account-security"]
+  Pr --> MessagesRoute["/dashboard/profile/notifications\nMessages"]
+  Pr --> AccountRoute["/dashboard/profile/account\nAccount"]
 
   PoolDetail -.->|breadcrumb| PoolsList
-  NotifRoute -.->|same tab active| ProfileRoute
-  AccountSec -.->|same tab active| ProfileRoute
+  MessagesRoute -.->|same tab active| ProfileRoute
+  AccountRoute -.->|same tab active| ProfileRoute
 
   subgraph modal [Global modal]
     SR[Scoring rules modal]
@@ -134,6 +149,8 @@ flowchart TB
 ## Related code
 
 - `getDashboardPageMeta`, `normalizeDashboardPathname` — `src/app/layout/model/dashboardPageMeta.js`
+- `PROFILE_CLUSTER_PATHS`, `isProfileClusterPath` — `src/shared/config/dashboardRoutes.js`
+- Profile cluster layout — `src/app/layout/ui/ProfileClusterLayout.jsx`
 - Nav items + active rules — `src/app/layout/DashboardLayout.jsx`
 - Scoring modal provider — `src/features/scoring/ui/ScoringRulesModalProvider.jsx`
 

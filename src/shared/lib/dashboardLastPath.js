@@ -2,10 +2,11 @@
  * Remember last dashboard URL for post-auth entry (see HomeRoute / post-login redirects).
  * Paths are validated; admin paths restore only for admin users.
  *
- * Profile and account-security are excluded: users often open Profile only to sign out;
+ * Profile cluster is excluded: users often open Profile/Account only to sign out;
  * remembering that route would send them back to Profile after every login.
  */
 
+import { isProfileClusterPath } from '../config/dashboardRoutes';
 import { getLocalStorageItem, setLocalStorageItem } from './local-storage';
 
 export const DASHBOARD_LAST_PATH_STORAGE_KEY = 'setpicks_dash_last_loc_v1';
@@ -36,7 +37,7 @@ export function isRestorableDashboardPath(pathname, search = '', opts = {}) {
   if (!path.startsWith('/dashboard')) return false;
   if (!isSafeDashboardSearch(search)) return false;
 
-  if (path === '/dashboard/profile' || path === '/dashboard/account-security') {
+  if (isProfileClusterPath(path)) {
     return false;
   }
 
