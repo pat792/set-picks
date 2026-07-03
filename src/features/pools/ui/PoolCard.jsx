@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 import Card from '../../../shared/ui/Card';
 import StatusBadge from '../../../shared/ui/StatusBadge';
+import PoolInviteCodeRow from './PoolInviteCodeRow';
 import PoolInviteShareButton from './PoolInviteShareButton';
 
 export default function PoolCard({
@@ -49,9 +50,13 @@ export default function PoolCard({
           <p className="mt-1 text-xs uppercase tracking-widest text-content-secondary">
             {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
           </p>
+          <PoolInviteCodeRow inviteCode={pool?.inviteCode} className="mt-2" />
         </div>
         <div className="flex shrink-0 items-start pt-0.5">
-          <PoolInviteShareButton inviteCode={pool?.inviteCode} />
+          <PoolInviteShareButton
+            inviteCode={pool?.inviteCode}
+            poolName={pool?.name}
+          />
         </div>
       </div>
     </Card>

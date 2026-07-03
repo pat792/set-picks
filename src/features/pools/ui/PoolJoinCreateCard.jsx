@@ -4,6 +4,7 @@ import { createPoolInviteLink } from '../../../shared/lib/createPoolInviteLink';
 import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
 import Input from '../../../shared/ui/Input';
+import PoolInviteCodeRow from './PoolInviteCodeRow';
 import PoolInviteShareButton from './PoolInviteShareButton';
 
 export default function PoolJoinCreateCard({
@@ -163,6 +164,10 @@ export default function PoolJoinCreateCard({
                 Pool created!
               </p>
               <p className="mt-1 text-base font-bold text-white">{createSuccess.name}</p>
+              <PoolInviteCodeRow
+                inviteCode={createSuccess.inviteCode}
+                className="mt-3"
+              />
               <p className="mt-3 text-xs font-bold uppercase tracking-widest text-content-secondary">
                 Your invite link
               </p>
@@ -171,7 +176,10 @@ export default function PoolJoinCreateCard({
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <PoolInviteShareButton inviteCode={createSuccess.inviteCode} />
+              <PoolInviteShareButton
+                inviteCode={createSuccess.inviteCode}
+                poolName={createSuccess.name}
+              />
             </div>
           </div>
         ) : (
