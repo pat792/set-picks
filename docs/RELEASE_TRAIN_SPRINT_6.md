@@ -86,7 +86,7 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 
 ## Promote-day checklist
 
-- [ ] All **IN** issues merged to `staging` or closed with evidence in this doc
+- [ ] All **IN** issues merged to `staging` or closed with evidence in this doc (#411, #424, #93, #441 closed 2026-07-03; #328/#396 pending merge)
 - [ ] `npm run lint` / `npm test` / `npm run verify:dashboard-meta` / `npm run verify:dashboard-ui` green on staging tip
 - [ ] Manual QA: last-show banner gradient; legacy user without consent sees blocking modal; accept writes versions; password-reset smoke if Auth templates updated
 - [ ] `staging → main` PR opened and merged
@@ -108,4 +108,7 @@ Incomplete features must land **dark** (flags / absent fields / no UX) rather th
 
 | Date | Wave | PR / action | Notes |
 |------|------|-------------|-------|
-| 2026-07-03 | 0 | Manifest authored | Train defined from board Sprint 6 column |
+| 2026-07-03 | 0 | PR #493 | Manifest authored |
+| 2026-07-03 | 1 | PR #494 | #328 last-show winner gradient (`1.18.2`) |
+| 2026-07-03 | 2 | PR #495 | #396 legal re-consent gate (`1.19.0`) |
+| 2026-07-03 | 3 | Issues closed | #411, #424, #93, #441 (AC met / shipped) |
