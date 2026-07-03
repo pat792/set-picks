@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.2] — 2026-07-03
+
+### Changed
+- **Last-show winner banner (#328)** — purple→red gradient treatment for `variant === 'lastShow'` on Standings (container, heading, View results pill); tonight’s winner amber treatment unchanged.
+
+---
+
 ## [1.18.1] — 2026-07-03
 
 ### Fixed
