@@ -9,6 +9,10 @@ export {
   MEMBERSHIP_DAY_TIME_ZONE,
   POOL_NAME_MAX_LENGTH,
 } from './api/poolFirestore';
+export {
+  MAX_POOL_MEMBERS_FETCH,
+  MAX_USER_POOLS_FETCH,
+} from './api/poolReadLimits';
 export { usePoolHub } from './model/usePoolHub';
 export { usePoolAdminControls } from './model/usePoolAdminControls';
 export { usePoolStandingsSection } from './model/usePoolStandingsSection';

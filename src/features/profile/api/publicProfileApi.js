@@ -8,6 +8,7 @@ import {
   where,
 } from 'firebase/firestore';
 
+import { MAX_USER_POOLS_FETCH } from '../../pools';
 import { db } from '../../../shared/lib/firebase';
 import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 
@@ -52,7 +53,8 @@ export async function fetchPoolsForMember(uid) {
   await whenFirebaseReady();
   const poolsQuery = query(
     collection(db, 'pools'),
-    where('members', 'array-contains', id)
+    where('members', 'array-contains', id),
+    limit(MAX_USER_POOLS_FETCH)
   );
   const poolSnapshot = await getDocs(poolsQuery);
   return poolSnapshot.docs.map((poolDoc) => ({

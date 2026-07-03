@@ -45,7 +45,9 @@ export function usePoolHub(poolId, currentUser) {
         return;
       }
 
-      const profiles = await fetchPoolMemberProfiles(poolId);
+      const profiles = await fetchPoolMemberProfiles(poolId, {
+        memberIds: Array.isArray(poolData.members) ? poolData.members : undefined,
+      });
       setMembers(profiles);
     } catch (e) {
       console.error('Pool hub load error:', e);

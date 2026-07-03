@@ -195,6 +195,32 @@ function actualSetlistFromOfficialDoc(setlistDoc) {
   return out;
 }
 
+/**
+ * Stable JSON for playable-setlist equality (#416). `persistableActualSetlistFromOfficialDoc`
+ * always emits SCORE_FIELDS in fixed order, so stringify is sufficient.
+ *
+ * @param {Record<string, unknown> | null | undefined} playable
+ */
+function playableSetlistFingerprint(playable) {
+  if (!playable || typeof playable !== "object") return "";
+  return JSON.stringify(playable);
+}
+
+/**
+ * True when before/after official_setlists docs yield the same scoring payload
+ * (metadata-only writes should not re-grade every pick).
+ *
+ * @param {Record<string, unknown> | null | undefined} beforeDoc
+ * @param {Record<string, unknown> | null | undefined} afterDoc
+ */
+function shouldSkipLiveScoreRecompute(beforeDoc, afterDoc) {
+  if (!afterDoc || typeof afterDoc !== "object") return true;
+  if (!beforeDoc || typeof beforeDoc !== "object") return false;
+  const before = persistableActualSetlistFromOfficialDoc(beforeDoc);
+  const after = persistableActualSetlistFromOfficialDoc(afterDoc);
+  return playableSetlistFingerprint(before) === playableSetlistFingerprint(after);
+}
+
 module.exports = {
   SCORING_RULES,
   SCORE_FIELDS,
@@ -207,4 +233,6 @@ module.exports = {
   calculateTotalScore,
   actualSetlistFromOfficialDoc,
   persistableActualSetlistFromOfficialDoc,
+  playableSetlistFingerprint,
+  shouldSkipLiveScoreRecompute,
 };

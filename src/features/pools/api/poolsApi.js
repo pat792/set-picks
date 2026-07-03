@@ -3,6 +3,7 @@ import {
   collection,
   doc,
   getDocs,
+  limit,
   query,
   where,
   writeBatch,
@@ -10,6 +11,7 @@ import {
 
 import { arrayUnionPoolOntoUserPickDocs } from '../../picks';
 import { db } from '../../../shared/lib/firebase';
+import { MAX_USER_POOLS_FETCH } from './poolReadLimits';
 import {
   STANDINGS_SCOPE_FROM_MEMBERSHIP,
   isFromMembershipStandingsScope,
@@ -29,7 +31,8 @@ export async function fetchPools(userId) {
 
   const poolsQuery = query(
     collection(db, 'pools'),
-    where('members', 'array-contains', userId)
+    where('members', 'array-contains', userId),
+    limit(MAX_USER_POOLS_FETCH)
   );
   const snapshot = await getDocs(poolsQuery);
 
