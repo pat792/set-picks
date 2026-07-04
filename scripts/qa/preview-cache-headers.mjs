@@ -123,6 +123,31 @@ async function run() {
     );
   }
 
+  console.log(`[qa:preview-headers] GET ${base}/__/auth/iframe …`);
+  const authIframeRes = await fetchPath(base, '/__/auth/iframe', headers);
+  if (!authIframeRes.ok) {
+    console.error(
+      `[qa:preview-headers] FAIL: GET /__/auth/iframe returned ${authIframeRes.status}.`,
+    );
+    process.exit(1);
+  }
+  const authFrameOpts = (authIframeRes.headers.get('x-frame-options') || '').toLowerCase();
+  if (authFrameOpts === 'deny' || authFrameOpts === 'sameorigin') {
+    console.error(
+      `[qa:preview-headers] FAIL: /__/auth/iframe must not set X-Frame-Options (breaks Firebase Auth iframe); ` +
+        `got: "${authIframeRes.headers.get('x-frame-options')}"`,
+    );
+    process.exit(1);
+  }
+  const indexFrameOpts = (indexRes.headers.get('x-frame-options') || '').toLowerCase();
+  if (indexFrameOpts !== 'deny') {
+    console.error(
+      `[qa:preview-headers] FAIL: expected X-Frame-Options: DENY on /; ` +
+        `got: "${indexRes.headers.get('x-frame-options')}"`,
+    );
+    process.exit(1);
+  }
+
   const html = await indexRes.text();
   const assetPath = firstAssetJsPath(html);
   if (!assetPath) {

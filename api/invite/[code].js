@@ -184,8 +184,33 @@ function loadSpaTemplate() {
 export default async function handler(req, res) {
   const code = String(req.query.code ?? '').trim().toUpperCase();
   const inviteUrl = `${SITE_URL}/join/${code}`;
+  const ua = req.headers['user-agent'] ?? '';
+  const isCrawler = CRAWLER_RE.test(ua);
 
-  // 1. Resolve OG copy (best-effort; fall back to defaults on any error).
+  // 1. Regular browsers: serve the SPA shell immediately — no Firestore round
+  //    trip. Marketing-email /join/:code clicks were paying a cold-start Admin
+  //    lookup on every load even though only crawlers consume OG meta tags.
+  if (!isCrawler) {
+    const spaHtml = loadSpaTemplate();
+    if (spaHtml) {
+      let title = DEFAULT_TITLE;
+      let description = DEFAULT_DESCRIPTION;
+      if (code) {
+        title = "Join my Setlist Pick 'Em pool!";
+        description =
+          "You've been invited to a private Setlist Pick 'Em pool. Pick your setlist and compete to win.";
+      }
+      const og = { title, description, url: inviteUrl, image: DEFAULT_OG_IMAGE };
+      const html = injectOgIntoSpa(spaHtml, og);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      return res.status(200).send(html);
+    }
+    // dist/index.html not available (local dev without a prior build).
+    // Fall through to crawler path — acceptable in dev.
+  }
+
+  // 2. Crawlers (or dev fallback): resolve pool-specific OG copy from Firestore.
   // Keep "Join my … pool" wording aligned with client share/clipboard copy
   // (`buildPoolInviteShareTitle` in shareOrCopyInviteUrl.js).
   let title = DEFAULT_TITLE;
@@ -210,23 +235,8 @@ export default async function handler(req, res) {
   }
 
   const og = { title, description, url: inviteUrl, image: DEFAULT_OG_IMAGE };
-  const ua = req.headers['user-agent'] ?? '';
 
-  // 2. For regular browsers, serve the full SPA shell so React Router handles
-  //    the /join/:code route client-side — no redirect loop.
-  if (!CRAWLER_RE.test(ua)) {
-    const spaHtml = loadSpaTemplate();
-    if (spaHtml) {
-      const html = injectOgIntoSpa(spaHtml, og);
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-      return res.status(200).send(html);
-    }
-    // dist/index.html not available (local dev without a prior build).
-    // Fall through to serve the crawler shell — acceptable in dev.
-  }
-
-  // 3. For crawlers (or dev fallback): return a lightweight OG-tagged shell.
+  // 3. Lightweight OG-tagged shell for crawlers (or dev without dist/).
   const html = buildCrawlerHtml(og);
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');

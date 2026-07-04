@@ -10,7 +10,7 @@ Applied to all routes (`/(.*)`):
 |--------|-------|---------|
 | `X-Content-Type-Options` | `nosniff` | Block MIME sniffing |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
-| `X-Frame-Options` | `DENY` | Clickjacking (legacy; CSP `frame-ancestors` is primary) |
+| `X-Frame-Options` | `DENY` | Clickjacking (legacy; CSP `frame-ancestors` is primary). **Not** set on `/__/auth/*` or `/__/firebase/*` — Firebase Auth embeds those helper iframes cross-origin when `authDomain` is `www.setlistpickem.com`; `DENY` there breaks Google and email sign-in. |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disable unused powerful APIs |
 
 Cache-Control rules for HTML vs hashed assets are unchanged (see existing `vercel.json` entries).
@@ -80,7 +80,8 @@ Vite HMR and `@vite/client` need looser rules; **`vercel.json` does not apply to
    - `content-security-policy-report-only` present (not `content-security-policy` until enforce flip)
 2. **Smoke:** sign-in, dashboard load, picks save, pool invite, notifications bell (FCM path).
 3. **Console:** filter `Content-Security-Policy` — note any report-only violations; fix policy before enforce.
-4. **Optional automation:** `npm run qa:preview-headers` (with `QA_PREVIEW_BASE_URL`) asserts cache-control **and** the always-on security headers + report-only CSP.
+4. **Auth proxy:** `GET /__/auth/iframe` must **not** return `X-Frame-Options: DENY` (regression breaks all sign-in when custom `authDomain` is live).
+5. **Optional automation:** `npm run qa:preview-headers` (with `QA_PREVIEW_BASE_URL`) asserts cache-control **and** the always-on security headers + report-only CSP.
 
 ## Related
 
