@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.7] — 2026-07-04
+
+### Fixed
+- **Standings "Checking your picks…" spinner stuck on Safari** — derive next-show pick status from the standings picks query instead of a redundant `getDoc`; harden `useNextShowPicksStatus` against effect cancellation races (Pools / Pool Hub).
+
+---
+
 ## [1.18.6] — 2026-07-04
 
 ### Fixed

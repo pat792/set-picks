@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { hasNonEmptyPicksObject } from '../model/pickSubmission';
 
 /** Firestore rejects `undefined` anywhere in document data; strip from shallow objects. */
 function omitUndefinedShallow(record) {
@@ -26,15 +27,6 @@ export function getPickDocumentId(selectedDate, userId) {
 /**
  * Load the user's pick map for a show (field id → song string).
  */
-function hasNonEmptyPicksObject(picks) {
-  if (picks == null || typeof picks !== 'object' || Array.isArray(picks)) {
-    return false;
-  }
-  return Object.values(picks).some(
-    (v) => v != null && String(v).trim() !== ''
-  );
-}
-
 export async function fetchPickDoc(selectedDate, userId) {
   if (!userId || !selectedDate) return {};
 
