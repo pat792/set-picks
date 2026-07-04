@@ -5,6 +5,7 @@ import { useServiceWorkerUpdate } from '../../shared/lib/useServiceWorkerUpdate'
 import AppBackground from '../../shared/ui/AppBackground';
 import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
 import UpdateAvailableBanner from '../../shared/ui/UpdateAvailableBanner';
+import { shellTransitionKey } from './model/shellTransitionKey';
 
 /**
  * Global chrome: ambient background + top-level route outlet with enter animation.
@@ -14,16 +15,20 @@ import UpdateAvailableBanner from '../../shared/ui/UpdateAvailableBanner';
  * setup, public profile, pool-invite, etc.), so we only need one boundary at
  * this level. Nested boundaries exist inside `DashboardLayout` for its child
  * pages.
+ *
+ * The enter-animation wrapper uses {@link shellTransitionKey} — not raw
+ * `pathname` — so dashboard tab switches do not remount the lazy route tree.
  */
 export default function RootAppShell() {
   const { pathname } = useLocation();
+  const transitionKey = shellTransitionKey(pathname);
   const { updateAvailable, applyUpdate } = useServiceWorkerUpdate();
 
   return (
     <>
       <AppBackground />
       <div className="relative z-[1] min-h-screen">
-        <div key={pathname} className="min-h-screen animate-page-enter">
+        <div key={transitionKey} className="min-h-screen animate-page-enter">
           <Suspense fallback={<RouteSuspenseFallback />}>
             <Outlet />
           </Suspense>
