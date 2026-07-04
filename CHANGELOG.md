@@ -12,6 +12,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.2] — 2026-07-04
+
+### Fixed
+- **Google / email sign-in regression (#412 follow-up)** — `X-Frame-Options: DENY` no longer applies to Firebase Auth proxy routes (`/__/auth/*`, `/__/firebase/*`). The catch-all header from v1.16.0 blocked Auth helper iframes on the custom `www.setlistpickem.com` domain, causing `auth/popup-closed-by-user` ("Sign-in was cancelled") and hung email sign-in.
+- **Marketing `/join/:code` cold starts** — the invite OG serverless handler skips Firestore for regular browsers; only social crawlers pay the Admin lookup.
+
+---
+
 ## [1.18.1] — 2026-07-03
 
 ### Fixed

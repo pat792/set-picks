@@ -257,7 +257,7 @@ Applied via `vercel.json` to all routes. Policy details: `docs/SECURITY_HEADERS.
 |--------|------|-------|
 | `X-Content-Type-Options` | Enforce | `nosniff` |
 | `Referrer-Policy` | Enforce | `strict-origin-when-cross-origin` |
-| `X-Frame-Options` | Enforce | `DENY` |
+| `X-Frame-Options` | Enforce | `DENY` on app routes; **omitted** on `/__/auth/*` and `/__/firebase/*` (Firebase Auth helper iframes) |
 | `Permissions-Policy` | Enforce | camera/microphone/geolocation disabled |
 | `Content-Security-Policy-Report-Only` | Report-only | Flip to `Content-Security-Policy` after soak (promote-day) |
 
