@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.5] — 2026-07-04
+
+### Fixed
+- **PR queue stabilization** — pause Dependabot (`open-pull-requests-limit: 0`) after v1.18 enablement-wave; add Vercel `ignoreCommand` to skip SPA previews for CI/functions-only dependency PRs.
+
+### Added
+- **`docs/DEPENDABOT_OPERATIONS.md`** — definitive enablement timeline, agent triage table, ops-reset procedure, re-enable checklist.
+
+---
+
 ## [1.18.4] — 2026-07-04
 
 ### Fixed
