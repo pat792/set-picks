@@ -5,6 +5,12 @@ import { usePendingPoolJoin } from '../../features/pool-invite';
 import { useShowCalendar } from '../../features/show-calendar';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
+import {
+  DASHBOARD_NAV_PRELOAD_BY_PATH,
+  dashboardRouteImport,
+  prefetchDashboardRoutes,
+} from './model/dashboardRouteModules';
+import ProfileClusterLayout from './ui/ProfileClusterLayout';
 
 import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
 
@@ -12,17 +18,16 @@ import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-reac
 // doesn't pay the download cost for Admin / Pools / Standings / Picks /
 // PoolHub. Static imports here would defeat the route-level code splitting
 // at the top level (`App.jsx`), because they'd all collapse back into the
-// DashboardRoute chunk. The inner `<Suspense>` below reuses the shared
-// brand loading fallback.
-const PicksPage = lazy(() => import('../../pages/picks/PicksPage'));
-const AdminPage = lazy(() => import('../../pages/admin/AdminPage'));
-const StandingsPage = lazy(() => import('../../pages/standings/StandingsPage'));
-const ProfilePage = lazy(() => import('../../pages/profile/ProfilePage'));
-const AccountPage = lazy(() => import('../../pages/profile/AccountPage'));
-const PoolsPage = lazy(() => import('../../pages/pools/PoolsPage'));
-const PoolHubPage = lazy(() => import('../../pages/pools/PoolHubPage'));
-const NotificationsPage = lazy(() => import('../../pages/notifications/NotificationsPage'));
-const ProfileClusterLayout = lazy(() => import('./ui/ProfileClusterLayout'));
+// DashboardRoute chunk. Import factories live in `dashboardRouteModules`
+// so idle/hover prefetch warms the same module cache before navigation.
+const PicksPage = lazy(dashboardRouteImport.picks);
+const AdminPage = lazy(dashboardRouteImport.admin);
+const StandingsPage = lazy(dashboardRouteImport.standings);
+const ProfilePage = lazy(dashboardRouteImport.profile);
+const AccountPage = lazy(dashboardRouteImport.account);
+const PoolsPage = lazy(dashboardRouteImport.pools);
+const PoolHubPage = lazy(dashboardRouteImport.poolHub);
+const NotificationsPage = lazy(dashboardRouteImport.notifications);
 
 // `ScoringRulesModalProvider` must stay eager — it wraps the whole dashboard
 // and owns the modal portal state; lazy-loading it would Suspense-flash the
@@ -64,9 +69,21 @@ import {
   dashboardTourDateSelectChromeDesktopWrap,
 } from '../../shared/config/dashboardHeadingTypography';
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
+import { usePrefetchDashboardRoutes } from './model/usePrefetchDashboardRoutes';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
+
+function navPrefetchHandlers(path) {
+  const keys = DASHBOARD_NAV_PRELOAD_BY_PATH[path];
+  if (!keys?.length) return undefined;
+  const warm = () => prefetchDashboardRoutes(keys);
+  return {
+    onMouseEnter: warm,
+    onFocus: warm,
+    onTouchStart: warm,
+  };
+}
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -74,7 +91,8 @@ export default function DashboardLayout() {
   const { user, isAdmin } = useAuth();
   const { showDates, showDatesByTour } = useShowCalendar();
   usePendingPoolJoin(showDates);
-  
+  usePrefetchDashboardRoutes(location.pathname);
+
   const scrollDirection = useScrollDirection(); 
 
   const [selectedDate, setSelectedDate] = useState(() =>
@@ -174,7 +192,12 @@ export default function DashboardLayout() {
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
-              <Link key={item.name} to={item.path} className={`flex items-center gap-3 rounded-xl px-4 py-3 font-bold transition-all ${isActive ? 'bg-brand-primary/10 text-brand-primary' : 'text-content-secondary hover:bg-surface-inset hover:text-white'}`}>
+              <Link
+                key={item.name}
+                to={item.path}
+                {...navPrefetchHandlers(item.path)}
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 font-bold transition-all ${isActive ? 'bg-brand-primary/10 text-brand-primary' : 'text-content-secondary hover:bg-surface-inset hover:text-white'}`}
+              >
                 {/* Render the Lucide icon instead of text */}
                 <Icon className="w-5 h-5 shrink-0" />
                 {item.name}
@@ -332,6 +355,7 @@ export default function DashboardLayout() {
               <Link
                 key={item.name}
                 to={item.path}
+                {...navPrefetchHandlers(item.path)}
                 className={`flex h-[calc(100%-10px)] min-h-0 w-full flex-col items-center justify-center space-y-1 self-center rounded-xl transition-colors ${
                   isActive
                     ? 'text-brand-primary bg-brand-primary/[0.14] ring-1 ring-inset ring-brand-primary/30 shadow-[inset_0_1px_0_0_rgb(255_255_255_/_0.06)]'

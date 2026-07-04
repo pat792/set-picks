@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.6] — 2026-07-04
+
+### Fixed
+- **Safari dashboard tab navigation** — stop remounting the lazy route tree on every `/dashboard/*` pathname change (`shellTransitionKey` in `RootAppShell`); prefetch sibling route chunks on idle and nav interaction; eager-load the tiny Profile cluster shell to avoid nested Suspense on Profile.
+
+---
+
 ## [1.18.5] — 2026-07-04
 
 ### Fixed
