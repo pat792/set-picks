@@ -31,6 +31,8 @@ When Realtime / field reports show no unexpected violations on production traffi
 
 Do **not** enforce on a half-broken policy — prefer report-only soak over a login outage.
 
+> **2026-07-04 incident:** Enforcing `frame-ancestors 'none'` on the catch-all `/(.*)` will re-break auth the same way `X-Frame-Options: DENY` did unless `/__/auth/*` has an explicit CSP exception. See [`docs/post-mortems/412-auth-gate-failure-2026-07-04.md`](post-mortems/412-auth-gate-failure-2026-07-04.md).
+
 ## CSP directives and exceptions
 
 Policy (keep in sync with `vercel.json`):
@@ -87,4 +89,5 @@ Vite HMR and `@vite/client` need looser rules; **`vercel.json` does not apply to
 
 - [`vercel.json`](../vercel.json)
 - [`docs/RELEASE_TRAIN_SPRINT_5_6.md`](RELEASE_TRAIN_SPRINT_5_6.md) Wave 4
+- [`docs/post-mortems/412-auth-gate-failure-2026-07-04.md`](post-mortems/412-auth-gate-failure-2026-07-04.md) — 2026-07-04 auth outage post-mortem
 - Client GA gate: `src/shared/lib/ga4.js` (prod hostnames only)
