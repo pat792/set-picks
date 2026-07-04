@@ -99,6 +99,14 @@ Name **existing** domains when known (e.g. `pools`, `picks`, `scoring`, `auth`, 
 
 ---
 
+## Dependabot (paused 2026-07-04)
+
+- **Runbook:** **`docs/DEPENDABOT_OPERATIONS.md`** — enablement-wave root cause, agent triage, ops-reset, re-enable checklist.
+- **First enable dumps PRs immediately** (not weekly schedule). Ship `target-branch: staging` on day one or Dependabot opens against `main`.
+- **`open-pull-requests-limit: 0`** until human restores limits after triage.
+
+---
+
 ## Maintenance
 
 When architecture or automation behavior changes, update **this file** and keep **`.cursorrules`** and **`docs/DASHBOARD_IA.md`** aligned. If **`public/branding/`** or **`src/shared/config/branding.js`** changes materially, refresh **`docs/design.md`** §7 so automation and humans share the same contract.
