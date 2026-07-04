@@ -22,7 +22,7 @@
 - `{{audience_segment}}` — `sphere_alum` \| `post_sphere_signup` \| `sphere_alum_and_new`
 - `{{opener_label}}` — `Tuesday, July 7` (2026-07-07 Madison opener)
 - `{{share_url}}` — `/join/{inviteCode}` when user has a pool, else `/` (+ UTM)
-- `{{install_howto_url}}` — `/dashboard/profile` (+ UTM) for home screen + push instructions
+- `{{install_howto_url}}` — `/dashboard?install=1` (+ UTM) for home screen + push instructions (legacy `/dashboard/profile?…install_howto` redirects here)
 
 ## Email — full (founder letter)
 
@@ -50,7 +50,7 @@ Pick opener, closer, encore, and a wildcard; points rack up as the setlist lands
 
 ### What's new (shared)
 
-1. **Home screen + push** — One-tap launch from your home screen, plus push notifications to keep you updated on show nights — works in the browser or as an installed app. Link: See how it works in the app → (`/dashboard/profile`)
+1. **Home screen + push** — One-tap launch from your home screen, plus push notifications to keep you updated on show nights — works in the browser or as an installed app. Link: See how it works in the app → (`/dashboard?install=1`)
 2. **Share your night (Wordle-style)** — emoji grid, recap image, one-tap share after scores land.
 3. **Rank + standings that tell the story** — #rank · points, pool/tour flips; opponent picks hidden pre-lock.
 4. **Pools that are easy to fill** — invite links that preview in iMessage and social.

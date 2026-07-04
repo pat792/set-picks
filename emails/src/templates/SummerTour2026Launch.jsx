@@ -91,7 +91,7 @@ export function SummerTour2026Launch({
 }) {
   const base = siteUrl.replace(/\/+$/, "");
   const inviteUrl = resolveShareUrl(base, shareUrl, inviteCode);
-  const installHowToUrl = `${base}/dashboard/profile?utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=install_howto`;
+  const installHowToUrl = `${base}/dashboard?install=1&utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=install_howto`;
 
   const introParagraphs =
     audienceSegment === "post_sphere_signup"

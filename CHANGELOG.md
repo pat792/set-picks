@@ -17,6 +17,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ### Fixed
 - **Safari dashboard perf** — single `AuthProvider` session (no duplicate Firebase auth/profile listeners on profile nav); Profile cluster layout eager-loaded; profile form seeds from the live auth snapshot instead of a redundant Firestore read; FCM foreground messaging deferred until push is enabled; messaging service worker registration deferred until idle.
 - **Safari SW update reload** — `clients.claim()` on activate plus a 2s reload fallback so the “Update available → Reload” banner no longer hangs; SW update detection deferred until idle so boot is not blocked.
+- **Marketing legacy deep links** — cold-entry redirects for pre-#418 paths (`/dashboard/notifications`, `/dashboard/account-security`) and Summer Tour install-how-to links (`/dashboard/profile?utm_content=install_howto` → `/dashboard?install=1`) resolve before the dashboard shell mounts; install banner forced open on `?install=1`.
 
 ---
 

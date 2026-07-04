@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 import {
   AuthLoadingScreen,
@@ -8,12 +8,18 @@ import {
 } from '../../features/auth';
 
 import { ShowCalendarProvider } from '../../features/show-calendar';
+import { resolveDashboardLegacyRedirect } from '../../shared/config/dashboardLegacyRedirects';
 import DashboardLayout from '../layout/DashboardLayout';
 import { decideDashboardRoute } from './profileGuardDecision';
 
 export default function DashboardRoute() {
+  const location = useLocation();
   const { user, userProfile, loading } = useAuth();
   const decision = decideDashboardRoute({ loading, user, userProfile });
+  const legacyRedirect = resolveDashboardLegacyRedirect(
+    location.pathname,
+    location.search,
+  );
 
   // Anomaly signal for the consent-only orphan regression (May 2026).
   // Keyed on uid so a single mount fires once per user, even across
@@ -34,6 +40,9 @@ export default function DashboardRoute() {
   if (decision.kind === 'redirect-home') return <Navigate to="/" replace />;
   if (decision.kind === 'redirect-setup') {
     return <Navigate to="/setup" replace />;
+  }
+  if (legacyRedirect) {
+    return <Navigate to={legacyRedirect} replace />;
   }
 
   return (

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Bell, Download, Share2 } from 'lucide-react';
 
 import {
@@ -38,14 +38,21 @@ export function dashboardRouteShowsInstallEngage(pathname) {
  *
  * @param {{ userId: string | null | undefined }} props
  */
-function DashboardInstallEngageBannerLoaded({ userId }) {
+function DashboardInstallEngageBannerLoaded({ userId, forceInstallGuide = false }) {
   const install = useInstallPrompt();
   const push = useDashboardPushNudge({
     userId,
     isInstalled: install.isInstalled,
   });
 
-  const showInstall = install.shouldShowDashboardInstallBanner;
+  useEffect(() => {
+    if (!forceInstallGuide || !install.shouldShowIosFlow) return;
+    install.openIosGuide();
+  }, [forceInstallGuide, install.shouldShowIosFlow, install.openIosGuide]);
+
+  const showInstall =
+    forceInstallGuide ||
+    install.shouldShowDashboardInstallBanner;
   const showPush = push.shouldShowPushNudge;
 
   if (!showInstall && !showPush) return null;
@@ -181,6 +188,24 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
  * @param {{ userId: string | null | undefined, pathname: string }} props
  */
 export default function DashboardInstallEngageBanner({ userId, pathname }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [forceInstallGuide] = useState(() => searchParams.get('install') === '1');
+
+  useEffect(() => {
+    if (!forceInstallGuide) return;
+    setSearchParams((prev) => {
+      if (!prev.has('install')) return prev;
+      const next = new URLSearchParams(prev);
+      next.delete('install');
+      return next;
+    }, { replace: true });
+  }, [forceInstallGuide, setSearchParams]);
+
   if (!dashboardRouteShowsInstallEngage(pathname)) return null;
-  return <DashboardInstallEngageBannerLoaded userId={userId} />;
+  return (
+    <DashboardInstallEngageBannerLoaded
+      userId={userId}
+      forceInstallGuide={forceInstallGuide}
+    />
+  );
 }

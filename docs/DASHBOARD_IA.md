@@ -25,6 +25,8 @@ Legacy redirects (preserve bookmarks + email deep links):
 
 - `/dashboard/notifications` → `/dashboard/profile/notifications` (query string preserved, e.g. `?openPush=1`)
 - `/dashboard/account-security` → `/dashboard/profile/account`
+- `/dashboard/profile?utm_content=install_howto` (Summer Tour 2026 marketing) → `/dashboard?install=1` (Picks install + push nudge surface; UTMs preserved)
+- `/dashboard/profile?install=1` or `?openPush=1` → canonical install / Messages targets (same query preservation rules)
 
 Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
 
