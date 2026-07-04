@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth';
-import { useNextShowPicksStatus } from '../../picks';
+import { userHasSubmittedPickEntry } from '../../picks';
 import { useUserPools } from '../../pools';
 import { useShowCalendar } from '../../show-calendar';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
@@ -81,14 +81,14 @@ export function useStandingsScreen(selectedDate, options = {}) {
   );
   const { openScoringRules } = useScoringRulesModal();
 
-  // Only fetch pick-status for the "Now picking" active-show card — NEXT is
-  // the only status where users can still enter picks (see timeLogic.js).
-  // For PAST / LIVE, picks are already in `picks` and no extra read is
-  // needed; for FUTURE (a listed show beyond NEXT), picks aren't yet open.
-  const picksStatusTarget =
-    view === 'show' && showStatus === 'NEXT' ? selectedDate : undefined;
-  const { hasSubmittedPicksForNextShow, loading: picksStatusLoading } =
-    useNextShowPicksStatus(picksStatusTarget);
+  const isNextShowView = view === 'show' && showStatus === 'NEXT';
+  // Reuse standings picks already loaded for this date — avoids a redundant
+  // getDoc that can race/cancel on Safari tab switches (#505 follow-up).
+  const hasSubmittedPicksForNextShow =
+    isNextShowView && user?.uid
+      ? userHasSubmittedPickEntry(picks, user.uid)
+      : false;
+  const picksStatusLoading = isNextShowView && loading;
 
   useStandingsLeaderboardView(selectedDate, loading, showDates);
 

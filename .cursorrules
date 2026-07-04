@@ -84,6 +84,8 @@ This repo follows **Semantic Versioning 2.0.0** (https://semver.org). The public
 4. **Update `docs/API.md`** if any declared surface changed (new route, renamed field, new callable, etc.).
 5. **Never tag a release commit** — tagging `vX.Y.Z` on `main` is a human step done after the staging→main merge.
 6. **Never modify a tagged version** — if a mistake is found in a released version, ship a new version.
+7. **Dependabot PRs are exempt** — do not bump `package.json` on `dependabot/*` branches. They ship with `skip-version-bump` (see `.github/dependabot.yml`). If CI still fails the SemVer gate on an open Dependabot PR, add the `skip-version-bump` label and re-run `verify`.
+8. **Dependabot first-run / ops reset** — read **`docs/DEPENDABOT_OPERATIONS.md`** before enabling or triaging Dependabot. Never ship `dependabot.yml` without `target-branch: staging`. After first enable, expect an **immediate** PR wave (not Monday). Do not `@dependabot rebase` all open dep PRs at once. To clear a flooded queue: close PRs, set `open-pull-requests-limit: 0`, document in CHANGELOG.
 
 ### Naming and format
 

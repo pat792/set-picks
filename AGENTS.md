@@ -42,7 +42,9 @@ Core local commands:
 
 ### Dependabot / npm audit (#414)
 
-- **Dependabot** (`.github/dependabot.yml`) opens weekly grouped PRs for root and `functions/` npm deps, plus monthly GitHub Actions updates. Base branch is the repo default; retarget to `staging` if GitHub opens against `main` only.
+- **Runbook:** **`docs/DEPENDABOT_OPERATIONS.md`** — first-enable timeline, ops-reset procedure, re-enable steps. Read before touching `dependabot.yml` or triaging dep PRs.
+- **Dependabot** (`.github/dependabot.yml`) — **paused** (`open-pull-requests-limit: 0`) after 2026-07-04 enablement-wave reset. When active: weekly grouped npm PRs + monthly Actions; base `staging`; auto `skip-version-bump`; CI exempts `dependabot/*`. Agents must **not** bump `package.json` on Dependabot PRs.
+- **Vercel:** `ignoreCommand` → `scripts/vercel-should-build.sh` skips previews for Actions/functions-only dep PRs.
 - **CI `npm audit`** on the `verify` job is **informational** (`continue-on-error: true`). It does not block merge.
 - **Triage:** Critical/high in **production** deps → fix or upgrade in a normal PR. Dev-only / low noise → defer or group into a maintenance PR. Do not mass-upgrade without running `npm test` and `cd functions && npm test`.
 

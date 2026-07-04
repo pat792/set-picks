@@ -12,6 +12,40 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.7] — 2026-07-04
+
+### Fixed
+- **Standings "Checking your picks…" spinner stuck on Safari** — derive next-show pick status from the standings picks query instead of a redundant `getDoc`; harden `useNextShowPicksStatus` against effect cancellation races (Pools / Pool Hub).
+
+---
+
+## [1.18.6] — 2026-07-04
+
+### Fixed
+- **Safari dashboard tab navigation** — stop remounting the lazy route tree on every `/dashboard/*` pathname change (`shellTransitionKey` in `RootAppShell`); static-import primary nav tabs (Picks, Pools, Standings, Profile) so tab switches never hit Suspense; keep Admin / Pool Hub / Account / Messages lazy with per-route boundaries and eager prefetch on dashboard mount.
+
+---
+
+## [1.18.5] — 2026-07-04
+
+### Fixed
+- **PR queue stabilization** — pause Dependabot (`open-pull-requests-limit: 0`) after v1.18 enablement-wave; add Vercel `ignoreCommand` to skip SPA previews for CI/functions-only dependency PRs.
+
+### Added
+- **`docs/DEPENDABOT_OPERATIONS.md`** — definitive enablement timeline, agent triage table, ops-reset procedure, re-enable checklist.
+
+---
+
+## [1.18.4] — 2026-07-04
+
+### Fixed
+- **Vercel build time** — drop explicit `npm ci` install command so Vercel restores its dependency cache (`up to date in 1s`) instead of reinstalling 685 packages (~2 min). `.npmrc` `legacy-peer-deps` retains the v1.18.1 peer-resolution fix.
+
+### Changed
+- **Dependabot CI** — auto-apply `skip-version-bump` label and exempt `dependabot/*` branches from the SemVer gate (dependency-only PRs do not bump `package.json`).
+
+---
+
 ## [1.18.3] — 2026-07-04
 
 ### Fixed

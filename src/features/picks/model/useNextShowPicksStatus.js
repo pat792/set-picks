@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useAuth } from '../../auth';
 import { hasSubmittedPicksForShow } from '../api/picksApi';
@@ -15,18 +15,21 @@ export function useNextShowPicksStatus(showDate) {
   const [hasSubmittedPicksForNextShow, setHasSubmittedPicksForNextShow] =
     useState(false);
   const [error, setError] = useState(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+
     if (authLoading) {
       setLoading(true);
-      return;
+      return undefined;
     }
 
     let cancelled = false;
 
     const run = async () => {
       if (!showDate || !user?.uid) {
-        if (!cancelled) {
+        if (!cancelled && requestId === requestIdRef.current) {
           setHasSubmittedPicksForNextShow(false);
           setError(null);
           setLoading(false);
@@ -34,17 +37,19 @@ export function useNextShowPicksStatus(showDate) {
         return;
       }
 
-      setLoading(true);
-      setError(null);
+      if (requestId === requestIdRef.current) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         const submitted = await hasSubmittedPicksForShow(showDate, user.uid);
-        if (!cancelled) {
+        if (!cancelled && requestId === requestIdRef.current) {
           setHasSubmittedPicksForNextShow(submitted);
         }
       } catch (err) {
         console.error('useNextShowPicksStatus:', err);
-        if (!cancelled) {
+        if (!cancelled && requestId === requestIdRef.current) {
           setHasSubmittedPicksForNextShow(false);
           setError(
             err?.message != null
@@ -53,7 +58,7 @@ export function useNextShowPicksStatus(showDate) {
           );
         }
       } finally {
-        if (!cancelled) {
+        if (!cancelled && requestId === requestIdRef.current) {
           setLoading(false);
         }
       }
