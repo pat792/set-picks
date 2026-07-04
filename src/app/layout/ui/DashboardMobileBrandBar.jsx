@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { useAuth } from '../../../features/auth';
 import { DashboardNotificationsBell } from '../../../features/notifications';
 
 import {
@@ -21,8 +20,7 @@ function avatarInitial(userProfile, user) {
   return '👤';
 }
 
-export default function DashboardMobileBrandBar({ user }) {
-  const { userProfile } = useAuth();
+export default function DashboardMobileBrandBar({ user, userProfile }) {
   const initial = avatarInitial(userProfile, user);
 
   return (

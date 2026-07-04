@@ -17,7 +17,7 @@ import UpdateAvailableBanner from '../../shared/ui/UpdateAvailableBanner';
  */
 export default function RootAppShell() {
   const { pathname } = useLocation();
-  const { updateAvailable, applyUpdate } = useServiceWorkerUpdate();
+  const { updateAvailable, applyUpdate, isApplyingUpdate } = useServiceWorkerUpdate();
 
   return (
     <>
@@ -29,7 +29,9 @@ export default function RootAppShell() {
           </Suspense>
         </div>
       </div>
-      {updateAvailable && <UpdateAvailableBanner onReload={applyUpdate} />}
+      {updateAvailable && (
+        <UpdateAvailableBanner onReload={applyUpdate} isReloading={isApplyingUpdate} />
+      )}
     </>
   );
 }

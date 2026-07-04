@@ -76,3 +76,9 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
+// Claim open tabs as soon as the new worker activates. Without this, Safari
+// often never fires controllerchange and the Reload button appears to hang.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});

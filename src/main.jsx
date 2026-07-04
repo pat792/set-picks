@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './app/App.jsx'
 import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import ScrollToTop from './app/ScrollToTop.jsx'
+import { AuthProvider } from './features/auth'
 import { initGa4 } from './shared/lib/ga4'
 import { initializeAppCheckDeferred } from './shared/lib/firebaseAppCheck'
 import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
@@ -35,7 +36,9 @@ root.render(
         <HelmetProvider>
           <ScrollToTop />
           <Ga4RouteListener />
-          <App />
+          <AuthProvider>
+            <App />
+          </AuthProvider>
         </HelmetProvider>
       </QueryClientProvider>
     </BrowserRouter>
@@ -43,4 +46,18 @@ root.render(
 )
 
 initializeAppCheckDeferred()
-registerMessagingServiceWorker()
+
+function deferMessagingServiceWorkerRegistration() {
+  const register = () => {
+    registerMessagingServiceWorker().catch(() => {
+      // Non-critical on first paint — push can register later from Notifications.
+    })
+  }
+  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(register, { timeout: 4000 })
+  } else {
+    setTimeout(register, 1500)
+  }
+}
+
+deferMessagingServiceWorkerRegistration()

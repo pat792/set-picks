@@ -36,6 +36,9 @@ export function usePushTokenRegistration() {
   const [runtimeDebug] = useState(() => getFcmRuntimeDebugInfo());
 
   useEffect(() => {
+    if (browserPermissionState() !== 'granted') return undefined;
+    if (status !== 'enabled' && status !== 'working') return undefined;
+
     let unsubscribe = () => {};
     subscribeForegroundFcmMessages((payload) => {
       setLastMessageTitle(payload?.notification?.title || 'Message received');
@@ -48,7 +51,7 @@ export function usePushTokenRegistration() {
       });
 
     return () => unsubscribe();
-  }, []);
+  }, [status]);
 
   // Hydrate enabled state from Firestore on mount so the UI reflects "On"
   // immediately when the browser already has notification permission and a

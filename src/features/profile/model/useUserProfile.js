@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { useAuth } from '../../auth';
 import { formatMonthYear } from '../../../shared';
 import {
   fetchUserProfileDocument,
@@ -7,10 +8,19 @@ import {
 } from '../api/profileApi';
 import { showSuccessToast } from '../../../shared/ui/toast';
 
+function joinDateFromProfile(data, user) {
+  const accountCreated = data?.createdAt;
+  const creationTime = accountCreated?.toDate?.() ?? user?.metadata?.creationTime;
+  return creationTime ? formatMonthYear(creationTime) : '';
+}
+
 /**
  * Loads the signed-in user's profile, holds edit form state, and persists updates.
+ * Reuses the live auth profile snapshot when available to avoid a redundant
+ * Firestore read on Profile-cluster navigation (Safari was stalling on the extra getDoc).
  */
 export function useUserProfile(user) {
+  const { userProfile: authProfile } = useAuth();
   const uid = user?.uid;
 
   const [handle, setHandle] = useState('');
@@ -29,6 +39,14 @@ export function useUserProfile(user) {
       return;
     }
 
+    if (authProfile) {
+      setHandle(authProfile.handle || '');
+      setFavoriteSong(authProfile.favoriteSong || '');
+      setJoinDate(joinDateFromProfile(authProfile, user));
+      setIsLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setIsLoading(true);
 
@@ -37,10 +55,7 @@ export function useUserProfile(user) {
         const data = await fetchUserProfileDocument(uid);
         if (cancelled) return;
 
-        const accountCreated = data?.createdAt;
-        const creationTime =
-          accountCreated?.toDate?.() ?? user?.metadata?.creationTime;
-        setJoinDate(creationTime ? formatMonthYear(creationTime) : '');
+        setJoinDate(joinDateFromProfile(data, user));
 
         if (data) {
           setHandle(data.handle || '');
@@ -63,7 +78,7 @@ export function useUserProfile(user) {
     return () => {
       cancelled = true;
     };
-  }, [uid, user?.metadata?.creationTime]);
+  }, [uid, authProfile, user?.metadata?.creationTime]);
 
   const saveProfile = useCallback(
     async (e) => {

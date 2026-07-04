@@ -22,7 +22,6 @@ const AccountPage = lazy(() => import('../../pages/profile/AccountPage'));
 const PoolsPage = lazy(() => import('../../pages/pools/PoolsPage'));
 const PoolHubPage = lazy(() => import('../../pages/pools/PoolHubPage'));
 const NotificationsPage = lazy(() => import('../../pages/notifications/NotificationsPage'));
-const ProfileClusterLayout = lazy(() => import('./ui/ProfileClusterLayout'));
 
 // `ScoringRulesModalProvider` must stay eager — it wraps the whole dashboard
 // and owns the modal portal state; lazy-loading it would Suspense-flash the
@@ -67,11 +66,12 @@ import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
+import ProfileClusterLayout from './ui/ProfileClusterLayout';
 
 export default function DashboardLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { user, isAdmin } = useAuth();
+  const { user, userProfile, isAdmin } = useAuth();
   const { showDates, showDatesByTour } = useShowCalendar();
   usePendingPoolJoin(showDates);
   
@@ -187,7 +187,7 @@ export default function DashboardLayout() {
       {/* MOBILE TOP HEADERS — safe area + context bar anchored below brand (top-full) */}
       <div className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]">
         <div className="relative">
-          <DashboardMobileBrandBar user={user} />
+          <DashboardMobileBrandBar user={user} userProfile={userProfile} />
           <DashboardMobileContextBar
             scrollDirection={scrollDirection}
             contextTitle={meta.contextTitle}

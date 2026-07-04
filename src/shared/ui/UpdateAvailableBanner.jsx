@@ -4,7 +4,7 @@ import React from 'react';
  * Sticky bottom banner shown when a new service worker is waiting to activate.
  * Tapping "Reload" posts SKIP_WAITING to the waiting worker via applyUpdate().
  */
-export default function UpdateAvailableBanner({ onReload }) {
+export default function UpdateAvailableBanner({ onReload, isReloading = false }) {
   return (
     <div
       role="status"
@@ -15,9 +15,10 @@ export default function UpdateAvailableBanner({ onReload }) {
       <button
         type="button"
         onClick={onReload}
-        className="rounded-lg bg-teal-500 px-3 py-1 text-xs font-black text-slate-900 transition-colors hover:bg-teal-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+        disabled={isReloading}
+        className="rounded-lg bg-teal-500 px-3 py-1 text-xs font-black text-slate-900 transition-colors hover:bg-teal-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 disabled:cursor-wait disabled:opacity-70"
       >
-        Reload
+        {isReloading ? 'Reloading…' : 'Reload'}
       </button>
     </div>
   );
