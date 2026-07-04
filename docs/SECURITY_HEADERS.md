@@ -10,7 +10,7 @@ Applied to all routes (`/(.*)`):
 |--------|-------|---------|
 | `X-Content-Type-Options` | `nosniff` | Block MIME sniffing |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
-| `X-Frame-Options` | `DENY` | Clickjacking (legacy; CSP `frame-ancestors` is primary). **Not** set on `/__/auth/*` or `/__/firebase/*` — Firebase Auth embeds those helper iframes cross-origin when `authDomain` is `www.setlistpickem.com`; `DENY` there breaks Google and email sign-in. |
+| `X-Frame-Options` | `DENY` | Clickjacking (legacy; CSP `frame-ancestors` is primary). **Not** set on `/__/auth/*` or `/__/firebase/*` — Firebase Auth embeds those helper iframes cross-origin when `authDomain` is `www.setlistpickem.com`; `DENY` there breaks Google and email sign-in. Applied via **explicit app-route list** in `vercel.json` (Vercel does not honor negative-lookahead header `source` patterns). |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disable unused powerful APIs |
 
 Cache-Control rules for HTML vs hashed assets are unchanged (see existing `vercel.json` entries).
