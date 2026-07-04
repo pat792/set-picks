@@ -42,7 +42,7 @@ Core local commands:
 
 ### Dependabot / npm audit (#414)
 
-- **Dependabot** (`.github/dependabot.yml`) opens weekly grouped PRs for root and `functions/` npm deps, plus monthly GitHub Actions updates. Base branch is the repo default; retarget to `staging` if GitHub opens against `main` only.
+- **Dependabot** (`.github/dependabot.yml`) opens weekly grouped PRs for root and `functions/` npm deps, plus monthly GitHub Actions updates. Base branch is `staging`. New Dependabot PRs get the **`skip-version-bump`** label automatically; CI also skips the SemVer gate for `dependabot/*` head branches. Agents must **not** bump `package.json` on Dependabot PRs — triage and merge (or close) as dependency maintenance only.
 - **CI `npm audit`** on the `verify` job is **informational** (`continue-on-error: true`). It does not block merge.
 - **Triage:** Critical/high in **production** deps → fix or upgrade in a normal PR. Dev-only / low noise → defer or group into a maintenance PR. Do not mass-upgrade without running `npm test` and `cd functions && npm test`.
 

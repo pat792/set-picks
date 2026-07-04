@@ -12,6 +12,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
+      - skip-version-bump
     groups:
       root-production:
         dependency-type: production
@@ -27,6 +28,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
+      - skip-version-bump
     groups:
       functions-production:
         dependency-type: production
@@ -41,3 +43,4 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - dependencies
+      - skip-version-bump
