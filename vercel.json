@@ -1,5 +1,4 @@
 {
-  "installCommand": "npm ci",
   "functions": {
     "api/invite/[code].js": {
       "includeFiles": "dist/index.html"

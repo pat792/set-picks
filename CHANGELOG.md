@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.4] — 2026-07-04
+
+### Fixed
+- **Vercel build time** — drop explicit `npm ci` install command so Vercel restores its dependency cache (`up to date in 1s`) instead of reinstalling 685 packages (~2 min). `.npmrc` `legacy-peer-deps` retains the v1.18.1 peer-resolution fix.
+
+### Changed
+- **Dependabot CI** — auto-apply `skip-version-bump` label and exempt `dependabot/*` branches from the SemVer gate (dependency-only PRs do not bump `package.json`).
+
+---
+
 ## [1.18.3] — 2026-07-04
 
 ### Fixed
