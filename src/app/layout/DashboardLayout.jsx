@@ -7,31 +7,15 @@ import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
 import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
 import {
   DASHBOARD_NAV_PRELOAD_BY_PATH,
-  dashboardRouteImport,
+  dashboardLazyRouteImport,
   prefetchDashboardRoutes,
 } from './model/dashboardRouteModules';
 import ProfileClusterLayout from './ui/ProfileClusterLayout';
 
-import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
-
-// Lazy-load each dashboard page so a direct hit on e.g. `/dashboard/profile`
-// doesn't pay the download cost for Admin / Pools / Standings / Picks /
-// PoolHub. Static imports here would defeat the route-level code splitting
-// at the top level (`App.jsx`), because they'd all collapse back into the
-// DashboardRoute chunk. Import factories live in `dashboardRouteModules`
-// so idle/hover prefetch warms the same module cache before navigation.
-const PicksPage = lazy(dashboardRouteImport.picks);
-const AdminPage = lazy(dashboardRouteImport.admin);
-const StandingsPage = lazy(dashboardRouteImport.standings);
-const ProfilePage = lazy(dashboardRouteImport.profile);
-const AccountPage = lazy(dashboardRouteImport.account);
-const PoolsPage = lazy(dashboardRouteImport.pools);
-const PoolHubPage = lazy(dashboardRouteImport.poolHub);
-const NotificationsPage = lazy(dashboardRouteImport.notifications);
-
-// `ScoringRulesModalProvider` must stay eager — it wraps the whole dashboard
-// and owns the modal portal state; lazy-loading it would Suspense-flash the
-// entire dashboard chrome.
+import PicksPage from '../../pages/picks/PicksPage';
+import PoolsPage from '../../pages/pools/PoolsPage';
+import StandingsPage from '../../pages/standings/StandingsPage';
+import ProfilePage from '../../pages/profile/ProfilePage';
 import { ScoringRulesModalProvider } from '../../features/scoring';
 import {
   NAV_LABEL_ADMIN,
@@ -53,7 +37,6 @@ import {
 } from '../../shared/utils/showOptionLabel.js';
 import { PastShowLockBanner, TooEarlyBanner, useSetlistLockToast } from '../../features/picks';
 import { DashboardInstallEngageBanner } from '../../features/install';
-
 import {
   CommsInboxProvider,
   DashboardNotificationsBell,
@@ -74,6 +57,20 @@ import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
 
+import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
+
+// Primary nav tabs are static imports so tab switches never hit Suspense
+// (lazy + single boundary unmounts the old route before the new chunk resolves).
+// Secondary / deep routes stay lazy to keep the DashboardRoute chunk lean.
+const AdminPage = lazy(dashboardLazyRouteImport.admin);
+const AccountPage = lazy(dashboardLazyRouteImport.account);
+const PoolHubPage = lazy(dashboardLazyRouteImport.poolHub);
+const NotificationsPage = lazy(dashboardLazyRouteImport.notifications);
+
+function LazyDashboardRoute({ children }) {
+  return <Suspense fallback={<RouteSuspenseFallback />}>{children}</Suspense>;
+}
+
 function navPrefetchHandlers(path) {
   const keys = DASHBOARD_NAV_PRELOAD_BY_PATH[path];
   if (!keys?.length) return undefined;
@@ -93,7 +90,7 @@ export default function DashboardLayout() {
   usePendingPoolJoin(showDates);
   usePrefetchDashboardRoutes(location.pathname);
 
-  const scrollDirection = useScrollDirection(); 
+  const scrollDirection = useScrollDirection();
 
   const [selectedDate, setSelectedDate] = useState(() =>
     getNextShow(FALLBACK_SHOW_DATES).date
@@ -278,57 +275,80 @@ export default function DashboardLayout() {
             <DashboardPageHeading title={meta.layoutDesktopHeading} tone={isWarRoomRoute ? 'warRoom' : 'default'} />
           )}
 
-          <Suspense fallback={<RouteSuspenseFallback />}>
-            <Routes>
-              <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
-              <Route
-                path="picks"
-                element={<PicksPage user={user} selectedDate={selectedDate} />}
-              />
-              <Route
-                path="scoring"
-                element={<Navigate to="/dashboard?scoringRules=1" replace />}
-              />
-              <Route
-                path="standings"
-                element={
-                  <StandingsPage
-                    selectedDate={selectedDate}
-                    onSelectShowDate={setSelectedDate}
-                  />
-                }
-              />
-              <Route
-                path="admin"
-                element={<AdminPage user={user} selectedDate={selectedDate} />}
-              />
-              <Route path="profile" element={<ProfileClusterLayout user={user} />}>
-                <Route index element={<ProfilePage />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-                <Route path="account" element={<AccountPage />} />
-              </Route>
-              <Route
-                path="account-security"
-                element={
-                  <Navigate
-                    to={`${PROFILE_CLUSTER_PATHS.account}${location.search}`}
-                    replace
-                  />
-                }
-              />
+          <Routes>
+            <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
+            <Route
+              path="picks"
+              element={<PicksPage user={user} selectedDate={selectedDate} />}
+            />
+            <Route
+              path="scoring"
+              element={<Navigate to="/dashboard?scoringRules=1" replace />}
+            />
+            <Route
+              path="standings"
+              element={
+                <StandingsPage
+                  selectedDate={selectedDate}
+                  onSelectShowDate={setSelectedDate}
+                />
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <LazyDashboardRoute>
+                  <AdminPage user={user} selectedDate={selectedDate} />
+                </LazyDashboardRoute>
+              }
+            />
+            <Route path="profile" element={<ProfileClusterLayout user={user} />}>
+              <Route index element={<ProfilePage />} />
               <Route
                 path="notifications"
                 element={
-                  <Navigate
-                    to={`${PROFILE_CLUSTER_PATHS.notifications}${location.search}`}
-                    replace
-                  />
+                  <LazyDashboardRoute>
+                    <NotificationsPage />
+                  </LazyDashboardRoute>
                 }
               />
-              <Route path="pools" element={<PoolsPage user={user} />} />
-              <Route path="pool/:poolId" element={<PoolHubPage user={user} />} />
-            </Routes>
-          </Suspense>
+              <Route
+                path="account"
+                element={
+                  <LazyDashboardRoute>
+                    <AccountPage />
+                  </LazyDashboardRoute>
+                }
+              />
+            </Route>
+            <Route
+              path="account-security"
+              element={
+                <Navigate
+                  to={`${PROFILE_CLUSTER_PATHS.account}${location.search}`}
+                  replace
+                />
+              }
+            />
+            <Route
+              path="notifications"
+              element={
+                <Navigate
+                  to={`${PROFILE_CLUSTER_PATHS.notifications}${location.search}`}
+                  replace
+                />
+              }
+            />
+            <Route path="pools" element={<PoolsPage user={user} />} />
+            <Route
+              path="pool/:poolId"
+              element={
+                <LazyDashboardRoute>
+                  <PoolHubPage user={user} />
+                </LazyDashboardRoute>
+              }
+            />
+          </Routes>
         </div>
       </main>
 

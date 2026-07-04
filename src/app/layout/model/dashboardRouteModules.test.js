@@ -2,38 +2,24 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DASHBOARD_NAV_PRELOAD_BY_PATH,
-  dashboardRouteImport,
-  dashboardRouteKeysForPathname,
+  dashboardLazyRouteImport,
+  dashboardLazyRouteKeysForPathname,
 } from './dashboardRouteModules';
 
 describe('dashboardRouteModules', () => {
-  it('defines a dynamic import factory for every dashboard lazy route', () => {
-    expect(Object.keys(dashboardRouteImport).sort()).toEqual(
-      [
-        'account',
-        'admin',
-        'notifications',
-        'picks',
-        'poolHub',
-        'pools',
-        'profile',
-        'standings',
-      ].sort()
+  it('defines lazy import factories only for secondary dashboard routes', () => {
+    expect(Object.keys(dashboardLazyRouteImport).sort()).toEqual(
+      ['account', 'admin', 'notifications', 'poolHub'].sort()
     );
   });
 
-  it('maps primary nav paths to preload keys', () => {
-    expect(DASHBOARD_NAV_PRELOAD_BY_PATH['/dashboard']).toEqual(['picks']);
-    expect(DASHBOARD_NAV_PRELOAD_BY_PATH['/dashboard/profile']).toEqual(['profile']);
+  it('maps admin nav to preload keys', () => {
+    expect(DASHBOARD_NAV_PRELOAD_BY_PATH['/dashboard/admin']).toEqual(['admin']);
   });
 
-  it('derives active route keys from pathname', () => {
-    expect(dashboardRouteKeysForPathname('/dashboard/')).toEqual(['picks']);
-    expect(dashboardRouteKeysForPathname('/dashboard/pools')).toEqual(['pools']);
-    expect(dashboardRouteKeysForPathname('/dashboard/pool/abc')).toEqual(['poolHub']);
-    expect(dashboardRouteKeysForPathname('/dashboard/profile/account')).toEqual([
-      'profile',
-      'account',
-    ]);
+  it('derives active lazy route keys from pathname', () => {
+    expect(dashboardLazyRouteKeysForPathname('/dashboard/pools')).toEqual([]);
+    expect(dashboardLazyRouteKeysForPathname('/dashboard/pool/abc123')).toEqual(['poolHub']);
+    expect(dashboardLazyRouteKeysForPathname('/dashboard/profile/account')).toEqual(['account']);
   });
 });
