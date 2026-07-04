@@ -10,7 +10,7 @@ Applied to all routes (`/(.*)`):
 |--------|-------|---------|
 | `X-Content-Type-Options` | `nosniff` | Block MIME sniffing |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
-| `X-Frame-Options` | `DENY` | Clickjacking (legacy; CSP `frame-ancestors` is primary). **Not** set on `/__/auth/*` or `/__/firebase/*` — Firebase Auth embeds those helper iframes cross-origin when `authDomain` is `www.setlistpickem.com`; `DENY` there breaks Google and email sign-in. |
+| `X-Frame-Options` | `DENY` | Clickjacking (legacy; CSP `frame-ancestors` is primary). **Not** set on `/__/auth/*` or `/__/firebase/*` — Firebase Auth embeds those helper iframes cross-origin when `authDomain` is `www.setlistpickem.com`; `DENY` there breaks Google and email sign-in. Applied via **explicit app-route list** in `vercel.json` (Vercel does not honor negative-lookahead header `source` patterns). |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disable unused powerful APIs |
 
 Cache-Control rules for HTML vs hashed assets are unchanged (see existing `vercel.json` entries).
@@ -30,6 +30,8 @@ When Realtime / field reports show no unexpected violations on production traffi
 3. Keep `frame-ancestors 'none'` and the always-on headers.
 
 Do **not** enforce on a half-broken policy — prefer report-only soak over a login outage.
+
+> **2026-07-04 incident:** Enforcing `frame-ancestors 'none'` on the catch-all `/(.*)` will re-break auth the same way `X-Frame-Options: DENY` did unless `/__/auth/*` has an explicit CSP exception. See [`docs/post-mortems/412-auth-gate-failure-2026-07-04.md`](post-mortems/412-auth-gate-failure-2026-07-04.md).
 
 ## CSP directives and exceptions
 
@@ -87,4 +89,5 @@ Vite HMR and `@vite/client` need looser rules; **`vercel.json` does not apply to
 
 - [`vercel.json`](../vercel.json)
 - [`docs/RELEASE_TRAIN_SPRINT_5_6.md`](RELEASE_TRAIN_SPRINT_5_6.md) Wave 4
+- [`docs/post-mortems/412-auth-gate-failure-2026-07-04.md`](post-mortems/412-auth-gate-failure-2026-07-04.md) — 2026-07-04 auth outage post-mortem
 - Client GA gate: `src/shared/lib/ga4.js` (prod hostnames only)
