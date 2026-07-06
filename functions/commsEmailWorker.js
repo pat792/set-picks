@@ -36,10 +36,20 @@
 const { isEmailSuppressed } = require("./commsEmailSuppression");
 const { buildOneClickUnsubscribeUrl } = require("./commsEmailUnsubscribe");
 const { reserveEmailDailyCapSlot } = require("./commsEmailDailyCap");
+const {
+  buildEmailWordmarkUrl,
+  EMAIL_BRAND_PRIMARY,
+  EMAIL_BRAND_PRIMARY_STRONG,
+  EMAIL_BRAND_BG_DEEP,
+} = require("../comms/emailBranding.cjs");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
 const UNSUB_PATH = "/dashboard/profile/notifications";
+/** ~96% of the 416px inner shell width; height tracks email-gradient-wordmark.svg (~3:1). */
+const EMAIL_SHELL_WORDMARK_WIDTH_PX = 400;
+const EMAIL_SHELL_WORDMARK_HEIGHT_PX = 132;
+const EMAIL_SHELL_ACCENT_BORDER_PX = 2;
 
 /**
  * Lazily construct a Resend client from an API key. Returns `null` when no key is
@@ -112,16 +122,38 @@ function escapeHtml(str) {
 // at the same URL, so re-printing it as a bare link right above the button
 // is a redundant, less-trustworthy-looking duplicate — strip it for HTML only.
 const APP_LINK_LINE_RE = /^open the app:\s*https?:\/\/\S+\s*$/i;
+const MANAGE_PREFS_LINE_RE = /^manage which updates you get in notifications settings\.?$/i;
+const LEGACY_BRAND_SIGNOFF_RE = /^—\s*setlist pick'?em\.?$/i;
+
+/**
+ * Lines that belong in the plain-text part or HTML footer — not the visible HTML body.
+ *
+ * @param {string} text
+ * @param {{ signOff?: string }} [opts]
+ * @returns {string}
+ */
+function stripHtmlOnlyEmailLines(text, { signOff } = {}) {
+  const signOffTrim = typeof signOff === "string" ? signOff.trim() : "";
+  return String(text || "")
+    .split("\n")
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return true;
+      if (APP_LINK_LINE_RE.test(trimmed)) return false;
+      if (MANAGE_PREFS_LINE_RE.test(trimmed)) return false;
+      if (LEGACY_BRAND_SIGNOFF_RE.test(trimmed)) return false;
+      if (signOffTrim && trimmed === signOffTrim) return false;
+      return true;
+    })
+    .join("\n");
+}
 
 /**
  * @param {string} text
  * @returns {string}
  */
 function stripRedundantCtaLine(text) {
-  return String(text || "")
-    .split("\n")
-    .filter((line) => !APP_LINK_LINE_RE.test(line.trim()))
-    .join("\n");
+  return stripHtmlOnlyEmailLines(text);
 }
 
 /**
@@ -142,17 +174,21 @@ function stripRedundantCtaLine(text) {
  *   bodyText: string,
  *   ctaUrl: string,
  *   settingsUrl: string,
+ *   ctaLabel?: string,
+ *   signOff?: string,
+ *   wordmarkSrc?: string,
  * }} opts
  * @returns {string}
  */
-function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl }) {
+function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabel, signOff, wordmarkSrc }) {
+  const buttonLabel = typeof ctaLabel === "string" && ctaLabel.trim() ? ctaLabel.trim() : "Open Setlist Pick'em";
+  const signOffLine = typeof signOff === "string" ? signOff.trim() : "";
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
-  const logoUrl = `${base}/favicon/web-app-manifest-512x512.png`;
-  // A stack of several short, single-line <p> blocks is a well-known trigger
-  // for Gmail's content-folding heuristic (it renders a clickable "..." pill
-  // in place of the text, which most recipients never think to expand). A
-  // single <p> with <br> between lines reads identically but avoids it.
-  const bodyLines = stripRedundantCtaLine(bodyText)
+  const resolvedWordmarkSrc =
+    typeof wordmarkSrc === "string" && wordmarkSrc.trim()
+      ? wordmarkSrc.trim()
+      : buildEmailWordmarkUrl(base);
+  const bodyLines = stripHtmlOnlyEmailLines(bodyText, { signOff: signOffLine })
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
@@ -161,6 +197,9 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl }) {
   const paragraphs = bodyLines
     ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#1a1a2e;">${bodyLines}</p>`
     : "";
+  const signOffHtml = signOffLine
+    ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#64748b;font-style:italic;">${escapeHtml(signOffLine)}</p>`
+    : "";
 
   return `<!DOCTYPE html>
 <html>
@@ -168,17 +207,17 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl }) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0b14;padding:32px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;border-top:${EMAIL_SHELL_ACCENT_BORDER_PX}px solid ${EMAIL_BRAND_PRIMARY};">
             <tr>
-              <td style="padding:32px 32px 8px 32px;text-align:center;">
-                <img src="${logoUrl}" width="48" height="48" alt="Setlist Pick'em" style="border-radius:12px;display:inline-block;" />
-                <div style="margin-top:12px;font-size:18px;font-weight:800;color:#1a1a2e;font-family:-apple-system,Helvetica,Arial,sans-serif;">Setlist Pick&apos;em</div>
+              <td style="padding:20px 32px 12px 32px;text-align:center;">
+                <img src="${escapeHtml(resolvedWordmarkSrc)}" width="${EMAIL_SHELL_WORDMARK_WIDTH_PX}" height="${EMAIL_SHELL_WORDMARK_HEIGHT_PX}" alt="Setlist Pick'em" role="presentation" style="display:block;margin:0 auto;max-width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px;width:100%;height:auto;border:0;" />
               </td>
             </tr>
             <tr>
-              <td style="padding:16px 32px 8px 32px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+              <td style="padding:8px 32px 8px 32px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
                 ${paragraphs}
-                <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:12px 24px;background-color:#7c3aed;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">Open Setlist Pick&apos;em</a>
+                ${signOffHtml}
+                <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:12px 24px;background-color:${EMAIL_BRAND_PRIMARY};color:${EMAIL_BRAND_BG_DEEP};text-decoration:none;border-radius:12px;font-weight:700;font-size:14px;">${escapeHtml(buttonLabel)}</a>
               </td>
             </tr>
             <tr>
@@ -187,9 +226,9 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl }) {
                   You&apos;re receiving this because you have a Setlist Pick&apos;em account.
                 </p>
                 <p style="margin:0;font-size:12px;color:#888888;">
-                  <a href="${escapeHtml(settingsUrl)}" style="color:#7c3aed;text-decoration:underline;">Manage preferences</a>
+                  <a href="${escapeHtml(settingsUrl)}" style="color:${EMAIL_BRAND_PRIMARY_STRONG};text-decoration:underline;">Manage preferences</a>
                   &nbsp;&middot;&nbsp;
-                  <a href="${escapeHtml(settingsUrl)}" style="color:#7c3aed;text-decoration:underline;">Unsubscribe</a>
+                  <a href="${escapeHtml(settingsUrl)}" style="color:${EMAIL_BRAND_PRIMARY_STRONG};text-decoration:underline;">Unsubscribe</a>
                 </p>
               </td>
             </tr>
@@ -199,6 +238,18 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl }) {
     </table>
   </body>
 </html>`;
+}
+
+/**
+ * Production send package — hosted wordmark URL (marketing-email pattern; no MIME attachments).
+ *
+ * @param {Parameters<typeof buildBrandedEmailHtml>[0]} opts
+ * @returns {{ html: string }}
+ */
+function buildProductionBrandedEmailShell(opts) {
+  return {
+    html: buildBrandedEmailHtml(opts),
+  };
 }
 
 /**
@@ -281,15 +332,18 @@ function createCommsEmailWorker({
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     };
     const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
-    const html =
-      typeof rendered.email.html === "string" && rendered.email.html.trim()
-        ? rendered.email.html
-        : buildBrandedEmailHtml({
-            siteUrl,
-            bodyText: rendered.email.text,
-            ctaUrl: rendered.email.ctaUrl || `${base}/dashboard`,
-            settingsUrl,
-          });
+    const usesPreRenderedHtml = typeof rendered.email.html === "string" && rendered.email.html.trim();
+    const shell = usesPreRenderedHtml
+      ? null
+      : buildProductionBrandedEmailShell({
+          siteUrl,
+          bodyText: rendered.email.text,
+          ctaUrl: rendered.email.ctaUrl || `${base}/dashboard`,
+          settingsUrl,
+          ctaLabel: rendered.email.ctaLabel,
+          signOff: rendered.email.signOff,
+        });
+    const html = usesPreRenderedHtml ? rendered.email.html : shell.html;
     const idempotencyKey = forceResend
       ? `${triggerId}/${uid}:${dedupId || "default"}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`
       : `${triggerId}/${uid}:${dedupId || "default"}`;
@@ -332,7 +386,9 @@ module.exports = {
   unsubscribeHeaders,
   resolveUnsubscribeLinks,
   buildBrandedEmailHtml,
+  buildProductionBrandedEmailShell,
   stripRedundantCtaLine,
+  stripHtmlOnlyEmailLines,
   escapeHtml,
   DEFAULT_FROM,
 };

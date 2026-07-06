@@ -61,6 +61,25 @@ describe('comms template registry', () => {
     }
   });
 
+  it('tour countdown in-app CTA varies by days_remaining (never "Open the app")', () => {
+    const entry = getCommsTemplateEntry('tour-countdown');
+    expect(entry.build({ days_remaining: 10 }).cta).toEqual({
+      label: 'View upcoming shows',
+      href: '/dashboard/picks',
+    });
+    expect(entry.build({ days_remaining: 5 }).cta.label).toBe('Make picks for show 1');
+    expect(entry.build({ days_remaining: 3 }).cta.label).toBe('Make picks for show 1');
+    expect(entry.build({ days_remaining: 1 }).cta.label).toBe('Lock in your picks');
+  });
+
+  it('tour engagement reminder uses in-app picks CTA (not "Open the app")', () => {
+    const entry = getCommsTemplateEntry('tour-engagement-reminder');
+    expect(entry.build({}).cta).toEqual({
+      label: 'Make picks for next show',
+      href: '/dashboard/picks',
+    });
+  });
+
   it('maps templateId → catalog triggerId', () => {
     expect(triggerIdForTemplate('show-recap')).toBe('show_recap');
     expect(triggerIdForTemplate('account-welcome')).toBe('account_welcome');

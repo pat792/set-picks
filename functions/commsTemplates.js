@@ -15,44 +15,110 @@
 
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
+const PICKS_CTA_URL = `${SITE_URL}/dashboard/picks`;
 
 function handleOf(p) {
   const h = p && typeof p.handle === "string" ? p.handle.trim() : "";
   return h || "Picker";
 }
 
-function emailFooter() {
-  return [
+/**
+ * @param {string} venue
+ * @param {string} city
+ * @returns {string}
+ */
+function appendCityIfNeeded(venue, city) {
+  if (!city) return venue;
+  if (!venue) return city;
+  if (venue.toLowerCase().includes(city.toLowerCase())) return venue;
+  return `${venue}, ${city}`;
+}
+
+/**
+ * @param {Record<string, unknown>} payload
+ * @param {{ dateKey?: string, venueKey?: string, cityKey?: string }} [opts]
+ * @returns {string}
+ */
+function venueLine(payload, { dateKey = "show_date", venueKey = "venue_name", cityKey = "venue_city" } = {}) {
+  const venue = typeof payload?.[venueKey] === "string" ? payload[venueKey].trim() : "";
+  const city =
+    cityKey && cityKey !== "__none" && typeof payload?.[cityKey] === "string"
+      ? payload[cityKey].trim()
+      : "";
+  const place = appendCityIfNeeded(venue, city);
+  const date = typeof payload?.[dateKey] === "string" ? payload[dateKey].trim() : "";
+  if (date && place) return `${date} — ${place}`;
+  return place || date || "";
+}
+
+/** Warm default close — avoid repeating the brand name (logo + legal footer cover identity). */
+const DEFAULT_EMAIL_SIGN_OFF = "See you on tour!";
+
+/**
+ * Service comms email copy contract:
+ * - Body = personalized message only (no prefs/legal/sign-off boilerplate).
+ * - Plain-text part appends `Open the app:` (no HTML button in text clients).
+ * - HTML shell renders sign-off separately; prefs live in the footer links only.
+ *
+ * @param {string[]} bodyLines
+ * @param {{ signOff?: string, ctaUrl?: string }} [opts]
+ */
+function assembleServiceEmail(bodyLines, { signOff = DEFAULT_EMAIL_SIGN_OFF, ctaUrl = APP_CTA_URL } = {}) {
+  const signOffLine = String(signOff || DEFAULT_EMAIL_SIGN_OFF).trim();
+  const text = [
+    ...bodyLines.filter(Boolean),
     "",
-    `Open the app: ${APP_CTA_URL}`,
+    `Open the app: ${ctaUrl}`,
     "",
-    "Manage which updates you get in Notifications settings.",
-    "— Setlist Pick'em",
-  ];
+    signOffLine,
+  ].join("\n");
+  return { text, signOff: signOffLine, ctaUrl };
 }
 
 /** @type {Record<string, (payload: Record<string, any>) => { push: {title:string,body:string}, email: {subject:string,text:string} }>} */
 const BUILDERS = {
-  "account-welcome": (p) => ({
-    push: {
-      title: "Welcome to Setlist Pick'em",
-      body: `${handleOf(p)}, make your first picks and get on the board.`,
-    },
-    email: {
-      subject: "Welcome to Setlist Pick'em",
-      text: [
+  "account-welcome": (p) => {
+    const assembled = assembleServiceEmail(
+      [
         `Welcome, ${handleOf(p)}!`,
         "",
         "Setlist Pick'em is a prediction game for live shows — call the opener, closer, encore, and a wildcard, then rack up points as the setlist unfolds.",
-        p.next_show_date ? `Your next chance to play: ${p.next_show_date}${p.next_show_venue ? ` at ${p.next_show_venue}` : ""}.` : "",
-        ...emailFooter(),
-      ].filter(Boolean).join("\n"),
-    },
-  }),
+        p.next_show_date
+          ? `Your next chance to play: ${p.next_show_date}${p.next_show_venue ? ` at ${p.next_show_venue}` : ""}.`
+          : "",
+      ],
+      { signOff: "Glad you're here — see you at the next show!" }
+    );
+    return {
+      push: {
+        title: "Welcome to Setlist Pick'em",
+        body: `${handleOf(p)}, make your first picks and get on the board.`,
+      },
+      email: {
+        subject: "Welcome to Setlist Pick'em",
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: assembled.ctaUrl,
+      },
+    };
+  },
 
   "tour-countdown": (p) => {
     const days = Number(p.days_remaining);
     const when = days === 0 ? "today" : days === 1 ? "tomorrow" : `in ${days} days`;
+    const firstShow = venueLine(p, {
+      dateKey: "first_show_date",
+      venueKey: "first_show_venue",
+      cityKey: "first_show_city",
+    });
+    const assembled = assembleServiceEmail(
+      [
+        `${handleOf(p)}, the run kicks off ${when}.`,
+        firstShow ? `First show: ${firstShow}.` : "",
+        `Picks lock at ${p.lock_time_local || "7:55 PM"} local on show night.`,
+      ],
+      { ctaUrl: PICKS_CTA_URL }
+    );
     return {
       push: {
         title: `${p.tour_name || "The tour"} starts ${when}`,
@@ -60,129 +126,169 @@ const BUILDERS = {
       },
       email: {
         subject: `${p.tour_name || "The tour"} starts ${when}`,
-        text: [
-          `${handleOf(p)}, the run kicks off ${when}.`,
-          p.first_show_venue ? `First show: ${p.first_show_date || ""} ${p.first_show_venue}${p.first_show_city ? `, ${p.first_show_city}` : ""}.` : "",
-          `Picks lock at ${p.lock_time_local || "7:55 PM"} local on show night.`,
-          ...emailFooter(),
-        ].filter(Boolean).join("\n"),
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: PICKS_CTA_URL,
+        ctaLabel: "Make Your Picks",
       },
     };
   },
 
-  "picks-confirmed": (p) => ({
-    push: {
-      title: "You're locked in",
-      body: `Picks for ${p.venue_name || p.show_date || "the show"} are confirmed. We'll score them live.`,
-    },
-    email: {
-      subject: "Your picks are locked in",
-      text: [
+  "picks-confirmed": (p) => {
+    const assembled = assembleServiceEmail(
+      [
         `${handleOf(p)}, your picks for ${p.show_date || ""}${p.venue_name ? ` at ${p.venue_name}` : ""} are confirmed.`,
         "We'll score them live as the setlist comes in.",
-        ...emailFooter(),
-      ].filter(Boolean).join("\n"),
-    },
-  }),
+      ],
+      { signOff: "Good luck tonight!" }
+    );
+    return {
+      push: {
+        title: "You're locked in",
+        body: `Picks for ${p.venue_name || p.show_date || "the show"} are confirmed. We'll score them live.`,
+      },
+      email: {
+        subject: "Your picks are locked in",
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: assembled.ctaUrl,
+      },
+    };
+  },
 
-  "score-first-points": (p) => ({
-    push: {
-      title: "You just scored!",
-      body: p.song_name ? `"${p.song_name}" hit — you're on the board${p.points_earned != null ? ` (+${p.points_earned})` : ""}.` : "Your first pick of the night landed.",
-    },
-    email: {
-      subject: "You're on the board",
-      text: [
-        `${handleOf(p)}, your first pick just scored${p.points_earned != null ? ` (+${p.points_earned} pts)` : ""}.`,
-        ...emailFooter(),
-      ].join("\n"),
-    },
-  }),
+  "score-first-points": (p) => {
+    const assembled = assembleServiceEmail([
+      `${handleOf(p)}, your first pick just scored${p.points_earned != null ? ` (+${p.points_earned} pts)` : ""}.`,
+    ]);
+    return {
+      push: {
+        title: "You just scored!",
+        body: p.song_name ? `"${p.song_name}" hit — you're on the board${p.points_earned != null ? ` (+${p.points_earned})` : ""}.` : "Your first pick of the night landed.",
+      },
+      email: {
+        subject: "You're on the board",
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: assembled.ctaUrl,
+      },
+    };
+  },
 
-  "score-leader": (p) => ({
-    push: {
-      title: `You're #1 on ${p.leaderboard_name || "the leaderboard"}`,
-      body: `You took the top spot${p.lead_margin != null ? ` by ${p.lead_margin}` : ""}. Can you hold it?`,
-    },
-    email: {
-      subject: `You took the lead on ${p.leaderboard_name || "the leaderboard"}`,
-      text: [
-        `${handleOf(p)}, you're #1 on ${p.leaderboard_name || "the Global"} leaderboard.`,
-        ...emailFooter(),
-      ].join("\n"),
-    },
-  }),
+  "score-leader": (p) => {
+    const assembled = assembleServiceEmail([
+      `${handleOf(p)}, you're #1 on ${p.leaderboard_name || "the Global"} leaderboard.`,
+    ]);
+    return {
+      push: {
+        title: `You're #1 on ${p.leaderboard_name || "the leaderboard"}`,
+        body: `You took the top spot${p.lead_margin != null ? ` by ${p.lead_margin}` : ""}. Can you hold it?`,
+      },
+      email: {
+        subject: `You took the lead on ${p.leaderboard_name || "the leaderboard"}`,
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: assembled.ctaUrl,
+      },
+    };
+  },
 
-  "show-recap": (p) => ({
-    push: {
-      title: p.venue_name ? `Recap: ${p.venue_name}` : "Your show recap is in",
-      body: `${p.show_score != null ? `You scored ${p.show_score}. ` : ""}${p.global_rank != null ? `#${p.global_rank} overall. ` : ""}Open for the full breakdown.`,
-    },
-    email: {
-      subject: p.venue_name ? `Your recap: ${p.venue_name}` : "Your show recap",
-      text: [
+  "show-recap": (p) => {
+    const assembled = assembleServiceEmail(
+      [
         `${handleOf(p)}, here's how your picks for ${p.show_date || "the show"}${p.venue_name ? ` at ${p.venue_name}` : ""} graded out.`,
         p.show_score != null ? `Show score: ${p.show_score}.` : "",
-        p.global_rank != null ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.` : "",
-        ...emailFooter(),
-      ].filter(Boolean).join("\n"),
-    },
-  }),
+        p.global_rank != null
+          ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
+          : "",
+      ].filter(Boolean)
+    );
+    return {
+      push: {
+        title: p.venue_name ? `Recap: ${p.venue_name}` : "Your show recap is in",
+        body: `${p.show_score != null ? `You scored ${p.show_score}. ` : ""}${p.global_rank != null ? `#${p.global_rank} overall. ` : ""}Open for the full breakdown.`,
+      },
+      email: {
+        subject: p.venue_name ? `Your recap: ${p.venue_name}` : "Your show recap",
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: assembled.ctaUrl,
+      },
+    };
+  },
 
-  "tour-rankings-daily": (p) => ({
-    push: {
-      title: "Where you stand on tour",
-      body: `${p.tour_rank != null ? `#${p.tour_rank} on tour` : "New standings are in"}${p.tour_points != null ? ` · ${p.tour_points} pts` : ""}.`,
-    },
-    email: {
-      // Absorbs show_recap's "your night" content (#451) so a user gets one
-      // email per (uid, showDate) instead of two on the common single-tour-
-      // night path — the dominant same-day email fatigue collision.
-      subject: p.venue_city
-        ? `Your ${p.venue_city} recap + tour update`
-        : "Your show recap + tour standings",
-      text: [
+  "tour-rankings-daily": (p) => {
+    const assembled = assembleServiceEmail(
+      [
         `${handleOf(p)}, here's how last night at ${p.venue_name || p.venue_city || "the show"} went.`,
         p.show_score != null ? `Show score: ${p.show_score}.` : "",
-        p.global_rank != null ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.` : "",
-        p.correct_picks_count != null ? `Correct picks: ${p.correct_picks_count}${p.total_picks_count != null ? ` of ${p.total_picks_count}` : ""}.` : "",
+        p.global_rank != null
+          ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
+          : "",
+        p.correct_picks_count != null
+          ? `Correct picks: ${p.correct_picks_count}${p.total_picks_count != null ? ` of ${p.total_picks_count}` : ""}.`
+          : "",
         "",
         `Now ${p.tour_rank != null ? `#${p.tour_rank}` : "on the board"}${p.total_tour_pickers != null ? ` of ${p.total_tour_pickers}` : ""} on tour${p.tour_points != null ? ` with ${p.tour_points} pts` : ""}${p.rank_change ? ` (${p.rank_change})` : ""}.`,
         p.next_show_venue ? `Next show: ${p.next_show_date || ""} ${p.next_show_venue}.`.trim() : "",
-        ...emailFooter(),
-      ].filter(Boolean).join("\n"),
-    },
-  }),
+      ].filter(Boolean)
+    );
+    return {
+      push: {
+        title: "Where you stand on tour",
+        body: `${p.tour_rank != null ? `#${p.tour_rank} on tour` : "New standings are in"}${p.tour_points != null ? ` · ${p.tour_points} pts` : ""}.`,
+      },
+      email: {
+        subject: p.venue_city
+          ? `Your ${p.venue_city} recap + tour update`
+          : "Your show recap + tour standings",
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: assembled.ctaUrl,
+      },
+    };
+  },
 
-  "picks-lock-reminder": (p) => ({
-    push: {
-      title: "Tonight's picks lock soon",
-      body: `Lock in your picks${p.venue_name ? ` for ${p.venue_name}` : ""} before ${p.lock_time_local || "7:55 PM"} local.`,
-    },
-    email: {
-      subject: "Lock in your picks",
-      text: [
+  "picks-lock-reminder": (p) => {
+    const assembled = assembleServiceEmail(
+      [
         `${handleOf(p)}, ${p.venue_name || "tonight's show"} locks at ${p.lock_time_local || "7:55 PM"} local.`,
         "You haven't locked picks yet — don't get shut out.",
-        ...emailFooter(),
-      ].join("\n"),
-    },
-  }),
+      ],
+      { ctaUrl: PICKS_CTA_URL, signOff: "See you on tour!" }
+    );
+    return {
+      push: {
+        title: "Tonight's picks lock soon",
+        body: `Lock in your picks${p.venue_name ? ` for ${p.venue_name}` : ""} before ${p.lock_time_local || "7:55 PM"} local.`,
+      },
+      email: {
+        subject: "Lock in your picks",
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: PICKS_CTA_URL,
+        ctaLabel: "Make Your Picks",
+      },
+    };
+  },
 
-  "tour-engagement-reminder": (p) => ({
-    push: {
-      title: "Don't stop now",
-      body: `${p.shows_remaining != null ? `${p.shows_remaining} shows left this tour. ` : ""}Every night is a chance to climb.`,
-    },
-    email: {
-      subject: "Keep your run going",
-      text: [
-        `${handleOf(p)}, you're off to a great start${p.global_rank != null ? ` (currently #${p.global_rank})` : ""}.`,
-        p.shows_remaining != null ? `${p.shows_remaining} shows left this tour.` : "",
-        ...emailFooter(),
-      ].filter(Boolean).join("\n"),
-    },
-  }),
+  "tour-engagement-reminder": (p) => {
+    const assembled = assembleServiceEmail([
+      `${handleOf(p)}, you're off to a great start${p.global_rank != null ? ` (currently #${p.global_rank})` : ""}.`,
+      p.shows_remaining != null ? `${p.shows_remaining} shows left this tour.` : "",
+    ].filter(Boolean));
+    return {
+      push: {
+        title: "Don't stop now",
+        body: `${p.shows_remaining != null ? `${p.shows_remaining} shows left this tour. ` : ""}Every night is a chance to climb.`,
+      },
+      email: {
+        subject: "Keep your run going",
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: assembled.ctaUrl,
+      },
+    };
+  },
 };
 
 /**
@@ -208,13 +314,18 @@ async function renderCommsTemplate(templateId, payload = {}) {
   const builder = BUILDERS[templateId];
   const channels = builder
     ? builder(payload)
-    : {
-        push: { title: "Setlist Pick'em", body: "You have a new update." },
-        email: {
-          subject: "Setlist Pick'em update",
-          text: ["You have a new update.", ...emailFooter()].join("\n"),
-        },
-      };
+    : (() => {
+        const assembled = assembleServiceEmail(["You have a new update."]);
+        return {
+          push: { title: "Setlist Pick'em", body: "You have a new update." },
+          email: {
+            subject: "Setlist Pick'em update",
+            text: assembled.text,
+            signOff: assembled.signOff,
+            ctaUrl: assembled.ctaUrl,
+          },
+        };
+      })();
   return {
     inApp: { templateId, payload },
     push: channels.push,

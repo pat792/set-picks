@@ -27,6 +27,16 @@ You draft and ship editorial copy for triggered communications.
 | **emailAbbreviated** | Subject + preheader + single CTA |
 | **emailFull** | Full recap; mirrors inApp structure |
 
+**Service comms HTML shell** (`functions/commsEmailWorker.js` + `functions/commsTemplates.js`):
+
+- **Brand once** — gradient wordmark in the header; do not repeat "Setlist Pick'em" in body or sign-off (legal footer is enough).
+- **Body** — personalized message only; no "manage preferences" (footer links handle that).
+- **Sign-off** — warm human close via `assembleServiceEmail({ signOff })` (default: `See you on tour!`).
+- **CTA** — action-specific label when possible (`Make Your Picks` → `/dashboard/picks`); **teal** fill (`#2dd4bf`) + dark text per `design.md`; plain-text part keeps `Open the app: <url>`.
+- **Shell** — gradient wordmark via **hosted PNG** (`/branding/email-gradient-wordmark.png`, same pattern as marketing favicon URL). Deploy `public/branding/` before sends. No CID attachments (Gmail exposes those as downloadable files).
+- **Email QA (required before batch send)** — `node scripts/send-local-email-preview.mjs --tour-countdown --send <your-email>` after the PNG is on production; confirm wordmark in a real inbox (not browser HTML alone).
+- **Voice** — direct, fan-to-fan, show-night energy; avoid corporate boilerplate and triple-stacked branding.
+
 **Pattern:** push teases, inbox delivers depth (Sphere model).
 
 ## Placeholders

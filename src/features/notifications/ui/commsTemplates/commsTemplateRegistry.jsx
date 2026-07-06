@@ -51,16 +51,45 @@ function ordinal(n) {
   }
 }
 
-function venueLine(payload, { dateKey = 'show_date', venueKey = 'venue_name', cityKey = 'venue_city' } = {}) {
-  const parts = [];
-  if (payload?.[venueKey]) parts.push(payload[venueKey]);
-  if (payload?.[cityKey]) parts.push(payload[cityKey]);
-  const place = parts.join(', ');
-  if (payload?.[dateKey] && place) return `${payload[dateKey]} — ${place}`;
-  return place || payload?.[dateKey] || '';
+function appendCityIfNeeded(venue, city) {
+  if (!city) return venue || '';
+  if (!venue) return city;
+  if (venue.toLowerCase().includes(city.toLowerCase())) return venue;
+  return `${venue}, ${city}`;
 }
 
-const DASHBOARD_CTA = { label: 'Open the app', href: '/dashboard' };
+function venueLine(payload, { dateKey = 'show_date', venueKey = 'venue_name', cityKey = 'venue_city' } = {}) {
+  const venue = typeof payload?.[venueKey] === 'string' ? payload[venueKey].trim() : '';
+  const city =
+    cityKey && cityKey !== '__none' && typeof payload?.[cityKey] === 'string'
+      ? payload[cityKey].trim()
+      : '';
+  const place = appendCityIfNeeded(venue, city);
+  const date = typeof payload?.[dateKey] === 'string' ? payload[dateKey].trim() : '';
+  if (date && place) return `${date} — ${place}`;
+  return place || date || '';
+}
+
+const PICKS_HREF = '/dashboard/picks';
+
+/**
+ * In-app CTA for tour countdown — varies by `days_remaining` (TRIGGER_CATALOG.md §2).
+ * Push/email may use "open the app" phrasing; in-app users are already in the app.
+ * @param {Record<string, unknown>} p
+ */
+function tourCountdownInAppCta(p) {
+  const days = Number(p.days_remaining);
+  if (days === 10) {
+    return { label: 'View upcoming shows', href: PICKS_HREF };
+  }
+  if (days === 5 || days === 3) {
+    return { label: 'Make picks for show 1', href: PICKS_HREF };
+  }
+  if (days === 1) {
+    return { label: 'Lock in your picks', href: PICKS_HREF };
+  }
+  return { label: 'Make your picks', href: PICKS_HREF };
+}
 
 /**
  * @typedef {object} CommsTemplateEntry
@@ -128,7 +157,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
             : 'Get your picks ready before the first downbeat.',
           `Picks lock at ${p.lock_time_local || '7:55 PM'} local on show night — don't get shut out.`,
         ],
-        cta: DASHBOARD_CTA,
+        cta: tourCountdownInAppCta(p),
       };
     },
     samples: [
@@ -437,7 +466,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           ? `Next up: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
           : '',
       ].filter(Boolean),
-      cta: DASHBOARD_CTA,
+      cta: { label: 'Make picks for next show', href: PICKS_HREF },
     }),
     samples: [
       {

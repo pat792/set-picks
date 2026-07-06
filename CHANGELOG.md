@@ -12,6 +12,28 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.8] — 2026-07-05
+
+### Changed
+- **Dependabot re-enabled (#504)** — restore `open-pull-requests-limit` to 5/5/3 after v1.18 enablement-wave ops reset; triage per `docs/DEPENDABOT_OPERATIONS.md`.
+- **Email branding (#498)** — keep large vinyl in-body logo (`web-app-manifest-512x512.png`); centralize URLs in `comms/emailBranding.cjs`; document inbox sender badge (BIMI/DMARC) separately from in-body HTML.
+- **Service comms email shell** — gradient wordmark via hosted `/branding/email-gradient-wordmark.png` (marketing-email pattern; no CID/data URIs); teal CTA + top accent per `design.md`; warm sign-off; `assembleServiceEmail()` copy contract; production-fidelity preview via `--send`.
+- **In-app comms CTAs** — `tour-countdown` and `tour-engagement-reminder` use contextual picks deep links instead of generic “Open the app”; document in-app vs push/email CTA rules in `TRIGGER_CATALOG.md`.
+
+### Added
+- **`comms/emailBranding.cjs`** — shared in-body email logo URL helper.
+- **`comms/email-gradient-wordmark.png`** + **`public/branding/email-gradient-wordmark.{png,svg}`** — email-cropped gradient wordmark; regenerate via `npm run generate:email-wordmark`.
+- **`functions/tourCountdownRecoveryDelivery.js`** + **`functions/scripts/deliverTourCountdownRecovery.js`** — manual T-1 recovery batch when cron misses (#514).
+- **`docs/comms-triggers/EMAIL_INBOX_BADGE.md`** — runbook for inbox sender badge (BIMI/DMARC) vs in-body logo (#498).
+- **`scripts/send-local-email-preview.mjs`** — local Resend preview helper for branded email shells.
+- **`scripts/generate-email-wordmark.mjs`** — rasterize SVG wordmark for email + Functions bundle.
+- **`vercel.json`** — rewrite `/favicon.ico` → `/favicon/favicon.ico` for domain-root favicon fetchers.
+
+### Fixed
+- **Tour-countdown email** — venue line dedup when city is already in venue string; `Make Your Picks` CTA to `/dashboard/picks`.
+
+---
+
 ## [1.18.7] — 2026-07-04
 
 ### Fixed

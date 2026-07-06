@@ -17,6 +17,18 @@ All production triggers are one of these two. There are no admin-initiated or ma
 
 ---
 
+## In-app vs push/email CTAs
+
+| Channel | User context | CTA pattern |
+|---------|--------------|-------------|
+| **In-app** (`commsInbox`) | Already in the app | Action label + deep link (e.g. `Make picks for show 1` → `/dashboard/picks`). **Never** `Open the app`. |
+| **Push** | Lock screen / notification shade | Short teaser body; tap deep-links into the app (may say "Open the app" in body copy). |
+| **Email** | Mail client | Branded button + plain-text `Open the app: <url>` footer. |
+
+Registry implementation: `src/features/notifications/ui/commsTemplates/commsTemplateRegistry.jsx`.
+
+---
+
 ## Variables — common pool
 
 Every template draws from this shared set. Each trigger declares the subset it uses.

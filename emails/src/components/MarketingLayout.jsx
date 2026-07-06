@@ -11,6 +11,8 @@ import {
   Text,
 } from "@react-email/components";
 
+import { buildEmailLogoUrl } from "../../../comms/emailBranding.cjs";
+
 const styles = {
   body: {
     margin: 0,
@@ -72,7 +74,7 @@ export function MarketingLayout({
   children,
 }) {
   const base = siteUrl.replace(/\/+$/, "");
-  const logoUrl = `${base}/favicon/web-app-manifest-512x512.png`;
+  const logoUrl = buildEmailLogoUrl(base);
   const prefsUrl = settingsUrl || `${base}/dashboard/profile/notifications`;
 
   return (
