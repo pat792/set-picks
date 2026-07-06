@@ -13,6 +13,7 @@
     "verify:theme-contract": "node scripts/verify-theme-contract.mjs",
     "verify:dashboard-ui": "node scripts/verify-dashboard-ui-tokens.mjs",
     "generate:og-card": "node scripts/generate-og-card.mjs",
+    "generate:email-wordmark": "node scripts/generate-email-wordmark.mjs",
     "secrets:sync-phishnet": "node scripts/sync-phishnet-secret.mjs",
     "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow,functions:scheduledPhishnetSongCatalog,functions:refreshPhishnetSongCatalog,functions:scheduledPhishnetLiveSetlistPoll,functions:setLiveSetlistAutomationState,functions:pollLiveSetlistNow,functions:sendPushCanary",
     "diagnose:phishnet": "node scripts/diagnose-phishnet-local.mjs",

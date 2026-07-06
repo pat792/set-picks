@@ -8,6 +8,7 @@ const {
   unsubscribeHeaders,
   buildResendClient,
   buildBrandedEmailHtml,
+  buildProductionBrandedEmailShell,
   stripRedundantCtaLine,
   escapeHtml,
 } = require("./commsEmailWorker");
@@ -146,7 +147,22 @@ test("unsubscribeHeaders point at the notifications screen when unsigned", () =>
   assert.match(headers["List-Unsubscribe"], /\/dashboard\/profile\/notifications/);
 });
 
-test("uses pre-rendered html when rendered.email.html is provided", async () => {
+test("sends branded shell with hosted wordmark URL (no MIME attachments)", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({
+    resendClient: fakeResend(captured),
+    unsubscribeSigningSecret: "test-secret",
+  });
+  await worker(baseCtx);
+
+  const { html, attachments } = captured[0].message;
+  assert.match(html, /\/branding\/email-gradient-wordmark\.png/);
+  assert.ok(!html.includes("cid:"));
+  assert.ok(!html.includes("data:image"));
+  assert.equal(attachments, undefined);
+});
+
+test("pre-rendered html does not attach service shell wordmark", async () => {
   const captured = [];
   const worker = createCommsEmailWorker({
     resendClient: fakeResend(captured),
@@ -167,6 +183,7 @@ test("uses pre-rendered html when rendered.email.html is provided", async () => 
 
   assert.equal(captured[0].message.html, customHtml);
   assert.doesNotMatch(captured[0].message.html, /web-app-manifest-512x512/);
+  assert.equal(captured[0].message.attachments, undefined);
 });
 
 test("sends a branded HTML body alongside the plain-text fallback", async () => {
@@ -179,8 +196,7 @@ test("sends a branded HTML body alongside the plain-text fallback", async () => 
 
   const { html, headers } = captured[0].message;
   assert.ok(html.includes("<!DOCTYPE html>"));
-  assert.match(html, /web-app-manifest-512x512\.png/, "includes the hosted app logo");
-  assert.match(html, /Setlist Pick&apos;em/, "includes the brand name");
+  assert.match(html, /\/branding\/email-gradient-wordmark\.png/, "references hosted wordmark in header");
   assert.match(html, /Manage preferences/);
   assert.match(html, /Unsubscribe/);
   assert.match(html, /\/dashboard\/profile\/notifications/, "visible footer link goes to the preferences page");
@@ -222,21 +238,62 @@ test("branded HTML body omits the redundant plain-text app link (button already 
           "",
           "Open the app: https://www.setlistpickem.com/dashboard",
           "",
-          "Manage which updates you get in Notifications settings.",
-          "— Setlist Pick'em",
+          "See you on tour!",
         ].join("\n"),
+        signOff: "See you on tour!",
       },
     },
   };
   await worker(ctx);
 
   const { html, text } = captured[0].message;
-  // The plain-text fallback (no button available) still needs the link.
   assert.match(text, /Open the app: https:\/\/www\.setlistpickem\.com\/dashboard/);
-  // The HTML body has its own CTA button pointing at the same URL, so the
-  // bare-text duplicate would just look like clutter next to it.
   assert.ok(!html.includes("Open the app:"));
-  assert.match(html, /Open Setlist Pick&apos;em/, "the CTA button is still present");
+  assert.ok(!html.includes("Manage which updates"));
+  assert.match(html, /See you on tour!/);
+  assert.match(html, /\/branding\/email-gradient-wordmark\.png/, "gradient wordmark in header");
+  assert.match(html, /Open Setlist Pick(?:&#39;|&apos;)em/, "the CTA button is still present");
+});
+
+test("formatWordmarkAttachmentForResendApi uses REST snake_case inline_content_id", () => {
+  const { buildEmailWordmarkResendAttachment, formatWordmarkAttachmentForResendApi } = require("../comms/emailBranding.cjs");
+  const sdk = buildEmailWordmarkResendAttachment();
+  const rest = formatWordmarkAttachmentForResendApi(sdk);
+  assert.equal(rest.inline_content_id, "email-gradient-wordmark");
+  assert.equal(rest.content_type, "image/png");
+  assert.ok(!("inlineContentId" in rest), "REST payload must not use SDK camelCase");
+});
+
+test("production branded shell never uses data: or cid: URIs", () => {
+  const { html } = buildProductionBrandedEmailShell({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "ArmenianMan, the run kicks off tomorrow.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    ctaLabel: "Make Your Picks",
+    signOff: "See you on tour!",
+  });
+  assert.ok(!html.includes("data:image"), "production HTML must not embed data: URIs");
+  assert.ok(!html.includes("cid:"), "production HTML must not use CID attachments");
+  assert.match(html, /\/branding\/email-gradient-wordmark\.png/);
+});
+
+test("buildBrandedEmailHtml renders gradient wordmark, sign-off, teal CTA, and top accent", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "ArmenianMan, the run kicks off tomorrow.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    ctaLabel: "Make Your Picks",
+    signOff: "See you on tour!",
+  });
+  assert.match(html, /\/branding\/email-gradient-wordmark\.png/);
+  assert.match(html, /border-top:2px solid #2dd4bf/);
+  assert.match(html, /background-color:#2dd4bf/);
+  assert.match(html, /color:#020617/);
+  assert.match(html, /Make Your Picks/);
+  assert.match(html, /See you on tour!/);
+  assert.ok(!html.includes("web-app-manifest-512x512.png"), "vinyl logo removed from shell header");
 });
 
 test("buildBrandedEmailHtml joins multi-line bodies into a single <p> with <br> breaks", () => {
