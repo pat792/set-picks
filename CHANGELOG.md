@@ -12,6 +12,21 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.18.8] — 2026-07-05
+
+### Changed
+- **Dependabot re-enabled (#504)** — restore `open-pull-requests-limit` to 5/5/3 after v1.18 enablement-wave ops reset; triage per `docs/DEPENDABOT_OPERATIONS.md`.
+- **Email branding (#498)** — keep large vinyl in-body logo (`web-app-manifest-512x512.png`); centralize URLs in `comms/emailBranding.cjs`; document inbox sender badge (BIMI/DMARC) separately from in-body HTML.
+- **In-app comms CTAs** — `tour-countdown` and `tour-engagement-reminder` use contextual picks deep links instead of generic “Open the app”; document in-app vs push/email CTA rules in `TRIGGER_CATALOG.md`.
+
+### Added
+- **`comms/emailBranding.cjs`** — shared in-body email logo URL helper.
+- **`docs/comms-triggers/EMAIL_INBOX_BADGE.md`** — runbook for inbox sender badge (BIMI/DMARC) vs in-body logo (#498).
+- **`scripts/send-local-email-preview.mjs`** — local Resend preview helper for branded email shells.
+- **`vercel.json`** — rewrite `/favicon.ico` → `/favicon/favicon.ico` for domain-root favicon fetchers.
+
+---
+
 ## [1.18.7] — 2026-07-04
 
 ### Fixed

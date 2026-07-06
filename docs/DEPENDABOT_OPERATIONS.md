@@ -24,7 +24,7 @@ This is **not** recurring weekly noise — it was a **one-time enablement avalan
 
 | Setting | Value | Why |
 |---------|-------|-----|
-| `open-pull-requests-limit` | **0** (all ecosystems) | Paused until human sets limits back |
+| `open-pull-requests-limit` | **5** root/functions, **3** actions (re-enabled 2026-07-05, #504) | Was **0** during ops reset; triage max 1–2 merges/week |
 | SemVer gate | Skips `dependabot/*` + `skip-version-bump` label | Deps PRs never bump `package.json` |
 | Vercel | `ignoreCommand` → `scripts/vercel-should-build.sh` | No SPA preview for Actions/functions-only bumps |
 

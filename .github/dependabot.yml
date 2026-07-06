@@ -2,8 +2,8 @@
 # Grouped PRs reduce noise; triage + first-run runbook: docs/DEPENDABOT_OPERATIONS.md
 # PRs target `staging` (repo PR base), not `main`.
 #
-# PAUSED 2026-07-04: open-pull-requests-limit 0 after v1.18 enablement-wave flood.
-# Human re-enable: restore limits (5/5/3) per docs/DEPENDABOT_OPERATIONS.md § Re-enabling.
+# Re-enabled 2026-07-05 (Sprint 6 wrap, #504) after v1.18 enablement-wave ops reset.
+# Triage: docs/DEPENDABOT_OPERATIONS.md — max 1–2 merges/week; never batch-rebase all PRs.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -12,7 +12,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 5
     labels:
       - dependencies
       - skip-version-bump
@@ -28,7 +28,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 5
     labels:
       - dependencies
       - skip-version-bump
@@ -43,7 +43,7 @@ updates:
     target-branch: "staging"
     schedule:
       interval: monthly
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 3
     labels:
       - dependencies
       - skip-version-bump

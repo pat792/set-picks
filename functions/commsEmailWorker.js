@@ -36,6 +36,7 @@
 const { isEmailSuppressed } = require("./commsEmailSuppression");
 const { buildOneClickUnsubscribeUrl } = require("./commsEmailUnsubscribe");
 const { reserveEmailDailyCapSlot } = require("./commsEmailDailyCap");
+const { buildEmailLogoUrl } = require("../comms/emailBranding.cjs");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
@@ -147,7 +148,7 @@ function stripRedundantCtaLine(text) {
  */
 function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl }) {
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
-  const logoUrl = `${base}/favicon/web-app-manifest-512x512.png`;
+  const logoUrl = buildEmailLogoUrl(base);
   // A stack of several short, single-line <p> blocks is a well-known trigger
   // for Gmail's content-folding heuristic (it renders a clickable "..." pill
   // in place of the text, which most recipients never think to expand). A

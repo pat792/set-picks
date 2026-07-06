@@ -12,6 +12,7 @@ This directory is the **canonical home** for triggered, templated communications
 | [catalog.json](./catalog.json) | Machine-readable trigger specs for agents and future orchestration |
 | [MEASUREMENT_PLAN.md](./MEASUREMENT_PLAN.md) | GA4 comms events, dimensions, funnels |
 | [EXPERIMENT_PLAYBOOK.md](./EXPERIMENT_PLAYBOOK.md) | A/B rules, variant assignment, ship/kill criteria |
+| [EMAIL_INBOX_BADGE.md](./EMAIL_INBOX_BADGE.md) | Inbox sender badge (BIMI/DMARC) vs in-body email logo (#498) |
 | [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md) | Sponsor / affiliate / offer gates (Phase 3) |
 
 ## Related repo paths
@@ -28,6 +29,7 @@ This directory is the **canonical home** for triggered, templated communications
 | `users/{uid}/commsInbox/{messageId}` | In-app channel worker (Admin SDK) |
 | `functions/commsPushWorker.js` / `functions/fcmMessagingCore.js` | Push channel worker (FCM) |
 | `functions/commsEmailWorker.js` | Email channel worker (Resend, #442) |
+| `comms/emailBranding.cjs` | Shared in-body email logo URL |
 | `fcm_notification_log` | Shared delivery / dedup log |
 
 ## Delivery model
