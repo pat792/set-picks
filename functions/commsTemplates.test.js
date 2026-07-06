@@ -26,7 +26,8 @@ test("every catalog template renders push + email + inApp payloads", async () =>
       assert.ok(out.email.html, `${spec.templateId} email.html`);
       assert.match(out.email.text, /RiverTranced|Rivertranced/i, `${spec.templateId} personalized text`);
     } else {
-      assert.ok(out.email.text.includes("Setlist Pick'em"), `${spec.templateId} email footer`);
+      assert.ok(out.email.text.includes("Open the app:"), `${spec.templateId} plain-text app link`);
+      assert.ok(out.email.signOff, `${spec.templateId} email signOff`);
     }
     assert.ok(hasTemplate(spec.templateId), `${spec.templateId} hasTemplate`);
   }
@@ -74,6 +75,24 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   assert.match(out.email.text, /210/, "tour points");
   assert.match(out.email.text, /up 2/, "rank change");
   assert.match(out.email.text, /2026-07-19/, "next show date");
+});
+
+test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {
+  const out = await renderCommsTemplate("tour-countdown", {
+    handle: "ArmenianMan",
+    tour_name: "2026 Summer Tour",
+    days_remaining: 1,
+    first_show_date: "2026-07-07",
+    first_show_venue: "Kohl Center, Madison, WI",
+    first_show_city: "Madison, WI",
+    lock_time_local: "7:55 PM",
+  });
+  assert.equal(out.email.ctaLabel, "Make Your Picks");
+  assert.equal(out.email.ctaUrl, "https://www.setlistpickem.com/dashboard/picks");
+  assert.equal(out.email.signOff, "See you on tour!");
+  assert.match(out.email.text, /First show: 2026-07-07 — Kohl Center, Madison, WI\./);
+  assert.doesNotMatch(out.email.text, /Madison, WI, Madison, WI/);
+  assert.doesNotMatch(out.email.text, /Manage which updates/i);
 });
 
 test("tour-rankings-daily email degrades gracefully with only tour fields (no recap data)", async () => {

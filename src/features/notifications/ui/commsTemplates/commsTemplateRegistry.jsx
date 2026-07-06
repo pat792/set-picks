@@ -51,13 +51,23 @@ function ordinal(n) {
   }
 }
 
+function appendCityIfNeeded(venue, city) {
+  if (!city) return venue || '';
+  if (!venue) return city;
+  if (venue.toLowerCase().includes(city.toLowerCase())) return venue;
+  return `${venue}, ${city}`;
+}
+
 function venueLine(payload, { dateKey = 'show_date', venueKey = 'venue_name', cityKey = 'venue_city' } = {}) {
-  const parts = [];
-  if (payload?.[venueKey]) parts.push(payload[venueKey]);
-  if (payload?.[cityKey]) parts.push(payload[cityKey]);
-  const place = parts.join(', ');
-  if (payload?.[dateKey] && place) return `${payload[dateKey]} — ${place}`;
-  return place || payload?.[dateKey] || '';
+  const venue = typeof payload?.[venueKey] === 'string' ? payload[venueKey].trim() : '';
+  const city =
+    cityKey && cityKey !== '__none' && typeof payload?.[cityKey] === 'string'
+      ? payload[cityKey].trim()
+      : '';
+  const place = appendCityIfNeeded(venue, city);
+  const date = typeof payload?.[dateKey] === 'string' ? payload[dateKey].trim() : '';
+  if (date && place) return `${date} — ${place}`;
+  return place || date || '';
 }
 
 const PICKS_HREF = '/dashboard/picks';
