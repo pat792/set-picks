@@ -413,13 +413,13 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Every 30 min on show days, venue-local 16:00–19:54 |
+| **Schedule** | Every 15 min on show days, venue-local 16:00–19:54 |
 | **Channels** | `inApp`, `push`, `email` |
-| **Audience** | Users with FCM token (push) or email, who have no picks for tonight's show |
-| **Prefs key** | `reminders` |
+| **Audience** | Users with a handle and **no picks** for tonight's show |
+| **Prefs key** | `reminders` (push + in-app only) |
+| **Email class** | `transactional` — email bypasses `reminders` pref; still respects `email_suppression` |
 | **Dedup** | `reminder_{showYmd}_{uid}` in `fcm_notification_log` |
-| **Implementation** | `scheduledPicksLockReminder` → `runPicksLockReminderFanout` (`functions/picksLockReminder.js`) |
-| **Note** | Currently push-only; inApp and email channels to be added |
+| **Implementation** | `scheduledPicksLockReminder` → `runPicksLockReminderFanout` → `deliverCommsTrigger` (`functions/picksLockReminder.js`) |
 
 #### Variables used
 

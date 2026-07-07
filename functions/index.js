@@ -1123,10 +1123,18 @@ exports.scheduledPicksLockReminder = onSchedule(
     schedule: "*/15 * * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
+    secrets: commsDeliverySecrets,
   },
   async () => {
     try {
-      await runPicksLockReminderFanout({ db, admin, logger, now: new Date() });
+      await runPicksLockReminderFanout({
+        db,
+        admin,
+        logger,
+        now: new Date(),
+        resendApiKey: process.env.RESEND_API_KEY,
+        resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       logger.error("scheduledPicksLockReminder failed", { msg, err: e });

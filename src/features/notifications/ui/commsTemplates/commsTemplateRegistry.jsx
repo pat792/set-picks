@@ -430,7 +430,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
         }.`,
         "You haven't locked picks yet. Don't get shut out of the night.",
       ],
-      cta: { label: 'Make your picks', href: '/dashboard' },
+      cta: { label: 'Make your picks', href: '/dashboard/picks' },
     }),
     samples: [
       {

@@ -249,9 +249,12 @@ const BUILDERS = {
   },
 
   "picks-lock-reminder": (p) => {
+    const venue = venueLine(p);
+    const lockLabel = p.lock_time_local || "7:55 PM";
+    const timePhrase = p.time_to_lock ? ` in ${p.time_to_lock}` : "";
     const assembled = assembleServiceEmail(
       [
-        `${handleOf(p)}, ${p.venue_name || "tonight's show"} locks at ${p.lock_time_local || "7:55 PM"} local.`,
+        `${handleOf(p)}, ${p.venue_name || "tonight's show"} locks at ${lockLabel} local${timePhrase}.`,
         "You haven't locked picks yet — don't get shut out.",
       ],
       { ctaUrl: PICKS_CTA_URL, signOff: "See you on tour!" }
@@ -259,10 +262,12 @@ const BUILDERS = {
     return {
       push: {
         title: "Tonight's picks lock soon",
-        body: `Lock in your picks${p.venue_name ? ` for ${p.venue_name}` : ""} before ${p.lock_time_local || "7:55 PM"} local.`,
+        body: `Lock in your picks${p.venue_name ? ` for ${p.venue_name}` : ""} before ${lockLabel} local.`,
       },
       email: {
-        subject: "Lock in your picks",
+        subject: p.time_to_lock
+          ? `Picks close in ${p.time_to_lock}${p.venue_city ? ` — ${p.venue_city} tonight` : ""}`
+          : `Lock in your picks${venue ? ` — ${venue}` : ""}`,
         text: assembled.text,
         signOff: assembled.signOff,
         ctaUrl: PICKS_CTA_URL,

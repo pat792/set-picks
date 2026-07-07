@@ -199,6 +199,7 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
 | `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
+| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day 16:00–19:54; **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
 
@@ -249,7 +250,17 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
 
-### 3.1 HTTP security headers (Vercel)
+### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
+
+Service comms email bodies expose **one** tracked CTA link (the teal button). The header wordmark is decorative (CSS background, not a link).
+
+| Host / path | Handler | Description |
+|-------------|---------|-------------|
+| `https://click.setlistpickem.com/{path}` | Vercel `api/email-click/[[...path]].js` (host rewrite in `vercel.json`) | 302 redirect to `https://www.setlistpickem.com/{path}` with `utm_source=email`, `utm_medium=comms`, and trigger metadata (`utm_campaign` ← `tid`, `utm_content` ← `tpl`, `utm_term` ← `cta`) |
+
+URL builder: `comms/emailLinks.cjs` (`buildEmailTrackedCtaUrl`). Applied at send time in `commsEmailWorker.js`. Ops: add `click.setlistpickem.com` as a Vercel project domain (same deployment as www).
+
+### 3.2 HTTP security headers (Vercel)
 
 Applied via `vercel.json` to all routes. Policy details: `docs/SECURITY_HEADERS.md`.
 

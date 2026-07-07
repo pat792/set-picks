@@ -7,7 +7,9 @@ const {
   deliverCommsTrigger,
   prefAllows,
   recipientAllowsTrigger,
+  recipientAllowsChannel,
 } = require("./commsDelivery");
+const { getTriggerSpec } = require("./commsCatalog");
 
 const fakeAdmin = {
   firestore: { FieldValue: { serverTimestamp: () => "ts" } },
@@ -206,7 +208,7 @@ test("dry run does not call GA4 MP", async () => {
   assert.equal(ga4Calls.length, 0);
 });
 
-test("prefs_off short-circuits before any channel work", async () => {
+test("prefs_off skips channel workers for that channel", async () => {
   const db = makeFakeDb();
   const inApp = recordingWorker("inApp");
   const summary = await deliverCommsTrigger({
@@ -218,8 +220,33 @@ test("prefs_off short-circuits before any channel work", async () => {
     dryRun: false,
   });
   assert.equal(summary.delivered, 0);
-  assert.equal(summary.skips.prefs_off, 1);
+  assert.equal(summary.skips.no_channel_delivered, 1);
   assert.equal(inApp.calls.length, 0);
+});
+
+test("transactional email bypasses reminders pref; push still gated", async () => {
+  const db = makeFakeDb();
+  const email = recordingWorker("email", { ok: true });
+  const push = recordingWorker("push", { ok: false, skipReason: "no_tokens" });
+  const userData = { email: "picker@example.com", notificationPrefs: { reminders: false } };
+  const spec = getTriggerSpec("picks_lock_reminder");
+
+  assert.equal(recipientAllowsChannel(userData, spec, "email"), true);
+  assert.equal(recipientAllowsChannel(userData, spec, "push"), false);
+
+  const summary = await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "picks_lock_reminder",
+    recipients: [{ uid: "u1", userData, vars: { showYmd: "2026-07-07" } }],
+    workers: { email, push },
+    dryRun: false,
+    sendGa4Delivered: async () => ({ sent: true }),
+  });
+
+  assert.equal(summary.delivered, 1);
+  assert.equal(email.calls.length, 1);
+  assert.equal(push.calls.length, 0);
 });
 
 test("existing dedup doc skips delivery (idempotent)", async () => {

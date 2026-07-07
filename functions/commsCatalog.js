@@ -22,6 +22,7 @@
  * @property {string} dedupKey  `{placeholder}` template interpolated from vars.
  * @property {string} family
  * @property {string} priority
+ * @property {"transactional" | "lifecycle" | "commercial"} [emailClass]
  */
 
 /** @type {Record<string, TriggerSpec>} */
@@ -99,6 +100,7 @@ const TRIGGER_SPECS = {
     templateId: "picks-lock-reminder",
     channels: ["inApp", "push", "email"],
     prefKeys: ["reminders"],
+    emailClass: "transactional",
     dedupKey: "reminder_{showYmd}_{uid}",
     family: "show_calendar",
     priority: "P0",
