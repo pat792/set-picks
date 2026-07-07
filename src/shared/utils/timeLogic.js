@@ -125,3 +125,14 @@ export const getShowStatus = (selectedDate, showDates) => {
 export function shouldRedactOpponentPicksPreLock(actualSetlist, showStatus) {
   return !actualSetlist && showStatus === 'NEXT';
 }
+
+/**
+ * True when `show_lock_state/{showDate}` carries an admin override lock (#522).
+ *
+ * @param {unknown} lockStateDoc — Firestore doc data or null
+ * @returns {boolean}
+ */
+export function isAdminPicksLockOverride(lockStateDoc) {
+  if (!lockStateDoc || typeof lockStateDoc !== 'object') return false;
+  return lockStateDoc.lockReason === 'admin_override' && lockStateDoc.picksLockedAt != null;
+}

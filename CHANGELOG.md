@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.0] — 2026-07-07
+
+### Added
+- **Admin picks lock override (#522)** — War Room **Lock picks now** button; `lockPicksForShowNow` callable writes `show_lock_state/{showDate}`; picks form honors admin lock during `NEXT`.
+
+### Fixed
+- **Functions comms bundle paths** — `commsEmailWorker` requires `./comms/*` so new Gen2 deploys (e.g. `lockPicksForShowNow`) load inside the Cloud Run `/workspace` bundle.
+
+---
+
 ## [1.19.0] — 2026-07-07
 
 ### Added
