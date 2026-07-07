@@ -1,11 +1,10 @@
 /**
  * Email CTA click-through — `click.setlistpickem.com` (host rewrite in vercel.json).
  *
- * Logs-friendly 302 to www with UTM params so GA4 can attribute email CTA taps.
- * Service email HTML exposes only this link in the body (wordmark is decorative).
+ * Rewritten as `/api/email-click?path=dashboard/picks&tid=...` from the click host.
  */
 
-import { buildEmailClickRedirectUrl, normalizeDestinationPath } from '../../comms/emailLinks.cjs';
+import { buildEmailClickRedirectUrl, normalizeDestinationPath } from '../comms/emailLinks.cjs';
 
 /**
  * @param {import('@vercel/node').VercelRequest} req
@@ -17,9 +16,9 @@ export default function handler(req, res) {
     return res.status(405).end('Method Not Allowed');
   }
 
-  const segments = req.query.path;
-  const parts = Array.isArray(segments) ? segments : segments ? [segments] : [];
-  const destinationPath = parts.length ? `/${parts.join('/')}` : '/dashboard';
+  const rawPath = req.query.path;
+  const pathString = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath || '').trim();
+  const destinationPath = pathString ? `/${pathString.replace(/^\/+/, '')}` : '/dashboard';
   const normalized = normalizeDestinationPath(destinationPath);
   if (!normalized) {
     return res.status(400).send('Invalid destination');
