@@ -7,6 +7,16 @@
   },
   "rewrites": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "click.setlistpickem.com"
+        }
+      ],
+      "destination": "/api/email-click/:path*"
+    },
+    {
       "source": "/__/firebase/init.json",
       "destination": "https://set-picks.firebaseapp.com/__/firebase/init.json"
     },

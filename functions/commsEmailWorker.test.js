@@ -79,6 +79,24 @@ test("dry run does not send", async () => {
   assert.equal(captured.length, 0);
 });
 
+test("transactional trigger omits List-Unsubscribe marketing headers", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({
+    resendClient: fakeResend(captured),
+    unsubscribeSigningSecret: "test-secret",
+  });
+  const res = await worker({
+    ...baseCtx,
+    triggerId: "picks_lock_reminder",
+    dedupId: "reminder_2026-07-07_u1",
+  });
+
+  assert.equal(res.ok, true);
+  assert.equal(captured.length, 1);
+  assert.equal(captured[0].message.headers["List-Unsubscribe"], undefined);
+  assert.equal(captured[0].message.headers["List-Unsubscribe-Post"], undefined);
+});
+
 test("skips when recipient has no email", async () => {
   const captured = [];
   const worker = createCommsEmailWorker({ resendClient: fakeResend(captured) });
@@ -160,6 +178,35 @@ test("sends branded shell with hosted wordmark URL (no MIME attachments)", async
   assert.ok(!html.includes("cid:"));
   assert.ok(!html.includes("data:image"));
   assert.equal(attachments, undefined);
+});
+
+test("service shell CTA uses click subdomain; wordmark is not a link", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({
+    resendClient: fakeResend(captured),
+    unsubscribeSigningSecret: "test-secret",
+  });
+  await worker({
+    ...baseCtx,
+    triggerId: "picks_lock_reminder",
+    rendered: {
+      email: {
+        subject: "Picks close soon",
+        text: "Pat, locks soon.\n\nOpen the app: https://www.setlistpickem.com/dashboard/picks\n\nSee you on tour!",
+        ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+        ctaLabel: "Make Your Picks",
+        signOff: "See you on tour!",
+      },
+    },
+  });
+
+  const { html, text } = captured[0].message;
+  assert.match(
+    html,
+    /href="https:\/\/click\.setlistpickem\.com\/dashboard\/picks\?tid=picks_lock_reminder&amp;tpl=picks-lock-reminder&amp;cta=Make\+Your\+Picks"/
+  );
+  assert.match(text, /https:\/\/click\.setlistpickem\.com\/dashboard\/picks\?tid=picks_lock_reminder/);
+  assert.doesNotMatch(html, /<a[^>]*>\s*<img[^>]+email-gradient-wordmark/);
 });
 
 test("pre-rendered html does not attach service shell wordmark", async () => {
@@ -247,7 +294,7 @@ test("branded HTML body omits the redundant plain-text app link (button already 
   await worker(ctx);
 
   const { html, text } = captured[0].message;
-  assert.match(text, /Open the app: https:\/\/www\.setlistpickem\.com\/dashboard/);
+  assert.match(text, /Open the app: https:\/\/click\.setlistpickem\.com\/dashboard\?tid=show_recap&tpl=show-recap/);
   assert.ok(!html.includes("Open the app:"));
   assert.ok(!html.includes("Manage which updates"));
   assert.match(html, /See you on tour!/);
@@ -288,6 +335,8 @@ test("buildBrandedEmailHtml renders gradient wordmark, sign-off, teal CTA, and t
     signOff: "See you on tour!",
   });
   assert.match(html, /\/branding\/email-gradient-wordmark\.png/);
+  assert.match(html, /background-image:url\('https:\/\/www\.setlistpickem\.com\/branding\/email-gradient-wordmark\.png'\)/);
+  assert.doesNotMatch(html, /<a[^>]*>\s*<img[^>]+email-gradient-wordmark\.png/, "wordmark must not be a link");
   assert.match(html, /border-top:2px solid #2dd4bf/);
   assert.match(html, /background-color:#2dd4bf/);
   assert.match(html, /color:#020617/);

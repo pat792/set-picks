@@ -50,8 +50,9 @@ test("EMAIL_DAILY_CAP is 1", () => {
   assert.equal(EMAIL_DAILY_CAP, 1);
 });
 
-test("isExemptFromDailyCap: only account_welcome is exempt", () => {
+test("isExemptFromDailyCap: account_welcome and picks_lock_reminder are exempt", () => {
   assert.equal(isExemptFromDailyCap("account_welcome"), true);
+  assert.equal(isExemptFromDailyCap("picks_lock_reminder"), true);
   assert.equal(isExemptFromDailyCap("tour_rankings_daily"), false);
   assert.equal(isExemptFromDailyCap("tour_countdown"), false);
 });
