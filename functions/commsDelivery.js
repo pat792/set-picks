@@ -52,6 +52,22 @@ function recipientAllowsTrigger(userData, prefKeys) {
 }
 
 /**
+ * Channel-aware prefs gate. Transactional email bypasses prefKeys (still subject to
+ * `email_suppression` in the email worker). Push/in-app always honor prefKeys.
+ *
+ * @param {Record<string, any> | null | undefined} userData
+ * @param {import("./commsCatalog").TriggerSpec} spec
+ * @param {string} channel
+ */
+function recipientAllowsChannel(userData, spec, channel) {
+  const emailClass = spec.emailClass || "lifecycle";
+  if (channel === "email" && emailClass === "transactional") {
+    return true;
+  }
+  return recipientAllowsTrigger(userData, spec.prefKeys);
+}
+
+/**
  * @param {{
  *   db: import("firebase-admin").firestore.Firestore,
  *   admin: typeof import("firebase-admin"),
@@ -114,21 +130,14 @@ async function deliverCommsTrigger({
     summary.processed += 1;
     const userData = recipient.userData || {};
 
-    // 1) Prefs gate
-    if (!recipientAllowsTrigger(userData, spec.prefKeys)) {
-      bumpSkip("prefs_off");
-      summary.results.push({ uid, status: "skipped", reason: "prefs_off" });
-      continue;
-    }
-
-    // 2) Fatigue cap (per-user, this run)
+    // 1) Fatigue cap (per-user, this run)
     if ((perUserCount.get(uid) || 0) >= fatigueCap) {
       bumpSkip("fatigue_cap");
       summary.results.push({ uid, status: "skipped", reason: "fatigue_cap" });
       continue;
     }
 
-    // 3) Dedup
+    // 2) Dedup
     const vars = { uid, ...(recipient.vars || {}) };
     const dedupId = resolveDedupKey(triggerId, vars);
     const dedupRef = dedupId ? db.collection(DEDUP_COLLECTION).doc(dedupId) : null;
@@ -142,10 +151,10 @@ async function deliverCommsTrigger({
       }
     }
 
-    // 4) Render
+    // 3) Render
     const rendered = await renderCommsTemplate(spec.templateId, recipient.payload || {});
 
-    // 5) Dispatch to each declared channel that has a worker
+    // 4) Dispatch to each declared channel that has a worker
     const ctxBase = {
       db,
       admin,
@@ -166,6 +175,10 @@ async function deliverCommsTrigger({
       const worker = workers[channel];
       if (typeof worker !== "function") {
         channelResults[channel] = { ok: false, skipReason: "no_worker" };
+        continue;
+      }
+      if (!recipientAllowsChannel(userData, spec, channel)) {
+        channelResults[channel] = { ok: false, skipReason: "prefs_off" };
         continue;
       }
       // eslint-disable-next-line no-await-in-loop
@@ -267,6 +280,7 @@ module.exports = {
   buildDefaultWorkers,
   prefAllows,
   recipientAllowsTrigger,
+  recipientAllowsChannel,
   DEDUP_COLLECTION,
   DEFAULT_FATIGUE_CAP,
 };

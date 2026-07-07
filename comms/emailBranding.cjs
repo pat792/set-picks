@@ -16,7 +16,8 @@ const path = require('path');
  * 3. **Service shell wordmark** — raster PNG at `/branding/email-gradient-wordmark.png`
  *    (hosted HTTPS URL, same pattern as marketing `buildEmailLogoUrl`). Asset must live in
  *    `public/branding/` on the deployed site. Do not use CID attachments — Gmail exposes
- *    those as downloadable files. `buildEmailWordmarkInlineSrc()` is browser-file preview only.
+ *    those as downloadable files. Render as a CSS background (not `<img>`) so clients
+ *    cannot open the raw PNG on tap; Outlook gets a conditional unlinked `<img>` fallback.
  */
 const EMAIL_IN_BODY_LOGO_PATH = '/favicon/web-app-manifest-512x512.png';
 /** Public CDN path — deploy via Vercel (`public/branding/`). */

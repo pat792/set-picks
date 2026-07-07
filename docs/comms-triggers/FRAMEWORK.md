@@ -120,7 +120,7 @@ EVENT (Firestore onCreate/onUpdate · scheduler cron · post-grade hook · live-
 - **Secret:** `RESEND_API_KEY` via Functions v2 `defineSecret` (`firebase functions:secrets:set RESEND_API_KEY`). Cloud Functions only; never client-side.
 - **Send:** `resend.emails.send({...}, { idempotencyKey })`; fan-out via `resend.batch.send([...], { idempotencyKey })` (≤100/call) with exponential backoff on 429/500.
 - **Domain:** `from` uses the verified setlistpickem.com sender (SPF/DKIM/DMARC); fail closed if unverified.
-- **Compliance:** marketing/lifecycle mail sets `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) wired to `notificationPrefs`; transactional (`picks_confirmed`, auth) kept separate from marketing.
+- **Compliance:** lifecycle/marketing mail sets `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) wired to `notificationPrefs`; `emailClass: transactional` triggers (e.g. `picks_lock_reminder`) omit marketing unsubscribe headers but still respect `email_suppression`.
 - **Reputation:** Resend webhook handler — `email.bounced` (Permanent) → hard-suppress; `email.complained` → unsubscribe + flag; optionally `email.delivered/opened/clicked` → measurement. Idempotent (webhooks are at-least-once, possibly out of order).
 - **Agent tooling:** the official **Resend MCP** (`npx -y resend-mcp`) lets agents draft, send, and manage broadcasts/domains/webhooks directly; see [comms-architect skill](../../.cursor/skills/comms-architect/SKILL.md).
 

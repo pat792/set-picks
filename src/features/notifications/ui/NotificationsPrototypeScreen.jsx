@@ -210,9 +210,9 @@ export default function NotificationsPrototypeScreen() {
           onToggle={() => handleAccordion('email')}
         >
           <p className="text-sm font-bold leading-relaxed text-content-secondary">
-            Tour countdowns, pick reminders, and post-show recaps can arrive at the email
-            address on your account. These use the same &ldquo;Tour &amp; onboarding updates&rdquo;
-            preference as push for that message family.
+            Tour countdowns and post-show recaps use your &ldquo;Tour &amp; onboarding updates&rdquo;
+            preference. Show-day pick reminders by email are service notices when you have not
+            entered picks — they are not controlled by that toggle.
           </p>
 
           {emailStatus.suppressed && emailStatus.message ? (
@@ -337,7 +337,7 @@ export default function NotificationsPrototypeScreen() {
           <div className="mt-4 space-y-2">
             <ChannelToggle
               label="Lock reminders"
-              description="Same-day nudge before picks lock in each show’s local timezone."
+              description="Push and in-app nudge before picks lock. Email is sent only when you have no picks for tonight's show."
               checked={prefs.reminders}
               disabled={prefsSaving}
               onChange={(v) => handlePrefChange('reminders', v)}

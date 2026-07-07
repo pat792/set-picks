@@ -10,6 +10,8 @@
  *     # REQUIRED before batch sends — verifies wordmark in a real inbox (Gmail, etc.)
  *   node scripts/send-local-email-preview.mjs --tour-countdown --send pat@you.com
  *     # tour-countdown T-1 sample through the same production shell
+ *   node scripts/send-local-email-preview.mjs --picks-lock-reminder --send pat@you.com
+ *     # show-day lock reminder for users with no picks (#524)
  *   node scripts/send-local-email-preview.mjs --browser-only
  *     # optional: also write a data:-URI file that renders in Chrome (NOT send fidelity)
  *
@@ -62,8 +64,9 @@ const args = process.argv.slice(2);
 const sendTo = args.includes('--send') ? args[args.indexOf('--send') + 1] : null;
 const serviceOnly = args.includes('--service');
 const tourCountdown = args.includes('--tour-countdown');
+const picksLockReminder = args.includes('--picks-lock-reminder');
 const browserOnly = args.includes('--browser-only');
-const marketing = !serviceOnly && !tourCountdown;
+const marketing = !serviceOnly && !tourCountdown && !picksLockReminder;
 
 const outDir = resolve(root, 'emails/preview');
 mkdirSync(outDir, { recursive: true });
@@ -73,6 +76,12 @@ const settingsUrl = `${siteUrl}/dashboard/profile/notifications`;
 
 const { buildProductionBrandedEmailShell } = require(resolve(root, 'functions/commsEmailWorker.js'));
 const { buildEmailWordmarkInlineSrc } = require(resolve(root, 'comms/emailBranding.cjs'));
+const { buildEmailTrackedCtaUrl } = require(resolve(root, 'comms/emailLinks.cjs'));
+
+/** @param {string} destination @param {{ triggerId?: string, templateId?: string, cta?: string }} meta */
+function trackedCtaUrl(destination, meta = {}) {
+  return buildEmailTrackedCtaUrl(destination, meta);
+}
 
 /** @type {{ label: string, file: string, subject: string, html: string, text: string, attachments?: object[] }[]} */
 const variants = [];
@@ -99,7 +108,7 @@ if (marketing) {
   });
 }
 
-if (serviceOnly || (!marketing && !tourCountdown)) {
+if (serviceOnly || (!marketing && !tourCountdown && !picksLockReminder)) {
   const shell = buildProductionBrandedEmailShell({
     siteUrl,
     bodyText: [
@@ -107,7 +116,10 @@ if (serviceOnly || (!marketing && !tourCountdown)) {
       '',
       'This is a local preview of the service comms branded shell (account welcome, recap, etc.).',
     ].join('\n'),
-    ctaUrl: `${siteUrl}/dashboard`,
+    ctaUrl: trackedCtaUrl(`${siteUrl}/dashboard`, {
+      triggerId: 'account_welcome',
+      templateId: 'account-welcome',
+    }),
     settingsUrl,
     signOff: "See you on tour!",
   });
@@ -134,7 +146,11 @@ if (tourCountdown) {
   const shell = buildProductionBrandedEmailShell({
     siteUrl,
     bodyText: rendered.email.text,
-    ctaUrl: rendered.email.ctaUrl || `${siteUrl}/dashboard/picks`,
+    ctaUrl: trackedCtaUrl(rendered.email.ctaUrl || `${siteUrl}/dashboard/picks`, {
+      triggerId: 'tour_countdown',
+      templateId: 'tour-countdown',
+      cta: rendered.email.ctaLabel,
+    }),
     settingsUrl,
     ctaLabel: rendered.email.ctaLabel,
     signOff: rendered.email.signOff,
@@ -142,6 +158,37 @@ if (tourCountdown) {
   variants.push({
     label: 'Service — tour-countdown T-1 (production path)',
     file: 'local-tour-countdown-t1.html',
+    subject: rendered.email.subject,
+    html: shell.html,
+    text: rendered.email.text,
+  });
+}
+
+if (picksLockReminder) {
+  const { renderCommsTemplate } = require(resolve(root, 'functions/commsTemplates.js'));
+  const rendered = await renderCommsTemplate('picks-lock-reminder', {
+    handle: 'Pat',
+    show_date: '2026-07-07',
+    venue_name: 'Kohl Center',
+    venue_city: 'Madison, WI',
+    time_to_lock: '2 hours',
+    lock_time_local: '7:55 PM',
+  });
+  const shell = buildProductionBrandedEmailShell({
+    siteUrl,
+    bodyText: rendered.email.text,
+    ctaUrl: trackedCtaUrl(rendered.email.ctaUrl || `${siteUrl}/dashboard/picks`, {
+      triggerId: 'picks_lock_reminder',
+      templateId: 'picks-lock-reminder',
+      cta: rendered.email.ctaLabel,
+    }),
+    settingsUrl,
+    ctaLabel: rendered.email.ctaLabel,
+    signOff: rendered.email.signOff,
+  });
+  variants.push({
+    label: 'Service — picks-lock-reminder (production path, transactional)',
+    file: 'local-picks-lock-reminder.html',
     subject: rendered.email.subject,
     html: shell.html,
     text: rendered.email.text,

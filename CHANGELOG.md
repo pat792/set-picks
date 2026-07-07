@@ -12,6 +12,22 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.19.0] — 2026-07-07
+
+### Added
+- **`picks_lock_reminder` email + in-app** (#524) — migrate show-day lock fanout to `deliverCommsTrigger`; audience is users with a handle and no picks for tonight's show; transactional email bypasses `reminders` pref and daily cap.
+- **Email CTA click tracking** — `click.setlistpickem.com` → `api/email-click` redirect with UTM params; `comms/emailLinks.cjs`; wired in `commsEmailWorker` at send time.
+
+### Changed
+- **Comms email classification** — `emailClass: transactional` on `picks_lock_reminder`; channel-aware prefs in `commsDelivery` (push/in-app still honor `reminders`); transactional emails omit marketing `List-Unsubscribe` headers.
+- **Notifications UI copy** — clarify that show-day pick reminder emails are service notices, separate from the Tour & onboarding email toggle.
+- **Service email shell** — wordmark is decorative (CSS background, not a link); body CTA is the only in-body link.
+
+### Fixed
+- **Service email wordmark** — bare hosted `<img>` let clients open the raw PNG on tap; header is now non-clickable.
+
+---
+
 ## [1.18.8] — 2026-07-05
 
 ### Changed

@@ -45,6 +45,9 @@ test("TRIGGER_SPECS stays in sync with docs/comms-triggers/catalog.json", () => 
     assert.deepEqual(spec.channels, row.channels, `${triggerId} channels`);
     assert.deepEqual(spec.prefKeys, row.prefKeys, `${triggerId} prefKeys`);
     assert.equal(spec.dedupKey, row.dedupKey, `${triggerId} dedupKey`);
+    if (row.emailClass != null) {
+      assert.equal(spec.emailClass, row.emailClass, `${triggerId} emailClass`);
+    }
   }
 
   // Every non-shipped/planned production trigger should have a delivery spec.

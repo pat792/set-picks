@@ -36,12 +36,14 @@
 const { isEmailSuppressed } = require("./commsEmailSuppression");
 const { buildOneClickUnsubscribeUrl } = require("./commsEmailUnsubscribe");
 const { reserveEmailDailyCapSlot } = require("./commsEmailDailyCap");
+const { getTriggerSpec } = require("./commsCatalog");
 const {
   buildEmailWordmarkUrl,
   EMAIL_BRAND_PRIMARY,
   EMAIL_BRAND_PRIMARY_STRONG,
   EMAIL_BRAND_BG_DEEP,
 } = require("../comms/emailBranding.cjs");
+const { buildEmailTrackedCtaUrl } = require("../comms/emailLinks.cjs");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
@@ -157,6 +159,38 @@ function stripRedundantCtaLine(text) {
 }
 
 /**
+ * @param {string} rawCtaUrl
+ * @param {{ triggerId?: string, templateId?: string, ctaLabel?: string, logger?: { warn?: Function } }} opts
+ * @returns {string}
+ */
+function resolveTrackedEmailCtaUrl(rawCtaUrl, { triggerId, templateId, ctaLabel, logger } = {}) {
+  try {
+    return buildEmailTrackedCtaUrl(rawCtaUrl, {
+      triggerId,
+      templateId,
+      cta: ctaLabel,
+    });
+  } catch (error) {
+    logger?.warn?.("resolveTrackedEmailCtaUrl: invalid destination, using raw URL", {
+      rawCtaUrl,
+      error: error?.message || String(error),
+    });
+    return rawCtaUrl;
+  }
+}
+
+/**
+ * @param {string} text
+ * @param {string} rawCtaUrl
+ * @param {string} trackedCtaUrl
+ * @returns {string}
+ */
+function rewritePlainTextCtaUrl(text, rawCtaUrl, trackedCtaUrl) {
+  if (!text || rawCtaUrl === trackedCtaUrl) return text;
+  return String(text).split(rawCtaUrl).join(trackedCtaUrl);
+}
+
+/**
  * Wrap plain-text email content in a small branded HTML shell: logo, a CTA
  * button back into the app, and a visible unsubscribe / preferences footer.
  * Uses inline styles + a table layout (no external CSS/JS) for broad email
@@ -200,6 +234,16 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
   const signOffHtml = signOffLine
     ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#64748b;font-style:italic;">${escapeHtml(signOffLine)}</p>`
     : "";
+  const wordmarkBlockStyle = [
+    `width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px`,
+    "max-width:100%",
+    `height:${EMAIL_SHELL_WORDMARK_HEIGHT_PX}px`,
+    "margin:0 auto",
+    `background-image:url('${escapeHtml(resolvedWordmarkSrc)}')`,
+    "background-size:contain",
+    "background-repeat:no-repeat",
+    "background-position:center",
+  ].join(";");
 
   return `<!DOCTYPE html>
 <html>
@@ -210,7 +254,12 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;border-top:${EMAIL_SHELL_ACCENT_BORDER_PX}px solid ${EMAIL_BRAND_PRIMARY};">
             <tr>
               <td style="padding:20px 32px 12px 32px;text-align:center;">
-                <img src="${escapeHtml(resolvedWordmarkSrc)}" width="${EMAIL_SHELL_WORDMARK_WIDTH_PX}" height="${EMAIL_SHELL_WORDMARK_HEIGHT_PX}" alt="Setlist Pick'em" role="presentation" style="display:block;margin:0 auto;max-width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px;width:100%;height:auto;border:0;" />
+                <!--[if mso]>
+                <img src="${escapeHtml(resolvedWordmarkSrc)}" width="${EMAIL_SHELL_WORDMARK_WIDTH_PX}" height="${EMAIL_SHELL_WORDMARK_HEIGHT_PX}" alt="Setlist Pick'em" style="display:block;margin:0 auto;max-width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px;width:100%;height:auto;border:0;" />
+                <![endif]-->
+                <!--[if !mso]><!-->
+                <div role="presentation" aria-hidden="true" style="${wordmarkBlockStyle}"></div>
+                <!--<![endif]-->
               </td>
             </tr>
             <tr>
@@ -321,26 +370,42 @@ function createCommsEmailWorker({
       }
     }
 
+    const emailClass = getTriggerSpec(triggerId)?.emailClass || "lifecycle";
+    const isTransactionalEmail = emailClass === "transactional";
+
     const { settingsUrl, oneClickUrl } = resolveUnsubscribeLinks(siteUrl, {
       uid,
       email: to,
       signingSecret: unsubscribeSigningSecret,
       baseUrl: unsubscribeBaseUrl,
     });
-    const headers = {
-      "List-Unsubscribe": `<${oneClickUrl}>, <mailto:unsubscribe@setlistpickem.com>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    };
+    /** Transactional mail omits RFC 8058 marketing unsubscribe headers (CAN-SPAM). */
+    const headers = isTransactionalEmail
+      ? {}
+      : {
+          "List-Unsubscribe": `<${oneClickUrl}>, <mailto:unsubscribe@setlistpickem.com>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        };
     const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
+    const spec = getTriggerSpec(triggerId);
+    const rawCtaUrl = rendered.email.ctaUrl || `${base}/dashboard`;
+    const ctaLabel = rendered.email.ctaLabel;
+    const trackedCtaUrl = resolveTrackedEmailCtaUrl(rawCtaUrl, {
+      triggerId,
+      templateId: spec?.templateId,
+      ctaLabel,
+      logger,
+    });
+    const plainText = rewritePlainTextCtaUrl(rendered.email.text, rawCtaUrl, trackedCtaUrl);
     const usesPreRenderedHtml = typeof rendered.email.html === "string" && rendered.email.html.trim();
     const shell = usesPreRenderedHtml
       ? null
       : buildProductionBrandedEmailShell({
           siteUrl,
-          bodyText: rendered.email.text,
-          ctaUrl: rendered.email.ctaUrl || `${base}/dashboard`,
+          bodyText: plainText,
+          ctaUrl: trackedCtaUrl,
           settingsUrl,
-          ctaLabel: rendered.email.ctaLabel,
+          ctaLabel,
           signOff: rendered.email.signOff,
         });
     const html = usesPreRenderedHtml ? rendered.email.html : shell.html;
@@ -354,7 +419,7 @@ function createCommsEmailWorker({
           from,
           to: [to],
           subject: rendered.email.subject,
-          text: rendered.email.text,
+          text: plainText,
           html,
           headers,
         },
@@ -389,6 +454,8 @@ module.exports = {
   buildProductionBrandedEmailShell,
   stripRedundantCtaLine,
   stripHtmlOnlyEmailLines,
+  resolveTrackedEmailCtaUrl,
+  rewritePlainTextCtaUrl,
   escapeHtml,
   DEFAULT_FROM,
 };
