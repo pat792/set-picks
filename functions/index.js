@@ -43,6 +43,7 @@ const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { deliverSphere2026TourRecapInbox } = require("./sphereTourRecapDelivery");
 const { deliverMarketingSummerTour2026Launch } = require("./marketingBatchDelivery");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
+const { applyLockPicksForShowNow } = require("./picksLockOverride");
 const { runAccountDeletionForCaller } = require("./accountDelete");
 const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
@@ -1353,6 +1354,29 @@ exports.pollLiveSetlistNow = onCall(
       durationMs: Date.now() - started,
     });
     return { ok: true, dates, results };
+  }
+);
+
+/**
+ * Admin-only: stamp `show_lock_state/{showDate}` so clients treat picks as locked (#522).
+ * Idempotent — no setlist or scoring side effects.
+ */
+exports.lockPicksForShowNow = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminClaim(request);
+    const showDate = assertShowDateString(request.data?.showDate);
+    return applyLockPicksForShowNow({
+      db,
+      admin,
+      showDate,
+      lockedBy: request.auth?.token?.email ?? null,
+      logger,
+    });
   }
 );
 

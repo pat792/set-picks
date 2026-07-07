@@ -42,8 +42,8 @@ const {
   EMAIL_BRAND_PRIMARY,
   EMAIL_BRAND_PRIMARY_STRONG,
   EMAIL_BRAND_BG_DEEP,
-} = require("../comms/emailBranding.cjs");
-const { buildEmailTrackedCtaUrl } = require("../comms/emailLinks.cjs");
+} = require("./comms/emailBranding.cjs");
+const { buildEmailTrackedCtaUrl } = require("./comms/emailLinks.cjs");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";

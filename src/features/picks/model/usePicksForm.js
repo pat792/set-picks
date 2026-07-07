@@ -7,6 +7,7 @@ import {
   resolveHandleForPicks,
   savePickDoc,
 } from '../api/picksApi';
+import { subscribeShowLockState } from '../api/showLockStateApi';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import { getShowStatus } from '../../../shared/utils/timeLogic';
 import { validatePicksForSave } from './picksCatalogUtils';
@@ -46,7 +47,21 @@ export default function usePicksForm({
     selectedDate && Array.isArray(showDates) && showDates.length > 0
       ? getShowStatus(selectedDate, showDates)
       : null;
-  const isLocked = showStatus !== 'NEXT';
+  const [adminLockActive, setAdminLockActive] = useState(false);
+
+  useEffect(() => {
+    if (!selectedDate || showStatus !== 'NEXT') {
+      setAdminLockActive(false);
+      return undefined;
+    }
+
+    const unsubscribe = subscribeShowLockState(selectedDate, ({ isLocked }) => {
+      setAdminLockActive(isLocked);
+    });
+    return unsubscribe;
+  }, [selectedDate, showStatus]);
+
+  const isLocked = showStatus !== 'NEXT' || adminLockActive;
 
   const hasExistingPicks =
     Boolean(selectedDate && user?.uid) &&

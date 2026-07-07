@@ -5,10 +5,12 @@ import { AlertTriangle } from 'lucide-react';
 import { useShowCalendar } from '../../show-calendar';
 import { resolveShowTimeZone } from '../../../shared/utils/showTimeZone';
 import { useAdminSetlistForm } from '../model/useAdminSetlistForm';
+import { useAdminPicksLock } from '../model/useAdminPicksLock';
 import AdminSetlistSlotInputs from './AdminSetlistSlotInputs';
 import AdminSetlistFetchButton from './AdminSetlistFetchButton';
 import AdminSongCatalogRefresh from './AdminSongCatalogRefresh';
 import AdminLiveSetlistAutomationControls from './AdminLiveSetlistAutomationControls';
+import AdminPicksLockControls from './AdminPicksLockControls';
 import AdminActionToggle from './AdminActionToggle';
 import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
@@ -30,6 +32,7 @@ export default function AdminForm({ user, selectedDate }) {
   );
   const [setlistActionsOpen, setSetlistActionsOpen] = useState(true);
   const [liveAutomationOpen, setLiveAutomationOpen] = useState(true);
+  const [picksLockOpen, setPicksLockOpen] = useState(true);
   const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
   const [tourRecapPreviewOpen, setTourRecapPreviewOpen] = useState(false);
   const [revertModalOpen, setRevertModalOpen] = useState(false);
@@ -79,6 +82,19 @@ export default function AdminForm({ user, selectedDate }) {
     handleCloseFinalizeForceModal,
     handleConfirmForceFinalizeAndRollup,
   } = useAdminSetlistForm({ user, selectedDate: warRoomShowDate, showDates });
+  const {
+    showStatus: picksLockShowStatus,
+    picksAlreadyLocked,
+    adminLockActive,
+    isLocking: isPicksLocking,
+    statusText: picksLockStatusText,
+    errorText: picksLockErrorText,
+    handleLockNow,
+  } = useAdminPicksLock({
+    selectedDate: warRoomShowDate,
+    showDates,
+    userEmail: user?.email ?? null,
+  });
   const warRoomShow = showDates.find((show) => show.date === warRoomShowDate) || null;
   const warRoomTimeZone = resolveShowTimeZone(warRoomShow);
 
@@ -159,6 +175,24 @@ export default function AdminForm({ user, selectedDate }) {
                 errorText={automationError}
                 onToggle={handleToggleAutomation}
                 onPollNow={handlePollAutomationNow}
+              />
+            </AdminActionToggle>
+            <AdminActionToggle
+              id="admin-picks-lock"
+              title="Picks lock"
+              description="One-click override when the show starts before 7:55 PM local or Phish.net is slow."
+              open={picksLockOpen}
+              onOpenChange={setPicksLockOpen}
+            >
+              <AdminPicksLockControls
+                showStatus={picksLockShowStatus}
+                picksAlreadyLocked={picksAlreadyLocked}
+                adminLockActive={adminLockActive}
+                isLocking={isPicksLocking}
+                statusText={picksLockStatusText}
+                errorText={picksLockErrorText}
+                onLockNow={handleLockNow}
+                disabled={isSaving}
               />
             </AdminActionToggle>
             <AdminActionToggle
