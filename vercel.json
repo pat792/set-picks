@@ -14,7 +14,7 @@
           "value": "click.setlistpickem.com"
         }
       ],
-      "destination": "/api/email-click/:path*"
+      "destination": "/api/email-click?path=:path*"
     },
     {
       "source": "/__/firebase/init.json",

@@ -25,7 +25,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Fixed
 - **Service email wordmark** — bare hosted `<img>` let clients open the raw PNG on tap; header is now non-clickable.
-- **Email click API route** — Vercel did not deploy `api/email-click/[[...path]].js`; use required catch-all `[...path].js` so `click.setlistpickem.com` 302s correctly.
+- **Email click API route** — Vercel did not deploy nested `api/email-click/[[...path]].js`; use flat `api/email-click.js` + query rewrite so `click.setlistpickem.com` 302s correctly.
 
 ---
 
