@@ -303,7 +303,7 @@ test("branded HTML body omits the redundant plain-text app link (button already 
 });
 
 test("formatWordmarkAttachmentForResendApi uses REST snake_case inline_content_id", () => {
-  const { buildEmailWordmarkResendAttachment, formatWordmarkAttachmentForResendApi } = require("../comms/emailBranding.cjs");
+  const { buildEmailWordmarkResendAttachment, formatWordmarkAttachmentForResendApi } = require("./comms/emailBranding.cjs");
   const sdk = buildEmailWordmarkResendAttachment();
   const rest = formatWordmarkAttachmentForResendApi(sdk);
   assert.equal(rest.inline_content_id, "email-gradient-wordmark");

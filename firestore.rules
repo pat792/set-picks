@@ -136,6 +136,15 @@ service cloud.firestore {
     }
 
     /**
+     * Admin picks-lock override (#522). Written by `lockPicksForShowNow` callable
+     * (Admin SDK); signed-in clients read to honor effective lock state.
+     */
+    match /show_lock_state/{showDate} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    /**
      * Rollup audit log (issue #139 PR B). Written server-side by
      * `rollupScoresForShow` after every invocation; surfaces a
      * Firestore-visible "last rollup ran at…" signal. Admin-only reads; no
