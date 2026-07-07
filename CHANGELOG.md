@@ -12,7 +12,15 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.19.0] — 2026-07-07
+## [1.19.1] — 2026-07-07
+
+### Changed
+- **`account_welcome` copy** — community-focused welcome email and in-app message (pools, tour tracking, spread the word).
+
+### Fixed
+- **Comms Functions deploy** — sync `comms/emailBranding.cjs` and `comms/emailLinks.cjs` into `functions/comms/` at predeploy; workers no longer require repo-root `../comms/*` (Cloud Run healthcheck failure).
+
+---
 
 ### Added
 - **`picks_lock_reminder` email + in-app** (#524) — migrate show-day lock fanout to `deliverCommsTrigger`; audience is users with a handle and no picks for tonight's show; transactional email bypasses `reminders` pref and daily cap.

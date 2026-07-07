@@ -60,6 +60,18 @@ for (const entry of flattenManifest()) {
   if (err) errors.push(err);
 }
 
+const bundledComms = ["emailBranding.cjs", "emailLinks.cjs"];
+for (const file of bundledComms) {
+  const bundledPath = path.join(root, "functions/comms", file);
+  try {
+    readFileSync(bundledPath, "utf8");
+  } catch {
+    errors.push(
+      `functions/comms/${file} missing — run npm run comms:sync before deploy`
+    );
+  }
+}
+
 if (errors.length) {
   console.error("❌ comms deploy manifest validation failed:\n");
   for (const e of errors) console.error(`  - ${e}`);
