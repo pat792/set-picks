@@ -11,7 +11,7 @@
       "source": "functions",
       "codebase": "default",
       "disallowLegacyRuntimeConfig": true,
-      "predeploy": ["npm run emails:build"],
+      "predeploy": ["npm run comms:sync", "npm run emails:build"],
       "ignore": [
         "node_modules",
         ".git",

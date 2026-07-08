@@ -126,6 +126,7 @@ jobs:
       - name: Install emails dependencies and build marketing templates
         run: |
           npm ci --prefix emails
+          npm run comms:sync
           npm run emails:build
 
       - name: Functions unit tests

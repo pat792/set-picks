@@ -112,9 +112,9 @@ export const COMMS_TEMPLATE_REGISTRY = {
       eyebrow: 'Welcome aboard',
       title: `Welcome to Setlist Pick'em, ${handleOf(p)}`,
       paragraphs: [
-        "You're in. Setlist Pick'em is a prediction game for live shows — call the opener, closer, encore, and a wildcard, then watch the points roll in as the setlist unfolds.",
+        "Joining the community means you get to track every show of every tour. Invite friends to play in a Private Pool, or just stick with competing against all who play a given night. We are so excited you're here, and hope you'll spread the word.",
         p.next_show_date
-          ? `Your next chance to play: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}. Lock in a few picks and you're on the board.`
+          ? `Your next chance to play: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
           : 'Head to the dashboard, make your first set of picks, and you’re on the board.',
       ],
       cta: { label: 'Make your first picks', href: '/dashboard' },

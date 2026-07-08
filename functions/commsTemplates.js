@@ -78,14 +78,19 @@ function assembleServiceEmail(bodyLines, { signOff = DEFAULT_EMAIL_SIGN_OFF, cta
 /** @type {Record<string, (payload: Record<string, any>) => { push: {title:string,body:string}, email: {subject:string,text:string} }>} */
 const BUILDERS = {
   "account-welcome": (p) => {
+    const nextShowLine = p.next_show_date
+      ? `Your next chance to play: ${p.next_show_date}${p.next_show_venue ? ` at ${p.next_show_venue}` : ""}.`
+      : "";
     const assembled = assembleServiceEmail(
       [
         `Welcome, ${handleOf(p)}!`,
         "",
-        "Setlist Pick'em is a prediction game for live shows — call the opener, closer, encore, and a wildcard, then rack up points as the setlist unfolds.",
-        p.next_show_date
-          ? `Your next chance to play: ${p.next_show_date}${p.next_show_venue ? ` at ${p.next_show_venue}` : ""}.`
-          : "",
+        [
+          "Joining the community means you get to track every show of every tour. Invite friends to play in a Private Pool, or just stick with competing against all who play a given night. We are so excited you're here, and hope you'll spread the word.",
+          nextShowLine,
+        ]
+          .filter(Boolean)
+          .join(" "),
       ],
       { signOff: "Glad you're here — see you at the next show!" }
     );

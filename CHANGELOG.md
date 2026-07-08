@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.1] — 2026-07-08
+
+### Changed
+- **`account_welcome` copy** — community-focused welcome email and in-app message (pools, tour tracking, spread the word).
+
+### Fixed
+- **Comms Functions deploy** — `npm run comms:sync` copies `comms/emailBranding.cjs` and `comms/emailLinks.cjs` into `functions/comms/` at predeploy; deploy validate checks bundled files exist; CI runs sync before functions tests.
+
+---
+
 ## [1.20.0] — 2026-07-07
 
 ### Added
