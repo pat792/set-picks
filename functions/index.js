@@ -210,6 +210,7 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
   {
     document: "official_setlists/{showDate}",
     region: PHISHNET_FUNCTIONS_REGION,
+    memory: "512MiB",
     secrets: commsDeliverySecrets,
   },
   async (event) => {
@@ -1207,6 +1208,7 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
     schedule: "*/2 * * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
+    memory: "512MiB",
     secrets: [phishnetApiKey, ...commsDeliverySecrets],
   },
   async () => {

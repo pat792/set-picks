@@ -12,6 +12,30 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.3] — 2026-07-08
+
+### Fixed
+- **Push test notification from hydrated "On"** — "Send test notification" no longer dead-ends with _"token was not freshly rotated in this browser session"_ when push status was restored from a persisted token (the #523 hydration path). The canary now remints the FCM token on-demand (deleteToken + getToken) and re-upserts before sending, preserving the freshly-rotated-token guarantee while removing the need to toggle push off/on first.
+
+---
+
+## [1.20.2] — 2026-07-08
+
+### Fixed
+- **Push notification UI hydration** — wait for App Check before reading `private_fcmTokens`, fall back to the browser's live FCM token, and re-sync Firestore when the server pruned a stale doc so Messages no longer shows false "Off" after a prior Enable (#384 follow-up).
+
+---
+
+## [1.20.1] — 2026-07-08
+
+### Changed
+- **`account_welcome` copy** — community-focused welcome email and in-app message (pools, tour tracking, spread the word).
+
+### Fixed
+- **Comms Functions deploy** — `npm run comms:sync` copies `comms/emailBranding.cjs` and `comms/emailLinks.cjs` into `functions/comms/` at predeploy; deploy validate checks bundled files exist; CI runs sync before functions tests.
+
+---
+
 ## [1.20.0] — 2026-07-07
 
 ### Added

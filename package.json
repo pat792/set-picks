@@ -1,7 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.20.0",
+  "version": "1.20.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -31,6 +31,7 @@
     "comms:deploy:list": "node scripts/deploy-comms-functions.mjs --list",
     "comms:deploy:dry": "node scripts/deploy-comms-functions.mjs --dry-run",
     "comms:deploy": "node scripts/deploy-comms-functions.mjs",
+    "comms:sync": "node scripts/sync-comms-to-functions.mjs",
     "emails:build": "npm run build --prefix emails",
     "emails:preview": "npm run preview --prefix emails"
   },
