@@ -195,31 +195,46 @@ export function usePushTokenRegistration() {
       setDebugState({ phase: 'canary_auth_missing', code: 'no-user', message: 'Missing auth uid in app session.' });
       return;
     }
-    if (!currentFcmToken) {
-      setCanaryStatus('error');
-      setErrorMessage('No in-session FCM token. Tap Enable first to mint a fresh token.');
-      setDebugState({
-        phase: 'canary_missing_token',
-        code: 'missing-token',
-        message: 'currentFcmToken is empty in client state.',
-      });
-      return;
-    }
-    if (!hasFreshRotationInSession) {
-      setCanaryStatus('error');
-      setErrorMessage('Canary blocked: token was not freshly rotated in this browser session.');
-      setDebugState({
-        phase: 'canary_rotation_required',
-        code: 'stale-session-token',
-        message: 'Enable push again to force deleteToken + getToken before canary.',
-      });
-      return;
-    }
     setCanaryStatus('working');
     setErrorMessage('');
     setDebugState({ phase: 'canary_sending', code: '', message: '' });
     try {
-      const res = await sendPushCanary({ token: currentFcmToken });
+      // The canary must send to a token that was freshly reminted in this
+      // browser session — a hydrated/persisted token (status shows "On" after a
+      // reload, via plain getToken) can be stale: FCM accepts it but never
+      // delivers, so the test would falsely report success. If we have not
+      // rotated this session yet (e.g. state came from hydration, not a tap on
+      // Enable), force a deleteToken + getToken remint here before sending.
+      let tokenToSend = currentFcmToken;
+      if (!hasFreshRotationInSession || !tokenToSend) {
+        setDebugState({
+          phase: 'canary_rotating',
+          code: '',
+          message: 'Reminting FCM token before test send.',
+        });
+        const { token } = await refreshFcmDeviceTokenWithDebug();
+        if (!token) {
+          setCanaryStatus('error');
+          setErrorMessage('Could not mint a fresh FCM token for the test notification.');
+          setDebugState({
+            phase: 'canary_token_missing',
+            code: 'token-null',
+            message: 'FCM getToken returned empty during canary remint.',
+          });
+          return;
+        }
+        await upsertFcmTokenForUser({
+          userId: user.uid,
+          token,
+          permission: browserPermissionState(),
+        });
+        setCurrentFcmToken(token);
+        setHasFreshRotationInSession(true);
+        tokenToSend = token;
+        setDebugState({ phase: 'canary_sending', code: '', message: '' });
+      }
+
+      const res = await sendPushCanary({ token: tokenToSend });
       if (!res.ok) {
         throw new Error('Test notification did not report success.');
       }
