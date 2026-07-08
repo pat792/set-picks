@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.4] — 2026-07-08
+
+### Fixed
+- **Song autocomplete ranking** — pick/admin suggestions now sort by lowest catalog gap, then most times played, and dedupe duplicate Phish.net rows so common titles like **Light** surface in the top 10 instead of being buried by alphabetical catalog order.
+
+---
+
 ## [1.20.3] — 2026-07-08
 
 ### Fixed

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { PHISH_SONGS } from '../data/phishSongs.js';
+import { rankCatalogSongMatches } from '../lib/rankCatalogSongMatches.js';
 import { resolveCatalogSongTitle } from '../lib/resolveCatalogSongTitle.js';
 import Input from './Input';
 
@@ -36,18 +37,11 @@ export default function SongAutocomplete({
   );
 
   const filterCatalog = useCallback(
-    (query) => {
-      const q = String(query ?? '').trim().toLowerCase();
-      if (!q) return [];
-      return songs
-        .filter((song) => {
-          const name = typeof song === 'string' ? song : song.name;
-          const n = String(name ?? '').trim().toLowerCase();
-          if (!n || excludedLower.has(n)) return false;
-          return n.includes(q);
-        })
-        .slice(0, 10);
-    },
+    (query) =>
+      rankCatalogSongMatches(songs, query, {
+        excludeTitlesLower: excludedLower,
+        limit: 10,
+      }),
     [songs, excludedLower],
   );
   const [isOpen, setIsOpen] = useState(false);
