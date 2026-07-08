@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.18.1  
+**Version:** 1.20.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -84,6 +84,17 @@ Tour and show date metadata. Read by `resolveCurrentTour` and `resolveSelectable
 ### 1.9 `email_suppression/{sha256(email)}`
 
 Server-only email suppression list (issue #442). Document ID is SHA-256 of the normalized recipient address. Presence of `{ suppressed: true }` blocks comms email sends. Written by `commsResendWebhook` and `commsEmailUnsubscribe`.
+
+### 1.10 `show_lock_state/{showDate}` (#522)
+
+Admin picks-lock override. Document ID is the show date (`YYYY-MM-DD`). Written only by the `lockPicksForShowNow` callable (Admin SDK). Clients read during `NEXT` to treat picks as locked before wall-clock or setlist poll signals fire.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `showDate` | string | `YYYY-MM-DD` |
+| `picksLockedAt` | Timestamp | Lock instant |
+| `lockReason` | `'admin_override'` | v1 only writes this value |
+| `lockedBy` | string? | Admin email when stamped |
 
 ---
 
@@ -182,6 +193,22 @@ Batch marketing email for Summer Tour 2026 pre-opener. Resolves Sphere alum ∪ 
 **Response (execute):** same fields plus `delivery` (orchestrator result: `processed`, `delivered`, `skipped`, `byChannel`, `results`).
 
 CLI: `functions/scripts/deliverMarketingSummerTour2026Launch.js` (`--execute`, `--uid <uid>`, `--force-resend`). Secrets: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` (Secret Manager on the callable).
+
+### 2.2b `lockPicksForShowNow` (admin-only, #522)
+
+One-click War Room escape hatch: stamps `show_lock_state/{showDate}` so clients lock picks immediately. Idempotent; no setlist or scoring side effects.
+
+**Request:**
+```json
+{ "showDate": "2026-07-07" }
+```
+
+**Response:**
+```json
+{ "ok": true, "showDate": "2026-07-07", "alreadyLocked": false }
+```
+
+When `alreadyLocked` is `true`, the doc already carried `lockReason: admin_override` and the server did not rewrite timestamps.
 
 ### 2.3 `getPhishnetSetlist`, `scheduledPhishnetShowCalendar`, `refreshPhishnetShowCalendar`, `refreshLiveScoresForShow`, `scheduledPhishnetSongCatalog`, `refreshPhishnetSongCatalog`, `scheduledPhishnetLiveSetlistPoll`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `sendPushCanary`
 
