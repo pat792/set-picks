@@ -1,6 +1,6 @@
 /**
- * Pre-lock pick reminder fan-out (issue #276) — venue-local day + lock window,
- * deduped in `fcm_notification_log`.
+ * Pre-lock pick reminder fan-out (issues #276, #524) — venue-local day + lock window,
+ * deduped in `fcm_notification_log`, delivered via `deliverCommsTrigger`.
  */
 
 const {
@@ -9,20 +9,23 @@ const {
   hourInTimeZone,
 } = require("./phishnetLiveSetlistAutomation");
 const { hasNonEmptyPicksObject } = require("./rollupSeasonAggregates");
-const { sendWebPushToToken } = require("./fcmMessagingCore");
+const { createCommsAdapterRuntime } = require("./commsAdapterRuntime");
+const { resolveDedupKey } = require("./commsCatalog");
 
 /** Mirrors `src/shared/utils/timeLogic.js` (7:55pm local, #303). */
 const SHOW_PICKS_LOCK_HOUR = 19;
 const SHOW_PICKS_LOCK_MINUTE = 55;
+const LOCK_TIME_LOCAL_LABEL = "7:55 PM";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 /** Only nudge from 4pm local onward on show day (#276). */
 const REMINDER_LOCAL_START_HOUR = 16;
 
 const MAX_REMINDER_SENDS_PER_TICK = 150;
-const MAX_TOKEN_DOCS_SCANNED = 900;
+const MAX_USERS_SCANNED = 900;
 
 const LOG_COLLECTION = "fcm_notification_log";
+const TRIGGER_ID = "picks_lock_reminder";
 
 /**
  * @param {string} showYmd
@@ -54,9 +57,43 @@ function isPastPicksLock(showYmd, showTimeZone, now) {
 }
 
 /**
- * @param {Array<{ date: string, timeZone?: string }>} calendarShows
+ * @param {string} showYmd `YYYY-MM-DD`
+ * @param {string} showTimeZone IANA tz
  * @param {Date} now
- * @returns {{ showDate: string, timeZone: string } | null}
+ * @returns {string}
+ */
+function formatTimeToLock(showYmd, showTimeZone, now) {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: showTimeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    dtf.formatToParts(now).filter((p) => p.type !== "literal").map((p) => [p.type, p.value])
+  );
+  const localYmd = `${parts.year}-${parts.month}-${parts.day}`;
+  if (localYmd !== showYmd) return "tonight";
+
+  const nowMinutes = Number(parts.hour) * 60 + Number(parts.minute);
+  const lockMinutes = SHOW_PICKS_LOCK_HOUR * 60 + SHOW_PICKS_LOCK_MINUTE;
+  const diff = lockMinutes - nowMinutes;
+  if (diff <= 0) return "soon";
+
+  if (diff < 60) return `${diff} minute${diff === 1 ? "" : "s"}`;
+  const hours = Math.floor(diff / 60);
+  const mins = diff % 60;
+  if (mins === 0) return `${hours} hour${hours === 1 ? "" : "s"}`;
+  return `${hours}h ${mins}m`;
+}
+
+/**
+ * @param {Array<{ date: string, timeZone?: string, venue?: string, city?: string }>} calendarShows
+ * @param {Date} now
+ * @returns {{ showDate: string, timeZone: string, venue_name: string, venue_city: string } | null}
  */
 function findReminderTonightShow(calendarShows, now) {
   if (!Array.isArray(calendarShows) || calendarShows.length === 0) return null;
@@ -73,7 +110,12 @@ function findReminderTonightShow(calendarShows, now) {
     if (isPastPicksLock(date, tz, now)) continue;
     const hour = hourInTimeZone(now, tz);
     if (hour < REMINDER_LOCAL_START_HOUR) continue;
-    return { showDate: date, timeZone: tz };
+    return {
+      showDate: date,
+      timeZone: tz,
+      venue_name: typeof show.venue === "string" ? show.venue.trim() : "",
+      venue_city: typeof show.city === "string" ? show.city.trim() : "",
+    };
   }
   return null;
 }
@@ -87,23 +129,76 @@ function reminderLogDocId(showDate, uid) {
 }
 
 /**
- * @param {import("firebase-admin").firestore.DocumentData | null | undefined} userData
+ * @param {string | undefined | null} handle
  */
-function userWantsReminders(userData) {
-  const p = userData?.notificationPrefs;
-  if (!p || typeof p !== "object") return true;
-  return p.reminders !== false;
+function handleFromUser(handle) {
+  const h = typeof handle === "string" ? handle.trim() : "";
+  return h;
+}
+
+/**
+ * @param {{
+ *   usersWithPicks: Set<string>,
+ *   showDate: string,
+ *   showMeta: { timeZone: string, venue_name: string, venue_city: string },
+ *   userDocs: Array<{ id: string, data: () => Record<string, unknown> }>,
+ *   dedupedUids: Set<string>,
+ *   now: Date,
+ *   cap: number,
+ * }} params
+ */
+function buildPicksLockReminderRecipients({
+  usersWithPicks,
+  showDate,
+  showMeta,
+  userDocs,
+  dedupedUids,
+  now,
+  cap,
+}) {
+  /** @type {Array<{ uid: string, userData: Record<string, unknown>, payload: Record<string, unknown>, vars: Record<string, unknown> }>} */
+  const recipients = [];
+  for (const userDoc of userDocs) {
+    if (recipients.length >= cap) break;
+    const uid = userDoc.id;
+    if (!uid || usersWithPicks.has(uid) || dedupedUids.has(uid)) continue;
+    const userData = userDoc.data() || {};
+    if (!handleFromUser(userData.handle)) continue;
+    recipients.push({
+      uid,
+      userData,
+      payload: {
+        handle: handleFromUser(userData.handle),
+        show_date: showDate,
+        venue_name: showMeta.venue_name,
+        venue_city: showMeta.venue_city,
+        time_to_lock: formatTimeToLock(showDate, showMeta.timeZone, now),
+        lock_time_local: LOCK_TIME_LOCAL_LABEL,
+      },
+      vars: { uid, showYmd: showDate },
+    });
+  }
+  return recipients;
 }
 
 /**
  * @param {{
  *   db: import("firebase-admin").firestore.Firestore,
  *   admin: typeof import("firebase-admin"),
+ *   resendApiKey?: string,
+ *   resendWebhookSecret?: string,
  *   logger?: { info?: Function, warn?: Function, error?: Function },
  *   now?: Date,
  * }} params
  */
-async function runPicksLockReminderFanout({ db, admin, logger, now = new Date() }) {
+async function runPicksLockReminderFanout({
+  db,
+  admin,
+  resendApiKey,
+  resendWebhookSecret,
+  logger,
+  now = new Date(),
+}) {
   const calSnap = await db.collection("show_calendar").doc("snapshot").get();
   const calendarShows = parseShowCalendarSnapshotToShows(
     calSnap.exists ? calSnap.data() : null
@@ -133,94 +228,70 @@ async function runPicksLockReminderFanout({ db, admin, logger, now = new Date() 
     if (hasNonEmptyPicksObject(d.picks)) usersWithPicks.add(uid);
   }
 
-  const userDataCache = new Map();
-  const logExistsCache = new Map();
-  const reminded = new Set();
-  let sent = 0;
-
-  async function loadUser(uid) {
-    if (userDataCache.has(uid)) return userDataCache.get(uid);
-    const snap = await db.collection("users").doc(uid).get();
-    const data = snap.exists ? snap.data() || {} : {};
-    userDataCache.set(uid, data);
-    return data;
-  }
-
-  async function reminderAlreadySent(uid) {
-    if (logExistsCache.has(uid)) return logExistsCache.get(uid);
-    const snap = await db
-      .collection(LOG_COLLECTION)
-      .doc(reminderLogDocId(showDate, uid))
-      .get();
-    const exists = snap.exists;
-    logExistsCache.set(uid, exists);
-    return exists;
-  }
-
-  const tokenSnap = await db
-    .collectionGroup("private_fcmTokens")
-    .limit(MAX_TOKEN_DOCS_SCANNED)
+  const usersSnap = await db
+    .collection("users")
+    .where("handle", ">", "")
+    .limit(MAX_USERS_SCANNED)
     .get();
 
-  for (const tokenDoc of tokenSnap.docs) {
-    if (sent >= MAX_REMINDER_SENDS_PER_TICK) break;
+  const candidateDocs = usersSnap.docs.filter((userDoc) => {
+    const uid = userDoc.id;
+    if (!uid || usersWithPicks.has(uid)) return false;
+    const userData = userDoc.data() || {};
+    return Boolean(handleFromUser(userData.handle));
+  });
 
-    const userRef = tokenDoc.ref.parent.parent;
-    const uid = typeof userRef?.id === "string" ? userRef.id : "";
-    if (!uid) continue;
-
-    if (usersWithPicks.has(uid) || reminded.has(uid)) continue;
-
-    if (await reminderAlreadySent(uid)) continue;
-
-    const userData = await loadUser(uid);
-    if (!userWantsReminders(userData)) continue;
-
-    const token = tokenDoc.data()?.token;
-    if (typeof token !== "string" || !token.trim()) continue;
-
-    const res = await sendWebPushToToken({
-      admin,
-      db,
-      token: token.trim(),
-      userId: uid,
-      title: "Tonight's picks lock soon",
-      body: `Lock in your picks for ${showDate} before showtime.`,
-      data: {
-        kind: "pickReminder",
-        showDate,
-      },
-      logger,
-    });
-
-    if (res.ok) {
-      reminded.add(uid);
-      logExistsCache.set(uid, true);
-      await db
-        .collection(LOG_COLLECTION)
-        .doc(reminderLogDocId(showDate, uid))
-        .set(
-          {
-            kind: "reminder",
-            showDate,
-            userId: uid,
-            delivered: true,
-            decidedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
-      sent += 1;
-    }
+  const dedupedUids = new Set();
+  for (const userDoc of candidateDocs) {
+    const dedupId = resolveDedupKey(TRIGGER_ID, { uid: userDoc.id, showYmd: showDate });
+    if (!dedupId) continue;
+    // eslint-disable-next-line no-await-in-loop
+    const snap = await db.collection(LOG_COLLECTION).doc(dedupId).get();
+    if (snap.exists) dedupedUids.add(userDoc.id);
   }
 
-  logger?.info?.("picksLockReminder complete", { showDate, sent });
-  return { ok: true, showDate, sent };
+  const recipients = buildPicksLockReminderRecipients({
+    usersWithPicks,
+    showDate,
+    showMeta: target,
+    userDocs: candidateDocs,
+    dedupedUids,
+    now,
+    cap: MAX_REMINDER_SENDS_PER_TICK,
+  });
+
+  if (recipients.length === 0) {
+    logger?.info?.("picksLockReminder: no eligible recipients", { showDate });
+    return { ok: true, showDate, processed: 0, delivered: 0 };
+  }
+
+  const runtime = createCommsAdapterRuntime({
+    db,
+    admin,
+    resendApiKey,
+    resendWebhookSecret,
+    logger,
+  });
+  const result = await runtime.deliver(TRIGGER_ID, recipients, { dryRun: false });
+
+  logger?.info?.("picksLockReminder complete", {
+    showDate,
+    processed: result.processed,
+    delivered: result.delivered,
+    skipped: result.skipped,
+    byChannel: result.byChannel,
+  });
+
+  return { ok: true, showDate, ...result };
 }
 
 module.exports = {
   LOG_COLLECTION,
+  TRIGGER_ID,
   findReminderTonightShow,
   isPastPicksLock,
+  formatTimeToLock,
   reminderLogDocId,
+  buildPicksLockReminderRecipients,
   runPicksLockReminderFanout,
 };

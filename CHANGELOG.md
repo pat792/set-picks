@@ -12,10 +12,47 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.18.9] — 2026-07-07
+## [1.20.2] — 2026-07-08
 
 ### Fixed
 - **Push notification UI hydration** — wait for App Check before reading `private_fcmTokens`, fall back to the browser's live FCM token, and re-sync Firestore when the server pruned a stale doc so Messages no longer shows false "Off" after a prior Enable (#384 follow-up).
+
+---
+
+## [1.20.1] — 2026-07-08
+
+### Changed
+- **`account_welcome` copy** — community-focused welcome email and in-app message (pools, tour tracking, spread the word).
+
+### Fixed
+- **Comms Functions deploy** — `npm run comms:sync` copies `comms/emailBranding.cjs` and `comms/emailLinks.cjs` into `functions/comms/` at predeploy; deploy validate checks bundled files exist; CI runs sync before functions tests.
+
+---
+
+## [1.20.0] — 2026-07-07
+
+### Added
+- **Admin picks lock override (#522)** — War Room **Lock picks now** button; `lockPicksForShowNow` callable writes `show_lock_state/{showDate}`; picks form honors admin lock during `NEXT`.
+
+### Fixed
+- **Functions comms bundle paths** — `commsEmailWorker` requires `./comms/*` so new Gen2 deploys (e.g. `lockPicksForShowNow`) load inside the Cloud Run `/workspace` bundle.
+
+---
+
+## [1.19.0] — 2026-07-07
+
+### Added
+- **`picks_lock_reminder` email + in-app** (#524) — migrate show-day lock fanout to `deliverCommsTrigger`; audience is users with a handle and no picks for tonight's show; transactional email bypasses `reminders` pref and daily cap.
+- **Email CTA click tracking** — `click.setlistpickem.com` → `api/email-click` redirect with UTM params; `comms/emailLinks.cjs`; wired in `commsEmailWorker` at send time.
+
+### Changed
+- **Comms email classification** — `emailClass: transactional` on `picks_lock_reminder`; channel-aware prefs in `commsDelivery` (push/in-app still honor `reminders`); transactional emails omit marketing `List-Unsubscribe` headers.
+- **Notifications UI copy** — clarify that show-day pick reminder emails are service notices, separate from the Tour & onboarding email toggle.
+- **Service email shell** — wordmark is decorative (CSS background, not a link); body CTA is the only in-body link.
+
+### Fixed
+- **Service email wordmark** — bare hosted `<img>` let clients open the raw PNG on tap; header is now non-clickable.
+- **Email click API route** — Vercel did not deploy nested `api/email-click/[[...path]].js`; use flat `api/email-click.js` + query rewrite so `click.setlistpickem.com` 302s correctly.
 
 ---
 

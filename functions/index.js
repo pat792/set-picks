@@ -43,6 +43,7 @@ const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { deliverSphere2026TourRecapInbox } = require("./sphereTourRecapDelivery");
 const { deliverMarketingSummerTour2026Launch } = require("./marketingBatchDelivery");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
+const { applyLockPicksForShowNow } = require("./picksLockOverride");
 const { runAccountDeletionForCaller } = require("./accountDelete");
 const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
@@ -209,6 +210,7 @@ exports.gradePicksOnSetlistWrite = onDocumentWritten(
   {
     document: "official_setlists/{showDate}",
     region: PHISHNET_FUNCTIONS_REGION,
+    memory: "512MiB",
     secrets: commsDeliverySecrets,
   },
   async (event) => {
@@ -1123,10 +1125,18 @@ exports.scheduledPicksLockReminder = onSchedule(
     schedule: "*/15 * * * *",
     timeZone: "America/Los_Angeles",
     region: PHISHNET_FUNCTIONS_REGION,
+    secrets: commsDeliverySecrets,
   },
   async () => {
     try {
-      await runPicksLockReminderFanout({ db, admin, logger, now: new Date() });
+      await runPicksLockReminderFanout({
+        db,
+        admin,
+        logger,
+        now: new Date(),
+        resendApiKey: process.env.RESEND_API_KEY,
+        resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       logger.error("scheduledPicksLockReminder failed", { msg, err: e });
@@ -1198,6 +1208,7 @@ exports.scheduledPhishnetLiveSetlistPoll = onSchedule(
     schedule: "*/2 * * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
+    memory: "512MiB",
     secrets: [phishnetApiKey, ...commsDeliverySecrets],
   },
   async () => {
@@ -1345,6 +1356,29 @@ exports.pollLiveSetlistNow = onCall(
       durationMs: Date.now() - started,
     });
     return { ok: true, dates, results };
+  }
+);
+
+/**
+ * Admin-only: stamp `show_lock_state/{showDate}` so clients treat picks as locked (#522).
+ * Idempotent — no setlist or scoring side effects.
+ */
+exports.lockPicksForShowNow = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    assertAdminClaim(request);
+    const showDate = assertShowDateString(request.data?.showDate);
+    return applyLockPicksForShowNow({
+      db,
+      admin,
+      showDate,
+      lockedBy: request.auth?.token?.email ?? null,
+      logger,
+    });
   }
 );
 

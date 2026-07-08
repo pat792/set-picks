@@ -23,6 +23,7 @@ const COMMS_DEPLOY_GROUPS = {
     { export: "commsOnPickWrite", triggerId: "picks_confirmed", gated: true, secretExpectation: "resend" },
     { export: "scheduledTourCountdownComms", triggerId: "tour_countdown", gated: true, secretExpectation: "resend" },
     { export: "scheduledTourRankingsDailyComms", triggerId: "tour_rankings_daily", gated: true, secretExpectation: "resend" },
+    { export: "scheduledPicksLockReminder", triggerId: "picks_lock_reminder", gated: false, secretExpectation: "resend" },
   ],
 
   /**

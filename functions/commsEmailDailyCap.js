@@ -31,7 +31,7 @@ const EMAIL_DAILY_CAP = 1;
  * collision with another trigger — this is the highest-trust send a new
  * user gets.
  */
-const EXEMPT_TRIGGERS = new Set(["account_welcome"]);
+const EXEMPT_TRIGGERS = new Set(["account_welcome", "picks_lock_reminder"]);
 
 /**
  * @param {string} triggerId
