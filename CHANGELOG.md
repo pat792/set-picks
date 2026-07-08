@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.2] — 2026-07-08
+
+### Fixed
+- **Push notification UI hydration** — wait for App Check before reading `private_fcmTokens`, fall back to the browser's live FCM token, and re-sync Firestore when the server pruned a stale doc so Messages no longer shows false "Off" after a prior Enable (#384 follow-up).
+
+---
+
 ## [1.20.1] — 2026-07-08
 
 ### Changed

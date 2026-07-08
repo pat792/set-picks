@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 
 function encodeHex(bytes) {
   return Array.from(bytes)
@@ -41,6 +42,8 @@ export async function upsertFcmTokenForUser({
   if (!userId) throw new Error('Missing userId');
   if (!token) throw new Error('Missing token');
 
+  await whenFirebaseReady();
+
   const tokenId = await deriveTokenId(token);
   const ref = tokenDocRef(userId, tokenId);
 
@@ -67,6 +70,7 @@ export async function upsertFcmTokenForUser({
 export async function deleteFcmTokenForUser({ userId, token }) {
   if (!userId) throw new Error('Missing userId');
   if (!token) return;
+  await whenFirebaseReady();
   const tokenId = await deriveTokenId(token);
   await deleteDoc(tokenDocRef(userId, tokenId));
 }
@@ -77,6 +81,7 @@ export async function deleteFcmTokenForUser({ userId, token }) {
  */
 export async function getFirstFcmTokenForUser(userId) {
   if (!userId) return null;
+  await whenFirebaseReady();
   const colRef = collection(db, 'users', userId, 'private_fcmTokens');
   const snap = await getDocs(query(colRef, limit(1)));
   if (snap.empty) return null;

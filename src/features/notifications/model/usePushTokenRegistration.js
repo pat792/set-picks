@@ -4,11 +4,14 @@ import { useAuth } from '../../auth';
 import {
   getFcmRuntimeDebugInfo,
   refreshFcmDeviceTokenWithDebug,
+  requestFcmDeviceToken,
   revokeFcmDeviceToken,
   subscribeForegroundFcmMessages,
 } from '../../../shared/lib/firebaseMessaging';
+import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 import { deleteFcmTokenForUser, getFirstFcmTokenForUser, upsertFcmTokenForUser } from '../api/fcmTokenApi';
 import { sendPushCanary } from '../api/pushCanaryApi';
+import { resolveHydratedPushRegistration } from './pushRegistrationState';
 
 function browserPermissionState() {
   if (typeof Notification === 'undefined') return 'unsupported';
@@ -50,25 +53,52 @@ export function usePushTokenRegistration() {
     return () => unsubscribe();
   }, []);
 
-  // Hydrate enabled state from Firestore on mount so the UI reflects "On"
-  // immediately when the browser already has notification permission and a
-  // token was previously registered (without requiring another Enable tap).
+  // Hydrate enabled state after App Check is ready. Prefer the browser's live
+  // FCM token when it differs from Firestore (e.g. server pruned a stale doc).
   useEffect(() => {
-    if (!user?.uid) return;
-    if (browserPermissionState() !== 'granted') return;
+    if (!user?.uid) return undefined;
 
     let cancelled = false;
-    getFirstFcmTokenForUser(user.uid)
-      .then((token) => {
+
+    async function hydratePushState() {
+      const permissionResult = browserPermissionState();
+      setPermission(permissionResult);
+
+      try {
+        await whenFirebaseReady();
         if (cancelled) return;
-        if (token) {
-          setCurrentFcmToken(token);
-          setStatus('enabled');
+
+        const [storedToken, localToken] = await Promise.all([
+          getFirstFcmTokenForUser(user.uid),
+          permissionResult === 'granted' ? requestFcmDeviceToken() : Promise.resolve(null),
+        ]);
+        if (cancelled) return;
+
+        const resolved = resolveHydratedPushRegistration({
+          permission: permissionResult,
+          storedToken,
+          localToken,
+        });
+
+        if (resolved.status !== 'enabled') return;
+
+        if (resolved.shouldResync) {
+          await upsertFcmTokenForUser({
+            userId: user.uid,
+            token: resolved.token,
+            permission: permissionResult,
+          });
+          if (cancelled) return;
         }
-      })
-      .catch(() => {
-        // Silent failure — user can still tap Enable to re-register.
-      });
+
+        setCurrentFcmToken(resolved.token);
+        setStatus('enabled');
+      } catch {
+        // Best-effort hydration; user can still tap Enable to re-register.
+      }
+    }
+
+    void hydratePushState();
 
     return () => {
       cancelled = true;
