@@ -3,6 +3,28 @@ import { getShowStatus } from '../../../shared/utils/timeLogic';
 import { subscribeShowLockState } from '../../picks';
 import { lockPicksForShowNow } from '../api/picksLockAdminApi';
 
+function formatPicksLockError(error) {
+  const code =
+    error && typeof error === 'object' && typeof error.code === 'string'
+      ? error.code
+      : '';
+  const message =
+    error && typeof error === 'object' && 'message' in error
+      ? String(error.message)
+      : 'Lock failed.';
+
+  if (code === 'functions/permission-denied') {
+    return 'Only an admin can lock picks. Grant yourself the admin claim on /admin first.';
+  }
+  if (code === 'functions/unauthenticated') {
+    return 'Sign in required.';
+  }
+  if (code === 'functions/internal' || code === 'functions/unavailable') {
+    return `${message} If this persists, deploy the callable: firebase deploy --only functions:lockPicksForShowNow`;
+  }
+  return message;
+}
+
 /**
  * War Room state for admin one-click picks lock (#522).
  */
@@ -50,11 +72,7 @@ export function useAdminPicksLock({ selectedDate, showDates = [], userEmail = nu
           : `Picks locked for ${selectedDate}${userEmail ? ` by ${userEmail}` : ''}.`
       );
     } catch (error) {
-      const message =
-        error && typeof error === 'object' && 'message' in error
-          ? String(error.message)
-          : 'Lock failed.';
-      setErrorText(message);
+      setErrorText(formatPicksLockError(error));
     } finally {
       setIsLocking(false);
     }

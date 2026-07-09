@@ -210,6 +210,10 @@ One-click War Room escape hatch: stamps `show_lock_state/{showDate}` so clients 
 
 When `alreadyLocked` is `true`, the doc already carried `lockReason: admin_override` and the server did not rewrite timestamps.
 
+**Deploy:** `firebase deploy --only functions:lockPicksForShowNow` or `npm run deploy:functions:phishnet`. The War Room button ships via Vercel automatically; the callable does not. See `docs/PICKS_LOCK_ADMIN_RUNBOOK.md`.
+
+**Ops CLI (no War Room):** `cd functions && node scripts/lockPicksForShowNow.js --showDate=YYYY-MM-DD`
+
 ### 2.3 `getPhishnetSetlist`, `scheduledPhishnetShowCalendar`, `refreshPhishnetShowCalendar`, `refreshLiveScoresForShow`, `scheduledPhishnetSongCatalog`, `refreshPhishnetSongCatalog`, `scheduledPhishnetLiveSetlistPoll`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `sendPushCanary`
 
 Phish.net integration and live scoring functions. Deployed via `npm run deploy:functions:phishnet`. Internal admin use — request/response shapes documented in `docs/PHISHNET_CALLABLE_RUNBOOK.md`.

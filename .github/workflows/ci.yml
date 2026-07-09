@@ -60,6 +60,9 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: Phishnet deploy manifest (callable drift check)
+        run: npm run verify:phishnet-deploy-manifest
+
       - name: Dashboard meta (IA drift check)
         run: npm run verify:dashboard-meta
 
