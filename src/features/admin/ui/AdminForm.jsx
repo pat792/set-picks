@@ -180,7 +180,7 @@ export default function AdminForm({ user, selectedDate }) {
             <AdminActionToggle
               id="admin-picks-lock"
               title="Picks lock"
-              description="One-click override when the show starts before 7:55 PM local or Phish.net is slow."
+              description="One-click override when the show starts before 7:30 PM local or Phish.net is slow."
               open={picksLockOpen}
               onOpenChange={setPicksLockOpen}
             >
