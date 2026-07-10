@@ -86,7 +86,7 @@ test("tour-countdown email uses picks CTA and avoids duplicate city in venue lin
     first_show_date: "2026-07-07",
     first_show_venue: "Kohl Center, Madison, WI",
     first_show_city: "Madison, WI",
-    lock_time_local: "7:55 PM",
+    lock_time_local: "7:30 PM",
   });
   assert.equal(out.email.ctaLabel, "Make Your Picks");
   assert.equal(out.email.ctaUrl, "https://www.setlistpickem.com/dashboard/picks");

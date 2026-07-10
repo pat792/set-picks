@@ -41,7 +41,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | `{{venue_name}}` | `show_calendar` snapshot | — |
 | `{{venue_city}}` | `show_calendar` snapshot | — |
 | `{{time_to_lock}}` | Computed at send time | — |
-| `{{lock_time_local}}` | Computed (19:55 venue-local) | `7:55 PM` |
+| `{{lock_time_local}}` | Computed (19:30 venue-local) | `7:30 PM` |
 | `{{tour_name}}` | Tour metadata | — |
 | `{{days_remaining}}` | Computed from tour start date | — |
 | `{{first_show_date}}` | Tour first show | — |
@@ -413,7 +413,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Every 15 min on show days, venue-local 16:00–19:54 |
+| **Schedule** | Every 15 min on show days, venue-local 16:00–19:29 |
 | **Channels** | `inApp`, `push`, `email` |
 | **Audience** | Users with a handle and **no picks** for tonight's show |
 | **Prefs key** | `reminders` (push + in-app only) |

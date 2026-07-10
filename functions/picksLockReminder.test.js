@@ -46,8 +46,9 @@ test("isPastPicksLock is true after local lock", () => {
 });
 
 test("formatTimeToLock returns hours and minutes before lock", () => {
+  // 5:55pm PDT on show day → 1h 35m until 7:30pm lock.
   const now = new Date("2099-06-16T00:55:00.000Z");
-  assert.equal(formatTimeToLock("2099-06-15", "America/Los_Angeles", now), "2 hours");
+  assert.equal(formatTimeToLock("2099-06-15", "America/Los_Angeles", now), "1h 35m");
 });
 
 test("buildPicksLockReminderRecipients excludes users with picks and deduped uids", () => {

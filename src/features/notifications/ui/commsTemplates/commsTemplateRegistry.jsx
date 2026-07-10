@@ -156,7 +156,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })
             ? `First show: ${venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })}.`
             : 'Get your picks ready before the first downbeat.',
-          `Picks lock at ${p.lock_time_local || '7:55 PM'} local on show night — don't get shut out.`,
+          `Picks lock at ${p.lock_time_local || '7:30 PM'} local on show night — don't get shut out.`,
         ],
         cta: tourCountdownInAppCta(p),
       };
@@ -171,7 +171,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 18',
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -183,7 +183,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 18',
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -195,7 +195,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 7',
           first_show_venue: 'Kohl Center',
           first_show_city: 'Madison, WI',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -551,7 +551,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
       eyebrow: 'Picks lock soon',
       title: 'Lock in your picks',
       paragraphs: [
-        `${handleOf(p)}, ${venueLine(p) || "tonight's show"} locks at ${p.lock_time_local || '7:55 PM'} local${
+        `${handleOf(p)}, ${venueLine(p) || "tonight's show"} locks at ${p.lock_time_local || '7:30 PM'} local${
           p.time_to_lock ? ` — about ${p.time_to_lock} away` : ''
         }.`,
         "You haven't locked picks yet. Don't get shut out of the night.",
@@ -567,7 +567,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           venue_name: 'MSG',
           venue_city: 'New York, NY',
           time_to_lock: '2 hours',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
     ],

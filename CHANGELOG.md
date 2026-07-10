@@ -14,6 +14,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [1.20.5] — 2026-07-10
 
+### Changed
+- **Picks lock time** — venue-local wall clock moves from **7:55 PM → 7:30 PM** so most shows lock before set 1 and War Room has headroom for manual lock. Reminder window is now 16:00–19:29 local; email/in-app copy fallbacks say `7:30 PM`.
+
 ### Fixed
 - **`tour_rankings_daily` rank change (#544)** — morning tour standings now compute display-rank delta vs the prior show (`up N` / `down N` / `held`) on the **overall tour leaderboard**, so recipients no longer all see "held your spot". Night-one debut, late-joiner catch-up, ties, and leader/top-5 flavor copy are included; regrades recompute from current picks.
 

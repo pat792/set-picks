@@ -53,7 +53,7 @@
         { "name": "first_show_date", "source": "tour first show", "fallback": null },
         { "name": "first_show_venue", "source": "tour first show venue", "fallback": null },
         { "name": "first_show_city", "source": "tour first show city", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (19:55 venue-local)", "fallback": "7:55 PM" }
+        { "name": "lock_time_local", "source": "computed (19:30 venue-local)", "fallback": "7:30 PM" }
       ]
     },
     {
@@ -232,7 +232,7 @@
       "family": "show_calendar",
       "priority": "P0",
       "automation": "automated",
-      "schedule": "every 30min on show days, venue-local 16:00–19:54",
+      "schedule": "every 30min on show days, venue-local 16:00–19:29",
       "audience": "users_no_picks_tonight",
       "channels": ["inApp", "push", "email"],
       "prefKeys": ["reminders"],
@@ -248,7 +248,7 @@
         { "name": "venue_name", "source": "show_calendar", "fallback": null },
         { "name": "venue_city", "source": "show_calendar", "fallback": null },
         { "name": "time_to_lock", "source": "computed at send time", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (19:55 venue-local)", "fallback": "7:55 PM" }
+        { "name": "lock_time_local", "source": "computed (19:30 venue-local)", "fallback": "7:30 PM" }
       ]
     },
     {

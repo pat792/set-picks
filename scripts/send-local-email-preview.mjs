@@ -141,7 +141,7 @@ if (tourCountdown) {
     first_show_date: '2026-07-07',
     first_show_venue: 'Kohl Center, Madison, WI',
     first_show_city: 'Madison, WI',
-    lock_time_local: '7:55 PM',
+    lock_time_local: '7:30 PM',
   });
   const shell = buildProductionBrandedEmailShell({
     siteUrl,
@@ -172,7 +172,7 @@ if (picksLockReminder) {
     venue_name: 'Kohl Center',
     venue_city: 'Madison, WI',
     time_to_lock: '2 hours',
-    lock_time_local: '7:55 PM',
+    lock_time_local: '7:30 PM',
   });
   const shell = buildProductionBrandedEmailShell({
     siteUrl,

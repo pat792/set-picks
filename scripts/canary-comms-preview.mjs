@@ -105,7 +105,7 @@ const TRIGGERS_TO_PREVIEW = [
     payload: {
       tour_name: "Fall Tour '26",
       days_remaining: 3,
-      lock_time_local: '7:55 PM',
+      lock_time_local: '7:30 PM',
       first_show_date: 'Fri, Sep 11',
       first_show_venue: 'Madison Square Garden',
       first_show_city: 'New York, NY',
@@ -116,7 +116,7 @@ const TRIGGERS_TO_PREVIEW = [
     triggerId: 'picks_lock_reminder',
     payload: {
       venue_name: 'Madison Square Garden',
-      lock_time_local: '7:55 PM',
+      lock_time_local: '7:30 PM',
     },
     vars: { showYmd: '2026-09-11' },
   },

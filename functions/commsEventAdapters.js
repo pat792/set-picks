@@ -136,7 +136,7 @@ function findTourCountdownTargets(calendarShows, now, countdownDays = COUNTDOWN_
         first_show_venue: show.venue || "",
         first_show_city: show.city || "",
         timeZone: tz,
-        lock_time_local: "7:55 PM",
+        lock_time_local: "7:30 PM",
       });
     }
   }

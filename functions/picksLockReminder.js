@@ -12,10 +12,10 @@ const { hasNonEmptyPicksObject } = require("./rollupSeasonAggregates");
 const { createCommsAdapterRuntime } = require("./commsAdapterRuntime");
 const { resolveDedupKey } = require("./commsCatalog");
 
-/** Mirrors `src/shared/utils/timeLogic.js` (7:55pm local, #303). */
+/** Mirrors `src/shared/utils/timeLogic.js` (7:30pm local). */
 const SHOW_PICKS_LOCK_HOUR = 19;
-const SHOW_PICKS_LOCK_MINUTE = 55;
-const LOCK_TIME_LOCAL_LABEL = "7:55 PM";
+const SHOW_PICKS_LOCK_MINUTE = 30;
+const LOCK_TIME_LOCAL_LABEL = "7:30 PM";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 /** Only nudge from 4pm local onward on show day (#276). */
