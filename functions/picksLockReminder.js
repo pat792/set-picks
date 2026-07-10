@@ -5,8 +5,6 @@
 
 const {
   parseShowCalendarSnapshotToShows,
-  ymdInTimeZone,
-  hourInTimeZone,
 } = require("./phishnetLiveSetlistAutomation");
 const { hasNonEmptyPicksObject } = require("./rollupSeasonAggregates");
 const { createCommsAdapterRuntime } = require("./commsAdapterRuntime");
@@ -18,8 +16,8 @@ const SHOW_PICKS_LOCK_MINUTE = 30;
 const LOCK_TIME_LOCAL_LABEL = "7:30 PM";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
-/** Only nudge from 4pm local onward on show day (#276). */
-const REMINDER_LOCAL_START_HOUR = 16;
+/** Reminder window opens this many minutes before venue-local lock. */
+const REMINDER_LEAD_MINUTES = 3 * 60;
 
 const MAX_REMINDER_SENDS_PER_TICK = 150;
 const MAX_USERS_SCANNED = 900;
@@ -28,11 +26,11 @@ const LOG_COLLECTION = "fcm_notification_log";
 const TRIGGER_ID = "picks_lock_reminder";
 
 /**
- * @param {string} showYmd
  * @param {string} showTimeZone
  * @param {Date} now
+ * @returns {{ ymd: string, hour: number, minute: number, minutesOfDay: number } | null}
  */
-function isPastPicksLock(showYmd, showTimeZone, now) {
+function localClockParts(showTimeZone, now) {
   const dtf = new Intl.DateTimeFormat("en-US", {
     timeZone: showTimeZone,
     year: "numeric",
@@ -42,18 +40,45 @@ function isPastPicksLock(showYmd, showTimeZone, now) {
     minute: "2-digit",
     hour12: false,
   });
-  const parts = dtf.formatToParts(now);
   const map = Object.fromEntries(
-    parts.filter((p) => p.type !== "literal").map((p) => [p.type, p.value])
+    dtf.formatToParts(now).filter((p) => p.type !== "literal").map((p) => [p.type, p.value])
   );
-  const ymd = `${map.year}-${map.month}-${map.day}`;
-  if (ymd !== showYmd) return false;
   const hour = Number(map.hour);
   const minute = Number(map.minute);
-  return (
-    hour > SHOW_PICKS_LOCK_HOUR ||
-    (hour === SHOW_PICKS_LOCK_HOUR && minute >= SHOW_PICKS_LOCK_MINUTE)
-  );
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  return {
+    ymd: `${map.year}-${map.month}-${map.day}`,
+    hour,
+    minute,
+    minutesOfDay: hour * 60 + minute,
+  };
+}
+
+/**
+ * @param {string} showYmd
+ * @param {string} showTimeZone
+ * @param {Date} now
+ */
+function isPastPicksLock(showYmd, showTimeZone, now) {
+  const clock = localClockParts(showTimeZone, now);
+  if (!clock || clock.ymd !== showYmd) return false;
+  const lockMinutes = SHOW_PICKS_LOCK_HOUR * 60 + SHOW_PICKS_LOCK_MINUTE;
+  return clock.minutesOfDay >= lockMinutes;
+}
+
+/**
+ * True when local wall clock is inside [lock − REMINDER_LEAD_MINUTES, lock).
+ *
+ * @param {string} showYmd
+ * @param {string} showTimeZone
+ * @param {Date} now
+ */
+function isWithinReminderWindow(showYmd, showTimeZone, now) {
+  const clock = localClockParts(showTimeZone, now);
+  if (!clock || clock.ymd !== showYmd) return false;
+  const lockMinutes = SHOW_PICKS_LOCK_HOUR * 60 + SHOW_PICKS_LOCK_MINUTE;
+  const startMinutes = lockMinutes - REMINDER_LEAD_MINUTES;
+  return clock.minutesOfDay >= startMinutes && clock.minutesOfDay < lockMinutes;
 }
 
 /**
@@ -63,24 +88,11 @@ function isPastPicksLock(showYmd, showTimeZone, now) {
  * @returns {string}
  */
 function formatTimeToLock(showYmd, showTimeZone, now) {
-  const dtf = new Intl.DateTimeFormat("en-US", {
-    timeZone: showTimeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const parts = Object.fromEntries(
-    dtf.formatToParts(now).filter((p) => p.type !== "literal").map((p) => [p.type, p.value])
-  );
-  const localYmd = `${parts.year}-${parts.month}-${parts.day}`;
-  if (localYmd !== showYmd) return "tonight";
+  const clock = localClockParts(showTimeZone, now);
+  if (!clock || clock.ymd !== showYmd) return "tonight";
 
-  const nowMinutes = Number(parts.hour) * 60 + Number(parts.minute);
   const lockMinutes = SHOW_PICKS_LOCK_HOUR * 60 + SHOW_PICKS_LOCK_MINUTE;
-  const diff = lockMinutes - nowMinutes;
+  const diff = lockMinutes - clock.minutesOfDay;
   if (diff <= 0) return "soon";
 
   if (diff < 60) return `${diff} minute${diff === 1 ? "" : "s"}`;
@@ -105,11 +117,7 @@ function findReminderTonightShow(calendarShows, now) {
       typeof show.timeZone === "string" && show.timeZone.trim()
         ? show.timeZone.trim()
         : DEFAULT_SHOW_TIME_ZONE;
-    const localYmd = ymdInTimeZone(now, tz);
-    if (localYmd !== date) continue;
-    if (isPastPicksLock(date, tz, now)) continue;
-    const hour = hourInTimeZone(now, tz);
-    if (hour < REMINDER_LOCAL_START_HOUR) continue;
+    if (!isWithinReminderWindow(date, tz, now)) continue;
     return {
       showDate: date,
       timeZone: tz,
@@ -290,6 +298,7 @@ module.exports = {
   TRIGGER_ID,
   findReminderTonightShow,
   isPastPicksLock,
+  isWithinReminderWindow,
   formatTimeToLock,
   reminderLogDocId,
   buildPicksLockReminderRecipients,

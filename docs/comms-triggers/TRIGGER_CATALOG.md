@@ -413,7 +413,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Every 15 min on show days, venue-local 16:00–19:29 |
+| **Schedule** | Every 15 min on show days, venue-local **T-3h through lock** (16:30–19:29 when lock is 19:30) |
 | **Channels** | `inApp`, `push`, `email` |
 | **Audience** | Users with a handle and **no picks** for tonight's show |
 | **Prefs key** | `reminders` (push + in-app only) |

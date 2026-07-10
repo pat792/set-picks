@@ -232,7 +232,7 @@
       "family": "show_calendar",
       "priority": "P0",
       "automation": "automated",
-      "schedule": "every 30min on show days, venue-local 16:00–19:29",
+      "schedule": "every 15min on show days, venue-local T-3h through lock (16:30–19:29 when lock is 19:30)",
       "audience": "users_no_picks_tonight",
       "channels": ["inApp", "push", "email"],
       "prefKeys": ["reminders"],

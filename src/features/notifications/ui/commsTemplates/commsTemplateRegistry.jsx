@@ -566,7 +566,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           show_date: 'Tonight',
           venue_name: 'MSG',
           venue_city: 'New York, NY',
-          time_to_lock: '2 hours',
+          time_to_lock: '3 hours',
           lock_time_local: '7:30 PM',
         },
       },

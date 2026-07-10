@@ -171,7 +171,7 @@ if (picksLockReminder) {
     show_date: '2026-07-07',
     venue_name: 'Kohl Center',
     venue_city: 'Madison, WI',
-    time_to_lock: '2 hours',
+    time_to_lock: '3 hours',
     lock_time_local: '7:30 PM',
   });
   const shell = buildProductionBrandedEmailShell({

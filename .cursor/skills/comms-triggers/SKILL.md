@@ -51,7 +51,7 @@ Every new trigger needs **both** catalog files updated in the same PR:
 |------------|-------------------|
 | First login | `first_login_welcome` |
 | Profile missing handle | `profile_incomplete_nudge` |
-| Show day, no picks, after 4pm local | `picks_lock_reminder` (shipped) |
+| Show day, no picks, T-3h before lock | `picks_lock_reminder` (shipped) |
 | 24h before lock | `picks_lock_t24h` |
 | Show graded, user won | `post_show_win` (shipped) |
 | Tour segment complete | `tour_recap_*` |
