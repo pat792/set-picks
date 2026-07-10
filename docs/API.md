@@ -226,7 +226,7 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
 | `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
-| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day 16:00–19:54; **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
+| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (16:30–19:29 when lock is 19:30); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
 

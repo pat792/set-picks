@@ -1117,7 +1117,7 @@ exports.deleteAccountWithAudit = onCall(
 );
 
 /**
- * Pre-lock pick reminders (issue #276): venue-local show day, 4pm–lock window,
+ * Pre-lock pick reminders (issue #276): venue-local show day, T-3h–lock window,
  * deduped per user+show in `fcm_notification_log`.
  */
 exports.scheduledPicksLockReminder = onSchedule(

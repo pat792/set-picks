@@ -14,13 +14,14 @@ test("reminderLogDocId", () => {
   assert.equal(reminderLogDocId("2026-07-01", "uid1"), "reminder_2026-07-01_uid1");
 });
 
-test("findReminderTonightShow returns null before 4pm local", () => {
+test("findReminderTonightShow returns null before T-3h window", () => {
   const shows = [{ date: "2099-06-15", timeZone: "America/Los_Angeles" }];
-  const now = new Date("2099-06-15T21:05:00.000Z");
+  // 4:00pm PDT — still before 4:30pm (lock 7:30 − 3h).
+  const now = new Date("2099-06-15T23:00:00.000Z");
   assert.equal(findReminderTonightShow(shows, now), null);
 });
 
-test("findReminderTonightShow returns show in 4pm–lock window with venue metadata", () => {
+test("findReminderTonightShow returns show in T-3h–lock window with venue metadata", () => {
   const shows = [
     {
       date: "2099-06-15",
@@ -29,7 +30,8 @@ test("findReminderTonightShow returns show in 4pm–lock window with venue metad
       city: "New York, NY",
     },
   ];
-  const now = new Date("2099-06-16T01:30:00.000Z");
+  // 5:30pm PDT — inside 4:30–7:30 window.
+  const now = new Date("2099-06-16T00:30:00.000Z");
   const out = findReminderTonightShow(shows, now);
   assert.ok(out);
   assert.equal(out.showDate, "2099-06-15");
@@ -45,9 +47,10 @@ test("isPastPicksLock is true after local lock", () => {
   );
 });
 
-test("formatTimeToLock returns hours and minutes before lock", () => {
-  const now = new Date("2099-06-16T00:55:00.000Z");
-  assert.equal(formatTimeToLock("2099-06-15", "America/Los_Angeles", now), "2 hours");
+test("formatTimeToLock returns 3 hours at window open", () => {
+  // 4:30pm PDT on show day → exactly 3 hours until 7:30pm lock.
+  const now = new Date("2099-06-15T23:30:00.000Z");
+  assert.equal(formatTimeToLock("2099-06-15", "America/Los_Angeles", now), "3 hours");
 });
 
 test("buildPicksLockReminderRecipients excludes users with picks and deduped uids", () => {
