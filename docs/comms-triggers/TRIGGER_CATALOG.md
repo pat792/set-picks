@@ -75,7 +75,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | `{{tour_rank}}` | Cumulative tour standing | — |
 | `{{tour_points}}` | Cumulative tour score | — |
 | `{{total_tour_pickers}}` | Users in tour pool | — |
-| `{{rank_change}}` | `up 3` / `down 1` / `held` | — |
+| `{{rank_change}}` | `up 3` / `down 1` / `held` (null on debut / late join) | — |
 | `{{shows_played}}` | Shows user has participated in | — |
 | `{{shows_remaining}}` | Shows left in tour | — |
 | `{{next_show_date}}` | Next scheduled show | — |
@@ -368,11 +368,11 @@ Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the r
 | **Prefs key** | `results` |
 | **Dedup** | `tour_rank:{uid}:{showDate}` |
 | **Implementation** | `onSchedule` daily; checks if yesterday was a show night; fans out standings update |
-| **Note** | Email absorbs `show_recap`'s "your night" section (#451) — one email per `(uid, showDate)` instead of two. inApp/push are unaffected; those still fire immediately, night-of, from `show_recap`. |
+| **Note** | Email absorbs `show_recap`'s "your night" section (#451) — one email per `(uid, showDate)` instead of two. inApp/push are unaffected; those still fire immediately, night-of, from `show_recap`. Tour rank is the **overall tour leaderboard** (not last-night-only). `rank_change` is display-rank delta vs the prior show (`up N` / `down N` / `held`); night-one uses debut copy; mid-tour first appearance uses late-joiner catch-up (#544). |
 
 #### Variables used
 
-`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{pool_name}}`, `{{pool_rank}}`, `{{pool_total_pickers}}`, `{{correct_picks_count}}`, `{{total_picks_count}}`, `{{opener_result}}`, `{{closer_result}}`, `{{encore_result}}`, `{{wildcard_result}}`, `{{bustout_bonus}}`, `{{setlist_highlight}}`, `{{top_scorer_handle}}`, `{{top_score}}`, `{{tour_rank}}`, `{{total_tour_pickers}}`, `{{tour_points}}`, `{{rank_change}}`, `{{shows_played}}`, `{{pool_tour_rank}}`, `{{next_show_date}}`, `{{next_show_venue}}`
+`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{pool_name}}`, `{{pool_rank}}`, `{{pool_total_pickers}}`, `{{correct_picks_count}}`, `{{total_picks_count}}`, `{{opener_result}}`, `{{closer_result}}`, `{{encore_result}}`, `{{wildcard_result}}`, `{{bustout_bonus}}`, `{{setlist_highlight}}`, `{{top_scorer_handle}}`, `{{top_score}}`, `{{tour_rank}}`, `{{total_tour_pickers}}`, `{{tour_points}}`, `{{rank_change}}`, `{{is_debut}}`, `{{is_late_joiner}}`, `{{tour_rank_tied}}`, `{{tour_tied_count}}`, `{{tour_tier}}`, `{{shows_played}}`, `{{pool_tour_rank}}`, `{{next_show_date}}`, `{{next_show_venue}}`
 
 #### Template — Push
 

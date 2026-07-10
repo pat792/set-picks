@@ -13,6 +13,8 @@
 
 "use strict";
 
+const { buildTourRankingsDailyParagraphs } = require("./tourRankingsDailyCore");
+
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
 const PICKS_CTA_URL = `${SITE_URL}/dashboard/picks`;
@@ -222,25 +224,33 @@ const BUILDERS = {
   },
 
   "tour-rankings-daily": (p) => {
-    const assembled = assembleServiceEmail(
-      [
-        `${handleOf(p)}, here's how last night at ${p.venue_name || p.venue_city || "the show"} went.`,
-        p.show_score != null ? `Show score: ${p.show_score}.` : "",
-        p.global_rank != null
-          ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
-          : "",
-        p.correct_picks_count != null
-          ? `Correct picks: ${p.correct_picks_count}${p.total_picks_count != null ? ` of ${p.total_picks_count}` : ""}.`
-          : "",
-        "",
-        `Now ${p.tour_rank != null ? `#${p.tour_rank}` : "on the board"}${p.total_tour_pickers != null ? ` of ${p.total_tour_pickers}` : ""} on tour${p.tour_points != null ? ` with ${p.tour_points} pts` : ""}${p.rank_change ? ` (${p.rank_change})` : ""}.`,
-        p.next_show_venue ? `Next show: ${p.next_show_date || ""} ${p.next_show_venue}.`.trim() : "",
-      ].filter(Boolean)
-    );
+    const nightOf = [
+      `${handleOf(p)}, here's how last night at ${p.venue_name || p.venue_city || "the show"} went.`,
+      p.show_score != null ? `Show score: ${p.show_score}.` : "",
+      p.global_rank != null
+        ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
+        : "",
+      p.correct_picks_count != null
+        ? `Correct picks: ${p.correct_picks_count}${p.total_picks_count != null ? ` of ${p.total_picks_count}` : ""}.`
+        : "",
+    ].filter(Boolean);
+
+    const tourParas = buildTourRankingsDailyParagraphs(p);
+    const assembled = assembleServiceEmail([...nightOf, "", ...tourParas].filter(Boolean));
+
+    const pushRank =
+      p.tour_rank != null
+        ? p.tour_rank_tied
+          ? `tied #${p.tour_rank}`
+          : `#${p.tour_rank}`
+        : null;
+
     return {
       push: {
         title: "Where you stand on tour",
-        body: `${p.tour_rank != null ? `#${p.tour_rank} on tour` : "New standings are in"}${p.tour_points != null ? ` · ${p.tour_points} pts` : ""}.`,
+        body: `${pushRank != null ? `${pushRank} on tour` : "New standings are in"}${
+          p.tour_points != null ? ` · ${p.tour_points} pts` : ""
+        }${p.rank_change ? ` (${p.rank_change})` : ""}.`,
       },
       email: {
         subject: p.venue_city

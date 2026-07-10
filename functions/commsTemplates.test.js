@@ -73,8 +73,9 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   // Tour-standings content (this trigger's original purpose) still present.
   assert.match(out.email.text, /#3/, "tour rank");
   assert.match(out.email.text, /210/, "tour points");
-  assert.match(out.email.text, /up 2/, "rank change");
+  assert.match(out.email.text, /climbed 2/, "rank change rendered as climbed");
   assert.match(out.email.text, /2026-07-19/, "next show date");
+  assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
 });
 
 test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {
