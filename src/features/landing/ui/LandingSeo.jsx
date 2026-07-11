@@ -111,11 +111,13 @@ export default function LandingSeo() {
       <title>{SEO_CONFIG.defaultTitle}</title>
       <meta name="description" content={SEO_CONFIG.defaultDescription} />
       <meta name="author" content={SEO_CONFIG.publisherName} />
+      <meta property="og:site_name" content={SEO_CONFIG.siteName} />
       <meta property="og:type" content="website" />
       <meta property="og:title" content={SEO_CONFIG.defaultTitle} />
       <meta property="og:description" content={SEO_CONFIG.defaultDescription} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:image" content={SEO_CONFIG.ogImageUrl} />
+      <meta property="og:image:secure_url" content={SEO_CONFIG.ogImageUrl} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta

@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.6] — 2026-07-11
+
+### Fixed
+- **Open Graph / Instagram link previews** — flattened `api/invite.js` (nested `api/invite/[code].js` never registered on Vercel, so `/join/:code` fell through to static `index.html` without pool-specific OG tags). Added `og:site_name`, `og:image:secure_url`, and Instagram/Meta crawler user-agents.
+
+---
+
 ## [1.20.5] — 2026-07-10
 
 ### Changed

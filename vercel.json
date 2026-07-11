@@ -1,7 +1,7 @@
 {
   "ignoreCommand": "bash scripts/vercel-should-build.sh",
   "functions": {
-    "api/invite/[code].js": {
+    "api/invite.js": {
       "includeFiles": "dist/index.html"
     }
   },
@@ -30,7 +30,7 @@
     },
     {
       "source": "/join/:code",
-      "destination": "/api/invite/:code"
+      "destination": "/api/invite?code=:code"
     },
     {
       "source": "/(.*)",

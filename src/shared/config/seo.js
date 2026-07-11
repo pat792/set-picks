@@ -4,6 +4,7 @@
  */
 export const SEO_CONFIG = {
   siteUrl: 'https://www.setlistpickem.com',
+  siteName: "Setlist Pick 'Em",
   /** Shown in meta + JSON-LD; some link previews (e.g. LinkedIn) surface publisher/author from structured data. */
   publisherName: 'Road2 Media LLC',
   defaultTitle: "Setlist Pick'em | The Ultimate Live Music Prediction Game",
