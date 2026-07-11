@@ -1,7 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.20.6",
+  "version": "1.20.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,7 +16,8 @@
     "generate:og-card": "node scripts/generate-og-card.mjs",
     "generate:email-wordmark": "node scripts/generate-email-wordmark.mjs",
     "secrets:sync-phishnet": "node scripts/sync-phishnet-secret.mjs",
-    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow,functions:scheduledPhishnetSongCatalog,functions:refreshPhishnetSongCatalog,functions:scheduledPhishnetLiveSetlistPoll,functions:setLiveSetlistAutomationState,functions:pollLiveSetlistNow,functions:sendPushCanary",
+    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow,functions:scheduledPhishnetSongCatalog,functions:refreshPhishnetSongCatalog,functions:scheduledPhishnetLiveSetlistPoll,functions:scheduledPicksLockReminder,functions:setLiveSetlistAutomationState,functions:pollLiveSetlistNow,functions:sendPushCanary,functions:lockPicksForShowNow",
+    "verify:phishnet-deploy-manifest": "node scripts/verify-phishnet-deploy-manifest.mjs",
     "diagnose:phishnet": "node scripts/diagnose-phishnet-local.mjs",
     "print:phishnet-tour-clusters": "node scripts/print-phishnet-tour-clusters.mjs",
     "test": "vitest run",
