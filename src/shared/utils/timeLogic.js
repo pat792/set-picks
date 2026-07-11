@@ -7,10 +7,11 @@ export const SHOW_SCHEDULE_TIMEZONE = DEFAULT_SHOW_TIME_ZONE;
 
 /**
  * Picks lock at this local time on the show's calendar date in the show's local timezone.
- * Interim 7:55pm local wall clock (#303 / #278).
+ * 7:30pm local wall clock — earlier than set 1 for most shows so War Room has
+ * headroom for manual lock if Phish.net / auto paths lag.
  */
 export const SHOW_PICKS_LOCK_HOUR_LOCAL = 19;
-export const SHOW_PICKS_LOCK_MINUTE_LOCAL = 55;
+export const SHOW_PICKS_LOCK_MINUTE_LOCAL = 30;
 // Back-compat aliases for existing imports.
 export const SHOW_PICKS_LOCK_HOUR_PT = SHOW_PICKS_LOCK_HOUR_LOCAL;
 export const SHOW_PICKS_LOCK_MINUTE_PT = SHOW_PICKS_LOCK_MINUTE_LOCAL;

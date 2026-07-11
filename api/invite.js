@@ -1,9 +1,13 @@
 /**
  * Vercel Serverless Function — dynamic OG tags for /join/:code invite links.
  *
- * Social crawlers (Facebook, Twitter, Slack, …) don't execute JavaScript, so
- * they can't read OG tags injected by React. This function intercepts every
- * /join/:code request and:
+ * Flat `api/invite.js` + `?code=` query (vercel.json rewrite) — nested
+ * `api/invite/[code].js` never registered on Vercel deploy (same class of bug
+ * as api/email-click; see f883d02).
+ *
+ * Social crawlers (Facebook, Instagram, Twitter, Slack, …) don't execute
+ * JavaScript, so they can't read OG tags injected by React. This function
+ * intercepts every /join/:code request and:
  *
  *   • For **social crawlers**: serves a minimal HTML page with pool-specific
  *     OG meta tags fetched from Firestore via the Firebase Admin SDK.
@@ -35,14 +39,19 @@ import { getFirestore } from 'firebase-admin/firestore';
 // ---------------------------------------------------------------------------
 
 const SITE_URL = 'https://www.setlistpickem.com';
-const DEFAULT_OG_IMAGE = 'https://www.setlistpickem.com/branding/og-card-1200x630.png';
+const SITE_NAME = "Setlist Pick 'Em";
+const DEFAULT_OG_IMAGE =
+  'https://www.setlistpickem.com/branding/og-card-1200x630.jpg?v=20260711';
+const DEFAULT_OG_IMAGE_ALT = "Setlist Pick 'Em — live setlist prediction game";
 const DEFAULT_TITLE = "Setlist Pick'em | The Ultimate Live Music Prediction Game";
 const DEFAULT_DESCRIPTION =
   "Setlist Pick 'Em is a free live setlist prediction game for Phish fans. Pick openers, closers, encore, and a wildcard before each show; scores update in real time as songs are played. Compete in a global pool or create private pools with friends.";
 
 // Social-crawler user-agent detection (case-insensitive substring match).
+// Instagram link previews use Meta's `facebookexternalhit` scraper — do NOT
+// match bare `Instagram` (the in-app browser UA contains that token).
 const CRAWLER_RE =
-  /facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|TelegramBot|Discordbot|redditbot|Applebot|Googlebot|bingbot|ia_archiver/i;
+  /facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|LinkedInBot|TelegramBot|Discordbot|redditbot|Applebot|Googlebot|bingbot|ia_archiver/i;
 
 // ---------------------------------------------------------------------------
 // Firebase Admin — lazy singleton
@@ -88,28 +97,38 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
+function buildOgMetaTags({ title, description, url, image, imageAlt = DEFAULT_OG_IMAGE_ALT }) {
+  return [
+    `  <title>${escapeHtml(title)}</title>`,
+    `  <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />`,
+    `  <meta property="og:title" content="${escapeHtml(title)}" />`,
+    `  <meta property="og:description" content="${escapeHtml(description)}" />`,
+    `  <meta property="og:image" content="${escapeHtml(image)}" />`,
+    `  <meta property="og:image:secure_url" content="${escapeHtml(image)}" />`,
+    `  <meta property="og:image:type" content="image/jpeg" />`,
+    `  <meta property="og:image:width" content="1200" />`,
+    `  <meta property="og:image:height" content="630" />`,
+    `  <meta property="og:image:alt" content="${escapeHtml(imageAlt)}" />`,
+    `  <meta property="og:url" content="${escapeHtml(url)}" />`,
+    `  <meta property="og:type" content="website" />`,
+    `  <meta name="twitter:card" content="summary_large_image" />`,
+    `  <meta name="twitter:title" content="${escapeHtml(title)}" />`,
+    `  <meta name="twitter:description" content="${escapeHtml(description)}" />`,
+    `  <meta name="twitter:image" content="${escapeHtml(image)}" />`,
+  ].join('\n');
+}
+
 /**
  * Builds a minimal OG-tagged HTML shell for social crawlers.
  * Browsers never see this; they get the full SPA shell instead.
  */
-function buildCrawlerHtml({ title, description, url, image }) {
+function buildCrawlerHtml(og) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeHtml(title)}</title>
-  <meta property="og:title" content="${escapeHtml(title)}" />
-  <meta property="og:description" content="${escapeHtml(description)}" />
-  <meta property="og:image" content="${escapeHtml(image)}" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:url" content="${escapeHtml(url)}" />
-  <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${escapeHtml(title)}" />
-  <meta name="twitter:description" content="${escapeHtml(description)}" />
-  <meta name="twitter:image" content="${escapeHtml(image)}" />
+${buildOgMetaTags(og)}
 </head>
 <body></body>
 </html>`;
@@ -124,19 +143,8 @@ function buildCrawlerHtml({ title, description, url, image }) {
  * @param {{ title: string, description: string, url: string, image: string }} og
  * @returns {string}
  */
-function injectOgIntoSpa(spaHtml, { title, description, url, image }) {
-  const dynamicTags = [
-    `  <title>${escapeHtml(title)}</title>`,
-    `  <meta property="og:title" content="${escapeHtml(title)}" />`,
-    `  <meta property="og:description" content="${escapeHtml(description)}" />`,
-    `  <meta property="og:image" content="${escapeHtml(image)}" />`,
-    `  <meta property="og:url" content="${escapeHtml(url)}" />`,
-    `  <meta property="og:type" content="website" />`,
-    `  <meta name="twitter:card" content="summary_large_image" />`,
-    `  <meta name="twitter:title" content="${escapeHtml(title)}" />`,
-    `  <meta name="twitter:description" content="${escapeHtml(description)}" />`,
-    `  <meta name="twitter:image" content="${escapeHtml(image)}" />`,
-  ].join('\n');
+function injectOgIntoSpa(spaHtml, og) {
+  const dynamicTags = buildOgMetaTags(og);
 
   // Insert dynamic tags right after <meta charset> (before any static defaults).
   return spaHtml.replace(
@@ -159,8 +167,7 @@ function loadSpaTemplate() {
   // Vercel bundles includeFiles relative to the project root into the function
   // working directory. Try the most likely paths.
   const candidates = [
-    join(process.cwd(), 'dist', 'index.html'),          // /var/task/dist/index.html
-    join(__dirname, '..', '..', 'dist', 'index.html'),  // relative to api/invite/
+    join(process.cwd(), 'dist', 'index.html'), // /var/task/dist/index.html
     join(__dirname, '..', 'dist', 'index.html'),
   ];
 

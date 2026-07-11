@@ -10,7 +10,7 @@
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 
 const SHOW_PICKS_LOCK_HOUR_LOCAL = 19;
-const SHOW_PICKS_LOCK_MINUTE_LOCAL = 55;
+const SHOW_PICKS_LOCK_MINUTE_LOCAL = 30;
 
 function resolveShowTimeZone(show, fallback = DEFAULT_SHOW_TIME_ZONE) {
   const explicit =

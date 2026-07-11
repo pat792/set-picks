@@ -1,7 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.20.5",
+  "version": "1.20.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
     "verify:dashboard-meta": "node scripts/verify-dashboard-meta.mjs",
     "verify:theme-contract": "node scripts/verify-theme-contract.mjs",
     "verify:dashboard-ui": "node scripts/verify-dashboard-ui-tokens.mjs",
+    "verify:og-home": "node scripts/verify-og-home.mjs",
     "generate:og-card": "node scripts/generate-og-card.mjs",
     "generate:email-wordmark": "node scripts/generate-email-wordmark.mjs",
     "secrets:sync-phishnet": "node scripts/sync-phishnet-secret.mjs",

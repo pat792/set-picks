@@ -33,7 +33,7 @@ test("evaluateManualFinalizeTimingGate: allows PAST without force", () => {
 });
 
 test("evaluateManualFinalizeTimingGate: blocks LIVE without force", () => {
-  // 8:10pm Eastern on the show date — after 7:55pm picks lock (#303).
+  // 8:10pm Eastern on the show date — after 7:30pm picks lock.
   const now = new Date("2026-04-30T20:10:00-04:00");
   const st = getShowStatus("2026-04-30", CAL, now);
   assert.equal(st, "LIVE");

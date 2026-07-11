@@ -17,9 +17,20 @@ const {
   createCommsAdapterRuntime,
   isCommsEventAdaptersEnabled,
 } = require("./commsAdapterRuntime");
+const {
+  aggregateTourStandings,
+  assignDisplayRanks,
+  tourDatesForKey,
+  tourDatesThrough,
+  priorTourShowDate,
+  nextTourShowDate,
+  buildTourRankingsDailyPayloadFields,
+} = require("./tourRankingsDailyCore");
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 const COUNTDOWN_DAYS = [10, 5, 3, 1];
+/** Firestore `in` queries allow at most 30 equality values. */
+const FIRESTORE_IN_QUERY_LIMIT = 30;
 
 /**
  * @param {unknown} data
@@ -125,7 +136,7 @@ function findTourCountdownTargets(calendarShows, now, countdownDays = COUNTDOWN_
         first_show_venue: show.venue || "",
         first_show_city: show.city || "",
         timeZone: tz,
-        lock_time_local: "7:55 PM",
+        lock_time_local: "7:30 PM",
       });
     }
   }
@@ -520,7 +531,39 @@ async function runScheduledTourCountdown({ db, admin, resendApiKey, logger, now 
 }
 
 /**
- * Morning-after tour rankings (#440) — uses prior show night's graded picks.
+ * Load graded picks for many show dates (chunked `in` queries).
+ *
+ * @param {import("firebase-admin").firestore.Firestore} db
+ * @param {string[]} dates
+ * @returns {Promise<Array<{ date: string, picks: Record<string, unknown>[] }>>}
+ */
+async function loadPicksByDates(db, dates) {
+  /** @type {Map<string, Record<string, unknown>[]>} */
+  const byDate = new Map();
+  for (const d of dates) byDate.set(d, []);
+  if (dates.length === 0) return [];
+
+  for (let i = 0; i < dates.length; i += FIRESTORE_IN_QUERY_LIMIT) {
+    const chunk = dates.slice(i, i + FIRESTORE_IN_QUERY_LIMIT);
+    // eslint-disable-next-line no-await-in-loop
+    const snap = await db.collection("picks").where("showDate", "in", chunk).get();
+    for (const doc of snap.docs) {
+      const data = doc.data() || {};
+      const sd = typeof data.showDate === "string" ? data.showDate.trim() : "";
+      if (!byDate.has(sd)) continue;
+      byDate.get(sd).push({ id: doc.id, ...data });
+    }
+  }
+
+  return dates.map((date) => ({ date, picks: byDate.get(date) || [] }));
+}
+
+/**
+ * Morning-after tour rankings (#440 / #544) — overall tour leaderboard + rank_change.
+ *
+ * Audience: users with graded picks for last night. Tour rank is among the full
+ * cumulative tour board (all graded pickers through last night), not last-night-only.
+ * Regrades are reflected automatically because we recompute from current picks.
  */
 async function runScheduledTourRankingsDaily({
   db,
@@ -535,6 +578,11 @@ async function runScheduledTourRankingsDaily({
   const calData = calSnap.exists ? calSnap.data() : null;
   const shows = parseShowCalendarSnapshotToShows(calData);
   const showDatesByTour = calData?.showDatesByTour ?? null;
+  /** @type {Map<string, { venue?: string, city?: string }>} */
+  const showMetaByDate = new Map();
+  for (const s of shows) {
+    if (s?.date) showMetaByDate.set(s.date, s);
+  }
 
   const yesterdayCandidates = shows.filter((s) => {
     if (!s?.date) return false;
@@ -559,52 +607,67 @@ async function runScheduledTourRankingsDaily({
     const picksSnap = await db.collection("picks").where("showDate", "==", showDate).get();
     if (picksSnap.empty) continue;
     const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
-    // #451: reuse the same rank helper show_recap uses so this email's folded-in
-    // "your night" section (show_score/global_rank) matches what show_recap
-    // would have reported, without a second Firestore pass.
+    const tourDates = tourDatesForKey(showDatesByTour, tourKey);
+    const datesThrough = tourDates.length > 0 ? tourDatesThrough(tourDates, showDate) : [showDate];
+    const priorDate = priorTourShowDate(tourDates, showDate);
+    const nextDate = nextTourShowDate(tourDates, showDate);
+    const nextMeta = nextDate ? showMetaByDate.get(nextDate) : null;
+    const isTourNightOne = !priorDate;
+
+    // #451: night-of show rank for the folded-in "your night" section.
     const globalRanks = computeGlobalRankByUid(picksSnap.docs, new Map());
 
-    /** @type {{ uid: string, tourPoints: number }[]} */
-    const tourRows = [];
+    // #544: full tour board through last night (+ prior night for rank_change).
+    // eslint-disable-next-line no-await-in-loop
+    const picksByDate = await loadPicksByDates(db, datesThrough);
+    const currentBoard = assignDisplayRanks(aggregateTourStandings(picksByDate));
+    let priorBoard = null;
+    if (priorDate) {
+      const priorPicksByDate = picksByDate.filter((e) => e.date <= priorDate);
+      priorBoard = assignDisplayRanks(aggregateTourStandings(priorPicksByDate));
+    }
+
+    /** @type {Set<string>} */
+    const lastNightUids = new Set();
     for (const pickDoc of picksSnap.docs) {
       const pickData = pickDoc.data() || {};
       const uid = typeof pickData.userId === "string" ? pickData.userId.trim() : "";
       if (!uid || pickData.isGraded !== true) continue;
+      lastNightUids.add(uid);
+    }
+
+    for (const uid of lastNightUids) {
       // eslint-disable-next-line no-await-in-loop
       const userSnap = await db.collection("users").doc(uid).get();
       const userData = userSnap.exists ? userSnap.data() || {} : {};
-      const tourPoints =
-        tourKey && userData.seasonStats?.[tourKey]?.totalPoints != null
-          ? Number(userData.seasonStats[tourKey].totalPoints)
-          : typeof userData.totalPoints === "number"
-            ? userData.totalPoints
-            : 0;
-      tourRows.push({ uid, tourPoints });
-    }
-    tourRows.sort((a, b) => b.tourPoints - a.tourPoints);
-
-    for (let i = 0; i < tourRows.length; i++) {
-      const row = tourRows[i];
-      // eslint-disable-next-line no-await-in-loop
-      const userSnap = await db.collection("users").doc(row.uid).get();
-      const userData = userSnap.exists ? userSnap.data() || {} : {};
-      const rankInfo = globalRanks.get(row.uid) || null;
+      const rankInfo = globalRanks.get(uid) || null;
+      const pickHandle = (() => {
+        for (const pickDoc of picksSnap.docs) {
+          const d = pickDoc.data() || {};
+          if (d.userId === uid) return handleFromUser(d);
+        }
+        return "";
+      })();
+      const payload = buildTourRankingsDailyPayloadFields({
+        uid,
+        handle: pickHandle || handleFromUser(userData),
+        showDate,
+        venueName: show.venue || "",
+        venueCity: show.city || "",
+        showScore: rankInfo?.score ?? null,
+        globalRank: rankInfo?.rank ?? null,
+        globalTotalPickers: rankInfo?.total ?? null,
+        currentBoard,
+        priorBoard,
+        isTourNightOne,
+        nextShowDate: nextDate,
+        nextShowVenue: nextMeta?.venue || "",
+      });
       recipients.push({
-        uid: row.uid,
+        uid,
         userData,
-        payload: {
-          handle: handleFromUser(userData),
-          show_date: showDate,
-          venue_name: show.venue || "",
-          venue_city: show.city || "",
-          show_score: rankInfo?.score ?? null,
-          global_rank: rankInfo?.rank ?? null,
-          global_total_pickers: rankInfo?.total ?? null,
-          tour_rank: i + 1,
-          tour_points: row.tourPoints,
-          total_tour_pickers: tourRows.length,
-        },
-        vars: { uid: row.uid, showDate },
+        payload,
+        vars: { uid, showDate },
       });
     }
   }

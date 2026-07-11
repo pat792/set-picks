@@ -12,10 +12,28 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.20.5] — 2026-07-09
+## [1.20.7] — 2026-07-11
 
 ### Fixed
 - **Admin picks lock deploy gap (#522)** — `lockPicksForShowNow` is now included in `npm run deploy:functions:phishnet`; added `verify:phishnet-deploy-manifest` CI guard, ops CLI (`functions/scripts/lockPicksForShowNow.js`), and `docs/PICKS_LOCK_ADMIN_RUNBOOK.md`. War Room surfaces a clearer error when the callable is missing (`functions/internal`).
+
+---
+
+## [1.20.6] — 2026-07-11
+
+### Fixed
+- **Homepage Open Graph / Instagram link previews** — edge middleware serves minimal OG HTML to Meta scrapers on `/`; OG image switched to versioned JPEG (`og-card-1200x630.jpg?v=20260711`) with `og:image:type` and tags moved immediately after charset. Fixes stale Meta cache and maximizes scraper compatibility.
+- **Invite link OG handler** — flattened `api/invite.js` (nested `api/invite/[code].js` never registered on Vercel). Crawler UA detection no longer matches the Instagram in-app browser.
+
+---
+
+## [1.20.5] — 2026-07-10
+
+### Changed
+- **Picks lock time** — venue-local wall clock moves from **7:55 PM → 7:30 PM** so most shows lock before set 1 and War Room has headroom for manual lock. Reminder window is **T-3h through lock** (16:30–19:29 local); email/in-app copy fallbacks say `7:30 PM`.
+
+### Fixed
+- **`tour_rankings_daily` rank change (#544)** — morning tour standings now compute display-rank delta vs the prior show (`up N` / `down N` / `held`) on the **overall tour leaderboard**, so recipients no longer all see "held your spot". Night-one debut, late-joiner catch-up, ties, and leader/top-5 flavor copy are included; regrades recompute from current picks.
 
 ---
 

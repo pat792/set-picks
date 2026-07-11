@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 
 import { SPHERE_2026_RECAP_ID, Sphere2026TourRecapInApp } from '../../../tour-recap';
+import { buildTourRankingsDailyParagraphs } from '../../model/tourRankingsDailyCopy';
 
 const FALLBACK_HANDLE = 'Picker';
 
@@ -155,7 +156,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })
             ? `First show: ${venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })}.`
             : 'Get your picks ready before the first downbeat.',
-          `Picks lock at ${p.lock_time_local || '7:55 PM'} local on show night — don't get shut out.`,
+          `Picks lock at ${p.lock_time_local || '7:30 PM'} local on show night — don't get shut out.`,
         ],
         cta: tourCountdownInAppCta(p),
       };
@@ -170,7 +171,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 18',
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -182,7 +183,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 18',
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -194,7 +195,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 7',
           first_show_venue: 'Kohl Center',
           first_show_city: 'Madison, WI',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -366,31 +367,25 @@ export const COMMS_TEMPLATE_REGISTRY = {
     triggerId: 'tour_rankings_daily',
     displayName: 'Tour rankings',
     build: (p) => {
-      const change = p.rank_change;
-      const changeLabel =
-        change === 'held' || change == null
-          ? 'held your spot'
-          : Number(change) > 0
-            ? `climbed ${change}`
-            : `slipped ${Math.abs(Number(change))}`;
+      const paragraphs = buildTourRankingsDailyParagraphs(p);
+      const tourRankLabel =
+        p.tour_rank != null
+          ? p.tour_rank_tied
+            ? `tied #${p.tour_rank}${
+                p.total_tour_pickers != null ? `/${p.total_tour_pickers}` : ''
+              }`
+            : p.total_tour_pickers != null
+              ? `#${p.tour_rank}/${p.total_tour_pickers}`
+              : `#${p.tour_rank}`
+          : null;
       return {
         icon: TrendingUp,
         accentClassName: 'text-sky-300',
         eyebrow: 'Tour standings',
         title: 'Where you stand on tour',
-        paragraphs: [
-          `${handleOf(p)}, after ${p.venue_city || 'last night'} you ${changeLabel}.`,
-          p.next_show_date
-            ? `Next up: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
-            : 'Keep your streak going on the next show.',
-        ],
+        paragraphs,
         stats: [
-          p.tour_rank != null
-            ? {
-                label: 'Tour rank',
-                value: p.total_tour_pickers != null ? `#${p.tour_rank}/${p.total_tour_pickers}` : `#${p.tour_rank}`,
-              }
-            : null,
+          tourRankLabel != null ? { label: 'Tour rank', value: tourRankLabel } : null,
           p.tour_points != null ? { label: 'Tour points', value: p.tour_points } : null,
           p.shows_played != null ? { label: 'Shows', value: p.shows_played } : null,
         ].filter(Boolean),
@@ -399,18 +394,149 @@ export const COMMS_TEMPLATE_REGISTRY = {
     },
     samples: [
       {
-        name: 'Climbed',
+        name: 'Debut (night one)',
+        payload: {
+          handle: 'ArmenianMan',
+          show_date: '2026-07-07',
+          venue_name: 'Kohl Center',
+          venue_city: 'Madison, WI',
+          tour_rank: 1,
+          total_tour_pickers: 11,
+          tour_points: 10,
+          is_debut: true,
+          shows_played: 1,
+          next_show_date: '2026-07-08',
+          next_show_venue: 'United Center',
+        },
+      },
+      {
+        name: 'Late joiner',
+        payload: {
+          handle: 'LateBird',
+          show_date: '2026-07-11',
+          venue_name: 'Deer Creek',
+          venue_city: 'Noblesville, IN',
+          is_late_joiner: true,
+          global_rank: 4,
+          global_total_pickers: 28,
+          tour_rank: 22,
+          total_tour_pickers: 45,
+          tour_points: 12,
+          shows_played: 1,
+          next_show_date: '2026-07-12',
+          next_show_venue: 'Alpine Valley',
+        },
+      },
+      {
+        name: 'Climbed (outside top 5)',
         payload: {
           handle: 'drgluhanick',
-          show_date: 'Jul 18',
+          show_date: '2026-07-18',
+          venue_name: 'MSG',
           venue_city: 'New York, NY',
-          tour_rank: 6,
+          tour_rank: 12,
           total_tour_pickers: 312,
           tour_points: 410,
-          rank_change: 3,
+          rank_change: 'up 3',
           shows_played: 5,
-          next_show_date: 'Jul 20',
+          next_show_date: '2026-07-20',
           next_show_venue: 'MSG',
+        },
+      },
+      {
+        name: 'Climbed into top 5',
+        payload: {
+          handle: 'HotDogBilly',
+          show_date: '2026-07-18',
+          venue_name: 'MSG',
+          venue_city: 'New York, NY',
+          tour_rank: 4,
+          total_tour_pickers: 312,
+          tour_points: 455,
+          rank_change: 'up 2',
+          shows_played: 5,
+          next_show_date: '2026-07-20',
+          next_show_venue: 'MSG',
+        },
+      },
+      {
+        name: 'Slipped (ArmenianMan)',
+        payload: {
+          handle: 'ArmenianMan',
+          show_date: '2026-07-08',
+          venue_name: 'Kohl Center',
+          venue_city: 'Madison, WI',
+          tour_rank: 6,
+          total_tour_pickers: 11,
+          tour_points: 15,
+          rank_change: 'down 5',
+          shows_played: 2,
+          global_rank: 8,
+          global_total_pickers: 11,
+          next_show_date: '2026-07-09',
+          next_show_venue: 'United Center',
+        },
+      },
+      {
+        name: 'Held',
+        payload: {
+          handle: 'I have the book',
+          show_date: '2026-07-18',
+          venue_city: 'New York, NY',
+          tour_rank: 8,
+          total_tour_pickers: 312,
+          tour_points: 380,
+          rank_change: 'held',
+          shows_played: 5,
+          next_show_date: '2026-07-20',
+          next_show_venue: 'MSG',
+        },
+      },
+      {
+        name: 'Leader (solo)',
+        payload: {
+          handle: 'RiverTranced',
+          show_date: '2026-07-18',
+          venue_city: 'New York, NY',
+          tour_rank: 1,
+          total_tour_pickers: 312,
+          tour_points: 520,
+          rank_change: 'held',
+          shows_played: 5,
+          next_show_date: '2026-07-20',
+          next_show_venue: 'MSG',
+        },
+      },
+      {
+        name: 'Tied leader',
+        payload: {
+          handle: 'RiverTranced',
+          show_date: '2026-07-18',
+          venue_city: 'Chicago, IL',
+          tour_rank: 1,
+          total_tour_pickers: 40,
+          tour_points: 80,
+          rank_change: 'held',
+          tour_rank_tied: true,
+          tour_tied_count: 2,
+          shows_played: 3,
+          next_show_date: '2026-07-19',
+          next_show_venue: 'Alpine Valley',
+        },
+      },
+      {
+        name: 'Tied mid-pack',
+        payload: {
+          handle: 'CouchTourPat',
+          show_date: '2026-07-18',
+          venue_city: 'Philadelphia, PA',
+          tour_rank: 9,
+          total_tour_pickers: 40,
+          tour_points: 55,
+          rank_change: 'down 1',
+          tour_rank_tied: true,
+          tour_tied_count: 3,
+          shows_played: 4,
         },
       },
     ],
@@ -425,7 +551,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
       eyebrow: 'Picks lock soon',
       title: 'Lock in your picks',
       paragraphs: [
-        `${handleOf(p)}, ${venueLine(p) || "tonight's show"} locks at ${p.lock_time_local || '7:55 PM'} local${
+        `${handleOf(p)}, ${venueLine(p) || "tonight's show"} locks at ${p.lock_time_local || '7:30 PM'} local${
           p.time_to_lock ? ` — about ${p.time_to_lock} away` : ''
         }.`,
         "You haven't locked picks yet. Don't get shut out of the night.",
@@ -440,8 +566,8 @@ export const COMMS_TEMPLATE_REGISTRY = {
           show_date: 'Tonight',
           venue_name: 'MSG',
           venue_city: 'New York, NY',
-          time_to_lock: '2 hours',
-          lock_time_local: '7:55 PM',
+          time_to_lock: '3 hours',
+          lock_time_local: '7:30 PM',
         },
       },
     ],

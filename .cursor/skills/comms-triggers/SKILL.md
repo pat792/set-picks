@@ -17,7 +17,7 @@ You own the **trigger catalog** — what fires, for whom, when, through which ch
 2. `docs/comms-triggers/TRIGGER_CATALOG.md`
 3. `docs/comms-triggers/catalog.json`
 4. `src/features/comms/registry.js` — templateId linkage
-5. Game logic: `src/shared/utils/timeLogic.js`, `show_calendar`, picks lock (#303: 19:55 local)
+5. Game logic: `src/shared/utils/timeLogic.js`, `show_calendar`, picks lock (#303: 19:30 local)
 
 ## Trigger Spec checklist
 
@@ -51,7 +51,7 @@ Every new trigger needs **both** catalog files updated in the same PR:
 |------------|-------------------|
 | First login | `first_login_welcome` |
 | Profile missing handle | `profile_incomplete_nudge` |
-| Show day, no picks, after 4pm local | `picks_lock_reminder` (shipped) |
+| Show day, no picks, T-3h before lock | `picks_lock_reminder` (shipped) |
 | 24h before lock | `picks_lock_t24h` |
 | Show graded, user won | `post_show_win` (shipped) |
 | Tour segment complete | `tour_recap_*` |
