@@ -118,6 +118,7 @@ export default function LandingSeo() {
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:image" content={SEO_CONFIG.ogImageUrl} />
       <meta property="og:image:secure_url" content={SEO_CONFIG.ogImageUrl} />
+      <meta property="og:image:type" content={SEO_CONFIG.ogImageType} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta

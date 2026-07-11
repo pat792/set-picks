@@ -40,17 +40,18 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 const SITE_URL = 'https://www.setlistpickem.com';
 const SITE_NAME = "Setlist Pick 'Em";
-const DEFAULT_OG_IMAGE = 'https://www.setlistpickem.com/branding/og-card-1200x630.png';
+const DEFAULT_OG_IMAGE =
+  'https://www.setlistpickem.com/branding/og-card-1200x630.jpg?v=20260711';
 const DEFAULT_OG_IMAGE_ALT = "Setlist Pick 'Em — live setlist prediction game";
 const DEFAULT_TITLE = "Setlist Pick'em | The Ultimate Live Music Prediction Game";
 const DEFAULT_DESCRIPTION =
   "Setlist Pick 'Em is a free live setlist prediction game for Phish fans. Pick openers, closers, encore, and a wildcard before each show; scores update in real time as songs are played. Compete in a global pool or create private pools with friends.";
 
 // Social-crawler user-agent detection (case-insensitive substring match).
-// Instagram link previews use Meta's facebookexternalhit scraper; include
-// explicit Instagram/Facebot tokens for in-app share flows.
+// Instagram link previews use Meta's `facebookexternalhit` scraper — do NOT
+// match bare `Instagram` (the in-app browser UA contains that token).
 const CRAWLER_RE =
-  /facebookexternalhit|Facebot|Instagram|Twitterbot|WhatsApp|Slackbot|LinkedInBot|TelegramBot|Discordbot|redditbot|Applebot|Googlebot|bingbot|ia_archiver/i;
+  /facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|LinkedInBot|TelegramBot|Discordbot|redditbot|Applebot|Googlebot|bingbot|ia_archiver/i;
 
 // ---------------------------------------------------------------------------
 // Firebase Admin — lazy singleton
@@ -104,6 +105,7 @@ function buildOgMetaTags({ title, description, url, image, imageAlt = DEFAULT_OG
     `  <meta property="og:description" content="${escapeHtml(description)}" />`,
     `  <meta property="og:image" content="${escapeHtml(image)}" />`,
     `  <meta property="og:image:secure_url" content="${escapeHtml(image)}" />`,
+    `  <meta property="og:image:type" content="image/jpeg" />`,
     `  <meta property="og:image:width" content="1200" />`,
     `  <meta property="og:image:height" content="630" />`,
     `  <meta property="og:image:alt" content="${escapeHtml(imageAlt)}" />`,

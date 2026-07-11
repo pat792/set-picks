@@ -15,7 +15,8 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.20.6] — 2026-07-11
 
 ### Fixed
-- **Open Graph / Instagram link previews** — flattened `api/invite.js` (nested `api/invite/[code].js` never registered on Vercel, so `/join/:code` fell through to static `index.html` without pool-specific OG tags). Added `og:site_name`, `og:image:secure_url`, and Instagram/Meta crawler user-agents.
+- **Homepage Open Graph / Instagram link previews** — edge middleware serves minimal OG HTML to Meta scrapers on `/`; OG image switched to versioned JPEG (`og-card-1200x630.jpg?v=20260711`) with `og:image:type` and tags moved immediately after charset. Fixes stale Meta cache and maximizes scraper compatibility.
+- **Invite link OG handler** — flattened `api/invite.js` (nested `api/invite/[code].js` never registered on Vercel). Crawler UA detection no longer matches the Instagram in-app browser.
 
 ---
 
