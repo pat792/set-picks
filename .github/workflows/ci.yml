@@ -66,6 +66,9 @@ jobs:
       - name: Dashboard UI tokens (shell drift check)
         run: npm run verify:dashboard-ui
 
+      - name: Homepage Open Graph (crawler meta)
+        run: npm run verify:og-home
+
       - name: Client tests (vitest)
         run: npm test
 

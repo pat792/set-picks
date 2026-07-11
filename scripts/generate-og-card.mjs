@@ -51,4 +51,11 @@ await sharp(bg)
   .png()
   .toFile(OUT);
 
+const OUT_JPG = path.join(root, 'public/branding/og-card-1200x630.jpg');
+await sharp(OUT)
+  .flatten({ background: '#6d28d9' })
+  .jpeg({ quality: 90, mozjpeg: true })
+  .toFile(OUT_JPG);
+
 console.log('Wrote', path.relative(root, OUT));
+console.log('Wrote', path.relative(root, OUT_JPG));
