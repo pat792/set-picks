@@ -52,16 +52,34 @@ test("parseShowCalendarSnapshotToDateSet reads flat showDates", () => {
   assert.equal(set.has("2026-07-04"), true);
 });
 
-test("parseShowCalendarSnapshotToShows reads date + timezone records", () => {
+test("parseShowCalendarSnapshotToShows reads date + timezone + venue/city/tour", () => {
   const shows = parseShowCalendarSnapshotToShows({
     showDates: [
-      { date: "2026-07-03", venue: "A", timeZone: "America/Chicago" },
-      { date: "2026-07-04", venue: "B" },
+      {
+        date: "2026-07-03",
+        venue: "Kohl Center, Madison, WI",
+        city: "Madison, WI",
+        tour_name: "2026 Summer Tour",
+        timeZone: "America/Chicago",
+      },
+      { date: "2026-07-04", venue: "United Center, Chicago, IL" },
+      "2026-07-05",
     ],
   });
   assert.deepEqual(shows, [
-    { date: "2026-07-03", timeZone: "America/Chicago" },
-    { date: "2026-07-04", timeZone: "America/Los_Angeles" },
+    {
+      date: "2026-07-03",
+      timeZone: "America/Chicago",
+      venue: "Kohl Center, Madison, WI",
+      city: "Madison, WI",
+      tour_name: "2026 Summer Tour",
+    },
+    {
+      date: "2026-07-04",
+      timeZone: "America/Los_Angeles",
+      venue: "United Center, Chicago, IL",
+    },
+    { date: "2026-07-05", timeZone: "America/Los_Angeles" },
   ]);
 });
 

@@ -180,6 +180,22 @@ function candidateShowDates(now = new Date()) {
  * Parse `show_calendar/snapshot` into a list of show date records.
  * Returns `null` if missing, empty, or unreadable (strict — scheduled poller must skip).
  */
+/**
+ * Parse `show_calendar/snapshot` into show records.
+ * Always includes `date` + `timeZone`. Passes through venue / city / tour
+ * fields when present so comms payloads (tour rankings, lock reminders, etc.)
+ * can populate `venue_name` / `next_show_venue` / countdown venue copy.
+ *
+ * @param {import("firebase-admin").firestore.DocumentData | null | undefined} snapshotData
+ * @returns {Array<{
+ *   date: string,
+ *   timeZone: string,
+ *   venue?: string,
+ *   city?: string,
+ *   tour_name?: string,
+ *   tour?: string,
+ * }> | null}
+ */
 function parseShowCalendarSnapshotToShows(snapshotData) {
   if (!snapshotData || typeof snapshotData !== "object") return null;
   const raw = snapshotData.showDates;
@@ -203,7 +219,23 @@ function parseShowCalendarSnapshotToShows(snapshotData) {
             ? item.timezone.trim()
             : ""
         : "";
-    shows.push({ date, timeZone: explicitTz || DEFAULT_SHOW_TIME_ZONE });
+    /** @type {{ date: string, timeZone: string, venue?: string, city?: string, tour_name?: string, tour?: string }} */
+    const show = { date, timeZone: explicitTz || DEFAULT_SHOW_TIME_ZONE };
+    if (item && typeof item === "object") {
+      if (typeof item.venue === "string" && item.venue.trim()) {
+        show.venue = item.venue.trim();
+      }
+      if (typeof item.city === "string" && item.city.trim()) {
+        show.city = item.city.trim();
+      }
+      if (typeof item.tour_name === "string" && item.tour_name.trim()) {
+        show.tour_name = item.tour_name.trim();
+      }
+      if (typeof item.tour === "string" && item.tour.trim()) {
+        show.tour = item.tour.trim();
+      }
+    }
+    shows.push(show);
     dedupe.add(date);
   }
   return shows.length > 0 ? shows : null;

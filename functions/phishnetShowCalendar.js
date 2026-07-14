@@ -270,13 +270,13 @@ function buildApiNamedTourByDate(shows) {
 
 /**
  * Regroup flat shows when per-date tour strings may differ from Phish.net clustering.
- * @param {{ date: string, venue: string, timeZone: string }[]} flatSorted
+ * @param {{ date: string, venue: string, city?: string, timeZone: string }[]} flatSorted
  * @param {(date: string) => string} tourFor
  */
 function regroupConsecutiveTours(flatSorted, tourFor) {
-  /** @type {{ tour: string, shows: { date: string, venue: string, timeZone: string }[] }[]} */
+  /** @type {{ tour: string, shows: { date: string, venue: string, city: string, timeZone: string }[] }[]} */
   const out = [];
-  let cur = /** @type {{ tour: string, shows: { date: string, venue: string, timeZone: string }[] } | null} */ (
+  let cur = /** @type {{ tour: string, shows: { date: string, venue: string, city: string, timeZone: string }[] } | null} */ (
     null
   );
   for (const s of flatSorted) {
@@ -286,7 +286,12 @@ function regroupConsecutiveTours(flatSorted, tourFor) {
       cur = { tour: label, shows: [] };
       out.push(cur);
     }
-    cur.shows.push({ date: s.date, venue: s.venue, timeZone: s.timeZone });
+    cur.shows.push({
+      date: s.date,
+      venue: s.venue,
+      city: typeof s.city === "string" ? s.city : "",
+      timeZone: s.timeZone,
+    });
   }
   return out;
 }
@@ -310,7 +315,12 @@ function mergeToursWithSnapshotPreservation(
 ) {
   const computedByDate = computedTourByDateFromGroups(computedGroups);
   const apiNamedByDate = buildApiNamedTourByDate(shows);
-  const flat = shows.map((s) => ({ date: s.date, venue: s.venue, timeZone: s.timeZone }));
+  const flat = shows.map((s) => ({
+    date: s.date,
+    venue: s.venue,
+    city: typeof s.city === "string" ? s.city : "",
+    timeZone: s.timeZone,
+  }));
 
   function tourFor(date) {
     if (overridesByDate.has(date)) return /** @type {string} */ (overridesByDate.get(date));
@@ -427,11 +437,26 @@ async function fetchShowsForYear(year, apiKey) {
 }
 
 /**
+ * @param {Record<string, unknown>} row
+ * @returns {string}
+ */
+function buildCityLine(row) {
+  const city = String(row.city ?? "").trim();
+  const state = String(row.state ?? "").trim();
+  const country = String(row.country ?? "").trim();
+  if (city && state) return `${city}, ${state}`;
+  if (city && country && country.toUpperCase() !== "USA") {
+    return `${city}, ${country}`;
+  }
+  return city;
+}
+
+/**
  * @param {Record<string, unknown>[]} rawRows
- * @returns {{ date: string, venue: string, tour_name: string, timeZone: string }[]}
+ * @returns {{ date: string, venue: string, city: string, tour_name: string, timeZone: string }[]}
  */
 function normalizePhishShows(rawRows) {
-  /** @type {Map<string, { date: string, venue: string, tour_name: string, timeZone: string }>} */
+  /** @type {Map<string, { date: string, venue: string, city: string, tour_name: string, timeZone: string }>} */
   const byDate = new Map();
 
   for (const row of rawRows) {
@@ -441,6 +466,7 @@ function normalizePhishShows(rawRows) {
     const date = String(row.showdate ?? "").trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
     const venue = buildVenueLine(row);
+    const city = buildCityLine(row);
     const tour_name = String(row.tour_name ?? "").trim() || GENERIC_TOUR;
     const timeZone = deriveTimeZoneFromLocationParts({
       state: row.state,
@@ -448,22 +474,22 @@ function normalizePhishShows(rawRows) {
       city: row.city,
       venue,
     });
-    byDate.set(date, { date, venue, tour_name, timeZone });
+    byDate.set(date, { date, venue, city, tour_name, timeZone });
   }
 
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /**
- * @param {{ date: string, venue: string, tour_name: string, timeZone: string }[]} shows
- * @returns {{ tour: string, shows: { date: string, venue: string, timeZone: string }[] }[]}
+ * @param {{ date: string, venue: string, city?: string, tour_name: string, timeZone: string }[]} shows
+ * @returns {{ tour: string, shows: { date: string, venue: string, city: string, timeZone: string }[] }[]}
  */
 function buildShowDatesByTour(shows) {
   if (shows.length === 0) return [];
 
   /** @type {string[]} */
   const orderedKeys = [];
-  /** @type {Map<string, { tour: string, shows: { date: string, venue: string, timeZone: string }[], firstDate: string, lastDate: string, isGeneric: boolean }>} */
+  /** @type {Map<string, { tour: string, shows: { date: string, venue: string, city: string, timeZone: string }[], firstDate: string, lastDate: string, isGeneric: boolean }>} */
   const map = new Map();
 
   let prev = /** @type {typeof shows[0] | null} */ (null);
@@ -498,7 +524,12 @@ function buildShowDatesByTour(shows) {
 
     const g = map.get(key);
     if (!g) continue;
-    g.shows.push({ date: s.date, venue: s.venue, timeZone: s.timeZone });
+    g.shows.push({
+      date: s.date,
+      venue: s.venue,
+      city: typeof s.city === "string" ? s.city : "",
+      timeZone: s.timeZone,
+    });
     g.lastDate = s.date;
 
     prev = s;
