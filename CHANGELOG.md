@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.8] — 2026-07-14
+
+### Fixed
+- **Comms venue/location missing from email copy** — `parseShowCalendarSnapshotToShows` was dropping `venue` / `city` / tour fields and only keeping date + timezone, so tour rankings ("Next up: [date]"), lock reminders, picks confirmed, and countdown emails shipped without venue. Parser now preserves location metadata; calendar sync also stores a separate `city` field for subject lines after the next show-calendar refresh.
+
+---
+
 ## [1.20.6] — 2026-07-11
 
 ### Fixed
