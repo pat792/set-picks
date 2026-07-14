@@ -80,6 +80,23 @@ describe('comms template registry', () => {
     });
   });
 
+  it('show_recap CTA is honest about standings destination (#551)', () => {
+    const entry = getCommsTemplateEntry('show-recap');
+    expect(entry.build({}).cta).toEqual({
+      label: 'See standings',
+      href: '/dashboard/standings#self-recap',
+    });
+  });
+
+  it('welcome + picks-confirmed CTAs deep-link to picks (#551)', () => {
+    expect(getCommsTemplateEntry('account-welcome').build({}).cta.href).toBe(
+      '/dashboard/picks',
+    );
+    expect(getCommsTemplateEntry('picks-confirmed').build({}).cta.href).toBe(
+      '/dashboard/picks',
+    );
+  });
+
   it('maps templateId → catalog triggerId', () => {
     expect(triggerIdForTemplate('show-recap')).toBe('show_recap');
     expect(triggerIdForTemplate('account-welcome')).toBe('account_welcome');

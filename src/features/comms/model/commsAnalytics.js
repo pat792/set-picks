@@ -59,11 +59,12 @@ export function logCommsDismissed(meta) {
 /**
  * User clicked the message's primary CTA.
  *
- * @param {CommsEventMeta & { cta?: string }} meta
+ * @param {CommsEventMeta & { cta?: string, destination?: string }} meta
  */
 export function logCommsCtaClick(meta) {
   const params = commsDimensions(meta);
   if (meta?.cta) params.comms_cta = meta.cta;
+  if (meta?.destination) params.comms_destination = meta.destination;
   ga4Event('comms_cta_click', params);
 }
 

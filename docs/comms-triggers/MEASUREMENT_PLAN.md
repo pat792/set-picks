@@ -13,7 +13,7 @@ Client engagement events use `ga4Event` via `src/features/comms/model/commsAnaly
 | `comms_delivered` | Server wrote inbox row, sent FCM, or sent email (per channel) | `comms_trigger_id`, `comms_template_id`, `comms_channel`, `comms_variant` (MP + logs; `user_id` = Firebase uid on MP) |
 | `comms_opened` | User opens inbox message or expands bell item | `trigger_id`, `template_id`, `channel`, `message_id` |
 | `comms_dismissed` | User dismisses without reading | `trigger_id`, `template_id`, `message_id` |
-| `comms_cta_click` | User taps CTA in message | `trigger_id`, `template_id`, `cta`, `destination` |
+| `comms_cta_click` | User taps CTA in message | `comms_trigger_id`, `comms_template_id`, `comms_cta`, `comms_destination` (href) |
 | `comms_push_tap` | Notification click opens app | `trigger_id`, `template_id`, `message_id` |
 | `comms_pref_changed` | User toggles notification pref | `pref_key`, `enabled` |
 
@@ -32,6 +32,7 @@ Admin → Property → Custom definitions → Event-scoped. Event parameter name
 | Comms channel | `comms_channel` |
 | Comms variant | `comms_variant` |
 | Comms CTA | `comms_cta` |
+| Comms destination | `comms_destination` |
 
 Also register auth dimensions from #291 (`method`, `error_code`) in the same Admin pass.
 
@@ -72,9 +73,11 @@ Eligible → comms_delivered → comms_opened → dashboard visit within 24h
 
 | Cadence | Report |
 |---------|--------|
-| Weekly (show weeks) | Picks-lock funnel, push tap rate, pref opt-out rate |
+| Weekly (show weeks) | Picks-lock funnel, push tap rate, pref opt-out rate; **recap slice** (`show_recap` + `tour_rankings_daily`) deliver/open/CTA + top `comms_destination` |
 | Monthly | Full catalog review: deliver/open/CTA by `trigger_id` |
 | Per experiment | Variant comparison per EXPERIMENT_PLAYBOOK.md |
+
+Recap CTA honesty audit: `docs/comms-triggers/CTA_ROUTE_AUDIT.md` (#551). Cadence is **analyst-scheduled** against existing GA4 events — no separate Cloud Function required for v1.
 
 ### Data sources
 
