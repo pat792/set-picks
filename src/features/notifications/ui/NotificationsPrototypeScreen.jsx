@@ -3,10 +3,15 @@ import { useSearchParams } from 'react-router-dom';
 import { Bell, ChevronDown, Mail, Smartphone } from 'lucide-react';
 
 import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
+import { isInstalled } from '../../install';
 import { logCommsPrefChanged } from '../../comms';
 import CommsInboxSection from './CommsInboxSection.jsx';
 import { useCommsEmailStatus } from '../model/useCommsEmailStatus';
 import { useNotificationPrefs } from '../model/useNotificationPrefs';
+import {
+  canShowPushDisable,
+  pushDisableUnavailableCopy,
+} from '../model/pushDisablePolicy';
 import { usePushTokenRegistration } from '../model/usePushTokenRegistration';
 
 function ChannelToggle({ description, disabled, checked, label, onChange }) {
@@ -125,6 +130,15 @@ export default function NotificationsPrototypeScreen() {
     triggerPushCanary,
     canaryStatus,
   } = usePushTokenRegistration();
+
+  const installed =
+    typeof window !== 'undefined' && isInstalled(window, navigator);
+  const showPushDisable = canShowPushDisable({ isInstalled: installed });
+  const disableUnavailableCopy = pushDisableUnavailableCopy({
+    isInstalled: installed,
+    permission,
+  });
+
   const {
     prefs,
     setField,
@@ -273,27 +287,42 @@ export default function NotificationsPrototypeScreen() {
           onToggle={() => handleAccordion('push')}
         >
           <p className="text-sm font-bold leading-relaxed text-content-secondary">
-            Get lock reminders, score updates, and recap drops on your phone. Add Setlist Pick
-            &apos;Em to your home screen, then tap Enable and allow notifications.
+            {installed
+              ? 'Get lock reminders, score updates, and recap drops on this device. Tap Enable and allow notifications when prompted.'
+              : 'Get lock reminders, score updates, and recap drops on your phone. Add Setlist Pick \'Em to your home screen for reliable push, then tap Enable and allow notifications.'}
           </p>
+          {!showPushDisable && disableUnavailableCopy ? (
+            <p className="mt-3 rounded-xl border border-border-muted bg-surface-inset/60 px-3 py-2 text-xs font-bold leading-relaxed text-content-secondary">
+              {disableUnavailableCopy}
+            </p>
+          ) : null}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <span className="text-xs font-bold uppercase tracking-wider text-content-secondary">
               {pushStatusLabel}
             </span>
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={status === 'enabled' ? disablePush : enablePush}
-                disabled={status === 'working'}
-                className={`rounded-lg border px-3 py-1.5 text-xs font-black uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                  status === 'enabled'
-                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-200 hover:border-amber-500 hover:bg-amber-500/20'
-                    : 'border-brand-primary/40 bg-brand-primary/10 text-brand-primary hover:border-brand-primary hover:bg-brand-primary/20'
-                }`}
-                aria-label={status === 'enabled' ? 'Disable push notifications' : 'Enable push notifications'}
-              >
-                {status === 'enabled' ? 'Disable' : status === 'working' ? 'Working...' : 'Enable'}
-              </button>
+              {status === 'enabled' && showPushDisable ? (
+                <button
+                  type="button"
+                  onClick={disablePush}
+                  disabled={status === 'working'}
+                  className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-amber-200 transition-colors hover:border-amber-500 hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="Disable push notifications"
+                >
+                  Disable
+                </button>
+              ) : null}
+              {status !== 'enabled' ? (
+                <button
+                  type="button"
+                  onClick={enablePush}
+                  disabled={status === 'working'}
+                  className="rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="Enable push notifications"
+                >
+                  {status === 'working' ? 'Working...' : 'Enable'}
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={triggerPushCanary}
@@ -307,6 +336,9 @@ export default function NotificationsPrototypeScreen() {
           </div>
           <p className="mt-2 text-xs text-content-secondary">
             Browser permission: <span className="font-bold text-white">{permission}</span>
+            {' · '}
+            Surface:{' '}
+            <span className="font-bold text-white">{installed ? 'PWA' : 'browser'}</span>
           </p>
               {canaryStatus === 'sent' ? (
                 <p className="mt-2 text-xs text-emerald-300">

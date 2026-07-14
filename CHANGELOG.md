@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.15] — 2026-07-14
+
+### Changed
+- **PWA-first push disable (#532)** — Messages **Disable** is only shown in standalone/installed context; browser tabs get install/Settings copy instead. Desktop Chrome tabs follow the same rule.
+
+---
+
 ## [1.20.14] — 2026-07-14
 
 ### Changed
