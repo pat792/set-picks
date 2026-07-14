@@ -8,6 +8,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 
+import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 import { db } from '../../../shared/lib/firebase';
 
 /**
@@ -16,6 +17,7 @@ import { db } from '../../../shared/lib/firebase';
  */
 export async function fetchUserProfileDocument(uid) {
   if (!uid) return null;
+  await whenFirebaseReady();
   const snap = await getDoc(doc(db, 'users', uid));
   if (!snap.exists()) return null;
   return snap.data();
