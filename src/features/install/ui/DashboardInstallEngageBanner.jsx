@@ -74,7 +74,9 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
           <p className="text-[11px] font-black uppercase tracking-widest text-brand-primary">
             {lead.eyebrow}
           </p>
-          <p className="mt-1 text-xs font-bold leading-snug text-content-secondary">{lead.body}</p>
+          {install.canPrompt || install.shouldShowIosFlow ? (
+            <p className="mt-1 text-xs font-bold leading-snug text-content-secondary">{lead.body}</p>
+          ) : null}
 
           {install.canPrompt ? (
             <button
