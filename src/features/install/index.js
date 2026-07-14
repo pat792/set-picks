@@ -3,3 +3,4 @@ export {
   default as DashboardInstallEngageBanner,
   dashboardRouteShowsInstallEngage,
 } from './ui/DashboardInstallEngageBanner.jsx';
+export { isInstalled } from './model/installPromptPlatform';
