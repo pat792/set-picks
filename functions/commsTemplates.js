@@ -18,6 +18,7 @@ const { buildTourRankingsDailyParagraphs } = require("./tourRankingsDailyCore");
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
 const PICKS_CTA_URL = `${SITE_URL}/dashboard/picks`;
+const STANDINGS_CTA_URL = `${SITE_URL}/dashboard/standings#self-recap`;
 
 function handleOf(p) {
   const h = p && typeof p.handle === "string" ? p.handle.trim() : "";
@@ -207,7 +208,8 @@ const BUILDERS = {
         p.global_rank != null
           ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
           : "",
-      ].filter(Boolean)
+      ].filter(Boolean),
+      { ctaUrl: STANDINGS_CTA_URL }
     );
     return {
       push: {
@@ -218,7 +220,7 @@ const BUILDERS = {
         subject: p.venue_name ? `Your recap: ${p.venue_name}` : "Your show recap",
         text: assembled.text,
         signOff: assembled.signOff,
-        ctaUrl: assembled.ctaUrl,
+        ctaUrl: STANDINGS_CTA_URL,
       },
     };
   },
@@ -236,7 +238,9 @@ const BUILDERS = {
     ].filter(Boolean);
 
     const tourParas = buildTourRankingsDailyParagraphs(p);
-    const assembled = assembleServiceEmail([...nightOf, "", ...tourParas].filter(Boolean));
+    const assembled = assembleServiceEmail([...nightOf, "", ...tourParas].filter(Boolean), {
+      ctaUrl: PICKS_CTA_URL,
+    });
 
     const pushRank =
       p.tour_rank != null
@@ -258,7 +262,8 @@ const BUILDERS = {
           : "Your show recap + tour standings",
         text: assembled.text,
         signOff: assembled.signOff,
-        ctaUrl: assembled.ctaUrl,
+        ctaUrl: PICKS_CTA_URL,
+        ctaLabel: "Make picks for next show",
       },
     };
   },

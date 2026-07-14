@@ -76,15 +76,14 @@ export default function CommsInboxSection() {
     [messages, markRead],
   );
 
-  const handleCtaClick = useCallback(
-    (row) => {
-      logCommsCtaClick({
-        triggerId: triggerIdForTemplate(row.templateId),
-        templateId: row.templateId,
-      });
-    },
-    [],
-  );
+  const handleCtaClick = useCallback((row, cta) => {
+    logCommsCtaClick({
+      triggerId: triggerIdForTemplate(row.templateId),
+      templateId: row.templateId,
+      cta: typeof cta?.label === 'string' ? cta.label : undefined,
+      destination: typeof cta?.href === 'string' ? cta.href : undefined,
+    });
+  }, []);
 
   return (
     <section
@@ -192,7 +191,7 @@ export default function CommsInboxSection() {
                         <CommsMessageBody
                           templateId={m.templateId}
                           payload={m.payload}
-                          onCtaClick={() => handleCtaClick(m)}
+                          onCtaClick={(cta) => handleCtaClick(m, cta)}
                         />
                         <div className="mt-4 flex items-center justify-end gap-2">
                           <button

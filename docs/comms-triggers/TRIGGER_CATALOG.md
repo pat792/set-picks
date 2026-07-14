@@ -350,7 +350,7 @@ Scores update live during the show. Check back tonight.
 
 Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the room.
 
-**CTA:** `Full standings →`
+**CTA:** `See standings →` → `/dashboard/standings#self-recap`
 
 *(No email template — the "your night" content below now ships inside `tour_rankings_daily`'s email, see #451.)*
 
@@ -389,7 +389,7 @@ Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the r
 
 Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
-**CTA:** `Full tour standings →`
+**CTA:** `See standings →` → `/dashboard/standings#self-recap`
 
 #### Template — Email
 

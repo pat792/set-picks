@@ -118,7 +118,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           ? `Your next chance to play: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
           : 'Head to the dashboard, make your first set of picks, and you’re on the board.',
       ],
-      cta: { label: 'Make your first picks', href: '/dashboard' },
+      cta: { label: 'Make your first picks', href: '/dashboard/picks' },
     }),
     samples: [
       {
@@ -232,7 +232,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           'Sit back — we’ll score them live as the setlist comes in.',
         ],
         stats: picks.map(([label, value]) => ({ label, value })),
-        cta: { label: 'Review your picks', href: '/dashboard' },
+        cta: { label: 'Review your picks', href: '/dashboard/picks' },
       };
     },
     samples: [
@@ -270,7 +270,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
         p.current_score != null ? { label: 'Score', value: p.current_score } : null,
         p.global_rank != null ? { label: 'Rank', value: `#${p.global_rank}` } : null,
       ].filter(Boolean),
-      cta: { label: 'Watch it live', href: '/dashboard' },
+      cta: { label: 'Watch it live', href: '/dashboard/standings' },
     }),
     samples: [
       {
@@ -305,7 +305,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
         p.current_score != null ? { label: 'Score', value: p.current_score } : null,
         p.lead_margin != null ? { label: 'Lead', value: `+${p.lead_margin}` } : null,
       ].filter(Boolean),
-      cta: { label: 'Defend your lead', href: '/dashboard' },
+      cta: { label: 'Defend your lead', href: '/dashboard/standings' },
     }),
     samples: [
       {
@@ -341,7 +341,8 @@ export const COMMS_TEMPLATE_REGISTRY = {
           ? { label: p.pool_name, value: `#${p.pool_rank}` }
           : null,
       ].filter(Boolean),
-      cta: { label: 'See full recap', href: '/dashboard/standings' },
+      // Inbox card is the tease; graded self-recap lives on Standings (#551).
+      cta: { label: 'See standings', href: '/dashboard/standings#self-recap' },
     }),
     samples: [
       {
@@ -389,7 +390,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           p.tour_points != null ? { label: 'Tour points', value: p.tour_points } : null,
           p.shows_played != null ? { label: 'Shows', value: p.shows_played } : null,
         ].filter(Boolean),
-        cta: { label: 'See standings', href: '/dashboard/standings' },
+        cta: { label: 'See standings', href: '/dashboard/standings#self-recap' },
       };
     },
     samples: [

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth';
@@ -193,6 +193,18 @@ export function useStandingsScreen(selectedDate, options = {}) {
     view === 'pools' ? activePoolName || 'This pool' : 'Everyone';
 
   const isShowToday = selectedDate === todayYmd();
+
+  // Comms deep links use `/dashboard/standings#self-recap` (#551).
+  useEffect(() => {
+    if (location.hash !== '#self-recap') return;
+    if (!selfStandingsRecap || loading) return;
+    const el = document.getElementById('self-recap');
+    if (!el) return;
+    const t = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [location.hash, selfStandingsRecap, loading]);
 
   const onOpenPoolHub = useCallback(() => {
     if (view !== 'pools' || !poolId) return;
