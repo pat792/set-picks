@@ -228,8 +228,10 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
     .filter(Boolean)
     .map((line) => escapeHtml(line))
     .join("<br />");
+  // #536 — mobile Gmail readable type: body ≥16px, CTA ≥16px, footer ≥13px;
+  // viewport meta so fixed-width cards are not scaled down into illegible text.
   const paragraphs = bodyLines
-    ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.6;color:#1a1a2e;">${bodyLines}</p>`
+    ? `<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#1a1a2e;">${bodyLines}</p>`
     : "";
   const signOffHtml = signOffLine
     ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#64748b;font-style:italic;">${escapeHtml(signOffLine)}</p>`
@@ -246,14 +248,20 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
   ].join(";");
 
   return `<!DOCTYPE html>
-<html>
-  <body style="margin:0;padding:0;background-color:#0b0b14;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0b14;padding:32px 16px;">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Setlist Pick'em</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#0b0b14;-webkit-text-size-adjust:100%;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0b14;padding:24px 12px;">
       <tr>
         <td align="center">
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;border-top:${EMAIL_SHELL_ACCENT_BORDER_PX}px solid ${EMAIL_BRAND_PRIMARY};">
             <tr>
-              <td style="padding:20px 32px 12px 32px;text-align:center;">
+              <td style="padding:16px 24px 8px 24px;text-align:center;">
                 <!--[if mso]>
                 <img src="${escapeHtml(resolvedWordmarkSrc)}" width="${EMAIL_SHELL_WORDMARK_WIDTH_PX}" height="${EMAIL_SHELL_WORDMARK_HEIGHT_PX}" alt="Setlist Pick'em" style="display:block;margin:0 auto;max-width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px;width:100%;height:auto;border:0;" />
                 <![endif]-->
@@ -263,18 +271,18 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
               </td>
             </tr>
             <tr>
-              <td style="padding:8px 32px 8px 32px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+              <td style="padding:8px 24px 8px 24px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
                 ${paragraphs}
                 ${signOffHtml}
-                <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:12px 24px;background-color:${EMAIL_BRAND_PRIMARY};color:${EMAIL_BRAND_BG_DEEP};text-decoration:none;border-radius:12px;font-weight:700;font-size:14px;">${escapeHtml(buttonLabel)}</a>
+                <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:14px 28px;background-color:${EMAIL_BRAND_PRIMARY};color:${EMAIL_BRAND_BG_DEEP};text-decoration:none;border-radius:12px;font-weight:700;font-size:16px;">${escapeHtml(buttonLabel)}</a>
               </td>
             </tr>
             <tr>
-              <td style="padding:24px 32px;border-top:1px solid #eeeeee;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
-                <p style="margin:0 0 8px 0;font-size:12px;color:#888888;">
+              <td style="padding:20px 24px;border-top:1px solid #eeeeee;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                <p style="margin:0 0 8px 0;font-size:13px;line-height:1.5;color:#888888;">
                   You&apos;re receiving this because you have a Setlist Pick&apos;em account.
                 </p>
-                <p style="margin:0;font-size:12px;color:#888888;">
+                <p style="margin:0;font-size:13px;line-height:1.5;color:#888888;">
                   <a href="${escapeHtml(settingsUrl)}" style="color:${EMAIL_BRAND_PRIMARY_STRONG};text-decoration:underline;">Manage preferences</a>
                   &nbsp;&middot;&nbsp;
                   <a href="${escapeHtml(settingsUrl)}" style="color:${EMAIL_BRAND_PRIMARY_STRONG};text-decoration:underline;">Unsubscribe</a>
