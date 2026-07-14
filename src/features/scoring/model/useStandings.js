@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { getShowStatus } from '../../../shared/utils/timeLogic.js';
 import {
@@ -11,66 +12,81 @@ import {
 /** Tab hidden → tear down LIVE Firestore listeners after this delay (#311). */
 const LIVE_LISTENER_HIDE_DEBOUNCE_MS = 60_000;
 
+/**
+ * Stable fingerprint so calendar snapshot reference churn does not re-trigger
+ * standings work when date/TZ membership is unchanged (#507).
+ *
+ * @param {Array<{ date?: string, timeZone?: string } | string> | null | undefined} showDates
+ */
+export function showDatesStatusKey(showDates) {
+  if (!Array.isArray(showDates) || showDates.length === 0) return '';
+  return showDates
+    .map((s) => {
+      if (typeof s === 'string') return s.trim();
+      const date = typeof s?.date === 'string' ? s.date.trim() : '';
+      const tz = typeof s?.timeZone === 'string' ? s.timeZone.trim() : '';
+      return date ? `${date}@${tz}` : '';
+    })
+    .filter(Boolean)
+    .join('|');
+}
+
+/**
+ * Show-scoped standings (#507). Snapshot path uses React Query (default
+ * staleTime 60s from `main.jsx`) so Safari/PWA tab revisits skip the full-page
+ * spinner. LIVE shows still attach visibility-gated Firestore listeners after
+ * the initial snapshot seed.
+ *
+ * @param {string} showDate
+ * @param {Array<{ date?: string, timeZone?: string } | string> | null | undefined} showDates
+ */
 export function useStandings(showDate, showDates) {
-  const [picks, setPicks] = useState([]);
-  const [actualSetlist, setActualSetlist] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const statusKey = useMemo(() => showDatesStatusKey(showDates), [showDates]);
+  const showStatus = useMemo(() => {
+    if (!showDate || !statusKey) return 'FUTURE';
+    return Array.isArray(showDates) && showDates.length > 0
+      ? getShowStatus(showDate, showDates)
+      : 'FUTURE';
+  }, [showDate, showDates, statusKey]);
+
+  const enabled = Boolean(showDate) && showStatus !== 'FUTURE';
+
+  const query = useQuery({
+    queryKey: ['standings-show', showDate],
+    enabled,
+    queryFn: async () => {
+      const [picks, actualSetlist] = await Promise.all([
+        fetchPicksForShowDate(showDate),
+        fetchOfficialSetlistForShow(showDate),
+      ]);
+      return { picks, actualSetlist };
+    },
+  });
+
+  const [livePicks, setLivePicks] = useState(
+    /** @type {Array<Record<string, unknown>> | null} */ (null)
+  );
+  const [liveSetlist, setLiveSetlist] = useState(
+    /** @type {Record<string, unknown> | null | undefined} */ (undefined)
+  );
 
   useEffect(() => {
-    if (!showDate) {
-      setPicks([]);
-      setActualSetlist(null);
-      setLoading(false);
-      setError(null);
-      return;
+    if (query.isError) {
+      console.error('useStandings query error:', query.error);
     }
+  }, [query.isError, query.error]);
 
-    const showStatus =
-      Array.isArray(showDates) && showDates.length > 0
-        ? getShowStatus(showDate, showDates)
-        : 'FUTURE';
-
-    if (showStatus === 'FUTURE') {
-      setPicks([]);
-      setActualSetlist(null);
-      setLoading(false);
-      setError(null);
-      return;
+  useEffect(() => {
+    if (showStatus !== 'LIVE' || !showDate) {
+      setLivePicks(null);
+      setLiveSetlist(undefined);
+      return undefined;
     }
 
     let cancelled = false;
-
-    if (showStatus !== 'LIVE') {
-      setLoading(true);
-      setError(null);
-
-      (async () => {
-        try {
-          const [fetchedPicks, setlist] = await Promise.all([
-            fetchPicksForShowDate(showDate),
-            fetchOfficialSetlistForShow(showDate),
-          ]);
-          if (!cancelled) {
-            setPicks(fetchedPicks);
-            setActualSetlist(setlist);
-          }
-        } catch (err) {
-          if (!cancelled) {
-            setError(err);
-            console.error('Error fetching standings data:', err);
-          }
-        } finally {
-          if (!cancelled) setLoading(false);
-        }
-      })();
-
-      return () => {
-        cancelled = true;
-      };
-    }
-
+    /** @type {Array<() => void>} */
     let unsubscribers = [];
+    /** @type {ReturnType<typeof setTimeout> | null} */
     let hideTimer = null;
 
     const clearHideTimer = () => {
@@ -91,7 +107,6 @@ export function useStandings(showDate, showDates) {
 
       const onErr = (err) => {
         if (!cancelled) {
-          setError(err);
           console.error('useStandings live listener error:', err);
         }
       };
@@ -100,7 +115,7 @@ export function useStandings(showDate, showDates) {
         subscribePicksForShowDate(
           showDate,
           (nextPicks) => {
-            if (!cancelled) setPicks(nextPicks);
+            if (!cancelled) setLivePicks(nextPicks);
           },
           onErr
         )
@@ -109,7 +124,7 @@ export function useStandings(showDate, showDates) {
         subscribeOfficialSetlistForShow(
           showDate,
           (nextSetlist) => {
-            if (!cancelled) setActualSetlist(nextSetlist);
+            if (!cancelled) setLiveSetlist(nextSetlist);
           },
           onErr
         )
@@ -131,43 +146,39 @@ export function useStandings(showDate, showDates) {
     };
 
     document.addEventListener('visibilitychange', onVisibilityChange);
-
-    setLoading(true);
-    setError(null);
-
-    (async () => {
-      try {
-        const [fetchedPicks, setlist] = await Promise.all([
-          fetchPicksForShowDate(showDate),
-          fetchOfficialSetlistForShow(showDate),
-        ]);
-        if (!cancelled) {
-          setPicks(fetchedPicks);
-          setActualSetlist(setlist);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err);
-          console.error('Error fetching standings data:', err);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-
-      if (cancelled) return;
-
-      if (document.visibilityState === 'visible') {
-        attachLiveListeners();
-      }
-    })();
+    if (document.visibilityState === 'visible') {
+      attachLiveListeners();
+    }
 
     return () => {
       cancelled = true;
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearHideTimer();
       tearDownListeners();
+      setLivePicks(null);
+      setLiveSetlist(undefined);
     };
-  }, [showDate, showDates]);
+  }, [showDate, showStatus]);
 
-  return { picks, actualSetlist, loading, error };
+  if (!enabled) {
+    return { picks: [], actualSetlist: null, loading: false, error: null };
+  }
+
+  const picks = livePicks ?? query.data?.picks ?? [];
+  const actualSetlist =
+    liveSetlist !== undefined
+      ? liveSetlist
+      : (query.data?.actualSetlist ?? null);
+
+  return {
+    picks,
+    actualSetlist,
+    // Full-page / card spinners only on first miss — not background refetch (#507).
+    loading: query.isPending,
+    error: query.isError
+      ? query.error instanceof Error
+        ? query.error
+        : new Error('Failed to load standings.')
+      : null,
+  };
 }

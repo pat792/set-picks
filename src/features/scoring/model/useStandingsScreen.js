@@ -88,6 +88,8 @@ export function useStandingsScreen(selectedDate, options = {}) {
     isNextShowView && user?.uid
       ? userHasSubmittedPickEntry(picks, user.uid)
       : false;
+  // Card spinner only while the show-scoped query has no data yet (#507).
+  // Cached revisits keep `loading` false so this cannot stick indefinitely.
   const picksStatusLoading = isNextShowView && loading;
 
   useStandingsLeaderboardView(selectedDate, loading, showDates);

@@ -13,9 +13,9 @@ import './index.css'
 
 initGa4()
 
-// Shared client for the React Query caches added in #243 (profile season
-// stats + tour standings). Defaults are tuned for read-heavy stats hooks
-// where back-navigation should reuse data within the session.
+// Shared client for React Query caches (#243 profile/tour standings, #507
+// show-scoped standings). Defaults tuned for read-heavy dashboard hooks
+// where tab revisits should reuse data within the session.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

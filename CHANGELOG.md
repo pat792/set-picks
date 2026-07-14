@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.11] — 2026-07-14
+
+### Fixed
+- **Safari/PWA standings loading (#507)** — show-scoped standings use React Query (60s stale) so tab revisits skip the full-page spinner; LIVE listeners still apply after snapshot seed; calendar snapshot reference churn no longer restarts the fetch.
+
+---
+
 ## [1.20.10] — 2026-07-14
 
 ### Fixed
