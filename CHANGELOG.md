@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.17] — 2026-07-14
+
+### Changed
+- **Profile boot P0 (#496)** — single `AuthProvider` session listener; `fetchUserProfileDocument` awaits App Check; Profile form seeds from auth `userProfile` (no redundant spinner when warm).
+
+---
+
 ## [1.20.16] — 2026-07-14
 
 ### Added
