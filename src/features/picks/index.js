@@ -14,3 +14,4 @@ export {
   userHasSubmittedPickEntry,
 } from './model/pickSubmission';
 export { useSetlistLockToast } from './model/useSetlistLockToast';
+export { trackPicksPageInteractive } from './model/picksAnalytics';

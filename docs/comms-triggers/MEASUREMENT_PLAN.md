@@ -61,6 +61,19 @@ Eligible users → comms_delivered → comms_opened → comms_cta_click → logi
 Eligible → comms_delivered → comms_push_tap → pick submitted before lock
 ```
 
+Email deep-link funnel (#535):
+
+```text
+comms_delivered (email) → comms_email_landed → picks_page_interactive → submit_picks
+```
+
+| Event | When |
+|-------|------|
+| `comms_email_landed` | Picks page mounts with `utm_campaign` (from click host) |
+| `picks_page_interactive` | Picks form finished loading (`!isLoadingPicks`) |
+
+**Bot-filtered click KPI:** ignore `/api/email-click` hits with scanner referrers (e.g. `bing.com`) or sub-second engagement; prefer GA4 funnel above + Firestore first-time lock ground truth over raw click-host pageviews.
+
 Primary metric: **pick submission rate before lock** among reminded users vs holdout (when experiments run).
 
 ### Results (`tour_recap_*`, `post_show_*`)

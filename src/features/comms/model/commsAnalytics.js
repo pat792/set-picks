@@ -74,6 +74,18 @@ export function logCommsPushTap(meta) {
 }
 
 /**
+ * Email deep-link landed on a dashboard surface (#535).
+ * Prefer calling once with `utm_campaign` / known trigger from the landing URL.
+ *
+ * @param {CommsEventMeta & { surface?: string }} meta
+ */
+export function logCommsEmailLanded(meta) {
+  const params = commsDimensions({ ...meta, channel: COMMS_CHANNEL.email });
+  if (meta?.surface) params.comms_surface = meta.surface;
+  ga4Event('comms_email_landed', params);
+}
+
+/**
  * User changed a notification preference toggle.
  *
  * @param {{ prefKey: string, enabled: boolean }} meta

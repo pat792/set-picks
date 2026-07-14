@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.16] — 2026-07-14
+
+### Added
+- **Email deep-link P0 (#535)** — persist intended dashboard path on unauth redirect; eager App Check on dashboard mount; picks-lock CTA includes `?showDate=`; `comms_email_landed` + `picks_page_interactive` funnel events.
+
+---
+
 ## [1.20.15] — 2026-07-14
 
 ### Changed

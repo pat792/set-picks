@@ -17,9 +17,9 @@ export {
   logCommsDismissed,
   logCommsCtaClick,
   logCommsPushTap,
+  logCommsEmailLanded,
   logCommsPrefChanged,
 } from './model/commsAnalytics.js';
-
 export {
   SPHERE_2026_RECAP_ID,
   SPHERE_2026_META,
