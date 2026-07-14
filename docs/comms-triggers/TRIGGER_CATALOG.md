@@ -145,7 +145,15 @@ Every template draws from this shared set. Each trigger declares the subset it u
 
 #### Variables used
 
-`{{handle}}`, `{{tour_name}}`, `{{days_remaining}}`, `{{first_show_date}}`, `{{first_show_venue}}`, `{{first_show_city}}`
+`{{handle}}`, `{{tour_name}}`, `{{days_remaining}}`, `{{first_show_date}}`, `{{first_show_venue}}`, `{{first_show_city}}`, `{{picks_secured}}`
+
+#### In-app CTA by picks state (#509)
+
+| Days | No picks | `picks_secured === true` |
+|------|----------|--------------------------|
+| `10` | `View upcoming shows` | unchanged (`View upcoming shows`) |
+| `5` / `3` | `Make picks for show 1` | `View / Edit picks` |
+| `1` | `Lock in your picks` | `View / Edit picks` |
 
 #### Template variants by `{{days_remaining}}`
 
@@ -423,7 +431,11 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
 #### Variables used
 
-`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{time_to_lock}}`, `{{lock_time_local}}`
+`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{time_to_lock}}`, `{{lock_time_local}}`, `{{picks_secured}}` (preview/edge; production fanout already skips users with picks)
+
+#### Product choice (#509)
+
+Production `picks_lock_reminder` **skips** users with non-empty picks for tonight (`users_no_picks_tonight`). In-app registry still branches CTA/body on `picks_secured` for `/comms-preview` and any edge payload.
 
 #### Template — Push
 
@@ -437,7 +449,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
 **Body:** Picks for {{venue_name}} close at {{lock_time_local}} — {{time_to_lock}} from now. You're not on the board yet for {{show_date}}.
 
-**CTA:** `Make picks now →`
+**CTA:** `Make your picks` (or `View / Edit picks` when `picks_secured`)
 
 #### Template — Email
 
@@ -466,7 +478,14 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
 #### Variables used
 
-`{{handle}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{tour_name}}`, `{{shows_remaining}}`, `{{next_show_date}}`, `{{next_show_venue}}`
+`{{handle}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{tour_name}}`, `{{shows_remaining}}`, `{{next_show_date}}`, `{{next_show_venue}}`, `{{picks_secured}}` (next show)
+
+#### In-app CTA by picks state (#509)
+
+| State | CTA |
+|-------|-----|
+| No picks for next show | `Make picks for next show` |
+| `picks_secured === true` | `View / Edit picks` |
 
 #### Template — Push
 
@@ -482,7 +501,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 
 The more shows you pick, the better your tour rank. Don't let the tour slip by.
 
-**CTA:** `Make picks for next show →` → `/dashboard/picks`
+**CTA:** `Make picks for next show` / `View / Edit picks` → `/dashboard/picks`
 
 #### Template — Email
 

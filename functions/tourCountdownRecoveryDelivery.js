@@ -11,6 +11,7 @@
 const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { ymdInTimeZone } = require("./phishnetLiveSetlistAutomation");
+const { hasNonEmptyPicksObject } = require("./rollupSeasonAggregates");
 
 const TRIGGER_ID = "tour_countdown";
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
@@ -194,6 +195,21 @@ async function deliverTourCountdownRecovery({
     };
   }
 
+  // #509: mirror scheduled countdown — mark recipients who already have first-show picks
+  const firstShow =
+    typeof target.first_show_date === "string" ? target.first_show_date.trim() : "";
+  /** @type {Set<string>} */
+  const securedUids = new Set();
+  if (firstShow) {
+    const picksSnap = await db.collection("picks").where("showDate", "==", firstShow).get();
+    for (const doc of picksSnap.docs) {
+      const d = doc.data() || {};
+      const uid = typeof d.userId === "string" ? d.userId.trim() : "";
+      if (!uid) continue;
+      if (hasNonEmptyPicksObject(d.picks)) securedUids.add(uid);
+    }
+  }
+
   /** @type {import("./commsDelivery").deliverCommsTrigger extends (...args: infer A) => any ? A[0]["recipients"] : never} */
   const recipients = audience.map(({ uid, userData }) => ({
     uid,
@@ -206,6 +222,7 @@ async function deliverTourCountdownRecovery({
       first_show_venue: target.first_show_venue,
       first_show_city: target.first_show_city,
       lock_time_local: target.lock_time_local,
+      picks_secured: firstShow ? securedUids.has(uid) : false,
     },
     vars: {
       uid,

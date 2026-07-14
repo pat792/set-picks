@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.13] — 2026-07-14
+
+### Added
+- **In-app picks CTA honesty (#509)** — `tour_countdown`, `picks_lock_reminder`, and `tour_engagement_reminder` switch to **View / Edit picks** when payload `picks_secured` is true; adapters enrich countdown/engagement from picks for the target show.
+
+---
+
 ## [1.20.12] — 2026-07-14
 
 ### Fixed
