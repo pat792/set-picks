@@ -9,14 +9,14 @@ Label rule: **never promise a surface the href does not deliver.** Inbox cards s
 | templateId | CTA label | href | Intent match | Notes |
 |------------|-----------|------|--------------|-------|
 | `account-welcome` | Make your first picks | `/dashboard/picks` | yes | Was `/dashboard` |
-| `tour-countdown` | varies by T-n | `/dashboard/picks` | yes | |
+| `tour-countdown` | varies by T-n / `picks_secured` | `/dashboard/picks` | yes | T-5/3/1 → **View / Edit picks** when secured (#509) |
 | `picks-confirmed` | Review your picks | `/dashboard/picks` | yes | Was `/dashboard` |
 | `score-first-points` | Watch it live | `/dashboard/standings` | yes | Was `/dashboard` |
 | `score-leader` | Defend your lead | `/dashboard/standings` | yes | Was `/dashboard` |
 | `show-recap` | See standings | `/dashboard/standings#self-recap` | yes | Was “See full recap” → standings (mismatch) |
 | `tour-rankings-daily` | See standings | `/dashboard/standings#self-recap` | yes | Scrolls to self-recap card |
-| `picks-lock-reminder` | Make your picks | `/dashboard/picks` | yes | |
-| `tour-engagement-reminder` | Make picks for next show | `/dashboard/picks` | yes | |
+| `picks-lock-reminder` | Make your picks / View / Edit picks | `/dashboard/picks` | yes | Prod skips secured users; secured CTA for preview (#509) |
+| `tour-engagement-reminder` | Make picks for next show / View / Edit picks | `/dashboard/picks` | yes | Branches on next-show `picks_secured` (#509) |
 | `sphere-2026-inaugural` | (bespoke) | — | n/a | Legacy Sphere edition |
 
 ## Email (`functions/commsTemplates.js`)

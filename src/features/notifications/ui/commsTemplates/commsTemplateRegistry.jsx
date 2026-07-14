@@ -72,9 +72,20 @@ function venueLine(payload, { dateKey = 'show_date', venueKey = 'venue_name', ci
 }
 
 const PICKS_HREF = '/dashboard/picks';
+/** Matches dashboard StandingsActiveShowCard / PoolHubActiveShow (#509). */
+const VIEW_EDIT_PICKS_CTA = { label: 'View / Edit picks', href: PICKS_HREF };
+
+/**
+ * @param {Record<string, unknown>} p
+ * @returns {boolean}
+ */
+function isPicksSecured(p) {
+  return p?.picks_secured === true || p?.picks_secured === 'true';
+}
 
 /**
  * In-app CTA for tour countdown — varies by `days_remaining` (TRIGGER_CATALOG.md §2).
+ * When `picks_secured`, T-5/T-3/T-1 switch to View / Edit picks (#509). T-10 stays exploratory.
  * Push/email may use "open the app" phrasing; in-app users are already in the app.
  * @param {Record<string, unknown>} p
  */
@@ -82,6 +93,9 @@ function tourCountdownInAppCta(p) {
   const days = Number(p.days_remaining);
   if (days === 10) {
     return { label: 'View upcoming shows', href: PICKS_HREF };
+  }
+  if (isPicksSecured(p)) {
+    return { ...VIEW_EDIT_PICKS_CTA };
   }
   if (days === 5 || days === 3) {
     return { label: 'Make picks for show 1', href: PICKS_HREF };
@@ -207,6 +221,31 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 18',
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
+        },
+      },
+      {
+        name: 'T-3 picks secured',
+        payload: {
+          handle: 'ArmenianMan',
+          tour_name: 'Summer Tour 2026',
+          days_remaining: 3,
+          first_show_date: 'Jul 7',
+          first_show_venue: 'Kohl Center',
+          first_show_city: 'Madison, WI',
+          lock_time_local: '7:30 PM',
+          picks_secured: true,
+        },
+      },
+      {
+        name: 'T-1 picks secured',
+        payload: {
+          handle: 'ArmenianMan',
+          tour_name: 'Summer Tour 2026',
+          days_remaining: 1,
+          first_show_date: 'Jul 18',
+          first_show_venue: 'MSG',
+          first_show_city: 'New York, NY',
+          picks_secured: true,
         },
       },
     ],
@@ -555,9 +594,13 @@ export const COMMS_TEMPLATE_REGISTRY = {
         `${handleOf(p)}, ${venueLine(p) || "tonight's show"} locks at ${p.lock_time_local || '7:30 PM'} local${
           p.time_to_lock ? ` — about ${p.time_to_lock} away` : ''
         }.`,
-        "You haven't locked picks yet. Don't get shut out of the night.",
+        isPicksSecured(p)
+          ? 'Your picks are on the board — open them any time before lock to tweak.'
+          : "You haven't locked picks yet. Don't get shut out of the night.",
       ],
-      cta: { label: 'Make your picks', href: '/dashboard/picks' },
+      cta: isPicksSecured(p)
+        ? { ...VIEW_EDIT_PICKS_CTA }
+        : { label: 'Make your picks', href: PICKS_HREF },
     }),
     samples: [
       {
@@ -569,6 +612,18 @@ export const COMMS_TEMPLATE_REGISTRY = {
           venue_city: 'New York, NY',
           time_to_lock: '3 hours',
           lock_time_local: '7:30 PM',
+        },
+      },
+      {
+        name: 'Lock reminder — secured',
+        payload: {
+          handle: 'HotDogBilly',
+          show_date: 'Tonight',
+          venue_name: 'MSG',
+          venue_city: 'New York, NY',
+          time_to_lock: '3 hours',
+          lock_time_local: '7:30 PM',
+          picks_secured: true,
         },
       },
     ],
@@ -593,7 +648,9 @@ export const COMMS_TEMPLATE_REGISTRY = {
           ? `Next up: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
           : '',
       ].filter(Boolean),
-      cta: { label: 'Make picks for next show', href: PICKS_HREF },
+      cta: isPicksSecured(p)
+        ? { ...VIEW_EDIT_PICKS_CTA }
+        : { label: 'Make picks for next show', href: PICKS_HREF },
     }),
     samples: [
       {
@@ -607,6 +664,20 @@ export const COMMS_TEMPLATE_REGISTRY = {
           shows_remaining: 8,
           next_show_date: 'Jul 20',
           next_show_venue: 'MSG',
+        },
+      },
+      {
+        name: 'After first show — next show secured',
+        payload: {
+          handle: 'I have the book',
+          show_score: 65,
+          global_rank: 18,
+          global_total_pickers: 312,
+          tour_name: 'Summer Tour 2026',
+          shows_remaining: 8,
+          next_show_date: 'Jul 20',
+          next_show_venue: 'MSG',
+          picks_secured: true,
         },
       },
     ],

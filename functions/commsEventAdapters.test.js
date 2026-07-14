@@ -8,6 +8,7 @@ const {
   shouldDeliverPicksConfirmed,
   computeGlobalRankByUid,
   findTourCountdownTargets,
+  loadUserIdsWithPicksForShowDates,
   leaderUidFromScores,
 } = require("./commsEventAdapters");
 const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
@@ -162,4 +163,42 @@ test("leaderUidFromScores returns sole leader only", () => {
     leaderUidFromScores(new Map([["p1", 5], ["p2", 5]]), picksSnap),
     null
   );
+});
+
+test("loadUserIdsWithPicksForShowDates indexes non-empty picks (#509)", async () => {
+  const db = {
+    collection: () => ({
+      where: () => ({
+        get: async () => ({
+          docs: [
+            {
+              data: () => ({
+                showDate: "2026-07-18",
+                userId: "u1",
+                picks: { opener: "Tweezer" },
+              }),
+            },
+            {
+              data: () => ({
+                showDate: "2026-07-18",
+                userId: "u2",
+                picks: {},
+              }),
+            },
+            {
+              data: () => ({
+                showDate: "2026-07-20",
+                userId: "u3",
+                picks: { closer: "Slave" },
+              }),
+            },
+          ],
+        }),
+      }),
+    }),
+  };
+  const map = await loadUserIdsWithPicksForShowDates(db, ["2026-07-18", "2026-07-20"]);
+  assert.equal(map.get("2026-07-18").has("u1"), true);
+  assert.equal(map.get("2026-07-18").has("u2"), false);
+  assert.equal(map.get("2026-07-20").has("u3"), true);
 });
