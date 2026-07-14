@@ -1,10 +1,13 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CheckCircle2, ChevronDown, Lock, Scale } from 'lucide-react';
 
+import { logCommsEmailLanded } from '../../features/comms';
 import {
   PicksFieldsForm,
   PicksSelfRecapSection,
   PicksSubmitButton,
+  trackPicksPageInteractive,
   usePicksForm,
   usePicksSelfRecap,
 } from '../../features/picks';
@@ -14,7 +17,9 @@ import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel';
 import Card from '../../shared/ui/Card';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
+
 export default function PicksPage({ user, selectedDate }) {
+  const [searchParams] = useSearchParams();
   const { showDates, showDatesByTour } = useShowCalendar();
   const showForShare = selectedDate ? showDates?.find((s) => s.date === selectedDate) : null;
   const shareShowLabel = showForShare ? showOptionLabelCompact(showForShare) : selectedDate || '';
@@ -34,6 +39,8 @@ export default function PicksPage({ user, selectedDate }) {
 
   const { openScoringRules } = useScoringRulesModal();
   const statusContentId = useId();
+  const landedLoggedRef = useRef(false);
+  const interactiveLoggedRef = useRef(false);
 
   const shouldShowSavedStatus = !isLocked && hasExistingPicks;
   const shouldShowLockedStatus = isLocked;
@@ -45,6 +52,29 @@ export default function PicksPage({ user, selectedDate }) {
     setIsMobileStatusExpanded(shouldShowLockedStatus);
   }, [shouldShowLockedStatus, shouldShowSavedStatus]);
 
+  // #535: email deep-link funnel (utm_campaign from click host / email links)
+  useEffect(() => {
+    if (landedLoggedRef.current) return;
+    const campaign = (searchParams.get('utm_campaign') || '').trim();
+    if (!campaign) return;
+    landedLoggedRef.current = true;
+    logCommsEmailLanded({
+      triggerId: campaign,
+      templateId: campaign.replace(/_/g, '-'),
+      surface: 'dashboard_picks',
+    });
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (interactiveLoggedRef.current) return;
+    if (isLoadingPicks || !selectedDate) return;
+    interactiveLoggedRef.current = true;
+    const campaign = (searchParams.get('utm_campaign') || '').trim();
+    trackPicksPageInteractive({
+      show_id: selectedDate,
+      comms_trigger_id: campaign || undefined,
+    });
+  }, [isLoadingPicks, selectedDate, searchParams]);
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
       <DashboardActionRow>

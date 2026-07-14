@@ -8,8 +8,12 @@ const APP_CHECK_SITE_KEY = '6LdmOKAsAAAAACN1guy_JoAMDhjN6eljCiLLyMSJ';
 // `whenFirebaseReady()` lets the earliest-path Firestore callers gate their
 // first read on App Check init so prod enforcement doesn't race with boot.
 // (issue #242)
+// Dashboard / email deep links can call `ensureAppCheckNow()` (#535) to skip
+// the idle wait without double-initializing.
 
 let readyPromise = null;
+/** @type {null | (() => void)} */
+let cancelDeferredStart = null;
 
 /** Registered in Firebase Console → App Check → debug tokens (see docs/TESTING.md). */
 const DEV_APPCHECK_DEBUG_TOKEN = '38422efd-029f-45b4-b028-7cf7fcaeeffc';
@@ -37,17 +41,45 @@ function runInitialization() {
 export function initializeAppCheckDeferred() {
   if (readyPromise) return readyPromise;
   readyPromise = new Promise((resolve, reject) => {
+    let started = false;
     const start = () => {
+      if (started) return;
+      started = true;
+      cancelDeferredStart = null;
       runInitialization().then(resolve, reject);
     };
     // `requestIdleCallback` yields to paint + interaction before running.
     // Fall back to `setTimeout(0)` on Safari / tests / SSR.
     if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(start, { timeout: 2000 });
+      const idleId = window.requestIdleCallback(start, { timeout: 2000 });
+      cancelDeferredStart = () => {
+        if (typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(idleId);
+        }
+        start();
+      };
     } else {
-      setTimeout(start, 0);
+      const timeoutId = setTimeout(start, 0);
+      cancelDeferredStart = () => {
+        clearTimeout(timeoutId);
+        start();
+      };
     }
   });
+  return readyPromise;
+}
+
+/**
+ * Start App Check immediately — cancels any pending idle deferral (#535).
+ * Safe to call after `initializeAppCheckDeferred`; shares one init promise.
+ */
+export function ensureAppCheckNow() {
+  if (cancelDeferredStart) {
+    cancelDeferredStart();
+    return readyPromise;
+  }
+  if (readyPromise) return readyPromise;
+  readyPromise = runInitialization();
   return readyPromise;
 }
 

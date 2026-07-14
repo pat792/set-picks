@@ -39,6 +39,25 @@ test("inApp payload passes variables through unchanged", async () => {
   assert.deepEqual(out.inApp.payload, payload);
 });
 
+test("picks-lock-reminder email CTA includes showDate when YYYY-MM-DD (#535)", async () => {
+  const out = await renderCommsTemplate("picks-lock-reminder", {
+    handle: "HotDogBilly",
+    show_date: "2026-07-18",
+    venue_name: "MSG",
+    time_to_lock: "3 hours",
+  });
+  assert.match(out.email.ctaUrl, /\/dashboard\/picks\?showDate=2026-07-18/);
+});
+
+test("picks-lock-reminder email CTA omits showDate for display labels", async () => {
+  const out = await renderCommsTemplate("picks-lock-reminder", {
+    handle: "HotDogBilly",
+    show_date: "Tonight",
+    venue_name: "MSG",
+  });
+  assert.equal(out.email.ctaUrl, "https://www.setlistpickem.com/dashboard/picks");
+});
+
 test("unknown template falls back to a generic payload", async () => {
   const out = await renderCommsTemplate("does-not-exist", {});
   assert.ok(out.push.title);
