@@ -343,6 +343,11 @@ test("buildBrandedEmailHtml renders gradient wordmark, sign-off, teal CTA, and t
   assert.match(html, /Make Your Picks/);
   assert.match(html, /See you on tour!/);
   assert.ok(!html.includes("web-app-manifest-512x512.png"), "vinyl logo removed from shell header");
+  // #536 mobile readability
+  assert.match(html, /name="viewport"[^>]*content="width=device-width, initial-scale=1"/);
+  assert.match(html, /font-size:16px;line-height:1\.6;color:#1a1a2e/);
+  assert.match(html, /font-weight:700;font-size:16px/);
+  assert.match(html, /font-size:13px;line-height:1\.5;color:#888888/);
 });
 
 test("buildBrandedEmailHtml joins multi-line bodies into a single <p> with <br> breaks", () => {

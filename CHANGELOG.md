@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.12] — 2026-07-14
+
+### Fixed
+- **Service email mobile typography (#536)** — branded email shell adds viewport meta and bumps body/CTA/footer sizes so Gmail iOS no longer shrinks copy into illegible text.
+
+---
+
 ## [1.20.11] — 2026-07-14
 
 ### Fixed
