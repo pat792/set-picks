@@ -10,6 +10,7 @@
 
 const {
   parseShowCalendarSnapshotToShows,
+  parseShowCalendarSnapshotToShowsByTour,
   ymdInTimeZone,
 } = require("./phishnetLiveSetlistAutomation");
 const { hasNonEmptyPicksObject, resolveTourKeyForDate } = require("./rollupSeasonAggregates");
@@ -493,7 +494,11 @@ async function runScheduledTourCountdown({ db, admin, resendApiKey, logger, now 
   if (!isCommsEventAdaptersEnabled()) return null;
 
   const calSnap = await db.collection("show_calendar").doc("snapshot").get();
-  const shows = parseShowCalendarSnapshotToShows(calSnap.exists ? calSnap.data() : null);
+  // #514: per-tour first show from showDatesByTour — flat showDates collapses
+  // every tour into one pseudo-tour keyed "tour" (earliest legacy opener wins).
+  const shows = parseShowCalendarSnapshotToShowsByTour(
+    calSnap.exists ? calSnap.data() : null
+  );
   const targets = findTourCountdownTargets(shows, now);
   if (targets.length === 0) return { processed: 0, delivered: 0 };
 

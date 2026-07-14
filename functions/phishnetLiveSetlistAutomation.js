@@ -242,6 +242,82 @@ function parseShowCalendarSnapshotToShows(snapshotData) {
 }
 
 /**
+ * Expand `show_calendar/snapshot.showDatesByTour` into show records with
+ * per-tour labels. Used by tour countdown so each tour's first show is
+ * independent of older tours also present on the flat `showDates` list (#514).
+ *
+ * Falls back to flat `parseShowCalendarSnapshotToShows` when `showDatesByTour`
+ * is missing/empty (legacy snapshots).
+ *
+ * @param {import("firebase-admin").firestore.DocumentData | null | undefined} snapshotData
+ * @returns {Array<{
+ *   date: string,
+ *   timeZone: string,
+ *   venue?: string,
+ *   city?: string,
+ *   tour?: string,
+ *   tour_name?: string,
+ * }> | null}
+ */
+function parseShowCalendarSnapshotToShowsByTour(snapshotData) {
+  if (!snapshotData || typeof snapshotData !== "object") return null;
+  const groups = snapshotData.showDatesByTour;
+  if (!Array.isArray(groups) || groups.length === 0) {
+    return parseShowCalendarSnapshotToShows(snapshotData);
+  }
+
+  /** @type {Array<{ date: string, timeZone: string, venue?: string, city?: string, tour?: string, tour_name?: string }>} */
+  const shows = [];
+  for (const group of groups) {
+    if (!group || typeof group !== "object") continue;
+    const rawShows = Array.isArray(group.shows) ? group.shows : [];
+    /** @type {string[]} */
+    const groupDates = [];
+    for (const item of rawShows) {
+      const date =
+        item && typeof item === "object" && typeof item.date === "string"
+          ? item.date.trim()
+          : "";
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date)) groupDates.push(date);
+    }
+    groupDates.sort();
+    const namedTour =
+      typeof group.tour === "string" && group.tour.trim() ? group.tour.trim() : "";
+    // Untitled / NPT clusters still need a stable unique key so they do not
+    // collapse into the same pseudo-tour as every other unlabeled group.
+    const tourKey = namedTour || (groupDates[0] ? `run:${groupDates[0]}` : "");
+    if (!tourKey) continue;
+
+    for (const item of rawShows) {
+      if (!item || typeof item !== "object") continue;
+      const date = typeof item.date === "string" ? item.date.trim() : "";
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      const explicitTz =
+        typeof item.timeZone === "string" && item.timeZone.trim()
+          ? item.timeZone.trim()
+          : typeof item.timezone === "string" && item.timezone.trim()
+            ? item.timezone.trim()
+            : "";
+      /** @type {{ date: string, timeZone: string, venue?: string, city?: string, tour?: string, tour_name?: string }} */
+      const show = {
+        date,
+        timeZone: explicitTz || DEFAULT_SHOW_TIME_ZONE,
+        tour: tourKey,
+        tour_name: namedTour || tourKey,
+      };
+      if (typeof item.venue === "string" && item.venue.trim()) {
+        show.venue = item.venue.trim();
+      }
+      if (typeof item.city === "string" && item.city.trim()) {
+        show.city = item.city.trim();
+      }
+      shows.push(show);
+    }
+  }
+  return shows.length > 0 ? shows : parseShowCalendarSnapshotToShows(snapshotData);
+}
+
+/**
  * Back-compat parser used by tests/consumers that only need date membership.
  * @param {import("firebase-admin").firestore.DocumentData | null | undefined} snapshotData
  */
@@ -1074,6 +1150,7 @@ module.exports = {
   normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
   parseShowCalendarSnapshotToShows,
+  parseShowCalendarSnapshotToShowsByTour,
   pollSingleShowDate,
   randomScheduledPollDelayMs,
   scheduledCandidateShowDates,

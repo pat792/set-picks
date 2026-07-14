@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.9] — 2026-07-14
+
+### Fixed
+- **Tour countdown multi-tour no-op (#514)** — `scheduledTourCountdownComms` now resolves first-show targets from `showDatesByTour` so past tours on the calendar no longer collapse every show into one pseudo-tour and skip T-10/T-5/T-3/T-1.
+
+---
+
 ## [1.20.8] — 2026-07-14
 
 ### Fixed
