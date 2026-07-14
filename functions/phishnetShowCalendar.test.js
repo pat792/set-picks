@@ -240,5 +240,8 @@ test("normalizePhishShows: stamps per-show IANA timezone from location", () => {
   ]);
 
   assert.equal(out[0].timeZone, "America/Cancun");
+  assert.equal(out[0].city, "Cancun, Mexico");
   assert.equal(out[1].timeZone, "America/Chicago");
+  assert.equal(out[1].city, "Madison, WI");
+  assert.equal(out[1].venue, "Kohl Center, Madison, WI");
 });
