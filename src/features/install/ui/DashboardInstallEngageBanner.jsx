@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Download, Share2 } from 'lucide-react';
 
@@ -7,9 +7,11 @@ import {
   isProfileClusterPath,
 } from '../../../shared/config/dashboardRoutes';
 import { ga4Event } from '../../../shared/lib/ga4';
+import { getInstallLeadCopy, resolveInstallCopyBranch } from '../model/installCopy';
 import { useDashboardPushNudge } from '../model/useDashboardPushNudge';
 import { useInstallPrompt } from '../model/useInstallPrompt';
 import IosInstallScreenshotGallery from './IosInstallScreenshotGallery.jsx';
+import IosSafariInstallSteps from './IosSafariInstallSteps.jsx';
 
 /**
  * Routes where the compact install + push nudge may appear (#334). Profile
@@ -48,6 +50,21 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
   const showInstall = install.shouldShowDashboardInstallBanner;
   const showPush = push.shouldShowPushNudge;
 
+  const branch = useMemo(
+    () =>
+      resolveInstallCopyBranch({
+        canPrompt: install.canPrompt,
+        shouldShowIosFlow: install.shouldShowIosFlow,
+        shouldShowIosNonSafariFlow: install.shouldShowIosNonSafariFlow,
+      }),
+    [
+      install.canPrompt,
+      install.shouldShowIosFlow,
+      install.shouldShowIosNonSafariFlow,
+    ],
+  );
+  const lead = getInstallLeadCopy(branch);
+
   if (!showInstall && !showPush) return null;
 
   return (
@@ -55,11 +72,9 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
       {showInstall ? (
         <div className="rounded-2xl border border-border-subtle bg-surface-panel px-4 py-3 shadow-inset-glass md:px-5">
           <p className="text-[11px] font-black uppercase tracking-widest text-brand-primary">
-            Faster launch &amp; full screen
+            {lead.eyebrow}
           </p>
-          <p className="mt-1 text-xs font-bold leading-snug text-content-secondary">
-            Add Setlist Pick &apos;Em to your home screen for quick access on show night.
-          </p>
+          <p className="mt-1 text-xs font-bold leading-snug text-content-secondary">{lead.body}</p>
 
           {install.canPrompt ? (
             <button
@@ -68,7 +83,7 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-brand-primary/45 bg-brand-primary/10 py-2.5 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20"
             >
               <Download className="h-4 w-4 shrink-0" aria-hidden />
-              Add to Home Screen
+              {lead.ctaLabel || 'Add to Home Screen'}
             </button>
           ) : null}
 
@@ -82,23 +97,11 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
                 className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border-subtle bg-surface-field py-2.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel"
               >
                 <Share2 className="h-4 w-4 shrink-0" aria-hidden />
-                {install.showIosGuide ? 'Hide steps' : 'iPhone: Add to Home Screen'}
+                {install.showIosGuide ? 'Hide steps' : 'Show Safari steps'}
               </button>
               {install.showIosGuide ? (
                 <div className="space-y-2">
-                  <ol className="space-y-1.5 rounded-xl border border-border-muted bg-surface-inset p-3 text-xs text-content-secondary">
-                    <li>
-                      1. Tap the three-dot menu <span className="font-bold text-white">(...)</span>, then tap{' '}
-                      <span className="font-bold text-white">Share</span> (share icon).
-                    </li>
-                    <li>
-                      2. Scroll down and tap{' '}
-                      <span className="font-bold text-white">Add to Home Screen</span>.
-                    </li>
-                    <li>
-                      3. Tap the <span className="font-bold text-white">+</span> icon.
-                    </li>
-                  </ol>
+                  <IosSafariInstallSteps compact />
                   <IosInstallScreenshotGallery compact />
                 </div>
               ) : null}
@@ -115,9 +118,7 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
           {install.shouldShowIosNonSafariFlow ? (
             <div className="mt-3 space-y-2">
               <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs font-bold leading-relaxed text-content-secondary">
-                On iPhone, <span className="text-white">Chrome and other browsers can&apos;t install</span> this
-                app. Open <span className="text-white">setlistpickem.com</span> in{' '}
-                <span className="text-white">Safari</span>, then use Share → Add to Home Screen.
+                {lead.body}
               </p>
               <button
                 type="button"

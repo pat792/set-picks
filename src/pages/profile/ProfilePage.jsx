@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 
+import { InstallAppCard } from '../../features/install';
 import { ProfileEditForm, useUserProfile } from '../../features/profile';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
@@ -60,6 +61,9 @@ export default function ProfilePage({ user: userProp }) {
         isLoading={isLoading}
         message={message}
       />
+
+      {/* Remounted for #539 — shares installCopy with dashboard banner */}
+      <InstallAppCard />
     </div>
   );
 }

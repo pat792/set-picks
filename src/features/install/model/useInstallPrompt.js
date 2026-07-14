@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ga4Event } from '../../../shared/lib/ga4';
+import { resolveInstallCopyBranch } from './installCopy';
 import {
   isInstalled,
   isIosNonSafariBrowser,
@@ -130,11 +131,13 @@ export function useInstallPrompt() {
 
   useEffect(() => {
     if (!shouldShowCard) return;
-    let platform = 'ios_safari';
-    if (canPrompt) platform = 'chromium';
-    else if (isIosNonSafari) platform = 'ios_non_safari';
+    const platform = resolveInstallCopyBranch({
+      canPrompt,
+      shouldShowIosFlow,
+      shouldShowIosNonSafariFlow,
+    });
     ga4Event('a2hs_cta_shown', { platform });
-  }, [shouldShowCard, canPrompt, isIosNonSafari]);
+  }, [shouldShowCard, canPrompt, shouldShowIosFlow, shouldShowIosNonSafariFlow]);
 
   const dismissIos = useCallback(() => {
     setIosDismissedStorage(true);
@@ -163,10 +166,11 @@ export function useInstallPrompt() {
   const promptInstall = useCallback(async () => {
     if (!deferredPrompt) return false;
 
-    ga4Event('a2hs_cta_clicked', { platform: 'chromium' });
+    const platform = resolveInstallCopyBranch({ canPrompt: true });
+    ga4Event('a2hs_cta_clicked', { platform });
     deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
-    ga4Event('a2hs_prompt_result', { outcome: choice?.outcome ?? 'unknown' });
+    ga4Event('a2hs_prompt_result', { outcome: choice?.outcome ?? 'unknown', platform });
     setDeferredPrompt(null);
     return choice?.outcome === 'accepted';
   }, [deferredPrompt]);

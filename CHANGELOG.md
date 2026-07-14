@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.14] — 2026-07-14
+
+### Changed
+- **A2HS copy by platform (#539)** — Android Chrome / desktop Chromium / iOS Safari lead copy and Safari Share-toolbar steps are shared across the dashboard banner and Profile install card; telemetry uses `android_chrome` / `desktop_chromium` / `ios_safari` / `ios_non_safari`.
+
+---
+
 ## [1.20.13] — 2026-07-14
 
 ### Added
