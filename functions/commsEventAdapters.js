@@ -10,6 +10,7 @@
 
 const {
   parseShowCalendarSnapshotToShows,
+  parseShowCalendarSnapshotToShowsByTour,
   ymdInTimeZone,
 } = require("./phishnetLiveSetlistAutomation");
 const { hasNonEmptyPicksObject, resolveTourKeyForDate } = require("./rollupSeasonAggregates");
@@ -39,6 +40,35 @@ const FIRESTORE_IN_QUERY_LIMIT = 30;
 function handleFromUser(data) {
   const h = data && typeof data.handle === "string" ? data.handle.trim() : "";
   return h;
+}
+
+/**
+ * Build showDate → Set(uid) for users with non-empty picks (#509).
+ *
+ * @param {import("firebase-admin").firestore.Firestore} db
+ * @param {string[]} showDates
+ * @returns {Promise<Map<string, Set<string>>>}
+ */
+async function loadUserIdsWithPicksForShowDates(db, showDates) {
+  const unique = [...new Set(showDates.filter((d) => typeof d === "string" && d.trim()))];
+  /** @type {Map<string, Set<string>>} */
+  const byDate = new Map();
+  for (const d of unique) byDate.set(d, new Set());
+  if (unique.length === 0) return byDate;
+
+  for (let i = 0; i < unique.length; i += FIRESTORE_IN_QUERY_LIMIT) {
+    const chunk = unique.slice(i, i + FIRESTORE_IN_QUERY_LIMIT);
+    // eslint-disable-next-line no-await-in-loop
+    const snap = await db.collection("picks").where("showDate", "in", chunk).get();
+    for (const doc of snap.docs) {
+      const data = doc.data() || {};
+      const sd = typeof data.showDate === "string" ? data.showDate.trim() : "";
+      const uid = typeof data.userId === "string" ? data.userId.trim() : "";
+      if (!uid || !byDate.has(sd)) continue;
+      if (hasNonEmptyPicksObject(data.picks)) byDate.get(sd).add(uid);
+    }
+  }
+  return byDate;
 }
 
 /**
@@ -289,10 +319,21 @@ async function deliverPostRollupComms({
   if (!picksSnap || picksSnap.empty) return null;
 
   const calSnap = await db.collection("show_calendar").doc("snapshot").get();
-  const shows = parseShowCalendarSnapshotToShows(calSnap.exists ? calSnap.data() : null);
+  const calData = calSnap.exists ? calSnap.data() : null;
+  const shows = parseShowCalendarSnapshotToShows(calData);
   const meta = findShowMeta(shows, showDate) || {};
   const ranks = computeGlobalRankByUid(picksSnap.docs, newScoresById);
   const runtime = createCommsAdapterRuntime({ db, admin, resendApiKey, logger });
+
+  const tourDates = tourKey ? tourDatesForKey(showDatesByTour, tourKey) : [];
+  const nextDate = nextTourShowDate(tourDates, showDate);
+  const nextMeta = nextDate ? findShowMeta(shows, nextDate) || {} : {};
+  const showsRemaining =
+    tourDates.length > 0 ? tourDates.filter((d) => d > showDate).length : null;
+  const securedByNextShow = nextDate
+    ? await loadUserIdsWithPicksForShowDates(db, [nextDate])
+    : new Map();
+  const nextShowSecuredUids = nextDate ? securedByNextShow.get(nextDate) || new Set() : new Set();
 
   /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
   const recapRecipients = [];
@@ -336,9 +377,16 @@ async function deliverPostRollupComms({
           userData,
           payload: {
             handle: handleFromUser(userData),
+            show_score: score,
             global_rank: rankInfo.rank,
+            global_total_pickers: rankInfo.total,
+            tour_name: tourKey,
             tourId: tourKey,
-            shows_remaining: null,
+            shows_remaining: showsRemaining,
+            next_show_date: nextDate || "",
+            next_show_venue: nextMeta.venue || "",
+            // #509: next-show picks (not the graded show just rolled up)
+            picks_secured: nextDate ? nextShowSecuredUids.has(uid) : false,
           },
           vars: { uid, tourId: tourKey },
         });
@@ -493,7 +541,11 @@ async function runScheduledTourCountdown({ db, admin, resendApiKey, logger, now 
   if (!isCommsEventAdaptersEnabled()) return null;
 
   const calSnap = await db.collection("show_calendar").doc("snapshot").get();
-  const shows = parseShowCalendarSnapshotToShows(calSnap.exists ? calSnap.data() : null);
+  // #514: per-tour first show from showDatesByTour — flat showDates collapses
+  // every tour into one pseudo-tour keyed "tour" (earliest legacy opener wins).
+  const shows = parseShowCalendarSnapshotToShowsByTour(
+    calSnap.exists ? calSnap.data() : null
+  );
   const targets = findTourCountdownTargets(shows, now);
   if (targets.length === 0) return { processed: 0, delivered: 0 };
 
@@ -502,7 +554,15 @@ async function runScheduledTourCountdown({ db, admin, resendApiKey, logger, now 
   /** @type {import("./commsDelivery").deliverCommsTrigger extends (...args: infer A) => any ? A[0]["recipients"] : never} */
   const recipients = [];
 
+  // #509: batch picks lookup per first-show date so CTA can say View / Edit
+  const securedByShow = await loadUserIdsWithPicksForShowDates(
+    db,
+    targets.map((t) => t.first_show_date || t.firstShowDate)
+  );
+
   for (const target of targets) {
+    const firstShow = target.first_show_date || target.firstShowDate || "";
+    const securedUids = securedByShow.get(firstShow) || new Set();
     for (const userDoc of usersSnap.docs) {
       const userData = userDoc.data() || {};
       if (!handleFromUser(userData)) continue;
@@ -517,6 +577,7 @@ async function runScheduledTourCountdown({ db, admin, resendApiKey, logger, now 
           first_show_venue: target.first_show_venue,
           first_show_city: target.first_show_city,
           lock_time_local: target.lock_time_local,
+          picks_secured: firstShow ? securedUids.has(userDoc.id) : false,
         },
         vars: {
           uid: userDoc.id,
@@ -681,6 +742,7 @@ module.exports = {
   findShowMeta,
   computeGlobalRankByUid,
   findTourCountdownTargets,
+  loadUserIdsWithPicksForShowDates,
   handleAccountWelcome,
   handlePicksConfirmed,
   deliverPostRollupComms,

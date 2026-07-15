@@ -45,7 +45,7 @@
       "githubIssue": null,
       "variants": ["t10", "t5", "t3", "t1"],
       "inAppDeepLink": "/dashboard/picks",
-      "note": "In-app CTA label varies by days_remaining (see TRIGGER_CATALOG.md §2). Push/email use open-app phrasing.",
+      "note": "In-app CTA label varies by days_remaining; T-5/T-3/T-1 switch to View / Edit picks when picks_secured (#509). Push/email use open-app phrasing.",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "tour_name", "source": "tour metadata", "fallback": null },
@@ -53,7 +53,8 @@
         { "name": "first_show_date", "source": "tour first show", "fallback": null },
         { "name": "first_show_venue", "source": "tour first show venue", "fallback": null },
         { "name": "first_show_city", "source": "tour first show city", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (19:30 venue-local)", "fallback": "7:30 PM" }
+        { "name": "lock_time_local", "source": "computed (19:30 venue-local)", "fallback": "7:30 PM" },
+        { "name": "picks_secured", "source": "picks where showDate=first_show + hasNonEmptyPicksObject", "fallback": false }
       ]
     },
     {
@@ -241,14 +242,15 @@
       "templateId": "picks-lock-reminder",
       "implementationModule": "functions/picksLockReminder.js",
       "githubIssue": 524,
-      "note": "Email is transactional (CAN-SPAM): bypasses reminders pref but respects email_suppression. Push/in-app still use reminders pref.",
+      "note": "Email is transactional (CAN-SPAM): bypasses reminders pref but respects email_suppression. Push/in-app still use reminders pref. Audience excludes users with picks; in-app registry still branches on picks_secured for preview (#509).",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "show_date", "source": "show_calendar", "fallback": null },
         { "name": "venue_name", "source": "show_calendar", "fallback": null },
         { "name": "venue_city", "source": "show_calendar", "fallback": null },
         { "name": "time_to_lock", "source": "computed at send time", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (19:30 venue-local)", "fallback": "7:30 PM" }
+        { "name": "lock_time_local", "source": "computed (19:30 venue-local)", "fallback": "7:30 PM" },
+        { "name": "picks_secured", "source": "preview/edge only — production fanout skips users with picks", "fallback": false }
       ]
     },
     {
@@ -267,7 +269,7 @@
       "templateId": "tour-engagement-reminder",
       "inAppDeepLink": "/dashboard/picks",
       "implementationModule": "functions/commsEventAdapters.js",
-      "githubIssue": null,
+      "githubIssue": 509,
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "show_score", "source": "graded show total", "fallback": null },
@@ -276,7 +278,8 @@
         { "name": "tour_name", "source": "tour metadata", "fallback": null },
         { "name": "shows_remaining", "source": "tour calendar", "fallback": null },
         { "name": "next_show_date", "source": "show_calendar", "fallback": null },
-        { "name": "next_show_venue", "source": "show_calendar", "fallback": null }
+        { "name": "next_show_venue", "source": "show_calendar", "fallback": null },
+        { "name": "picks_secured", "source": "picks where showDate=next_show + hasNonEmptyPicksObject", "fallback": false }
       ]
     },
     {

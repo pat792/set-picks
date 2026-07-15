@@ -18,10 +18,26 @@ const { buildTourRankingsDailyParagraphs } = require("./tourRankingsDailyCore");
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
 const PICKS_CTA_URL = `${SITE_URL}/dashboard/picks`;
+const STANDINGS_CTA_URL = `${SITE_URL}/dashboard/standings#self-recap`;
 
 function handleOf(p) {
   const h = p && typeof p.handle === "string" ? p.handle.trim() : "";
   return h || "Picker";
+}
+
+/**
+ * Show-scoped picks CTA (#535). Appends `?showDate=YYYY-MM-DD` when payload has
+ * a calendar date (ignores display labels like "Tonight").
+ *
+ * @param {Record<string, unknown>} p
+ * @returns {string}
+ */
+function picksCtaUrl(p) {
+  const raw = p && typeof p.show_date === "string" ? p.show_date.trim() : "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return `${PICKS_CTA_URL}?showDate=${encodeURIComponent(raw)}`;
+  }
+  return PICKS_CTA_URL;
 }
 
 /**
@@ -207,7 +223,8 @@ const BUILDERS = {
         p.global_rank != null
           ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
           : "",
-      ].filter(Boolean)
+      ].filter(Boolean),
+      { ctaUrl: STANDINGS_CTA_URL }
     );
     return {
       push: {
@@ -218,7 +235,7 @@ const BUILDERS = {
         subject: p.venue_name ? `Your recap: ${p.venue_name}` : "Your show recap",
         text: assembled.text,
         signOff: assembled.signOff,
-        ctaUrl: assembled.ctaUrl,
+        ctaUrl: STANDINGS_CTA_URL,
       },
     };
   },
@@ -236,7 +253,9 @@ const BUILDERS = {
     ].filter(Boolean);
 
     const tourParas = buildTourRankingsDailyParagraphs(p);
-    const assembled = assembleServiceEmail([...nightOf, "", ...tourParas].filter(Boolean));
+    const assembled = assembleServiceEmail([...nightOf, "", ...tourParas].filter(Boolean), {
+      ctaUrl: PICKS_CTA_URL,
+    });
 
     const pushRank =
       p.tour_rank != null
@@ -258,7 +277,8 @@ const BUILDERS = {
           : "Your show recap + tour standings",
         text: assembled.text,
         signOff: assembled.signOff,
-        ctaUrl: assembled.ctaUrl,
+        ctaUrl: PICKS_CTA_URL,
+        ctaLabel: "Make picks for next show",
       },
     };
   },
@@ -267,12 +287,13 @@ const BUILDERS = {
     const venue = venueLine(p);
     const lockLabel = p.lock_time_local || "7:30 PM";
     const timePhrase = p.time_to_lock ? ` in ${p.time_to_lock}` : "";
+    const ctaUrl = picksCtaUrl(p);
     const assembled = assembleServiceEmail(
       [
         `${handleOf(p)}, ${p.venue_name || "tonight's show"} locks at ${lockLabel} local${timePhrase}.`,
         "You haven't locked picks yet — don't get shut out.",
       ],
-      { ctaUrl: PICKS_CTA_URL, signOff: "See you on tour!" }
+      { ctaUrl, signOff: "See you on tour!" }
     );
     return {
       push: {
@@ -285,7 +306,7 @@ const BUILDERS = {
           : `Lock in your picks${venue ? ` — ${venue}` : ""}`,
         text: assembled.text,
         signOff: assembled.signOff,
-        ctaUrl: PICKS_CTA_URL,
+        ctaUrl,
         ctaLabel: "Make Your Picks",
       },
     };

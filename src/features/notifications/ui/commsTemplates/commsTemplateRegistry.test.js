@@ -72,12 +72,57 @@ describe('comms template registry', () => {
     expect(entry.build({ days_remaining: 1 }).cta.label).toBe('Lock in your picks');
   });
 
+  it('tour countdown T-5/T-3/T-1 uses View / Edit picks when picks_secured (#509)', () => {
+    const entry = getCommsTemplateEntry('tour-countdown');
+    expect(entry.build({ days_remaining: 5, picks_secured: true }).cta).toEqual({
+      label: 'View / Edit picks',
+      href: '/dashboard/picks',
+    });
+    expect(entry.build({ days_remaining: 3, picks_secured: true }).cta.label).toBe(
+      'View / Edit picks',
+    );
+    expect(entry.build({ days_remaining: 1, picks_secured: true }).cta.label).toBe(
+      'View / Edit picks',
+    );
+    // T-10 stays exploratory even if secured
+    expect(entry.build({ days_remaining: 10, picks_secured: true }).cta.label).toBe(
+      'View upcoming shows',
+    );
+  });
+
   it('tour engagement reminder uses in-app picks CTA (not "Open the app")', () => {
     const entry = getCommsTemplateEntry('tour-engagement-reminder');
     expect(entry.build({}).cta).toEqual({
       label: 'Make picks for next show',
       href: '/dashboard/picks',
     });
+    expect(entry.build({ picks_secured: true }).cta).toEqual({
+      label: 'View / Edit picks',
+      href: '/dashboard/picks',
+    });
+  });
+
+  it('picks-lock-reminder CTA switches when picks_secured (#509)', () => {
+    const entry = getCommsTemplateEntry('picks-lock-reminder');
+    expect(entry.build({}).cta.label).toBe('Make your picks');
+    expect(entry.build({ picks_secured: true }).cta.label).toBe('View / Edit picks');
+  });
+
+  it('show_recap CTA is honest about standings destination (#551)', () => {
+    const entry = getCommsTemplateEntry('show-recap');
+    expect(entry.build({}).cta).toEqual({
+      label: 'See standings',
+      href: '/dashboard/standings#self-recap',
+    });
+  });
+
+  it('welcome + picks-confirmed CTAs deep-link to picks (#551)', () => {
+    expect(getCommsTemplateEntry('account-welcome').build({}).cta.href).toBe(
+      '/dashboard/picks',
+    );
+    expect(getCommsTemplateEntry('picks-confirmed').build({}).cta.href).toBe(
+      '/dashboard/picks',
+    );
   });
 
   it('maps templateId → catalog triggerId', () => {

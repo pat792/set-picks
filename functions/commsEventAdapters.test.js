@@ -8,6 +8,7 @@ const {
   shouldDeliverPicksConfirmed,
   computeGlobalRankByUid,
   findTourCountdownTargets,
+  loadUserIdsWithPicksForShowDates,
   leaderUidFromScores,
 } = require("./commsEventAdapters");
 const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
@@ -94,6 +95,59 @@ test("findTourCountdownTargets hits T-3 for Summer Tour Jul 7 kickoff", () => {
   assert.equal(hits[0].tourId, "Summer Tour 2026");
 });
 
+test("findTourCountdownTargets: multi-tour snapshot hits Summer T-1 only (#514)", () => {
+  // Flat showDates without tour labels collapses to earliest past opener → 0 hits.
+  // With per-tour labels (showDatesByTour expansion), Summer T-1 still fires.
+  const now = new Date("2026-07-06T16:00:00Z");
+  const shows = [
+    {
+      date: "2026-04-16",
+      venue: "Sphere",
+      timeZone: "America/Los_Angeles",
+      tour: "Sphere Run 2026",
+      tour_name: "Sphere Run 2026",
+    },
+    {
+      date: "2026-04-26",
+      venue: "Sphere",
+      timeZone: "America/Los_Angeles",
+      tour: "Sphere Run 2026",
+      tour_name: "Sphere Run 2026",
+    },
+    {
+      date: "2026-07-07",
+      venue: "Kohl Center",
+      city: "Madison, WI",
+      timeZone: "America/Chicago",
+      tour: "Summer Tour 2026",
+      tour_name: "Summer Tour 2026",
+    },
+    {
+      date: "2026-07-08",
+      venue: "Kohl Center",
+      city: "Madison, WI",
+      timeZone: "America/Chicago",
+      tour: "Summer Tour 2026",
+      tour_name: "Summer Tour 2026",
+    },
+  ];
+  const hits = findTourCountdownTargets(shows, now);
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].tourId, "Summer Tour 2026");
+  assert.equal(hits[0].days_remaining, 1);
+  assert.equal(hits[0].first_show_date, "2026-07-07");
+});
+
+test("findTourCountdownTargets: unlabeled flat list with past dates is a no-op (#514)", () => {
+  const now = new Date("2026-07-06T16:00:00Z");
+  const flatCollapsed = [
+    { date: "2026-04-16", timeZone: "America/Los_Angeles" },
+    { date: "2026-07-07", timeZone: "America/Chicago" },
+  ];
+  const hits = findTourCountdownTargets(flatCollapsed, now);
+  assert.equal(hits.length, 0);
+});
+
 test("leaderUidFromScores returns sole leader only", () => {
   const picksSnap = {
     docs: [
@@ -109,4 +163,42 @@ test("leaderUidFromScores returns sole leader only", () => {
     leaderUidFromScores(new Map([["p1", 5], ["p2", 5]]), picksSnap),
     null
   );
+});
+
+test("loadUserIdsWithPicksForShowDates indexes non-empty picks (#509)", async () => {
+  const db = {
+    collection: () => ({
+      where: () => ({
+        get: async () => ({
+          docs: [
+            {
+              data: () => ({
+                showDate: "2026-07-18",
+                userId: "u1",
+                picks: { opener: "Tweezer" },
+              }),
+            },
+            {
+              data: () => ({
+                showDate: "2026-07-18",
+                userId: "u2",
+                picks: {},
+              }),
+            },
+            {
+              data: () => ({
+                showDate: "2026-07-20",
+                userId: "u3",
+                picks: { closer: "Slave" },
+              }),
+            },
+          ],
+        }),
+      }),
+    }),
+  };
+  const map = await loadUserIdsWithPicksForShowDates(db, ["2026-07-18", "2026-07-20"]);
+  assert.equal(map.get("2026-07-18").has("u1"), true);
+  assert.equal(map.get("2026-07-18").has("u2"), false);
+  assert.equal(map.get("2026-07-20").has("u3"), true);
 });

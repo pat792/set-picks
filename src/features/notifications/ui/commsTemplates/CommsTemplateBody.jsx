@@ -14,7 +14,7 @@ import React from 'react';
  *   paragraphs?: string[],
  *   stats?: { label: string, value: React.ReactNode }[],
  *   cta?: { label: string, href?: string },
- *   onCtaClick?: () => void,
+ *   onCtaClick?: (cta: { label: string, href?: string }) => void,
  * }} props
  */
 export default function CommsTemplateBody({
@@ -71,7 +71,7 @@ export default function CommsTemplateBody({
         <div className="pt-2">
           <a
             href={cta.href || '#'}
-            onClick={onCtaClick}
+            onClick={() => onCtaClick?.(cta)}
             className="inline-flex items-center justify-center rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20"
           >
             {cta.label}

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './app/App.jsx'
 import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import ScrollToTop from './app/ScrollToTop.jsx'
+import { AuthProvider } from './features/auth'
 import { initGa4 } from './shared/lib/ga4'
 import { initializeAppCheckDeferred } from './shared/lib/firebaseAppCheck'
 import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
@@ -13,9 +14,9 @@ import './index.css'
 
 initGa4()
 
-// Shared client for the React Query caches added in #243 (profile season
-// stats + tour standings). Defaults are tuned for read-heavy stats hooks
-// where back-navigation should reuse data within the session.
+// Shared client for React Query caches (#243 profile/tour standings, #507
+// show-scoped standings). Defaults tuned for read-heavy dashboard hooks
+// where tab revisits should reuse data within the session.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -33,9 +34,11 @@ root.render(
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
-          <ScrollToTop />
-          <Ga4RouteListener />
-          <App />
+          <AuthProvider>
+            <ScrollToTop />
+            <Ga4RouteListener />
+            <App />
+          </AuthProvider>
         </HelmetProvider>
       </QueryClientProvider>
     </BrowserRouter>

@@ -5,8 +5,8 @@
 export const IOS_INSTALL_SCREENSHOT_STEPS = Object.freeze([
   {
     src: '/images/iphone-add-to-homescreen/1.png',
-    alt: 'Safari: open the menu, then tap Share',
-    caption: 'Step 1: Menu (…) → Share',
+    alt: "Safari toolbar: tap Share (square with arrow)",
+    caption: 'Step 1: Share (toolbar)',
   },
   {
     src: '/images/iphone-add-to-homescreen/2.png',

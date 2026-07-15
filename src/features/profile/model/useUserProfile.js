@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { useAuth } from '../../auth';
 import { formatMonthYear } from '../../../shared';
 import {
   fetchUserProfileDocument,
@@ -9,9 +10,11 @@ import { showSuccessToast } from '../../../shared/ui/toast';
 
 /**
  * Loads the signed-in user's profile, holds edit form state, and persists updates.
+ * Seeds from `useAuth().userProfile` when available to avoid a redundant getDoc + spinner (#496).
  */
 export function useUserProfile(user) {
   const uid = user?.uid;
+  const { userProfile: authProfile, loading: authLoading } = useAuth();
 
   const [handle, setHandle] = useState('');
   const [favoriteSong, setFavoriteSong] = useState('');
@@ -29,6 +32,33 @@ export function useUserProfile(user) {
       return;
     }
 
+    const seedFromProfile = (data) => {
+      const accountCreated = data?.createdAt;
+      const creationTime =
+        accountCreated?.toDate?.() ?? user?.metadata?.creationTime;
+      setJoinDate(creationTime ? formatMonthYear(creationTime) : '');
+      if (data) {
+        setHandle(data.handle || '');
+        setFavoriteSong(data.favoriteSong || '');
+      } else {
+        setHandle('');
+        setFavoriteSong('');
+      }
+    };
+
+    // Warm path: AuthProvider already has the users/{uid} snapshot.
+    if (authProfile && authProfile !== null) {
+      seedFromProfile(authProfile);
+      setIsLoading(false);
+      return;
+    }
+
+    // Still waiting on the shared auth subscription — keep form calm, no fetch yet.
+    if (authLoading) {
+      setIsLoading(true);
+      return;
+    }
+
     let cancelled = false;
     setIsLoading(true);
 
@@ -36,19 +66,7 @@ export function useUserProfile(user) {
       try {
         const data = await fetchUserProfileDocument(uid);
         if (cancelled) return;
-
-        const accountCreated = data?.createdAt;
-        const creationTime =
-          accountCreated?.toDate?.() ?? user?.metadata?.creationTime;
-        setJoinDate(creationTime ? formatMonthYear(creationTime) : '');
-
-        if (data) {
-          setHandle(data.handle || '');
-          setFavoriteSong(data.favoriteSong || '');
-        } else {
-          setHandle('');
-          setFavoriteSong('');
-        }
+        seedFromProfile(data);
       } catch (error) {
         console.error('Error loading profile:', error);
         if (!cancelled) {
@@ -63,7 +81,7 @@ export function useUserProfile(user) {
     return () => {
       cancelled = true;
     };
-  }, [uid, user?.metadata?.creationTime]);
+  }, [uid, user?.metadata?.creationTime, authProfile, authLoading]);
 
   const saveProfile = useCallback(
     async (e) => {
@@ -96,7 +114,7 @@ export function useUserProfile(user) {
         setTimeout(() => setMessage({ text: '', type: '' }), 3000);
       }
     },
-    [uid, handle, favoriteSong]
+    [uid, handle, favoriteSong],
   );
 
   return {

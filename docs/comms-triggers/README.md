@@ -11,6 +11,7 @@ This directory is the **canonical home** for triggered, templated communications
 | [TRIGGER_CATALOG.md](./TRIGGER_CATALOG.md) | Human-readable v1 trigger inventory (status, channels, prefs, dedup) |
 | [catalog.json](./catalog.json) | Machine-readable trigger specs for agents and future orchestration |
 | [MEASUREMENT_PLAN.md](./MEASUREMENT_PLAN.md) | GA4 comms events, dimensions, funnels |
+| [CTA_ROUTE_AUDIT.md](./CTA_ROUTE_AUDIT.md) | In-app/email CTA label ↔ destination matrix (#551) |
 | [EXPERIMENT_PLAYBOOK.md](./EXPERIMENT_PLAYBOOK.md) | A/B rules, variant assignment, ship/kill criteria |
 | [EMAIL_INBOX_BADGE.md](./EMAIL_INBOX_BADGE.md) | Inbox sender badge (BIMI/DMARC) vs in-body email logo (#498) |
 | [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md) | Sponsor / affiliate / offer gates (Phase 3) |

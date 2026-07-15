@@ -20,6 +20,7 @@ const {
   normalizeSetlistRows,
   parseShowCalendarSnapshotToDateSet,
   parseShowCalendarSnapshotToShows,
+  parseShowCalendarSnapshotToShowsByTour,
   pollSingleShowDate,
   randomScheduledPollDelayMs,
   scheduledCandidateShowDates,
@@ -81,6 +82,39 @@ test("parseShowCalendarSnapshotToShows reads date + timezone + venue/city/tour",
     },
     { date: "2026-07-05", timeZone: "America/Los_Angeles" },
   ]);
+});
+
+test("parseShowCalendarSnapshotToShowsByTour stamps tour from showDatesByTour (#514)", () => {
+  const shows = parseShowCalendarSnapshotToShowsByTour({
+    showDates: [
+      { date: "2026-04-16", venue: "Sphere" },
+      { date: "2026-07-07", venue: "Kohl Center" },
+    ],
+    showDatesByTour: [
+      {
+        tour: "Sphere Run 2026",
+        shows: [
+          { date: "2026-04-16", venue: "Sphere", timeZone: "America/Los_Angeles" },
+        ],
+      },
+      {
+        tour: "Summer Tour 2026",
+        shows: [
+          {
+            date: "2026-07-07",
+            venue: "Kohl Center",
+            city: "Madison, WI",
+            timeZone: "America/Chicago",
+          },
+        ],
+      },
+    ],
+  });
+  assert.ok(shows);
+  assert.equal(shows.length, 2);
+  assert.equal(shows[0].tour, "Sphere Run 2026");
+  assert.equal(shows[1].tour, "Summer Tour 2026");
+  assert.equal(shows[1].city, "Madison, WI");
 });
 
 test("parseShowCalendarSnapshotToDateSet accepts string dates", () => {

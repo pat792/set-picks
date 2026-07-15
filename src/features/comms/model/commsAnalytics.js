@@ -59,17 +59,30 @@ export function logCommsDismissed(meta) {
 /**
  * User clicked the message's primary CTA.
  *
- * @param {CommsEventMeta & { cta?: string }} meta
+ * @param {CommsEventMeta & { cta?: string, destination?: string }} meta
  */
 export function logCommsCtaClick(meta) {
   const params = commsDimensions(meta);
   if (meta?.cta) params.comms_cta = meta.cta;
+  if (meta?.destination) params.comms_destination = meta.destination;
   ga4Event('comms_cta_click', params);
 }
 
 /** User tapped a push notification (channel forced to `push`). */
 export function logCommsPushTap(meta) {
   ga4Event('comms_push_tap', commsDimensions({ ...meta, channel: COMMS_CHANNEL.push }));
+}
+
+/**
+ * Email deep-link landed on a dashboard surface (#535).
+ * Prefer calling once with `utm_campaign` / known trigger from the landing URL.
+ *
+ * @param {CommsEventMeta & { surface?: string }} meta
+ */
+export function logCommsEmailLanded(meta) {
+  const params = commsDimensions({ ...meta, channel: COMMS_CHANNEL.email });
+  if (meta?.surface) params.comms_surface = meta.surface;
+  ga4Event('comms_email_landed', params);
 }
 
 /**

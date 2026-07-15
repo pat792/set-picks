@@ -12,6 +12,83 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.19] — 2026-07-15
+
+### Fixed
+- **iOS home screen icon** — regenerate `apple-touch-icon.png` from the wordmark PWA manifest asset so Safari matches Chrome’s full wordmark icon; bump favicon cache busters.
+
+---
+
+## [1.20.18] — 2026-07-15
+
+### Fixed
+- **iOS Chrome A2HS copy (#539)** — stop claiming Chrome can’t install; teach Share → Add to Home Screen with Chrome steps (toolbar or ··· → Share).
+
+---
+
+## [1.20.17] — 2026-07-14
+
+### Changed
+- **Profile boot P0 (#496)** — single `AuthProvider` session listener; `fetchUserProfileDocument` awaits App Check; Profile form seeds from auth `userProfile` (no redundant spinner when warm).
+
+---
+
+## [1.20.16] — 2026-07-14
+
+### Added
+- **Email deep-link P0 (#535)** — persist intended dashboard path on unauth redirect; eager App Check on dashboard mount; picks-lock CTA includes `?showDate=`; `comms_email_landed` + `picks_page_interactive` funnel events.
+
+---
+
+## [1.20.15] — 2026-07-14
+
+### Changed
+- **PWA-first push disable (#532)** — Messages **Disable** is only shown in standalone/installed context; browser tabs get install/Settings copy instead. Desktop Chrome tabs follow the same rule.
+
+---
+
+## [1.20.14] — 2026-07-14
+
+### Changed
+- **A2HS copy by platform (#539)** — Android Chrome / desktop Chromium / iOS Safari lead copy and Safari Share-toolbar steps are shared across the dashboard banner and Profile install card; telemetry uses `android_chrome` / `desktop_chromium` / `ios_safari` / `ios_non_safari`.
+
+---
+
+## [1.20.13] — 2026-07-14
+
+### Added
+- **In-app picks CTA honesty (#509)** — `tour_countdown`, `picks_lock_reminder`, and `tour_engagement_reminder` switch to **View / Edit picks** when payload `picks_secured` is true; adapters enrich countdown/engagement from picks for the target show.
+
+---
+
+## [1.20.12] — 2026-07-14
+
+### Fixed
+- **Service email mobile typography (#536)** — branded email shell adds viewport meta and bumps body/CTA/footer sizes so Gmail iOS no longer shrinks copy into illegible text.
+
+---
+
+## [1.20.11] — 2026-07-14
+
+### Fixed
+- **Safari/PWA standings loading (#507)** — show-scoped standings use React Query (60s stale) so tab revisits skip the full-page spinner; LIVE listeners still apply after snapshot seed; calendar snapshot reference churn no longer restarts the fetch.
+
+---
+
+## [1.20.10] — 2026-07-14
+
+### Fixed
+- **Comms CTA / route honesty (#551)** — show recap inbox CTA no longer promises a “full recap” while linking only to standings; labels and destinations aligned (picks → `/dashboard/picks`, recap/score → `/dashboard/standings#self-recap`). Email CTAs and CTA click measurement (`comms_destination`) updated; audit matrix in `docs/comms-triggers/CTA_ROUTE_AUDIT.md`.
+
+---
+
+## [1.20.9] — 2026-07-14
+
+### Fixed
+- **Tour countdown multi-tour no-op (#514)** — `scheduledTourCountdownComms` now resolves first-show targets from `showDatesByTour` so past tours on the calendar no longer collapse every show into one pseudo-tour and skip T-10/T-5/T-3/T-1.
+
+---
+
 ## [1.20.8] — 2026-07-14
 
 ### Fixed

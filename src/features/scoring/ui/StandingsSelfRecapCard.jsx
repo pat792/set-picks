@@ -204,6 +204,7 @@ export default function StandingsSelfRecapCard({
   if (useCollapsible) {
     return (
       <details
+        id="self-recap"
         className={`group ${shellClass}`}
         defaultOpen
         aria-label="Your rank and score. Expand for show details, jump link, and share."
@@ -223,7 +224,7 @@ export default function StandingsSelfRecapCard({
   }
 
   return (
-    <div className={shellClass}>
+    <div id={bodyOnly ? undefined : 'self-recap'} className={shellClass}>
       {!bodyOnly ? (
         <>
           {primaryRow}
