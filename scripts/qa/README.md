@@ -17,6 +17,14 @@ cp .env.qa.example .env.qa.local
 # Edit .env.qa.local — see table below.
 ```
 
+**Cloud Agents:** secrets are injected as env vars but runners load
+`.env.qa.local`. Bootstrap automatically:
+
+```bash
+npm run qa:materialize-env   # writes .env.qa.local from QA_TEST_* + VITE_FIREBASE_*
+npm run qa:cache             # or qa:chunks / qa:google-signup
+```
+
 `.env.qa.local` is gitignored. The npm scripts use Node
 `--env-file-if-exists=.env.qa.local`.
 

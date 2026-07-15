@@ -9,6 +9,16 @@
 - **Node for functions:** `cd functions && npm test` runs fine under the VM-default Node 22, but deploy (`engines.node: "24"`) wants Node 24 — see the version caveat below.
 - **Playwright browser:** the Chromium binary is **not** preinstalled. Anything that drives a real browser (`npm run qa:cache`, `npm run qa:chunks`, ad-hoc Playwright scripts) needs `npx playwright install chromium` first, or it fails with a missing-executable error.
 - **`.env`** is gitignored. Copy `.env.example` to `.env` for local dev. The `VITE_FIREBASE_*` config plus `QA_TEST_EMAIL` / `QA_TEST_PASSWORD` are injected as Cloud Agent secrets (env vars) and Vite picks them up automatically — you do not need to add them to `.env`.
+- **QA Playwright runners** (`qa:cache`, `qa:chunks`, `qa:google-signup`) read **`.env.qa.local`**, not bare process env. On Cloud Agents, run **`npm run qa:materialize-env`** first — it writes `.env.qa.local` from injected secrets (resolves `QA_PUBLIC_PROFILE_UID` from `QA_TEST_EMAIL`, defaults `QA_APPCHECK_DEBUG_TOKEN` to the registered debug UUID `38422efd-029f-45b4-b028-7cf7fcaeeffc`). See `scripts/qa/README.md`.
+- **Cloud Agent secret inventory (Settings → Cloud Agents → Secrets for this repo):**
+
+  | Secret | Used by | Notes |
+  |--------|---------|-------|
+  | `QA_TEST_EMAIL` / `QA_TEST_PASSWORD` | `qa:cache`, dev sign-in | **Email/password returning user** — not Google OAuth |
+  | `QA_PUBLIC_PROFILE_UID` | `qa:cache`, `qa:chunks` | Optional on cloud agents; auto-resolved by `qa:materialize-env` |
+  | `QA_APPCHECK_DEBUG_TOKEN` | all Playwright QA | Optional; defaults to registered localhost UUID |
+  | `QA_GOOGLE_TEST_EMAIL` / `QA_GOOGLE_TEST_PASSWORD` | `qa:google-signup` OAuth phase | Dedicated Google account **not** in Firebase; add to enable new-user Google E2E |
+  | `VITE_FIREBASE_*` | app + materialize script | Already injected |
 
 ### Running the application
 
