@@ -22,8 +22,9 @@ export function isIosDevice(nav = navigator) {
 }
 
 /**
- * iPhone/iPad in Chrome, Firefox, Edge, etc. Install + reliable push require
- * opening the site in **Safari** (#334).
+ * iPhone/iPad in Chrome, Firefox, Edge, etc.
+ * A2HS works via Share on modern iOS; show Chrome-oriented steps (#539 follow-up).
+ * Reliable show-night push still requires opening from the home-screen icon (standalone).
  */
 export function isIosNonSafariBrowser(nav = navigator) {
   if (!isIosDevice(nav)) return false;

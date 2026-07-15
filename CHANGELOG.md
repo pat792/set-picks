@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.18] — 2026-07-15
+
+### Fixed
+- **iOS Chrome A2HS copy (#539)** — stop claiming Chrome can’t install; teach Share → Add to Home Screen with Chrome steps (toolbar or ··· → Share).
+
+---
+
 ## [1.20.17] — 2026-07-14
 
 ### Changed
