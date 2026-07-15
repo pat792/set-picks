@@ -3,6 +3,7 @@ import { Scale } from 'lucide-react';
 
 import { NAV_LABEL_STANDINGS } from '../../../shared/config/dashboardVocabulary';
 import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
+import { InviteChooserTrigger } from '../../invite';
 import StandingsViewToggle from './StandingsViewToggle';
 
 /**
@@ -27,6 +28,7 @@ export const STANDINGS_STICKY_MOBILE_TOP =
  *   view: 'show' | 'tour' | 'pools',
  *   onChange: (next: 'show' | 'tour' | 'pools') => void,
  *   onOpenScoringRules: () => void,
+ *   onOpenInvite?: () => void,
  *   pinBelowDesktopDatePicker?: boolean,
  * }} props
  */
@@ -34,6 +36,7 @@ export default function StandingsStickyChrome({
   view,
   onChange,
   onOpenScoringRules,
+  onOpenInvite,
   pinBelowDesktopDatePicker = false,
 }) {
   return (
@@ -56,6 +59,11 @@ export default function StandingsStickyChrome({
       </h2>
 
       <div className="relative">
+        {onOpenInvite ? (
+          <div className="absolute left-0 top-1/2 z-10 -translate-y-1/2">
+            <InviteChooserTrigger onClick={onOpenInvite} />
+          </div>
+        ) : null}
         {/* Always overlay so it never adds a second sticky tier above the pills. */}
         <div className="absolute right-0 top-1/2 z-10 -translate-y-1/2">
           <button
@@ -72,7 +80,10 @@ export default function StandingsStickyChrome({
         <StandingsViewToggle
           view={view}
           onChange={onChange}
-          className="mb-0 pr-[4.5rem] min-[380px]:pr-[7.25rem]"
+          className={[
+            'mb-0',
+            onOpenInvite ? 'pl-[4.75rem] pr-[4.5rem] min-[380px]:pr-[7.25rem]' : 'pr-[4.5rem] min-[380px]:pr-[7.25rem]',
+          ].join(' ')}
         />
       </div>
     </div>
