@@ -12,6 +12,11 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.25] — 2026-07-15
+
+### Changed
+- **Official pick slots** — sixth cell is **Encore 2** (from `encoreSongs[1]`) instead of blank Wildcard; song titles wrap so long names fit.
+
 ## [1.20.24] — 2026-07-15
 
 ### Fixed
