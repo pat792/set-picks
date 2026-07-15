@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.26] — 2026-07-15
+
+### Changed
+- **Picks lock time (temp hotfix)** — venue-local wall clock **7:30 PM → 7:55 PM** (app + Cloud Functions mirrors + reminder copy) until first-song / admin-configurable lock ships. Reminder window **T-3h through lock** (16:55–19:54 local).
+
+---
+
 ## [1.20.25] — 2026-07-15
 
 ### Changed
