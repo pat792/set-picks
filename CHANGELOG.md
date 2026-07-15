@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.19] — 2026-07-15
+
+### Fixed
+- **iOS home screen icon** — regenerate `apple-touch-icon.png` from the wordmark PWA manifest asset so Safari matches Chrome’s full wordmark icon; bump favicon cache busters.
+
+---
+
 ## [1.20.18] — 2026-07-15
 
 ### Fixed
