@@ -13,6 +13,7 @@ export function shellTransitionKey(pathname) {
   const path = (pathname || '').replace(/\/+$/, '') || '/';
   if (path.startsWith('/dashboard')) return '/dashboard';
   if (path.startsWith('/join/')) return '/join/:code';
+  if (path.startsWith('/invite/')) return '/invite/:handle';
   if (path.startsWith('/user/')) return '/user/:userId';
   return path;
 }

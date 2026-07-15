@@ -1,29 +1,18 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import {
-  removeLocalStorageItem,
-  setLocalStorageItem,
-} from '../../../shared/lib/local-storage';
-import { isValidPoolInviteCodeFormat } from '../lib/inviteCodeFormat';
-import { POOL_INVITE_STORAGE_KEY } from '../config';
+import { storePoolInviteCodeFromParam } from './usePoolInviteCodeStorage';
 
-function normalizeInviteCode(raw) {
-  if (raw == null || typeof raw !== 'string') return '';
-  return raw.trim().toUpperCase();
-}
-
+/**
+ * @deprecated Prefer {@link usePoolInviteCodeStorage} on `/join/:code` VIP landings (#580).
+ * Legacy helper: stores code then redirects home (splash modal funnel).
+ */
 export function usePoolInviteInterceptor() {
   const { code: rawCode } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const code = normalizeInviteCode(rawCode);
-    if (!code || !isValidPoolInviteCodeFormat(code)) {
-      removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
-    } else {
-      setLocalStorageItem(POOL_INVITE_STORAGE_KEY, code);
-    }
+    storePoolInviteCodeFromParam(rawCode);
     navigate('/', { replace: true });
   }, [rawCode, navigate]);
 }

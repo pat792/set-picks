@@ -21,4 +21,9 @@ describe('shellTransitionKey', () => {
     expect(shellTransitionKey('/join/POOL1')).toBe('/join/:code');
     expect(shellTransitionKey('/join/abc/')).toBe('/join/:code');
   });
+
+  it('groups site invite deep links', () => {
+    expect(shellTransitionKey('/invite/Mikey')).toBe('/invite/:handle');
+    expect(shellTransitionKey('/invite/mikey/')).toBe('/invite/:handle');
+  });
 });
