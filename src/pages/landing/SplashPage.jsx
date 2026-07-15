@@ -10,7 +10,6 @@ import {
 import { ScoringRulesModalProvider } from '../../features/scoring';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
-import { showSuccessToast } from '../../shared/ui/toast';
 
 /** Dedupes Strict Mode double-invoke / rapid re-renders for the deferred-invite prompt. */
 let lastDeferredPoolInvitePromptAt = 0;
@@ -20,6 +19,10 @@ export default function Splash() {
   const closeModal = useCallback(() => setAuthModal(null), []);
   const openSignUpModal = useCallback(() => setAuthModal('signup'), []);
   const openSignInModal = useCallback(() => setAuthModal('signin'), []);
+  /** Invite is stored before splash mounts; seed once for modal join-context copy. */
+  const [poolInvitePending] = useState(
+    () => Boolean(getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()),
+  );
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -63,15 +66,13 @@ export default function Splash() {
     // Returning / QA deep links keep Sign in; do not overwrite with Create account.
     if (searchParams.get('login') === 'true') return;
 
-    const pending = getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim();
-    if (!pending) return;
+    if (!poolInvitePending) return;
     const now = Date.now();
     if (now - lastDeferredPoolInvitePromptAt < 600) return;
     lastDeferredPoolInvitePromptAt = now;
     // Create account first so new Google joiners get the legal checkbox (#577 / #406).
-    showSuccessToast('Create an account to join the pool!');
     openSignUpModal();
-  }, [openSignUpModal, searchParams]);
+  }, [openSignUpModal, poolInvitePending, searchParams]);
 
   return (
     <ScoringRulesModalProvider>
@@ -94,6 +95,7 @@ export default function Splash() {
         closeModal={closeModal}
         onSwitchToSignIn={openSignInModal}
         onSwitchToSignUp={openSignUpModal}
+        poolInvitePending={poolInvitePending}
       />
     </ScoringRulesModalProvider>
   );

@@ -94,7 +94,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 ### B. First-time user with invite (`/join/:code`)
 
 1. `usePoolInviteInterceptor` (`src/features/pool-invite/model/usePoolInviteInterceptor.js`): valid code → saved under pool-invite storage key → **`navigate('/', { replace: true })`**.
-2. `SplashPage`: if invite code present in storage → toast + open **Create account** modal (`src/pages/landing/SplashPage.jsx`). Returning invitees can switch to **Sign in** via the modal footer link. (`/?login=true` still opens **Sign in**, and takes priority if both are present.)
+2. `SplashPage`: if invite code present in storage → open **Create account** modal with a persistent join banner (`src/pages/landing/SplashPage.jsx`). Returning invitees can switch to **Sign in** via the modal footer link (same banner, sign-in copy). (`/?login=true` still opens **Sign in**, and takes priority if both are present.)
 3. After auth → `HomeRoute` → `getDashboardEntryHref` → usually **`/dashboard`** (new device/browser).
 4. `DashboardRoute` → **`/setup`** if no profile; after setup → **`/dashboard`** (then step 5).
 5. `usePendingPoolJoin` (`src/features/pool-invite/model/usePendingPoolJoin.js`) inside `DashboardLayout`: consumes invite code, joins pool → on **`joined`** or **`already-member`** → **`navigate('/dashboard/pools', { replace: true })`**. This **overrides** the URL from step 3–4 for those outcomes.
@@ -160,4 +160,4 @@ flowchart TD
 | Invite code capture | `src/features/pool-invite/model/usePoolInviteInterceptor.js` |
 | Post-auth join + Pools redirect | `src/features/pool-invite/model/usePendingPoolJoin.js` |
 | Profile completion redirect | `src/features/auth/model/useProfileSetup.js` |
-| Splash + invite toast | `src/pages/landing/SplashPage.jsx` |
+| Splash + invite join banner | `src/pages/landing/SplashPage.jsx` |

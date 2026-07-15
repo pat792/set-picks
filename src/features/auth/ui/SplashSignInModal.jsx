@@ -6,7 +6,12 @@ import { StatusBanner } from '../../../shared';
 import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 
-export default function SplashSignInModal({ isOpen, onClose, onSwitchToSignUp }) {
+export default function SplashSignInModal({
+  isOpen,
+  onClose,
+  onSwitchToSignUp,
+  poolInvitePending = false,
+}) {
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -23,6 +28,22 @@ export default function SplashSignInModal({ isOpen, onClose, onSwitchToSignUp })
     handleSendPasswordResetEmail,
   } = useSplashSignIn(isOpen, onClose);
 
+  const prependContent =
+    poolInvitePending || error ? (
+      <div className="space-y-3">
+        {poolInvitePending ? (
+          <StatusBanner
+            type="info"
+            message="You're joining a pool — sign in to continue."
+            className="text-left"
+          />
+        ) : null}
+        {error ? (
+          <StatusBanner type="error" message={error} className="text-left" />
+        ) : null}
+      </div>
+    ) : null;
+
   return (
     <SplashAuthModalShell
       isOpen={isOpen}
@@ -30,11 +51,7 @@ export default function SplashSignInModal({ isOpen, onClose, onSwitchToSignUp })
       title="Sign in"
       handleGoogle={handleGoogle}
       busy={busy}
-      prependContent={
-        error ? (
-          <StatusBanner type="error" message={error} className="text-left" />
-        ) : null
-      }
+      prependContent={prependContent}
       closeOnBackdropClick={false}
     >
         <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">

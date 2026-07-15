@@ -251,6 +251,9 @@ async function main() {
         await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 });
         const dialog = page.getByRole('dialog', { name: /^create account$/i });
         await dialog.waitFor({ state: 'visible', timeout: 15_000 });
+        await dialog
+          .getByText(/you're joining a pool/i)
+          .waitFor({ state: 'visible', timeout: 5_000 });
         const stored = await page.evaluate(() =>
           localStorage.getItem('phish_pool_pending_invite'),
         );

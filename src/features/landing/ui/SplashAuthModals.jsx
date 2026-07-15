@@ -7,6 +7,7 @@ export default function SplashAuthModals({
   closeModal,
   onSwitchToSignIn,
   onSwitchToSignUp,
+  poolInvitePending = false,
 }) {
   return (
     <>
@@ -14,11 +15,13 @@ export default function SplashAuthModals({
         isOpen={authModal === 'signup'}
         onClose={closeModal}
         onSwitchToSignIn={onSwitchToSignIn}
+        poolInvitePending={poolInvitePending}
       />
       <SplashSignInModal
         isOpen={authModal === 'signin'}
         onClose={closeModal}
         onSwitchToSignUp={onSwitchToSignUp}
+        poolInvitePending={poolInvitePending}
       />
     </>
   );

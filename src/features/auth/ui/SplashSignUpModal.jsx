@@ -8,7 +8,12 @@ import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignUp } from '../model/useSplashSignUp';
 import { stashSplashResumeAuthModal } from '../utils/splashAuthResumeStorage';
 
-export default function SplashSignUpModal({ isOpen, onClose, onSwitchToSignIn }) {
+export default function SplashSignUpModal({
+  isOpen,
+  onClose,
+  onSwitchToSignIn,
+  poolInvitePending = false,
+}) {
   const {
     email,
     setEmail,
@@ -62,6 +67,19 @@ export default function SplashSignUpModal({ isOpen, onClose, onSwitchToSignIn })
     </label>
   );
 
+  const prependContent = (
+    <div className="space-y-4">
+      {poolInvitePending ? (
+        <StatusBanner
+          type="info"
+          message="You're joining a pool — create an account to continue."
+          className="text-left"
+        />
+      ) : null}
+      {consentBlock}
+    </div>
+  );
+
   return (
     <SplashAuthModalShell
       isOpen={isOpen}
@@ -70,7 +88,7 @@ export default function SplashSignUpModal({ isOpen, onClose, onSwitchToSignIn })
       handleGoogle={handleGoogle}
       busy={busy}
       googleDisabled={busy || !legalAccepted}
-      prependContent={consentBlock}
+      prependContent={prependContent}
       googleFootnote="You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
       closeOnBackdropClick={false}
     >
