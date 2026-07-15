@@ -60,25 +60,25 @@ export function getInstallLeadCopy(branch) {
     case 'ios_safari':
       return {
         eyebrow: 'iPhone · Safari',
-        body: "Use Safari's Share sheet to Add to Home Screen — required for reliable show-night push.",
+        body: "Use Safari's Share sheet to Add to Home Screen — best path for full-screen + show-night push.",
         ctaLabel: null,
       };
     case 'ios_non_safari':
       return {
-        eyebrow: 'Open in Safari',
-        body: "On iPhone, Chrome and other browsers can't install this app. Open setlistpickem.com in Safari, then use Share → Add to Home Screen.",
+        eyebrow: 'iPhone · Add to Home Screen',
+        body: "Chrome can Add to Home Screen too — use Share → Add to Home Screen (same as Safari). Open from the home icon for show-night push.",
         ctaLabel: null,
       };
     default:
       return {
         eyebrow: 'Install app',
-        body: "Install is not available in this browser yet. On iPhone, open Setlist Pick 'Em in Safari and use Add to Home Screen.",
+        body: "Install is not available in this browser yet. On iPhone, use Share → Add to Home Screen in Safari or Chrome.",
         ctaLabel: null,
       };
   }
 }
 
-/** Ordered Safari A2HS steps — Share toolbar, not Chrome ⋮ (#539). */
+/** Ordered Safari A2HS steps — Share toolbar (#539). */
 export const IOS_SAFARI_INSTALL_STEPS = Object.freeze([
   {
     id: 'share',
@@ -107,6 +107,42 @@ export const IOS_SAFARI_INSTALL_STEPS = Object.freeze([
       { text: ' (or the ', bold: false },
       { text: '+', bold: true },
       { text: ') to confirm.', bold: false },
+    ],
+  },
+]);
+
+/**
+ * Chrome / Edge / Firefox on iOS — A2HS via Share (iOS 17+), not “open Safari” (#539 follow-up).
+ * Share may live in the toolbar or under More (···).
+ */
+export const IOS_CHROME_INSTALL_STEPS = Object.freeze([
+  {
+    id: 'share',
+    prefix: '1. ',
+    parts: [
+      { text: 'Tap ', bold: false },
+      { text: 'Share', bold: true },
+      { text: ' (square with arrow) — in the toolbar, or ', bold: false },
+      { text: '···', bold: true },
+      { text: ' → Share.', bold: false },
+    ],
+  },
+  {
+    id: 'a2hs',
+    prefix: '2. ',
+    parts: [
+      { text: 'Scroll and tap ', bold: false },
+      { text: 'Add to Home Screen', bold: true },
+      { text: '.', bold: false },
+    ],
+  },
+  {
+    id: 'add',
+    prefix: '3. ',
+    parts: [
+      { text: 'Tap ', bold: false },
+      { text: 'Add', bold: true },
+      { text: ' to confirm.', bold: false },
     ],
   },
 ]);

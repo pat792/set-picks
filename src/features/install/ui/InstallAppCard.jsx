@@ -38,7 +38,7 @@ export default function InstallAppCard() {
         {lead.eyebrow}
       </h3>
 
-      {canPrompt || shouldShowIosFlow ? (
+      {canPrompt || shouldShowIosFlow || shouldShowIosNonSafariFlow ? (
         <p className="mt-2 text-sm leading-relaxed text-content-secondary">{lead.body}</p>
       ) : null}
 
@@ -66,7 +66,7 @@ export default function InstallAppCard() {
 
           {showIosGuide ? (
             <div className="mt-4 space-y-3">
-              <IosSafariInstallSteps />
+              <IosSafariInstallSteps variant="safari" />
               <IosInstallScreenshotGallery />
             </div>
           ) : null}
@@ -83,9 +83,21 @@ export default function InstallAppCard() {
 
       {shouldShowIosNonSafariFlow ? (
         <>
-          <p className="mt-4 rounded-2xl border border-amber-500/35 bg-amber-500/5 p-4 text-sm font-bold leading-relaxed text-content-secondary">
-            {lead.body}
-          </p>
+          <button
+            type="button"
+            onClick={showIosGuide ? closeIosGuide : openIosGuide}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border-subtle bg-surface-field py-3.5 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel"
+          >
+            <Share2 className="h-4 w-4 shrink-0" aria-hidden />
+            {showIosGuide ? 'Hide Chrome steps' : 'Show Chrome steps'}
+          </button>
+
+          {showIosGuide ? (
+            <div className="mt-4 space-y-3">
+              <IosSafariInstallSteps variant="chrome" />
+            </div>
+          ) : null}
+
           <button
             type="button"
             onClick={dismissIos}

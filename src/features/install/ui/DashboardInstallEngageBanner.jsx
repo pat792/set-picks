@@ -74,7 +74,7 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
           <p className="text-[11px] font-black uppercase tracking-widest text-brand-primary">
             {lead.eyebrow}
           </p>
-          {install.canPrompt || install.shouldShowIosFlow ? (
+          {install.canPrompt || install.shouldShowIosFlow || install.shouldShowIosNonSafariFlow ? (
             <p className="mt-1 text-xs font-bold leading-snug text-content-secondary">{lead.body}</p>
           ) : null}
 
@@ -103,7 +103,7 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
               </button>
               {install.showIosGuide ? (
                 <div className="space-y-2">
-                  <IosSafariInstallSteps compact />
+                  <IosSafariInstallSteps compact variant="safari" />
                   <IosInstallScreenshotGallery compact />
                 </div>
               ) : null}
@@ -119,9 +119,21 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
 
           {install.shouldShowIosNonSafariFlow ? (
             <div className="mt-3 space-y-2">
-              <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs font-bold leading-relaxed text-content-secondary">
-                {lead.body}
-              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  install.showIosGuide ? install.closeIosGuide() : install.openIosGuide()
+                }
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border-subtle bg-surface-field py-2.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:border-brand-primary/50 hover:bg-surface-panel"
+              >
+                <Share2 className="h-4 w-4 shrink-0" aria-hidden />
+                {install.showIosGuide ? 'Hide steps' : 'Show Chrome steps'}
+              </button>
+              {install.showIosGuide ? (
+                <div className="space-y-2">
+                  <IosSafariInstallSteps compact variant="chrome" />
+                </div>
+              ) : null}
               <button
                 type="button"
                 onClick={() => install.dismissIos()}
