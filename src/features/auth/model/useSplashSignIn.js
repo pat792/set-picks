@@ -75,15 +75,20 @@ export function useSplashSignIn(isOpen, onClose) {
         trackAuthError({
           method: 'google',
           error_code: action.telemetryErrorCode,
+          surface: 'sign_in',
         });
         setError(action.errorMessage);
         return;
       }
-      trackAuthLogin('google');
+      trackAuthLogin('google', { surface: 'sign_in' });
       closeModal();
     } catch (err) {
       console.error('Google sign-in:', err);
-      trackAuthError({ method: 'google', error_code: err.code });
+      trackAuthError({
+        method: 'google',
+        error_code: err.code,
+        surface: 'sign_in',
+      });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
       clearSplashGoogleModalInflight();
@@ -98,11 +103,15 @@ export function useSplashSignIn(isOpen, onClose) {
       setBusy(true);
       try {
         await signInWithEmail(auth, email, password);
-        trackAuthLogin('email');
+        trackAuthLogin('email', { surface: 'sign_in' });
         closeModal();
       } catch (err) {
         console.error('Sign in:', err);
-        trackAuthError({ method: 'email', error_code: err.code });
+        trackAuthError({
+          method: 'email',
+          error_code: err.code,
+          surface: 'sign_in',
+        });
         setError(getFirebaseAuthErrorMessage(err.code));
       } finally {
         setBusy(false);

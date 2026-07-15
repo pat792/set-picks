@@ -17,6 +17,17 @@ cp .env.qa.example .env.qa.local
 # Edit .env.qa.local — see table below.
 ```
 
+**Cloud Agents:** secrets are injected as env vars but runners load
+`.env.qa.local`. Bootstrap automatically:
+
+```bash
+npm run qa:materialize-env   # writes .env.qa.local from QA_TEST_* + VITE_FIREBASE_*
+npm run qa:auth-scenarios    # auth telemetry + routing (uses dev server / QA_TEST_* only)
+npm run qa:cache             # or qa:chunks / qa:google-signup
+```
+
+Set `QA_DEV_ORIGIN=http://localhost:5173` to reuse a running `npm run dev` session.
+
 `.env.qa.local` is gitignored. The npm scripts use Node
 `--env-file-if-exists=.env.qa.local`.
 
@@ -29,6 +40,7 @@ cp .env.qa.example .env.qa.local
 | `QA_TEST_EMAIL` / `QA_TEST_PASSWORD` | `qa:cache` only | Dedicated test account; **`qa:cache` signs in** via splash `/?login=true` because Firestore rules require `signedIn()` for profile reads ([#349](https://github.com/pat792/set-picks/issues/349)). |
 | `QA_PREVIEW_BASE_URL` | `qa:preview-headers` | Deployed origin, e.g. `https://….vercel.app` (no trailing slash). If unset, that runner **exits 0 SKIP**. |
 | `QA_VERCEL_PROTECTION_BYPASS` | `qa:preview-headers` (when previews are protected) | Vercel automation bypass; sent as `x-vercel-protection-bypass`. |
+| `QA_GOOGLE_TEST_EMAIL` / `QA_GOOGLE_TEST_PASSWORD` | `qa:google-signup` OAuth phase only | Dedicated Google account **not** registered in Firebase. Gating phase runs without these. |
 
 ### App Check note
 
@@ -58,9 +70,28 @@ console.
 | `chunk-split.mjs` | `npm run qa:chunks` | §A chunk-load |
 | `firestore-cache.mjs` | `npm run qa:cache` | §B Firestore read cache |
 | `preview-cache-headers.mjs` | `npm run qa:preview-headers` | §C cache-control on **deployed** preview |
+| `google-new-user-signup.mjs` | `npm run qa:google-signup` | Google new-user sign-up gating + optional OAuth |
 
-Playwright runners (`qa:chunks`, `qa:cache`) spawn `vite preview` on a throwaway
-port (production build). `qa:preview-headers` uses `fetch` only — no Playwright.
+Playwright runners (`qa:chunks`, `qa:cache`, `qa:google-signup`) spawn `vite preview`
+on a throwaway port (production build). `qa:preview-headers` uses `fetch` only — no Playwright.
+
+### Google new-user sign-up (`qa:google-signup`)
+
+Two phases:
+
+1. **Gating (always)** — Create account modal disables Google until Terms/Privacy
+   checkbox is checked; Sign in modal does not require the checkbox.
+2. **OAuth (optional)** — When `QA_GOOGLE_TEST_EMAIL` / `QA_GOOGLE_TEST_PASSWORD`
+   are set, completes Google popup on the **Create account** modal and asserts
+   navigation to `/setup`.
+
+**Not covered:** new users who tap Google on the **Sign in** modal — that path is
+intentionally blocked (PR #406) with copy directing them to Create account. Pool
+invite and `?login=true` entry points open Sign in, not Create account — a common
+source of “Google sign-in doesn’t work” reports.
+
+GA4 funnel readout: `npm run ga4:auth-funnel` (needs `GA4_ACCESS_TOKEN` or
+`gcloud` with `analytics.readonly`). See `docs/AUTH_TELEMETRY_RUNBOOK.md`.
 
 ## CI (GitHub Actions)
 

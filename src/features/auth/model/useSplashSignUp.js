@@ -88,14 +88,20 @@ export function useSplashSignUp(isOpen, onClose) {
           setError('Could not finish creating your account. Please try again.');
           return;
         }
-        trackAuthSignUp('google');
+        trackAuthSignUp('google', { surface: 'create_account' });
       } else {
-        trackAuthLogin('google');
+        // Existing Google account used Create account — treat as login, not a
+        // blocked sign-up. Surface tag lets GA4 separate this from Sign-in.
+        trackAuthLogin('google', { surface: 'create_account' });
       }
       closeModal();
     } catch (err) {
       console.error('Google sign-in:', err);
-      trackAuthError({ method: 'google', error_code: err.code });
+      trackAuthError({
+        method: 'google',
+        error_code: err.code,
+        surface: 'create_account',
+      });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
       clearSplashGoogleModalInflight();
@@ -141,11 +147,15 @@ export function useSplashSignUp(isOpen, onClose) {
           setError('Could not finish creating your account. Please try again.');
           return;
         }
-        trackAuthSignUp('email');
+        trackAuthSignUp('email', { surface: 'create_account' });
         closeModal();
       } catch (err) {
         console.error('Sign up:', err);
-        trackAuthError({ method: 'email', error_code: err.code });
+        trackAuthError({
+          method: 'email',
+          error_code: err.code,
+          surface: 'create_account',
+        });
         setError(getFirebaseAuthErrorMessage(err.code));
       } finally {
         setBusy(false);

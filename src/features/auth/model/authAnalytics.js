@@ -1,21 +1,50 @@
 import { ga4Event } from '../../../shared/lib/ga4';
 
-export function trackAuthSignUp(method) {
-  ga4Event('sign_up', { method });
-}
+/** @typedef {'sign_in' | 'create_account'} AuthModalSurface */
 
-export function trackAuthLogin(method) {
-  ga4Event('login', { method });
+function mirrorAuthTelemetry(event, params) {
+  if (import.meta.env.DEV) {
+    console.info(`[telemetry] ${event}`, params);
+  }
 }
 
 /**
- * @param {{ method: string, error_code?: string }} payload
+ * @param {string} method
+ * @param {{ surface?: AuthModalSurface }} [opts]
+ */
+export function trackAuthSignUp(method, opts = {}) {
+  const params = {
+    method,
+    ...(opts.surface ? { surface: opts.surface } : {}),
+  };
+  mirrorAuthTelemetry('sign_up', params);
+  ga4Event('sign_up', params);
+}
+
+/**
+ * @param {string} method
+ * @param {{ surface?: AuthModalSurface }} [opts]
+ */
+export function trackAuthLogin(method, opts = {}) {
+  const params = {
+    method,
+    ...(opts.surface ? { surface: opts.surface } : {}),
+  };
+  mirrorAuthTelemetry('login', params);
+  ga4Event('login', params);
+}
+
+/**
+ * @param {{ method: string, error_code?: string, surface?: AuthModalSurface }} payload
  */
 export function trackAuthError(payload) {
-  ga4Event('auth_error', {
+  const params = {
     method: payload.method,
     error_code: payload.error_code ?? 'unknown',
-  });
+    ...(payload.surface ? { surface: payload.surface } : {}),
+  };
+  mirrorAuthTelemetry('auth_error', params);
+  ga4Event('auth_error', params);
 }
 
 /**
@@ -28,10 +57,12 @@ export function trackAuthError(payload) {
  * @param {{ has_consent: boolean, surface: 'dashboard_route' }} payload
  */
 export function trackAuthPartialProfile(payload) {
-  ga4Event('auth_partial_profile', {
+  const params = {
     has_consent: payload.has_consent ? 'true' : 'false',
     surface: payload.surface,
-  });
+  };
+  mirrorAuthTelemetry('auth_partial_profile', params);
+  ga4Event('auth_partial_profile', params);
 }
 
 /**
@@ -43,10 +74,12 @@ export function trackAuthPartialProfile(payload) {
  * @param {{ method: 'email' | 'google', stage: 'consent_write' }} payload
  */
 export function trackAuthRollback(payload) {
-  ga4Event('auth_rollback', {
+  const params = {
     method: payload.method,
     stage: payload.stage,
-  });
+  };
+  mirrorAuthTelemetry('auth_rollback', params);
+  ga4Event('auth_rollback', params);
 }
 
 /**
@@ -60,8 +93,10 @@ export function trackAuthRollback(payload) {
  * @param {{ method: 'email' | 'google', error_code: string }} payload
  */
 export function trackAuthRollbackFailed(payload) {
-  ga4Event('auth_rollback_failed', {
+  const params = {
     method: payload.method,
     error_code: payload.error_code,
-  });
+  };
+  mirrorAuthTelemetry('auth_rollback_failed', params);
+  ga4Event('auth_rollback_failed', params);
 }

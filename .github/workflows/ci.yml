@@ -235,6 +235,12 @@ jobs:
       - name: qa:cache (recipe §B)
         run: npm run qa:cache
 
+      - name: qa:google-signup (Google new-user gating + optional OAuth)
+        env:
+          QA_GOOGLE_TEST_EMAIL: ${{ secrets.QA_GOOGLE_TEST_EMAIL }}
+          QA_GOOGLE_TEST_PASSWORD: ${{ secrets.QA_GOOGLE_TEST_PASSWORD }}
+        run: npm run qa:google-signup
+
   # Issue #348 — §C headers on deployed preview. Optional: set repo Variable QA_PREVIEW_BASE_URL.
   qa-preview-headers:
     runs-on: ubuntu-latest
