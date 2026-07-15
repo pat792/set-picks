@@ -60,14 +60,18 @@ export default function Splash() {
       return;
     }
 
+    // Returning / QA deep links keep Sign in; do not overwrite with Create account.
+    if (searchParams.get('login') === 'true') return;
+
     const pending = getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim();
     if (!pending) return;
     const now = Date.now();
     if (now - lastDeferredPoolInvitePromptAt < 600) return;
     lastDeferredPoolInvitePromptAt = now;
-    showSuccessToast('Sign in or create an account to join the pool!');
-    openSignInModal();
-  }, [openSignInModal]);
+    // Create account first so new Google joiners get the legal checkbox (#577 / #406).
+    showSuccessToast('Create an account to join the pool!');
+    openSignUpModal();
+  }, [openSignUpModal, searchParams]);
 
   return (
     <ScoringRulesModalProvider>
@@ -85,7 +89,12 @@ export default function Splash() {
         onOpenSignUpModal={openSignUpModal}
         onOpenSignInModal={openSignInModal}
       />
-      <SplashAuthModals authModal={authModal} closeModal={closeModal} />
+      <SplashAuthModals
+        authModal={authModal}
+        closeModal={closeModal}
+        onSwitchToSignIn={openSignInModal}
+        onSwitchToSignUp={openSignUpModal}
+      />
     </ScoringRulesModalProvider>
   );
 }

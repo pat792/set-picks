@@ -6,7 +6,7 @@ import { StatusBanner } from '../../../shared';
 import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 
-export default function SplashSignInModal({ isOpen, onClose }) {
+export default function SplashSignInModal({ isOpen, onClose, onSwitchToSignUp }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -154,6 +154,20 @@ export default function SplashSignInModal({ isOpen, onClose }) {
             {busy ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+        {typeof onSwitchToSignUp === 'function' ? (
+          <p className="mt-6 text-center text-sm font-semibold text-slate-400">
+            New here?{' '}
+            <Button
+              variant="link"
+              type="button"
+              onClick={onSwitchToSignUp}
+              disabled={busy}
+              className="inline px-0 py-0 text-sm text-teal-300 hover:text-white decoration-teal-500/60"
+            >
+              Create account
+            </Button>
+          </p>
+        ) : null}
     </SplashAuthModalShell>
   );
 }

@@ -8,7 +8,7 @@ import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignUp } from '../model/useSplashSignUp';
 import { stashSplashResumeAuthModal } from '../utils/splashAuthResumeStorage';
 
-export default function SplashSignUpModal({ isOpen, onClose }) {
+export default function SplashSignUpModal({ isOpen, onClose, onSwitchToSignIn }) {
   const {
     email,
     setEmail,
@@ -131,6 +131,20 @@ export default function SplashSignUpModal({ isOpen, onClose }) {
             {busy ? 'Creating…' : 'Create account'}
           </Button>
         </form>
+        {typeof onSwitchToSignIn === 'function' ? (
+          <p className="mt-6 text-center text-sm font-semibold text-slate-400">
+            Already have an account?{' '}
+            <Button
+              variant="link"
+              type="button"
+              onClick={onSwitchToSignIn}
+              disabled={busy}
+              className="inline px-0 py-0 text-sm text-teal-300 hover:text-white decoration-teal-500/60"
+            >
+              Sign in
+            </Button>
+          </p>
+        ) : null}
     </SplashAuthModalShell>
   );
 }

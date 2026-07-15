@@ -241,21 +241,31 @@ async function main() {
       results,
     );
 
-    // ── ROUTING B: invite link opens sign-in modal ─────────────────────────
+    // ── ROUTING B: invite link opens create-account modal ──────────────────
     await runScenario(
       'UR-B1',
-      '/join/:code stores invite + opens sign-in modal',
+      '/join/:code stores invite + opens create-account modal',
       async () => {
         await signOutViaAccount(page, dev.url);
         await page.goto(`${dev.url}/join/YEM42`, { waitUntil: 'domcontentloaded' });
         await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 });
-        const dialog = page.getByRole('dialog', { name: /^sign in$/i });
+        const dialog = page.getByRole('dialog', { name: /^create account$/i });
         await dialog.waitFor({ state: 'visible', timeout: 15_000 });
         const stored = await page.evaluate(() =>
           localStorage.getItem('phish_pool_pending_invite'),
         );
         if (stored !== 'YEM42') {
           throw new Error(`expected invite code in storage, got ${stored}`);
+        }
+        // Returning invitee path: switcher opens Sign in without clearing invite.
+        await dialog.getByRole('button', { name: /^sign in$/i }).click();
+        const signIn = page.getByRole('dialog', { name: /^sign in$/i });
+        await signIn.waitFor({ state: 'visible', timeout: 10_000 });
+        const stillStored = await page.evaluate(() =>
+          localStorage.getItem('phish_pool_pending_invite'),
+        );
+        if (stillStored !== 'YEM42') {
+          throw new Error(`invite cleared after switcher, got ${stillStored}`);
         }
       },
       results,

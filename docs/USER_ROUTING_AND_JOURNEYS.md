@@ -94,7 +94,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 ### B. First-time user with invite (`/join/:code`)
 
 1. `usePoolInviteInterceptor` (`src/features/pool-invite/model/usePoolInviteInterceptor.js`): valid code → saved under pool-invite storage key → **`navigate('/', { replace: true })`**.
-2. `SplashPage`: if invite code present in storage → toast + open sign-in modal (`src/pages/landing/SplashPage.jsx`).
+2. `SplashPage`: if invite code present in storage → toast + open **Create account** modal (`src/pages/landing/SplashPage.jsx`). Returning invitees can switch to **Sign in** via the modal footer link. (`/?login=true` still opens **Sign in**, and takes priority if both are present.)
 3. After auth → `HomeRoute` → `getDashboardEntryHref` → usually **`/dashboard`** (new device/browser).
 4. `DashboardRoute` → **`/setup`** if no profile; after setup → **`/dashboard`** (then step 5).
 5. `usePendingPoolJoin` (`src/features/pool-invite/model/usePendingPoolJoin.js`) inside `DashboardLayout`: consumes invite code, joins pool → on **`joined`** or **`already-member`** → **`navigate('/dashboard/pools', { replace: true })`**. This **overrides** the URL from step 3–4 for those outcomes.
@@ -116,6 +116,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 
 - Last screen was **Profile** (typical sign-out path): Profile is **not** persisted, so restore uses the **previous** eligible tab or **`/dashboard`**.
 - Cleared site data / new browser: no storage → **`/dashboard`**.
+- Deep link **`/?login=true`**: splash opens **Sign in** (password reset, QA, returning users) — not Create account.
 
 ### F. Other entry points
 
