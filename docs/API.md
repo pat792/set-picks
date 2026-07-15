@@ -271,7 +271,8 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/` | None | Public splash / landing page |
 | `/how-it-works` | None | How to play marketing page |
 | `/how-scoring-works` | None | Scoring rules marketing page |
-| `/join/:code` | None | Pool invite deep link |
+| `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization (kit #579; VIP landing #580) |
+| `/invite/:handle` | None | Site VIP invite deep link (**landing ships #580**; URL builders in invite kit #579) |
 | `/user/:userId` | None | Public player profile |
 | `/privacy` | None | Privacy policy |
 | `/terms` | None | Terms of service |

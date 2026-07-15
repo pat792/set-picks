@@ -9,11 +9,20 @@ import { PoolInviteShareButtonView } from './PoolInviteShareButtonView';
 export default function PoolInviteShareButton({
   inviteCode,
   poolName,
+  inviterHandle,
+  poolId,
   onSuccess,
   disabled = false,
   className = '',
 }) {
-  const share = usePoolInviteShare({ inviteCode, poolName, onSuccess, disabled });
+  const share = usePoolInviteShare({
+    inviteCode,
+    poolName,
+    inviterHandle,
+    poolId,
+    onSuccess,
+    disabled,
+  });
 
   return (
     <PoolInviteShareButtonView
