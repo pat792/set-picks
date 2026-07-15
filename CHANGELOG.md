@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.21] — 2026-07-15
+
+### Fixed
+- **Pool invite Create account (#577)** — `/join/:code` opens the Create account modal (legal checkbox) so new Google joiners avoid the #406 Sign-in dead end; `/?login=true` still opens Sign in; modals switch Create account ↔ Sign in. Join context is a persistent in-modal banner (not a fading toast).
+
+---
+
 ## [1.20.20] — 2026-07-15
 
 ### Added
