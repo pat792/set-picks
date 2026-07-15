@@ -212,7 +212,7 @@ async function main() {
         if (!page.url().includes('/dashboard')) {
           throw new Error(`expected /dashboard, got ${page.url()}`);
         }
-        await telemetry.waitFor('login', { method: 'email' });
+        await telemetry.waitFor('login', { method: 'email', surface: 'sign_in' });
       },
       results,
     );
@@ -283,7 +283,10 @@ async function main() {
         await dialog.locator('#si-pass').fill('definitely-wrong-password-qa');
         await dialog.locator('button[type="submit"]').click();
         await dialog.getByText(/sign-in failed/i).waitFor({ timeout: 15_000 });
-        await telemetry.waitFor('auth_error', { method: 'email' });
+        await telemetry.waitFor('auth_error', {
+          method: 'email',
+          surface: 'sign_in',
+        });
       },
       results,
     );
@@ -303,7 +306,11 @@ async function main() {
         await dialog
           .getByText(/already registered/i)
           .waitFor({ timeout: 15_000 });
-        await telemetry.waitFor('auth_error', { method: 'email', error_code: 'auth/email-already-in-use' });
+        await telemetry.waitFor('auth_error', {
+          method: 'email',
+          error_code: 'auth/email-already-in-use',
+          surface: 'create_account',
+        });
       },
       results,
     );

@@ -1,28 +1,47 @@
 import { ga4Event } from '../../../shared/lib/ga4';
 
+/** @typedef {'sign_in' | 'create_account'} AuthModalSurface */
+
 function mirrorAuthTelemetry(event, params) {
   if (import.meta.env.DEV) {
     console.info(`[telemetry] ${event}`, params);
   }
 }
 
-export function trackAuthSignUp(method) {
-  mirrorAuthTelemetry('sign_up', { method });
-  ga4Event('sign_up', { method });
-}
-
-export function trackAuthLogin(method) {
-  mirrorAuthTelemetry('login', { method });
-  ga4Event('login', { method });
+/**
+ * @param {string} method
+ * @param {{ surface?: AuthModalSurface }} [opts]
+ */
+export function trackAuthSignUp(method, opts = {}) {
+  const params = {
+    method,
+    ...(opts.surface ? { surface: opts.surface } : {}),
+  };
+  mirrorAuthTelemetry('sign_up', params);
+  ga4Event('sign_up', params);
 }
 
 /**
- * @param {{ method: string, error_code?: string }} payload
+ * @param {string} method
+ * @param {{ surface?: AuthModalSurface }} [opts]
+ */
+export function trackAuthLogin(method, opts = {}) {
+  const params = {
+    method,
+    ...(opts.surface ? { surface: opts.surface } : {}),
+  };
+  mirrorAuthTelemetry('login', params);
+  ga4Event('login', params);
+}
+
+/**
+ * @param {{ method: string, error_code?: string, surface?: AuthModalSurface }} payload
  */
 export function trackAuthError(payload) {
   const params = {
     method: payload.method,
     error_code: payload.error_code ?? 'unknown',
+    ...(payload.surface ? { surface: payload.surface } : {}),
   };
   mirrorAuthTelemetry('auth_error', params);
   ga4Event('auth_error', params);

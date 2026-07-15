@@ -137,7 +137,11 @@ async function main() {
 
   const login = await runReport(token, {
     dateRanges: dateRange,
-    dimensions: [{ name: 'eventName' }, { name: 'customEvent:method' }],
+    dimensions: [
+      { name: 'eventName' },
+      { name: 'customEvent:method' },
+      { name: 'customEvent:surface' },
+    ],
     metrics: [{ name: 'eventCount' }],
     dimensionFilter: {
       filter: {
@@ -148,13 +152,14 @@ async function main() {
     orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
     limit: 20,
   });
-  printSection('login by method', rowsToCounts(login));
+  printSection('login by method + surface', rowsToCounts(login));
 
   const authErrors = await runReport(token, {
     dateRanges: dateRange,
     dimensions: [
       { name: 'customEvent:method' },
       { name: 'customEvent:error_code' },
+      { name: 'customEvent:surface' },
     ],
     metrics: [{ name: 'eventCount' }],
     dimensionFilter: {
@@ -166,7 +171,7 @@ async function main() {
     orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
     limit: 50,
   });
-  printSection('auth_error by method + error_code', rowsToCounts(authErrors));
+  printSection('auth_error by method + error_code + surface', rowsToCounts(authErrors));
 
   for (const eventName of ['auth_rollback', 'auth_rollback_failed', 'auth_partial_profile']) {
     const report = await runReport(token, {
@@ -192,7 +197,10 @@ async function main() {
     '  - auth_error signin_modal_new_user_blocked ↑ → new users hitting Sign in modal (invite / ?login=true)',
   );
   console.log(
-    '  - auth_error auth/popup-closed-by-user ↑ → OAuth iframe / popup infra regression (#412 class)',
+    '  - login google with surface=create_account ↑ → existing Google users using Create account (expected after #406)',
+  );
+  console.log(
+    '  - auth_error auth/popup-closed-by-user or auth/popup-blocked ↑ → OAuth popup flake / #412-class infra',
   );
   console.log(
     '  - auth_rollback* ↑ → consent Firestore write failing after Auth account creation',
