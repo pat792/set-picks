@@ -4,6 +4,7 @@ import { Inbox, Loader2, Music } from 'lucide-react';
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
 import StandingsSelfRecapCard from './StandingsSelfRecapCard';
+import StandingsOfficialSetlistCard from './StandingsOfficialSetlistCard';
 import Leaderboard from './Leaderboard';
 import StandingsActiveShowCard from './StandingsActiveShowCard';
 import StandingsBannerWaitingSetlist from './StandingsBannerWaitingSetlist';
@@ -115,6 +116,13 @@ export default function StandingsShowOrPoolView({ screen }) {
           <div className="mt-4 md:mt-6">
             {!actualSetlist && picks.length > 0 ? (
               <StandingsBannerWaitingSetlist />
+            ) : null}
+            {actualSetlist ? (
+              <StandingsOfficialSetlistCard
+                actualSetlist={actualSetlist}
+                showLabel={showLabel}
+                showStatus={showStatus}
+              />
             ) : null}
             {selfStandingsRecap ? (
               <StandingsSelfRecapCard
@@ -229,6 +237,14 @@ export default function StandingsShowOrPoolView({ screen }) {
 
       {!actualSetlist && picks.length > 0 ? (
         <StandingsBannerWaitingSetlist />
+      ) : null}
+
+      {actualSetlist ? (
+        <StandingsOfficialSetlistCard
+          actualSetlist={actualSetlist}
+          showLabel={showLabel}
+          showStatus={showStatus}
+        />
       ) : null}
 
       {displayedPicks.length === 0 ? (
