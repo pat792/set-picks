@@ -29,6 +29,10 @@
       "destination": "/favicon/favicon.ico"
     },
     {
+      "source": "/invite/:handle",
+      "destination": "/api/invite?handle=:handle"
+    },
+    {
       "source": "/join/:code",
       "destination": "/api/invite?code=:code"
     },

@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.20.0  
+**Version:** 1.21.1  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -271,8 +271,8 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/` | None | Public splash / landing page |
 | `/how-it-works` | None | How to play marketing page |
 | `/how-scoring-works` | None | Scoring rules marketing page |
-| `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580) |
-| `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580) |
+| `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
+| `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile |
 | `/privacy` | None | Privacy policy |
 | `/terms` | None | Terms of service |
@@ -305,6 +305,21 @@ Applied via `vercel.json` to all routes. Policy details: `docs/SECURITY_HEADERS.
 | `Content-Security-Policy-Report-Only` | Report-only | Flip to `Content-Security-Policy` after soak (promote-day) |
 
 Adding or tightening enforced CSP is MINOR; removing a security header is MAJOR.
+
+### 3.3 Invite landing Open Graph (`api/invite.js`)
+
+Social crawlers (Meta, X, Slack, …) do not execute JavaScript. Invite URLs are rewritten to `api/invite.js`, which returns pool- or inviter-specific OG tags for crawlers and the SPA shell for regular browsers.
+
+| Public path | Rewrite (`vercel.json`) | Query params | Crawler behavior | Browser behavior |
+|-------------|-------------------------|--------------|------------------|------------------|
+| `/join/:code` | `/api/invite?code=:code` | Unmatched query preserved (e.g. `?from={handle}`) | Resolves pool name via Admin SDK; `from` personalizes title via invite-kit copy | SPA shell + static OG (no Firestore) |
+| `/invite/:handle` | `/api/invite?handle=:handle` | — | Resolves `users.handle` via Admin SDK; generic OG if missing | SPA shell + static OG from URL handle |
+
+Copy mirrors `src/shared/lib/inviteKit.js` (`buildSiteInviteShareTitle`, `buildPoolInviteShareTitleFromInviter`) and legacy pool OG (`Join my Setlist Pick 'Em pool: {name}`) when `from` is absent. Constants mirror `src/shared/config/seo.js` in `api/inviteOgHelpers.mjs` (no `src/` imports in serverless).
+
+**Vercel env:** `FIREBASE_SERVICE_ACCOUNT` (JSON) enables Firestore Admin lookups for crawlers.
+
+**Tests:** `api/inviteOgHelpers.test.js` (pure helpers; no Vercel runtime).
 
 ---
 
