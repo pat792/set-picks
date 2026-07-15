@@ -91,9 +91,10 @@ export function getDashboardPageMeta(pathname, search) {
 
   const showDatePicker = !isProfileCluster && !isPoolHub && !isStandingsTourView;
 
-  // Profile cluster owns in-page headings; layout does not duplicate them.
+  // Profile cluster + pool details own in-page headings; Standings owns a sticky
+  // title + Show/Tour/Pools chrome (#552 follow-up) so layout does not duplicate H1.
   const layoutDesktopHeading =
-    !isProfileCluster && !isPoolHub ? contextTitle : null;
+    !isProfileCluster && !isPoolHub && !isStandings ? contextTitle : null;
 
   const layoutDetailEyebrow = isPoolHub ? POOL_DETAILS_LAYOUT_EYEBROW : null;
 
