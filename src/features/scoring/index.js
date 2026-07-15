@@ -5,7 +5,9 @@ export {
 export { default as Leaderboard } from './ui/Leaderboard';
 export { default as GradedPicksShareBar } from './ui/GradedPicksShareBar';
 export { default as StandingsSelfRecapCard } from './ui/StandingsSelfRecapCard';
+export { default as StandingsOfficialSetlistCard } from './ui/StandingsOfficialSetlistCard';
 export { computeStandingsSelfRecap } from './model/standingsSelfRecap';
+export { groupOfficialSetlistBySet } from './model/groupOfficialSetlistBySet';
 export { computeShowWinnerOfTheNight } from './model/useShowWinnerOfTheNight';
 export {
   GRADED_PICKS_SHARE_DOMAIN,

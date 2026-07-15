@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.22] — 2026-07-15
+
+### Added
+- **Standings live setlist card (#552)** — collapsible set-broken official setlist + six-slot official board (wildcard blank) on Standings; reuses existing `official_setlists` subscription (no extra listeners).
+
+---
+
 ## [1.20.21] — 2026-07-15
 
 ### Fixed
