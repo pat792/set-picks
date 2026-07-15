@@ -222,7 +222,12 @@
         { "name": "shows_played", "source": "count of graded shows this tour", "fallback": null },
         { "name": "pool_tour_rank", "source": "pool tour leaderboard (not populated in v1)", "fallback": null },
         { "name": "next_show_date", "source": "show_calendar", "fallback": null },
-        { "name": "next_show_venue", "source": "show_calendar", "fallback": null }
+        { "name": "next_show_venue", "source": "show_calendar", "fallback": null },
+        { "name": "invite_kind", "source": "computed: pool when user has invite_code else site", "fallback": "site" },
+        { "name": "invite_url", "source": "computed from invite kit + email UTMs", "fallback": null },
+        { "name": "invite_headline", "source": "computed from invite kit copy", "fallback": null },
+        { "name": "inviter_handle", "source": "users/{uid}.handle", "fallback": null },
+        { "name": "invite_code", "source": "pools/{poolId}.inviteCode (first user pool)", "fallback": null }
       ]
     },
     {
@@ -302,8 +307,13 @@
         { "name": "greeting_name", "source": "users/{uid}.handle", "fallback": "friend" },
         { "name": "audience_segment", "source": "marketingAudience resolver", "fallback": "sphere_alum" },
         { "name": "opener_label", "source": "tour calendar", "fallback": "Tuesday, July 7" },
-        { "name": "share_url", "source": "pool invite /join/:code or homepage", "fallback": null },
+        { "name": "share_url", "source": "invite kit URL with email UTMs", "fallback": null },
+        { "name": "invite_kind", "source": "computed: pool when invite_code else site", "fallback": "site" },
+        { "name": "invite_url", "source": "alias of share_url", "fallback": null },
+        { "name": "invite_headline", "source": "computed from invite kit copy", "fallback": null },
+        { "name": "inviter_handle", "source": "users/{uid}.handle", "fallback": null },
         { "name": "invite_code", "source": "users.pools[0] → pools.inviteCode", "fallback": null },
+        { "name": "pool_name", "source": "users.pools[0] → pools.name", "fallback": null },
         { "name": "campaignId", "source": "vars.campaignId", "fallback": "summer_tour_2026" }
       ]
     }

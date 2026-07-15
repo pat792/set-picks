@@ -81,6 +81,11 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | `{{next_show_date}}` | Next scheduled show | — |
 | `{{next_show_venue}}` | Next show venue | — |
 | `{{pool_tour_rank}}` | Pool-specific tour rank | — |
+| `{{invite_kind}}` | `site` or `pool` — which VIP landing the invite URL targets | `site` |
+| `{{invite_url}}` | Tracked invite link (`/invite/{handle}` or `/join/{code}?from={handle}` + UTMs) | — |
+| `{{invite_headline}}` | Personalized invite line (mirrors invite kit copy) | — |
+| `{{inviter_handle}}` | Handle embedded in invite URL / headline | `{{handle}}` |
+| `{{invite_code}}` | Pool invite code when `invite_kind=pool` | — |
 
 ---
 
@@ -411,7 +416,8 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 4. **Your tour position** — rank, points, shows played, rank change vs yesterday.
 5. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
 6. **Next show** — {{next_show_venue}}, {{next_show_date}}. Picks are open.
-7. **CTA:** `Make picks for next show`
+7. **Invite friends** — personalized invite headline + link (`{{invite_headline}}`, `{{invite_url}}`; pool variant when user has a pool).
+8. **CTA:** `Make picks for next show`
 
 ---
 

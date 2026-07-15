@@ -85,6 +85,10 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
     rank_change: "up 2",
     next_show_date: "2026-07-19",
     next_show_venue: "Sphere",
+    invite_kind: "pool",
+    invite_url:
+      "https://www.setlistpickem.com/join/ABC12?from=RiverTranced&utm_source=email&utm_campaign=tour_rankings_daily&utm_content=invite_share",
+    invite_headline: "RiverTranced invited you to join their pool: Denver Crew",
   });
   // Night-of recap content is present even though show_recap no longer emails.
   assert.match(out.email.text, /70/, "show score");
@@ -95,6 +99,10 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   assert.match(out.email.text, /climbed 2/, "rank change rendered as climbed");
   assert.match(out.email.text, /2026-07-19/, "next show date");
   assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
+  assert.match(out.email.text, /RiverTranced invited you to join their pool/);
+  assert.match(out.email.text, /\/join\/ABC12\?from=RiverTranced/);
+  assert.ok(out.email.inviteBlockHtml, "invite HTML block");
+  assert.match(out.email.inviteBlockHtml, /Share your invite/);
 });
 
 test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {

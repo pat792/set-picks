@@ -14,6 +14,11 @@
 "use strict";
 
 const { buildTourRankingsDailyParagraphs } = require("./tourRankingsDailyCore");
+const {
+  buildInviteShareHtmlBlock,
+  buildInviteSharePlainTextLines,
+} = require("./comms/inviteShareBlock.cjs");
+const { resolveInviteShareFromPayload } = require("./comms/inviteContext.cjs");
 
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
@@ -253,9 +258,17 @@ const BUILDERS = {
     ].filter(Boolean);
 
     const tourParas = buildTourRankingsDailyParagraphs(p);
-    const assembled = assembleServiceEmail([...nightOf, "", ...tourParas].filter(Boolean), {
-      ctaUrl: PICKS_CTA_URL,
+    const inviteShare = resolveInviteShareFromPayload(p, {
+      campaign: "tour_rankings_daily",
+      baseUrl: SITE_URL,
     });
+    const inviteLines = inviteShare ? buildInviteSharePlainTextLines(inviteShare) : [];
+    const assembled = assembleServiceEmail(
+      [...nightOf, "", ...tourParas, ...(inviteLines.length ? ["", ...inviteLines] : [])].filter(Boolean),
+      {
+        ctaUrl: PICKS_CTA_URL,
+      }
+    );
 
     const pushRank =
       p.tour_rank != null
@@ -279,6 +292,9 @@ const BUILDERS = {
         signOff: assembled.signOff,
         ctaUrl: PICKS_CTA_URL,
         ctaLabel: "Make picks for next show",
+        ...(inviteShare
+          ? { inviteBlockHtml: buildInviteShareHtmlBlock(inviteShare) }
+          : {}),
       },
     };
   },

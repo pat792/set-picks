@@ -8,19 +8,23 @@ const { buildSummerTour2026LaunchChannels } = require("./marketingCommsTemplates
 test("buildSummerTour2026LaunchChannels returns html, text, and subject", async () => {
   const out = await buildSummerTour2026LaunchChannels({
     greetingName: "Rivertranced",
+    inviterHandle: "Rivertranced",
     audienceSegment: "sphere_alum",
     openerLabel: "Tuesday, July 7",
     siteUrl: "https://www.setlistpickem.com",
     settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
-    shareUrl: "https://www.setlistpickem.com/join/ABC12?utm_content=share_friends",
+    shareUrl:
+      "https://www.setlistpickem.com/join/ABC12?from=Rivertranced&utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=share_friends",
     inviteCode: "ABC12",
+    inviteKind: "pool",
+    inviteHeadline: "Rivertranced invited you to join their pool",
   });
 
   assert.match(out.email.subject, /bring your crew/i);
   assert.match(out.email.html, /Rivertranced/);
   assert.match(out.email.html, /Share with your friends/);
-  assert.match(out.email.html, /Rivertranced/);
-  assert.match(out.email.html, /\/join\/ABC12/);
+  assert.match(out.email.html, /Rivertranced invited you to join their pool/);
+  assert.match(out.email.html, /\/join\/ABC12\?from=Rivertranced/);
   assert.match(out.email.text, /Rivertranced/);
   assert.match(out.email.text, /Pat/);
   assert.ok(out.email.html.includes("<!DOCTYPE html") || out.email.html.includes("<html"));
