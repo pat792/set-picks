@@ -30,3 +30,34 @@ Whenever you need to simulate a brand new user hitting the site for the very fir
 - **Debug token:** `38422efd-029f-45b4-b028-7cf7fcaeeffc`
 - Use this token in the Firebase Console App Check debug-token allowlist for local development.
 
+## Cloud Agent / Playwright QA harness
+
+**One command (Cloud Agents):**
+
+```bash
+npm run qa:setup          # materialize-env + qa:cache + qa:google-signup gating
+npm run qa:auth-scenarios # full auth telemetry + routing matrix (QA_TEST_* only)
+```
+
+This materializes `.env.qa.local` from injected secrets, runs `qa:cache` (email returning user), and `qa:google-signup` gating tests.
+
+### Secret inventory
+
+| Secret | Purpose |
+|--------|---------|
+| `QA_TEST_EMAIL` / `QA_TEST_PASSWORD` | Email/password **returning** user (`qa:cache`, dev sign-in) |
+| `QA_GOOGLE_TEST_EMAIL` / `QA_GOOGLE_TEST_PASSWORD` | Dedicated Gmail for **new-user Google OAuth** (`qa:google-signup` OAuth phase) |
+| `QA_APPCHECK_DEBUG_TOKEN` | Optional; defaults to debug UUID above |
+| `QA_PUBLIC_PROFILE_UID` | Optional; auto-resolved from `QA_TEST_EMAIL` |
+
+### Google new-user test account (one-time manual)
+
+1. Create a **dedicated Gmail** not used elsewhere (e.g. `setlistpickem.qa.<random>@gmail.com`).
+2. Do **not** sign up on setlistpickem.com with it until the automated test runs — Firebase must treat it as a new Google user.
+3. Add `QA_GOOGLE_TEST_EMAIL` and `QA_GOOGLE_TEST_PASSWORD` to **Cursor Cloud Agents → Secrets** and **GitHub Actions secrets**.
+4. Run `npm run qa:setup` again — OAuth phase should land on `/setup`.
+5. After each OAuth test run, follow **The Reset Protocol** below to delete the Auth user and Firestore doc so the next run sees `isNewUser: true` again.
+
+**Note:** The existing `QA_TEST_EMAIL` account (`pat@road2media.com`) is email/password only — it cannot exercise Google OAuth.
+
+

@@ -20,9 +20,9 @@ on `setlistpickem.com` (prod) — preview/staging/localhost stay silent.
 
 | Event | Source | Params | Meaning |
 |---|---|---|---|
-| `sign_up` | `useSplashSignUp` | `method` (`email` \| `google`) | New account created and consent recorded |
-| `login` | `useSplashSignUp`, `useSplashSignIn` | `method` (`email` \| `google`) | Returning user signed in |
-| `auth_error` | `useSplashSignUp`, `useSplashSignIn` | `method`, `error_code` (Firebase code or `unknown`) | Any auth-API throw — wrong password, popup-blocked, etc. |
+| `sign_up` | `useSplashSignUp` | `method` (`email` \| `google`), `surface` (`create_account`) | New account created and consent recorded |
+| `login` | `useSplashSignUp`, `useSplashSignIn` | `method` (`email` \| `google`), `surface` (`sign_in` \| `create_account`) | Returning user signed in. `surface=create_account` means an existing Google account used the Create account modal |
+| `auth_error` | `useSplashSignUp`, `useSplashSignIn` | `method`, `error_code`, `surface` (`sign_in` \| `create_account`) | Any auth-API throw — wrong password, popup-blocked, `signin_modal_new_user_blocked`, etc. |
 | `auth_partial_profile` | `DashboardRoute` | `has_consent` (`true`/`false`), `surface` (`dashboard_route`) | **ANOMALY** — `users/{uid}` exists but `handle` missing |
 | `auth_rollback` | `useSplashSignUp` | `method`, `stage` (`consent_write`) | Post-signup Firestore write failed; Auth account deletion initiated |
 | `auth_rollback_failed` | `useSplashSignUp` | `method`, `error_code` | The `deleteUser` rollback itself failed — phantom Auth account exists |
@@ -45,7 +45,7 @@ custom dimensions. Same for the params on the new events.
 | `auth_error_code` | Event | `error_code` | Firebase Auth error code (e.g. `auth/wrong-password`) |
 | `auth_rollback_stage` | Event | `stage` | Which post-signup write failed (`consent_write`) |
 | `auth_partial_has_consent` | Event | `has_consent` | Whether the partial doc has `termsPrivacyAcceptedAt` |
-| `auth_partial_surface` | Event | `surface` | Which route detected the partial state |
+| `auth_partial_surface` | Event | `surface` | Auth UI/route context — `sign_in`, `create_account`, or `dashboard_route` (partial-profile anomaly) |
 
 Historical data is **not backfilled**. New events landing after
 registration become queryable via `run_report` with

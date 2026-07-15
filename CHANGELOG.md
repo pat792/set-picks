@@ -12,6 +12,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.20] — 2026-07-15
+
+### Added
+- **Auth QA harness (#574)** — `qa:setup`, `qa:auth-scenarios`, `qa:google-signup`, `qa:materialize-env`, and `ga4:auth-funnel` for Cloud Agent / CI investigation of Google and email sign-up failures.
+- **Auth telemetry `surface`** — `login` / `sign_up` / `auth_error` emit `surface` (`sign_in` | `create_account`) so Create-account returning Google users are distinguishable from Sign-in modal logins in GA4.
+
+---
+
 ## [1.20.19] — 2026-07-15
 
 ### Fixed
