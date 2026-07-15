@@ -211,10 +211,11 @@ function rewritePlainTextCtaUrl(text, rawCtaUrl, trackedCtaUrl) {
  *   ctaLabel?: string,
  *   signOff?: string,
  *   wordmarkSrc?: string,
+ *   inviteBlockHtml?: string,
  * }} opts
  * @returns {string}
  */
-function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabel, signOff, wordmarkSrc }) {
+function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabel, signOff, wordmarkSrc, inviteBlockHtml }) {
   const buttonLabel = typeof ctaLabel === "string" && ctaLabel.trim() ? ctaLabel.trim() : "Open Setlist Pick'em";
   const signOffLine = typeof signOff === "string" ? signOff.trim() : "";
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
@@ -236,6 +237,8 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
   const signOffHtml = signOffLine
     ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#64748b;font-style:italic;">${escapeHtml(signOffLine)}</p>`
     : "";
+  const inviteHtml =
+    typeof inviteBlockHtml === "string" && inviteBlockHtml.trim() ? inviteBlockHtml.trim() : "";
   const wordmarkBlockStyle = [
     `width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px`,
     "max-width:100%",
@@ -273,6 +276,7 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
             <tr>
               <td style="padding:8px 24px 8px 24px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
                 ${paragraphs}
+                ${inviteHtml}
                 ${signOffHtml}
                 <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:14px 28px;background-color:${EMAIL_BRAND_PRIMARY};color:${EMAIL_BRAND_BG_DEEP};text-decoration:none;border-radius:12px;font-weight:700;font-size:16px;">${escapeHtml(buttonLabel)}</a>
               </td>
@@ -415,6 +419,7 @@ function createCommsEmailWorker({
           settingsUrl,
           ctaLabel,
           signOff: rendered.email.signOff,
+          inviteBlockHtml: rendered.email.inviteBlockHtml,
         });
     const html = usesPreRenderedHtml ? rendered.email.html : shell.html;
     const idempotencyKey = forceResend

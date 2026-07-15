@@ -27,6 +27,12 @@ const {
   nextTourShowDate,
   buildTourRankingsDailyPayloadFields,
 } = require("./tourRankingsDailyCore");
+const {
+  inviteContextForUser,
+  buildInviteEmailFields,
+} = require("./comms/inviteContext.cjs");
+
+const SITE_URL = "https://www.setlistpickem.com";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 const COUNTDOWN_DAYS = [10, 5, 3, 1];
@@ -724,6 +730,20 @@ async function runScheduledTourRankingsDaily({
         nextShowDate: nextDate,
         nextShowVenue: nextMeta?.venue || "",
       });
+      // eslint-disable-next-line no-await-in-loop
+      const { inviteCode, poolName } = await inviteContextForUser(db, userData);
+      const inviterHandle =
+        pickHandle ||
+        (typeof userData.handle === "string" ? userData.handle.trim() : "");
+      const inviteFields =
+        buildInviteEmailFields({
+          baseUrl: SITE_URL,
+          inviterHandle,
+          inviteCode,
+          poolName,
+          campaign: "tour_rankings_daily",
+        }) || {};
+      Object.assign(payload, inviteFields);
       recipients.push({
         uid,
         userData,
