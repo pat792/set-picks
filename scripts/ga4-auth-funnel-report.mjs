@@ -194,7 +194,7 @@ async function main() {
     '  - sign_up google ≪ sign_up email for multiple weeks → Google create-account path issue or UX funnel bias',
   );
   console.log(
-    '  - auth_error signin_modal_new_user_blocked ↑ → new users hitting Sign in modal (invite / ?login=true)',
+    '  - auth_error signin_modal_new_user_blocked ↑ → new users hitting Sign in modal (?login=true or switcher; invite opens Create account as of #577)',
   );
   console.log(
     '  - login google with surface=create_account ↑ → existing Google users using Create account (expected after #406)',

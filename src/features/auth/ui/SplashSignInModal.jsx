@@ -6,7 +6,12 @@ import { StatusBanner } from '../../../shared';
 import SplashAuthModalShell from './SplashAuthModalShell';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 
-export default function SplashSignInModal({ isOpen, onClose }) {
+export default function SplashSignInModal({
+  isOpen,
+  onClose,
+  onSwitchToSignUp,
+  poolInvitePending = false,
+}) {
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -23,6 +28,22 @@ export default function SplashSignInModal({ isOpen, onClose }) {
     handleSendPasswordResetEmail,
   } = useSplashSignIn(isOpen, onClose);
 
+  const prependContent =
+    poolInvitePending || error ? (
+      <div className="space-y-3">
+        {poolInvitePending ? (
+          <StatusBanner
+            type="info"
+            message="You're joining a pool — sign in to continue."
+            className="text-left"
+          />
+        ) : null}
+        {error ? (
+          <StatusBanner type="error" message={error} className="text-left" />
+        ) : null}
+      </div>
+    ) : null;
+
   return (
     <SplashAuthModalShell
       isOpen={isOpen}
@@ -30,11 +51,7 @@ export default function SplashSignInModal({ isOpen, onClose }) {
       title="Sign in"
       handleGoogle={handleGoogle}
       busy={busy}
-      prependContent={
-        error ? (
-          <StatusBanner type="error" message={error} className="text-left" />
-        ) : null
-      }
+      prependContent={prependContent}
       closeOnBackdropClick={false}
     >
         <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">
@@ -154,6 +171,20 @@ export default function SplashSignInModal({ isOpen, onClose }) {
             {busy ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+        {typeof onSwitchToSignUp === 'function' ? (
+          <p className="mt-6 text-center text-sm font-semibold text-slate-400">
+            New here?{' '}
+            <Button
+              variant="link"
+              type="button"
+              onClick={onSwitchToSignUp}
+              disabled={busy}
+              className="inline px-0 py-0 text-sm text-teal-300 hover:text-white decoration-teal-500/60"
+            >
+              Create account
+            </Button>
+          </p>
+        ) : null}
     </SplashAuthModalShell>
   );
 }
