@@ -143,14 +143,14 @@ const BUILDERS = {
       [
         `${handleOf(p)}, the run kicks off ${when}.`,
         firstShow ? `First show: ${firstShow}.` : "",
-        `Picks lock at ${p.lock_time_local || "7:30 PM"} local on show night.`,
+        `Picks lock at ${p.lock_time_local || "7:55 PM"} local on show night.`,
       ],
       { ctaUrl: PICKS_CTA_URL }
     );
     return {
       push: {
         title: `${p.tour_name || "The tour"} starts ${when}`,
-        body: `Get your picks ready — locks at ${p.lock_time_local || "7:30 PM"} local.`,
+        body: `Get your picks ready — locks at ${p.lock_time_local || "7:55 PM"} local.`,
       },
       email: {
         subject: `${p.tour_name || "The tour"} starts ${when}`,
@@ -301,7 +301,7 @@ const BUILDERS = {
 
   "picks-lock-reminder": (p) => {
     const venue = venueLine(p);
-    const lockLabel = p.lock_time_local || "7:30 PM";
+    const lockLabel = p.lock_time_local || "7:55 PM";
     const timePhrase = p.time_to_lock ? ` in ${p.time_to_lock}` : "";
     const ctaUrl = picksCtaUrl(p);
     const assembled = assembleServiceEmail(

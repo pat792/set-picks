@@ -17,7 +17,7 @@ You own the **trigger catalog** — what fires, for whom, when, through which ch
 2. `docs/comms-triggers/TRIGGER_CATALOG.md`
 3. `docs/comms-triggers/catalog.json`
 4. `src/features/comms/registry.js` — templateId linkage
-5. Game logic: `src/shared/utils/timeLogic.js`, `show_calendar`, picks lock (#303: 19:30 local)
+5. Game logic: `src/shared/utils/timeLogic.js`, `show_calendar`, picks lock (#303: 19:55 local)
 
 ## Trigger Spec checklist
 

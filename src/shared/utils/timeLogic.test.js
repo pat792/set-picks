@@ -34,13 +34,13 @@ describe('venue-local lock + status (#278)', () => {
   });
 
   it('evaluates lock time in the show timezone instead of fixed PT', () => {
-    // Chicago CDT = UTC-5 in July: 00:20Z = 7:20pm, 00:31Z = 7:31pm local.
+    // Chicago CDT = UTC-5 in July: 00:20Z = 7:20pm, 00:56Z = 7:56pm local.
     const at1920Chicago = new Date('2026-07-11T00:20:00.000Z');
-    const at1931Chicago = new Date('2026-07-11T00:31:00.000Z');
+    const at1956Chicago = new Date('2026-07-11T00:56:00.000Z');
 
     expect(isPastPicksLock('2026-07-10', 'America/Chicago', at1920Chicago)).toBe(false);
-    expect(isPastPicksLock('2026-07-10', 'America/Chicago', at1931Chicago)).toBe(true);
-    expect(isPastPicksLock('2026-07-10', 'America/Los_Angeles', at1931Chicago)).toBe(false);
+    expect(isPastPicksLock('2026-07-10', 'America/Chicago', at1956Chicago)).toBe(true);
+    expect(isPastPicksLock('2026-07-10', 'America/Los_Angeles', at1956Chicago)).toBe(false);
   });
 
   it('chooses next show using each show local today', () => {
@@ -56,9 +56,9 @@ describe('venue-local lock + status (#278)', () => {
     expect(getNextShow(shows)).toEqual(shows[1]);
   });
 
-  it('marks a show LIVE at 7:30 in the venue timezone on show date', () => {
+  it('marks a show LIVE at 7:55 in the venue timezone on show date', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-07-11T00:31:00.000Z'));
+    vi.setSystemTime(new Date('2026-07-11T00:56:00.000Z'));
 
     const shows = [
       { date: '2026-07-10', venue: 'Kohl Center, Madison, WI', timeZone: 'America/Chicago' },
@@ -69,7 +69,7 @@ describe('venue-local lock + status (#278)', () => {
 
   it('keeps fallback venue parsing for old docs without explicit timeZone', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-07-11T00:31:00.000Z'));
+    vi.setSystemTime(new Date('2026-07-11T00:56:00.000Z'));
 
     const shows = [{ date: '2026-07-10', venue: 'Kohl Center, Madison, WI' }];
 
