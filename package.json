@@ -28,7 +28,7 @@
     "qa:preview-headers": "node --env-file-if-exists=.env.qa.local scripts/qa/preview-cache-headers.mjs",
     "qa:google-signup": "node --env-file-if-exists=.env.qa.local scripts/qa/google-new-user-signup.mjs",
     "qa:materialize-env": "node scripts/qa/materialize-qa-env-from-cloud.mjs",
-    "qa:setup": "node scripts/qa/setup-qa-harness.mjs",
+    "qa:auth-scenarios": "node --env-file-if-exists=.env.qa.local scripts/qa/auth-scenarios.mjs",
     "ga4:auth-funnel": "node scripts/ga4-auth-funnel-report.mjs",
     "release:gate": "node scripts/release-gate.mjs",
     "release:gate:full": "node scripts/release-gate.mjs --verify",

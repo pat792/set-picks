@@ -35,7 +35,8 @@ Whenever you need to simulate a brand new user hitting the site for the very fir
 **One command (Cloud Agents):**
 
 ```bash
-npm run qa:setup
+npm run qa:setup          # materialize-env + qa:cache + qa:google-signup gating
+npm run qa:auth-scenarios # full auth telemetry + routing matrix (QA_TEST_* only)
 ```
 
 This materializes `.env.qa.local` from injected secrets, runs `qa:cache` (email returning user), and `qa:google-signup` gating tests.

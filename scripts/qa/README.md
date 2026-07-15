@@ -22,8 +22,11 @@ cp .env.qa.example .env.qa.local
 
 ```bash
 npm run qa:materialize-env   # writes .env.qa.local from QA_TEST_* + VITE_FIREBASE_*
+npm run qa:auth-scenarios    # auth telemetry + routing (uses dev server / QA_TEST_* only)
 npm run qa:cache             # or qa:chunks / qa:google-signup
 ```
+
+Set `QA_DEV_ORIGIN=http://localhost:5173` to reuse a running `npm run dev` session.
 
 `.env.qa.local` is gitignored. The npm scripts use Node
 `--env-file-if-exists=.env.qa.local`.
