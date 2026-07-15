@@ -89,14 +89,14 @@ const FIRST = {
   payload: {
     tour_name: "Fall Tour '26",
     days_remaining: 2,
-    lock_time_local: '7:30 PM',
+    lock_time_local: '7:55 PM',
     first_show_venue: 'Madison Square Garden',
   },
   vars: { tourId: 'daily-cap-qa', days_remaining: 2 },
 };
 const SECOND = {
   triggerId: 'picks_lock_reminder',
-  payload: { venue_name: 'Madison Square Garden', lock_time_local: '7:30 PM' },
+  payload: { venue_name: 'Madison Square Garden', lock_time_local: '7:55 PM' },
   vars: { showYmd: '2026-09-12' },
 };
 
