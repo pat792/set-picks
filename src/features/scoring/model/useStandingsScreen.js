@@ -238,6 +238,7 @@ export function useStandingsScreen(selectedDate, options = {}) {
     loading,
     showStatus,
     showLabel,
+    selectedDate,
     isShowToday,
     picks,
     actualSetlist,

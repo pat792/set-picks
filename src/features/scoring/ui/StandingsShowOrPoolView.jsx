@@ -30,6 +30,7 @@ export default function StandingsShowOrPoolView({ screen }) {
     loading,
     showStatus,
     showLabel,
+    selectedDate,
     isShowToday,
     picks,
     actualSetlist,
@@ -120,6 +121,7 @@ export default function StandingsShowOrPoolView({ screen }) {
             {actualSetlist ? (
               <StandingsOfficialSetlistCard
                 actualSetlist={actualSetlist}
+                showDate={selectedDate}
                 showLabel={showLabel}
                 showStatus={showStatus}
               />
@@ -242,6 +244,7 @@ export default function StandingsShowOrPoolView({ screen }) {
       {actualSetlist ? (
         <StandingsOfficialSetlistCard
           actualSetlist={actualSetlist}
+          showDate={selectedDate}
           showLabel={showLabel}
           showStatus={showStatus}
         />

@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.20.23] — 2026-07-15
+
+### Added
+- **Standings setlist Phish.net credit** — in-card attribution + “see more show details” link to that show’s Phish.net setlist (API ToS attribution).
+
+---
+
 ## [1.20.22] — 2026-07-15
 
 ### Added
