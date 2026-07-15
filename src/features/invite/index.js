@@ -20,3 +20,6 @@ export {
   shareOrCopyInviteUrl,
 } from './model/shareInvite';
 export { trackInviteShare } from './model/inviteAnalytics';
+export { useInviteChooser } from './model/useInviteChooser';
+export { default as InviteChooserSheet } from './ui/InviteChooserSheet';
+export { default as InviteChooserTrigger } from './ui/InviteChooserTrigger';

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { InviteChooserSheet } from '../../features/invite';
 import {
   StandingsShowOrPoolView,
   StandingsStickyChrome,
@@ -9,6 +10,7 @@ import {
 
 export default function StandingsPage({ selectedDate, onSelectShowDate }) {
   const screen = useStandingsScreen(selectedDate, { onSelectShowDate });
+  const invite = screen.inviteChooser;
 
   return (
     <div className="w-full">
@@ -16,7 +18,24 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
         view={screen.view}
         onChange={screen.setView}
         onOpenScoringRules={screen.openScoringRules}
+        onOpenInvite={invite.openChooser}
         pinBelowDesktopDatePicker={screen.view !== 'tour'}
+      />
+
+      <InviteChooserSheet
+        open={invite.open}
+        onClose={invite.closeChooser}
+        step={invite.step}
+        inviterHandle={invite.inviterHandle}
+        inviteablePools={invite.inviteablePools}
+        selectedPoolId={invite.selectedPoolId}
+        onSelectPoolId={invite.setSelectedPoolId}
+        selectedPool={invite.selectedPool}
+        sharing={invite.sharing}
+        onShareSiteInvite={invite.shareSiteInvite}
+        onSharePoolInvite={invite.sharePoolInvite}
+        onGoToPoolStep={invite.goToPoolStep}
+        onBackToChoose={invite.backToChoose}
       />
 
       <div className="mt-5">

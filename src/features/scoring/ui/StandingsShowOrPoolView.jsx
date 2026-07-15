@@ -50,6 +50,7 @@ export default function StandingsShowOrPoolView({ screen }) {
     lastShowViewResults,
     onSelectShowDate,
     redactOpponentPicksPreLock,
+    inviteChooser,
   } = screen;
 
   const isPoolsView = view === 'pools';
@@ -283,9 +284,21 @@ export default function StandingsShowOrPoolView({ screen }) {
                 No picks yet
               </PageTitle>
               <p className="max-w-sm font-bold text-content-secondary">
-                {isPoolsView
-                  ? 'Nobody in this pool has locked in yet. Invite friends from Pools.'
-                  : 'Be the first to lock in picks for this show — head to the Picks tab.'}
+                {isPoolsView ? (
+                  <>
+                    Nobody in this pool has locked in yet.{' '}
+                    <button
+                      type="button"
+                      onClick={inviteChooser?.openChooser}
+                      className="font-bold text-brand-primary underline decoration-brand-primary/50 underline-offset-2 transition-colors hover:text-brand-primary-strong"
+                    >
+                      Invite friends
+                    </button>{' '}
+                    to join the fun.
+                  </>
+                ) : (
+                  'Be the first to lock in picks for this show — head to the Picks tab.'
+                )}
               </p>
             </>
           )}
