@@ -15,7 +15,7 @@ const { hasNonEmptyPicksObject } = require("./rollupSeasonAggregates");
 
 const TRIGGER_ID = "tour_countdown";
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
-const DEFAULT_LOCK_TIME_LOCAL = "7:30 PM";
+const DEFAULT_LOCK_TIME_LOCAL = "7:55 PM";
 
 /**
  * @param {unknown} data
