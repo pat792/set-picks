@@ -1,6 +1,7 @@
 import React from 'react';
 import { Inbox, Loader2, Music } from 'lucide-react';
 
+import { InviteChooserTrigger } from '../../invite';
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
 import StandingsSelfRecapCard from './StandingsSelfRecapCard';
@@ -283,23 +284,35 @@ export default function StandingsShowOrPoolView({ screen }) {
               <PageTitle as="h3" variant="section" className="mb-2">
                 No picks yet
               </PageTitle>
-              <p className="max-w-sm font-bold text-content-secondary">
-                {isPoolsView ? (
-                  <>
-                    Nobody in this pool has locked in yet.{' '}
-                    <button
-                      type="button"
-                      onClick={inviteChooser?.openChooser}
-                      className="font-bold text-brand-primary underline decoration-brand-primary/50 underline-offset-2 transition-colors hover:text-brand-primary-strong"
-                    >
-                      Invite friends
-                    </button>{' '}
-                    to join the fun.
-                  </>
-                ) : (
-                  'Be the first to lock in picks for this show — head to the Picks tab.'
-                )}
-              </p>
+              {isPoolsView ? (
+                <>
+                  <p className="mb-4 max-w-sm font-bold text-content-secondary">
+                    Nobody in this pool has locked in yet. Invite friends to join
+                    the fun.
+                  </p>
+                  {inviteChooser?.openChooser ? (
+                    <InviteChooserTrigger
+                      onClick={inviteChooser.openChooser}
+                      variant="emphasis"
+                      label="Invite friends"
+                    />
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <p className="mb-4 max-w-sm font-bold text-content-secondary">
+                    Be the first to lock in picks for this show — head to the
+                    Picks tab — or invite friends to play along.
+                  </p>
+                  {inviteChooser?.openChooser ? (
+                    <InviteChooserTrigger
+                      onClick={inviteChooser.openChooser}
+                      variant="emphasis"
+                      label="Invite friends to play this show"
+                    />
+                  ) : null}
+                </>
+              )}
             </>
           )}
         </Card>
