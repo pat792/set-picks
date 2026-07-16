@@ -1,10 +1,12 @@
 import React from 'react';
 import { CalendarDays, ListOrdered, Users } from 'lucide-react';
 
+import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
+
 const OPTIONS = [
-  { id: 'show', label: 'Show', Icon: ListOrdered },
-  { id: 'tour', label: 'Tour', Icon: CalendarDays },
-  { id: 'pools', label: 'Pools', Icon: Users },
+  { id: 'show', label: 'Show', icon: ListOrdered },
+  { id: 'tour', label: 'Tour', icon: CalendarDays },
+  { id: 'pools', label: 'Pools', icon: Users },
 ];
 
 const baseClass =
@@ -27,8 +29,11 @@ const unselectedClass =
 /**
  * Primary IA toggle for `/dashboard/standings` (#255) — three-way pick
  * between show-scoped standings, tour-scoped cumulative standings, and
- * pool-scoped show standings. Renders as the first in-page content so
- * users can orient before any data is shown.
+ * pool-scoped show standings.
+ *
+ * Responsive contract (#609): mobile fixed chrome uses boxed
+ * `ChromeSegmentedControl` (icons + equal thirds); `md+` renders as an
+ * auto-width inline pill group with primary CTA active state.
  *
  * State + URL sync lives in {@link useStandingsView}; this is the
  * presentational half.
@@ -41,36 +46,46 @@ const unselectedClass =
  */
 export default function StandingsViewToggle({ view, onChange, className = '' }) {
   return (
-    <div
-      role="tablist"
-      aria-label="Standings view"
-      className={[
-        'mb-5 flex flex-wrap items-center justify-center gap-2',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      {OPTIONS.map(({ id, label, Icon }) => {
-        const selected = view === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={selected}
-            onClick={() => onChange(id)}
-            className={[
-              baseClass,
-              selected ? selectedClass : unselectedClass,
-              'min-w-[5.5rem] justify-center',
-            ].join(' ')}
-          >
-            <Icon className="h-4 w-4 shrink-0" aria-hidden />
-            {label}
-          </button>
-        );
-      })}
-    </div>
+    <>
+      <ChromeSegmentedControl
+        ariaLabel="Standings view"
+        value={view}
+        onChange={onChange}
+        items={OPTIONS}
+        className={['md:hidden', className].filter(Boolean).join(' ')}
+      />
+
+      <div
+        role="tablist"
+        aria-label="Standings view"
+        className={[
+          'mb-5 hidden w-auto items-center justify-center gap-2 md:flex',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {OPTIONS.map(({ id, label, icon: Icon }) => {
+          const selected = view === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => onChange(id)}
+              className={[
+                baseClass,
+                selected ? selectedClass : unselectedClass,
+                'min-w-[5.5rem] justify-center',
+              ].join(' ')}
+            >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden />
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </>
   );
 }

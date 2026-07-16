@@ -37,9 +37,13 @@ export { default as StandingsActiveShowCard } from './ui/StandingsActiveShowCard
 export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';
 export { default as StandingsPoolPicker } from './ui/StandingsPoolPicker';
 export { default as StandingsShowOrPoolView } from './ui/StandingsShowOrPoolView';
+export { default as StandingsTourScopeSelect } from './ui/StandingsTourScopeSelect';
 export { default as StandingsTourView } from './ui/StandingsTourView';
 export { default as StandingsViewToggle } from './ui/StandingsViewToggle';
 export { default as StandingsStickyChrome } from './ui/StandingsStickyChrome';
+export { default as StandingsMobileFixedChrome } from './ui/StandingsMobileFixedChrome';
+export { default as StandingsInvitePromo } from './ui/StandingsInvitePromo';
+export { default as StandingsSponsorPreview } from './ui/StandingsSponsorPreview';
 export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinnerOfTheNightBanner';
 export { default as TourStandingsSection } from './ui/TourStandingsSection';
 export { resolveCurrentTour } from './model/resolveCurrentTour';

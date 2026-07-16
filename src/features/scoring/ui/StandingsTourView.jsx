@@ -2,13 +2,14 @@ import React from 'react';
 
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
-import TourPicker from './TourPicker';
 import TourStandingsSection from './TourStandingsSection';
 
 /**
  * Standings tour-view composition. Renders either an empty state (no tours
- * with graded data yet) or the tour-standings section, optionally preceded by
- * the "Past tours" picker when multiple tours are selectable (#295).
+ * with graded data yet) or the tour-standings section.
+ *
+ * Tour selection lives in the dashboard chrome (Tour Date slot) via
+ * {@link StandingsTourScopeSelect} (#609), not inline here.
  *
  * Pure presentational — all state comes from `useStandingsScreen`.
  */
@@ -18,9 +19,6 @@ export default function StandingsTourView({
   loading,
   error,
   hasCurrentTour,
-  selectableTours,
-  selectedTourKey,
-  onSelectTour,
 }) {
   if (!hasCurrentTour) {
     return (
@@ -36,18 +34,11 @@ export default function StandingsTourView({
     );
   }
   return (
-    <>
-      <TourPicker
-        tours={selectableTours ?? []}
-        selectedTourKey={selectedTourKey}
-        onSelect={onSelectTour}
-      />
-      <TourStandingsSection
-        tourName={tourName}
-        leaders={leaders}
-        loading={loading}
-        error={error}
-      />
-    </>
+    <TourStandingsSection
+      tourName={tourName}
+      leaders={leaders}
+      loading={loading}
+      error={error}
+    />
   );
 }
