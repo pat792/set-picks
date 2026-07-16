@@ -11,6 +11,7 @@ const {
   buildProductionBrandedEmailShell,
   stripRedundantCtaLine,
   escapeHtml,
+  stripEmojiFromSubject,
 } = require("./commsEmailWorker");
 
 function fakeResend(captured) {
@@ -323,6 +324,18 @@ test("production branded shell never uses data: or cid: URIs", () => {
   assert.ok(!html.includes("data:image"), "production HTML must not embed data: URIs");
   assert.ok(!html.includes("cid:"), "production HTML must not use CID attachments");
   assert.match(html, /\/branding\/email-gradient-wordmark\.png/);
+});
+
+test("stripEmojiFromSubject keeps plain subjects and strips pictographs", () => {
+  assert.equal(
+    stripEmojiFromSubject("Your Chicago, IL recap + tour update"),
+    "Your Chicago, IL recap + tour update",
+  );
+  assert.equal(
+    stripEmojiFromSubject("📈 Your Chicago, IL recap + tour update"),
+    "Your Chicago, IL recap + tour update",
+  );
+  assert.equal(stripEmojiFromSubject("Tour standings ✨"), "Tour standings");
 });
 
 test("buildBrandedEmailHtml renders in-app style header when provided", () => {

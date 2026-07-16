@@ -51,8 +51,8 @@ export function CommsEmailHeader({
     <>
       {eye ? (
         <Text style={eyebrowStyle(accentColor)}>
-          {icon ? <span style={{ marginRight: 6 }}>{icon}</span> : null}
           {eye}
+          {icon ? <span style={{ marginLeft: 6 }}>{icon}</span> : null}
         </Text>
       ) : null}
       {head ? <Text style={titleStyle}>{head}</Text> : null}

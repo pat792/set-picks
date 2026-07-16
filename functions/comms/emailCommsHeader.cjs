@@ -117,9 +117,9 @@ function buildCommsEmailHeaderHtml(header) {
   const icon = typeof header.icon === 'string' ? header.icon.trim() : '';
   const accent = escapeHtml(header.accentColor || ACCENT_TEAL);
   const eyebrowHtml = eyebrow
-    ? `<p style="margin:0 0 8px 0;font-size:11px;line-height:1.4;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:${accent};">${
-        icon ? `<span style="margin-right:6px;" aria-hidden="true">${escapeHtml(icon)}</span>` : ''
-      }${escapeHtml(eyebrow)}</p>`
+    ? `<p style="margin:0 0 8px 0;font-size:11px;line-height:1.4;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:${accent};">${escapeHtml(eyebrow)}${
+        icon ? `<span style="margin-left:6px;" aria-hidden="true">${escapeHtml(icon)}</span>` : ''
+      }</p>`
     : '';
   const titleHtml = title
     ? `<h1 style="margin:0 0 20px 0;padding:0 0 16px 0;border-bottom:1px solid #e2e8f0;font-size:22px;line-height:1.25;font-weight:800;letter-spacing:-0.02em;text-transform:uppercase;color:#0f172a;">${escapeHtml(title)}</h1>`

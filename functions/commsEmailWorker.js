@@ -55,6 +55,22 @@ const EMAIL_SHELL_WORDMARK_HEIGHT_PX = 132;
 const EMAIL_SHELL_ACCENT_BORDER_PX = 2;
 
 /**
+ * Inbox subjects stay plain text — emoji belongs in the HTML body header only.
+ * (Gmail also promotes leading body emoji into the subject row; body header
+ * places emoji after the eyebrow label for that reason.)
+ *
+ * @param {string} subject
+ * @returns {string}
+ */
+function stripEmojiFromSubject(subject) {
+  return String(subject || "")
+    .replace(/\p{Extended_Pictographic}/gu, "")
+    .replace(/\uFE0F/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/**
  * Lazily construct a Resend client from an API key. Returns `null` when no key is
  * configured (the worker then skips with `no_email_provider` rather than throwing),
  * so a missing secret degrades gracefully instead of breaking other channels.
@@ -467,7 +483,7 @@ function createCommsEmailWorker({
         {
           from,
           to: [to],
-          subject: rendered.email.subject,
+          subject: stripEmojiFromSubject(rendered.email.subject),
           text: plainText,
           html,
           headers,
@@ -507,5 +523,6 @@ module.exports = {
   resolveTrackedEmailCtaUrl,
   rewritePlainTextCtaUrl,
   escapeHtml,
+  stripEmojiFromSubject,
   DEFAULT_FROM,
 };
