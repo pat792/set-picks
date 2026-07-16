@@ -14,9 +14,8 @@ import {
 } from '../../../shared/utils/showOptionLabel.js';
 
 /**
- * Global Tour Date scope control (#609) — centered select with prev/next
- * arrows for seamless night-to-night stepping. Used in the mobile context
- * bar and the desktop sticky chrome row.
+ * Global Tour Date scope control (#609) — single-row select with prev/next
+ * arrows. Keeps the prior chrome row height (label inline, not stacked).
  *
  * @param {{
  *   variant: 'mobile' | 'desktop',
@@ -72,50 +71,49 @@ export default function DashboardTourDateScope({
     </select>
   );
 
-  const stepper = (
+  if (variant === 'desktop') {
+    return (
+      <div className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-border-muted/70 bg-surface-panel-strong p-3 shadow-inset-glass ring-1 ring-border-glass/45 backdrop-blur-md">
+        <span
+          className={`shrink-0 px-2 text-xs font-black uppercase tracking-widest ${dashboardTourDateLabelGradientClasses}`}
+        >
+          Tour Date:
+        </span>
+        <ChromeScopeStepper
+          size="md"
+          canPrev={Boolean(prevKey)}
+          canNext={Boolean(nextKey)}
+          prevLabel="Previous show date"
+          nextLabel="Next show date"
+          onPrev={() => prevKey && onSelectedDateChange(prevKey)}
+          onNext={() => nextKey && onSelectedDateChange(nextKey)}
+          className="min-w-0 shrink"
+        >
+          <div className={`${dashboardTourDateSelectChromeDesktopWrap} w-64 max-w-full`}>
+            {select}
+          </div>
+        </ChromeScopeStepper>
+      </div>
+    );
+  }
+
+  // Mobile: compact single row — no stacked label (aria-label on select).
+  return (
     <ChromeScopeStepper
-      size={variant === 'mobile' ? 'sm' : 'md'}
+      size="sm"
       canPrev={Boolean(prevKey)}
       canNext={Boolean(nextKey)}
       prevLabel="Previous show date"
       nextLabel="Next show date"
       onPrev={() => prevKey && onSelectedDateChange(prevKey)}
       onNext={() => nextKey && onSelectedDateChange(nextKey)}
-      className={variant === 'desktop' ? 'w-full max-w-md' : 'min-w-0'}
+      className="min-w-0 shrink-0"
     >
       <div
-        className={
-          variant === 'desktop'
-            ? dashboardTourDateSelectChromeDesktopWrap
-            : `${dashboardTourDateSelectChromeMobileWrap} min-w-0 max-w-[11.5rem] sm:max-w-[14rem]`
-        }
+        className={`${dashboardTourDateSelectChromeMobileWrap} min-w-0 w-[9.75rem] max-w-[9.75rem] sm:w-[11rem] sm:max-w-[11rem]`}
       >
         {select}
       </div>
     </ChromeScopeStepper>
-  );
-
-  if (variant === 'desktop') {
-    return (
-      <div className="flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-border-muted/70 bg-surface-panel-strong p-3 shadow-inset-glass ring-1 ring-border-glass/45 backdrop-blur-md">
-        <span
-          className={`text-xs font-black uppercase tracking-widest ${dashboardTourDateLabelGradientClasses}`}
-        >
-          Tour Date
-        </span>
-        {stepper}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-w-0 flex-col items-center gap-0.5">
-      <span
-        className={`font-display text-[10px] font-semibold uppercase tracking-wide leading-none ${dashboardTourDateLabelGradientClasses}`}
-      >
-        Tour Date
-      </span>
-      {stepper}
-    </div>
   );
 }

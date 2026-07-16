@@ -2,10 +2,11 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const btnClass =
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border-venue/70 bg-surface-panel text-slate-300 transition-colors hover:border-border-venue-strong hover:bg-surface-panel-strong hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg disabled:pointer-events-none disabled:opacity-35';
+  'flex shrink-0 items-center justify-center rounded-full border border-border-venue/70 bg-surface-panel text-slate-300 transition-colors hover:border-border-venue-strong hover:bg-surface-panel-strong hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg disabled:pointer-events-none disabled:opacity-35';
 
 /**
- * Prev / next chrome around a centered scope control (Tour Date, etc.).
+ * Prev / next chrome around a scope control (Tour Date, etc.).
+ * Single-row — does not add labels or vertical stack.
  *
  * @param {{
  *   onPrev: () => void,
@@ -31,11 +32,12 @@ export default function ChromeScopeStepper({
   size = 'md',
 }) {
   const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-  const buttonClass = size === 'sm' ? `${btnClass} h-8 w-8` : btnClass;
+  const buttonClass =
+    size === 'sm' ? `${btnClass} h-7 w-7` : `${btnClass} h-9 w-9`;
 
   return (
     <div
-      className={['flex min-w-0 items-center justify-center gap-2', className]
+      className={['flex min-w-0 items-center gap-1.5', className]
         .filter(Boolean)
         .join(' ')}
     >
@@ -48,7 +50,7 @@ export default function ChromeScopeStepper({
       >
         <ChevronLeft className={iconClass} aria-hidden />
       </button>
-      <div className="min-w-0 flex-1 sm:flex-none">{children}</div>
+      <div className="min-w-0 shrink">{children}</div>
       <button
         type="button"
         onClick={onNext}
