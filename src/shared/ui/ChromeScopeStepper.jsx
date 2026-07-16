@@ -1,12 +1,12 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 const btnClass =
-  'flex shrink-0 items-center justify-center rounded-full border border-border-venue/70 bg-surface-panel text-slate-300 transition-colors hover:border-border-venue-strong hover:bg-surface-panel-strong hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg disabled:pointer-events-none disabled:opacity-35';
+  'flex shrink-0 items-center justify-center rounded-md border border-border-venue/70 bg-surface-panel text-slate-300 transition-colors hover:border-border-venue-strong hover:bg-surface-panel-strong hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg disabled:pointer-events-none disabled:opacity-35';
 
 /**
  * Prev / next chrome around a scope control (Tour Date, etc.).
- * Single-row — does not add labels or vertical stack.
+ * Double-chevron icons in a rounded-square hit target (not circular).
  *
  * @param {{
  *   onPrev: () => void,
@@ -37,7 +37,7 @@ export default function ChromeScopeStepper({
 
   return (
     <div
-      className={['flex min-w-0 items-center gap-1.5', className]
+      className={['flex min-w-0 items-center gap-1', className]
         .filter(Boolean)
         .join(' ')}
     >
@@ -48,7 +48,7 @@ export default function ChromeScopeStepper({
         aria-label={prevLabel}
         className={buttonClass}
       >
-        <ChevronLeft className={iconClass} aria-hidden />
+        <ChevronsLeft className={iconClass} aria-hidden />
       </button>
       <div className="min-w-0 shrink">{children}</div>
       <button
@@ -58,7 +58,7 @@ export default function ChromeScopeStepper({
         aria-label={nextLabel}
         className={buttonClass}
       >
-        <ChevronRight className={iconClass} aria-hidden />
+        <ChevronsRight className={iconClass} aria-hidden />
       </button>
     </div>
   );

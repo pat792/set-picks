@@ -110,7 +110,7 @@ export default function DashboardTourDateScope({
       className="min-w-0 shrink-0"
     >
       <div
-        className={`${dashboardTourDateSelectChromeMobileWrap} min-w-0 w-[9.75rem] max-w-[9.75rem] sm:w-[11rem] sm:max-w-[11rem]`}
+        className={`${dashboardTourDateSelectChromeMobileWrap} min-w-0 w-[11rem] max-w-[11rem] sm:w-[12rem] sm:max-w-[12rem]`}
       >
         {select}
       </div>

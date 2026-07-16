@@ -65,10 +65,10 @@ export default function StandingsTourScopeSelect({
     );
   }
 
-  // Mobile: select only (aria-label); leave room for the context title.
+  // Mobile: same fixed width as Tour Date select so Show ↔ Tour doesn’t jump.
   return multiple ? (
     <div
-      className={`${dashboardTourDateSelectChromeMobileWrap} min-w-0 w-[9.75rem] max-w-[9.75rem] shrink-0 sm:w-[11rem] sm:max-w-[11rem]`}
+      className={`${dashboardTourDateSelectChromeMobileWrap} min-w-0 w-[11rem] max-w-[11rem] shrink-0 sm:w-[12rem] sm:max-w-[12rem]`}
     >
       <select
         value={activeKey}
@@ -84,7 +84,7 @@ export default function StandingsTourScopeSelect({
       </select>
     </div>
   ) : (
-    <span className="max-w-[9.75rem] shrink-0 truncate text-xs font-bold text-white sm:max-w-[11rem]">
+    <span className="w-[11rem] max-w-[11rem] shrink-0 truncate text-center text-xs font-bold text-white sm:w-[12rem] sm:max-w-[12rem]">
       {activeKey}
     </span>
   );
