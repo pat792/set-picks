@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, Outlet } from 'react-router-dom';
 
 import {
@@ -7,6 +8,8 @@ import {
   NAV_LABEL_PROFILE,
 } from '../../../shared/config/dashboardVocabulary';
 import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
+import { useDashboardMobileChromePortal } from '../../../shared/hooks/useDashboardMobileChromePortal';
+import ProfileMobileFixedChrome from './ProfileMobileFixedChrome';
 
 const SUB_NAV = [
   { to: PROFILE_CLUSTER_PATHS.profile, label: NAV_LABEL_PROFILE, end: true },
@@ -17,14 +20,21 @@ const SUB_NAV = [
 /**
  * Persistent Profile-cluster sub-navigation (identity / messages / account).
  * Nested routes render via {@link Outlet}; `user` is passed through outlet context.
+ * Mobile: sub-nav is fixed under the context bar (Standings chrome pattern).
  *
  * @param {{ user: import('firebase/auth').User | null | undefined }} props
  */
 export default function ProfileClusterLayout({ user }) {
+  const mobileChromeRoot = useDashboardMobileChromePortal();
+
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
+      {mobileChromeRoot
+        ? createPortal(<ProfileMobileFixedChrome />, mobileChromeRoot)
+        : null}
+
       <nav
-        className="mb-6 flex gap-1 rounded-2xl border border-border-subtle/60 bg-surface-panel-strong p-1 shadow-inset-glass"
+        className="mb-6 hidden gap-1 rounded-2xl border border-border-subtle/60 bg-surface-panel-strong p-1 shadow-inset-glass md:flex"
         aria-label="Profile sections"
       >
         {SUB_NAV.map(({ to, label, end }) => (

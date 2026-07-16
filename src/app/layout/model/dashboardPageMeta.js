@@ -101,6 +101,7 @@ export function getDashboardPageMeta(pathname, search) {
   return {
     contextTitle,
     showDatePicker,
+    isStandingsTourView,
     layoutDesktopHeading,
     layoutDetailEyebrow,
     desktopHeadingTone: isAdmin ? 'warRoom' : 'default',

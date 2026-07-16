@@ -33,4 +33,5 @@ export { default as PoolHubStandingsSection } from './ui/PoolHubStandingsSection
 export { default as PoolHubShowArchive } from './ui/PoolHubShowArchive';
 export { default as PoolJoinCreateCard } from './ui/PoolJoinCreateCard';
 export { default as PoolsHowItWorksMenu } from './ui/PoolsHowItWorksMenu';
+export { default as PoolsMobileFixedChrome } from './ui/PoolsMobileFixedChrome';
 export { default as UserPoolsSection } from './ui/UserPoolsSection';

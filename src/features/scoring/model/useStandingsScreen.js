@@ -7,6 +7,7 @@ import { userHasSubmittedPickEntry } from '../../picks';
 import { useUserPools } from '../../pools';
 import { useShowCalendar } from '../../show-calendar';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+import { ga4Event } from '../../../shared/lib/ga4';
 import { todayYmd } from '../../../shared/utils/dateUtils';
 import {
   getShowBeforeDate,
@@ -81,7 +82,13 @@ export function useStandingsScreen(selectedDate, options = {}) {
     actualSetlist,
     showStatus,
   );
-  const { openScoringRules } = useScoringRulesModal();
+  const { openScoringRules: openScoringRulesModal } = useScoringRulesModal();
+  // Scoring rules had zero telemetry before #609; measure so its placement
+  // (inline desktop vs mobile overflow menu) can be judged on data.
+  const openScoringRules = useCallback(() => {
+    ga4Event('scoring_rules_opened', { surface: 'standings' });
+    openScoringRulesModal();
+  }, [openScoringRulesModal]);
 
   const isNextShowView = view === 'show' && showStatus === 'NEXT';
   // Reuse standings picks already loaded for this date — avoids a redundant

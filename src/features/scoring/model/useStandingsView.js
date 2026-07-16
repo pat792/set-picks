@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { ga4Event } from '../../../shared/lib/ga4';
+
 /**
  * Canonical standings view ids (#255). Keep aligned with
  * `dashboardPageMeta.js` (which hides the date picker when `view=tour`)
@@ -232,6 +234,11 @@ export function useStandingsView({ userPools, navTargetPoolId } = {}) {
   const setView = useCallback(
     (nextView) => {
       const normalized = normalizeView(nextView);
+      // `?view=` collapses in GA4 page reports, so switches were invisible
+      // before this event (#609) — keep it or standings iteration goes blind.
+      if (normalized !== view) {
+        ga4Event('standings_view_change', { from: view, to: normalized });
+      }
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
@@ -249,7 +256,7 @@ export function useStandingsView({ userPools, navTargetPoolId } = {}) {
         { replace: true },
       );
     },
-    [setSearchParams],
+    [setSearchParams, view],
   );
 
   const setPoolId = useCallback(
