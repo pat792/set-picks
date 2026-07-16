@@ -226,7 +226,7 @@ export default function DashboardLayout() {
           
           {/* DESKTOP Global Date Picker */}
           {meta.showDatePicker && (
-            <div className="hidden md:flex mb-6 bg-surface-panel-strong backdrop-blur-md p-3 rounded-2xl border border-border-muted/70 items-center justify-between gap-4 min-w-0 shadow-inset-glass ring-1 ring-border-glass/45">
+            <div className="mb-6 hidden min-w-0 items-center justify-between gap-4 rounded-2xl border border-border-muted/70 bg-surface-panel-strong p-3 shadow-inset-glass ring-1 ring-border-glass/45 backdrop-blur-md md:flex">
               <span
                 className={`shrink-0 px-2 text-xs font-black uppercase tracking-widest ${dashboardTourDateLabelGradientClasses}`}
               >
@@ -237,21 +237,25 @@ export default function DashboardLayout() {
                   <select
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="show-date-select w-full min-w-0 max-w-full appearance-none rounded-[11px] border-0 bg-surface-field py-2.5 px-3 text-base font-bold text-white outline-none ring-0 transition-colors cursor-pointer focus:border-transparent focus:ring-0"
+                    className="show-date-select w-full min-w-0 max-w-full cursor-pointer appearance-none rounded-[11px] border-0 bg-surface-field px-3 py-2.5 text-base font-bold text-white outline-none ring-0 transition-colors focus:border-transparent focus:ring-0"
                   >
-                  {showDatesByTour.map(({ tour, shows }, idx) => (
-                    <optgroup
-                      key={`${tour}-${shows[0]?.date ?? idx}`}
-                      label={tour}
-                      className="tour-optgroup"
-                    >
-                      {shows.map((show) => (
-                        <option key={show.date} value={show.date} title={showOptionTitle(show)}>
-                          {showOptionLabelDesktop(show)}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
+                    {showDatesByTour.map(({ tour, shows }, idx) => (
+                      <optgroup
+                        key={`${tour}-${shows[0]?.date ?? idx}`}
+                        label={tour}
+                        className="tour-optgroup"
+                      >
+                        {shows.map((show) => (
+                          <option
+                            key={show.date}
+                            value={show.date}
+                            title={showOptionTitle(show)}
+                          >
+                            {showOptionLabelDesktop(show)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
               </div>

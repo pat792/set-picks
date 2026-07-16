@@ -81,6 +81,11 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | `{{next_show_date}}` | Next scheduled show | — |
 | `{{next_show_venue}}` | Next show venue | — |
 | `{{pool_tour_rank}}` | Pool-specific tour rank | — |
+| `{{invite_kind}}` | `site` or `pool` — which VIP landing the invite URL targets | `site` |
+| `{{invite_url}}` | Tracked invite link (`/invite/{handle}` or `/join/{code}?from={handle}` + UTMs) | — |
+| `{{invite_headline}}` | Personalized invite line (mirrors invite kit copy) | — |
+| `{{inviter_handle}}` | Handle embedded in invite URL / headline | `{{handle}}` |
+| `{{invite_code}}` | Pool invite code when `invite_kind=pool` | — |
 
 ---
 
@@ -328,11 +333,11 @@ Scores update live during the show. Check back tonight.
 | **Prefs key** | `results` |
 | **Dedup** | `show_recap:{uid}:{showDate}` in `commsInbox` + `fcm_notification_log` |
 | **Implementation** | Batch fan-out triggered after `rollupScoresForShow` completes |
-| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. |
+| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. Narrative vars from `comms_show_context` (#572). |
 
 #### Variables used
 
-`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{pool_name}}`, `{{pool_rank}}`, `{{pool_total_pickers}}`, `{{correct_picks_count}}`, `{{total_picks_count}}`, `{{opener_result}}`, `{{closer_result}}`, `{{encore_result}}`, `{{wildcard_result}}`, `{{bustout_bonus}}`, `{{setlist_highlight}}`, `{{top_scorer_handle}}`, `{{top_score}}`
+`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{pool_name}}`, `{{pool_rank}}`, `{{pool_total_pickers}}`, `{{correct_picks_count}}`, `{{total_picks_count}}`, `{{opener_result}}`, `{{closer_result}}`, `{{encore_result}}`, `{{wildcard_result}}`, `{{bustout_bonus}}`, `{{setlist_highlight}}`, `{{set_flow_summary}}`, `{{bustout_titles}}`, `{{tour_debut_titles}}`, `{{opener_title}}`, `{{encore_title}}`, `{{show_moment_tags}}`, `{{user_hit_bustout}}`, `{{narrative_branch}}`, `{{narrative_line}}`, `{{top_scorer_handle}}`, `{{top_score}}`
 
 #### Template — Push
 
@@ -411,7 +416,8 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 4. **Your tour position** — rank, points, shows played, rank change vs yesterday.
 5. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
 6. **Next show** — {{next_show_venue}}, {{next_show_date}}. Picks are open.
-7. **CTA:** `Make picks for next show`
+7. **Invite friends** — personalized invite headline + link (`{{invite_headline}}`, `{{invite_url}}`; pool variant when user has a pool).
+8. **CTA:** `Make picks for next show`
 
 ---
 

@@ -1,5 +1,7 @@
 import { Link, Text } from "@react-email/components";
+import { CommsEmailHeader } from "../components/CommsEmailHeader.jsx";
 import { FeatureBlock } from "../components/FeatureBlock.jsx";
+import { InviteShareBlock } from "../components/InviteShareBlock.jsx";
 import { MarketingLayout } from "../components/MarketingLayout.jsx";
 
 const greetingStyle = {
@@ -30,19 +32,6 @@ const signoffStyle = {
   color: "#1a1a2e",
 };
 
-const ctaButtonStyle = {
-  display: "inline-block",
-  marginTop: "8px",
-  marginBottom: "8px",
-  padding: "12px 24px",
-  backgroundColor: "#7c3aed",
-  color: "#ffffff",
-  textDecoration: "none",
-  borderRadius: "8px",
-  fontWeight: 700,
-  fontSize: "14px",
-};
-
 const inlineLinkStyle = {
   display: "block",
   margin: "-8px 0 16px",
@@ -50,22 +39,6 @@ const inlineLinkStyle = {
   color: "#7c3aed",
   textDecoration: "underline",
 };
-
-const utmQuery =
-  "utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=share_friends";
-
-/**
- * Pool invite links use `/join/:code` so iMessage/Slack get pool-specific OG previews
- * (see `createPoolInviteLink` + `api/invite/[code].js`). Falls back to homepage OG.
- */
-function resolveShareUrl(base, shareUrl, inviteCode) {
-  if (shareUrl) return shareUrl;
-  const normalized = inviteCode?.trim().toUpperCase();
-  if (normalized) {
-    return `${base}/join/${encodeURIComponent(normalized)}?${utmQuery}`;
-  }
-  return `${base}/?${utmQuery}`;
-}
 
 /**
  * Marketing email #1 — Summer Tour 2026 pre-opener launch (#468).
@@ -76,8 +49,8 @@ function resolveShareUrl(base, shareUrl, inviteCode) {
  *   openerLabel?: string,
  *   siteUrl?: string,
  *   settingsUrl?: string,
- *   shareUrl?: string,
- *   inviteCode?: string,
+ *   tourLabel?: string,
+ *   headerTitle?: string,
  * }} props
  */
 export function SummerTour2026Launch({
@@ -86,11 +59,12 @@ export function SummerTour2026Launch({
   openerLabel = "Tuesday, July 7",
   siteUrl = "https://www.setlistpickem.com",
   settingsUrl,
-  shareUrl,
-  inviteCode,
+  /** Tour / run label for header eyebrow — e.g. Summer Tour 2026, Fall Tour, Dick's. */
+  tourLabel = "Summer Tour 2026",
+  /** Header title under eyebrow. */
+  headerTitle = "Bring your crew",
 }) {
   const base = siteUrl.replace(/\/+$/, "");
-  const inviteUrl = resolveShareUrl(base, shareUrl, inviteCode);
   const installHowToUrl = `${base}/dashboard/profile?utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=install_howto`;
 
   const introParagraphs =
@@ -110,6 +84,11 @@ export function SummerTour2026Launch({
       settingsUrl={settingsUrl}
       preheader={`Bring your crew → Summer Tour starts ${openerLabel}.`}
     >
+      <CommsEmailHeader
+        icon="🎸"
+        eyebrow={tourLabel}
+        title={headerTitle}
+      />
       <Text style={greetingStyle}>Hey {greetingName},</Text>
 
       {introParagraphs.map((para) => (
@@ -155,9 +134,10 @@ export function SummerTour2026Launch({
         — Pat
       </Text>
 
-      <Link href={inviteUrl} style={ctaButtonStyle}>
-        Share with your friends, {greetingName} →
-      </Link>
+      <InviteShareBlock
+        standingsUrl={`${(siteUrl || "https://www.setlistpickem.com").replace(/\/$/, "")}/dashboard/standings?utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=share_nudge`}
+        ctaLabel="Open Standings to share →"
+      />
     </MarketingLayout>
   );
 }

@@ -17,6 +17,7 @@ const PoolInviteMissingCodePage = lazy(() =>
   import('../pages/pool-invite/PoolInviteMissingCodePage')
 );
 const PoolInvitePage = lazy(() => import('../pages/pool-invite/PoolInvitePage'));
+const InviteLandingPage = lazy(() => import('../pages/invite/InviteLandingPage'));
 const HowItWorksPage = lazy(() => import('../pages/marketing/HowItWorksPage'));
 const HowScoringWorksPage = lazy(() => import('../pages/marketing/HowScoringWorksPage'));
 const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
@@ -50,8 +51,11 @@ function App() {
         {/* Pool invite: no code — drop stale breadcrumb */}
         <Route path="/join" element={<PoolInviteMissingCodePage />} />
         <Route path="/join/" element={<PoolInviteMissingCodePage />} />
-        {/* Deep link — saves valid code and sends user through auth funnel */}
+        {/* Deep link — saves valid code and shows VIP landing (#580) */}
         <Route path="/join/:code" element={<PoolInvitePage />} />
+
+        {/* Site VIP invite — no pool join side effects */}
+        <Route path="/invite/:handle" element={<InviteLandingPage />} />
 
         {/* Dev-only: comms template preview gallery (no auth; prod redirects home) */}
         <Route path="/comms-preview" element={<CommsPreviewPage />} />

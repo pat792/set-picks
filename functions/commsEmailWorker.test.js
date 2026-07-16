@@ -11,6 +11,7 @@ const {
   buildProductionBrandedEmailShell,
   stripRedundantCtaLine,
   escapeHtml,
+  stripEmojiFromSubject,
 } = require("./commsEmailWorker");
 
 function fakeResend(captured) {
@@ -325,6 +326,38 @@ test("production branded shell never uses data: or cid: URIs", () => {
   assert.match(html, /\/branding\/email-gradient-wordmark\.png/);
 });
 
+test("stripEmojiFromSubject keeps plain subjects and strips pictographs", () => {
+  assert.equal(
+    stripEmojiFromSubject("Your Chicago, IL recap + tour update"),
+    "Your Chicago, IL recap + tour update",
+  );
+  assert.equal(
+    stripEmojiFromSubject("📈 Your Chicago, IL recap + tour update"),
+    "Your Chicago, IL recap + tour update",
+  );
+  assert.equal(stripEmojiFromSubject("Tour standings ✨"), "Tour standings");
+});
+
+test("buildBrandedEmailHtml renders in-app style header when provided", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "Body para.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    header: {
+      icon: "📈",
+      eyebrow: "Tour standings",
+      title: "Where you stand on tour",
+      accentColor: "#0d9488",
+    },
+  });
+  assert.match(html, /Tour standings/);
+  assert.match(html, /Where you stand on tour/);
+  assert.match(html, /📈/);
+  assert.match(html, /#0d9488/);
+  assert.match(html, /text-transform:uppercase/);
+});
+
 test("buildBrandedEmailHtml renders gradient wordmark, sign-off, teal CTA, and top accent", () => {
   const html = buildBrandedEmailHtml({
     siteUrl: "https://www.setlistpickem.com",
@@ -350,18 +383,38 @@ test("buildBrandedEmailHtml renders gradient wordmark, sign-off, teal CTA, and t
   assert.match(html, /font-size:13px;line-height:1\.5;color:#888888/);
 });
 
-test("buildBrandedEmailHtml joins multi-line bodies into a single <p> with <br> breaks", () => {
-  // Gmail's content-folding heuristic collapses stacked short <p> blocks
-  // behind a clickable "..." pill; a single <p> with <br> line breaks avoids it.
+test("buildBrandedEmailHtml uses blank-line paragraphs (joined prose, not a br-per-line list)", () => {
+  // Blank line → separate <p>. Within a block, newlines collapse to spaces so
+  // scorecard lines read as prose instead of a tall bullet-like stack.
   const html = buildBrandedEmailHtml({
     siteUrl: "https://www.setlistpickem.com",
-    bodyText: "Line one.\nLine two.\nLine three.",
+    bodyText: "Night para one.\nStill night.\n\nTour para two.",
     ctaUrl: "https://www.setlistpickem.com/dashboard",
     settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
   });
   const bodyParagraphCount = (html.match(/<p style="margin:0 0 20px 0/g) || []).length;
-  assert.equal(bodyParagraphCount, 1, "body text should render as a single <p> block");
-  assert.match(html, /Line one\.<br \/>Line two\.<br \/>Line three\./);
+  assert.equal(bodyParagraphCount, 2, "blank line should split into two body <p> blocks");
+  assert.match(html, /Night para one\. Still night\./);
+  assert.match(html, /Tour para two\./);
+  assert.doesNotMatch(html, /<br \/>/);
+});
+
+test("buildBrandedEmailHtml strips invite appendix lines from HTML body", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText:
+      "Recap paragraph.\n\nOpen the app: https://www.setlistpickem.com/dashboard/picks\n\nSee you on tour!\n\nWant to share with friends? Log in and tap Share on Standings — your invite link is ready there.\nOr forward this email to a friend.\n\nOpen Standings: https://www.setlistpickem.com/dashboard/standings?utm_source=email",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    signOff: "See you on tour!",
+    inviteBlockHtml: "<div>invite card</div>",
+  });
+  assert.match(html, /Recap paragraph\./);
+  assert.doesNotMatch(html, /Want to share with friends/);
+  assert.doesNotMatch(html, /forward this email/);
+  assert.doesNotMatch(html, /Open Standings:/);
+  assert.doesNotMatch(html, /utm_source=email/);
+  assert.match(html, /invite card/);
 });
 
 test("buildBrandedEmailHtml escapes body text to avoid HTML injection", () => {

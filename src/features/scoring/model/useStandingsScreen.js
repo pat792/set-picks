@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth';
+import { useInviteChooser } from '../../invite';
 import { userHasSubmittedPickEntry } from '../../picks';
 import { useUserPools } from '../../pools';
 import { useShowCalendar } from '../../show-calendar';
@@ -59,6 +60,7 @@ export function useStandingsScreen(selectedDate, options = {}) {
   const { user } = useAuth();
   const { showDates, showDatesByTour } = useShowCalendar();
   const { pools: userPools } = useUserPools(user?.uid);
+  const inviteChooser = useInviteChooser({ pools: userPools });
 
   const { view, poolId, setView, setPoolId } = useStandingsView({
     userPools,
@@ -260,5 +262,7 @@ export function useStandingsScreen(selectedDate, options = {}) {
     onSelectShowDate: onSelectShowDate ?? null,
 
     redactOpponentPicksPreLock,
+
+    inviteChooser,
   };
 }

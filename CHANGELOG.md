@@ -12,10 +12,61 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.20.26] — 2026-07-15
+## [1.22.1] — 2026-07-16
 
 ### Changed
-- **Picks lock time (temp hotfix)** — venue-local wall clock **7:30 PM → 7:55 PM** (app + Cloud Functions mirrors + reminder copy) until first-song / admin-configurable lock ships. Reminder window **T-3h through lock** (16:55–19:54 local).
+- **Show recap email copy (#572 follow-up)** — scorecard prose; tour lines use `ranked` / `points` / `spots`; soft invite nudge; in-app style headers (eyebrow + emoji + title) on email-channel templates.
+- **Main promote** — Sprint 8 invite kit + VIP/OG/Standings Invite + email invite block + show recap narrative. Standings sticky chrome (#589/#590) excluded from this release (remains on staging for Sprint 9).
+- **Standings Invite chrome** — utility row above Show/Tour/Pools: gradient-outline Invite friends + Picks-matching Scoring rules GhostPill; empty Show/Pools boards keep stronger Invite CTAs. Solid teal reserved for view pills.
+
+---
+
+## [1.22.0] — 2026-07-16
+
+### Added
+- **Show recap narrative (#572)** — night-of deterministic narrative for `show_recap` + morning `tour_rankings_daily` “Tonight” block. New server-written `comms_show_context/{showDate}` artifact (setlist flow, bustouts, tour debuts, `setlist_highlight`); adapters enrich scorecard fields (`correct_picks_count`, slot marks, `bustout_bonus`, `narrative_branch`). Soft-fails to prior scorecard-only copy when context is missing.
+
+---
+
+## [1.21.4] — 2026-07-15
+
+### Changed
+- **Picks lock time (temp)** — venue-local wall clock moves **7:30 PM → 7:55 PM** (app + Cloud Functions mirrors + reminder copy). Temporary until first-song / admin-configurable lock ships; reminder window is **T-3h through lock** (16:55–19:54 local).
+
+---
+
+## [1.21.3] — 2026-07-15
+
+### Added
+- **Email invite share block (#583)** — Reusable site + pool invite block in React Email (`InviteShareBlock`) and service comms HTML shell; personalized headline + tracked VIP URLs (`/invite/{handle}`, `/join/{code}?from={handle}`) with `utm_source=email`, `utm_campaign`, `utm_content`. Wired into `tour_rankings_daily` lifecycle email and Summer Tour 2026 marketing template (aligned with invite kit copy).
+
+---
+
+## [1.21.2] — 2026-07-15
+
+### Added
+- **Standings invite chooser (#581)** — primary **Invite** CTA on dashboard Standings opens a sheet to share a site invite (`/invite/{handle}`) or pick a pool and share `/join/{code}?from={handle}`; empty-state copy wires to the same chooser.
+
+---
+
+## [1.21.1] — 2026-07-15
+
+### Added
+- **Invite OG handlers (#582)** — `api/invite.js` serves personalized Open Graph tags for `/invite/:handle` (site VIP) and `/join/:code?from=` (pool inviter); crawlers resolve handle/pool via Firebase Admin; browsers get SPA shell with static OG injection (no Firestore). Rewrites in `vercel.json`.
+
+---
+
+## [1.21.0] — 2026-07-15
+
+### Added
+- **VIP invite landings (#580)** — `/invite/:handle` site VIP landing and `/join/:code?from=` pool landing with personalized copy when the inviter handle resolves; full-page auth CTAs (Create account primary, Sign in secondary). Site invites never write pool join storage; pool invites still store `phish_pool_pending_invite` and join after auth via `usePendingPoolJoin`.
+
+---
+
+## [1.20.26] — 2026-07-15
+
+### Added
+- **Invite kit (#579)** — `features/invite` public API: site/pool URL + personalized copy builders, `shareInvite` + `invite_share` telemetry; pool share hook consumes the kit (`?from=` when handle provided).
 
 ---
 
@@ -24,12 +75,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ### Changed
 - **Official pick slots** — sixth cell is **Encore 2** (from `encoreSongs[1]`) instead of blank Wildcard; song titles wrap so long names fit.
 
+## [1.20.24] — 2026-07-15
+
+### Fixed
+- **Standings mobile sticky nest** — Show/Tour/Pools stick flush under the Standings · Tour Date context bar (tighter top offset; Scoring rules overlays the pill row so it no longer adds a second tier).
+
 ---
 
 ## [1.20.23] — 2026-07-15
 
 ### Added
-- **Standings setlist Phish.net credit** — in-card attribution + “see more show details” link to that show’s Phish.net setlist (API ToS attribution).
+- **Standings setlist Phish.net credit** — in-card attribution + “see more show details” link to that show’s Phish.net setlist (API ToS attribution; local storage already allowed with refresh).
+- **Standings sticky chrome** — desktop sticky stack: Tour Date (when Show/Pools) → Standings title + Show/Tour/Pools pills; content scrolls underneath. Mobile date stays in the fixed context bar.
 
 ---
 

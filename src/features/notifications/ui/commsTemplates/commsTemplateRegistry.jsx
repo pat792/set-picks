@@ -357,35 +357,46 @@ export const COMMS_TEMPLATE_REGISTRY = {
   'show-recap': {
     triggerId: 'show_recap',
     displayName: 'Show recap',
-    build: (p) => ({
-      icon: BarChart3,
-      accentClassName: 'text-teal-400',
-      eyebrow: 'Show recap',
-      title: p.venue_name ? `Recap: ${p.venue_name}` : 'Your show recap',
-      paragraphs: [
-        `${handleOf(p)}, here's how your picks for ${venueLine(p) || 'the show'} graded out.`,
-        p.correct_picks_count != null && p.total_picks_count != null
-          ? `You nailed ${p.correct_picks_count} of ${p.total_picks_count} picks.`
-          : 'Tap through for the full breakdown.',
-      ],
-      stats: [
-        p.show_score != null ? { label: 'Show score', value: p.show_score } : null,
-        p.global_rank != null
-          ? {
-              label: 'Global rank',
-              value: p.global_total_pickers != null ? `#${p.global_rank}/${p.global_total_pickers}` : `#${p.global_rank}`,
-            }
-          : null,
-        p.pool_rank != null && p.pool_name
-          ? { label: p.pool_name, value: `#${p.pool_rank}` }
-          : null,
-      ].filter(Boolean),
-      // Inbox card is the tease; graded self-recap lives on Standings (#551).
-      cta: { label: 'See standings', href: '/dashboard/standings#self-recap' },
-    }),
+    build: (p) => {
+      const narrative =
+        (typeof p.narrative_line === 'string' && p.narrative_line.trim()) ||
+        (typeof p.setlist_highlight === 'string' && p.setlist_highlight.trim()) ||
+        '';
+      return {
+        icon: BarChart3,
+        accentClassName: 'text-teal-400',
+        eyebrow: 'Show recap',
+        title: p.venue_name ? `Recap: ${p.venue_name}` : 'Your show recap',
+        paragraphs: [
+          `${handleOf(p)}, here's how your picks for ${venueLine(p) || 'the show'} graded out.`,
+          narrative ||
+            (p.correct_picks_count != null && p.total_picks_count != null
+              ? `You nailed ${p.correct_picks_count} of ${p.total_picks_count} picks.`
+              : 'Tap through for the full breakdown.'),
+          p.bustout_bonus ? `Bustout bonus: +${p.bustout_bonus}.` : null,
+        ].filter(Boolean),
+        stats: [
+          p.show_score != null ? { label: 'Show score', value: p.show_score } : null,
+          p.global_rank != null
+            ? {
+                label: 'Global rank',
+                value:
+                  p.global_total_pickers != null
+                    ? `#${p.global_rank}/${p.global_total_pickers}`
+                    : `#${p.global_rank}`,
+              }
+            : null,
+          p.pool_rank != null && p.pool_name
+            ? { label: p.pool_name, value: `#${p.pool_rank}` }
+            : null,
+        ].filter(Boolean),
+        // Inbox card is the tease; graded self-recap lives on Standings (#551).
+        cta: { label: 'See standings', href: '/dashboard/standings#self-recap' },
+      };
+    },
     samples: [
       {
-        name: 'Graded show',
+        name: 'Graded show + bustout highlight',
         payload: {
           handle: 'ArmenianMan',
           show_date: 'Jul 18',
@@ -398,6 +409,15 @@ export const COMMS_TEMPLATE_REGISTRY = {
           pool_rank: 1,
           correct_picks_count: 3,
           total_picks_count: 4,
+          setlist_highlight: "Wolfman's Brother - an 87 show gap",
+          narrative_line: "You caught a bustout — Wolfman's Brother - an 87 show gap.",
+          narrative_branch: 'bustout_hero',
+          bustout_bonus: 20,
+          user_bustout_hits: [{ title: "Wolfman's Brother", gap: 87 }],
+          correct_picks_count: 3,
+          total_picks_count: 6,
+          opener_title: 'YEM',
+          encore_title: 'Slave to the Traffic Light',
         },
       },
     ],

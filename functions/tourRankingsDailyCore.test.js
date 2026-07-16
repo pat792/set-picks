@@ -205,7 +205,7 @@ test("copy: slipped does not say held", () => {
     tour_points: 15,
     rank_change: "down 5",
   });
-  assert.match(paras[0], /slipped 5/);
+  assert.match(paras[0], /slipped 5 spots/);
   assert.doesNotMatch(paras.join(" "), /held your spot/);
 });
 
@@ -222,6 +222,7 @@ test("copy: debut leads with You're on the board", () => {
   });
   assert.equal(paras[0], "You're on the board!");
   assert.match(paras[1], /2026-07-07 — Kohl Center/);
+  assert.match(paras[1], /ranked #1 of 11 on tour with 10 points/);
   assert.match(paras.join(" "), /Night one sets the tour leaderboard/);
 });
 
@@ -236,6 +237,6 @@ test("copy: tied at display rank", () => {
     tour_rank_tied: true,
     tour_tier: "leader",
   });
-  assert.match(paras.join(" "), /tied at #1/);
-  assert.match(paras.join(" "), /leading the tour/);
+  assert.match(paras.join(" "), /tied for #1/);
+  assert.match(paras.join(" "), /leading the tour with 80 points/);
 });

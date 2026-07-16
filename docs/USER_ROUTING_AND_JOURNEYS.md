@@ -9,8 +9,9 @@ Defined in `src/app/App.jsx`.
 | Path | Access | Purpose |
 |------|--------|---------|
 | `/` | Public (splash); redirects if session exists | Marketing / SEO landing; auth modals |
+| `/invite/:handle` | Public | Site VIP invite landing; personalized when handle resolves; no pool storage |
 | `/join` | Public | Missing invite code → redirect home (`PoolInviteMissingCodePage`) |
-| `/join/:code` | Public | Stores invite code, redirects to `/`; auth funnel for join |
+| `/join/:code` | Public | Stores invite code; VIP landing with optional `?from=` personalization |
 | `/setup` | Signed-in only | Profile setup until Firestore user doc exists |
 | `/dashboard/*` | Signed-in + profile | App shell (`DashboardLayout`) |
 | `/user/:userId` | Public | Public player profile (no dashboard restore) |
@@ -40,6 +41,7 @@ Defined in `src/app/App.jsx`.
 Implemented in `src/shared/lib/dashboardLastPath.js` and used from:
 
 - `src/app/routes/HomeRoute.jsx` (signed-in visitor on `/`)
+- Invite landings via `useInviteLanding` (signed-in visitor on `/invite/:handle` or `/join/:code`)
 - `src/app/routes/SetupRoute.jsx` (profile already complete)
 - `src/features/auth/model/useProfileSetup.js` (after first profile save, full page load)
 
@@ -91,14 +93,20 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 5. After successful save → `window.location.href = getDashboardEntryHref(...)` → usually **`/dashboard`**.
 6. `DashboardLayout` → default nested route **`/`** → **Picks**.
 
-### B. First-time user with invite (`/join/:code`)
+### B. First-time user with pool invite (`/join/:code`)
 
-1. `usePoolInviteInterceptor` (`src/features/pool-invite/model/usePoolInviteInterceptor.js`): valid code → saved under pool-invite storage key → **`navigate('/', { replace: true })`**.
-2. `SplashPage`: if invite code present in storage → open **Create account** modal with a persistent join banner (`src/pages/landing/SplashPage.jsx`). Returning invitees can switch to **Sign in** via the modal footer link (same banner, sign-in copy). (`/?login=true` still opens **Sign in**, and takes priority if both are present.)
-3. After auth → `HomeRoute` → `getDashboardEntryHref` → usually **`/dashboard`** (new device/browser).
+1. `usePoolInviteCodeStorage` (`src/features/pool-invite/model/usePoolInviteCodeStorage.js`): valid code → saved under pool-invite storage key → **VIP landing stays on `/join/:code`** (`InviteVipLanding` via `PoolInvitePage`). Optional `?from=` resolves inviter handle for personalized H1.
+2. User taps **Create account** or **Sign in** → splash auth modals with pool join banner (`poolInvitePending`). Create account honors legal checkbox (#577).
+3. After auth → `useInviteLanding` redirect → `getDashboardEntryHref` → usually **`/dashboard`** (new device/browser).
 4. `DashboardRoute` → **`/setup`** if no profile; after setup → **`/dashboard`** (then step 5).
 5. `usePendingPoolJoin` (`src/features/pool-invite/model/usePendingPoolJoin.js`) inside `DashboardLayout`: consumes invite code, joins pool → on **`joined`** or **`already-member`** → **`navigate('/dashboard/pools', { replace: true })`**. This **overrides** the URL from step 3–4 for those outcomes.
 6. Invalid/expired code: no navigation to Pools; user stays on the URL from `getDashboardEntryHref` (often Picks).
+
+### B2. First-time user with site invite (`/invite/:handle`)
+
+1. `InviteLandingPage` → `useInviteLanding` with `inviteKind: 'site'`. Resolves handle via `resolveInviterProfile`; generic VIP copy if missing/renamed. **Does not** write `phish_pool_pending_invite`.
+2. User taps **Create account** or **Sign in** → splash auth modals (no pool join banner).
+3. After auth → `getDashboardEntryHref` → **`/dashboard`** (or remembered tab) → setup if needed → normal dashboard flow. **No** `usePendingPoolJoin` side effects.
 
 ### C. Existing user, no invite (organic return)
 
@@ -107,7 +115,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 
 ### D. Existing user with a new invite link
 
-1. Same as B.1–B.2 (code stored, splash prompts auth if needed).
+1. **Pool:** Same as B.1–B.2 (code stored on landing; signed-in visitors redirect immediately to dashboard with code already in storage).
 2. After sign-in, **`getDashboardEntryHref`** may briefly send the user to a **remembered** tab (e.g. Standings). Once `DashboardLayout` mounts, **`usePendingPoolJoin`** runs. On successful join / already-member → **`/dashboard/pools`** with **`replace: true`**.
 
 **Priority:** successful **invite join navigation** overrides the restored tab for those outcomes.
@@ -124,6 +132,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 |-----------|----------|
 | Visit `/setup` with profile already present | `SetupRoute` → `getDashboardEntryHref` |
 | Visit `/join` without `:code` | `PoolInviteMissingCodePage` → `/` |
+| Visit `/invite/:handle` while signed in | `useInviteLanding` → `getDashboardEntryHref` (no pool storage) |
 | Visit `/user/:userId` | Public profile only; no `getDashboardEntryHref` |
 | Password reset completion | `/password-reset-complete` (public); flow continues per Firebase / app handling |
 
@@ -132,15 +141,16 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 ```mermaid
 flowchart TD
   entry[Entry_URL]
-  splashOrDirect[Splash_or_direct_dashboard_URL]
+  inviteLanding{Invite_VIP_landing?}
   authGates[DashboardRoute_gates]
   restore[getDashboardEntryHref_or_URL_unchanged]
   layout[DashboardLayout_persist_path]
   pendingJoin{usePendingPoolJoin_invite_code?}
   poolsNav[Navigate_to_/dashboard/pools]
 
-  entry --> splashOrDirect
-  splashOrDirect --> authGates
+  entry --> inviteLanding
+  inviteLanding -->|site_/invite| authGates
+  inviteLanding -->|pool_/join| authGates
   authGates --> restore
   restore --> layout
   layout --> pendingJoin
@@ -157,7 +167,8 @@ flowchart TD
 | Dashboard / setup gates | `src/app/routes/DashboardRoute.jsx`, `src/app/routes/SetupRoute.jsx` |
 | Remember path read/write | `src/shared/lib/dashboardLastPath.js` |
 | Persist on navigation | `src/app/layout/DashboardLayout.jsx` |
-| Invite code capture | `src/features/pool-invite/model/usePoolInviteInterceptor.js` |
+| Invite code capture | `src/features/pool-invite/model/usePoolInviteCodeStorage.js` |
+| Site + pool VIP landing | `src/features/invite/ui/InviteVipLanding.jsx`, `src/features/invite/model/useInviteLanding.js` |
 | Post-auth join + Pools redirect | `src/features/pool-invite/model/usePendingPoolJoin.js` |
 | Profile completion redirect | `src/features/auth/model/useProfileSetup.js` |
-| Splash + invite join banner | `src/pages/landing/SplashPage.jsx` |
+| Splash + legacy pool modal prompt | `src/pages/landing/SplashPage.jsx` |

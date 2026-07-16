@@ -48,7 +48,7 @@ test("isPastPicksLock is true after local lock", () => {
 });
 
 test("formatTimeToLock returns 3 hours at window open", () => {
-  // 4:30pm PDT on show day → exactly 3 hours until 7:55pm lock.
+  // 4:55pm PDT on show day → exactly 3 hours until 7:55pm lock.
   const now = new Date("2099-06-15T23:55:00.000Z");
   assert.equal(formatTimeToLock("2099-06-15", "America/Los_Angeles", now), "3 hours");
 });

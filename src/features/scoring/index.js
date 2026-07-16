@@ -37,6 +37,7 @@ export { default as StandingsActiveShowCard } from './ui/StandingsActiveShowCard
 export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';
 export { default as StandingsPoolPicker } from './ui/StandingsPoolPicker';
 export { default as StandingsShowOrPoolView } from './ui/StandingsShowOrPoolView';
+export { default as StandingsChrome } from './ui/StandingsChrome';
 export { default as StandingsTourView } from './ui/StandingsTourView';
 export { default as StandingsViewToggle } from './ui/StandingsViewToggle';
 export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinnerOfTheNightBanner';

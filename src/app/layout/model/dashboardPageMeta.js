@@ -91,7 +91,7 @@ export function getDashboardPageMeta(pathname, search) {
 
   const showDatePicker = !isProfileCluster && !isPoolHub && !isStandingsTourView;
 
-  // Profile cluster owns in-page headings; layout does not duplicate them.
+  // Profile cluster + pool details own in-page headings; layout does not duplicate them.
   const layoutDesktopHeading =
     !isProfileCluster && !isPoolHub ? contextTitle : null;
 

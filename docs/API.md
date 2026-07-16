@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.20.0  
+**Version:** 1.22.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -95,6 +95,19 @@ Admin picks-lock override. Document ID is the show date (`YYYY-MM-DD`). Written 
 | `picksLockedAt` | Timestamp | Lock instant |
 | `lockReason` | `'admin_override'` | v1 only writes this value |
 | `lockedBy` | string? | Admin email when stamped |
+
+### 1.11 `comms_show_context/{showDate}` (#572)
+
+Server-written night-of narrative artifact for `show_recap` / `tour_rankings_daily`. Document ID is the show date (`YYYY-MM-DD`). Clients have no access. Schema: [`docs/COMMS_SHOW_CONTEXT_SCHEMA.md`](./COMMS_SHOW_CONTEXT_SCHEMA.md).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `setlist_highlight` | string? | One-liner for push / Tonight block |
+| `set_flow_summary` | string? | Short S1/S2/E structure |
+| `bustout_titles` | string[] | From official setlist bustouts |
+| `tour_debut_titles` | string[] | New-to-tour titles tonight |
+| `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
+| `schemaVersion` | number | `1` |
 
 ---
 
@@ -271,7 +284,8 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/` | None | Public splash / landing page |
 | `/how-it-works` | None | How to play marketing page |
 | `/how-scoring-works` | None | Scoring rules marketing page |
-| `/join/:code` | None | Pool invite deep link |
+| `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
+| `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile |
 | `/privacy` | None | Privacy policy |
 | `/terms` | None | Terms of service |
@@ -304,6 +318,21 @@ Applied via `vercel.json` to all routes. Policy details: `docs/SECURITY_HEADERS.
 | `Content-Security-Policy-Report-Only` | Report-only | Flip to `Content-Security-Policy` after soak (promote-day) |
 
 Adding or tightening enforced CSP is MINOR; removing a security header is MAJOR.
+
+### 3.3 Invite landing Open Graph (`api/invite.js`)
+
+Social crawlers (Meta, X, Slack, …) do not execute JavaScript. Invite URLs are rewritten to `api/invite.js`, which returns pool- or inviter-specific OG tags for crawlers and the SPA shell for regular browsers.
+
+| Public path | Rewrite (`vercel.json`) | Query params | Crawler behavior | Browser behavior |
+|-------------|-------------------------|--------------|------------------|------------------|
+| `/join/:code` | `/api/invite?code=:code` | Unmatched query preserved (e.g. `?from={handle}`) | Resolves pool name via Admin SDK; `from` personalizes title via invite-kit copy | SPA shell + static OG (no Firestore) |
+| `/invite/:handle` | `/api/invite?handle=:handle` | — | Resolves `users.handle` via Admin SDK; generic OG if missing | SPA shell + static OG from URL handle |
+
+Copy mirrors `src/shared/lib/inviteKit.js` (`buildSiteInviteShareTitle`, `buildPoolInviteShareTitleFromInviter`) and legacy pool OG (`Join my Setlist Pick 'Em pool: {name}`) when `from` is absent. Constants mirror `src/shared/config/seo.js` in `api/inviteOgHelpers.mjs` (no `src/` imports in serverless).
+
+**Vercel env:** `FIREBASE_SERVICE_ACCOUNT` (JSON) enables Firestore Admin lookups for crawlers.
+
+**Tests:** `api/inviteOgHelpers.test.js` (pure helpers; no Vercel runtime).
 
 ---
 
