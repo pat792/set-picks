@@ -43,7 +43,7 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: true,
-      layoutDesktopHeading: null,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
       layoutDetailEyebrow: null,
     },
   },
@@ -53,7 +53,7 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: true,
-      layoutDesktopHeading: null,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
       layoutDetailEyebrow: null,
     },
   },
@@ -63,7 +63,7 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: true,
-      layoutDesktopHeading: null,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
       layoutDetailEyebrow: null,
     },
   },
@@ -74,7 +74,7 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: false,
-      layoutDesktopHeading: null,
+      layoutDesktopHeading: NAV_LABEL_STANDINGS,
       layoutDetailEyebrow: null,
     },
   },

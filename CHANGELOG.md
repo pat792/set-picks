@@ -16,6 +16,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Changed
 - **Show recap email copy (#572 follow-up)** — scorecard prose; tour lines use `ranked` / `points` / `spots`; soft invite nudge; in-app style headers (eyebrow + emoji + title) on email-channel templates.
+- **Main promote** — Sprint 8 invite kit + VIP/OG/Standings Invite + email invite block + show recap narrative. Standings sticky chrome (#589/#590) excluded from this release (remains on staging for Sprint 9).
 
 ---
 

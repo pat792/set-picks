@@ -1,10 +1,11 @@
 import React from 'react';
+import { Scale } from 'lucide-react';
 
-import { InviteChooserSheet } from '../../features/invite';
+import { InviteChooserSheet, InviteChooserTrigger } from '../../features/invite';
 import {
   StandingsShowOrPoolView,
-  StandingsStickyChrome,
   StandingsTourView,
+  StandingsViewToggle,
   useStandingsScreen,
 } from '../../features/scoring';
 
@@ -14,13 +15,21 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
 
   return (
     <div className="w-full">
-      <StandingsStickyChrome
-        view={screen.view}
-        onChange={screen.setView}
-        onOpenScoringRules={screen.openScoringRules}
-        onOpenInvite={invite.openChooser}
-        pinBelowDesktopDatePicker={screen.view !== 'tour'}
-      />
+      {/* Invite + Scoring rules sit above the primary IA toggle so neither
+          competes with Show / Tour / Pools. Sticky chrome stays on staging. */}
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <InviteChooserTrigger onClick={invite.openChooser} />
+        <button
+          type="button"
+          onClick={screen.openScoringRules}
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-content-secondary transition-colors hover:bg-surface-panel hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+        >
+          <Scale className="h-3.5 w-3.5" aria-hidden />
+          Scoring rules
+        </button>
+      </div>
+
+      <StandingsViewToggle view={screen.view} onChange={screen.setView} />
 
       <InviteChooserSheet
         open={invite.open}
@@ -38,22 +47,20 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
         onBackToChoose={invite.backToChoose}
       />
 
-      <div className="mt-5">
-        {screen.view === 'tour' ? (
-          <StandingsTourView
-            tourName={screen.selectedTour?.tour}
-            leaders={screen.tourLeaders}
-            loading={screen.tourLoading}
-            error={screen.tourError}
-            hasCurrentTour={Boolean(screen.selectedTour)}
-            selectableTours={screen.selectableTours}
-            selectedTourKey={screen.selectedTour?.tour ?? null}
-            onSelectTour={screen.setTourKey}
-          />
-        ) : (
-          <StandingsShowOrPoolView screen={screen} />
-        )}
-      </div>
+      {screen.view === 'tour' ? (
+        <StandingsTourView
+          tourName={screen.selectedTour?.tour}
+          leaders={screen.tourLeaders}
+          loading={screen.tourLoading}
+          error={screen.tourError}
+          hasCurrentTour={Boolean(screen.selectedTour)}
+          selectableTours={screen.selectableTours}
+          selectedTourKey={screen.selectedTour?.tour ?? null}
+          onSelectTour={screen.setTourKey}
+        />
+      ) : (
+        <StandingsShowOrPoolView screen={screen} />
+      )}
     </div>
   );
 }
