@@ -98,25 +98,41 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   // Tour-standings content (this trigger's original purpose) still present.
   assert.match(out.email.text, /#3/, "tour rank");
   assert.match(out.email.text, /210/, "tour points");
-  assert.match(out.email.text, /climbed 2/, "rank change rendered as climbed");
+  assert.match(out.email.text, /climbed 2 spots/, "rank change rendered as climbed");
   assert.match(out.email.text, /2026-07-19/, "next show date");
   assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
-  assert.match(out.email.text, /Invite your crew to join the community/);
-  assert.match(out.email.text, /\/join\/ABC12\?from=RiverTranced/);
-  // Prose night paragraph (not a line-per-stat list).
-  assert.match(out.email.text, /scored 70/);
-  assert.match(out.email.text, /3 of 6 picks hitting/);
+  assert.match(out.email.text, /Want to share with friends/);
+  assert.match(out.email.text, /forward this email to a friend/i);
+  assert.match(out.email.text, /Open Standings:/);
+  assert.match(out.email.text, /\/dashboard\/standings/);
+  // Prose night + tour paragraphs (words around variables).
+  assert.match(
+    out.email.text,
+    /You scored 70 points and are now ranked #4 of 200 globally, with 3 of 6 picks hitting/,
+  );
+  assert.match(out.email.text, /Still in the top 5 — ranked #3 of 50 with 210 points/);
+  assert.equal(out.email.header?.eyebrow, "Tour standings");
+  assert.equal(out.email.header?.title, "Where you stand on tour");
+  assert.match(out.email.header?.icon || "", /📈/);
+  // Handle greets once in night para — not repeated in tour para.
+  assert.match(out.email.text, /RiverTranced, here's how last night/);
+  assert.doesNotMatch(
+    out.email.text,
+    /RiverTranced, after/,
+    "tour paragraph should not re-greet with handle",
+  );
   assert.ok(out.email.inviteBlockHtml, "invite HTML block");
-  assert.match(out.email.inviteBlockHtml, /Invite your crew/);
-  assert.match(out.email.inviteBlockHtml, /Share your invite/);
-  // No visible bare URL under the button (href on the CTA is fine).
+  assert.match(out.email.inviteBlockHtml, /Want to share with friends/);
+  assert.match(out.email.inviteBlockHtml, /forward this email to a friend/i);
+  assert.match(out.email.inviteBlockHtml, /Open Standings to share/);
+  assert.match(out.email.inviteBlockHtml, /#2563eb/, "secondary standings link color");
+  assert.doesNotMatch(out.email.inviteBlockHtml, /mailto:/);
+  // Soft text link — not a solid button to a bare invite URL.
   assert.doesNotMatch(out.email.inviteBlockHtml, />https?:\/\//);
-  assert.match(out.email.text, /Invite link:/);
-  // Recap body (before Open the app) must not include the invite URL — only the
-  // trailing plain-text invite section does.
+  // Recap body (before Open the app) must not include the standings share nudge URL.
   assert.doesNotMatch(
     out.email.text.split("Open the app:")[0],
-    /setlistpickem\.com\/join/,
+    /utm_content=share_nudge/,
   );
 });
 

@@ -325,6 +325,26 @@ test("production branded shell never uses data: or cid: URIs", () => {
   assert.match(html, /\/branding\/email-gradient-wordmark\.png/);
 });
 
+test("buildBrandedEmailHtml renders in-app style header when provided", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "Body para.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    header: {
+      icon: "📈",
+      eyebrow: "Tour standings",
+      title: "Where you stand on tour",
+      accentColor: "#0d9488",
+    },
+  });
+  assert.match(html, /Tour standings/);
+  assert.match(html, /Where you stand on tour/);
+  assert.match(html, /📈/);
+  assert.match(html, /#0d9488/);
+  assert.match(html, /text-transform:uppercase/);
+});
+
 test("buildBrandedEmailHtml renders gradient wordmark, sign-off, teal CTA, and top accent", () => {
   const html = buildBrandedEmailHtml({
     siteUrl: "https://www.setlistpickem.com",
@@ -370,16 +390,17 @@ test("buildBrandedEmailHtml strips invite appendix lines from HTML body", () => 
   const html = buildBrandedEmailHtml({
     siteUrl: "https://www.setlistpickem.com",
     bodyText:
-      "Recap paragraph.\n\nOpen the app: https://www.setlistpickem.com/dashboard/picks\n\nSee you on tour!\n\nInvite your crew to join the community.\nInvite link: https://www.setlistpickem.com/invite/Pat?utm_source=email",
+      "Recap paragraph.\n\nOpen the app: https://www.setlistpickem.com/dashboard/picks\n\nSee you on tour!\n\nWant to share with friends? Log in and tap Share on Standings — your invite link is ready there.\nOr forward this email to a friend.\n\nOpen Standings: https://www.setlistpickem.com/dashboard/standings?utm_source=email",
     ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
     settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
     signOff: "See you on tour!",
     inviteBlockHtml: "<div>invite card</div>",
   });
   assert.match(html, /Recap paragraph\./);
-  assert.doesNotMatch(html, /Invite your crew/);
-  assert.doesNotMatch(html, /Invite link:/);
-  assert.doesNotMatch(html, /\/invite\/Pat/);
+  assert.doesNotMatch(html, /Want to share with friends/);
+  assert.doesNotMatch(html, /forward this email/);
+  assert.doesNotMatch(html, /Open Standings:/);
+  assert.doesNotMatch(html, /utm_source=email/);
   assert.match(html, /invite card/);
 });
 

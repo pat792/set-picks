@@ -194,6 +194,19 @@ function bustoutEntriesFromRows(rows, minGap = 30) {
 }
 
 /**
+ * "a" / "an" before a spoken gap number (eight*, eleven, eighteen → an).
+ * @param {number} n
+ * @returns {"a" | "an"}
+ */
+function indefiniteArticleForGap(n) {
+  const abs = Math.abs(Math.trunc(Number(n)));
+  if (!Number.isFinite(abs)) return "a";
+  const s = String(abs);
+  if (s === "11" || s === "18" || s.startsWith("8")) return "an";
+  return "a";
+}
+
+/**
  * @param {{ title: string, gap?: number | null }[]} entries
  * @returns {string}
  */
@@ -203,7 +216,7 @@ function formatBustoutSongGap(entries) {
   return list
     .map((e) =>
       e.gap != null && Number.isFinite(e.gap)
-        ? `${e.title} - ${e.gap} show gap`
+        ? `${e.title} - ${indefiniteArticleForGap(e.gap)} ${e.gap} show gap`
         : e.title,
     )
     .join(", ");

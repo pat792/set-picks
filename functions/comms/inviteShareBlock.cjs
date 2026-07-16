@@ -1,6 +1,6 @@
 'use strict';
 
-const { EMAIL_BRAND_PRIMARY, EMAIL_BRAND_BG_DEEP } = require('./emailBranding.cjs');
+const { EMAIL_BRAND_SECONDARY } = require('./emailBranding.cjs');
 
 /**
  * @param {string} str
@@ -12,60 +12,78 @@ function escapeHtml(str) {
   );
 }
 
-const DEFAULT_INVITE_INTRO = 'Invite your crew to join the community.';
-const DEFAULT_INVITE_CTA = 'Share your invite →';
+const DEFAULT_INVITE_CTA = 'Open Standings to share →';
+
+const INVITE_NUDGE_INTRO =
+  "Want to share with friends? Log in and tap Share on Standings — your invite link is ready there.";
+
+const INVITE_NUDGE_FORWARD = 'Or forward this email to a friend.';
 
 /**
- * Plain-text invite lines for multipart/alternative (HTML uses the button block).
- * Sender-facing — not the invitee landing headline.
- *
- * @param {{ invite_url: string, intro?: string }} share
- * @returns {string[]}
+ * Soft invite nudge copy (in-app Share + forward).
+ * @returns {{ intro: string, forward: string }}
  */
-function buildInviteSharePlainTextLines(share) {
-  if (!share?.invite_url) return [];
-  const intro =
-    typeof share.intro === 'string' && share.intro.trim()
-      ? share.intro.trim()
-      : DEFAULT_INVITE_INTRO;
-  const url = String(share.invite_url || '').trim();
-  return [intro, `Invite link: ${url}`];
+function buildInviteNudgeCopy() {
+  return { intro: INVITE_NUDGE_INTRO, forward: INVITE_NUDGE_FORWARD };
 }
 
 /**
- * Secondary invite card for the service email shell (#583 / #572 review).
- * Intro + button only — no bare URL (button is the CTA; URL stays in plain-text part).
+ * Plain-text invite appendix for multipart/alternative.
+ * @param {{ standingsUrl?: string, app_share_url?: string }} [share]
+ * @returns {string[]}
+ */
+function buildInviteSharePlainTextLines(share = {}) {
+  const { intro, forward } = buildInviteNudgeCopy();
+  const standingsUrl = String(
+    share.standingsUrl || share.app_share_url || share.standings_url || '',
+  ).trim();
+  const lines = [intro, forward];
+  if (standingsUrl) {
+    lines.push('', `Open Standings: ${standingsUrl}`);
+  }
+  return lines;
+}
+
+/**
+ * Soft invite card — points to in-app Share; optional Standings link.
+ * No mailto / OS-share pretenses (email cannot open a share sheet).
  *
  * @param {{
- *   invite_url: string,
- *   intro?: string,
+ *   standingsUrl?: string,
+ *   app_share_url?: string,
+ *   standings_url?: string,
  *   ctaLabel?: string,
- * }} share
+ *   invite_url?: string,
+ * }} [share]
  * @returns {string}
  */
-function buildInviteShareHtmlBlock(share) {
-  if (!share?.invite_url) return '';
-  const intro = escapeHtml(
-    typeof share.intro === 'string' && share.intro.trim()
-      ? share.intro.trim()
-      : DEFAULT_INVITE_INTRO
-  );
-  const url = escapeHtml(share.invite_url);
+function buildInviteShareHtmlBlock(share = {}) {
+  const { intro, forward } = buildInviteNudgeCopy();
+  const standingsUrl = String(
+    share.standingsUrl || share.app_share_url || share.standings_url || '',
+  ).trim();
   const buttonLabel = escapeHtml(
     typeof share.ctaLabel === 'string' && share.ctaLabel.trim()
       ? share.ctaLabel.trim()
-      : DEFAULT_INVITE_CTA
+      : DEFAULT_INVITE_CTA,
   );
+  const linkColor = EMAIL_BRAND_SECONDARY || '#2563eb';
+  const ctaHtml = standingsUrl
+    ? `<p style="margin:12px 0 0 0;"><a href="${escapeHtml(standingsUrl)}" style="color:${linkColor};font-weight:700;font-size:15px;text-decoration:underline;">${buttonLabel}</a></p>`
+    : '';
   return `<div style="margin:28px 0 8px 0;padding:16px;border:1px solid #e2e8f0;border-radius:12px;background-color:#f8fafc;">
-  <p style="margin:0 0 12px 0;font-size:15px;line-height:1.5;color:#1a1a2e;">${intro}</p>
-  <a href="${url}" style="display:inline-block;margin:0;padding:12px 24px;background-color:${EMAIL_BRAND_PRIMARY};color:${EMAIL_BRAND_BG_DEEP};text-decoration:none;border-radius:12px;font-weight:700;font-size:15px;">${buttonLabel}</a>
+  <p style="margin:0 0 8px 0;font-size:15px;line-height:1.5;color:#1a1a2e;">${escapeHtml(intro)}</p>
+  <p style="margin:0;font-size:14px;line-height:1.5;color:#64748b;">${escapeHtml(forward)}</p>
+  ${ctaHtml}
 </div>`;
 }
 
 module.exports = {
   buildInviteSharePlainTextLines,
   buildInviteShareHtmlBlock,
+  buildInviteNudgeCopy,
   escapeHtml,
-  DEFAULT_INVITE_INTRO,
   DEFAULT_INVITE_CTA,
+  INVITE_NUDGE_INTRO,
+  INVITE_NUDGE_FORWARD,
 };

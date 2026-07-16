@@ -12,7 +12,7 @@ describe('buildTourRankingsDailyParagraphs', () => {
       tour_points: 15,
       rank_change: 'down 5',
     });
-    expect(paras[0]).toMatch(/slipped 5/);
+    expect(paras[0]).toMatch(/slipped 5 spots/);
     expect(paras.join(' ')).not.toMatch(/held your spot/);
   });
 
@@ -28,6 +28,7 @@ describe('buildTourRankingsDailyParagraphs', () => {
     });
     expect(paras[0]).toBe("You're on the board!");
     expect(paras.join(' ')).toMatch(/Night one sets the tour leaderboard/);
+    expect(paras[1]).toMatch(/ranked #1 of 11 on tour with 10 points/);
   });
 
   it('late joiner includes catch-up framing', () => {
@@ -42,7 +43,8 @@ describe('buildTourRankingsDailyParagraphs', () => {
       tour_points: 8,
     });
     expect(paras.join(' ')).toMatch(/still time to catch up/i);
-    expect(paras.join(' ')).toMatch(/#2 of 20/);
+    expect(paras.join(' ')).toMatch(/ranked #2 of 20 globally/);
+    expect(paras.join(' ')).toMatch(/ranked #15 of 40 on tour with 8 points/);
   });
 
   it('null rank_change does not default to held', () => {
@@ -53,6 +55,6 @@ describe('buildTourRankingsDailyParagraphs', () => {
       total_tour_pickers: 10,
     });
     expect(paras.join(' ')).not.toMatch(/held your spot/);
-    expect(paras[0]).toMatch(/#3 of 10/);
+    expect(paras[0]).toMatch(/ranked #3 of 10 on tour/);
   });
 });

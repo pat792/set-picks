@@ -18,7 +18,7 @@ const {
   buildInviteShareHtmlBlock,
   buildInviteSharePlainTextLines,
 } = require("./comms/inviteShareBlock.cjs");
-const { resolveInviteShareFromPayload } = require("./comms/inviteContext.cjs");
+const { resolveCommsEmailHeader } = require("./comms/emailCommsHeader.cjs");
 
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
@@ -28,6 +28,47 @@ const STANDINGS_CTA_URL = `${SITE_URL}/dashboard/standings#self-recap`;
 function handleOf(p) {
   const h = p && typeof p.handle === "string" ? p.handle.trim() : "";
   return h || "Picker";
+}
+
+/**
+ * Readable night scorecard sentence (words around variables, not a comma list).
+ * e.g. "You scored 70 points and are now ranked #4 of 200 globally, with 3 of 6 picks hitting."
+ *
+ * @param {Record<string, unknown>} p
+ * @param {{ rankScope?: string }} [opts]
+ * @returns {string} Full sentence including trailing period, or "" if nothing to say.
+ */
+function buildShowScorecardSentence(p, { rankScope = "globally" } = {}) {
+  /** @type {string[]} */
+  const lead = [];
+  if (p.show_score != null) {
+    lead.push(`scored ${p.show_score} points`);
+  }
+  if (p.global_rank != null) {
+    const of =
+      p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : "";
+    lead.push(`are now ranked #${p.global_rank}${of} ${rankScope}`);
+  }
+
+  let sentence = "";
+  if (lead.length === 1) {
+    sentence = `You ${lead[0]}`;
+  } else if (lead.length >= 2) {
+    sentence = `You ${lead[0]} and ${lead[1]}`;
+  }
+
+  if (p.correct_picks_count != null) {
+    const total = p.total_picks_count != null ? p.total_picks_count : 6;
+    const hits = `with ${p.correct_picks_count} of ${total} picks hitting`;
+    sentence = sentence ? `${sentence}, ${hits}` : `You had ${p.correct_picks_count} of ${total} picks hitting`;
+  }
+
+  if (p.bustout_bonus) {
+    const bonus = `a bustout bonus of +${p.bustout_bonus}`;
+    sentence = sentence ? `${sentence}, plus ${bonus}` : `You earned ${bonus}`;
+  }
+
+  return sentence ? `${sentence}.` : "";
 }
 
 /**
@@ -197,12 +238,18 @@ const BUILDERS = {
 
   "score-first-points": (p) => {
     const assembled = assembleServiceEmail([
-      `${handleOf(p)}, your first pick just scored${p.points_earned != null ? ` (+${p.points_earned} pts)` : ""}.`,
+      `${handleOf(p)}, your first pick just scored${
+        p.points_earned != null ? ` (+${p.points_earned} points)` : ""
+      }.`,
     ]);
     return {
       push: {
         title: "You just scored!",
-        body: p.song_name ? `"${p.song_name}" hit — you're on the board${p.points_earned != null ? ` (+${p.points_earned})` : ""}.` : "Your first pick of the night landed.",
+        body: p.song_name
+          ? `"${p.song_name}" hit — you're on the board${
+              p.points_earned != null ? ` (+${p.points_earned} points)` : ""
+            }.`
+          : "Your first pick of the night landed.",
       },
       email: {
         subject: "You're on the board",
@@ -215,12 +262,18 @@ const BUILDERS = {
 
   "score-leader": (p) => {
     const assembled = assembleServiceEmail([
-      `${handleOf(p)}, you're #1 on ${p.leaderboard_name || "the Global"} leaderboard.`,
+      `${handleOf(p)}, you're now ranked #1 on ${
+        p.leaderboard_name || "the Global"
+      } leaderboard${
+        p.lead_margin != null ? ` — ahead by ${p.lead_margin} points` : ""
+      }.`,
     ]);
     return {
       push: {
         title: `You're #1 on ${p.leaderboard_name || "the leaderboard"}`,
-        body: `You took the top spot${p.lead_margin != null ? ` by ${p.lead_margin}` : ""}. Can you hold it?`,
+        body: `You took the top spot${
+          p.lead_margin != null ? ` by ${p.lead_margin} points` : ""
+        }. Can you hold it?`,
       },
       email: {
         subject: `You took the lead on ${p.leaderboard_name || "the leaderboard"}`,
@@ -238,28 +291,23 @@ const BUILDERS = {
       (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
       "";
-    const scoreBits = [];
-    if (p.show_score != null) scoreBits.push(`scored ${p.show_score}`);
-    if (p.global_rank != null) {
-      scoreBits.push(
-        `#${p.global_rank}${
-          p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""
-        } overall`,
-      );
-    }
-    if (p.bustout_bonus) scoreBits.push(`bustout bonus +${p.bustout_bonus}`);
+    const scoreSentence = buildShowScorecardSentence(p, { rankScope: "globally" });
     const para = [
       `${handle}, here's how your picks for ${where} graded out.`,
       narrative,
-      scoreBits.length ? `You ${scoreBits.join(", ")}.` : "",
+      scoreSentence,
     ]
       .filter(Boolean)
       .join(" ");
     const assembled = assembleServiceEmail([para], { ctaUrl: STANDINGS_CTA_URL });
     const pushBodyBits = [
       narrative,
-      p.show_score != null ? `You scored ${p.show_score}.` : "",
-      p.global_rank != null ? `#${p.global_rank} overall.` : "",
+      p.show_score != null ? `You scored ${p.show_score} points.` : "",
+      p.global_rank != null
+        ? `You're now ranked #${p.global_rank}${
+            p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""
+          } globally.`
+        : "",
       "Open for the full breakdown.",
     ].filter(Boolean);
     return {
@@ -284,52 +332,32 @@ const BUILDERS = {
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
       "";
 
-    // Night-of paragraph (scorecard + narrative in one breath).
-    const nightScoreBits = [];
-    if (p.show_score != null) nightScoreBits.push(`scored ${p.show_score}`);
-    if (p.global_rank != null) {
-      nightScoreBits.push(
-        `#${p.global_rank}${
-          p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""
-        } globally`,
-      );
-    }
-    if (p.correct_picks_count != null) {
-      nightScoreBits.push(
-        `${p.correct_picks_count} of ${
-          p.total_picks_count != null ? p.total_picks_count : 6
-        } picks hitting`,
-      );
-    }
     const nightPara = [
       `${handle}, here's how last night at ${venue} went.`,
       narrative,
-      nightScoreBits.length ? `You ${nightScoreBits.join(", ")}.` : "",
+      buildShowScorecardSentence(p, { rankScope: "globally" }),
     ]
       .filter(Boolean)
       .join(" ");
 
     // Tour paragraph — reuse existing branch lines, joined into prose.
-    const tourPara = buildTourRankingsDailyParagraphs(p).join(" ");
+    // Handle already greets in nightPara — omit it here for email.
+    const tourPara = buildTourRankingsDailyParagraphs(p, {
+      omitHandle: true,
+    }).join(" ");
 
-    const inviteShare = resolveInviteShareFromPayload(p, {
-      campaign: "tour_rankings_daily",
-      baseUrl: SITE_URL,
-    });
-    // Blank line between paras → separate HTML <p> tags. Invite URL only in
-    // plain-text appendix (stripped from HTML by stripHtmlOnlyEmailLines).
+    // Blank line between paras → separate HTML <p> tags. Soft invite nudge lives
+    // in inviteBlockHtml + plain-text appendix (stripped from HTML body).
     const assembled = assembleServiceEmail([nightPara, "", tourPara], {
       ctaUrl: PICKS_CTA_URL,
     });
-    const invitePlain = inviteShare
-      ? buildInviteSharePlainTextLines({
-          invite_url: inviteShare.invite_url,
-          intro: "Invite your crew to join the community.",
-        })
-      : [];
-    const emailText = invitePlain.length
-      ? `${assembled.text}\n\n${invitePlain.join("\n")}`
-      : assembled.text;
+    const standingsShareUrl = `${SITE_URL}/dashboard/standings?utm_source=email&utm_campaign=tour_rankings_daily&utm_content=share_nudge`;
+    const inviteFields = {
+      standingsUrl: standingsShareUrl,
+      ctaLabel: "Open Standings to share →",
+    };
+    const invitePlain = buildInviteSharePlainTextLines(inviteFields);
+    const emailText = `${assembled.text}\n\n${invitePlain.join("\n")}`;
 
     const pushRank =
       p.tour_rank != null
@@ -353,15 +381,7 @@ const BUILDERS = {
         signOff: assembled.signOff,
         ctaUrl: PICKS_CTA_URL,
         ctaLabel: "Make picks for next show",
-        ...(inviteShare
-          ? {
-              inviteBlockHtml: buildInviteShareHtmlBlock({
-                invite_url: inviteShare.invite_url,
-                intro: "Invite your crew to join the community.",
-                ctaLabel: "Share your invite →",
-              }),
-            }
-          : {}),
+        inviteBlockHtml: buildInviteShareHtmlBlock(inviteFields),
       },
     };
   },
@@ -397,7 +417,9 @@ const BUILDERS = {
 
   "tour-engagement-reminder": (p) => {
     const assembled = assembleServiceEmail([
-      `${handleOf(p)}, you're off to a great start${p.global_rank != null ? ` (currently #${p.global_rank})` : ""}.`,
+      `${handleOf(p)}, you're off to a great start${
+        p.global_rank != null ? ` (currently ranked #${p.global_rank})` : ""
+      }.`,
       p.shows_remaining != null ? `${p.shows_remaining} shows left this tour.` : "",
     ].filter(Boolean));
     return {
@@ -450,10 +472,12 @@ async function renderCommsTemplate(templateId, payload = {}) {
           },
         };
       })();
+  const header =
+    channels.email.header || resolveCommsEmailHeader(templateId, payload);
   return {
     inApp: { templateId, payload },
     push: channels.push,
-    email: channels.email,
+    email: header ? { ...channels.email, header } : channels.email,
   };
 }
 

@@ -44,6 +44,7 @@ const {
   EMAIL_BRAND_BG_DEEP,
 } = require("./comms/emailBranding.cjs");
 const { buildEmailTrackedCtaUrl } = require("./comms/emailLinks.cjs");
+const { buildCommsEmailHeaderHtml } = require("./comms/emailCommsHeader.cjs");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
@@ -127,9 +128,13 @@ const APP_LINK_LINE_RE = /^open the app:\s*https?:\/\/\S+\s*$/i;
 const MANAGE_PREFS_LINE_RE = /^manage which updates you get in notifications settings\.?$/i;
 const LEGACY_BRAND_SIGNOFF_RE = /^—\s*setlist pick'?em\.?$/i;
 /** Invite appendix lives in plain-text + HTML invite card — never the main body. */
-const INVITE_CREW_LINE_RE = /^invite your crew\b/i;
-const INVITE_LINK_LINE_RE = /^invite link:\s*/i;
-const INVITE_URL_ONLY_LINE_RE = /^https?:\/\/\S*\/(invite|join)\//i;
+const INVITE_CREW_LINE_RE =
+  /^(invite your crew|share with friends|want to share with friends)\b/i;
+const INVITE_FORWARD_LINE_RE = /^or forward this email\b/i;
+const INVITE_SHARE_MSG_LINE_RE =
+  /\binvites you to join\b|^you'?re invited to join setlist\b/i;
+const INVITE_LINK_LINE_RE = /^(invite link:|open standings:)\s*/i;
+const INVITE_URL_ONLY_LINE_RE = /^https?:\/\/\S*\/(invite|join|dashboard\/standings)/i;
 
 /**
  * Lines that belong in the plain-text part or HTML footer — not the visible HTML body.
@@ -149,6 +154,8 @@ function stripHtmlOnlyEmailLines(text, { signOff } = {}) {
       if (MANAGE_PREFS_LINE_RE.test(trimmed)) return false;
       if (LEGACY_BRAND_SIGNOFF_RE.test(trimmed)) return false;
       if (INVITE_CREW_LINE_RE.test(trimmed)) return false;
+      if (INVITE_FORWARD_LINE_RE.test(trimmed)) return false;
+      if (INVITE_SHARE_MSG_LINE_RE.test(trimmed)) return false;
       if (INVITE_LINK_LINE_RE.test(trimmed)) return false;
       if (INVITE_URL_ONLY_LINE_RE.test(trimmed)) return false;
       if (signOffTrim && trimmed === signOffTrim) return false;
@@ -247,10 +254,11 @@ function rewritePlainTextCtaUrl(text, rawCtaUrl, trackedCtaUrl) {
  *   signOff?: string,
  *   wordmarkSrc?: string,
  *   inviteBlockHtml?: string,
+ *   header?: { icon?: string, eyebrow?: string, title?: string, accentColor?: string } | null,
  * }} opts
  * @returns {string}
  */
-function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabel, signOff, wordmarkSrc, inviteBlockHtml }) {
+function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabel, signOff, wordmarkSrc, inviteBlockHtml, header }) {
   const buttonLabel = typeof ctaLabel === "string" && ctaLabel.trim() ? ctaLabel.trim() : "Open Setlist Pick'em";
   const signOffLine = typeof signOff === "string" ? signOff.trim() : "";
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
@@ -259,6 +267,7 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
       ? wordmarkSrc.trim()
       : buildEmailWordmarkUrl(base);
   const paragraphs = bodyTextToHtmlParagraphs(bodyText, { signOff: signOffLine });
+  const headerHtml = buildCommsEmailHeaderHtml(header);
   const signOffHtml = signOffLine
     ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#64748b;font-style:italic;">${escapeHtml(signOffLine)}</p>`
     : "";
@@ -300,6 +309,7 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
             </tr>
             <tr>
               <td style="padding:8px 24px 8px 24px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                ${headerHtml}
                 ${paragraphs}
                 ${signOffHtml}
                 <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:14px 28px;background-color:${EMAIL_BRAND_PRIMARY};color:${EMAIL_BRAND_BG_DEEP};text-decoration:none;border-radius:12px;font-weight:700;font-size:16px;">${escapeHtml(buttonLabel)}</a>
@@ -445,6 +455,7 @@ function createCommsEmailWorker({
           ctaLabel,
           signOff: rendered.email.signOff,
           inviteBlockHtml: rendered.email.inviteBlockHtml,
+          header: rendered.email.header,
         });
     const html = usesPreRenderedHtml ? rendered.email.html : shell.html;
     const idempotencyKey = forceResend

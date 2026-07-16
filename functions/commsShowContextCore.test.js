@@ -54,7 +54,7 @@ describe("composeSetlistHighlight", () => {
         openerTitle: "YEM",
         encoreTitle: "Tweeprise",
       }),
-      "Curtain With - 142 show gap",
+      "Curtain With - a 142 show gap",
     );
   });
 });
@@ -79,7 +79,7 @@ describe("buildCommsShowContext", () => {
         { title: "Slave", gap: 10 },
       ],
     });
-    assert.equal(ctx.setlist_highlight, "Wolfman's - 87 show gap");
+    assert.equal(ctx.setlist_highlight, "Wolfman's - an 87 show gap");
     assert.match(ctx.set_flow_summary, /Set 1 opened with YEM/);
     assert.ok(ctx.show_moment_tags.includes("bustout"));
     assert.ok(ctx.tour_debut_titles.includes("Wolfman's"));
@@ -152,6 +152,6 @@ describe("buildShowRecapEnrichment", () => {
       show_score: 30,
     });
     assert.equal(enriched.narrative_branch, "bustout_hero");
-    assert.equal(enriched.narrative_line, "You caught a bustout — Wolfman's - 87 show gap.");
+    assert.equal(enriched.narrative_line, "You caught a bustout — Wolfman's - an 87 show gap.");
   });
 });

@@ -15,7 +15,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.22.1] — 2026-07-16
 
 ### Changed
-- **Show recap email copy (#572 follow-up)** — bustout line is `You caught a bustout — Song - {gap} show gap`; tour rankings email uses two prose paragraphs (night + tour), strips invite URL/intro from the HTML body (invite card only), keeps primary **Make picks** above the invite card, and reports correct picks out of **6** slots.
+- **Show recap email copy (#572 follow-up)** — scorecard prose; tour lines use `ranked` / `points` / `spots`; soft invite nudge; in-app style headers (eyebrow + emoji + title) on email-channel templates.
 
 ---
 
