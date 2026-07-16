@@ -147,8 +147,8 @@
       "dedupKey": "show_recap:{uid}:{showDate}",
       "templateId": "show-recap",
       "implementationModule": "functions/commsEventAdapters.js",
-      "githubIssue": null,
-      "note": "Email channel folded into tour_rankings_daily's next-morning send to remove the dominant same-day fatigue collision (#451). inApp/push retain immediate night-of delivery.",
+      "githubIssue": 572,
+      "note": "Email channel folded into tour_rankings_daily's next-morning send to remove the dominant same-day fatigue collision (#451). inApp/push retain immediate night-of delivery. Narrative vars from comms_show_context (#572).",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "show_date", "source": "show_calendar", "fallback": null },
@@ -167,9 +167,18 @@
         { "name": "encore_result", "source": "graded picks", "fallback": null },
         { "name": "wildcard_result", "source": "graded picks", "fallback": null },
         { "name": "bustout_bonus", "source": "scoring event metadata", "fallback": "0" },
-        { "name": "setlist_highlight", "source": "Phishnet setlist data / song gap stats", "fallback": null },
+        { "name": "setlist_highlight", "source": "comms_show_context/{showDate}.setlist_highlight", "fallback": null },
         { "name": "top_scorer_handle", "source": "leaderboard", "fallback": null },
-        { "name": "top_score", "source": "leaderboard", "fallback": null }
+        { "name": "top_score", "source": "leaderboard", "fallback": null },
+        { "name": "set_flow_summary", "source": "comms_show_context/{showDate}", "fallback": null },
+        { "name": "bustout_titles", "source": "comms_show_context/{showDate}", "fallback": [] },
+        { "name": "tour_debut_titles", "source": "comms_show_context/{showDate}", "fallback": [] },
+        { "name": "opener_title", "source": "comms_show_context/{showDate}", "fallback": null },
+        { "name": "encore_title", "source": "comms_show_context/{showDate}", "fallback": null },
+        { "name": "show_moment_tags", "source": "comms_show_context/{showDate}", "fallback": [] },
+        { "name": "user_hit_bustout", "source": "graded picks ∩ bustouts", "fallback": false },
+        { "name": "narrative_branch", "source": "deterministic: bustout_hero|hot_night|mixed|cold", "fallback": "mixed" },
+        { "name": "narrative_line", "source": "composed from branch + setlist_highlight", "fallback": null }
       ]
     },
     {
@@ -187,8 +196,8 @@
       "dedupKey": "tour_rank:{uid}:{showDate}",
       "templateId": "tour-rankings-daily",
       "implementationModule": "functions/commsEventAdapters.js",
-      "githubIssue": null,
-      "note": "Email now also carries the prior show's \"your night\" recap section (absorbed from show_recap, #451) alongside tour standings — one email per (uid, showDate) instead of two.",
+      "githubIssue": 572,
+      "note": "Email now also carries the prior show's \"your night\" recap section (absorbed from show_recap, #451) alongside tour standings — one email per (uid, showDate) instead of two. Narrative vars from comms_show_context (#572).",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "show_date", "source": "previous show date", "fallback": null },
@@ -207,9 +216,18 @@
         { "name": "encore_result", "source": "graded picks", "fallback": null },
         { "name": "wildcard_result", "source": "graded picks", "fallback": null },
         { "name": "bustout_bonus", "source": "scoring event metadata", "fallback": "0" },
-        { "name": "setlist_highlight", "source": "Phishnet setlist data / song gap stats", "fallback": null },
+        { "name": "setlist_highlight", "source": "comms_show_context/{showDate}.setlist_highlight", "fallback": null },
         { "name": "top_scorer_handle", "source": "leaderboard", "fallback": null },
         { "name": "top_score", "source": "leaderboard", "fallback": null },
+        { "name": "set_flow_summary", "source": "comms_show_context/{showDate}", "fallback": null },
+        { "name": "bustout_titles", "source": "comms_show_context/{showDate}", "fallback": [] },
+        { "name": "tour_debut_titles", "source": "comms_show_context/{showDate}", "fallback": [] },
+        { "name": "opener_title", "source": "comms_show_context/{showDate}", "fallback": null },
+        { "name": "encore_title", "source": "comms_show_context/{showDate}", "fallback": null },
+        { "name": "show_moment_tags", "source": "comms_show_context/{showDate}", "fallback": [] },
+        { "name": "user_hit_bustout", "source": "graded picks ∩ bustouts", "fallback": false },
+        { "name": "narrative_branch", "source": "deterministic: bustout_hero|hot_night|mixed|cold", "fallback": "mixed" },
+        { "name": "narrative_line", "source": "composed from branch + setlist_highlight", "fallback": null },
         { "name": "tour_rank", "source": "cumulative tour leaderboard (all graded pickers through showDate)", "fallback": null },
         { "name": "total_tour_pickers", "source": "tour leaderboard count", "fallback": null },
         { "name": "tour_points", "source": "cumulative tour score", "fallback": null },
@@ -222,7 +240,12 @@
         { "name": "shows_played", "source": "count of graded shows this tour", "fallback": null },
         { "name": "pool_tour_rank", "source": "pool tour leaderboard (not populated in v1)", "fallback": null },
         { "name": "next_show_date", "source": "show_calendar", "fallback": null },
-        { "name": "next_show_venue", "source": "show_calendar", "fallback": null }
+        { "name": "next_show_venue", "source": "show_calendar", "fallback": null },
+        { "name": "invite_kind", "source": "computed: pool when user has invite_code else site", "fallback": "site" },
+        { "name": "invite_url", "source": "computed from invite kit + email UTMs", "fallback": null },
+        { "name": "invite_headline", "source": "computed from invite kit copy", "fallback": null },
+        { "name": "inviter_handle", "source": "users/{uid}.handle", "fallback": null },
+        { "name": "invite_code", "source": "pools/{poolId}.inviteCode (first user pool)", "fallback": null }
       ]
     },
     {
@@ -302,8 +325,13 @@
         { "name": "greeting_name", "source": "users/{uid}.handle", "fallback": "friend" },
         { "name": "audience_segment", "source": "marketingAudience resolver", "fallback": "sphere_alum" },
         { "name": "opener_label", "source": "tour calendar", "fallback": "Tuesday, July 7" },
-        { "name": "share_url", "source": "pool invite /join/:code or homepage", "fallback": null },
+        { "name": "share_url", "source": "invite kit URL with email UTMs", "fallback": null },
+        { "name": "invite_kind", "source": "computed: pool when invite_code else site", "fallback": "site" },
+        { "name": "invite_url", "source": "alias of share_url", "fallback": null },
+        { "name": "invite_headline", "source": "computed from invite kit copy", "fallback": null },
+        { "name": "inviter_handle", "source": "users/{uid}.handle", "fallback": null },
         { "name": "invite_code", "source": "users.pools[0] → pools.inviteCode", "fallback": null },
+        { "name": "pool_name", "source": "users.pools[0] → pools.name", "fallback": null },
         { "name": "campaignId", "source": "vars.campaignId", "fallback": "summer_tour_2026" }
       ]
     }

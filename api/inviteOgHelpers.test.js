@@ -1,0 +1,84 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  buildInvitePageUrl,
+  buildPoolInviteShareTitle,
+  buildPoolInviteShareTitleFromInviter,
+  buildSiteInviteShareTitle,
+  CRAWLER_RE,
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  POOL_INVITE_FROM_DESCRIPTION,
+  POOL_INVITE_GENERIC_DESCRIPTION,
+  resolveInviteOgContent,
+  SITE_INVITE_DESCRIPTION,
+} from './inviteOgHelpers.mjs';
+
+describe('inviteOgHelpers', () => {
+  it('detects social crawlers without matching Instagram in-app browser', () => {
+    expect(CRAWLER_RE.test('facebookexternalhit/1.1')).toBe(true);
+    expect(CRAWLER_RE.test('Twitterbot/1.0')).toBe(true);
+    expect(CRAWLER_RE.test('Instagram 219.0.0.12.117 Android')).toBe(false);
+  });
+
+  it('builds invite page URLs', () => {
+    expect(buildInvitePageUrl({ handle: 'Mikey' })).toBe(
+      'https://www.setlistpickem.com/invite/Mikey',
+    );
+    expect(buildInvitePageUrl({ code: 'yem42' })).toBe(
+      'https://www.setlistpickem.com/join/YEM42',
+    );
+    expect(buildInvitePageUrl({ code: 'YEM42', from: 'Mikey' })).toBe(
+      'https://www.setlistpickem.com/join/YEM42?from=Mikey',
+    );
+  });
+
+  it('resolves site invite OG for browsers (static handle)', () => {
+    expect(
+      resolveInviteOgContent({ handle: 'Mikey' }),
+    ).toEqual({
+      title: buildSiteInviteShareTitle('Mikey'),
+      description: SITE_INVITE_DESCRIPTION,
+    });
+  });
+
+  it('falls back to generic site OG when crawler profile lookup fails', () => {
+    expect(
+      resolveInviteOgContent({ handle: 'unknown', siteProfileFound: false }),
+    ).toEqual({
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+    });
+  });
+
+  it('resolves pool invite OG with from= and optional pool name', () => {
+    expect(
+      resolveInviteOgContent({ code: 'YEM42', from: 'Mikey', poolName: 'Denver Crew' }),
+    ).toEqual({
+      title: buildPoolInviteShareTitleFromInviter('Mikey', 'Denver Crew'),
+      description: POOL_INVITE_FROM_DESCRIPTION,
+    });
+
+    expect(
+      resolveInviteOgContent({ code: 'YEM42', from: 'Mikey' }),
+    ).toEqual({
+      title: buildPoolInviteShareTitleFromInviter('Mikey'),
+      description: POOL_INVITE_FROM_DESCRIPTION,
+    });
+  });
+
+  it('resolves pool invite OG without from= using legacy pool copy', () => {
+    expect(
+      resolveInviteOgContent({ code: 'YEM42', poolName: 'Denver Crew' }),
+    ).toEqual({
+      title: buildPoolInviteShareTitle('Denver Crew'),
+      description:
+        "Join my Setlist Pick 'Em pool — Denver Crew. Pick openers, closers, and more before each show.",
+    });
+
+    expect(resolveInviteOgContent({ code: 'YEM42' })).toEqual({
+      title: buildPoolInviteShareTitle(),
+      description: POOL_INVITE_GENERIC_DESCRIPTION,
+    });
+  });
+});

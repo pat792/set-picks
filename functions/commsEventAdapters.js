@@ -27,6 +27,18 @@ const {
   nextTourShowDate,
   buildTourRankingsDailyPayloadFields,
 } = require("./tourRankingsDailyCore");
+const {
+  inviteContextForUser,
+  buildInviteEmailFields,
+} = require("./comms/inviteContext.cjs");
+const {
+  ensureCommsShowContext,
+  showLevelPayloadFields,
+} = require("./commsShowContext");
+const { buildShowRecapEnrichment } = require("./showRecapNarrativeCore");
+const { persistableActualSetlistFromOfficialDoc } = require("./scoringCore");
+
+const SITE_URL = "https://www.setlistpickem.com";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 const COUNTDOWN_DAYS = [10, 5, 3, 1];
@@ -335,6 +347,51 @@ async function deliverPostRollupComms({
     : new Map();
   const nextShowSecuredUids = nextDate ? securedByNextShow.get(nextDate) || new Set() : new Set();
 
+  // #572 — night-of narrative context (soft-fail to scorecard-only).
+  let showLevel = {};
+  let actualSetlist = null;
+  try {
+    const setlistSnap = await db.collection("official_setlists").doc(showDate).get();
+    const setlistDoc = setlistSnap.exists ? setlistSnap.data() || {} : null;
+    actualSetlist = setlistDoc
+      ? persistableActualSetlistFromOfficialDoc(setlistDoc)
+      : null;
+    const context = await ensureCommsShowContext({
+      db,
+      admin,
+      showDate,
+      setlistDoc,
+      showDatesByTour,
+      logger,
+    });
+    showLevel = showLevelPayloadFields(context);
+  } catch (e) {
+    logger?.warn?.("deliverPostRollupComms.showContext failed", {
+      showDate,
+      msg: e instanceof Error ? e.message : String(e),
+    });
+  }
+
+  let topScorerHandle = null;
+  let topScore = null;
+  for (const [, info] of ranks) {
+    if (info?.rank === 1) {
+      topScore = info.score;
+      break;
+    }
+  }
+  if (topScore != null) {
+    for (const pickDoc of picksSnap.docs) {
+      const pickData = pickDoc.data() || {};
+      const uid = typeof pickData.userId === "string" ? pickData.userId.trim() : "";
+      const score = newScoresById.get(pickDoc.id) ?? 0;
+      if (uid && score === topScore) {
+        topScorerHandle = handleFromUser(pickData) || null;
+        break;
+      }
+    }
+  }
+
   /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
   const recapRecipients = [];
   /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
@@ -353,6 +410,15 @@ async function deliverPostRollupComms({
     const userSnap = await db.collection("users").doc(uid).get();
     const userData = userSnap.exists ? userSnap.data() || {} : {};
 
+    const enrichment = buildShowRecapEnrichment({
+      showLevel,
+      userPicks: pickData.picks,
+      actualSetlist,
+      show_score: score,
+      top_scorer_handle: topScorerHandle,
+      top_score: topScore,
+    });
+
     recapRecipients.push({
       uid,
       userData,
@@ -364,6 +430,7 @@ async function deliverPostRollupComms({
         show_score: score,
         global_rank: rankInfo.rank,
         global_total_pickers: rankInfo.total,
+        ...enrichment,
       },
       vars: { uid, showDate },
     });
@@ -690,11 +757,41 @@ async function runScheduledTourRankingsDaily({
 
     /** @type {Set<string>} */
     const lastNightUids = new Set();
+    /** @type {Map<string, object>} */
+    const picksByUid = new Map();
     for (const pickDoc of picksSnap.docs) {
       const pickData = pickDoc.data() || {};
       const uid = typeof pickData.userId === "string" ? pickData.userId.trim() : "";
       if (!uid || pickData.isGraded !== true) continue;
       lastNightUids.add(uid);
+      picksByUid.set(uid, pickData);
+    }
+
+    // #572 — night-of narrative for email “Tonight” block (soft-fail).
+    let showLevel = {};
+    let actualSetlist = null;
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const setlistSnap = await db.collection("official_setlists").doc(showDate).get();
+      const setlistDoc = setlistSnap.exists ? setlistSnap.data() || {} : null;
+      actualSetlist = setlistDoc
+        ? persistableActualSetlistFromOfficialDoc(setlistDoc)
+        : null;
+      // eslint-disable-next-line no-await-in-loop
+      const context = await ensureCommsShowContext({
+        db,
+        admin,
+        showDate,
+        setlistDoc,
+        showDatesByTour,
+        logger,
+      });
+      showLevel = showLevelPayloadFields(context);
+    } catch (e) {
+      logger?.warn?.("runScheduledTourRankingsDaily.showContext failed", {
+        showDate,
+        msg: e instanceof Error ? e.message : String(e),
+      });
     }
 
     for (const uid of lastNightUids) {
@@ -702,28 +799,46 @@ async function runScheduledTourRankingsDaily({
       const userSnap = await db.collection("users").doc(uid).get();
       const userData = userSnap.exists ? userSnap.data() || {} : {};
       const rankInfo = globalRanks.get(uid) || null;
-      const pickHandle = (() => {
-        for (const pickDoc of picksSnap.docs) {
-          const d = pickDoc.data() || {};
-          if (d.userId === uid) return handleFromUser(d);
-        }
-        return "";
-      })();
-      const payload = buildTourRankingsDailyPayloadFields({
-        uid,
-        handle: pickHandle || handleFromUser(userData),
-        showDate,
-        venueName: show.venue || "",
-        venueCity: show.city || "",
-        showScore: rankInfo?.score ?? null,
-        globalRank: rankInfo?.rank ?? null,
-        globalTotalPickers: rankInfo?.total ?? null,
-        currentBoard,
-        priorBoard,
-        isTourNightOne,
-        nextShowDate: nextDate,
-        nextShowVenue: nextMeta?.venue || "",
+      const pickData = picksByUid.get(uid) || {};
+      const pickHandle = handleFromUser(pickData);
+      const enrichment = buildShowRecapEnrichment({
+        showLevel,
+        userPicks: pickData.picks,
+        actualSetlist,
+        show_score: rankInfo?.score ?? null,
       });
+      const payload = {
+        ...buildTourRankingsDailyPayloadFields({
+          uid,
+          handle: pickHandle || handleFromUser(userData),
+          showDate,
+          venueName: show.venue || "",
+          venueCity: show.city || "",
+          showScore: rankInfo?.score ?? null,
+          globalRank: rankInfo?.rank ?? null,
+          globalTotalPickers: rankInfo?.total ?? null,
+          currentBoard,
+          priorBoard,
+          isTourNightOne,
+          nextShowDate: nextDate,
+          nextShowVenue: nextMeta?.venue || "",
+        }),
+        ...enrichment,
+      };
+      // eslint-disable-next-line no-await-in-loop
+      const { inviteCode, poolName } = await inviteContextForUser(db, userData);
+      const inviterHandle =
+        pickHandle ||
+        (typeof userData.handle === "string" ? userData.handle.trim() : "");
+      const inviteFields =
+        buildInviteEmailFields({
+          baseUrl: SITE_URL,
+          inviterHandle,
+          inviteCode,
+          poolName,
+          campaign: "tour_rankings_daily",
+        }) || {};
+      Object.assign(payload, inviteFields);
       recipients.push({
         uid,
         userData,

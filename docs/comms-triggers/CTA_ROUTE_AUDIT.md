@@ -27,7 +27,8 @@ Label rule: **never promise a surface the href does not deliver.** Inbox cards s
 | `tour-countdown` | `/dashboard/picks` | |
 | `picks-confirmed` | `/dashboard` default | Prefer picks in a follow-up if still shipping |
 | `show-recap` | `/dashboard/standings#self-recap` | Rare (email folded into morning send #451) |
-| `tour-rankings_daily` | `/dashboard/picks` | Catalog: “Make picks for next show” |
+| `tour-rankings_daily` | `/dashboard/picks` | Catalog: “Make picks for next show”; includes invite share block when `invite_url` present (#583) |
+| `summer-tour-2026-launch` | invite `shareUrl` / `invite_url` | Pool `/join/{code}?from={handle}` or site `/invite/{handle}` + UTMs (#583) |
 | `picks-lock-reminder` | `/dashboard/picks` | |
 
 ## Push deep links

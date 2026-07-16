@@ -24,13 +24,25 @@ mkdirSync(outDir, { recursive: true });
 
 const variants = [
   {
-    file: "summer-tour-2026-launch-sphere-alum.html",
-    label: "Sphere alum (default cohort)",
+    file: "summer-tour-2026-launch-sphere-alum-pool.html",
+    label: "Sphere alum — pool invite",
     props: {
       greetingName: "Pat",
+      inviterHandle: "Pat",
       audienceSegment: "sphere_alum",
       openerLabel: "Tuesday, July 7",
       inviteCode: "DEMO1",
+      poolName: "Denver Crew",
+    },
+  },
+  {
+    file: "summer-tour-2026-launch-site-invite.html",
+    label: "Site VIP invite (no pool)",
+    props: {
+      greetingName: "Pat",
+      inviterHandle: "Pat",
+      audienceSegment: "sphere_alum",
+      openerLabel: "Tuesday, July 7",
     },
   },
   {
@@ -38,6 +50,7 @@ const variants = [
     label: "Post-Sphere signup",
     props: {
       greetingName: "Pat",
+      inviterHandle: "Pat",
       audienceSegment: "post_sphere_signup",
       openerLabel: "Tuesday, July 7",
     },

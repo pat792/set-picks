@@ -11,39 +11,14 @@ const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { resolveSummerTour2026LaunchAudience } = require("./marketingAudience");
 const { buildSummerTour2026LaunchChannels } = require("./marketingCommsTemplates");
+const {
+  inviteContextForUser,
+  buildInviteEmailFields,
+} = require("./comms/inviteContext.cjs");
 
 const TRIGGER_ID = "marketing_summer_tour_2026_launch";
 const CAMPAIGN_ID = "summer_tour_2026";
 const SITE_URL = "https://www.setlistpickem.com";
-const BASE_UTM = "utm_source=email&utm_campaign=summer_tour_2026_launch";
-
-/**
- * @param {string} base
- * @param {string | null | undefined} inviteCode
- * @returns {string}
- */
-function buildInviteShareUrl(base, inviteCode) {
-  const normalized =
-    typeof inviteCode === "string" ? inviteCode.trim().toUpperCase() : "";
-  if (normalized) {
-    return `${base}/join/${encodeURIComponent(normalized)}?${BASE_UTM}&utm_content=share_friends`;
-  }
-  return `${base}/?${BASE_UTM}&utm_content=share_friends`;
-}
-
-/**
- * @param {import("firebase-admin").firestore.Firestore} db
- * @param {Record<string, unknown> | null | undefined} userData
- * @returns {Promise<string | null>}
- */
-async function inviteCodeForUser(db, userData) {
-  const poolIds = Array.isArray(userData?.pools) ? userData.pools : [];
-  if (poolIds.length === 0) return null;
-  const poolSnap = await db.collection("pools").doc(String(poolIds[0])).get();
-  if (!poolSnap.exists) return null;
-  const code = poolSnap.data()?.inviteCode;
-  return typeof code === "string" && code.trim() ? code.trim().toUpperCase() : null;
-}
 
 /**
  * @param {Record<string, unknown> | undefined} userData
@@ -55,21 +30,43 @@ function handleFromUser(userData) {
 }
 
 /**
+ * @param {Record<string, unknown> | null | undefined} userData
+ * @returns {string}
+ */
+function inviteHandleFromUser(userData) {
+  return userData && typeof userData.handle === "string" ? userData.handle.trim() : "";
+}
+
+/**
  * @param {string} segment
- * @param {string} handle
+ * @param {string} greetingName
+ * @param {string} inviterHandle
  * @param {string | null} inviteCode
+ * @param {string | null} poolName
  * @returns {Record<string, string>}
  */
-function buildEmailPayload(segment, handle, inviteCode) {
+function buildEmailPayload(segment, greetingName, inviterHandle, inviteCode, poolName) {
   const base = SITE_URL.replace(/\/+$/, "");
+  const inviteFields =
+    buildInviteEmailFields({
+      baseUrl: base,
+      inviterHandle,
+      inviteCode,
+      poolName,
+      campaign: "summer_tour_2026_launch",
+      utmContent: "share_friends",
+    }) || {};
   return {
-    greetingName: handle,
+    greetingName,
+    inviterHandle,
     audienceSegment: segment,
     openerLabel: "Tuesday, July 7",
     siteUrl: base,
     settingsUrl: `${base}/dashboard/profile/notifications`,
-    shareUrl: buildInviteShareUrl(base, inviteCode),
+    shareUrl: inviteFields.invite_url || "",
     ...(inviteCode ? { inviteCode } : {}),
+    ...(poolName ? { poolName } : {}),
+    ...inviteFields,
   };
 }
 
@@ -134,16 +131,18 @@ async function deliverMarketingSummerTour2026Launch({
       typeof userData.email === "string" && userData.email.includes("@")
         ? userData.email.trim()
         : null;
-    const handle = handleFromUser(userData);
+    const greetingName = handleFromUser(userData);
+    const inviterHandle = inviteHandleFromUser(userData);
     // eslint-disable-next-line no-await-in-loop
-    const inviteCode = await inviteCodeForUser(db, userData);
+    const { inviteCode, poolName } = await inviteContextForUser(db, userData);
 
     preview.push({
       uid: member.uid,
       segment: member.segment,
-      handle,
+      handle: greetingName,
       email,
       inviteCode,
+      poolName,
     });
 
     if (!email) continue;
@@ -151,7 +150,13 @@ async function deliverMarketingSummerTour2026Launch({
     recipients.push({
       uid: member.uid,
       userData,
-      payload: buildEmailPayload(member.segment, handle, inviteCode),
+      payload: buildEmailPayload(
+        member.segment,
+        greetingName,
+        inviterHandle,
+        inviteCode,
+        poolName
+      ),
       vars: {
         uid: member.uid,
         campaignId: CAMPAIGN_ID,

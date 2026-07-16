@@ -39,6 +39,7 @@ export { default as StandingsPoolPicker } from './ui/StandingsPoolPicker';
 export { default as StandingsShowOrPoolView } from './ui/StandingsShowOrPoolView';
 export { default as StandingsTourView } from './ui/StandingsTourView';
 export { default as StandingsViewToggle } from './ui/StandingsViewToggle';
+export { default as StandingsStickyChrome } from './ui/StandingsStickyChrome';
 export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinnerOfTheNightBanner';
 export { default as TourStandingsSection } from './ui/TourStandingsSection';
 export { resolveCurrentTour } from './model/resolveCurrentTour';

@@ -79,12 +79,18 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
     show_score: 70,
     global_rank: 4,
     global_total_pickers: 200,
+    correct_picks_count: 3,
+    total_picks_count: 6,
     tour_rank: 3,
     total_tour_pickers: 50,
     tour_points: 210,
     rank_change: "up 2",
     next_show_date: "2026-07-19",
     next_show_venue: "Sphere",
+    invite_kind: "pool",
+    invite_url:
+      "https://www.setlistpickem.com/join/ABC12?from=RiverTranced&utm_source=email&utm_campaign=tour_rankings_daily&utm_content=invite_share",
+    invite_headline: "RiverTranced invited you to join their pool: Denver Crew",
   });
   // Night-of recap content is present even though show_recap no longer emails.
   assert.match(out.email.text, /70/, "show score");
@@ -92,9 +98,42 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   // Tour-standings content (this trigger's original purpose) still present.
   assert.match(out.email.text, /#3/, "tour rank");
   assert.match(out.email.text, /210/, "tour points");
-  assert.match(out.email.text, /climbed 2/, "rank change rendered as climbed");
+  assert.match(out.email.text, /climbed 2 spots/, "rank change rendered as climbed");
   assert.match(out.email.text, /2026-07-19/, "next show date");
   assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
+  assert.match(out.email.text, /Want to share with friends/);
+  assert.match(out.email.text, /forward this email to a friend/i);
+  assert.match(out.email.text, /Open Standings:/);
+  assert.match(out.email.text, /\/dashboard\/standings/);
+  // Prose night + tour paragraphs (words around variables).
+  assert.match(
+    out.email.text,
+    /You scored 70 points and are now ranked #4 of 200 globally, with 3 of 6 picks hitting/,
+  );
+  assert.match(out.email.text, /Still in the top 5 — ranked #3 of 50 with 210 points/);
+  assert.equal(out.email.header?.eyebrow, "Tour standings");
+  assert.equal(out.email.header?.title, "Where you stand on tour");
+  assert.match(out.email.header?.icon || "", /📈/);
+  // Handle greets once in night para — not repeated in tour para.
+  assert.match(out.email.text, /RiverTranced, here's how last night/);
+  assert.doesNotMatch(
+    out.email.text,
+    /RiverTranced, after/,
+    "tour paragraph should not re-greet with handle",
+  );
+  assert.ok(out.email.inviteBlockHtml, "invite HTML block");
+  assert.match(out.email.inviteBlockHtml, /Want to share with friends/);
+  assert.match(out.email.inviteBlockHtml, /forward this email to a friend/i);
+  assert.match(out.email.inviteBlockHtml, /Open Standings to share/);
+  assert.match(out.email.inviteBlockHtml, /#2563eb/, "secondary standings link color");
+  assert.doesNotMatch(out.email.inviteBlockHtml, /mailto:/);
+  // Soft text link — not a solid button to a bare invite URL.
+  assert.doesNotMatch(out.email.inviteBlockHtml, />https?:\/\//);
+  // Recap body (before Open the app) must not include the standings share nudge URL.
+  assert.doesNotMatch(
+    out.email.text.split("Open the app:")[0],
+    /utm_content=share_nudge/,
+  );
 });
 
 test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {
