@@ -32,13 +32,17 @@ function handleOf(p) {
 
 /**
  * Readable night scorecard sentence (words around variables, not a comma list).
- * e.g. "You scored 70 points and are now ranked #4 of 200 globally, with 3 of 6 picks hitting."
+ * e.g. present: "You scored 70 points and are now ranked #4 of 200 globally, with 3 of 6 picks hitting."
+ * e.g. past (morning daily): "…and were ranked #4 of 200 globally…" — night rank is prior night.
  *
  * @param {Record<string, unknown>} p
- * @param {{ rankScope?: string }} [opts]
+ * @param {{ rankScope?: string, rankTense?: "present" | "past" }} [opts]
  * @returns {string} Full sentence including trailing period, or "" if nothing to say.
  */
-function buildShowScorecardSentence(p, { rankScope = "globally" } = {}) {
+function buildShowScorecardSentence(
+  p,
+  { rankScope = "globally", rankTense = "present" } = {}
+) {
   /** @type {string[]} */
   const lead = [];
   if (p.show_score != null) {
@@ -47,7 +51,13 @@ function buildShowScorecardSentence(p, { rankScope = "globally" } = {}) {
   if (p.global_rank != null) {
     const of =
       p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : "";
-    lead.push(`are now ranked #${p.global_rank}${of} ${rankScope}`);
+    // Morning `tour_rankings_daily` looks back at last night → past tense.
+    // Night-of `show_recap` keeps present ("are now ranked").
+    lead.push(
+      rankTense === "past"
+        ? `were ranked #${p.global_rank}${of} ${rankScope}`
+        : `are now ranked #${p.global_rank}${of} ${rankScope}`
+    );
   }
 
   let sentence = "";
@@ -335,7 +345,10 @@ const BUILDERS = {
     const nightPara = [
       `${handle}, here's how last night at ${venue} went.`,
       narrative,
-      buildShowScorecardSentence(p, { rankScope: "globally" }),
+      buildShowScorecardSentence(p, {
+        rankScope: "globally",
+        rankTense: "past",
+      }),
     ]
       .filter(Boolean)
       .join(" ");

@@ -145,7 +145,7 @@ const MANAGE_PREFS_LINE_RE = /^manage which updates you get in notifications set
 const LEGACY_BRAND_SIGNOFF_RE = /^—\s*setlist pick'?em\.?$/i;
 /** Invite appendix lives in plain-text + HTML invite card — never the main body. */
 const INVITE_CREW_LINE_RE =
-  /^(invite your crew|share with friends|want to share with friends)\b/i;
+  /^(invite your crew|share with friends|want to share with friends|want to invite friends)\b/i;
 const INVITE_FORWARD_LINE_RE = /^or forward this email\b/i;
 const INVITE_SHARE_MSG_LINE_RE =
   /\binvites you to join\b|^you'?re invited to join setlist\b/i;
