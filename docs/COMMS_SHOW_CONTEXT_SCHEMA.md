@@ -20,6 +20,7 @@ Standalone collection (same rationale as `rollup_audit`): do not nest on
 | `opener_title` | string \| null | Slot / set1 first |
 | `encore_title` | string \| null | Slot / encore first |
 | `bustout_titles` | string[] | From `official_setlists.bustouts` |
+| `bustout_entries` | `{ title, gap }[]` | Bustouts with Phish.net pre-show gap when rows available |
 | `tour_debut_titles` | string[] | Tonight titles not seen earlier this tour |
 | `set_flow_summary` | string \| null | Short S1/S2/E structure line |
 | `setlist_highlight` | string \| null | One-liner for push / Tonight |

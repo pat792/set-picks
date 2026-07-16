@@ -1,8 +1,8 @@
 import { Link, Text } from "@react-email/components";
+import { CommsEmailHeader } from "../components/CommsEmailHeader.jsx";
 import { FeatureBlock } from "../components/FeatureBlock.jsx";
 import { InviteShareBlock } from "../components/InviteShareBlock.jsx";
 import { MarketingLayout } from "../components/MarketingLayout.jsx";
-import { resolveEmailInviteShare } from "../lib/inviteKit.js";
 
 const greetingStyle = {
   margin: "0 0 16px",
@@ -45,61 +45,26 @@ const inlineLinkStyle = {
  *
  * @param {{
  *   greetingName?: string,
- *   inviterHandle?: string,
  *   audienceSegment?: 'sphere_alum' | 'post_sphere_signup' | 'sphere_alum_and_new',
  *   openerLabel?: string,
  *   siteUrl?: string,
  *   settingsUrl?: string,
- *   shareUrl?: string,
- *   inviteUrl?: string,
- *   inviteKind?: 'site' | 'pool',
- *   inviteHeadline?: string,
- *   inviteCode?: string,
- *   poolName?: string,
+ *   tourLabel?: string,
+ *   headerTitle?: string,
  * }} props
  */
 export function SummerTour2026Launch({
   greetingName = "friend",
-  inviterHandle,
   audienceSegment = "sphere_alum",
   openerLabel = "Tuesday, July 7",
   siteUrl = "https://www.setlistpickem.com",
   settingsUrl,
-  shareUrl,
-  inviteUrl,
-  inviteKind,
-  inviteHeadline,
-  inviteCode,
-  poolName,
+  /** Tour / run label for header eyebrow — e.g. Summer Tour 2026, Fall Tour, Dick's. */
+  tourLabel = "Summer Tour 2026",
+  /** Header title under eyebrow. */
+  headerTitle = "Bring your crew",
 }) {
   const base = siteUrl.replace(/\/+$/, "");
-  const handle =
-    typeof inviterHandle === "string" && inviterHandle.trim()
-      ? inviterHandle.trim()
-      : greetingName !== "friend"
-        ? greetingName
-        : "";
-  const resolvedShare =
-    typeof shareUrl === "string" && shareUrl.trim()
-      ? {
-          invite_kind: inviteKind === "pool" ? "pool" : "site",
-          invite_url: shareUrl.trim(),
-          invite_headline: inviteHeadline || "",
-        }
-      : typeof inviteUrl === "string" && inviteUrl.trim()
-        ? {
-            invite_kind: inviteKind === "pool" ? "pool" : "site",
-            invite_url: inviteUrl.trim(),
-            invite_headline: inviteHeadline || "",
-          }
-        : resolveEmailInviteShare({
-            baseUrl: base,
-            inviterHandle: handle,
-            inviteCode,
-            poolName,
-            campaign: "summer_tour_2026_launch",
-            utmContent: "share_friends",
-          });
   const installHowToUrl = `${base}/dashboard/profile?utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=install_howto`;
 
   const introParagraphs =
@@ -119,6 +84,11 @@ export function SummerTour2026Launch({
       settingsUrl={settingsUrl}
       preheader={`Bring your crew → Summer Tour starts ${openerLabel}.`}
     >
+      <CommsEmailHeader
+        icon="🎸"
+        eyebrow={tourLabel}
+        title={headerTitle}
+      />
       <Text style={greetingStyle}>Hey {greetingName},</Text>
 
       {introParagraphs.map((para) => (
@@ -165,16 +135,8 @@ export function SummerTour2026Launch({
       </Text>
 
       <InviteShareBlock
-        inviterHandle={handle || greetingName}
-        inviteUrl={resolvedShare?.invite_url}
-        inviteKind={resolvedShare?.invite_kind}
-        poolName={poolName}
-        inviteHeadline={resolvedShare?.invite_headline}
-        ctaLabel={
-          greetingName !== "friend"
-            ? `Share with your friends, ${greetingName} →`
-            : undefined
-        }
+        standingsUrl={`${(siteUrl || "https://www.setlistpickem.com").replace(/\/$/, "")}/dashboard/standings?utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=share_nudge`}
+        ctaLabel="Open Standings to share →"
       />
     </MarketingLayout>
   );

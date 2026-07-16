@@ -1,84 +1,75 @@
 import { Link, Text } from "@react-email/components";
-import {
-  buildPoolInviteShareTitleFromInviter,
-  buildSiteInviteShareTitle,
-  normalizeInviteHandle,
-} from "../lib/inviteKit.js";
 
-const headlineStyle = {
+const introStyle = {
   margin: "24px 0 8px",
   fontSize: "15px",
-  fontWeight: 700,
+  fontWeight: 400,
+  lineHeight: 1.5,
   color: "#1a1a2e",
 };
 
-const linkStyle = {
-  display: "inline-block",
-  marginTop: "8px",
-  marginBottom: "8px",
-  padding: "12px 24px",
-  backgroundColor: "#7c3aed",
-  color: "#ffffff",
-  textDecoration: "none",
-  borderRadius: "8px",
-  fontWeight: 700,
+const forwardStyle = {
+  margin: "0 0 8px",
   fontSize: "14px",
-};
-
-const urlStyle = {
-  display: "block",
-  margin: "0 0 16px",
-  fontSize: "13px",
+  fontWeight: 400,
   lineHeight: 1.5,
   color: "#64748b",
-  wordBreak: "break-all",
 };
 
+/** Soft text link — secondary blue, not a solid primary button. */
+const softLinkStyle = {
+  display: "inline-block",
+  marginTop: "4px",
+  marginBottom: "8px",
+  color: "#2563eb",
+  textDecoration: "underline",
+  fontWeight: 700,
+  fontSize: "15px",
+};
+
+const INVITE_NUDGE_INTRO =
+  "Want to share with friends? Log in and tap Share on Standings — your invite link is ready there.";
+
+const INVITE_NUDGE_FORWARD = "Or forward this email to a friend.";
+
 /**
- * Shareable invite block — site or pool variant (#583).
+ * Soft invite nudge — points to in-app Share; optional Standings link.
+ * No mailto / OS-share pretenses (#583 / #572).
  *
  * @param {{
- *   inviterHandle?: string,
+ *   standingsUrl?: string,
  *   inviteUrl?: string,
- *   inviteKind?: 'site' | 'pool',
- *   poolName?: string,
- *   inviteHeadline?: string,
  *   ctaLabel?: string,
+ *   inviterHandle?: string,
+ *   inviteKind?: string,
+ *   poolName?: string,
  * }} props
  */
 export function InviteShareBlock({
-  inviterHandle,
+  standingsUrl,
   inviteUrl,
-  inviteKind = "site",
-  poolName,
-  inviteHeadline,
   ctaLabel,
 }) {
-  const url = typeof inviteUrl === "string" ? inviteUrl.trim() : "";
-  if (!url) return null;
-
-  const handle = normalizeInviteHandle(inviterHandle);
-  const kind = inviteKind === "pool" ? "pool" : "site";
-  const headline =
-    typeof inviteHeadline === "string" && inviteHeadline.trim()
-      ? inviteHeadline.trim()
-      : kind === "pool"
-        ? buildPoolInviteShareTitleFromInviter(handle, poolName)
-        : buildSiteInviteShareTitle(handle);
+  const standings =
+    typeof standingsUrl === "string" && standingsUrl.trim()
+      ? standingsUrl.trim()
+      : typeof inviteUrl === "string" && inviteUrl.includes("/dashboard/standings")
+        ? inviteUrl.trim()
+        : "";
   const buttonLabel =
     typeof ctaLabel === "string" && ctaLabel.trim()
       ? ctaLabel.trim()
-      : handle
-        ? `Share with your friends, ${handle} →`
-        : "Share with your friends →";
+      : "Open Standings to share →";
 
   return (
     <>
-      <Text style={headlineStyle}>{headline}</Text>
-      <Link href={url} style={linkStyle}>
-        {buttonLabel}
-      </Link>
-      <Text style={urlStyle}>{url}</Text>
+      <Text style={introStyle}>{INVITE_NUDGE_INTRO}</Text>
+      <Text style={forwardStyle}>{INVITE_NUDGE_FORWARD}</Text>
+      {standings ? (
+        <Link href={standings} style={softLinkStyle}>
+          {buttonLabel}
+        </Link>
+      ) : null}
     </>
   );
 }

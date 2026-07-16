@@ -45,15 +45,16 @@ describe("tourDebutTitles", () => {
 });
 
 describe("composeSetlistHighlight", () => {
-  it("prefers bustout copy", () => {
+  it("formats bustout as Song - gap", () => {
     assert.equal(
       composeSetlistHighlight({
         bustoutTitles: ["Curtain With"],
+        bustoutEntries: [{ title: "Curtain With", gap: 142 }],
         tourDebuts: [],
         openerTitle: "YEM",
         encoreTitle: "Tweeprise",
       }),
-      "Curtain With busted out.",
+      "Curtain With - a 142 show gap",
     );
   });
 });
@@ -71,11 +72,18 @@ describe("buildCommsShowContext", () => {
         setlist: { s1o: "YEM", enc: "Slave" },
       },
       priorTourSetlistDocs: [{ officialSetlist: ["YEM", "Bowie"] }],
+      phishnetRows: [
+        { title: "YEM", gap: 2 },
+        { title: "Wolfman's", gap: 87 },
+        { title: "Tweezer", gap: 5 },
+        { title: "Slave", gap: 10 },
+      ],
     });
-    assert.equal(ctx.setlist_highlight, "Wolfman's busted out.");
+    assert.equal(ctx.setlist_highlight, "Wolfman's - an 87 show gap");
     assert.match(ctx.set_flow_summary, /Set 1 opened with YEM/);
     assert.ok(ctx.show_moment_tags.includes("bustout"));
     assert.ok(ctx.tour_debut_titles.includes("Wolfman's"));
+    assert.equal(ctx.bustout_entries[0].gap, 87);
   });
 });
 
@@ -124,22 +132,26 @@ describe("buildUserShowScorecard", () => {
     assert.equal(card.user_hit_bustout, true);
     assert.ok(card.bustout_bonus >= 20);
     assert.equal(card.correct_picks_count, 4);
+    assert.equal(card.total_picks_count, 6);
   });
 });
 
 describe("buildShowRecapEnrichment", () => {
-  it("merges show-level highlight into narrative_line", () => {
+  it("formats bustout hero as Song - gap", () => {
     const enriched = buildShowRecapEnrichment({
-      showLevel: { setlist_highlight: "Wolfman's busted out." },
-      userPicks: { s1o: "YEM" },
+      showLevel: {
+        setlist_highlight: "Wolfman's - 87",
+        bustout_entries: [{ title: "Wolfman's", gap: 87 }],
+      },
+      userPicks: { s1o: "Wolfman's" },
       actualSetlist: {
-        s1o: "YEM",
-        officialSetlist: ["YEM"],
-        bustouts: ["YEM"],
+        s1o: "Wolfman's",
+        officialSetlist: ["Wolfman's"],
+        bustouts: ["Wolfman's"],
       },
       show_score: 30,
     });
     assert.equal(enriched.narrative_branch, "bustout_hero");
-    assert.match(enriched.narrative_line, /bustout/i);
+    assert.equal(enriched.narrative_line, "You caught a bustout — Wolfman's - an 87 show gap.");
   });
 });

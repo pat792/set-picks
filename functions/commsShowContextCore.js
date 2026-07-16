@@ -167,9 +167,66 @@ function composeSetFlowSummary(groups, opener, encoreTitle) {
 }
 
 /**
+ * Bustout titles with gaps from Phish.net rows (gap ≥ BUSTOUT_MIN_GAP).
+ * @param {{ title: string, gap?: number | null }[]} rows
+ * @param {number} [minGap=30]
+ * @returns {{ title: string, gap: number | null }[]}
+ */
+function bustoutEntriesFromRows(rows, minGap = 30) {
+  const seen = new Set();
+  /** @type {{ title: string, gap: number | null }[]} */
+  const out = [];
+  for (const row of rows || []) {
+    if (!row || typeof row.title !== "string") continue;
+    const title = row.title.trim();
+    if (!title) continue;
+    const gap =
+      typeof row.gap === "number" && Number.isFinite(row.gap)
+        ? Math.trunc(row.gap)
+        : null;
+    if (gap == null || gap < minGap) continue;
+    const norm = title.toLowerCase();
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    out.push({ title, gap });
+  }
+  return out;
+}
+
+/**
+ * "a" / "an" before a spoken gap number (eight*, eleven, eighteen → an).
+ * @param {number} n
+ * @returns {"a" | "an"}
+ */
+function indefiniteArticleForGap(n) {
+  const abs = Math.abs(Math.trunc(Number(n)));
+  if (!Number.isFinite(abs)) return "a";
+  const s = String(abs);
+  if (s === "11" || s === "18" || s.startsWith("8")) return "an";
+  return "a";
+}
+
+/**
+ * @param {{ title: string, gap?: number | null }[]} entries
+ * @returns {string}
+ */
+function formatBustoutSongGap(entries) {
+  const list = (entries || []).filter((e) => e && e.title);
+  if (!list.length) return "";
+  return list
+    .map((e) =>
+      e.gap != null && Number.isFinite(e.gap)
+        ? `${e.title} - ${indefiniteArticleForGap(e.gap)} ${e.gap} show gap`
+        : e.title,
+    )
+    .join(", ");
+}
+
+/**
  * One-liner highlight for push / Tonight block.
  * @param {{
  *   bustoutTitles: string[],
+ *   bustoutEntries?: { title: string, gap?: number | null }[],
  *   tourDebuts: string[],
  *   openerTitle: string,
  *   encoreTitle: string,
@@ -178,17 +235,18 @@ function composeSetFlowSummary(groups, opener, encoreTitle) {
  */
 function composeSetlistHighlight({
   bustoutTitles,
+  bustoutEntries,
   tourDebuts,
   openerTitle,
   encoreTitle,
 }) {
-  if (bustoutTitles.length === 1) {
-    return `${bustoutTitles[0]} busted out.`;
-  }
-  if (bustoutTitles.length > 1) {
-    return `Bustouts: ${bustoutTitles.slice(0, 3).join(", ")}${
-      bustoutTitles.length > 3 ? "…" : ""
-    }.`;
+  const entries =
+    Array.isArray(bustoutEntries) && bustoutEntries.length
+      ? bustoutEntries
+      : (bustoutTitles || []).map((title) => ({ title, gap: null }));
+  const bustoutLine = formatBustoutSongGap(entries);
+  if (bustoutLine) {
+    return entries.length === 1 ? bustoutLine : `Bustouts: ${bustoutLine}.`;
   }
   if (tourDebuts.length >= 3) {
     return `${tourDebuts.length} songs new to this tour — including ${tourDebuts[0]}.`;
@@ -232,6 +290,10 @@ function buildCommsShowContext({
   setlistDoc,
   priorTourSetlistDocs = [],
   tourKey = null,
+  /** @type {{ title: string, gap?: number | null }[] | null} */
+  bustoutEntries = null,
+  /** @type {{ title: string, gap?: number | null }[] | null} */
+  phishnetRows = null,
 }) {
   const slotMap =
     setlistDoc?.setlist && typeof setlistDoc.setlist === "object"
@@ -253,16 +315,31 @@ function buildCommsShowContext({
     (groups.encore[0] ? groups.encore[0] : "");
 
   const bustoutTitles = bustoutTitlesFromDoc(normalizedDoc);
+  /** @type {{ title: string, gap: number | null }[]} */
+  let entries = Array.isArray(bustoutEntries) ? bustoutEntries.filter((e) => e?.title) : [];
+  if (!entries.length && Array.isArray(phishnetRows)) {
+    entries = bustoutEntriesFromRows(phishnetRows);
+  }
+  if (!entries.length && bustoutTitles.length) {
+    entries = bustoutTitles.map((title) => ({ title, gap: null }));
+  }
+  // Prefer titles from entries when present
+  const titlesFromEntries = entries.map((e) => e.title);
+  const resolvedBustoutTitles = titlesFromEntries.length
+    ? titlesFromEntries
+    : bustoutTitles;
+
   const tourDebuts = tourDebutTitles(normalizedDoc, priorTourSetlistDocs);
   const set_flow_summary = composeSetFlowSummary(groups, openerTitle, encoreTitle);
   const setlist_highlight = composeSetlistHighlight({
-    bustoutTitles,
+    bustoutTitles: resolvedBustoutTitles,
+    bustoutEntries: entries,
     tourDebuts,
     openerTitle,
     encoreTitle,
   });
   const show_moment_tags = deriveShowMomentTags({
-    bustoutTitles,
+    bustoutTitles: resolvedBustoutTitles,
     tourDebuts,
     groups,
   });
@@ -272,7 +349,8 @@ function buildCommsShowContext({
     tourKey: tourKey || null,
     opener_title: openerTitle || null,
     encore_title: encoreTitle || null,
-    bustout_titles: bustoutTitles,
+    bustout_titles: resolvedBustoutTitles,
+    bustout_entries: entries,
     tour_debut_titles: tourDebuts,
     set_flow_summary: set_flow_summary || null,
     setlist_highlight: setlist_highlight || null,
@@ -298,6 +376,9 @@ function showLevelPayloadFields(context) {
     bustout_titles: Array.isArray(context.bustout_titles)
       ? context.bustout_titles
       : [],
+    bustout_entries: Array.isArray(context.bustout_entries)
+      ? context.bustout_entries
+      : [],
     tour_debut_titles: Array.isArray(context.tour_debut_titles)
       ? context.tour_debut_titles
       : [],
@@ -312,6 +393,8 @@ function showLevelPayloadFields(context) {
 module.exports = {
   groupOfficialSetlistBySet,
   bustoutTitlesFromDoc,
+  bustoutEntriesFromRows,
+  formatBustoutSongGap,
   tonightTitles,
   priorTourTitleSet,
   tourDebutTitles,
