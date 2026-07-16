@@ -253,13 +253,18 @@ for (const branch of BRANCHES) {
   const shell = buildProductionBrandedEmailShell({
     siteUrl,
     bodyText: rendered.email.text,
-    ctaUrl: buildEmailTrackedCtaUrl(rendered.email.ctaUrl || `${siteUrl}/dashboard/standings`, {
+    ctaUrl: buildEmailTrackedCtaUrl(rendered.email.ctaUrl || `${siteUrl}/dashboard/picks`, {
       triggerId: 'tour_rankings_daily',
       templateId: 'tour-rankings-daily',
-      cta: 'See standings',
+      cta: rendered.email.ctaLabel || 'Make picks for next show',
     }),
     settingsUrl,
+    ctaLabel: rendered.email.ctaLabel,
     signOff: rendered.email.signOff,
+    // Production worker passes this; without it the share appendix is stripped
+    // from HTML and the invite card never appears in the preview.
+    inviteBlockHtml: rendered.email.inviteBlockHtml,
+    header: rendered.email.header,
   });
 
   const subject = `[#544 ${branch.name}] ${rendered.email.subject}`;

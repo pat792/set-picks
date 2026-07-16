@@ -15,7 +15,7 @@ function escapeHtml(str) {
 const DEFAULT_INVITE_CTA = 'Open Standings to share →';
 
 const INVITE_NUDGE_INTRO =
-  "Want to share with friends? Log in and tap Share on Standings — your invite link is ready there.";
+  'Want to invite friends to join the community? Log in and tap "invite friends" on the standings page to create a personal invite link.';
 
 const INVITE_NUDGE_FORWARD = 'Or forward this email to a friend.';
 
