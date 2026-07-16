@@ -221,20 +221,32 @@ const BUILDERS = {
   },
 
   "show-recap": (p) => {
+    const narrative =
+      (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
+      (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
+      "";
     const assembled = assembleServiceEmail(
       [
         `${handleOf(p)}, here's how your picks for ${p.show_date || "the show"}${p.venue_name ? ` at ${p.venue_name}` : ""} graded out.`,
+        narrative,
         p.show_score != null ? `Show score: ${p.show_score}.` : "",
         p.global_rank != null
           ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
           : "",
+        p.bustout_bonus ? `Bustout bonus: +${p.bustout_bonus}.` : "",
       ].filter(Boolean),
       { ctaUrl: STANDINGS_CTA_URL }
     );
+    const pushBodyBits = [
+      narrative,
+      p.show_score != null ? `You scored ${p.show_score}.` : "",
+      p.global_rank != null ? `#${p.global_rank} overall.` : "",
+      "Open for the full breakdown.",
+    ].filter(Boolean);
     return {
       push: {
         title: p.venue_name ? `Recap: ${p.venue_name}` : "Your show recap is in",
-        body: `${p.show_score != null ? `You scored ${p.show_score}. ` : ""}${p.global_rank != null ? `#${p.global_rank} overall. ` : ""}Open for the full breakdown.`,
+        body: pushBodyBits.join(" "),
       },
       email: {
         subject: p.venue_name ? `Your recap: ${p.venue_name}` : "Your show recap",
@@ -246,8 +258,13 @@ const BUILDERS = {
   },
 
   "tour-rankings-daily": (p) => {
+    const narrative =
+      (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
+      (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
+      "";
     const nightOf = [
       `${handleOf(p)}, here's how last night at ${p.venue_name || p.venue_city || "the show"} went.`,
+      narrative,
       p.show_score != null ? `Show score: ${p.show_score}.` : "",
       p.global_rank != null
         ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`

@@ -333,11 +333,11 @@ Scores update live during the show. Check back tonight.
 | **Prefs key** | `results` |
 | **Dedup** | `show_recap:{uid}:{showDate}` in `commsInbox` + `fcm_notification_log` |
 | **Implementation** | Batch fan-out triggered after `rollupScoresForShow` completes |
-| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. |
+| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. Narrative vars from `comms_show_context` (#572). |
 
 #### Variables used
 
-`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{pool_name}}`, `{{pool_rank}}`, `{{pool_total_pickers}}`, `{{correct_picks_count}}`, `{{total_picks_count}}`, `{{opener_result}}`, `{{closer_result}}`, `{{encore_result}}`, `{{wildcard_result}}`, `{{bustout_bonus}}`, `{{setlist_highlight}}`, `{{top_scorer_handle}}`, `{{top_score}}`
+`{{handle}}`, `{{show_date}}`, `{{venue_name}}`, `{{venue_city}}`, `{{show_score}}`, `{{global_rank}}`, `{{global_total_pickers}}`, `{{pool_name}}`, `{{pool_rank}}`, `{{pool_total_pickers}}`, `{{correct_picks_count}}`, `{{total_picks_count}}`, `{{opener_result}}`, `{{closer_result}}`, `{{encore_result}}`, `{{wildcard_result}}`, `{{bustout_bonus}}`, `{{setlist_highlight}}`, `{{set_flow_summary}}`, `{{bustout_titles}}`, `{{tour_debut_titles}}`, `{{opener_title}}`, `{{encore_title}}`, `{{show_moment_tags}}`, `{{user_hit_bustout}}`, `{{narrative_branch}}`, `{{narrative_line}}`, `{{top_scorer_handle}}`, `{{top_score}}`
 
 #### Template — Push
 
