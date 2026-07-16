@@ -2,8 +2,8 @@ import React from 'react';
 
 import { InviteChooserSheet } from '../../features/invite';
 import {
-  StandingsChrome,
   StandingsShowOrPoolView,
+  StandingsStickyChrome,
   StandingsTourView,
   useStandingsScreen,
 } from '../../features/scoring';
@@ -14,11 +14,12 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
 
   return (
     <div className="w-full">
-      <StandingsChrome
+      <StandingsStickyChrome
         view={screen.view}
         onChange={screen.setView}
         onOpenScoringRules={screen.openScoringRules}
         onOpenInvite={invite.openChooser}
+        pinBelowDesktopDatePicker={screen.view !== 'tour'}
       />
 
       <InviteChooserSheet
@@ -37,20 +38,22 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
         onBackToChoose={invite.backToChoose}
       />
 
-      {screen.view === 'tour' ? (
-        <StandingsTourView
-          tourName={screen.selectedTour?.tour}
-          leaders={screen.tourLeaders}
-          loading={screen.tourLoading}
-          error={screen.tourError}
-          hasCurrentTour={Boolean(screen.selectedTour)}
-          selectableTours={screen.selectableTours}
-          selectedTourKey={screen.selectedTour?.tour ?? null}
-          onSelectTour={screen.setTourKey}
-        />
-      ) : (
-        <StandingsShowOrPoolView screen={screen} />
-      )}
+      <div className="mt-5">
+        {screen.view === 'tour' ? (
+          <StandingsTourView
+            tourName={screen.selectedTour?.tour}
+            leaders={screen.tourLeaders}
+            loading={screen.tourLoading}
+            error={screen.tourError}
+            hasCurrentTour={Boolean(screen.selectedTour)}
+            selectableTours={screen.selectableTours}
+            selectedTourKey={screen.selectedTour?.tour ?? null}
+            onSelectTour={screen.setTourKey}
+          />
+        ) : (
+          <StandingsShowOrPoolView screen={screen} />
+        )}
+      </div>
     </div>
   );
 }
