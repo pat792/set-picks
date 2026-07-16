@@ -91,7 +91,9 @@ function buildUserShowScorecard(userPicks, actualSetlist, bustoutEntries = []) {
 
   return {
     correct_picks_count: submitted ? correct : null,
-    total_picks_count: submitted || null,
+    // Always the game's six slots (s1o/s1c/s2o/s2c/enc/wild) — not "how many
+    // fields the user filled" — so copy reads "3 of 6", not "3 of 4".
+    total_picks_count: submitted ? SCORE_FIELDS.length : null,
     opener_result: results.opener_result || null,
     closer_result: results.closer_result || null,
     encore_result: results.encore_result || null,

@@ -126,6 +126,10 @@ function escapeHtml(str) {
 const APP_LINK_LINE_RE = /^open the app:\s*https?:\/\/\S+\s*$/i;
 const MANAGE_PREFS_LINE_RE = /^manage which updates you get in notifications settings\.?$/i;
 const LEGACY_BRAND_SIGNOFF_RE = /^—\s*setlist pick'?em\.?$/i;
+/** Invite appendix lives in plain-text + HTML invite card — never the main body. */
+const INVITE_CREW_LINE_RE = /^invite your crew\b/i;
+const INVITE_LINK_LINE_RE = /^invite link:\s*/i;
+const INVITE_URL_ONLY_LINE_RE = /^https?:\/\/\S*\/(invite|join)\//i;
 
 /**
  * Lines that belong in the plain-text part or HTML footer — not the visible HTML body.
@@ -144,9 +148,40 @@ function stripHtmlOnlyEmailLines(text, { signOff } = {}) {
       if (APP_LINK_LINE_RE.test(trimmed)) return false;
       if (MANAGE_PREFS_LINE_RE.test(trimmed)) return false;
       if (LEGACY_BRAND_SIGNOFF_RE.test(trimmed)) return false;
+      if (INVITE_CREW_LINE_RE.test(trimmed)) return false;
+      if (INVITE_LINK_LINE_RE.test(trimmed)) return false;
+      if (INVITE_URL_ONLY_LINE_RE.test(trimmed)) return false;
       if (signOffTrim && trimmed === signOffTrim) return false;
       return true;
     })
+    .join("\n");
+}
+
+/**
+ * Split body into blank-line paragraphs for HTML (less "listy" than one br per line).
+ * @param {string} text
+ * @param {{ signOff?: string }} [opts]
+ * @returns {string} HTML fragment
+ */
+function bodyTextToHtmlParagraphs(text, { signOff } = {}) {
+  const stripped = stripHtmlOnlyEmailLines(text, { signOff });
+  const blocks = stripped
+    .split(/\n\s*\n/)
+    .map((block) =>
+      block
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .join(" "),
+    )
+    .map((block) => block.trim())
+    .filter(Boolean);
+  if (!blocks.length) return "";
+  return blocks
+    .map(
+      (block) =>
+        `<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#1a1a2e;">${escapeHtml(block)}</p>`,
+    )
     .join("\n");
 }
 
@@ -223,17 +258,7 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
     typeof wordmarkSrc === "string" && wordmarkSrc.trim()
       ? wordmarkSrc.trim()
       : buildEmailWordmarkUrl(base);
-  const bodyLines = stripHtmlOnlyEmailLines(bodyText, { signOff: signOffLine })
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => escapeHtml(line))
-    .join("<br />");
-  // #536 — mobile Gmail readable type: body ≥16px, CTA ≥16px, footer ≥13px;
-  // viewport meta so fixed-width cards are not scaled down into illegible text.
-  const paragraphs = bodyLines
-    ? `<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#1a1a2e;">${bodyLines}</p>`
-    : "";
+  const paragraphs = bodyTextToHtmlParagraphs(bodyText, { signOff: signOffLine });
   const signOffHtml = signOffLine
     ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#64748b;font-style:italic;">${escapeHtml(signOffLine)}</p>`
     : "";
@@ -467,6 +492,7 @@ module.exports = {
   buildProductionBrandedEmailShell,
   stripRedundantCtaLine,
   stripHtmlOnlyEmailLines,
+  bodyTextToHtmlParagraphs,
   resolveTrackedEmailCtaUrl,
   rewritePlainTextCtaUrl,
   escapeHtml,

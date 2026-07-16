@@ -203,7 +203,7 @@ function formatBustoutSongGap(entries) {
   return list
     .map((e) =>
       e.gap != null && Number.isFinite(e.gap)
-        ? `${e.title} - ${e.gap}`
+        ? `${e.title} - ${e.gap} show gap`
         : e.title,
     )
     .join(", ");

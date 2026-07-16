@@ -88,8 +88,19 @@ const DEFAULT_EMAIL_SIGN_OFF = "See you on tour!";
  */
 function assembleServiceEmail(bodyLines, { signOff = DEFAULT_EMAIL_SIGN_OFF, ctaUrl = APP_CTA_URL } = {}) {
   const signOffLine = String(signOff || DEFAULT_EMAIL_SIGN_OFF).trim();
+  /** @type {string[]} */
+  const cleaned = [];
+  for (const line of bodyLines || []) {
+    if (line === "") {
+      // Preserve intentional paragraph breaks (blank lines between blocks).
+      if (cleaned.length && cleaned[cleaned.length - 1] !== "") cleaned.push("");
+      continue;
+    }
+    if (line) cleaned.push(String(line));
+  }
+  while (cleaned.length && cleaned[cleaned.length - 1] === "") cleaned.pop();
   const text = [
-    ...bodyLines.filter(Boolean),
+    ...cleaned,
     "",
     `Open the app: ${ctaUrl}`,
     "",
@@ -221,22 +232,30 @@ const BUILDERS = {
   },
 
   "show-recap": (p) => {
+    const handle = handleOf(p);
+    const where = `${p.show_date || "the show"}${p.venue_name ? ` at ${p.venue_name}` : ""}`;
     const narrative =
       (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
       "";
-    const assembled = assembleServiceEmail(
-      [
-        `${handleOf(p)}, here's how your picks for ${p.show_date || "the show"}${p.venue_name ? ` at ${p.venue_name}` : ""} graded out.`,
-        narrative,
-        p.show_score != null ? `Show score: ${p.show_score}.` : "",
-        p.global_rank != null
-          ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
-          : "",
-        p.bustout_bonus ? `Bustout bonus: +${p.bustout_bonus}.` : "",
-      ].filter(Boolean),
-      { ctaUrl: STANDINGS_CTA_URL }
-    );
+    const scoreBits = [];
+    if (p.show_score != null) scoreBits.push(`scored ${p.show_score}`);
+    if (p.global_rank != null) {
+      scoreBits.push(
+        `#${p.global_rank}${
+          p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""
+        } overall`,
+      );
+    }
+    if (p.bustout_bonus) scoreBits.push(`bustout bonus +${p.bustout_bonus}`);
+    const para = [
+      `${handle}, here's how your picks for ${where} graded out.`,
+      narrative,
+      scoreBits.length ? `You ${scoreBits.join(", ")}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const assembled = assembleServiceEmail([para], { ctaUrl: STANDINGS_CTA_URL });
     const pushBodyBits = [
       narrative,
       p.show_score != null ? `You scored ${p.show_score}.` : "",
@@ -258,35 +277,50 @@ const BUILDERS = {
   },
 
   "tour-rankings-daily": (p) => {
+    const handle = handleOf(p);
+    const venue = p.venue_name || p.venue_city || "the show";
     const narrative =
       (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
       "";
-    const nightOf = [
-      `${handleOf(p)}, here's how last night at ${p.venue_name || p.venue_city || "the show"} went.`,
-      narrative,
-      p.show_score != null ? `Show score: ${p.show_score}.` : "",
-      p.global_rank != null
-        ? `Global rank: #${p.global_rank}${p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""}.`
-        : "",
-      p.correct_picks_count != null
-        ? `Correct picks: ${p.correct_picks_count}${p.total_picks_count != null ? ` of ${p.total_picks_count}` : ""}.`
-        : "",
-    ].filter(Boolean);
 
-    const tourParas = buildTourRankingsDailyParagraphs(p);
+    // Night-of paragraph (scorecard + narrative in one breath).
+    const nightScoreBits = [];
+    if (p.show_score != null) nightScoreBits.push(`scored ${p.show_score}`);
+    if (p.global_rank != null) {
+      nightScoreBits.push(
+        `#${p.global_rank}${
+          p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""
+        } globally`,
+      );
+    }
+    if (p.correct_picks_count != null) {
+      nightScoreBits.push(
+        `${p.correct_picks_count} of ${
+          p.total_picks_count != null ? p.total_picks_count : 6
+        } picks hitting`,
+      );
+    }
+    const nightPara = [
+      `${handle}, here's how last night at ${venue} went.`,
+      narrative,
+      nightScoreBits.length ? `You ${nightScoreBits.join(", ")}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    // Tour paragraph — reuse existing branch lines, joined into prose.
+    const tourPara = buildTourRankingsDailyParagraphs(p).join(" ");
+
     const inviteShare = resolveInviteShareFromPayload(p, {
       campaign: "tour_rankings_daily",
       baseUrl: SITE_URL,
     });
-    // HTML invite block is sender-facing (intro + button). Do not put the raw
-    // URL in bodyText — Gmail auto-links it above the button (#572 review).
-    const assembled = assembleServiceEmail(
-      [...nightOf, "", ...tourParas].filter(Boolean),
-      {
-        ctaUrl: PICKS_CTA_URL,
-      }
-    );
+    // Blank line between paras → separate HTML <p> tags. Invite URL only in
+    // plain-text appendix (stripped from HTML by stripHtmlOnlyEmailLines).
+    const assembled = assembleServiceEmail([nightPara, "", tourPara], {
+      ctaUrl: PICKS_CTA_URL,
+    });
     const invitePlain = inviteShare
       ? buildInviteSharePlainTextLines({
           invite_url: inviteShare.invite_url,

@@ -54,7 +54,7 @@ describe("composeSetlistHighlight", () => {
         openerTitle: "YEM",
         encoreTitle: "Tweeprise",
       }),
-      "Curtain With - 142",
+      "Curtain With - 142 show gap",
     );
   });
 });
@@ -79,7 +79,7 @@ describe("buildCommsShowContext", () => {
         { title: "Slave", gap: 10 },
       ],
     });
-    assert.equal(ctx.setlist_highlight, "Wolfman's - 87");
+    assert.equal(ctx.setlist_highlight, "Wolfman's - 87 show gap");
     assert.match(ctx.set_flow_summary, /Set 1 opened with YEM/);
     assert.ok(ctx.show_moment_tags.includes("bustout"));
     assert.ok(ctx.tour_debut_titles.includes("Wolfman's"));
@@ -132,6 +132,7 @@ describe("buildUserShowScorecard", () => {
     assert.equal(card.user_hit_bustout, true);
     assert.ok(card.bustout_bonus >= 20);
     assert.equal(card.correct_picks_count, 4);
+    assert.equal(card.total_picks_count, 6);
   });
 });
 
@@ -151,6 +152,6 @@ describe("buildShowRecapEnrichment", () => {
       show_score: 30,
     });
     assert.equal(enriched.narrative_branch, "bustout_hero");
-    assert.equal(enriched.narrative_line, "You caught a bustout — Wolfman's - 87.");
+    assert.equal(enriched.narrative_line, "You caught a bustout — Wolfman's - 87 show gap.");
   });
 });

@@ -79,6 +79,8 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
     show_score: 70,
     global_rank: 4,
     global_total_pickers: 200,
+    correct_picks_count: 3,
+    total_picks_count: 6,
     tour_rank: 3,
     total_tour_pickers: 50,
     tour_points: 210,
@@ -101,6 +103,9 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
   assert.match(out.email.text, /Invite your crew to join the community/);
   assert.match(out.email.text, /\/join\/ABC12\?from=RiverTranced/);
+  // Prose night paragraph (not a line-per-stat list).
+  assert.match(out.email.text, /scored 70/);
+  assert.match(out.email.text, /3 of 6 picks hitting/);
   assert.ok(out.email.inviteBlockHtml, "invite HTML block");
   assert.match(out.email.inviteBlockHtml, /Invite your crew/);
   assert.match(out.email.inviteBlockHtml, /Share your invite/);
