@@ -321,7 +321,7 @@ Adding or tightening enforced CSP is MINOR; removing a security header is MAJOR.
 
 ### 3.3 Invite landing Open Graph (`api/invite.js`)
 
-Social crawlers (Meta, X, Slack, …) do not execute JavaScript. Invite URLs are rewritten to `api/invite.js`, which returns pool- or inviter-specific OG tags for crawlers and the SPA shell for regular browsers.
+Social crawlers (Meta, X, Slack, …) do not execute JavaScript. Invite URLs are rewritten to `api/invite.js`, which injects pool- or inviter-specific OG tags into the SPA shell for browsers and crawlers. If the bundled `dist/index.html` is missing, the function fetches live site `/` HTML as a fallback. Empty crawler-only HTML is never returned to browsers (avoids blank white pages).
 
 | Public path | Rewrite (`vercel.json`) | Query params | Crawler behavior | Browser behavior |
 |-------------|-------------------------|--------------|------------------|------------------|

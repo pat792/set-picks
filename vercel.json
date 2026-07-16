@@ -2,7 +2,7 @@
   "ignoreCommand": "bash scripts/vercel-should-build.sh",
   "functions": {
     "api/invite.js": {
-      "includeFiles": "dist/index.html"
+      "includeFiles": "dist/**"
     }
   },
   "rewrites": [
