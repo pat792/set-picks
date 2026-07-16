@@ -403,14 +403,14 @@ test("buildBrandedEmailHtml strips invite appendix lines from HTML body", () => 
   const html = buildBrandedEmailHtml({
     siteUrl: "https://www.setlistpickem.com",
     bodyText:
-      "Recap paragraph.\n\nOpen the app: https://www.setlistpickem.com/dashboard/picks\n\nSee you on tour!\n\nWant to share with friends? Log in and tap Share on Standings — your invite link is ready there.\nOr forward this email to a friend.\n\nOpen Standings: https://www.setlistpickem.com/dashboard/standings?utm_source=email",
+      'Recap paragraph.\n\nOpen the app: https://www.setlistpickem.com/dashboard/picks\n\nSee you on tour!\n\nWant to invite friends to join the community? Log in and tap "invite friends" on the standings page to create a personal invite link.\nOr forward this email to a friend.\n\nOpen Standings: https://www.setlistpickem.com/dashboard/standings?utm_source=email',
     ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
     settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
     signOff: "See you on tour!",
     inviteBlockHtml: "<div>invite card</div>",
   });
   assert.match(html, /Recap paragraph\./);
-  assert.doesNotMatch(html, /Want to share with friends/);
+  assert.doesNotMatch(html, /Want to invite friends to join the community/);
   assert.doesNotMatch(html, /forward this email/);
   assert.doesNotMatch(html, /Open Standings:/);
   assert.doesNotMatch(html, /utm_source=email/);

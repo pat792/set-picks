@@ -101,14 +101,14 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   assert.match(out.email.text, /climbed 2 spots/, "rank change rendered as climbed");
   assert.match(out.email.text, /2026-07-19/, "next show date");
   assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
-  assert.match(out.email.text, /Want to share with friends/);
+  assert.match(out.email.text, /Want to invite friends to join the community/);
   assert.match(out.email.text, /forward this email to a friend/i);
   assert.match(out.email.text, /Open Standings:/);
   assert.match(out.email.text, /\/dashboard\/standings/);
   // Prose night + tour paragraphs (words around variables).
   assert.match(
     out.email.text,
-    /You scored 70 points and are now ranked #4 of 200 globally, with 3 of 6 picks hitting/,
+    /You scored 70 points and were ranked #4 of 200 globally, with 3 of 6 picks hitting/,
   );
   assert.match(out.email.text, /Still in the top 5 — ranked #3 of 50 with 210 points/);
   assert.equal(out.email.header?.eyebrow, "Tour standings");
@@ -122,7 +122,8 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
     "tour paragraph should not re-greet with handle",
   );
   assert.ok(out.email.inviteBlockHtml, "invite HTML block");
-  assert.match(out.email.inviteBlockHtml, /Want to share with friends/);
+  assert.match(out.email.inviteBlockHtml, /Want to invite friends to join the community/);
+  assert.match(out.email.inviteBlockHtml, /tap &quot;invite friends&quot;/);
   assert.match(out.email.inviteBlockHtml, /forward this email to a friend/i);
   assert.match(out.email.inviteBlockHtml, /Open Standings to share/);
   assert.match(out.email.inviteBlockHtml, /#2563eb/, "secondary standings link color");

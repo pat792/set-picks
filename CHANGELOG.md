@@ -12,6 +12,15 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.22.3] — 2026-07-16
+
+### Fixed
+- **`tour_rankings_daily` night rank tense** — first paragraph uses past tense (`were ranked`) for prior-night global rank; tour paragraph stays present tense.
+- **Invite share nudge copy** — “Want to invite friends to join the community…” with Standings “invite friends” CTA guidance (service + marketing email blocks).
+- **Tour rankings canary preview** — passes `inviteBlockHtml` / header / CTA into the branded shell so previews match production share cards.
+
+---
+
 ## [1.22.2] — 2026-07-16
 
 ### Fixed

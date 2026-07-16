@@ -22,7 +22,7 @@ test("buildSummerTour2026LaunchChannels returns html, text, and subject", async 
 
   assert.match(out.email.subject, /bring your crew/i);
   assert.match(out.email.html, /Rivertranced/);
-  assert.match(out.email.html, /Want to share with friends/);
+  assert.match(out.email.html, /Want to invite friends to join the community/);
   assert.match(out.email.html, /forward this email to a friend/i);
   assert.match(out.email.html, /Open Standings to share/);
   assert.match(out.email.html, /\/dashboard\/standings/);
