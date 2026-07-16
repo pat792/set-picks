@@ -44,6 +44,7 @@ async function writeCommsShowContext({
   showDate,
   setlistDoc = null,
   showDatesByTour = null,
+  phishnetRows = null,
   logger,
 }) {
   if (!showDate) return null;
@@ -92,6 +93,7 @@ async function writeCommsShowContext({
     setlistDoc: setlist,
     priorTourSetlistDocs: priorDocs,
     tourKey,
+    phishnetRows,
   });
 
   const ref = db.collection("comms_show_context").doc(showDate);

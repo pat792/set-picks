@@ -9,6 +9,7 @@ const {
   calculateSlotScore,
   SCORING_RULES,
 } = require("./scoringCore");
+const { formatBustoutSongGap } = require("./commsShowContextCore");
 
 const SLOT_RESULT_KEYS = {
   s1o: "opener_result",
@@ -30,19 +31,28 @@ function markFromSlotScore(slotScore) {
 /**
  * @param {Record<string, unknown> | null | undefined} userPicks
  * @param {Record<string, unknown> | null | undefined} actualSetlist
+ * @param {{ title: string, gap?: number | null }[]} [bustoutEntries]
  */
-function buildUserShowScorecard(userPicks, actualSetlist) {
+function buildUserShowScorecard(userPicks, actualSetlist, bustoutEntries = []) {
   const picks = userPicks && typeof userPicks === "object" ? userPicks : {};
   let correct = 0;
   let submitted = 0;
   let bustoutBonus = 0;
   let userHitBustout = false;
+  /** @type {{ title: string, gap: number | null }[]} */
+  const userBustoutHits = [];
   /** @type {Record<string, string>} */
   const results = {};
 
+  const entryByNorm = new Map();
+  for (const e of bustoutEntries || []) {
+    if (!e?.title) continue;
+    entryByNorm.set(String(e.title).trim().toLowerCase(), e);
+  }
+
   const bustouts = Array.isArray(actualSetlist?.bustouts)
     ? actualSetlist.bustouts.map((t) => String(t).trim().toLowerCase()).filter(Boolean)
-    : [];
+    : [...entryByNorm.keys()];
 
   for (const fieldId of SCORE_FIELDS) {
     const guess = picks[fieldId];
@@ -65,6 +75,17 @@ function buildUserShowScorecard(userPicks, actualSetlist) {
     if (guessNorm && slotScore > 0 && bustouts.includes(guessNorm)) {
       userHitBustout = true;
       bustoutBonus += SCORING_RULES.BUSTOUT_BOOST;
+      const entry = entryByNorm.get(guessNorm);
+      const title =
+        (typeof guess === "string" && guess.trim()) ||
+        entry?.title ||
+        guessNorm;
+      if (!userBustoutHits.some((h) => h.title.toLowerCase() === title.toLowerCase())) {
+        userBustoutHits.push({
+          title,
+          gap: entry?.gap ?? null,
+        });
+      }
     }
   }
 
@@ -77,6 +98,7 @@ function buildUserShowScorecard(userPicks, actualSetlist) {
     wildcard_result: results.wildcard_result || null,
     bustout_bonus: bustoutBonus,
     user_hit_bustout: userHitBustout,
+    user_bustout_hits: userBustoutHits,
   };
 }
 
@@ -107,21 +129,25 @@ function resolveNarrativeBranch(scorecard) {
 
 /**
  * Short personal line for inApp / email Tonight.
+ * Bustout hero: "You caught a bustout — Song - 47."
  * @param {{
  *   narrative_branch: string,
  *   user_hit_bustout?: boolean,
+ *   user_bustout_hits?: { title: string, gap?: number | null }[],
  *   setlist_highlight?: string | null,
- *   handle?: string,
  * }} p
  * @returns {string}
  */
 function buildNarrativePersonalLine(p) {
   const highlight = typeof p.setlist_highlight === "string" ? p.setlist_highlight.trim() : "";
   switch (p.narrative_branch) {
-    case "bustout_hero":
-      return highlight
-        ? `You caught a bustout — ${highlight.replace(/\.$/, "")}.`
-        : "You nailed a bustout bonus tonight.";
+    case "bustout_hero": {
+      const hits = Array.isArray(p.user_bustout_hits) ? p.user_bustout_hits : [];
+      const songGap = formatBustoutSongGap(hits);
+      if (songGap) return `You caught a bustout — ${songGap}.`;
+      if (highlight) return `You caught a bustout — ${highlight.replace(/\.$/, "")}.`;
+      return "You caught a bustout.";
+    }
     case "hot_night":
       return highlight
         ? `Strong night. ${highlight}`
@@ -157,7 +183,10 @@ function buildShowRecapEnrichment({
   top_scorer_handle = null,
   top_score = null,
 }) {
-  const scorecard = buildUserShowScorecard(userPicks, actualSetlist);
+  const bustoutEntries = Array.isArray(showLevel.bustout_entries)
+    ? showLevel.bustout_entries
+    : [];
+  const scorecard = buildUserShowScorecard(userPicks, actualSetlist, bustoutEntries);
   const narrative_branch = resolveNarrativeBranch({
     ...scorecard,
     show_score,
@@ -171,6 +200,7 @@ function buildShowRecapEnrichment({
     narrative_line: buildNarrativePersonalLine({
       narrative_branch,
       user_hit_bustout: scorecard.user_hit_bustout,
+      user_bustout_hits: scorecard.user_bustout_hits,
       setlist_highlight: showLevel.setlist_highlight,
     }),
   };

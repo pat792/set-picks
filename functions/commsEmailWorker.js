@@ -276,9 +276,9 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
             <tr>
               <td style="padding:8px 24px 8px 24px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
                 ${paragraphs}
-                ${inviteHtml}
                 ${signOffHtml}
                 <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;margin-top:8px;padding:14px 28px;background-color:${EMAIL_BRAND_PRIMARY};color:${EMAIL_BRAND_BG_DEEP};text-decoration:none;border-radius:12px;font-weight:700;font-size:16px;">${escapeHtml(buttonLabel)}</a>
+                ${inviteHtml}
               </td>
             </tr>
             <tr>

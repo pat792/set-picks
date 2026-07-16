@@ -279,13 +279,23 @@ const BUILDERS = {
       campaign: "tour_rankings_daily",
       baseUrl: SITE_URL,
     });
-    const inviteLines = inviteShare ? buildInviteSharePlainTextLines(inviteShare) : [];
+    // HTML invite block is sender-facing (intro + button). Do not put the raw
+    // URL in bodyText — Gmail auto-links it above the button (#572 review).
     const assembled = assembleServiceEmail(
-      [...nightOf, "", ...tourParas, ...(inviteLines.length ? ["", ...inviteLines] : [])].filter(Boolean),
+      [...nightOf, "", ...tourParas].filter(Boolean),
       {
         ctaUrl: PICKS_CTA_URL,
       }
     );
+    const invitePlain = inviteShare
+      ? buildInviteSharePlainTextLines({
+          invite_url: inviteShare.invite_url,
+          intro: "Invite your crew to join the community.",
+        })
+      : [];
+    const emailText = invitePlain.length
+      ? `${assembled.text}\n\n${invitePlain.join("\n")}`
+      : assembled.text;
 
     const pushRank =
       p.tour_rank != null
@@ -305,12 +315,18 @@ const BUILDERS = {
         subject: p.venue_city
           ? `Your ${p.venue_city} recap + tour update`
           : "Your show recap + tour standings",
-        text: assembled.text,
+        text: emailText,
         signOff: assembled.signOff,
         ctaUrl: PICKS_CTA_URL,
         ctaLabel: "Make picks for next show",
         ...(inviteShare
-          ? { inviteBlockHtml: buildInviteShareHtmlBlock(inviteShare) }
+          ? {
+              inviteBlockHtml: buildInviteShareHtmlBlock({
+                invite_url: inviteShare.invite_url,
+                intro: "Invite your crew to join the community.",
+                ctaLabel: "Share your invite →",
+              }),
+            }
           : {}),
       },
     };

@@ -99,10 +99,20 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   assert.match(out.email.text, /climbed 2/, "rank change rendered as climbed");
   assert.match(out.email.text, /2026-07-19/, "next show date");
   assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
-  assert.match(out.email.text, /RiverTranced invited you to join their pool/);
+  assert.match(out.email.text, /Invite your crew to join the community/);
   assert.match(out.email.text, /\/join\/ABC12\?from=RiverTranced/);
   assert.ok(out.email.inviteBlockHtml, "invite HTML block");
+  assert.match(out.email.inviteBlockHtml, /Invite your crew/);
   assert.match(out.email.inviteBlockHtml, /Share your invite/);
+  // No visible bare URL under the button (href on the CTA is fine).
+  assert.doesNotMatch(out.email.inviteBlockHtml, />https?:\/\//);
+  assert.match(out.email.text, /Invite link:/);
+  // Recap body (before Open the app) must not include the invite URL — only the
+  // trailing plain-text invite section does.
+  assert.doesNotMatch(
+    out.email.text.split("Open the app:")[0],
+    /setlistpickem\.com\/join/,
+  );
 });
 
 test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {

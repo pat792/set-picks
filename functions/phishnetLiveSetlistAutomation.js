@@ -1098,6 +1098,7 @@ async function pollSingleShowDate({
           enc: nextPayload.setlist?.enc,
           ...nextPayload.setlist,
         },
+        phishnetRows: rows,
         logger,
       });
     } catch (ctxErr) {
