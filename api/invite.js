@@ -12,11 +12,12 @@
  * Social crawlers don't execute JavaScript, so they can't read OG tags injected
  * by React. This function intercepts invite requests and:
  *
- *   • For **social crawlers**: serves a minimal HTML page with personalized OG
- *     meta tags (pool name / inviter handle via Firebase Admin when needed).
- *
- *   • For **regular browsers**: serves the built SPA shell (dist/index.html)
- *     with cheap static OG injection — no Firestore round trip.
+ *   • Prefer the built SPA shell (`dist/index.html`) with static OG injection for
+ *     **both** browsers and crawlers (crawlers read meta; browsers boot React).
+ *   • If the shell is missing from the function bundle, fetch the live site `/`
+ *     HTML as a fallback (same hashed asset URLs on the CDN).
+ *   • Only when the SPA shell is unavailable: crawlers get minimal OG HTML;
+ *     browsers get a non-blank 503 (never empty `<body></body>`).
  *
  * Fallback: if Firestore is unreachable or lookups fail, generic default OG
  * tags are used — invite links still work in the SPA.
@@ -34,6 +35,7 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import {
+  SITE_URL,
   buildCrawlerHtml,
   buildInvitePageUrl,
   CRAWLER_RE,
@@ -93,32 +95,88 @@ async function fetchPublicProfileByHandle(handle) {
 }
 
 // ---------------------------------------------------------------------------
-// SPA shell loader (reads dist/index.html bundled via includeFiles)
+// SPA shell loader (disk includeFiles, then live-site fetch fallback)
 // ---------------------------------------------------------------------------
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+/** @type {string | null | undefined} */
 let _spaTemplate = undefined;
 
-function loadSpaTemplate() {
-  if (_spaTemplate !== undefined) return _spaTemplate;
+function looksLikeSpaShell(html) {
+  return (
+    typeof html === 'string' &&
+    html.includes('id="root"') &&
+    (html.includes('type="module"') || html.includes('/assets/'))
+  );
+}
 
+function loadSpaTemplateFromDisk() {
   const candidates = [
     join(process.cwd(), 'dist', 'index.html'),
     join(__dirname, '..', 'dist', 'index.html'),
+    join(__dirname, 'dist', 'index.html'),
   ];
 
   for (const p of candidates) {
     try {
-      _spaTemplate = readFileSync(p, 'utf8');
-      return _spaTemplate;
+      const html = readFileSync(p, 'utf8');
+      if (looksLikeSpaShell(html)) return html;
     } catch {
       // try next candidate
     }
   }
+  return null;
+}
+
+/**
+ * Resolve SPA index HTML. Prefer the Vercel-bundled `dist/index.html`; if the
+ * function package omitted it, fetch production `/` (static) so browsers never
+ * receive the empty crawler stub.
+ *
+ * @returns {Promise<string | null>}
+ */
+async function loadSpaTemplate() {
+  if (_spaTemplate !== undefined) return _spaTemplate;
+
+  const fromDisk = loadSpaTemplateFromDisk();
+  if (fromDisk) {
+    _spaTemplate = fromDisk;
+    return _spaTemplate;
+  }
+
+  try {
+    const res = await fetch(`${SITE_URL}/`, {
+      headers: {
+        Accept: 'text/html',
+        'User-Agent': 'set-picks-invite-og/1.0',
+      },
+      redirect: 'follow',
+    });
+    if (res.ok) {
+      const html = await res.text();
+      if (looksLikeSpaShell(html)) {
+        _spaTemplate = html;
+        return _spaTemplate;
+      }
+    }
+    console.error(
+      '[og-invite] SPA fetch fallback unexpected response',
+      res.status,
+    );
+  } catch (err) {
+    console.error('[og-invite] SPA fetch fallback failed:', err?.message ?? err);
+  }
 
   _spaTemplate = null;
   return null;
+}
+
+function sendSpa(res, spaHtml, og) {
+  const html = injectOgIntoSpa(spaHtml, og);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  return res.status(200).send(html);
 }
 
 // ---------------------------------------------------------------------------
@@ -169,18 +227,32 @@ export default async function handler(req, res) {
 
   const og = { title, description, url: pageUrl, image: DEFAULT_OG_IMAGE };
 
-  if (!isCrawler) {
-    const spaHtml = loadSpaTemplate();
-    if (spaHtml) {
-      const html = injectOgIntoSpa(spaHtml, og);
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-      return res.status(200).send(html);
-    }
+  const spaHtml = await loadSpaTemplate();
+  if (spaHtml) {
+    return sendSpa(res, spaHtml, og);
   }
 
-  const html = buildCrawlerHtml(og);
+  // SPA shell unavailable — crawlers still need OG; browsers must not get a blank page.
+  if (isCrawler) {
+    const html = buildCrawlerHtml(og);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+    return res.status(200).send(html);
+  }
+
+  console.error('[og-invite] SPA shell unavailable for browser request');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
-  return res.status(200).send(html);
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(503).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invite temporarily unavailable</title>
+  <meta http-equiv="refresh" content="2;url=/" />
+</head>
+<body style="margin:0;font-family:system-ui,sans-serif;background:#0b1020;color:#e2e8f0;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:1.5rem;text-align:center;">
+  <p>Invite page is temporarily unavailable. Redirecting home…</p>
+</body>
+</html>`);
 }

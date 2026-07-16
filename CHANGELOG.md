@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.22.2] — 2026-07-16
+
+### Fixed
+- **Invite landings blank white (#582)** — `api/invite.js` no longer serves empty crawler HTML to browsers when `dist/index.html` is missing from the function bundle. Loads SPA from disk or fetches live `/` as fallback; crawler-only stub reserved for bots when SPA is unavailable.
+
+---
+
 ## [1.22.1] — 2026-07-16
 
 ### Changed
