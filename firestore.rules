@@ -155,6 +155,14 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    /**
+     * Night-of show narrative context (#572). Written by Cloud Functions when
+     * official setlists are saved / rollup runs; clients do not access.
+     */
+    match /comms_show_context/{showDate} {
+      allow read, write: if false;
+    }
+
     /** Server-written Phish.net show calendar; clients read only (issue #160). */
     match /show_calendar/{docId} {
       allow read: if signedIn();

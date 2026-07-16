@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.22.0] — 2026-07-16
+
+### Added
+- **Show recap narrative (#572)** — night-of deterministic narrative for `show_recap` + morning `tour_rankings_daily` “Tonight” block. New server-written `comms_show_context/{showDate}` artifact (setlist flow, bustouts, tour debuts, `setlist_highlight`); adapters enrich scorecard fields (`correct_picks_count`, slot marks, `bustout_bonus`, `narrative_branch`). Soft-fails to prior scorecard-only copy when context is missing.
+
+---
+
 ## [1.21.4] — 2026-07-15
 
 ### Changed

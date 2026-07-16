@@ -1085,6 +1085,27 @@ async function pollSingleShowDate({
     batch.set(setlistRef, setlistPayload, { merge: true });
     batch.set(automationRef, automationPayload, { merge: true });
     await batch.commit();
+    try {
+      const { writeCommsShowContext } = require("./commsShowContext");
+      await writeCommsShowContext({
+        db,
+        admin,
+        showDate,
+        setlistDoc: {
+          ...setlistPayload,
+          s1o: nextPayload.setlist?.s1o,
+          s2o: nextPayload.setlist?.s2o,
+          enc: nextPayload.setlist?.enc,
+          ...nextPayload.setlist,
+        },
+        logger,
+      });
+    } catch (ctxErr) {
+      logger?.warn?.("comms_show_context write failed after setlist poll", {
+        showDate,
+        msg: ctxErr instanceof Error ? ctxErr.message : String(ctxErr),
+      });
+    }
     const autoFinalize = await maybeAutoFinalize(autoFinalizeContext);
     return {
       showDate,

@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.21.1  
+**Version:** 1.22.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -95,6 +95,19 @@ Admin picks-lock override. Document ID is the show date (`YYYY-MM-DD`). Written 
 | `picksLockedAt` | Timestamp | Lock instant |
 | `lockReason` | `'admin_override'` | v1 only writes this value |
 | `lockedBy` | string? | Admin email when stamped |
+
+### 1.11 `comms_show_context/{showDate}` (#572)
+
+Server-written night-of narrative artifact for `show_recap` / `tour_rankings_daily`. Document ID is the show date (`YYYY-MM-DD`). Clients have no access. Schema: [`docs/COMMS_SHOW_CONTEXT_SCHEMA.md`](./COMMS_SHOW_CONTEXT_SCHEMA.md).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `setlist_highlight` | string? | One-liner for push / Tonight block |
+| `set_flow_summary` | string? | Short S1/S2/E structure |
+| `bustout_titles` | string[] | From official setlist bustouts |
+| `tour_debut_titles` | string[] | New-to-tour titles tonight |
+| `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
+| `schemaVersion` | number | `1` |
 
 ---
 
