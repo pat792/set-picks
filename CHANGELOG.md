@@ -14,8 +14,8 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [1.28.0] — 2026-07-16
 
-### Added
-- **Milestone badges v1 (#568)** — server awards `shows_played_1/5/10` + `win_1` onto `users.badges` after show finalize (idempotent). Profile + public badge shelf with custom SVG icons. Tour/streak/`days_first` badges deferred.
+### Changed
+- **Standings identity marks (#567/#568 follow-up)** — show/tour/pool standings rows render curated avatars next to handles, pin the top earned badge on the avatar, and show a dashed “add” control on your own row when `avatarId` is unset (links to Profile).
 
 ---
 

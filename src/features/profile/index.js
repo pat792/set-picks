@@ -6,13 +6,16 @@ export { default as TopPicksFrequencyStrip } from './ui/TopPicksFrequencyStrip';
 export { default as ProfileAvatar } from './ui/ProfileAvatar';
 export { default as AvatarPicker } from './ui/AvatarPicker';
 export { default as BadgeShelf } from './ui/BadgeShelf';
+export { default as StandingsPlayerAvatar } from './ui/StandingsPlayerAvatar';
 export { usePublicProfile } from './model/usePublicProfile';
 export { useUserProfile } from './model/useUserProfile';
 export { useUserSeasonStats } from './model/useUserSeasonStats';
 export { useProfilePickHeatmap } from './model/useProfilePickHeatmap';
+export { usePlayerIdentityMap } from './model/usePlayerIdentityMap';
 export {
   DEFAULT_AVATAR_ID,
   PROFILE_AVATARS,
+  hasSelectedAvatar,
   normalizeAvatarId,
   resolveAvatar,
 } from './model/avatarCatalog';

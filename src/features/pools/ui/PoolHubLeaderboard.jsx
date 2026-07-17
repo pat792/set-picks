@@ -1,8 +1,14 @@
 import React from 'react';
 
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
+import { StandingsPlayerAvatar, usePlayerIdentityMap } from '../../profile';
+import { useAuth } from '../../auth';
 
 export default function PoolHubLeaderboard({ members }) {
+  const { user } = useAuth();
+  const selfUserId = user?.uid || null;
+  const { identities } = usePlayerIdentityMap(members.map((m) => m.id));
+
   return (
     <>
       {members.length === 0 ? (
@@ -20,6 +26,8 @@ export default function PoolHubLeaderboard({ members }) {
             const played =
               typeof m.showsPlayed === 'number' ? m.showsPlayed : 0;
             const showsLabel = String(played);
+            const isSelf = Boolean(selfUserId) && m.id === selfUserId;
+            const identity = identities[m.id] || null;
             return (
               <li
                 key={m.id}
@@ -29,6 +37,12 @@ export default function PoolHubLeaderboard({ members }) {
                   <span className="w-8 shrink-0 font-black tabular-nums text-content-secondary/90">
                     {rank}
                   </span>
+                  <StandingsPlayerAvatar
+                    avatarId={identity?.avatarId}
+                    badges={identity?.badges}
+                    isSelf={isSelf}
+                    handle={handle}
+                  />
                   <PlayerHandleLink
                     userId={m.id}
                     handle={handle}

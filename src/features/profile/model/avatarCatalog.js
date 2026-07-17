@@ -36,6 +36,19 @@ export function normalizeAvatarId(avatarId) {
 }
 
 /**
+ * True when the user has explicitly saved a catalog avatar id.
+ * Missing/blank → empty (standings can show an “add” affordance for self).
+ *
+ * @param {unknown} avatarId
+ * @returns {boolean}
+ */
+export function hasSelectedAvatar(avatarId) {
+  if (typeof avatarId !== 'string') return false;
+  const id = avatarId.trim();
+  return AVATAR_BY_ID.has(id);
+}
+
+/**
  * @param {unknown} avatarId
  * @returns {ProfileAvatarOption}
  */

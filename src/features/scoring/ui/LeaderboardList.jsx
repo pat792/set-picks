@@ -12,6 +12,7 @@ import { calculateTotalScore } from '../../../shared/utils/scoring';
 import MetaChip from '../../../shared/ui/MetaChip';
 
 import LeaderboardRow from './LeaderboardRow';
+import { usePlayerIdentityMap } from '../../profile';
 
 export default function LeaderboardList({
   sortedPicks,
@@ -27,6 +28,10 @@ export default function LeaderboardList({
   /** Pre-lock: blur opponent pick titles in expanded rows (#303). */
   redactOpponentPicksPreLock = false,
 }) {
+  const { identities } = usePlayerIdentityMap(
+    sortedPicks.map((p) => p.userId || p.uid)
+  );
+
   if (sortedPicks.length === 0) {
     return (
       <div className="mt-10 text-center font-bold text-content-secondary">
@@ -126,6 +131,7 @@ export default function LeaderboardList({
         // skip the natural rank badge so users don't misread "1" as a
         // scoring result before the setlist lands.
         const displayRank = isSelf && !actualSetlist ? null : rank;
+        const playerUid = p.userId || p.uid;
 
         return (
           <LeaderboardRow
@@ -139,6 +145,7 @@ export default function LeaderboardList({
             onToggle={() => onToggle(uniqueId)}
             userPicks={userPicks}
             maskPickTitles={maskPickTitles}
+            identity={playerUid ? identities[playerUid] : null}
             anchorId={
               isSelf && selfUserId ? `standings-player-${selfUserId}` : undefined
             }

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_AVATAR_ID,
   PROFILE_AVATARS,
+  hasSelectedAvatar,
   normalizeAvatarId,
   resolveAvatar,
 } from './avatarCatalog';
@@ -26,5 +27,12 @@ describe('avatarCatalog', () => {
     const avatar = resolveAvatar('disc');
     expect(avatar.src).toBe('/avatars/disc.svg');
     expect(avatar.label).toMatch(/vinyl/i);
+  });
+
+  it('detects whether an avatar was explicitly selected', () => {
+    expect(hasSelectedAvatar(undefined)).toBe(false);
+    expect(hasSelectedAvatar('')).toBe(false);
+    expect(hasSelectedAvatar('ticket')).toBe(true);
+    expect(hasSelectedAvatar('nope')).toBe(false);
   });
 });
