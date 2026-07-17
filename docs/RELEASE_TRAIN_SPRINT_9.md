@@ -82,7 +82,7 @@ Wave 6  Promote freeze
         * Staging soak + QA checklist
         * One staging -> main PR
         * Release gate on staging tip
-        * Human release tag after promote
+        * Release tag after promote when user requests (`release:publish`)
 ```
 
 **Hotfix rule:** If production needs a fix mid-train, branch from `main`, ship the hotfix, then fast-forward or merge `main` back into `staging` before continuing train PRs.
@@ -96,7 +96,7 @@ Wave 6  Promote freeze
 3. New public routes, Firestore fields, callable surfaces, or env vars require `docs/API.md` updates in the same PR.
 4. Expected train promote bump is **MINOR** because #555 and #587 Phase B shipped new dashboard/schema surface. #510/#512/#513 are deferred and do not affect the Sprint 9 promote version.
 5. On promote day, write one production changelog entry that summarizes the full train.
-6. Agents do **not** tag releases; tagging remains a human step after `staging` -> `main`.
+6. After `staging` -> `main` promote, agents MAY publish the release tag when the user explicitly requests it (`npm run release:publish -- --confirm` on `main`).
 
 ---
 
@@ -126,8 +126,8 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 - [ ] Firestore rules tests green if rules changed
 - [ ] Manual QA checklist captured for profile stats, setlist gap/bustout, stats explorer, and comms preview/canary paths
 - [ ] One `staging` -> `main` promote PR opened and merged
-- [ ] Human release tag published after promote
-- [ ] Sprint 9 epics/issues closed or updated with residual follow-ups
+- [x] Release tag published after promote (`v1.30.0`) when user requested
+- [x] Sprint 9 epics/issues closed or updated with residual follow-ups
 
 ---
 
@@ -137,7 +137,7 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 - Base: **`staging`**.
 - PR bodies include `Closes #<issue>` for issue PRs, plus `## Summary` and `## Test plan`.
 - Do not open promote PRs until Wave 6.
-- Agents may comment/review when asked, but may not approve, request changes, merge, force-push, or tag without explicit user command.
+- Agents may comment/review when asked, but may not approve, request changes, merge, or force-push without explicit user command. Tagging/`release:publish` requires an explicit user promote/tag/release request after `main` is updated.
 
 ---
 
@@ -158,3 +158,4 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 | 2026-07-17 | 5 | #573 Phase 0 merged (#628) | Optimize autonomy L0 playbook + skills; Phase 1 (on-demand pack) next |
 | 2026-07-17 | 5 | #573 L1 pack posted | First on-demand Optimize pack (`optimize_for=picks_lock`) on epic; #584 closed (shipped #615) |
 | 2026-07-17 | 6 | Promote freeze started | Waived #510/#512/#513 and #573 L2+ to Sprint 10; Sprint 9 release promotes shipped stats/personalization + #573 Phase 0/1 as **1.30.0**. |
+| 2026-07-17 | 6 | #632 merged + prod READY | `staging` → `main` promote; Vercel production READY. Release tag `v1.30.0` published on request. |
