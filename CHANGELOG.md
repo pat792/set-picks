@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.24.0] — 2026-07-16
+
+### Added
+- **Standings setlist bustout badges (#587 Phase A)** — official setlist rows now badge songs present in `official_setlists.bustouts`, using the existing scoring snapshot with no new listeners or schema changes.
+
+---
+
 ## [1.23.1] — 2026-07-16
 
 ### Fixed

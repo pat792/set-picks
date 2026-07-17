@@ -85,3 +85,37 @@ export function groupOfficialSetlistBySet(actualSetlist) {
 
   return { set1, set2, encore, hasSongs, hasOfficialSlots };
 }
+
+/**
+ * @param {unknown} title
+ * @returns {string}
+ */
+function normalizeOfficialTitle(title) {
+  return String(title ?? '')
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Builds the per-show bustout title lookup used by Standings setlist rows.
+ * `official_setlists.bustouts` is already the scoring source of truth; this
+ * helper only normalizes display matching.
+ *
+ * @param {null | Record<string, unknown>} actualSetlist
+ * @returns {Set<string>}
+ */
+export function buildBustoutTitleSet(actualSetlist) {
+  if (!actualSetlist || typeof actualSetlist !== 'object') return new Set();
+  if (!Array.isArray(actualSetlist.bustouts)) return new Set();
+  return new Set(actualSetlist.bustouts.map(normalizeOfficialTitle).filter(Boolean));
+}
+
+/**
+ * @param {unknown} title
+ * @param {Set<string>} bustoutTitleSet
+ * @returns {boolean}
+ */
+export function isOfficialSetlistBustout(title, bustoutTitleSet) {
+  if (!(bustoutTitleSet instanceof Set) || bustoutTitleSet.size === 0) return false;
+  return bustoutTitleSet.has(normalizeOfficialTitle(title));
+}
