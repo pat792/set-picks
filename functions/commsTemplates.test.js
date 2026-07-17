@@ -137,6 +137,32 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   );
 });
 
+test("tour-rankings-daily email dedupes venue/location and same-venue next up (#584)", async () => {
+  const out = await renderCommsTemplate("tour-rankings-daily", {
+    handle: "RiverTranced",
+    show_date: "2026-07-19",
+    venue_name: "MSG",
+    venue_city: "New York, NY",
+    show_score: 70,
+    global_rank: 4,
+    global_total_pickers: 200,
+    tour_rank: 3,
+    total_tour_pickers: 50,
+    tour_points: 210,
+    rank_change: "up 2",
+    next_show_date: "2026-07-20",
+    next_show_venue: "MSG",
+  });
+
+  assert.equal(out.email.subject, "Your show recap + tour standings");
+  assert.match(out.email.text, /last night at 2026-07-19 — MSG, New York, NY went/);
+  assert.match(out.email.text, /After last night's show you climbed 2 spots\./);
+  assert.match(out.email.text, /Back at MSG 2026-07-20\./);
+  assert.equal((out.email.text.match(/New York, NY/g) || []).length, 1);
+  assert.doesNotMatch(out.email.text, /After New York, NY/);
+  assert.doesNotMatch(out.email.text, /Next up: 2026-07-20 — MSG/);
+});
+
 test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {
   const out = await renderCommsTemplate("tour-countdown", {
     handle: "ArmenianMan",

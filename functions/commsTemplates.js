@@ -336,7 +336,7 @@ const BUILDERS = {
 
   "tour-rankings-daily": (p) => {
     const handle = handleOf(p);
-    const venue = p.venue_name || p.venue_city || "the show";
+    const venue = venueLine(p) || "the show";
     const narrative =
       (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
@@ -387,9 +387,7 @@ const BUILDERS = {
         }${p.rank_change ? ` (${p.rank_change})` : ""}.`,
       },
       email: {
-        subject: p.venue_city
-          ? `Your ${p.venue_city} recap + tour update`
-          : "Your show recap + tour standings",
+        subject: "Your show recap + tour standings",
         text: emailText,
         signOff: assembled.signOff,
         ctaUrl: PICKS_CTA_URL,

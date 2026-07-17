@@ -212,6 +212,51 @@ function tourTier(rankChange, tourRank) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {string}
+ */
+function cleanText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * @param {string} venue
+ * @param {string} city
+ * @returns {string}
+ */
+function appendCityIfNeeded(venue, city) {
+  if (!city) return venue;
+  if (!venue) return city;
+  if (venue.toLowerCase().includes(city.toLowerCase())) return venue;
+  return `${venue}, ${city}`;
+}
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+function normalizePlace(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * @param {string} nextVenue
+ * @param {string[]} currentLabels
+ * @returns {boolean}
+ */
+function isSamePlace(nextVenue, currentLabels) {
+  const next = normalizePlace(nextVenue);
+  if (!next) return false;
+  return currentLabels.some((label) => {
+    const current = normalizePlace(label);
+    return current && (current === next || current.includes(next) || next.includes(current));
+  });
+}
+
+/**
  * Build payload fields for one recipient of `tour_rankings_daily`.
  *
  * @param {{
@@ -286,17 +331,15 @@ function buildTourRankingsDailyParagraphs(p, opts = {}) {
   const handle =
     typeof p.handle === "string" && p.handle.trim() ? p.handle.trim() : "Picker";
   const omitHandle = opts.omitHandle === true;
-  const city =
-    (typeof p.venue_city === "string" && p.venue_city.trim()) ||
-    (typeof p.venue_name === "string" && p.venue_name.trim()) ||
-    "last night";
-  const place =
-    typeof p.venue_name === "string" && p.venue_name.trim()
-      ? p.venue_name.trim()
-      : city;
-  const date =
-    typeof p.show_date === "string" && p.show_date.trim() ? p.show_date.trim() : "";
+  const venue = cleanText(p.venue_name);
+  const city = cleanText(p.venue_city);
+  const place = appendCityIfNeeded(venue, city) || "last night";
+  const standaloneShowRef = place;
+  const combinedShowRef = "last night's show";
+  const paragraphShowRef = omitHandle ? combinedShowRef : standaloneShowRef;
+  const date = cleanText(p.show_date);
   const showLabel = date ? `${date} — ${place}` : place;
+  const paragraphShowLabel = omitHandle ? combinedShowRef : showLabel;
 
   const tourRank = p.tour_rank != null ? Number(p.tour_rank) : null;
   const total = p.total_tour_pickers != null ? Number(p.total_tour_pickers) : null;
@@ -322,7 +365,7 @@ function buildTourRankingsDailyParagraphs(p, opts = {}) {
     paras.push(`You're on the board!`);
     paras.push(
       omitHandle
-        ? `After ${showLabel} ${tourStanding}.`
+        ? `After ${paragraphShowLabel} ${tourStanding}.`
         : `${handle}, after ${showLabel} ${tourStanding}.`,
     );
     paras.push(
@@ -338,13 +381,13 @@ function buildTourRankingsDailyParagraphs(p, opts = {}) {
     const lateLead = omitHandle
       ? `Welcome aboard — ${
           showRank
-            ? `you finished ${showRank} last night at ${city}`
-            : `after ${city}`
+            ? `you finished ${showRank} last night`
+            : `after ${paragraphShowRef}`
         }, and ${tourStanding}.`
       : `${handle}, welcome aboard — ${
           showRank
-            ? `you finished ${showRank} last night at ${city}`
-            : `after ${city}`
+            ? `you finished ${showRank} last night at ${paragraphShowRef}`
+            : `after ${paragraphShowRef}`
         }, and ${tourStanding}.`;
     paras.push(lateLead);
     paras.push("There is still time to catch up — every show counts.");
@@ -366,14 +409,14 @@ function buildTourRankingsDailyParagraphs(p, opts = {}) {
     if (movement) {
       paras.push(
         omitHandle
-          ? `After ${city} you ${movement}.`
-          : `${handle}, after ${city} you ${movement}.`,
+          ? `After ${paragraphShowRef} you ${movement}.`
+          : `${handle}, after ${paragraphShowRef} you ${movement}.`,
       );
     } else {
       paras.push(
         omitHandle
-          ? `After ${city} ${tourStanding}.`
-          : `${handle}, after ${city} ${tourStanding}.`,
+          ? `After ${paragraphShowRef} ${tourStanding}.`
+          : `${handle}, after ${paragraphShowRef} ${tourStanding}.`,
       );
     }
 
@@ -402,16 +445,22 @@ function buildTourRankingsDailyParagraphs(p, opts = {}) {
   }
 
   if (p.next_show_date || p.next_show_venue) {
-    const nextVenue =
-      typeof p.next_show_venue === "string" ? p.next_show_venue.trim() : "";
-    const nextDate =
-      typeof p.next_show_date === "string" ? p.next_show_date.trim() : "";
+    const nextVenue = cleanText(p.next_show_venue);
+    const nextDate = cleanText(p.next_show_date);
+    const samePlace = isSamePlace(
+      nextVenue,
+      [venue, city, place].filter(Boolean),
+    );
     paras.push(
-      nextDate && nextVenue
-        ? `Next up: ${nextDate} — ${nextVenue}.`
-        : nextVenue
-          ? `Next up: ${nextVenue}.`
-          : `Next up: ${nextDate}.`,
+      samePlace && nextDate && nextVenue
+        ? `Back at ${nextVenue} ${nextDate}.`
+        : samePlace && nextVenue
+          ? `Back at ${nextVenue}.`
+          : nextDate && nextVenue
+            ? `Next up: ${nextDate} — ${nextVenue}.`
+            : nextVenue
+              ? `Next up: ${nextVenue}.`
+              : `Next up: ${nextDate}.`,
     );
   } else {
     paras.push("Keep your streak going on the next show.");
