@@ -3,6 +3,8 @@
  * Display / explorer only — not used for scoring.
  */
 
+import { SCORING_RULES } from '../../../shared/utils/scoring';
+
 /**
  * @param {unknown} title
  * @returns {string}
@@ -11,6 +13,27 @@ function normalizeTitle(title) {
   return String(title ?? '')
     .trim()
     .toLowerCase();
+}
+
+/**
+ * @param {unknown} raw
+ * @returns {number | null}
+ */
+function toGap(raw) {
+  const n = typeof raw === 'number' ? raw : Number(raw);
+  return Number.isFinite(n) ? Math.trunc(n) : null;
+}
+
+/**
+ * @param {undefined | null | Map<string, number> | Record<string, number>} lifetime
+ * @param {string} key
+ * @returns {number}
+ */
+function lifetimePlaysFor(lifetime, key) {
+  if (!lifetime) return 0;
+  if (lifetime instanceof Map) return Number(lifetime.get(key)) || 0;
+  if (typeof lifetime === 'object') return Number(lifetime[key]) || 0;
+  return 0;
 }
 
 /**
@@ -44,8 +67,8 @@ function normalizeTitle(title) {
  */
 
 export const TOUR_STATS_TOP_N = 15;
-/** Surface high-gap non-bustout songs in the explorer (≥ this gap). */
-export const TOUR_STATS_GAP_HIGHLIGHT_MIN = 20;
+/** Surface high-gap non-bustout songs in the explorer (≥ this gap, below bustout). */
+export const TOUR_STATS_GAP_HIGHLIGHT_MIN = 10;
 
 /**
  * @param {Array<{
@@ -56,6 +79,8 @@ export const TOUR_STATS_GAP_HIGHLIGHT_MIN = 20;
  *   tourShowCount?: number,
  *   topN?: number,
  *   gapHighlightMin?: number,
+ *   bustoutMinGap?: number,
+ *   lifetimePlaysByKey?: Map<string, number> | Record<string, number> | null,
  * }} [options]
  * @returns {TourSetlistStats}
  */
@@ -68,6 +93,11 @@ export function aggregateTourSetlistStats(docs, options = {}) {
     typeof options.gapHighlightMin === 'number' && options.gapHighlightMin >= 0
       ? Math.trunc(options.gapHighlightMin)
       : TOUR_STATS_GAP_HIGHLIGHT_MIN;
+  const bustoutMinGap =
+    typeof options.bustoutMinGap === 'number' && options.bustoutMinGap >= 0
+      ? Math.trunc(options.bustoutMinGap)
+      : SCORING_RULES.BUSTOUT_MIN_GAP;
+  const lifetimePlaysByKey = options.lifetimePlaysByKey ?? null;
   const tourShowCount =
     typeof options.tourShowCount === 'number' && options.tourShowCount >= 0
       ? Math.trunc(options.tourShowCount)
@@ -97,11 +127,12 @@ export function aggregateTourSetlistStats(docs, options = {}) {
     if (titles.length === 0) continue;
     showsWithSetlist += 1;
 
-    const seenThisShow = new Set();
+    /** Normalized keys of songs actually played this show (the display guard). */
+    const playedThisShow = new Set();
     for (const title of titles) {
       const key = normalizeTitle(title);
-      if (!key || seenThisShow.has(key)) continue;
-      seenThisShow.add(key);
+      if (!key || playedThisShow.has(key)) continue;
+      playedThisShow.add(key);
       totalSongPlays += 1;
       const existing = bySong.get(key);
       if (existing) {
@@ -116,46 +147,63 @@ export function aggregateTourSetlistStats(docs, options = {}) {
       }
     }
 
-    const bustoutList = Array.isArray(setlist.bustouts) ? setlist.bustouts : [];
+    const songGaps =
+      setlist.songGaps &&
+      typeof setlist.songGaps === 'object' &&
+      !Array.isArray(setlist.songGaps)
+        ? setlist.songGaps
+        : null;
+
+    // Bustouts: the frozen per-show snapshot, but only for songs that actually
+    // appear in this show's played list. The writer merges `bustouts` with the
+    // prior poll and never removes entries, so a song that briefly showed up in
+    // a live/edited feed can stay frozen here after vanishing from
+    // `officialSetlist`. Guarding on played-this-show drops those stale ghosts.
     const bustoutKeys = new Set();
+    const bustoutList = Array.isArray(setlist.bustouts) ? setlist.bustouts : [];
     for (const raw of bustoutList) {
       const title = String(raw ?? '').trim();
       const key = normalizeTitle(title);
       if (!title || !key || bustoutKeys.has(key)) continue;
+      if (!playedThisShow.has(key)) continue;
       bustoutKeys.add(key);
-      const gaps = setlist.songGaps;
-      const gapRaw =
-        gaps && typeof gaps === 'object' && !Array.isArray(gaps) ? gaps[key] : null;
-      const gap =
-        typeof gapRaw === 'number' && Number.isFinite(gapRaw)
-          ? Math.trunc(gapRaw)
-          : null;
-      bustouts.push({ title, showDate, gap });
+      bustouts.push({ title, showDate, gap: songGaps ? toGap(songGaps[key]) : null });
     }
 
-    const gaps = setlist.songGaps;
-    if (gaps && typeof gaps === 'object' && !Array.isArray(gaps)) {
-      for (const [key, gapRaw] of Object.entries(gaps)) {
-        const gap =
-          typeof gapRaw === 'number' && Number.isFinite(gapRaw)
-            ? Math.trunc(gapRaw)
-            : null;
-        if (gap == null || gap < gapHighlightMin) continue;
-        if (bustoutKeys.has(key)) continue;
+    // Union: a played song whose frozen pre-show gap clears the bustout
+    // threshold is a bustout by definition, even if the frozen `bustouts` array
+    // missed it (snapshot drift). Keeps the two cards internally consistent so
+    // nothing ≥ threshold lands in "high gaps (non-bustout)".
+    if (songGaps) {
+      for (const [key, gapRaw] of Object.entries(songGaps)) {
+        if (!playedThisShow.has(key) || bustoutKeys.has(key)) continue;
+        const gap = toGap(gapRaw);
+        if (gap == null || gap < bustoutMinGap) continue;
+        bustoutKeys.add(key);
         const match = bySong.get(key);
-        const title = match?.title || key;
-        gapHighlights.push({ title, showDate, gap });
+        bustouts.push({ title: match?.title || key, showDate, gap });
+      }
+
+      for (const [key, gapRaw] of Object.entries(songGaps)) {
+        if (!playedThisShow.has(key) || bustoutKeys.has(key)) continue;
+        const gap = toGap(gapRaw);
+        if (gap == null || gap < gapHighlightMin || gap >= bustoutMinGap) continue;
+        const match = bySong.get(key);
+        gapHighlights.push({ title: match?.title || key, showDate, gap });
       }
     }
   }
 
-  const topSongs = [...bySong.values()]
-    .sort((a, b) => {
+  const topSongs = [...bySong.entries()]
+    .sort(([keyA, a], [keyB, b]) => {
       if (b.timesPlayed !== a.timesPlayed) return b.timesPlayed - a.timesPlayed;
+      const lifetimeA = lifetimePlaysFor(lifetimePlaysByKey, keyA);
+      const lifetimeB = lifetimePlaysFor(lifetimePlaysByKey, keyB);
+      if (lifetimeB !== lifetimeA) return lifetimeB - lifetimeA;
       return a.title.localeCompare(b.title);
     })
     .slice(0, topN)
-    .map((row) => ({
+    .map(([, row]) => ({
       title: row.title,
       timesPlayed: row.timesPlayed,
       showDates: [...row.showDates],

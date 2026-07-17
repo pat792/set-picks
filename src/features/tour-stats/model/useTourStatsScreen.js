@@ -2,9 +2,31 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '../../auth';
+import { useSongCatalog } from '../../song-catalog';
 import { computeTourStatsSelfOverlay } from '../api/computeTourStatsSelfOverlay';
 import { fetchTourOfficialSetlists } from '../api/fetchTourOfficialSetlists';
 import { aggregateTourSetlistStats } from './aggregateTourSetlistStats';
+
+/**
+ * Normalized (lowercased/trimmed) title → lifetime times-played, from the song
+ * catalog. Used only to break ties in the tour "Most played" list so a pile of
+ * one-off songs orders by overall commonness instead of alphabetically.
+ *
+ * @param {{ name?: string, total?: string }[]} songs
+ * @returns {Map<string, number>}
+ */
+function buildLifetimePlaysByKey(songs) {
+  const map = new Map();
+  if (!Array.isArray(songs)) return map;
+  for (const song of songs) {
+    const key = String(song?.name ?? '').trim().toLowerCase();
+    if (!key) continue;
+    const total = Number(song?.total);
+    if (!Number.isFinite(total)) continue;
+    map.set(key, total);
+  }
+  return map;
+}
 
 /**
  * Dashboard Tour stats screen (#555): on-demand setlist aggregation + self overlay.
@@ -33,6 +55,12 @@ export function useTourStatsScreen(options = {}) {
   const tourName = selectedTour?.tour || '';
   const uid = user?.uid || '';
 
+  const { songs: catalogSongs } = useSongCatalog();
+  const lifetimePlaysByKey = useMemo(
+    () => buildLifetimePlaysByKey(catalogSongs),
+    [catalogSongs],
+  );
+
   const setlistQuery = useQuery({
     queryKey: ['tour-stats-setlists', tourName, showDates.join(',')],
     enabled: !calendarLoading && showDates.length > 0,
@@ -42,8 +70,11 @@ export function useTourStatsScreen(options = {}) {
 
   const stats = useMemo(() => {
     const docs = setlistQuery.data?.docs || [];
-    return aggregateTourSetlistStats(docs, { tourShowCount: showDates.length });
-  }, [setlistQuery.data, showDates.length]);
+    return aggregateTourSetlistStats(docs, {
+      tourShowCount: showDates.length,
+      lifetimePlaysByKey,
+    });
+  }, [setlistQuery.data, showDates.length, lifetimePlaysByKey]);
 
   const overlayQuery = useQuery({
     queryKey: [

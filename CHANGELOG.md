@@ -19,6 +19,10 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Changed
 - **Standings IA (#555 UX)** — Stats is a fourth Standings view tab (not a buried Tour-only link and not a fifth primary bottom-nav item). Mobile context title on `/dashboard/tour-stats` stays **Standings**; sticky chrome matches Show/Tour/Pools.
+- **Tour stats copy/layout (#555)** — summary reads “x of n tour dates”; grids use setlist-style column headers; summary tiles are Unique songs / Songs played / Unique ratio / Bustouts with Info tooltips (no footnote strip); Bustouts card keeps the scoring-rules “What is a bustout?” link; High gaps / Most played use Info tooltips.
+
+### Fixed
+- **Tour stats data hygiene (#555)** — the Bustouts and High-gaps cards now only count songs actually played that night, so stale `official_setlists` snapshot entries (the writer unions `bustouts`/`songGaps` across polls and never drops removed rows) no longer leak in as never-played “bustouts” or mislabeled high gaps. A played song whose frozen pre-show gap clears the bustout threshold is now shown as a bustout even if the frozen `bustouts` array missed it, keeping the two cards consistent. “Most played” ties now break by lifetime plays (song catalog) instead of alphabetically.
 
 ---
 

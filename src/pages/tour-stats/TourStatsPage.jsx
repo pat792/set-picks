@@ -56,7 +56,7 @@ export default function TourStatsPage() {
       />
 
       <div className="mt-4 md:mt-5">
-        <TourStatsView {...screen} />
+        <TourStatsView {...screen} onOpenScoringRules={openScoringRules} />
       </div>
     </div>
   );

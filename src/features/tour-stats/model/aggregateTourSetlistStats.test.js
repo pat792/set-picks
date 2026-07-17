@@ -35,7 +35,7 @@ describe('aggregateTourSetlistStats (#555)', () => {
           },
         },
       ],
-      { tourShowCount: 4, topN: 10, gapHighlightMin: 20 },
+      { tourShowCount: 4, topN: 10, gapHighlightMin: 10 },
     );
 
     expect(stats.showsWithSetlist).toBe(2);
@@ -54,17 +54,91 @@ describe('aggregateTourSetlistStats (#555)', () => {
         {
           showDate: '2026-07-12',
           setlist: {
-            officialSetlist: ['Reba', 'Dinner and a Movie'],
+            officialSetlist: ['Reba', 'Dinner and a Movie', 'Free'],
             bustouts: ['Dinner and a Movie'],
-            songGaps: { reba: 25, 'dinner and a movie': 82 },
+            songGaps: {
+              reba: 25,
+              'dinner and a movie': 82,
+              free: 12,
+            },
           },
         },
       ],
-      { gapHighlightMin: 20 },
+      { gapHighlightMin: 10 },
     );
     expect(stats.gapHighlights).toEqual([
       { title: 'Reba', showDate: '2026-07-12', gap: 25 },
+      { title: 'Free', showDate: '2026-07-12', gap: 12 },
     ]);
     expect(stats.bustouts[0].title).toBe('Dinner and a Movie');
+  });
+
+  it('drops bustouts/gaps for songs not actually played that show (stale snapshot)', () => {
+    const stats = aggregateTourSetlistStats(
+      [
+        {
+          showDate: '2026-07-20',
+          setlist: {
+            officialSetlist: ['Wilson', 'Sample in a Jar'],
+            // Frozen ghosts: the writer unions `bustouts`/`songGaps` across
+            // polls and never removes, so a song from an edited feed can linger
+            // even though it is not in `officialSetlist`.
+            bustouts: ['The Curtain'],
+            songGaps: { 'punch you in the eye': 55, wilson: 3 },
+          },
+        },
+      ],
+      { bustoutMinGap: 30, gapHighlightMin: 10 },
+    );
+    expect(stats.bustouts).toEqual([]);
+    expect(stats.gapHighlights).toEqual([]);
+  });
+
+  it('promotes a played high-gap song to bustout even when missing from the snapshot', () => {
+    const stats = aggregateTourSetlistStats(
+      [
+        {
+          showDate: '2026-07-21',
+          setlist: {
+            officialSetlist: ['Peaches en Regalia', 'Bouncing Around the Room'],
+            bustouts: [],
+            songGaps: {
+              'peaches en regalia': 248,
+              'bouncing around the room': 5,
+            },
+          },
+        },
+      ],
+      { bustoutMinGap: 30, gapHighlightMin: 10 },
+    );
+    expect(stats.bustouts).toEqual([
+      { title: 'Peaches en Regalia', showDate: '2026-07-21', gap: 248 },
+    ]);
+    expect(stats.gapHighlights).toEqual([]);
+  });
+
+  it('breaks Most played ties by lifetime plays from the catalog', () => {
+    const stats = aggregateTourSetlistStats(
+      [
+        {
+          showDate: '2026-07-22',
+          setlist: {
+            officialSetlist: ['Rare Bird', 'You Enjoy Myself'],
+            bustouts: [],
+            songGaps: {},
+          },
+        },
+      ],
+      {
+        lifetimePlaysByKey: new Map([
+          ['you enjoy myself', 623],
+          ['rare bird', 1],
+        ]),
+      },
+    );
+    expect(stats.topSongs.map((r) => r.title)).toEqual([
+      'You Enjoy Myself',
+      'Rare Bird',
+    ]);
   });
 });
