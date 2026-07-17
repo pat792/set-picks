@@ -26,7 +26,9 @@ export default function StandingsPlayerAvatar({
   const selected = hasSelectedAvatar(avatarId);
   const showcase = resolveEarnedBadges(badges)[0] || null;
   const label = (handle || '').trim() || 'Player';
+  const initial = label.charAt(0).toUpperCase();
 
+  // Self with no avatar yet → tappable “add” affordance.
   if (isSelf && !selected) {
     return (
       <Link
@@ -40,14 +42,27 @@ export default function StandingsPlayerAvatar({
     );
   }
 
+  // A player who has picked a catalog avatar shows it; everyone else gets a
+  // neutral initial chip so unset users don’t all read as the default ticket.
+  const mark = selected ? (
+    <ProfileAvatar
+      avatarId={avatarId}
+      size="sm"
+      alt={`${label}'s avatar`}
+      className="!h-9 !w-9 !rounded-full"
+    />
+  ) : (
+    <span
+      aria-label={`${label}'s avatar`}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-surface-field text-xs font-black uppercase tracking-wide text-content-secondary"
+    >
+      {initial}
+    </span>
+  );
+
   return (
     <span className="relative inline-flex h-9 w-9 shrink-0">
-      <ProfileAvatar
-        avatarId={avatarId}
-        size="sm"
-        alt={`${label}'s avatar`}
-        className="!h-9 !w-9 !rounded-full"
-      />
+      {mark}
       {showcase ? (
         <img
           src={showcase.src}
