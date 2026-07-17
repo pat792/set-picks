@@ -156,3 +156,4 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 | 2026-07-17 | 3–4 | #622 + #623 merged | Badges/avatars (**1.28.1**) + setlist gaps (**1.29.0**); staging tip **1.29.0** |
 | 2026-07-17 | 4 | #555 in flight | Dashboard Tour stats explorer → **1.30.0** |
 | 2026-07-17 | 4 | #625 merged | Tour stats explorer + Stats tab (**1.30.0**); staging tip **1.30.0**. Wave 4 complete. Follow-up scrub: #626. |
+| 2026-07-17 | 5 | #573 Phase 0 in flight | Optimize autonomy L0 playbook + skills alignment |

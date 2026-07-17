@@ -14,10 +14,23 @@ You analyze user behavior and comms performance to inform trigger design, copy o
 ## Read first
 
 1. `docs/comms-triggers/FRAMEWORK.md` — TTDMOM phases
-2. `docs/comms-triggers/TRIGGER_CATALOG.md` + `catalog.json`
-3. `docs/comms-triggers/MEASUREMENT_PLAN.md`
-4. `docs/AUTH_TELEMETRY_RUNBOOK.md` — auth events overlap with lifecycle triggers
-5. `content/comms/README.md` — what is shipped vs draft
+2. `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` — Optimize loop + PM pack template (#573 L0)
+3. `docs/comms-triggers/TRIGGER_CATALOG.md` + `catalog.json`
+4. `docs/comms-triggers/MEASUREMENT_PLAN.md`
+5. `docs/AUTH_TELEMETRY_RUNBOOK.md` — auth events overlap with lifecycle triggers
+6. `content/comms/README.md` — what is shipped vs draft
+7. Data spine (facts only): `docs/OFFICIAL_SETLISTS_SCHEMA.md`, `docs/COMMS_SHOW_CONTEXT_SCHEMA.md`
+
+## Optimize cycle (#573)
+
+When asked to **run Optimize** (goal + date window):
+
+1. You go **first** — funnels, gaps, recommendations for `optimize_for=…`
+2. Hand off: **triggers → drafter → architect → PM** (see `OPTIMIZE_AUTONOMY.md`)
+3. Output the **PM review pack** template from that doc (post on epic #573)
+4. **Draft-only:** open PRs to **`staging`**; never merge or deploy
+
+**Night vs tour:** #572 `show_recap` (single night) ≠ #510 `tour_recap` (end of tour). Do not conflate metrics or recommendations.
 
 ## Data sources
 
@@ -81,13 +94,21 @@ Follow `docs/comms-triggers/EXPERIMENT_PLAYBOOK.md`. Report variant, sample size
 
 ## Handoffs
 
+### Optimize cycle order (#573)
+
+`comms-analyst` (you) → **comms-triggers** → **comms-drafter** → **comms-architect** → **PM**
+
+### Standing handoffs
+
 - **New trigger ideas** → comms-triggers skill (Trigger Spec)
 - **Copy underperformance** → comms-drafter skill (variant draft)
 - **Channel or rollout changes** → comms-architect skill
-- **GitHub tracking** → issue with `[SKIP-PRD]` under #272
+- **GitHub tracking** → `[SKIP-PRD]` issue under #272 / #573 as appropriate
 
 ## Constraints
 
 - Never print secrets, FCM tokens, or per-user PII in reports
 - GA4 on production only for user-facing events; note when staging data is unavailable
 - Do not approve production deploys — recommend only
+- Do not invent setlist facts; cite spine docs / delivery logs
+- PR base when filing draft changes: **staging**

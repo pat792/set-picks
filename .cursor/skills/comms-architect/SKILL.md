@@ -30,6 +30,8 @@ You design and implement **how** triggered messages reach users safely and at sc
 6. `firestore.rules` — `commsInbox`, `fcm_notification_log`
 7. `src/features/notifications/api/commsInboxApi.js`
 8. `docs/comms-triggers/ECOSYSTEM.md` — flow diagram + process descriptions
+9. `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` — Optimize loop, draft-only gate, night vs tour (#573)
+10. Spine: `docs/OFFICIAL_SETLISTS_SCHEMA.md`, `docs/COMMS_SHOW_CONTEXT_SCHEMA.md` (#572 facts → `setlist_highlight`)
 
 ## Architecture — full automation (epic #441)
 
@@ -186,6 +188,16 @@ gcloud functions describe <export> --gen2 --region=us-central1 --project=set-pic
 
 ## Handoffs
 
+### Optimize cycle (#573)
+
+Order: analyst → triggers → drafter → **architect (you)** → **PM**.
+
+- Flag missing ingest / adapter / var wiring for draft PRs
+- Dry-run / canary notes only — never auto-merge or production-deploy from Optimize
+- Keep #572 night adapters separate from #510 tour_recap fan-out
+
+### Standing handoffs
+
 - Missing Trigger Spec → **comms-triggers**
 - Copy/builders → **comms-drafter**
 - Post-ship metrics → **comms-analyst**
@@ -196,3 +208,4 @@ gcloud functions describe <export> --gen2 --region=us-central1 --project=set-pic
 - Deploy functions per `functions/package.json` scripts; **comms** exports use `npm run comms:deploy:*` (manifest-driven — see **Release + deploy tooling**)
 - Fatigue: max 2 push/user/show day (document in catalog notes)
 - Commercial slots only via `COMMERCIAL_PHASE3.md` gates
+- Optimize writes are **draft-only** until PM approves; no agent-initiated production send

@@ -10,6 +10,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+### Added
+- **Comms Optimize autonomy playbook (#573 L0)** — `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` plus squad skill handoffs (analyst → triggers → drafter → architect → PM), PM pack template, draft-only/`staging` gate, and #572 night vs #510 tour boundary.
+
 ---
 
 ## [1.30.0] — 2026-07-17
