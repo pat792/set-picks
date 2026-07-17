@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { todayYmd } from '../../../shared/utils/dateUtils';
 import { useAuth } from '../../auth';
 import { useShowCalendar } from '../../show-calendar';
 import {
   EMPTY_USER_SEASON_STATS,
   computeUserSeasonStats,
+  deriveLatestFinalizedShow,
 } from '../api/profileSeasonStats';
 import { emitProfileSeasonStatsTelemetry } from './profileStatsTelemetry';
 
@@ -20,34 +20,6 @@ function deriveShowDatesKey(showDates) {
     .map((s) => (s && typeof s.date === 'string' ? s.date : ''))
     .filter(Boolean)
     .join('|');
-}
-
-/**
- * Heuristic for "the most recent finalized show the client is aware of" —
- * the max calendar date on or before today. Used by
- * `computeUserSeasonStats` (#244) to decide whether the `users/{uid}`
- * materialized snapshot is fresh enough to short-circuit the
- * live-compute fallback.
- *
- * Today's show may not have been rolled up yet (finalize is still manual);
- * if that's the case for the most-recent-show user, the snapshot will be
- * stale and they'll fall back to live-compute for one profile view until
- * the next rollup catches up. Acceptable trade-off vs. a second Firestore
- * read to load a global "last rolled up show" marker.
- *
- * @param {Array<{ date: string }>} showDates
- * @returns {string | null}
- */
-function deriveLatestFinalizedShow(showDates) {
-  if (!Array.isArray(showDates) || showDates.length === 0) return null;
-  const today = todayYmd();
-  let latest = null;
-  for (const s of showDates) {
-    const d = s && typeof s.date === 'string' ? s.date : '';
-    if (!d || d > today) continue;
-    if (!latest || d > latest) latest = d;
-  }
-  return latest;
 }
 
 /**

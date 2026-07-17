@@ -1,17 +1,10 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal } from 'react-dom';
-import { Info, Loader2 } from 'lucide-react';
+import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
+import InfoTooltip, {
+  InfoTooltipProvider,
+} from '../../../shared/ui/InfoTooltip';
 import { SCORING_RULES } from '../../../shared/utils/scoring';
 import { TOUR_STATS_GAP_HIGHLIGHT_MIN } from '../model/aggregateTourSetlistStats';
 
@@ -31,10 +24,6 @@ const GAP_ROW_GRID =
 
 const COL_HEADER =
   'mb-0.5 border-b border-brand-primary/20 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-300';
-
-const TOOLTIP_VIEWPORT_PAD = 8;
-const TOOLTIP_MAX_WIDTH = 256;
-const TOOLTIP_GAP = 6;
 
 const MOST_PLAYED_DEF =
   'Ranked by frequency; songs with the same number of plays this tour are sorted by total # of times played all-time.';
@@ -59,12 +48,6 @@ const TILE_DEFS = {
     long: `Songs with a pre-show gap ≥ ${BUSTOUT_MIN_GAP} (Bustout Boost eligible).`,
   },
 };
-
-/** @type {React.Context<{ openId: string | null, setOpenId: (id: string | null) => void }>} */
-const TourStatsTooltipContext = createContext({
-  openId: null,
-  setOpenId: () => {},
-});
 
 /**
  * @param {{
@@ -97,8 +80,6 @@ export default function TourStatsView({
   overlayLoading,
   onOpenScoringRules,
 }) {
-  const [openTooltipId, setOpenTooltipId] = useState(/** @type {string | null} */ (null));
-
   if (calendarLoading || setlistLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -129,9 +110,7 @@ export default function TourStatsView({
   }
 
   return (
-    <TourStatsTooltipContext.Provider
-      value={{ openId: openTooltipId, setOpenId: setOpenTooltipId }}
-    >
+    <InfoTooltipProvider>
       <div className="space-y-4">
         <p className="rounded-xl border border-border-subtle/50 bg-surface-panel-strong/60 px-3.5 py-2 text-sm font-bold text-white shadow-inset-glass">
           {tourName ? (
@@ -311,7 +290,7 @@ export default function TourStatsView({
           </TourStatsSectionCard>
         ) : null}
       </div>
-    </TourStatsTooltipContext.Provider>
+    </InfoTooltipProvider>
   );
 }
 
@@ -370,171 +349,6 @@ function TourStatsSectionCard({
       </div>
       {children}
     </Card>
-  );
-}
-
-/**
- * Clamp a fixed-position tooltip so it stays inside the viewport on mobile.
- * @param {DOMRect} triggerRect
- * @param {number} tooltipWidth
- * @param {number} tooltipHeight
- * @returns {{ top: number, left: number, width: number }}
- */
-function clampTooltipPosition(triggerRect, tooltipWidth, tooltipHeight) {
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 360;
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 640;
-  const width = Math.min(
-    tooltipWidth,
-    TOOLTIP_MAX_WIDTH,
-    Math.max(120, vw - TOOLTIP_VIEWPORT_PAD * 2),
-  );
-
-  let left = triggerRect.left + triggerRect.width / 2 - width / 2;
-  left = Math.max(
-    TOOLTIP_VIEWPORT_PAD,
-    Math.min(left, vw - width - TOOLTIP_VIEWPORT_PAD),
-  );
-
-  let top = triggerRect.bottom + TOOLTIP_GAP;
-  if (top + tooltipHeight > vh - TOOLTIP_VIEWPORT_PAD) {
-    top = Math.max(
-      TOOLTIP_VIEWPORT_PAD,
-      triggerRect.top - tooltipHeight - TOOLTIP_GAP,
-    );
-  }
-
-  return { top, left, width };
-}
-
-/**
- * Exclusive, viewport-clamped Info tooltip (one open at a time on this surface).
- *
- * @param {{
- *   label: string,
- *   definition: string,
- * }} props
- */
-function InfoTooltip({ label, definition }) {
-  const reactId = useId();
-  const tooltipId = `tour-stats-tip-${reactId}`;
-  const { openId, setOpenId } = useContext(TourStatsTooltipContext);
-  const open = openId === tooltipId;
-  const triggerRef = useRef(/** @type {HTMLButtonElement | null} */ (null));
-  const panelRef = useRef(/** @type {HTMLDivElement | null} */ (null));
-  const [coords, setCoords] = useState(
-    /** @type {{ top: number, left: number, width: number } | null} */ (null),
-  );
-
-  const close = useCallback(() => {
-    setOpenId((current) => (current === tooltipId ? null : current));
-  }, [setOpenId, tooltipId]);
-
-  const toggle = useCallback(() => {
-    setOpenId((current) => (current === tooltipId ? null : tooltipId));
-  }, [setOpenId, tooltipId]);
-
-  useLayoutEffect(() => {
-    if (!open || !triggerRef.current) {
-      setCoords(null);
-      return undefined;
-    }
-
-    const update = () => {
-      const triggerRect = triggerRef.current?.getBoundingClientRect();
-      if (!triggerRect) return;
-      const panelRect = panelRef.current?.getBoundingClientRect();
-      const height = panelRect?.height || 72;
-      const width = Math.min(
-        TOOLTIP_MAX_WIDTH,
-        Math.max(120, window.innerWidth - TOOLTIP_VIEWPORT_PAD * 2),
-      );
-      setCoords(clampTooltipPosition(triggerRect, width, height));
-    };
-
-    update();
-    // Re-measure after paint so height is accurate for flip-above.
-    const raf = requestAnimationFrame(update);
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const onPointerDown = (event) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (triggerRef.current?.contains(target)) return;
-      if (panelRef.current?.contains(target)) return;
-      close();
-    };
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') close();
-    };
-
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open, close]);
-
-  return (
-    <>
-      <button
-        ref={triggerRef}
-        type="button"
-        className="shrink-0 rounded p-0.5 text-brand-primary/85 transition-colors hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
-        aria-label={`About ${label}`}
-        aria-expanded={open}
-        aria-controls={tooltipId}
-        onClick={toggle}
-      >
-        <Info className="h-3 w-3" strokeWidth={2} aria-hidden />
-      </button>
-      {open && typeof document !== 'undefined'
-        ? createPortal(
-            <div
-              ref={panelRef}
-              id={tooltipId}
-              role="tooltip"
-              style={
-                coords
-                  ? {
-                      position: 'fixed',
-                      top: coords.top,
-                      left: coords.left,
-                      width: coords.width,
-                      zIndex: 80,
-                    }
-                  : {
-                      position: 'fixed',
-                      top: -9999,
-                      left: -9999,
-                      width: Math.min(
-                        TOOLTIP_MAX_WIDTH,
-                        typeof window !== 'undefined'
-                          ? window.innerWidth - TOOLTIP_VIEWPORT_PAD * 2
-                          : TOOLTIP_MAX_WIDTH,
-                      ),
-                      zIndex: 80,
-                      visibility: 'hidden',
-                    }
-              }
-              className="rounded-lg border border-border-muted bg-[rgb(var(--surface-panel-strong))] px-3 py-2 text-left text-xs font-medium leading-snug text-slate-100 shadow-lg"
-            >
-              {definition}
-            </div>,
-            document.body,
-          )
-        : null}
-    </>
   );
 }
 

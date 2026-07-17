@@ -14,6 +14,16 @@ No unreleased changes.
 
 ---
 
+## [1.30.1] — 2026-07-17
+
+### Fixed
+- **Profile avg correct on show day (#635 Slice 0)** — live season-stats fallback now preserves `users.careerCorrectSlots`, and `deriveLatestFinalizedShow` excludes today (`d < today`) so an ungraded calendar date no longer falsely stales rollups through yesterday. Multi-day gaps still need the rollup watermark (Slices 1–2).
+
+### Changed
+- **Profile Your stats copy** — removed the footnote under the self-profile averages grid; each tile now uses the same Info tooltips as Standings → Stats (`InfoTooltip` shared UI).
+
+---
+
 ## [1.30.0] — 2026-07-17
 
 ### Added
