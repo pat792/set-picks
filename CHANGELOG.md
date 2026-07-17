@@ -12,6 +12,23 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.28.1] — 2026-07-16
+
+### Changed
+- **Standings unset-avatar fallback (#568 follow-up)** — players who have not picked a curated avatar now render a neutral handle-initial chip in standings rows instead of the default `ticket`, so an unset avatar no longer reads as a deliberate ticket choice. Selected avatars and the earned-badge pin are unchanged; the self “add” control still appears on your own row when `avatarId` is unset.
+
+### Fixed
+- Backfilled milestone badges (`shows_played_1/5/10`, `win_1`) for existing users so shelves and standings pins populate without waiting for the next finalize.
+
+---
+
+## [1.28.0] — 2026-07-16
+
+### Changed
+- **Standings identity marks (#567/#568 follow-up)** — show/tour/pool standings rows render curated avatars next to handles, pin the top earned badge on the avatar, and show a dashed “add” control on your own row when `avatarId` is unset (links to Profile).
+
+---
+
 ## [1.27.0] — 2026-07-16
 
 ### Added

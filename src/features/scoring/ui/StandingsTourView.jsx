@@ -23,6 +23,7 @@ export default function StandingsTourView({
   loading,
   error,
   hasCurrentTour,
+  selfUserId = null,
 }) {
   if (!hasCurrentTour) {
     return (
@@ -51,6 +52,7 @@ export default function StandingsTourView({
       leaders={leaders}
       loading={loading}
       error={error}
+      selfUserId={selfUserId}
     />
   );
 }

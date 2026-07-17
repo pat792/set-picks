@@ -20,6 +20,7 @@ export function useUserProfile(user) {
   const [handle, setHandle] = useState('');
   const [favoriteSong, setFavoriteSong] = useState('');
   const [avatarId, setAvatarId] = useState(DEFAULT_AVATAR_ID);
+  const [badges, setBadges] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [joinDate, setJoinDate] = useState('');
   const [isLoading, setIsLoading] = useState(!!uid);
   const [isSaving, setIsSaving] = useState(false);
@@ -31,6 +32,7 @@ export function useUserProfile(user) {
       setHandle('');
       setFavoriteSong('');
       setAvatarId(DEFAULT_AVATAR_ID);
+      setBadges(null);
       setJoinDate('');
       return;
     }
@@ -44,10 +46,16 @@ export function useUserProfile(user) {
         setHandle(data.handle || '');
         setFavoriteSong(data.favoriteSong || '');
         setAvatarId(normalizeAvatarId(data.avatarId));
+        setBadges(
+          data.badges && typeof data.badges === 'object' && !Array.isArray(data.badges)
+            ? data.badges
+            : null
+        );
       } else {
         setHandle('');
         setFavoriteSong('');
         setAvatarId(DEFAULT_AVATAR_ID);
+        setBadges(null);
       }
     };
 
@@ -129,6 +137,7 @@ export function useUserProfile(user) {
     handle,
     favoriteSong,
     avatarId,
+    badges,
     joinDate,
     isLoading,
     isSaving,

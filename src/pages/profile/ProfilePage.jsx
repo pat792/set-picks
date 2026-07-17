@@ -4,6 +4,7 @@ import { ExternalLink } from 'lucide-react';
 
 import { InstallAppCard } from '../../features/install';
 import {
+  BadgeShelf,
   ProfileEditForm,
   ProfileSelfStatsPanel,
   useUserProfile,
@@ -23,6 +24,7 @@ export default function ProfilePage({ user: userProp }) {
     handle,
     favoriteSong,
     avatarId,
+    badges,
     joinDate,
     isLoading,
     isSaving,
@@ -59,18 +61,22 @@ export default function ProfilePage({ user: userProp }) {
 
       <ProfileSelfStatsPanel uid={user?.uid} />
 
-      <ProfileEditForm
-        handle={handle}
-        favoriteSong={favoriteSong}
-        avatarId={avatarId}
-        onHandleChange={setHandle}
-        onFavoriteSongChange={setFavoriteSong}
-        onAvatarChange={setAvatarId}
-        onSave={saveProfile}
-        isSaving={isSaving}
-        isLoading={isLoading}
-        message={message}
-      />
+      <BadgeShelf badges={badges} />
+
+      <div className="mt-6">
+        <ProfileEditForm
+          handle={handle}
+          favoriteSong={favoriteSong}
+          avatarId={avatarId}
+          onHandleChange={setHandle}
+          onFavoriteSongChange={setFavoriteSong}
+          onAvatarChange={setAvatarId}
+          onSave={saveProfile}
+          isSaving={isSaving}
+          isLoading={isLoading}
+          message={message}
+        />
+      </div>
 
       {/* Remounted for #539 — shares installCopy with dashboard banner */}
       <InstallAppCard />

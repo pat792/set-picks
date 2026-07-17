@@ -9,6 +9,7 @@ import {
   formatAvgCorrectPicksPerShow,
   formatAvgPointsPerShow,
 } from '../model/profileAverages';
+import BadgeShelf from './BadgeShelf';
 import ProfileAvatar from './ProfileAvatar';
 
 function formatPlayingSince(createdAt) {
@@ -149,6 +150,11 @@ export default function PublicProfileView({
             just in a single pool.
           </p>
         </section>
+
+        <BadgeShelf
+          badges={profile.badges}
+          emptyLabel="No badges earned yet."
+        />
       </div>
     </div>
   );

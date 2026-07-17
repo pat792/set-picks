@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.27.0  
+**Version:** 1.28.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -20,6 +20,7 @@ All collections live in the default `(default)` Firestore database for project `
 | `email` | string | Auth email — used for comms delivery |
 | `photoURL` | string? | Legacy optional URL field (unused by curated avatar picker) |
 | `avatarId` | string? | **v1.27.0+ (#567)** Curated avatar catalog id (e.g. `ticket`, `flame`). Missing/unknown → default `ticket` |
+| `badges` | map? | **v1.28.0+ (#568)** Earned milestone badges `{ [badgeId]: { awardedAt, scope, sourceThroughShow } }`. Written server-side at rollup; idempotent merge |
 | `favoriteSong` | string? | Display favorite; empty/`Unknown` treated as unset in UI |
 | `termsPrivacyAcceptedAt` | Timestamp? | Legal consent gate |
 | `createdAt` | Timestamp | Account creation |

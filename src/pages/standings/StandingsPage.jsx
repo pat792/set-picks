@@ -80,6 +80,7 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
             loading={screen.tourLoading}
             error={screen.tourError}
             hasCurrentTour={Boolean(screen.selectedTour)}
+            selfUserId={screen.selfUserId}
           />
         ) : (
           <StandingsShowOrPoolView screen={screen} />
