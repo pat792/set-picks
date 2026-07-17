@@ -29,6 +29,15 @@ function SetSongList({ label, songs, bustoutTitleSet, gapMap }) {
       <p className={`mb-1.5 ${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
         {label}
       </p>
+      <div
+        className={`${SETLIST_ROW_GRID} mb-0.5 border-b border-border-subtle/60 pb-1 ${STANDINGS_BOX_EYEBROW} text-content-secondary`}
+        aria-hidden
+      >
+        <span className="tabular-nums">#</span>
+        <span>Song</span>
+        <span className="justify-self-end">Gap</span>
+        <span className="justify-self-end">Bustout</span>
+      </div>
       <ol className={`space-y-0.5 ${STANDINGS_BOX_BODY} text-slate-100`}>
         {songs.map((title, idx) => {
           const isBustout = isOfficialSetlistBustout(title, bustoutTitleSet);
@@ -39,18 +48,18 @@ function SetSongList({ label, songs, bustoutTitleSet, gapMap }) {
               className={SETLIST_ROW_GRID}
             >
               <span className="tabular-nums text-content-secondary">
-                {idx + 1}.
+                {idx + 1}
               </span>
               <span className="min-w-0 truncate">{title}</span>
               <span
-                className="justify-self-end tabular-nums text-[10px] font-semibold uppercase tracking-wide text-content-secondary"
+                className="justify-self-end tabular-nums text-[11px] font-semibold text-content-secondary"
                 title={
                   gap != null
                     ? `${gap} shows since last played (pre-show gap)`
                     : undefined
                 }
               >
-                {gap != null ? `Gap ${gap}` : '\u00a0'}
+                {gap != null ? gap : '\u00a0'}
               </span>
               <span className="justify-self-end">
                 {isBustout ? (
