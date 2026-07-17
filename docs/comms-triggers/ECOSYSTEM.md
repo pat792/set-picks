@@ -134,11 +134,11 @@ change regardless of which agent (or human) makes it.
 
 ### 3.4 Optimize (feedback loop)
 
-`comms-analyst` report → `comms-triggers` updates catalog → `comms-drafter`
-revises copy (new semver) → `comms-architect` adjusts channel mix / runs an A/B
-→ `comms-analyst` measures. Variant assignment is a stable
-`hash(uid + experimentId) % 100` bucket; every event already carries
-`comms_variant` (default `control`) so experiments are drop‑in.
+Canonical playbook: **[OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md)** (#573 L0).
+
+Cycle order: `comms-analyst` → `comms-triggers` → `comms-drafter` → `comms-architect` → **PM**.
+
+Agents produce a **PM review pack** (template in the playbook), may open **draft** PRs to **`staging`**, and never auto-merge or production-deploy. Night uniqueness (#572 `show_recap`) stays separate from end-of-tour (#510 `tour_recap`). Variant assignment is a stable `hash(uid + experimentId) % 100` bucket; every event already carries `comms_variant` (default `control`) so experiments are drop‑in.
 
 ---
 

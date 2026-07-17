@@ -14,10 +14,12 @@ You own the **trigger catalog** — what fires, for whom, when, through which ch
 ## Read first
 
 1. `docs/comms-triggers/FRAMEWORK.md`
-2. `docs/comms-triggers/TRIGGER_CATALOG.md`
-3. `docs/comms-triggers/catalog.json`
-4. `src/features/comms/registry.js` — templateId linkage
-5. Game logic: `src/shared/utils/timeLogic.js`, `show_calendar`, picks lock (#303: 19:55 local)
+2. `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` — Optimize loop + night vs tour (#573)
+3. `docs/comms-triggers/TRIGGER_CATALOG.md`
+4. `docs/comms-triggers/catalog.json`
+5. `src/features/comms/registry.js` — templateId linkage
+6. Game logic: `src/shared/utils/timeLogic.js`, `show_calendar`, picks lock (#303: 19:55 local)
+7. Spine: `docs/OFFICIAL_SETLISTS_SCHEMA.md`, `docs/COMMS_SHOW_CONTEXT_SCHEMA.md`
 
 ## Trigger Spec checklist
 
@@ -54,8 +56,16 @@ Every new trigger needs **both** catalog files updated in the same PR:
 | Show day, no picks, T-3h before lock | `picks_lock_reminder` (shipped) |
 | 24h before lock | `picks_lock_t24h` |
 | Show graded, user won | `post_show_win` (shipped) |
-| Tour segment complete | `tour_recap_*` |
+| Tour segment complete | `tour_recap` (#510 — end of tour; not night `show_recap` #572) |
 | 14d no login, show upcoming | `return_after_14d` |
+
+## Optimize cycle (#573)
+
+Order: **analyst → triggers (you) → drafter → architect → PM**.
+
+- Propose catalog rows / experiments that serve the stated `optimize_for`
+- Keep **#572 night** vs **#510 tour** triggers separate
+- File `[SKIP-PRD]` children; PR base **`staging`**; draft-only (no auto-merge)
 
 ## Workflow: add a trigger
 
@@ -92,3 +102,5 @@ Every new trigger needs **both** catalog files updated in the same PR:
 - Never add copy to catalog — templateId only
 - Keep `catalog.json` valid JSON (no trailing commas)
 - Align show dates with `src/shared/data/showDates.js` for tour-specific triggers
+- PR base: **staging**; draft proposals only — PM merges
+- Do not invent setlist/tour facts; point at spine docs when proposing uniqueness triggers
