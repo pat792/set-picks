@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.23.1] — 2026-07-16
+
+### Fixed
+- **`tour_rankings_daily` venue/location dedupe (#584)** — recap emails now use a non-location-led subject, name the show location once in the body, use “last night’s show” for the tour movement paragraph, and render same-venue next shows as “Back at …” instead of repeating the full next-up line. In-app preview copy mirrors the shared contract.
+
+---
+
 ## [1.23.0] — 2026-07-16
 
 ### Added

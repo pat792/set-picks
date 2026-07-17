@@ -6,6 +6,7 @@ import {
   listCommsTemplateIds,
   triggerIdForTemplate,
 } from './commsTemplateRegistry.jsx';
+import { buildTourRankingsDailyParagraphs } from '../../model/tourRankingsDailyCopy';
 
 const EXPECTED_TEMPLATE_IDS = [
   'account-welcome',
@@ -123,6 +124,30 @@ describe('comms template registry', () => {
     expect(getCommsTemplateEntry('picks-confirmed').build({}).cta.href).toBe(
       '/dashboard/picks',
     );
+  });
+
+  it('tour rankings preview dedupes combined-copy place labels (#584)', () => {
+    const paragraphs = buildTourRankingsDailyParagraphs(
+      {
+        handle: 'RiverTranced',
+        show_date: '2026-07-19',
+        venue_name: 'MSG',
+        venue_city: 'New York, NY',
+        tour_rank: 3,
+        total_tour_pickers: 50,
+        tour_points: 210,
+        rank_change: 'up 2',
+        next_show_date: '2026-07-20',
+        next_show_venue: 'MSG',
+      },
+      { omitHandle: true }
+    );
+    const text = paragraphs.join(' ');
+
+    expect(text).toContain("After last night's show you climbed 2 spots.");
+    expect(text).toContain('Back at MSG 2026-07-20.');
+    expect(text).not.toContain('After New York, NY');
+    expect(text).not.toContain('Next up: 2026-07-20 — MSG');
   });
 
   it('maps templateId → catalog triggerId', () => {

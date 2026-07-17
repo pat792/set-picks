@@ -240,3 +240,27 @@ test("copy: tied at display rank", () => {
   assert.match(paras.join(" "), /tied for #1/);
   assert.match(paras.join(" "), /leading the tour with 80 points/);
 });
+
+test("copy: combined email prose avoids repeating venue/city and uses same-venue next-up", () => {
+  const paras = buildTourRankingsDailyParagraphs(
+    {
+      handle: "RiverTranced",
+      show_date: "2026-07-19",
+      venue_name: "MSG",
+      venue_city: "New York, NY",
+      tour_rank: 3,
+      total_tour_pickers: 50,
+      tour_points: 210,
+      rank_change: "up 2",
+      next_show_date: "2026-07-20",
+      next_show_venue: "MSG",
+    },
+    { omitHandle: true },
+  );
+
+  const text = paras.join(" ");
+  assert.match(text, /After last night's show you climbed 2 spots\./);
+  assert.match(text, /Back at MSG 2026-07-20\./);
+  assert.doesNotMatch(text, /After New York, NY/);
+  assert.doesNotMatch(text, /2026-07-19 — MSG/);
+});
