@@ -1,6 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { ChevronDown, ExternalLink, ListMusic } from 'lucide-react';
 
+import {
+  FeatureNewBadge,
+  useFeatureSpotlight,
+} from '../../feature-discovery';
 import Card from '../../../shared/ui/Card';
 import { SCORING_RULES } from '../../../shared/utils/scoring';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
@@ -115,10 +119,12 @@ export default function StandingsOfficialSetlistCard({
   const bustoutTitleSet = buildBustoutTitleSet(actualSetlist);
   const gapMap = buildSongGapMap(actualSetlist);
   const viewLoggedRef = useRef('');
+  const setlistSpotlight = useFeatureSpotlight('live-setlist');
 
   const hasContent =
     Boolean(actualSetlist) &&
     (grouped.hasSongs || grouped.hasOfficialSlots);
+  const isLive = showStatus === 'LIVE';
 
   useEffect(() => {
     if (!hasContent) return;
@@ -136,9 +142,14 @@ export default function StandingsOfficialSetlistCard({
     return null;
   }
 
-  const isLive = showStatus === 'LIVE';
   const statusLabel = isLive ? 'Live' : showStatus === 'PAST' ? 'Final' : 'Official';
   const phishNetHref = buildPhishNetSetlistUrl(showDate);
+
+  const onDetailsToggle = () => {
+    if (setlistSpotlight.active) {
+      setlistSpotlight.markSeen();
+    }
+  };
 
   return (
     <Card
@@ -147,7 +158,11 @@ export default function StandingsOfficialSetlistCard({
       padding="none"
       className={`mb-3 ${STANDINGS_CARD_SHELL} ${className}`.trim()}
     >
-      <details className="group" defaultOpen={isLive}>
+      <details
+        className="group"
+        defaultOpen={isLive}
+        onToggle={onDetailsToggle}
+      >
         <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -167,6 +182,9 @@ export default function StandingsOfficialSetlistCard({
               >
                 {statusLabel}
               </span>
+              {setlistSpotlight.active ? (
+                <FeatureNewBadge title="New: live official setlist" />
+              ) : null}
             </div>
             {showLabel ? (
               <p className={`truncate ${STANDINGS_BOX_TITLE}`}>{showLabel}</p>

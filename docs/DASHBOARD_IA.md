@@ -19,6 +19,16 @@ Single reference for **support**, **product**, and **engineering** when adding r
 |-------|------|-------|
 | **Stats** (Standings peer tab) | `/dashboard/tour-stats` | Private explorer: unique songs, frequency, bustouts, self pick overlay. Discovered via Standings chrome **Show \| Tour \| Stats \| Pools** (not a 5th primary nav tab). Standings tab stays active. Shares the chrome **tour scope** picker with Tour view (`?tour=`). No global date picker. |
 
+### Feature discovery “New” markers (#639)
+
+Soft **New** labels (not coachmarks) may appear temporarily on:
+
+- Standings chrome **Stats** pill → clears after visiting `/dashboard/tour-stats` (compact corner **dot**, not a “New” text label — keeps the Stats word readable in the four-tab chrome)
+- Official setlist card on Standings → clears when the card is toggled open/closed
+- Profile **Avatar** / **Badges** headings → clears after picking an avatar
+
+Markers auto-expire by catalog `until` date and persist dismissals in `localStorage` per signed-in uid. Support can tell users: clear site data for the origin if a marker is stuck; otherwise ignore — they vanish by end of the window.
+
 ### Profile cluster (#418)
 
 | Sub-nav | Path | Responsibility |

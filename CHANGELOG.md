@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.31.0] — 2026-07-17
+
+### Added
+- **Feature discovery “New” markers (#639)** — client spotlight registry (`features/feature-discovery`) with soft **New** labels on Standings **Stats**, live/official setlist card, and Profile avatar/badges. Clears on visit/interaction; expires `until` 2026-08-31; localStorage per uid. Wires `feature_spotlight_*` GA4 from #638.
+
+---
+
 ## [1.30.1] — 2026-07-17
 
 ### Added

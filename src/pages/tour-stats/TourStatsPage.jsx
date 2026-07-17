@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useFeatureSpotlight } from '../../features/feature-discovery';
 import {
   StandingsMobileFixedChrome,
   StandingsStickyChrome,
@@ -28,6 +29,13 @@ export default function TourStatsPage() {
   const setView = useStandingsViewChange({ view: 'stats' });
   const { openScoringRules: openScoringRulesModal } = useScoringRulesModal();
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const tourStatsSpotlight = useFeatureSpotlight('tour-stats', {
+    trackImpression: false,
+  });
+
+  useEffect(() => {
+    tourStatsSpotlight.markSeen();
+  }, [tourStatsSpotlight.markSeen]);
 
   const openScoringRules = () => {
     ga4Event('scoring_rules_opened', { surface: 'tour-stats' });

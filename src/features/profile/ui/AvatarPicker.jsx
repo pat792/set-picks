@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { FeatureNewBadge } from '../../feature-discovery';
 import { PROFILE_AVATARS } from '../model/avatarCatalog';
 import ProfileAvatar from './ProfileAvatar';
 
@@ -10,13 +11,20 @@ import ProfileAvatar from './ProfileAvatar';
  *   value: string,
  *   onChange: (avatarId: string) => void,
  *   disabled?: boolean,
+ *   showNewBadge?: boolean,
  * }} props
  */
-export default function AvatarPicker({ value, onChange, disabled = false }) {
+export default function AvatarPicker({
+  value,
+  onChange,
+  disabled = false,
+  showNewBadge = false,
+}) {
   return (
     <fieldset disabled={disabled} className="min-w-0">
-      <legend className="mb-2 ml-1 text-xs font-bold uppercase tracking-widest text-slate-400">
+      <legend className="mb-2 ml-1 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
         Avatar
+        {showNewBadge ? <FeatureNewBadge title="New: profile avatars" /> : null}
       </legend>
       <div className="mb-3 flex items-center gap-3">
         <ProfileAvatar avatarId={value} size="lg" />

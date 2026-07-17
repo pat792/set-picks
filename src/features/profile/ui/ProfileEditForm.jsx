@@ -6,6 +6,20 @@ import AvatarPicker from './AvatarPicker';
 
 /**
  * Editable profile fields (avatar, handle, favorite song) for the signed-in user.
+ *
+ * @param {{
+ *   handle: string,
+ *   favoriteSong: string,
+ *   avatarId: string,
+ *   onHandleChange: (v: string) => void,
+ *   onFavoriteSongChange: (v: string) => void,
+ *   onAvatarChange: (avatarId: string) => void,
+ *   onSave: (e: React.FormEvent) => void,
+ *   isSaving: boolean,
+ *   isLoading?: boolean,
+ *   message: { text: string, type: string },
+ *   showAvatarNewBadge?: boolean,
+ * }} props
  */
 export default function ProfileEditForm({
   handle,
@@ -18,6 +32,7 @@ export default function ProfileEditForm({
   isSaving,
   isLoading = false,
   message,
+  showAvatarNewBadge = false,
 }) {
   return (
     <form
@@ -28,6 +43,7 @@ export default function ProfileEditForm({
         value={avatarId}
         onChange={onAvatarChange}
         disabled={isLoading || isSaving}
+        showNewBadge={showAvatarNewBadge}
       />
 
       <div className="flex flex-col">

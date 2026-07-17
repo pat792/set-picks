@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart3, CalendarDays, ListOrdered, Users } from 'lucide-react';
 
+import {
+  FeatureNewBadge,
+  useFeatureSpotlight,
+} from '../../feature-discovery';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
 
 const OPTIONS = [
@@ -11,7 +15,7 @@ const OPTIONS = [
 ];
 
 const baseClass =
-  'shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
+  'relative shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
 /**
  * Active state mirrors `Button variant="primary"` (teal fill, dark text,
@@ -44,13 +48,31 @@ const unselectedClass =
  * }} props
  */
 export default function StandingsViewToggle({ view, onChange, className = '' }) {
+  const tourStatsSpotlight = useFeatureSpotlight('tour-stats');
+
+  const handleChange = (next) => {
+    if (next === 'stats' && tourStatsSpotlight.active) {
+      tourStatsSpotlight.trackClick();
+    }
+    onChange(next);
+  };
+
+  const items = useMemo(() => {
+    const badge = tourStatsSpotlight.active ? (
+      <FeatureNewBadge variant="dot" title="New: Tour Stats" />
+    ) : null;
+    return OPTIONS.map((opt) =>
+      opt.id === 'stats' ? { ...opt, badge } : opt,
+    );
+  }, [tourStatsSpotlight.active]);
+
   return (
     <>
       <ChromeSegmentedControl
         ariaLabel="Standings view"
         value={view}
-        onChange={onChange}
-        items={OPTIONS}
+        onChange={handleChange}
+        items={items}
         className={['md:hidden', className].filter(Boolean).join(' ')}
       />
 
@@ -64,7 +86,7 @@ export default function StandingsViewToggle({ view, onChange, className = '' }) 
           .filter(Boolean)
           .join(' ')}
       >
-        {OPTIONS.map(({ id, label, icon: Icon }) => {
+        {items.map(({ id, label, icon: Icon, badge }) => {
           const selected = view === id;
           return (
             <button
@@ -72,7 +94,7 @@ export default function StandingsViewToggle({ view, onChange, className = '' }) 
               type="button"
               role="tab"
               aria-selected={selected}
-              onClick={() => onChange(id)}
+              onClick={() => handleChange(id)}
               className={[
                 baseClass,
                 selected ? selectedClass : unselectedClass,
@@ -81,6 +103,7 @@ export default function StandingsViewToggle({ view, onChange, className = '' }) 
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden />
               {label}
+              {badge}
             </button>
           );
         })}
