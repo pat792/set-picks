@@ -37,6 +37,7 @@ const {
   CLOSE_CALL_MAX_GAP,
 } = require("./postShowRollupPush");
 const { deliverPostRollupComms } = require("./commsEventAdapters");
+const { awardBadgesForUsers } = require("./badgeAwards");
 
 /** Same invariant as `adminRollupApi.js` / `profileApi.js`. */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
@@ -169,6 +170,8 @@ async function runRollupForShow({
 
   /** @type {{ kind: "win" | "nearMiss", userId: string, pickId: string, newScore?: number }[]} */
   const rollupPushHints = [];
+  /** @type {Set<string>} */
+  const processedUserIds = new Set();
 
   for (const pickDoc of picksSnap.docs) {
     const pickData = pickDoc.data() || {};
@@ -259,6 +262,7 @@ async function runRollupForShow({
     );
     opCount += OPS_PER_PICK;
     processedPicks += 1;
+    processedUserIds.add(String(pickData.userId));
   }
 
   if (opCount > 0) {
@@ -322,6 +326,25 @@ async function runRollupForShow({
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     logger?.warn?.("runRollupForShow.comms failed", { showDate, trigger, msg });
+  }
+
+  if (processedUserIds.size > 0) {
+    try {
+      await awardBadgesForUsers({
+        db,
+        admin,
+        userIds: processedUserIds,
+        showDate,
+        logger,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger?.warn?.("runRollupForShow.badgeAwards failed", {
+        showDate,
+        trigger,
+        msg,
+      });
+    }
   }
 
   return {

@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.28.0] — 2026-07-16
+
+### Added
+- **Milestone badges v1 (#568)** — server awards `shows_played_1/5/10` + `win_1` onto `users.badges` after show finalize (idempotent). Profile + public badge shelf with custom SVG icons. Tour/streak/`days_first` badges deferred.
+
+---
+
 ## [1.27.0] — 2026-07-16
 
 ### Added

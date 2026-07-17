@@ -5,6 +5,7 @@ export { default as PublicProfileView } from './ui/PublicProfileView';
 export { default as TopPicksFrequencyStrip } from './ui/TopPicksFrequencyStrip';
 export { default as ProfileAvatar } from './ui/ProfileAvatar';
 export { default as AvatarPicker } from './ui/AvatarPicker';
+export { default as BadgeShelf } from './ui/BadgeShelf';
 export { usePublicProfile } from './model/usePublicProfile';
 export { useUserProfile } from './model/useUserProfile';
 export { useUserSeasonStats } from './model/useUserSeasonStats';
@@ -15,3 +16,7 @@ export {
   normalizeAvatarId,
   resolveAvatar,
 } from './model/avatarCatalog';
+export {
+  PROFILE_BADGES,
+  resolveEarnedBadges,
+} from './model/badgeCatalog';

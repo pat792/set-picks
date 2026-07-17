@@ -150,5 +150,5 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 | 2026-07-16 | 0 | Manifest authored | Train defined; first PR targets `staging` |
 | 2026-07-16 | 0–1 | PRs #613–#616 merged | Manifest, #566 matrix, #584 place dedupe (1.23.1), #587 Phase A bustout badge (1.24.0); staging tip **1.24.0** |
 | 2026-07-16 | 2 | #617–#620 merged | Foundation + avg points (1.24.1) + debut/vintage helpers (1.25.0) + avg correct rollup / self top-picks / alignment fix (1.26.0); staging tip **1.26.0**; careerCorrectSlots backfilled |
-| 2026-07-16 | 3 | #567 in flight | Curated avatar picker + public profile mark (1.27.0) |
-| 2026-07-16 | 3 | Next | #568 badge awards/icons (matrix #566 locked) |
+| 2026-07-16 | 3 | #621 merged | Curated avatar picker + public mark (**1.27.0**) |
+| 2026-07-16 | 3 | #568 in flight | Milestone badges v1 (shows_played + win_1) → **1.28.0** |
