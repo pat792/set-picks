@@ -2,15 +2,18 @@ import React from 'react';
 
 import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
+import AvatarPicker from './AvatarPicker';
 
 /**
- * Editable profile fields (handle, favorite song) for the signed-in user.
+ * Editable profile fields (avatar, handle, favorite song) for the signed-in user.
  */
 export default function ProfileEditForm({
   handle,
   favoriteSong,
+  avatarId,
   onHandleChange,
   onFavoriteSongChange,
+  onAvatarChange,
   onSave,
   isSaving,
   isLoading = false,
@@ -21,6 +24,12 @@ export default function ProfileEditForm({
       onSubmit={onSave}
       className="space-y-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass"
     >
+      <AvatarPicker
+        value={avatarId}
+        onChange={onAvatarChange}
+        disabled={isLoading || isSaving}
+      />
+
       <div className="flex flex-col">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
           Display Name / Handle

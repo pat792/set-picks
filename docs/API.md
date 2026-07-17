@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.26.0  
+**Version:** 1.27.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -18,7 +18,9 @@ All collections live in the default `(default)` Firestore database for project `
 |-------|------|-------|
 | `handle` | string | Display name |
 | `email` | string | Auth email — used for comms delivery |
-| `photoURL` | string? | Avatar URL |
+| `photoURL` | string? | Legacy optional URL field (unused by curated avatar picker) |
+| `avatarId` | string? | **v1.27.0+ (#567)** Curated avatar catalog id (e.g. `ticket`, `flame`). Missing/unknown → default `ticket` |
+| `favoriteSong` | string? | Display favorite; empty/`Unknown` treated as unset in UI |
 | `termsPrivacyAcceptedAt` | Timestamp? | Legal consent gate |
 | `createdAt` | Timestamp | Account creation |
 | `isAdmin` | boolean? | Admin custom claim mirror |
