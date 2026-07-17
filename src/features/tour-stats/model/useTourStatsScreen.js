@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { todayYmd } from '../../../shared/utils/dateUtils';
 import { useAuth } from '../../auth';
-import { resolveCurrentTour } from '../../scoring';
-import { useShowCalendar } from '../../show-calendar';
 import { computeTourStatsSelfOverlay } from '../api/computeTourStatsSelfOverlay';
 import { fetchTourOfficialSetlists } from '../api/fetchTourOfficialSetlists';
 import { aggregateTourSetlistStats } from './aggregateTourSetlistStats';
@@ -12,25 +9,18 @@ import { aggregateTourSetlistStats } from './aggregateTourSetlistStats';
 /**
  * Dashboard Tour stats screen (#555): on-demand setlist aggregation + self overlay.
  *
+ * Tour scope is owned by Standings chrome (`useStandingsTourSelection`); pass
+ * the resolved `selectedTour` so any selectable tour can be explored.
+ *
  * @param {{
- *   selectedDate?: string | null,
- *   tourKey?: string | null,
+ *   selectedTour?: { tour: string, shows?: Array<{ date: string }> } | null,
+ *   calendarLoading?: boolean,
  * }} [options]
  */
 export function useTourStatsScreen(options = {}) {
   const { user } = useAuth();
-  const { showDatesByTour, loading: calendarLoading } = useShowCalendar();
-  const today = todayYmd();
-
-  const selectedTour = useMemo(() => {
-    const groups = Array.isArray(showDatesByTour) ? showDatesByTour : [];
-    const key = typeof options.tourKey === 'string' ? options.tourKey.trim() : '';
-    if (key) {
-      const match = groups.find((g) => g.tour === key);
-      if (match) return match;
-    }
-    return resolveCurrentTour(options.selectedDate, today, groups);
-  }, [options.selectedDate, options.tourKey, showDatesByTour, today]);
+  const selectedTour = options.selectedTour ?? null;
+  const calendarLoading = Boolean(options.calendarLoading);
 
   const showDates = useMemo(
     () =>

@@ -320,7 +320,7 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/setup` | Auth | Profile setup (new users) |
 | `/dashboard/*` | Auth | Full game dashboard |
 
-Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Standings nav stays active.
+Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active.
 
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 

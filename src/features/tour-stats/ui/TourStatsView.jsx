@@ -48,7 +48,8 @@ export default function TourStatsView({
     return (
       <Card className="p-5">
         <p className="text-sm font-semibold text-content-secondary">
-          No tour is selected yet. Pick a show on Standings or wait for the calendar to load.
+          No tour is available yet. Tour stats appear once a post-launch tour
+          has shows on or before today.
         </p>
       </Card>
     );

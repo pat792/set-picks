@@ -350,7 +350,7 @@ export default function DashboardLayout() {
               path="tour-stats"
               element={
                 <LazyDashboardRoute>
-                  <TourStatsPage selectedDate={selectedDate} />
+                  <TourStatsPage />
                 </LazyDashboardRoute>
               }
             />

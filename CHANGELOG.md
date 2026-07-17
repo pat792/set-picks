@@ -15,7 +15,10 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.30.0] — 2026-07-17
 
 ### Added
-- **Tour stats explorer (#555)** — private dashboard route `/dashboard/tour-stats` aggregates the current tour’s `official_setlists` on demand (unique songs, top frequency, bustouts, high-gap highlights) plus a self pick overlay (correct slots / bustout hits / top-song overlap). Linked from Standings → Tour. No public SEO route or rollup schema in v1. SemVer MINOR for the new dashboard surface.
+- **Tour stats explorer (#555)** — private dashboard route `/dashboard/tour-stats` aggregates a selectable tour’s `official_setlists` on demand (unique songs, top frequency, bustouts, high-gap highlights) plus a self pick overlay (correct slots / bustout hits / top-song overlap). Peer Standings chrome tab (**Show \| Tour \| Stats \| Pools**); shares the Tour view’s chrome tour scope picker (`?tour=`). No public SEO route or rollup schema in v1. SemVer MINOR for the new dashboard surface.
+
+### Changed
+- **Standings IA (#555 UX)** — Stats is a fourth Standings view tab (not a buried Tour-only link and not a fifth primary bottom-nav item). Mobile context title on `/dashboard/tour-stats` stays **Standings**; sticky chrome matches Show/Tour/Pools.
 
 ---
 
