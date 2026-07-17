@@ -52,6 +52,10 @@ const {
   resolveTourKeyForDate,
   hasNonEmptyPicksObject,
 } = require("../rollupSeasonAggregates");
+const {
+  countCorrectSlots,
+  persistableActualSetlistFromOfficialDoc,
+} = require("../scoringCore");
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const ENV_PATH = path.join(REPO_ROOT, ".env");
@@ -228,13 +232,14 @@ async function main() {
    *   totalPoints: number,
    *   shows: number,
    *   wins: number,
+   *   careerCorrectSlots: number,
    *   latestShow: string,
-   *   seasonStats: Record<string, { totalPoints: number, shows: number, wins: number }>,
+   *   seasonStats: Record<string, { totalPoints: number, shows: number, wins: number, correctSlots: number }>,
    * }>}
    */
   const perUser = new Map();
 
-  /** @type {{ ref: FirebaseFirestore.DocumentReference, winCredited: boolean }[]} */
+  /** @type {{ ref: FirebaseFirestore.DocumentReference, winCredited: boolean, correctSlotsCredited: number }[]} */
   const picksToStamp = [];
 
   let totalGradedPicks = 0;
@@ -250,6 +255,14 @@ async function main() {
     const gmax = computeGlobalMaxScore(rows);
     const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
 
+    const setlistSnap = await db
+      .collection("official_setlists")
+      .doc(showDate)
+      .get();
+    const actualSetlist = setlistSnap.exists
+      ? persistableActualSetlistFromOfficialDoc(setlistSnap.data() || {})
+      : null;
+
     for (const r of rows) {
       const uid = typeof r.userId === "string" ? r.userId : "";
       if (!uid) continue;
@@ -260,7 +273,11 @@ async function main() {
       if (!countsTowardSeason) {
         if (r.isGraded === true) skippedEmpty += 1;
         // Still stamp winCredited=false so re-finalize diffs cleanly.
-        picksToStamp.push({ ref: r.ref, winCredited: false });
+        picksToStamp.push({
+          ref: r.ref,
+          winCredited: false,
+          correctSlotsCredited: 0,
+        });
         continue;
       }
 
@@ -268,32 +285,43 @@ async function main() {
       const score = typeof r.score === "number" ? r.score : 0;
       const isWin =
         typeof gmax === "number" && gmax > 0 && score === gmax;
+      const correctSlots = actualSetlist
+        ? countCorrectSlots(r.picks || {}, actualSetlist)
+        : 0;
 
       const existing = perUser.get(uid) || {
         totalPoints: 0,
         shows: 0,
         wins: 0,
+        careerCorrectSlots: 0,
         latestShow: "",
         seasonStats: {},
       };
       existing.totalPoints += score;
       existing.shows += 1;
       if (isWin) existing.wins += 1;
+      existing.careerCorrectSlots += correctSlots;
       if (showDate > existing.latestShow) existing.latestShow = showDate;
       if (tourKey) {
         const tour = existing.seasonStats[tourKey] || {
           totalPoints: 0,
           shows: 0,
           wins: 0,
+          correctSlots: 0,
         };
         tour.totalPoints += score;
         tour.shows += 1;
         if (isWin) tour.wins += 1;
+        tour.correctSlots += correctSlots;
         existing.seasonStats[tourKey] = tour;
       }
       perUser.set(uid, existing);
 
-      picksToStamp.push({ ref: r.ref, winCredited: isWin });
+      picksToStamp.push({
+        ref: r.ref,
+        winCredited: isWin,
+        correctSlotsCredited: correctSlots,
+      });
     }
   }
 
@@ -316,7 +344,7 @@ async function main() {
     for (const [uid, row] of sample) {
       console.log(
         `  ${uid} → totalPoints=${row.totalPoints}, shows=${row.shows}, wins=${row.wins}, ` +
-          `latestShow=${row.latestShow}, tours=${Object.keys(row.seasonStats).length}`
+          `correctSlots=${row.careerCorrectSlots}, latestShow=${row.latestShow}, tours=${Object.keys(row.seasonStats).length}`
       );
     }
     console.log("");
@@ -349,6 +377,7 @@ async function main() {
         totalPoints: row.totalPoints,
         showsPlayed: row.shows,
         wins: row.wins,
+        careerCorrectSlots: row.careerCorrectSlots,
         seasonStats: row.seasonStats,
         seasonStatsSnapshotAt: admin.firestore.FieldValue.serverTimestamp(),
         seasonStatsThroughShow: row.latestShow,
@@ -360,7 +389,10 @@ async function main() {
 
   for (const p of picksToStamp) {
     await commitIfFull();
-    batch.update(p.ref, { winCredited: p.winCredited });
+    batch.update(p.ref, {
+      winCredited: p.winCredited,
+      correctSlotsCredited: p.correctSlotsCredited,
+    });
     opCount += 1;
   }
 

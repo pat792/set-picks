@@ -150,4 +150,5 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 | 2026-07-16 | 0 | Manifest authored | Train defined; first PR targets `staging` |
 | 2026-07-16 | 0–1 | PRs #613–#616 merged | Manifest, #566 matrix, #584 place dedupe (1.23.1), #587 Phase A bustout badge (1.24.0); staging tip **1.24.0** |
 | 2026-07-16 | 2 | #617 + #618 merged | Foundation doc + avg points / show (1.24.1) |
-| 2026-07-16 | 2 | #554 slice B in flight | Catalog `debut` + avg vintage helpers (1.25.0); UI deferred until pick titles |
+| 2026-07-16 | 2 | #619 merged | Catalog `debut` + avg vintage helpers (1.25.0) |
+| 2026-07-16 | 2 | #554 C + #553 in flight | `careerCorrectSlots` rollup + self top-picks strip + avg correct/vintage UI (1.26.0) |

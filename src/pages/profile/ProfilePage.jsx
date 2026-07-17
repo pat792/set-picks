@@ -3,7 +3,11 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 
 import { InstallAppCard } from '../../features/install';
-import { ProfileEditForm, useUserProfile } from '../../features/profile';
+import {
+  ProfileEditForm,
+  ProfileSelfStatsPanel,
+  useUserProfile,
+} from '../../features/profile';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
@@ -50,6 +54,8 @@ export default function ProfilePage({ user: userProp }) {
           </p>
         )}
       </div>
+
+      <ProfileSelfStatsPanel uid={user?.uid} />
 
       <ProfileEditForm
         handle={handle}

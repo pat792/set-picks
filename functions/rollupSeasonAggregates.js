@@ -24,6 +24,7 @@
  *   isGraded?: boolean,
  *   score?: unknown,
  *   winCredited?: unknown,
+ *   correctSlotsCredited?: unknown,
  *   userId?: unknown,
  * }} PickLike
  */
@@ -138,10 +139,16 @@ function resolveTourKeyForDate(showDate, showDatesByTour) {
  * the previous rolled-up state, so re-finalizations never double-count
  * wins even when the global max changes.
  *
+ * `correctSlotsDiff` (#554) mirrors wins: first grade credits the full
+ * `newCorrectSlots` count; re-grade diffs against `pick.correctSlotsCredited`
+ * (missing → 0). Empty picks still get `newCorrectSlots = 0` and do not
+ * inflate `users.careerCorrectSlots` beyond the shows gate.
+ *
  * @param {{
  *   pickData: PickLike,
  *   newScore: number,
  *   newGlobalMax: number | null,
+ *   newCorrectSlots?: number,
  * }} input
  * @returns {{
  *   scoreDiff: number,
@@ -150,9 +157,16 @@ function resolveTourKeyForDate(showDate, showDatesByTour) {
  *   oldIsWin: boolean,
  *   winsDelta: number,
  *   countsTowardSeason: boolean,
+ *   newCorrectSlots: number,
+ *   correctSlotsDiff: number,
  * }}
  */
-function computePerPickRollup({ pickData, newScore, newGlobalMax }) {
+function computePerPickRollup({
+  pickData,
+  newScore,
+  newGlobalMax,
+  newCorrectSlots = 0,
+}) {
   const oldScore = typeof pickData?.score === "number" ? pickData.score : 0;
   const isFirstGrade = pickData?.isGraded !== true;
   const scoreDiff = isFirstGrade ? newScore : newScore - oldScore;
@@ -166,6 +180,19 @@ function computePerPickRollup({ pickData, newScore, newGlobalMax }) {
     newScore === newGlobalMax;
   const winsDelta = (newIsWin ? 1 : 0) - (oldIsWin ? 1 : 0);
 
+  const creditedCorrect =
+    typeof newCorrectSlots === "number" && Number.isFinite(newCorrectSlots)
+      ? Math.max(0, Math.trunc(newCorrectSlots))
+      : 0;
+  const oldCorrectSlots =
+    typeof pickData?.correctSlotsCredited === "number" &&
+    Number.isFinite(pickData.correctSlotsCredited)
+      ? Math.max(0, Math.trunc(pickData.correctSlotsCredited))
+      : 0;
+  const correctSlotsDiff = isFirstGrade
+    ? creditedCorrect
+    : creditedCorrect - oldCorrectSlots;
+
   return {
     scoreDiff,
     isFirstGrade,
@@ -173,6 +200,8 @@ function computePerPickRollup({ pickData, newScore, newGlobalMax }) {
     oldIsWin,
     winsDelta,
     countsTowardSeason,
+    newCorrectSlots: creditedCorrect,
+    correctSlotsDiff,
   };
 }
 

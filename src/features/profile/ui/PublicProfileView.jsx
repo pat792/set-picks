@@ -4,7 +4,9 @@ import { Loader2 } from 'lucide-react';
 import { formatMonthYear } from '../../../shared';
 import BackButton from '../../../shared/ui/BackButton';
 import {
+  computeAvgCorrectPicksPerShow,
   computeAvgPointsPerShow,
+  formatAvgCorrectPicksPerShow,
   formatAvgPointsPerShow,
 } from '../model/profileAverages';
 
@@ -43,10 +45,18 @@ export default function PublicProfileView({
   const avgPointsDisplay = formatAvgPointsPerShow(
     computeAvgPointsPerShow(stats)
   );
+  const avgCorrectDisplay = formatAvgCorrectPicksPerShow(
+    computeAvgCorrectPicksPerShow(stats)
+  );
 
   const statColumns = [
     { key: 'points', label: 'Total points', value: totalPoints },
-    { key: 'avg', label: 'Avg / show', value: avgPointsDisplay },
+    { key: 'avg', label: 'Avg pts / show', value: avgPointsDisplay },
+    {
+      key: 'avgCorrect',
+      label: 'Avg correct / show',
+      value: avgCorrectDisplay,
+    },
     { key: 'wins', label: 'Wins', value: wins },
     { key: 'shows', label: 'Shows', value: shows },
   ];
@@ -81,7 +91,9 @@ export default function PublicProfileView({
             Active pools
           </h2>
           {userPools.length === 0 ? (
-            <p className="text-sm font-bold text-content-secondary">Not in any pools</p>
+            <p className="text-sm font-bold text-content-secondary">
+              Not in any pools
+            </p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {userPools.map((pool) => (
@@ -100,7 +112,7 @@ export default function PublicProfileView({
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-content-secondary">
             Stats
           </h2>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-center sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-center sm:grid-cols-3">
             {statColumns.map(({ key, label }) => (
               <p
                 key={`${key}-label`}
@@ -128,9 +140,11 @@ export default function PublicProfileView({
             ))}
           </div>
           <p className="mt-3 text-[11px] font-medium leading-relaxed text-content-secondary">
-            Running totals across every graded night. Avg / show is total
-            points divided by shows played. Wins count nights with the overall
-            top score, not just in a single pool.
+            Running totals across every graded night. Avg pts / show is total
+            points divided by shows played. Avg correct / show is correct
+            slots per show (6 slots) when the career rollup is present;
+            otherwise —. Wins count nights with the overall top score, not
+            just in a single pool.
           </p>
         </section>
       </div>

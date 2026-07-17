@@ -1,9 +1,14 @@
 /**
  * Profile averages derived from existing season / career stats (#554).
  * Avg points needs no extra Firestore reads — only totalPoints / shows.
+ * Avg correct uses `careerCorrectSlots` when materialised at finalize.
  * Avg vintage joins pick titles to catalog `debut` in memory (0 extra reads
  * once titles + catalog are already loaded).
  */
+
+import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+
+export const PROFILE_SLOTS_PER_SHOW = FORM_FIELDS.length;
 
 /**
  * @param {{ totalPoints?: unknown, shows?: unknown } | null | undefined} stats
@@ -32,6 +37,46 @@ export function formatAvgPointsPerShow(avg) {
   if (typeof avg !== 'number' || !Number.isFinite(avg)) return '—';
   const rounded = Math.round(avg * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+/**
+ * Mean correct slots per graded show.
+ * `careerCorrectSlots / (shows * PROFILE_SLOTS_PER_SHOW)` when both are known.
+ * Missing `careerCorrectSlots` → null (forward-only until rollup/backfill).
+ *
+ * @param {{
+ *   careerCorrectSlots?: unknown,
+ *   shows?: unknown,
+ * } | null | undefined} stats
+ * @returns {number | null}
+ */
+export function computeAvgCorrectPicksPerShow(stats) {
+  const correct =
+    typeof stats?.careerCorrectSlots === 'number' &&
+    Number.isFinite(stats.careerCorrectSlots)
+      ? stats.careerCorrectSlots
+      : null;
+  const shows =
+    typeof stats?.shows === 'number' && Number.isFinite(stats.shows)
+      ? stats.shows
+      : null;
+  if (correct == null || shows == null || shows <= 0) return null;
+  return correct / (shows * PROFILE_SLOTS_PER_SHOW);
+}
+
+/**
+ * @param {number | null | undefined} avg
+ * @returns {string}
+ */
+export function formatAvgCorrectPicksPerShow(avg) {
+  if (typeof avg !== 'number' || !Number.isFinite(avg)) return '—';
+  const rounded = Math.round(avg * 100) / 100;
+  if (Number.isInteger(rounded)) return String(rounded);
+  const one = Math.round(avg * 10) / 10;
+  if (Math.abs(one - rounded) < 1e-9) {
+    return Number.isInteger(one) ? String(one) : one.toFixed(1);
+  }
+  return rounded.toFixed(2);
 }
 
 /**

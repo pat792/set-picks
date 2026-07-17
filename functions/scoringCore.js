@@ -124,6 +124,26 @@ function calculateTotalScore(userPicks, actualSetlist) {
   }, 0);
 }
 
+/**
+ * Count pick slots that scored > 0 (exact, in-setlist, wildcard, or bustout).
+ * Used for `users.careerCorrectSlots` (#554) — denominator is always
+ * `SCORE_FIELDS.length` per graded show, not filled-slot count.
+ *
+ * @param {Record<string, unknown> | null | undefined} userPicks
+ * @param {Record<string, unknown> | null | undefined} actualSetlist
+ * @returns {number}
+ */
+function countCorrectSlots(userPicks, actualSetlist) {
+  if (!actualSetlist || !userPicks) return 0;
+  let n = 0;
+  for (const fieldId of SCORE_FIELDS) {
+    if (calculateSlotScore(fieldId, userPicks[fieldId], actualSetlist) > 0) {
+      n += 1;
+    }
+  }
+  return n;
+}
+
 /** Mirrors `src/shared/utils/officialSetlistSanitize.js` (trim / drop empties). */
 function sanitizeOfficialSongList(arr) {
   if (!Array.isArray(arr)) return [];
@@ -231,6 +251,7 @@ module.exports = {
   setlistHasAnyPlayedSong,
   calculateSlotScore,
   calculateTotalScore,
+  countCorrectSlots,
   actualSetlistFromOfficialDoc,
   persistableActualSetlistFromOfficialDoc,
   playableSetlistFingerprint,
