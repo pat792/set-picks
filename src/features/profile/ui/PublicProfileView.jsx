@@ -112,30 +112,24 @@ export default function PublicProfileView({
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-content-secondary">
             Stats
           </h2>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-center sm:grid-cols-3">
-            {statColumns.map(({ key, label }) => (
-              <p
-                key={`${key}-label`}
-                className="self-end px-0.5 text-[10px] font-black uppercase leading-snug tracking-wider text-content-secondary"
-              >
-                {label}
-              </p>
-            ))}
+          <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
             {statColumns.map(({ key, label, value }) => (
-              <div
-                key={`${key}-value`}
-                className="flex min-h-[3.25rem] items-center justify-center rounded-2xl border border-border-subtle bg-surface-field px-2 py-3"
-              >
-                {statsLoading ? (
-                  <Loader2
-                    className="h-5 w-5 shrink-0 animate-spin text-brand-primary"
-                    aria-label={`Loading ${label}`}
-                  />
-                ) : (
-                  <span className="text-2xl font-black tabular-nums leading-none tracking-tight text-brand-primary">
-                    {value}
-                  </span>
-                )}
+              <div key={key} className="flex flex-col gap-1.5">
+                <p className="flex flex-1 items-end justify-center px-0.5 text-[10px] font-black uppercase leading-snug tracking-wider text-content-secondary">
+                  {label}
+                </p>
+                <div className="flex min-h-[3.25rem] items-center justify-center rounded-2xl border border-border-subtle bg-surface-field px-2 py-3">
+                  {statsLoading ? (
+                    <Loader2
+                      className="h-5 w-5 shrink-0 animate-spin text-brand-primary"
+                      aria-label={`Loading ${label}`}
+                    />
+                  ) : (
+                    <span className="text-2xl font-black tabular-nums leading-none tracking-tight text-brand-primary">
+                      {value}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
