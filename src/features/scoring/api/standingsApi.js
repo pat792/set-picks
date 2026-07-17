@@ -12,6 +12,7 @@ import { db } from '../../../shared/lib/firebase';
 import {
   sanitizeBustouts,
   sanitizeOfficialSongList,
+  sanitizeSongGaps,
 } from '../../../shared/utils/officialSetlistSanitize.js';
 
 /**
@@ -30,11 +31,13 @@ export function normalizeOfficialSetlistDocData(data) {
       ? sanitizeOfficialSongList(rawEnc)
       : [];
   const bustouts = sanitizeBustouts(data.bustouts);
+  const songGaps = sanitizeSongGaps(data.songGaps);
   return {
     ...(data.setlist || {}),
     officialSetlist: Array.isArray(data.officialSetlist) ? data.officialSetlist : [],
     ...(encoreSongs.length > 0 ? { encoreSongs } : {}),
     bustouts,
+    ...(Object.keys(songGaps).length > 0 ? { songGaps } : {}),
   };
 }
 

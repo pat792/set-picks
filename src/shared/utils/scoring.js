@@ -21,7 +21,7 @@ export const SCORING_RULES = {
 const normalize = (s) => String(s ?? '').trim().toLowerCase();
 
 /** Keys on the scoring payload that are not slot song strings. */
-const NON_SONG_SETLIST_KEYS = new Set(['officialSetlist', 'encoreSongs', 'id', 'bustouts']);
+const NON_SONG_SETLIST_KEYS = new Set(['officialSetlist', 'encoreSongs', 'id', 'bustouts', 'songGaps']);
 
 /**
  * Encore exact: primary `enc` slot plus optional `encoreSongs` (multi-encore shows).

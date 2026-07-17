@@ -36,7 +36,7 @@ function formatSetlistFetchLayerError(err) {
  *
  * @param {string} showDate YYYY-MM-DD
  * @param {{ id: string }[]} slotFields Admin slot fields (typically `ADMIN_SETLIST_FIELDS`).
- * @returns {Promise<{ ok: true, setlistData: Record<string, string>, officialSetlist: string[], encoreSongs: string[], bustouts: string[] } | { ok: false, error: string }>}
+ * @returns {Promise<{ ok: true, setlistData: Record<string, string>, officialSetlist: string[], encoreSongs: string[], bustouts: string[], songGaps: Record<string, number> } | { ok: false, error: string }>}
  */
 export async function fetchAndMapExternalSetlist(showDate, slotFields) {
   const rawResult = await fetchSetlistRaw(showDate);
@@ -48,11 +48,9 @@ export async function fetchAndMapExternalSetlist(showDate, slotFields) {
 
   try {
     const parsed = parseSetlist(rawResult.data, apiSource, gameConfig);
-    const { setlistData, officialSetlist, encoreSongs, bustouts } = mapParsedSetlistToLegacySaveShape(
-      parsed,
-      slotFields,
-    );
-    return { ok: true, setlistData, officialSetlist, encoreSongs, bustouts };
+    const { setlistData, officialSetlist, encoreSongs, bustouts, songGaps } =
+      mapParsedSetlistToLegacySaveShape(parsed, slotFields);
+    return { ok: true, setlistData, officialSetlist, encoreSongs, bustouts, songGaps };
   } catch (e) {
     if (e instanceof SetlistParseError) {
       return { ok: false, error: e.message };
@@ -75,7 +73,7 @@ export async function fetchAndMapExternalSetlist(showDate, slotFields) {
  *
  * @param {string} showDate YYYY-MM-DD
  * @param {{ id: string }[]} slotFields
- * @returns {Promise<{ ok: true, bustouts: string[] } | { ok: false, error: string }>}
+ * @returns {Promise<{ ok: true, bustouts: string[], songGaps: Record<string, number> } | { ok: false, error: string }>}
  */
 export async function fetchBustoutsFromPhishnet(showDate, slotFields) {
   const rawResult = await fetchSetlistRaw(showDate, { forceSource: 'phishnet' });
@@ -85,8 +83,8 @@ export async function fetchBustoutsFromPhishnet(showDate, slotFields) {
 
   try {
     const parsed = parseSetlist(rawResult.data, 'phishnet', gameConfig);
-    const { bustouts } = mapParsedSetlistToLegacySaveShape(parsed, slotFields);
-    return { ok: true, bustouts };
+    const { bustouts, songGaps } = mapParsedSetlistToLegacySaveShape(parsed, slotFields);
+    return { ok: true, bustouts, songGaps };
   } catch (e) {
     if (e instanceof SetlistParseError) {
       return { ok: false, error: e.message };

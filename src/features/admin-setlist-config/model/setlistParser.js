@@ -8,6 +8,7 @@
  * @property {string[]} playedSongOrder Full show order as played (normalized titles, no empties).
  * @property {string[]} encoreSongTitles Encore segment titles in show order (empty if none).
  * @property {string[]} bustoutTitles Titles of songs whose pre-show gap was >= BUSTOUT_MIN_GAP. Derived only from Phish.net rows (Phish.in has no gap metadata). Empty array when unavailable. (#214)
+ * @property {Record<string, number>} songGaps Frozen per-song pre-show gap keyed by normalized title. Phish.net only; empty object for Phish.in. (#587 Phase B)
  */
 
 /**
@@ -179,7 +180,7 @@ function parsePhishin(rawData, formFields) {
 
   // Phish.in tracks do not carry per-song gap metadata. Bustouts must come
   // from Phish.net; downstream save flow will fetch them explicitly (#214).
-  return { positionSlots: slots, playedSongOrder, encoreSongTitles, bustoutTitles: [] };
+  return { positionSlots: slots, playedSongOrder, encoreSongTitles, bustoutTitles: [], songGaps: {} };
 }
 
 /**
@@ -268,15 +269,23 @@ function parsePhishnet(rawData, formFields) {
   // original casing for the first occurrence so UI reads cleanly.
   const seenBustouts = new Set();
   const bustoutTitles = [];
+  // Frozen per-song pre-show gap snapshot (#587 Phase B). Keeps every dated
+  // row's gap (not just >= threshold) so standings can surface the nerd signal
+  // below the bustout line. Keyed by normalized title; first occurrence wins.
+  /** @type {Record<string, number>} */
+  const songGaps = {};
   for (const r of rows) {
-    if (r.gap == null || r.gap < PARSER_BUSTOUT_MIN_GAP) continue;
+    if (r.gap == null || r.gap < 0) continue;
     const norm = normalizeSongTitle(r.title);
-    if (seenBustouts.has(norm)) continue;
-    seenBustouts.add(norm);
-    bustoutTitles.push(r.title);
+    if (!norm) continue;
+    if (r.gap >= PARSER_BUSTOUT_MIN_GAP && !seenBustouts.has(norm)) {
+      seenBustouts.add(norm);
+      bustoutTitles.push(r.title);
+    }
+    if (!(norm in songGaps)) songGaps[norm] = r.gap;
   }
 
-  return { positionSlots: slots, playedSongOrder, encoreSongTitles, bustoutTitles };
+  return { positionSlots: slots, playedSongOrder, encoreSongTitles, bustoutTitles, songGaps };
 }
 
 /**
@@ -304,7 +313,7 @@ export function parseSetlist(rawData, apiSource, gameConfig) {
  *
  * @param {ParsedSetlistDto} parsed
  * @param {{ id: string }[]} slotFields - e.g. `ADMIN_SETLIST_FIELDS` (excludes `wild`).
- * @returns {{ setlistData: Record<string, string>, officialSetlist: string[], encoreSongs: string[], bustouts: string[] }}
+ * @returns {{ setlistData: Record<string, string>, officialSetlist: string[], encoreSongs: string[], bustouts: string[], songGaps: Record<string, number> }}
  */
 export function mapParsedSetlistToLegacySaveShape(parsed, slotFields) {
   if (!parsed?.positionSlots || !Array.isArray(parsed.playedSongOrder)) {
@@ -323,5 +332,9 @@ export function mapParsedSetlistToLegacySaveShape(parsed, slotFields) {
   const bustouts = Array.isArray(parsed.bustoutTitles)
     ? parsed.bustoutTitles.map((s) => String(s ?? '').trim()).filter(Boolean)
     : [];
-  return { setlistData, officialSetlist, encoreSongs, bustouts };
+  const songGaps =
+    parsed.songGaps && typeof parsed.songGaps === 'object' && !Array.isArray(parsed.songGaps)
+      ? parsed.songGaps
+      : {};
+  return { setlistData, officialSetlist, encoreSongs, bustouts, songGaps };
 }

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildBustoutTitleSet,
+  buildSongGapMap,
+  getOfficialSetlistGap,
   groupOfficialSetlistBySet,
   isOfficialSetlistBustout,
 } from './groupOfficialSetlistBySet';
@@ -99,5 +101,30 @@ describe('groupOfficialSetlistBySet', () => {
     expect(isOfficialSetlistBustout("Fluff's Travels", bustouts)).toBe(true);
     expect(isOfficialSetlistBustout('Tweezer', bustouts)).toBe(false);
     expect(isOfficialSetlistBustout('Tweezer', buildBustoutTitleSet(null))).toBe(false);
+  });
+});
+
+describe('buildSongGapMap / getOfficialSetlistGap (#587 Phase B)', () => {
+  it('builds a normalized gap lookup and matches by displayed title', () => {
+    const gapMap = buildSongGapMap({
+      songGaps: { 'ac/dc bag': 47, reba: 12, tweezer: '30' },
+    });
+    expect(getOfficialSetlistGap('AC/DC Bag', gapMap)).toBe(47);
+    expect(getOfficialSetlistGap('  reba ', gapMap)).toBe(12);
+    expect(getOfficialSetlistGap('Tweezer', gapMap)).toBe(30);
+    expect(getOfficialSetlistGap('Free', gapMap)).toBeNull();
+  });
+
+  it('returns an empty map for missing/invalid songGaps', () => {
+    expect(buildSongGapMap(null).size).toBe(0);
+    expect(buildSongGapMap({}).size).toBe(0);
+    expect(buildSongGapMap({ songGaps: ['a', 'b'] }).size).toBe(0);
+    expect(getOfficialSetlistGap('Reba', buildSongGapMap(null))).toBeNull();
+  });
+
+  it('drops negative and non-finite gap values', () => {
+    const gapMap = buildSongGapMap({ songGaps: { a: -1, b: NaN, c: 5 } });
+    expect(gapMap.size).toBe(1);
+    expect(getOfficialSetlistGap('c', gapMap)).toBe(5);
   });
 });

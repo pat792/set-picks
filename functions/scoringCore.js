@@ -24,6 +24,7 @@ const NON_SONG_SETLIST_KEYS = new Set([
   "encoreSongs",
   "id",
   "bustouts",
+  "songGaps",
 ]);
 
 function normalizeSong(value) {

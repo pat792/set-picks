@@ -16,6 +16,7 @@
     "qa:push-canary-for-user": "node scripts/sendPushCanaryForUser.js",
     "qa:post-show-push-test": "node scripts/sendPostShowRollupPushTest.js",
     "backfill:bustouts": "node scripts/backfillBustouts.js",
+    "backfill:song-gaps": "node scripts/backfillSongGaps.js",
     "backfill:season-aggregates": "node scripts/backfillSeasonAggregates.js",
     "rollup:reset-premature-grade": "node scripts/resetPrematureGrade.js",
     "comms:deliver-sphere-inbox": "node scripts/deliverSphere2026TourRecapInbox.js",

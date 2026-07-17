@@ -20,4 +20,19 @@ describe('normalizeOfficialSetlistDocData', () => {
     expect(out?.bustouts).toEqual(['First Tube']);
     expect(out?.foo).toBe(1);
   });
+
+  it('passes through a sanitized songGaps map when present (#587 Phase B)', () => {
+    const out = normalizeOfficialSetlistDocData({
+      officialSetlist: ['A'],
+      songGaps: { 'ac/dc bag': 47, bad: -1, worse: 'nope' },
+    });
+    expect(out?.songGaps).toEqual({ 'ac/dc bag': 47 });
+  });
+
+  it('omits songGaps entirely when absent or empty', () => {
+    const out = normalizeOfficialSetlistDocData({ officialSetlist: ['A'] });
+    expect(out).not.toHaveProperty('songGaps');
+    const out2 = normalizeOfficialSetlistDocData({ officialSetlist: ['A'], songGaps: {} });
+    expect(out2).not.toHaveProperty('songGaps');
+  });
 });

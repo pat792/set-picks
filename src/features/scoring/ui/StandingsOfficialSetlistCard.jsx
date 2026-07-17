@@ -2,9 +2,12 @@ import React from 'react';
 import { ChevronDown, ExternalLink, ListMusic } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
+import { SCORING_RULES } from '../../../shared/utils/scoring';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
 import {
   buildBustoutTitleSet,
+  buildSongGapMap,
+  getOfficialSetlistGap,
   groupOfficialSetlistBySet,
   isOfficialSetlistBustout,
 } from '../model/groupOfficialSetlistBySet';
@@ -16,33 +19,68 @@ import {
   STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
 
-function SetSongList({ label, songs, bustoutTitleSet }) {
+const { BUSTOUT_MIN_GAP } = SCORING_RULES;
+
+/** Invisible 4-col grid per row: # | title | gap | bustout — fixed tracks keep columns aligned. */
+const SETLIST_ROW_GRID =
+  'grid grid-cols-[1.5rem_minmax(0,1fr)_4.75rem_4.5rem] items-center gap-x-2 min-h-[1.75rem]';
+
+function SetSongList({ label, songs, bustoutTitleSet, gapMap }) {
   if (!songs.length) return null;
   return (
     <div>
       <p className={`mb-1.5 ${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
         {label}
       </p>
-      <ol className="space-y-1">
+      <div
+        className={`${SETLIST_ROW_GRID} mb-0.5 border-b border-border-subtle/60 pb-1 ${STANDINGS_BOX_EYEBROW} text-content-secondary`}
+        aria-hidden
+      >
+        <span className="tabular-nums">#</span>
+        <span>Song</span>
+        <span className="justify-self-end">Gap</span>
+        <span
+          className="justify-self-end"
+          title={`Pre-show gap ≥ ${BUSTOUT_MIN_GAP} shows — Bustout Boost eligible`}
+        >
+          Bustout
+        </span>
+      </div>
+      <ol className={`space-y-0.5 ${STANDINGS_BOX_BODY} text-slate-100`}>
         {songs.map((title, idx) => {
           const isBustout = isOfficialSetlistBustout(title, bustoutTitleSet);
+          const gap = getOfficialSetlistGap(title, gapMap);
           return (
             <li
               key={`${label}-${idx}-${title}`}
-              className={`flex items-start gap-2 ${STANDINGS_BOX_BODY} text-slate-100`}
+              className={SETLIST_ROW_GRID}
             >
-              <span className="w-5 shrink-0 tabular-nums text-content-secondary">
-                {idx + 1}.
+              <span className="tabular-nums text-content-secondary">
+                {idx + 1}
               </span>
-              <span className="min-w-0 flex-1">{title}</span>
-              {isBustout ? (
-                <span
-                  className="shrink-0 rounded-full border border-orange-300/40 bg-orange-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-orange-100"
-                  title="Bustout Boost eligibility"
-                >
-                  Bustout
-                </span>
-              ) : null}
+              <span className="min-w-0 truncate">{title}</span>
+              <span
+                className="justify-self-end tabular-nums text-[11px] font-semibold text-content-secondary"
+                title={
+                  gap != null
+                    ? `${gap} shows since last played (pre-show gap)`
+                    : undefined
+                }
+              >
+                {gap != null ? gap : '\u00a0'}
+              </span>
+              <span className="justify-self-end">
+                {isBustout ? (
+                  <span
+                    className="inline-block rounded-full border border-orange-300/40 bg-orange-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-orange-100"
+                    title="Bustout Boost eligibility"
+                  >
+                    Bustout
+                  </span>
+                ) : (
+                  '\u00a0'
+                )}
+              </span>
             </li>
           );
         })}
@@ -71,6 +109,7 @@ export default function StandingsOfficialSetlistCard({
 }) {
   const grouped = groupOfficialSetlistBySet(actualSetlist);
   const bustoutTitleSet = buildBustoutTitleSet(actualSetlist);
+  const gapMap = buildSongGapMap(actualSetlist);
 
   if (!actualSetlist || (!grouped.hasSongs && !grouped.hasOfficialSlots)) {
     return null;
@@ -127,17 +166,24 @@ export default function StandingsOfficialSetlistCard({
                 label="Set 1"
                 songs={grouped.set1}
                 bustoutTitleSet={bustoutTitleSet}
+                gapMap={gapMap}
               />
               <SetSongList
                 label="Set 2"
                 songs={grouped.set2}
                 bustoutTitleSet={bustoutTitleSet}
+                gapMap={gapMap}
               />
               <SetSongList
                 label="Encore"
                 songs={grouped.encore}
                 bustoutTitleSet={bustoutTitleSet}
+                gapMap={gapMap}
               />
+              <p className="text-[11px] font-semibold leading-relaxed text-content-secondary">
+                Gap = shows since last played before this night. Bustout = gap ≥{' '}
+                {BUSTOUT_MIN_GAP} (Bustout Boost eligible).
+              </p>
             </div>
           ) : (
             <p className={STANDINGS_BOX_BODY}>

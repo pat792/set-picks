@@ -151,4 +151,5 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 | 2026-07-16 | 0–1 | PRs #613–#616 merged | Manifest, #566 matrix, #584 place dedupe (1.23.1), #587 Phase A bustout badge (1.24.0); staging tip **1.24.0** |
 | 2026-07-16 | 2 | #617–#620 merged | Foundation + avg points (1.24.1) + debut/vintage helpers (1.25.0) + avg correct rollup / self top-picks / alignment fix (1.26.0); staging tip **1.26.0**; careerCorrectSlots backfilled |
 | 2026-07-16 | 3 | #621 merged | Curated avatar picker + public mark (**1.27.0**) |
-| 2026-07-16 | 3 | #568 in flight | Milestone badges v1 (shows_played + win_1) → **1.28.0** |
+| 2026-07-16 | 3 | #622 merged | Milestone badges v1 + standings pins / unset-avatar chip (**1.28.1**) |
+| 2026-07-16 | 4 | #587 Phase B in flight (#623) | Frozen per-song `official_setlists.songGaps` + Standings gap grid → **1.29.0**. #555 next: dashboard-first, on-demand tour-setlist aggregation |
