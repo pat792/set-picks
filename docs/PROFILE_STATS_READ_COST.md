@@ -75,3 +75,16 @@ Until then, the live-compute path stays the single source of truth so
 Profile `Wins` can't drift from the Standings (#218) and Tour standings
 (#219) surfaces — all three share
 `src/shared/utils/showAggregation.js::reduceShowWinners`.
+
+## Self Profile pick heatmap (#553 interim)
+
+`useProfilePickHeatmap` live-computes on dashboard Profile only:
+
+```
+reads ≈ 1 collection query (picks where userId == uid)
+       + min(|graded shows|, 40) official_setlists point reads
+```
+
+Telemetry event: `profile_pick_heatmap_computed` (same view/p95 thresholds
+as season stats). Public profile must not call this path until a
+`pickSongStats` (or equivalent) rollup lands.

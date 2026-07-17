@@ -12,6 +12,7 @@ const {
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
+  deriveSongGapsFromRows,
   evaluateAutoFinalize,
   evaluateSet1CloserStage,
   hourInTimeZone,
@@ -420,6 +421,48 @@ test("deriveBustoutsFromRows dedupes by normalized title, keeps first casing", (
   ];
   const bustouts = deriveBustoutsFromRows(rows);
   assert.deepEqual(bustouts, ["Colonel Forbin's Ascent"]);
+});
+
+test("deriveSongGapsFromRows freezes every dated row gap by normalized title", () => {
+  const rows = [
+    { setKey: "1", position: 1, title: "AC/DC Bag", gap: 8 },
+    { setKey: "1", position: 2, title: "Big Gap", gap: 137 },
+    { setKey: "1", position: 3, title: "Zero Gap", gap: 0 },
+    { setKey: "1", position: 4, title: "Unknown", gap: null },
+    { setKey: "2", position: 1, title: "Negative", gap: -3 },
+  ];
+  const gaps = deriveSongGapsFromRows(rows);
+  assert.deepEqual(gaps, {
+    "ac/dc bag": 8,
+    "big gap": 137,
+    "zero gap": 0,
+  });
+});
+
+test("deriveSongGapsFromRows keeps first occurrence for a repeated normalized title", () => {
+  const rows = [
+    { setKey: "1", position: 1, title: "Tweezer", gap: 12 },
+    { setKey: "E", position: 1, title: "TWEEZER", gap: 99 },
+  ];
+  assert.deepEqual(deriveSongGapsFromRows(rows), { tweezer: 12 });
+});
+
+test("buildSetlistDocFromRows emits songGaps and merges prior as a superset", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "AC/DC Bag", gap: 8 },
+      { set: "2", idx: 1, song: "Colonel Forbin's Ascent", gap: 98 },
+    ],
+  });
+  const out = buildSetlistDocFromRows(rows, {
+    songGaps: { "bathtub gin": 14 },
+  });
+  assert.deepEqual(out.songGaps, {
+    "ac/dc bag": 8,
+    "colonel forbin's ascent": 98,
+    "bathtub gin": 14,
+  });
 });
 
 test("buildSetlistDocFromRows emits bustouts from per-row gap", () => {

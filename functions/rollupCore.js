@@ -23,6 +23,7 @@
 
 const {
   calculateTotalScore,
+  countCorrectSlots,
   persistableActualSetlistFromOfficialDoc,
   setlistHasAnyPlayedSong,
 } = require("./scoringCore");
@@ -36,6 +37,7 @@ const {
   CLOSE_CALL_MAX_GAP,
 } = require("./postShowRollupPush");
 const { deliverPostRollupComms } = require("./commsEventAdapters");
+const { awardBadgesForUsers } = require("./badgeAwards");
 
 /** Same invariant as `adminRollupApi.js` / `profileApi.js`. */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
@@ -168,6 +170,8 @@ async function runRollupForShow({
 
   /** @type {{ kind: "win" | "nearMiss", userId: string, pickId: string, newScore?: number }[]} */
   const rollupPushHints = [];
+  /** @type {Set<string>} */
+  const processedUserIds = new Set();
 
   for (const pickDoc of picksSnap.docs) {
     const pickData = pickDoc.data() || {};
@@ -181,10 +185,13 @@ async function runRollupForShow({
       opCount = 0;
     }
     const newScore = newScoresById.get(pickDoc.id) || 0;
+    const userPicks = pickData.picks || {};
+    const newCorrectSlots = countCorrectSlots(userPicks, actualSetlist);
     const plan = computePerPickRollup({
       pickData,
       newScore,
       newGlobalMax,
+      newCorrectSlots,
     });
 
     if (pickData.userId && plan.isFirstGrade) {
@@ -215,6 +222,7 @@ async function runRollupForShow({
       score: newScore,
       isGraded: true,
       winCredited: plan.newIsWin,
+      correctSlotsCredited: plan.newCorrectSlots,
     };
     if (plan.isFirstGrade) {
       pickUpdate.gradedAt = admin.firestore.FieldValue.serverTimestamp();
@@ -227,6 +235,9 @@ async function runRollupForShow({
         plan.isFirstGrade ? 1 : 0
       ),
       wins: admin.firestore.FieldValue.increment(plan.winsDelta),
+      careerCorrectSlots: admin.firestore.FieldValue.increment(
+        plan.countsTowardSeason ? plan.correctSlotsDiff : 0
+      ),
       seasonStatsSnapshotAt: admin.firestore.FieldValue.serverTimestamp(),
       seasonStatsThroughShow: showDate,
     };
@@ -238,6 +249,9 @@ async function runRollupForShow({
             plan.isFirstGrade ? 1 : 0
           ),
           wins: admin.firestore.FieldValue.increment(plan.winsDelta),
+          correctSlots: admin.firestore.FieldValue.increment(
+            plan.countsTowardSeason ? plan.correctSlotsDiff : 0
+          ),
         },
       };
     }
@@ -248,6 +262,7 @@ async function runRollupForShow({
     );
     opCount += OPS_PER_PICK;
     processedPicks += 1;
+    processedUserIds.add(String(pickData.userId));
   }
 
   if (opCount > 0) {
@@ -311,6 +326,25 @@ async function runRollupForShow({
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     logger?.warn?.("runRollupForShow.comms failed", { showDate, trigger, msg });
+  }
+
+  if (processedUserIds.size > 0) {
+    try {
+      await awardBadgesForUsers({
+        db,
+        admin,
+        userIds: processedUserIds,
+        showDate,
+        logger,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger?.warn?.("runRollupForShow.badgeAwards failed", {
+        showDate,
+        trigger,
+        msg,
+      });
+    }
   }
 
   return {

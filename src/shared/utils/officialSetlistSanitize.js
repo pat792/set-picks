@@ -41,3 +41,26 @@ export function sanitizeBustouts(input) {
   }
   return out;
 }
+
+/**
+ * Normalize a per-show `songGaps` map for persistence and display (#587 Phase
+ * B): keys are normalized (lowercased/trimmed) song titles, values are the
+ * frozen pre-show gap as a non-negative integer. Non-object input, non-numeric
+ * or negative values, and blank keys are dropped.
+ *
+ * @param {unknown} input
+ * @returns {Record<string, number>}
+ */
+export function sanitizeSongGaps(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+  /** @type {Record<string, number>} */
+  const out = {};
+  for (const [rawKey, rawVal] of Object.entries(input)) {
+    const key = String(rawKey ?? '').trim().toLowerCase();
+    if (!key) continue;
+    const val = typeof rawVal === 'number' ? rawVal : Number(rawVal);
+    if (!Number.isFinite(val) || val < 0) continue;
+    out[key] = Math.trunc(val);
+  }
+  return out;
+}

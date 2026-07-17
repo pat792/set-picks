@@ -4,18 +4,26 @@ import { useSearchParams } from 'react-router-dom';
 import { ga4Event } from '../../../shared/lib/ga4';
 
 /**
- * Canonical standings view ids (#255). Keep aligned with
- * `dashboardPageMeta.js` (which hides the date picker when `view=tour`)
- * and `scripts/verify-dashboard-meta.mjs`.
+ * Views owned by `/dashboard/standings?view=` (#255). Keep aligned with
+ * `dashboardPageMeta.js` and `scripts/verify-dashboard-meta.mjs`.
  */
-export const STANDINGS_VIEWS = Object.freeze(['show', 'tour', 'pools']);
+export const STANDINGS_PATH_VIEWS = Object.freeze(['show', 'tour', 'pools']);
+
+/**
+ * Full Standings IA toggle (#555 adds Stats). Stats lives on
+ * `/dashboard/tour-stats` — see {@link buildStandingsViewPath}.
+ */
+export const STANDINGS_VIEWS = Object.freeze([
+  ...STANDINGS_PATH_VIEWS,
+  'stats',
+]);
 
 /** Default view when the URL has no `?view` query. */
 export const DEFAULT_STANDINGS_VIEW = 'show';
 const RECENT_STANDINGS_POOL_KEY = 'standings.recentPoolId';
 
-function isKnownView(v) {
-  return typeof v === 'string' && STANDINGS_VIEWS.includes(v);
+function isKnownPathView(v) {
+  return typeof v === 'string' && STANDINGS_PATH_VIEWS.includes(v);
 }
 
 /**
@@ -24,7 +32,7 @@ function isKnownView(v) {
  * renders something sensible rather than an empty tab panel.
  */
 export function normalizeView(raw) {
-  return isKnownView(raw) ? raw : DEFAULT_STANDINGS_VIEW;
+  return isKnownPathView(raw) ? raw : DEFAULT_STANDINGS_VIEW;
 }
 
 /**

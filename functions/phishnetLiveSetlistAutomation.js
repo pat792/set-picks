@@ -566,11 +566,19 @@ function buildSetlistDocFromRows(rows, existingDoc = {}, timing = null) {
   // the list; rows that existed but no longer appear (very rare edit) remain.
   const bustouts = mergeBustouts(prevBustouts, bustoutsFromRows);
 
+  // Frozen per-song pre-show gap snapshot (#587 Phase B). Same provenance as
+  // `bustouts` (Phish.net row `gap`), but retains the number for every dated
+  // row so standings can show the "why this song mattered" signal below the
+  // bustout threshold too. Merged across polls so a partial feed never drops a
+  // gap captured earlier.
+  const songGaps = mergeSongGaps(existingDoc?.songGaps, deriveSongGapsFromRows(rows));
+
   return {
     setlist: slots,
     officialSetlist,
     encoreSongs,
     bustouts,
+    songGaps,
     set1CloserStage,
   };
 }
@@ -592,6 +600,51 @@ function deriveBustoutsFromRows(rows) {
     if (seenNormalized.has(norm)) continue;
     seenNormalized.add(norm);
     out.push(title);
+  }
+  return out;
+}
+
+/**
+ * Freeze per-song pre-show gap from Phish.net rows (#587 Phase B). Keyed by
+ * normalized title (lowercased/trimmed — same normalization the standings UI
+ * uses to look up by displayed title). Rows with an unknown or negative gap
+ * are omitted. First occurrence wins for a repeated normalized title.
+ *
+ * @param {{ title: string, gap: number | null }[]} rows
+ * @returns {Record<string, number>}
+ */
+function deriveSongGapsFromRows(rows) {
+  /** @type {Record<string, number>} */
+  const out = {};
+  for (const row of rows) {
+    if (!row || typeof row.title !== "string") continue;
+    const title = row.title.trim();
+    if (!title) continue;
+    const gap = typeof row.gap === "number" ? row.gap : parseRowGap(row.gap);
+    if (gap == null || gap < 0) continue;
+    const key = normalizeSongTitle(title);
+    if (!key || key in out) continue;
+    out[key] = gap;
+  }
+  return out;
+}
+
+/**
+ * Merge two `songGaps` maps, preferring `prev` so a value captured on an
+ * earlier poll stays stable (pre-show gap is fixed for a given show).
+ *
+ * @param {unknown} prev
+ * @param {unknown} next
+ * @returns {Record<string, number>}
+ */
+function mergeSongGaps(prev, next) {
+  /** @type {Record<string, number>} */
+  const out = {};
+  for (const src of [next, prev]) {
+    if (!src || typeof src !== "object") continue;
+    for (const [k, v] of Object.entries(src)) {
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) out[k] = v;
+    }
   }
   return out;
 }
@@ -1061,6 +1114,7 @@ async function pollSingleShowDate({
       officialSetlist: nextPayload.officialSetlist,
       encoreSongs: nextPayload.encoreSongs || [],
       bustouts: nextPayload.bustouts || [],
+      songGaps: nextPayload.songGaps || {},
       updatedBy: requestorEmail || "setlist-automation",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       sourceMeta: {
@@ -1162,6 +1216,7 @@ module.exports = {
   buildSetlistDocFromRows,
   candidateShowDates,
   deriveBustoutsFromRows,
+  deriveSongGapsFromRows,
   evaluateAutoFinalize,
   evaluateSet1CloserStage,
   fetchPhishnetSetlistForDate,

@@ -4,11 +4,12 @@ import {
   sanitizeBustouts,
   sanitizeOfficialSongList,
   sanitizeSetlistSlots,
+  sanitizeSongGaps,
 } from '../../../shared/utils/officialSetlistSanitize.js';
 
 const OFFICIAL_SETLISTS_COLLECTION = 'official_setlists';
 
-export { sanitizeBustouts, sanitizeOfficialSongList, sanitizeSetlistSlots };
+export { sanitizeBustouts, sanitizeOfficialSongList, sanitizeSetlistSlots, sanitizeSongGaps };
 
 function encoreSongsFromOfficialDoc(data) {
   if (!data || typeof data !== 'object') return [];
@@ -40,6 +41,7 @@ export async function fetchOfficialSetlistByDate(showDate, slotFields) {
     officialSetlist: sanitizeOfficialSongList(data.officialSetlist),
     encoreSongs: encoreSongsFromOfficialDoc(data),
     bustouts: sanitizeBustouts(data.bustouts),
+    songGaps: sanitizeSongGaps(data.songGaps),
     raw: data,
   };
 }
@@ -53,6 +55,10 @@ export async function fetchOfficialSetlistByDate(showDate, slotFields) {
  * a save triggered without fresh Phish.net data (e.g. pure slot edit) does
  * not erase bustouts captured earlier. Pass an empty array only when you
  * affirmatively know there are no bustouts.
+ *
+ * `songGaps` (#587 Phase B) follows the same explicit-wins / preserve-prior
+ * policy: because this write replaces the whole doc, omitting `songGaps`
+ * preserves any gap map frozen by live automation or a prior ingest.
  */
 export async function saveOfficialSetlistByDate({
   showDate,
@@ -62,6 +68,7 @@ export async function saveOfficialSetlistByDate({
   updatedBy,
   encoreSongs: encoreSongsExplicit,
   bustouts: bustoutsExplicit,
+  songGaps: songGapsExplicit,
 }) {
   const cleanedSlots = sanitizeSetlistSlots(setlistData, slotFields);
   const cleanedOfficialSetlist = sanitizeOfficialSongList(officialSetlist);
@@ -73,6 +80,7 @@ export async function saveOfficialSetlistByDate({
     ? sanitizeOfficialSongList(prior.encoreSongs)
     : [];
   const priorBustouts = sanitizeBustouts(prior.bustouts);
+  const priorSongGaps = sanitizeSongGaps(prior.songGaps);
 
   let encoreSongs;
   if (encoreSongsExplicit !== undefined) {
@@ -94,6 +102,11 @@ export async function saveOfficialSetlistByDate({
       ? sanitizeBustouts(bustoutsExplicit)
       : priorBustouts;
 
+  const songGaps =
+    songGapsExplicit !== undefined
+      ? sanitizeSongGaps(songGapsExplicit)
+      : priorSongGaps;
+
   await setDoc(docRef, {
     showDate,
     status: 'COMPLETED',
@@ -104,6 +117,7 @@ export async function saveOfficialSetlistByDate({
     officialSetlist: cleanedOfficialSetlist,
     encoreSongs,
     bustouts,
+    songGaps,
   });
 
   return {
@@ -111,5 +125,6 @@ export async function saveOfficialSetlistByDate({
     cleanedOfficialSetlist,
     encoreSongs,
     bustouts,
+    songGaps,
   };
 }

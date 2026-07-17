@@ -23,6 +23,10 @@ const {
   computePerPickRollup,
   resolveTourKeyForDate,
 } = require("../rollupSeasonAggregates");
+const {
+  countCorrectSlots,
+  persistableActualSetlistFromOfficialDoc,
+} = require("../scoringCore");
 
 function parseArgs(argv) {
   const out = {};
@@ -112,6 +116,11 @@ async function main() {
     : null;
   const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
 
+  const setlistSnap = await db.collection("official_setlists").doc(showDate).get();
+  const actualSetlist = setlistSnap.exists
+    ? persistableActualSetlistFromOfficialDoc(setlistSnap.data() || {})
+    : null;
+
   const provisional = graded.map((p) => ({
     id: p.id,
     ...p,
@@ -124,33 +133,52 @@ async function main() {
   }
   const newGlobalMax = computeGlobalMaxScore(provisional, newScoresById);
 
-  /** @type {Map<string, { total: number, shows: number, wins: number, seasonTp: number, seasonShows: number, seasonWins: number }>} */
+  /** @type {Map<string, { total: number, shows: number, wins: number, correctSlots: number, seasonTp: number, seasonShows: number, seasonWins: number, seasonCorrect: number }>} */
   const userDeltas = new Map();
   for (const p of graded) {
     const uid = String(p.userId || "");
     if (!uid) continue;
     const score = typeof p.score === "number" ? p.score : 0;
+    const newCorrectSlots = actualSetlist
+      ? countCorrectSlots(p.picks || {}, actualSetlist)
+      : typeof p.correctSlotsCredited === "number"
+        ? p.correctSlotsCredited
+        : 0;
     const plan = computePerPickRollup({
       // Simulate pre-rollup pick shape so scoreDiff / winsDelta match the first-grade pass.
-      pickData: { ...p, isGraded: false, winCredited: false },
+      pickData: {
+        ...p,
+        isGraded: false,
+        winCredited: false,
+        correctSlotsCredited: 0,
+      },
       newScore: score,
       newGlobalMax,
+      newCorrectSlots,
     });
     const row = userDeltas.get(uid) || {
       total: 0,
       shows: 0,
       wins: 0,
+      correctSlots: 0,
       seasonTp: 0,
       seasonShows: 0,
       seasonWins: 0,
+      seasonCorrect: 0,
     };
     row.total += plan.scoreDiff;
     row.shows += plan.isFirstGrade ? 1 : 0;
     row.wins += plan.winsDelta;
+    if (plan.countsTowardSeason) {
+      row.correctSlots += plan.correctSlotsDiff;
+    }
     if (tourKey) {
       row.seasonTp += plan.scoreDiff;
       row.seasonShows += plan.isFirstGrade ? 1 : 0;
       row.seasonWins += plan.winsDelta;
+      if (plan.countsTowardSeason) {
+        row.seasonCorrect += plan.correctSlotsDiff;
+      }
     }
     userDeltas.set(uid, row);
   }
@@ -166,9 +194,9 @@ async function main() {
   console.log("\nPer-user rollup that would be reversed (--reconcile-users):");
   for (const [uid, d] of userDeltas) {
     console.log(
-      `  ${uid}: totalPoints -${d.total}, showsPlayed -${d.shows}, wins -${d.wins}` +
+      `  ${uid}: totalPoints -${d.total}, showsPlayed -${d.shows}, wins -${d.wins}, careerCorrectSlots -${d.correctSlots}` +
         (tourKey
-          ? ` | seasonStats.${tourKey}: tp -${d.seasonTp}, shows -${d.seasonShows}, wins -${d.seasonWins}`
+          ? ` | seasonStats.${tourKey}: tp -${d.seasonTp}, shows -${d.seasonShows}, wins -${d.seasonWins}, correct -${d.seasonCorrect}`
           : "")
     );
   }
@@ -193,6 +221,7 @@ async function main() {
       isGraded: false,
       score: 0,
       winCredited: false,
+      correctSlotsCredited: admin.firestore.FieldValue.delete(),
       gradedAt: admin.firestore.FieldValue.delete(),
     });
     ops += 1;
@@ -213,6 +242,7 @@ async function main() {
       totalPoints: admin.firestore.FieldValue.increment(-d.total),
       showsPlayed: admin.firestore.FieldValue.increment(-d.shows),
       wins: admin.firestore.FieldValue.increment(-d.wins),
+      careerCorrectSlots: admin.firestore.FieldValue.increment(-d.correctSlots),
     };
     if (tourKey) {
       // Dotted paths so other `seasonStats.*` tour keys are not clobbered on merge.
@@ -222,6 +252,8 @@ async function main() {
         admin.firestore.FieldValue.increment(-d.seasonShows);
       upd[`seasonStats.${tourKey}.wins`] =
         admin.firestore.FieldValue.increment(-d.seasonWins);
+      upd[`seasonStats.${tourKey}.correctSlots`] =
+        admin.firestore.FieldValue.increment(-d.seasonCorrect);
     }
     batch.set(ref, upd, { merge: true });
     ops += 1;

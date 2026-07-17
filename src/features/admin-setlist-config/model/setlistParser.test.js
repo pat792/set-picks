@@ -192,3 +192,65 @@ describe('parseSetlist bustoutTitles (#214)', () => {
     expect(bustouts).toEqual(['B']);
   });
 });
+
+describe('parseSetlist songGaps (#587 Phase B)', () => {
+  it('Phish.net: freezes every dated row gap keyed by normalized title', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'AC/DC Bag', position: 1, gap: 8 },
+          { set: '1', song: 'Bathtub Gin', position: 2, gap: 14 },
+          { set: '2', song: "Colonel Forbin's Ascent", position: 1, gap: 98 },
+          { set: '2', song: 'Down with Disease', position: 2, gap: 0 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    expect(parsed.songGaps).toEqual({
+      'ac/dc bag': 8,
+      'bathtub gin': 14,
+      "colonel forbin's ascent": 98,
+      'down with disease': 0,
+    });
+  });
+
+  it('Phish.net: accepts numeric-string gap, drops non-numeric / negative', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'A', position: 1, gap: '40' },
+          { set: '1', song: 'B', position: 2, gap: '—' },
+          { set: '1', song: 'C', position: 3, gap: -5 },
+          { set: '1', song: 'D', position: 4 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    expect(parsed.songGaps).toEqual({ a: 40 });
+  });
+
+  it('Phish.in: returns empty songGaps (no gap metadata)', () => {
+    const parsed = parseSetlist(phishinFixture, 'phishin', gameConfig);
+    expect(parsed.songGaps).toEqual({});
+  });
+
+  it('mapParsedSetlistToLegacySaveShape forwards songGaps', () => {
+    const parsed = parseSetlist(
+      {
+        error: false,
+        data: [
+          { set: '1', song: 'A', position: 1, gap: 2 },
+          { set: '1', song: 'B', position: 2, gap: 40 },
+        ],
+      },
+      'phishnet',
+      gameConfig,
+    );
+    const { songGaps } = mapParsedSetlistToLegacySaveShape(parsed, ADMIN_SLOT_FIELDS);
+    expect(songGaps).toEqual({ a: 2, b: 40 });
+  });
+});

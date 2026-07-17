@@ -29,8 +29,22 @@ function isPhishNetPayloadOk(data) {
 }
 
 /**
+ * Phish.net `debut` → catalog string (YYYY-MM-DD, year, or empty).
+ * @param {unknown} raw
+ * @returns {string}
+ */
+function normalizeDebutField(raw) {
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    const y = Math.trunc(raw);
+    return y >= 1900 && y <= 2100 ? String(y) : "";
+  }
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  return "";
+}
+
+/**
  * @param {unknown} row
- * @returns {{ name: string, total: string, gap: string, last: string } | null}
+ * @returns {{ name: string, total: string, gap: string, last: string, debut: string } | null}
  */
 function normalizePhishnetSongRow(row) {
   if (!row || typeof row !== "object") return null;
@@ -56,12 +70,14 @@ function normalizePhishnetSongRow(row) {
   const last =
     typeof lastRaw === "string" && lastRaw.trim() ? lastRaw.trim() : "—";
 
-  return { name, total, gap, last };
+  const debut = normalizeDebutField(rec.debut);
+
+  return { name, total, gap, last, debut };
 }
 
 /**
  * @param {string} apiKey
- * @returns {Promise<{ name: string, total: string, gap: string, last: string }[]>}
+ * @returns {Promise<{ name: string, total: string, gap: string, last: string, debut: string }[]>}
  */
 async function fetchPhishnetSongsNormalized(apiKey) {
   const key = String(apiKey ?? "").trim();
@@ -186,6 +202,7 @@ async function syncPhishnetSongCatalogToStorage(apiKey, opts = {}) {
 module.exports = {
   syncPhishnetSongCatalogToStorage,
   normalizePhishnetSongRow,
+  normalizeDebutField,
   isPhishNetPayloadOk,
   CATALOG_STORAGE_PATH,
   publicGcsUrlForCatalog,

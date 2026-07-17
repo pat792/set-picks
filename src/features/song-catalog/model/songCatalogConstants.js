@@ -1,5 +1,5 @@
 /** localStorage key for cached Phish.net-derived catalog JSON. */
-export const SONG_CATALOG_CACHE_KEY = 'set-picks.songCatalogCache.v1';
+export const SONG_CATALOG_CACHE_KEY = 'set-picks.songCatalogCache.v2';
 
 /**
  * Skip network if cache was written within this window (6 hours).

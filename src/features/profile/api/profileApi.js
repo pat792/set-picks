@@ -25,14 +25,24 @@ export async function fetchUserProfileDocument(uid) {
 
 /**
  * Updates `users/{uid}` and syncs the new handle onto every pick doc for this user.
+ * `avatarId` is profile-only (not copied onto picks).
+ *
+ * @param {string} uid
+ * @param {{ handle: string, favoriteSong?: string, avatarId?: string }} fields
  */
-export async function updateUserProfileWithPickHandles(uid, { handle, favoriteSong }) {
+export async function updateUserProfileWithPickHandles(
+  uid,
+  { handle, favoriteSong, avatarId }
+) {
   const newHandle = handle.trim();
   const userPayload = {
     handle: newHandle,
     favoriteSong: (favoriteSong || '').trim() || 'Unknown',
     updatedAt: new Date().toISOString(),
   };
+  if (typeof avatarId === 'string' && avatarId.trim()) {
+    userPayload.avatarId = avatarId.trim();
+  }
 
   const picksQuery = query(
     collection(db, 'picks'),

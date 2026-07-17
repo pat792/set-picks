@@ -6,7 +6,7 @@ import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashbo
 import StandingsViewToggle from './StandingsViewToggle';
 
 /**
- * Desktop Standings page chrome: title + Show/Tour/Pools + Scoring rules.
+ * Desktop Standings page chrome: title + Show/Tour/Stats/Pools + Scoring rules.
  * Sticky in the dashboard `main` scrollport under the Tour Date / Tour scope row.
  * Invite lives in-flow as {@link StandingsInvitePromo} (mirrors mobile).
  *
@@ -17,8 +17,8 @@ import StandingsViewToggle from './StandingsViewToggle';
  * `DashboardLayout` (`md:top-[5.75rem]`).
  *
  * @param {{
- *   view: 'show' | 'tour' | 'pools',
- *   onChange: (next: 'show' | 'tour' | 'pools') => void,
+ *   view: 'show' | 'tour' | 'pools' | 'stats',
+ *   onChange: (next: 'show' | 'tour' | 'pools' | 'stats') => void,
  *   onOpenScoringRules: () => void,
  *   pinBelowDesktopDatePicker?: boolean,
  * }} props

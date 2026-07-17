@@ -85,3 +85,72 @@ export function groupOfficialSetlistBySet(actualSetlist) {
 
   return { set1, set2, encore, hasSongs, hasOfficialSlots };
 }
+
+/**
+ * @param {unknown} title
+ * @returns {string}
+ */
+function normalizeOfficialTitle(title) {
+  return String(title ?? '')
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Builds the per-show bustout title lookup used by Standings setlist rows.
+ * `official_setlists.bustouts` is already the scoring source of truth; this
+ * helper only normalizes display matching.
+ *
+ * @param {null | Record<string, unknown>} actualSetlist
+ * @returns {Set<string>}
+ */
+export function buildBustoutTitleSet(actualSetlist) {
+  if (!actualSetlist || typeof actualSetlist !== 'object') return new Set();
+  if (!Array.isArray(actualSetlist.bustouts)) return new Set();
+  return new Set(actualSetlist.bustouts.map(normalizeOfficialTitle).filter(Boolean));
+}
+
+/**
+ * @param {unknown} title
+ * @param {Set<string>} bustoutTitleSet
+ * @returns {boolean}
+ */
+export function isOfficialSetlistBustout(title, bustoutTitleSet) {
+  if (!(bustoutTitleSet instanceof Set) || bustoutTitleSet.size === 0) return false;
+  return bustoutTitleSet.has(normalizeOfficialTitle(title));
+}
+
+/**
+ * Builds the per-show gap lookup used by Standings setlist rows.
+ * `official_setlists.songGaps` (#587 Phase B) is keyed by normalized title;
+ * this returns a Map for display lookup by the title shown in the row.
+ * Every frozen gap is eligible for display (including 0); the write path
+ * already stores all dated rows, so filtering at render is unnecessary.
+ *
+ * @param {null | Record<string, unknown>} actualSetlist
+ * @returns {Map<string, number>}
+ */
+export function buildSongGapMap(actualSetlist) {
+  if (!actualSetlist || typeof actualSetlist !== 'object') return new Map();
+  const raw = actualSetlist.songGaps;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return new Map();
+  const out = new Map();
+  for (const [key, val] of Object.entries(raw)) {
+    const norm = normalizeOfficialTitle(key);
+    const gap = typeof val === 'number' ? val : Number(val);
+    if (!norm || !Number.isFinite(gap) || gap < 0) continue;
+    out.set(norm, Math.trunc(gap));
+  }
+  return out;
+}
+
+/**
+ * @param {unknown} title
+ * @param {Map<string, number>} gapMap
+ * @returns {number | null} frozen pre-show gap, or null when unknown
+ */
+export function getOfficialSetlistGap(title, gapMap) {
+  if (!(gapMap instanceof Map) || gapMap.size === 0) return null;
+  const gap = gapMap.get(normalizeOfficialTitle(title));
+  return typeof gap === 'number' ? gap : null;
+}

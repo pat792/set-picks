@@ -3,7 +3,12 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 
 import { InstallAppCard } from '../../features/install';
-import { ProfileEditForm, useUserProfile } from '../../features/profile';
+import {
+  BadgeShelf,
+  ProfileEditForm,
+  ProfileSelfStatsPanel,
+  useUserProfile,
+} from '../../features/profile';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
@@ -18,12 +23,15 @@ export default function ProfilePage({ user: userProp }) {
   const {
     handle,
     favoriteSong,
+    avatarId,
+    badges,
     joinDate,
     isLoading,
     isSaving,
     message,
     setHandle,
     setFavoriteSong,
+    setAvatarId,
     saveProfile,
   } = useUserProfile(user);
 
@@ -51,16 +59,24 @@ export default function ProfilePage({ user: userProp }) {
         )}
       </div>
 
-      <ProfileEditForm
-        handle={handle}
-        favoriteSong={favoriteSong}
-        onHandleChange={setHandle}
-        onFavoriteSongChange={setFavoriteSong}
-        onSave={saveProfile}
-        isSaving={isSaving}
-        isLoading={isLoading}
-        message={message}
-      />
+      <ProfileSelfStatsPanel uid={user?.uid} />
+
+      <BadgeShelf badges={badges} />
+
+      <div className="mt-6">
+        <ProfileEditForm
+          handle={handle}
+          favoriteSong={favoriteSong}
+          avatarId={avatarId}
+          onHandleChange={setHandle}
+          onFavoriteSongChange={setFavoriteSong}
+          onAvatarChange={setAvatarId}
+          onSave={saveProfile}
+          isSaving={isSaving}
+          isLoading={isLoading}
+          message={message}
+        />
+      </div>
 
       {/* Remounted for #539 — shares installCopy with dashboard banner */}
       <InstallAppCard />

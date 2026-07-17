@@ -70,6 +70,14 @@ export function useAdminSetlistForm({ user, selectedDate, showDates = [] }) {
    * (rather than writing an empty array over a good snapshot).
    */
   const [bustouts, setBustouts] = useState(/** @type {string[] | null} */ (null));
+  /**
+   * Mirrors `official_setlists.songGaps` (#587 Phase B). Frozen per-song
+   * pre-show gap keyed by normalized title. `null` means "unknown — preserve
+   * whatever is on the doc" so a hand edit never clobbers a live-captured map.
+   */
+  const [songGaps, setSongGaps] = useState(
+    /** @type {Record<string, number> | null} */ (null),
+  );
   const [hasAutoFinalized, setHasAutoFinalized] = useState(false);
   const [finalizeForceModalOpen, setFinalizeForceModalOpen] = useState(false);
   const clearMessageTimeoutRef = useRef(null);
@@ -131,6 +139,14 @@ export function useAdminSetlistForm({ user, selectedDate, showDates = [] }) {
             ? response.bustouts
             : null,
         );
+        setSongGaps(
+          response.exists &&
+            response.songGaps &&
+            typeof response.songGaps === 'object' &&
+            Object.keys(response.songGaps).length > 0
+            ? response.songGaps
+            : null,
+        );
         setOfficialSetlistInput('');
       } catch (error) {
         console.error('Error fetching setlist:', error);
@@ -174,6 +190,13 @@ export function useAdminSetlistForm({ user, selectedDate, showDates = [] }) {
       // has no gap metadata. Leave state as `null` in that case so the save
       // flow falls through to the Phish.net fetch-at-save path.
       setBustouts(Array.isArray(result.bustouts) && result.bustouts.length > 0 ? result.bustouts : null);
+      setSongGaps(
+        result.songGaps &&
+          typeof result.songGaps === 'object' &&
+          Object.keys(result.songGaps).length > 0
+          ? result.songGaps
+          : null,
+      );
       setOfficialSetlistInput('');
     } catch (e) {
       console.error('Fetch setlist from API failed:', e);
@@ -243,13 +266,21 @@ export function useAdminSetlistForm({ user, selectedDate, showDates = [] }) {
       //   soft-failure, save with an empty array and warn — scoring stays
       //   deterministic; admin can re-save later to backfill.
       let bustoutsToSave;
+      // `undefined` preserves any prior gap snapshot on the doc (#587 Phase B).
+      let songGapsToSave;
       if (Array.isArray(bustouts)) {
         bustoutsToSave = bustouts;
+        songGapsToSave =
+          songGaps && typeof songGaps === 'object' ? songGaps : undefined;
       } else {
         const res = await fetchBustoutsFromPhishnet(selectedShow, ADMIN_SETLIST_FIELDS);
         if (res.ok) {
           bustoutsToSave = res.bustouts;
+          songGapsToSave = res.songGaps;
           setBustouts(res.bustouts);
+          setSongGaps(
+            res.songGaps && Object.keys(res.songGaps).length > 0 ? res.songGaps : null,
+          );
         } else {
           bustoutsToSave = [];
           bustoutsWarning = ` Bustouts could not be derived from Phish.net (${res.error}); save again once Phish.net posts the setlist to earn bustout boosts.`;
@@ -261,6 +292,7 @@ export function useAdminSetlistForm({ user, selectedDate, showDates = [] }) {
         cleanedOfficialSetlist,
         encoreSongs: savedEncoreSongs,
         bustouts: savedBustouts,
+        songGaps: savedSongGaps,
       } = await saveOfficialSetlistByDate({
           showDate: selectedShow,
           setlistData,
@@ -269,9 +301,13 @@ export function useAdminSetlistForm({ user, selectedDate, showDates = [] }) {
           updatedBy: user?.email ?? null,
           encoreSongs,
           bustouts: bustoutsToSave,
+          songGaps: songGapsToSave,
         });
       setEncoreSongs(savedEncoreSongs);
       setBustouts(savedBustouts);
+      setSongGaps(
+        savedSongGaps && Object.keys(savedSongGaps).length > 0 ? savedSongGaps : null,
+      );
 
       if (!finalizeRollup) {
         try {

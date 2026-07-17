@@ -31,6 +31,7 @@ import { computeStandingsSelfRecap } from './standingsSelfRecap';
 import { useStandingsLeaderboardView } from './useStandingsLeaderboardView';
 import { useStandingsTourSelection } from './useStandingsTourSelection';
 import { useStandingsView } from './useStandingsView';
+import { useStandingsViewChange } from './useStandingsViewChange';
 import { useTourStandings } from './useTourStandings';
 import { useScoringRulesModal } from '../ui/ScoringRulesModalProvider';
 
@@ -66,10 +67,16 @@ export function useStandingsScreen(selectedDate, options = {}) {
   const { pools: userPools } = useUserPools(user?.uid);
   const inviteChooser = useInviteChooser({ pools: userPools });
 
-  const { view, poolId, setView, setPoolId } = useStandingsView({
+  const {
+    view,
+    poolId,
+    setView: setPathView,
+    setPoolId,
+  } = useStandingsView({
     userPools,
     navTargetPoolId: targetPoolId || undefined,
   });
+  const setView = useStandingsViewChange({ view, setPathView });
 
   const activeFilter = view === 'pools' && poolId ? poolId : 'global';
 

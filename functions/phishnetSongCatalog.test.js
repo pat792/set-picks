@@ -16,13 +16,25 @@ test("normalizePhishnetSongRow maps v5 row", () => {
     times_played: 414,
     gap: 5,
     last_played: "2025-12-31",
+    debut: "1990-09-28",
   };
   assert.deepEqual(normalizePhishnetSongRow(row), {
     name: "Tweezer",
     total: "414",
     gap: "5",
     last: "2025-12-31",
+    debut: "1990-09-28",
   });
+});
+
+test("normalizePhishnetSongRow maps missing debut to empty string", () => {
+  const out = normalizePhishnetSongRow({
+    song: "Wilson",
+    times_played: 100,
+    gap: 1,
+    last_played: "2026-01-01",
+  });
+  assert.equal(out.debut, "");
 });
 
 test("normalizePhishnetSongRow returns null for empty song", () => {

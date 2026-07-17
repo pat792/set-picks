@@ -10,6 +10,95 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+No unreleased changes.
+
+---
+
+## [1.30.0] — 2026-07-17
+
+### Added
+- **Tour stats explorer (#555)** — private dashboard route `/dashboard/tour-stats` aggregates a selectable tour’s `official_setlists` on demand (unique songs, top frequency, bustouts, high-gap highlights) plus a self pick overlay (correct slots / bustout hits / top-song overlap). Peer Standings chrome tab (**Show \| Tour \| Stats \| Pools**); shares the Tour view’s chrome tour scope picker (`?tour=`). No public SEO route or rollup schema in v1. SemVer MINOR for the new dashboard surface.
+- **Comms Optimize autonomy playbook (#573 L0)** — `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` plus squad skill handoffs (analyst → triggers → drafter → architect → PM), PM pack template, draft-only/`staging` gate, and #572 night vs #510 tour boundary.
+- **Comms Optimize L1 (#573)** — goal-input convention + Cloud Agent kickoff prompt; first on-demand PM pack archived on the epic (`optimize_for=picks_lock`, 2026-07-17).
+
+### Changed
+- **Standings IA (#555 UX)** — Stats is a fourth Standings view tab (not a buried Tour-only link and not a fifth primary bottom-nav item). Mobile context title on `/dashboard/tour-stats` stays **Standings**; sticky chrome matches Show/Tour/Pools.
+- **Tour stats copy/layout (#555)** — summary reads “x of n tour dates”; grids use setlist-style column headers; summary tiles are Unique songs / Songs played / Unique ratio / Bustouts with Info tooltips (no footnote strip); Bustouts card keeps the scoring-rules “What is a bustout?” link; High gaps / Most played use Info tooltips.
+
+### Fixed
+- **Tour stats data hygiene (#555)** — the Bustouts and High-gaps cards now only count songs actually played that night, so stale `official_setlists` snapshot entries (the writer unions `bustouts`/`songGaps` across polls and never drops removed rows) no longer leak in as never-played “bustouts” or mislabeled high gaps. A played song whose frozen pre-show gap clears the bustout threshold is now shown as a bustout even if the frozen `bustouts` array missed it, keeping the two cards consistent. “Most played” ties now break by lifetime plays (song catalog) instead of alphabetically.
+
+---
+
+## [1.29.0] — 2026-07-16
+
+### Added
+- **Per-song gap on Standings setlist (#587 Phase B)** — `official_setlists/{showDate}` now freezes a `songGaps` map (normalized title → pre-show gap) at live-automation and admin-save time from the same Phish.net row `gap` that feeds `bustouts`. Standings setlist rows use an invisible 4-col grid (# / Song / Gap / Bustout) and show every frozen gap (including 0); bustouts stay emphasized. Display-only — not read by scoring; historical nights never join the weekly catalog. Ops backfill: `functions/scripts/backfillSongGaps.js` (`npm run backfill:song-gaps`). Schema: `docs/OFFICIAL_SETLISTS_SCHEMA.md`, `docs/API.md` §1.12.
+
+---
+
+## [1.28.1] — 2026-07-16
+
+### Changed
+- **Standings unset-avatar fallback (#568 follow-up)** — players who have not picked a curated avatar now render a neutral handle-initial chip in standings rows instead of the default `ticket`, so an unset avatar no longer reads as a deliberate ticket choice. Selected avatars and the earned-badge pin are unchanged; the self “add” control still appears on your own row when `avatarId` is unset.
+
+### Fixed
+- Backfilled milestone badges (`shows_played_1/5/10`, `win_1`) for existing users so shelves and standings pins populate without waiting for the next finalize.
+
+---
+
+## [1.28.0] — 2026-07-16
+
+### Changed
+- **Standings identity marks (#567/#568 follow-up)** — show/tour/pool standings rows render curated avatars next to handles, pin the top earned badge on the avatar, and show a dashed “add” control on your own row when `avatarId` is unset (links to Profile).
+
+---
+
+## [1.27.0] — 2026-07-16
+
+### Added
+- **Selectable profile avatars (#567)** — curated 12-mark set under `/avatars/*.svg`, persisted as `users.avatarId`. Picker on dashboard Profile; public `/user/:uid` shows the selected mark (default `ticket` when unset).
+
+---
+
+## [1.26.0] — 2026-07-16
+
+### Added
+- **Profile avg correct / show (#554 slice C)** — `rollupScoresForShow` materializes `users.careerCorrectSlots` (and per-tour `seasonStats.*.correctSlots`) with pick-level `correctSlotsCredited` for regrade-safe diffs. Public + self Profile show avg correct when the field is present; otherwise —.
+- **Self Profile top-picks strip (#553)** — frequency-forward ranked strip (top 10) on dashboard Profile, live-computed over the last 40 graded shows with correct / exact / wild / bustout secondary counts and `profile_pick_heatmap_computed` telemetry. Public heatmap deferred until a rollup path ships.
+- **Self Profile avg vintage** — mean catalog debut year over titles in the heatmap window (n of m dated).
+
+### Changed
+- Season-aggregates backfill / revert / premature-grade reset scripts now maintain `careerCorrectSlots` + `correctSlotsCredited`.
+
+---
+
+## [1.25.0] — 2026-07-16
+
+### Added
+- **Song catalog `debut` field (#554 slice B)** — `song-catalog.json` rows now include Phish.net `debut` (string, empty when unknown). Profile avg-vintage helpers join pick titles to catalog debut years in memory; UI surfaces when pick titles are available (slice C / heatmap).
+
+---
+
+## [1.24.1] — 2026-07-16
+
+### Added
+- **Profile avg points / show (#554 slice A)** — public profile stats strip derives average points per graded show from existing career totals (no extra Firestore reads).
+
+---
+
+## [1.24.0] — 2026-07-16
+
+### Added
+- **Standings setlist bustout badges (#587 Phase A)** — official setlist rows now badge songs present in `official_setlists.bustouts`, using the existing scoring snapshot with no new listeners or schema changes.
+
+---
+
+## [1.23.1] — 2026-07-16
+
+### Fixed
+- **`tour_rankings_daily` venue/location dedupe (#584)** — recap emails now use a non-location-led subject, name the show location once in the body, use “last night’s show” for the tour movement paragraph, and render same-venue next shows as “Back at …” instead of repeating the full next-up line. In-app preview copy mirrors the shared contract.
+
 ---
 
 ## [1.23.0] — 2026-07-16

@@ -13,6 +13,7 @@ This directory is the **canonical home** for triggered, templated communications
 | [MEASUREMENT_PLAN.md](./MEASUREMENT_PLAN.md) | GA4 comms events, dimensions, funnels |
 | [CTA_ROUTE_AUDIT.md](./CTA_ROUTE_AUDIT.md) | In-app/email CTA label ↔ destination matrix (#551) |
 | [EXPERIMENT_PLAYBOOK.md](./EXPERIMENT_PLAYBOOK.md) | A/B rules, variant assignment, ship/kill criteria |
+| [OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md) | **Optimize autonomy L0** — cycle order, PM pack template, draft-only gate (#573) |
 | [EMAIL_INBOX_BADGE.md](./EMAIL_INBOX_BADGE.md) | Inbox sender badge (BIMI/DMARC) vs in-body email logo (#498) |
 | [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md) | Sponsor / affiliate / offer gates (Phase 3) |
 
@@ -44,6 +45,7 @@ Fully **automated and event-driven** (no manual War Room sends in production): s
 - **#272** — Push / in-app / email channel epic
 - **#120** — In-app comms (inbox, toasts)
 - **#370** / **#371** — Scheduled recap automation follow-ups
+- **#573** — Optimize autonomy (playbook → scheduled packs → decisioning); start at [OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md)
 
 ## Invoke the squad in Cursor
 

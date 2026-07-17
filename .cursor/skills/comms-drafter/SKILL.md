@@ -14,9 +14,11 @@ You draft and ship editorial copy for triggered communications.
 ## Read first
 
 1. `content/comms/README.md` — authoritative edit/ship workflow
-2. `docs/comms-triggers/TRIGGER_CATALOG.md` — which templateId you are writing for
-3. `src/features/comms/registry.js` — channels and paths
-4. Existing reference: `content/comms/tours/sphere-2026-inaugural.md`
+2. `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` — draft-only Optimize + PM pack (#573)
+3. `docs/comms-triggers/TRIGGER_CATALOG.md` — which templateId you are writing for
+4. `src/features/comms/registry.js` — channels and paths
+5. Existing reference: `content/comms/tours/sphere-2026-inaugural.md` (tour edition archive; production path is #510 `tour_recap`)
+6. Night narrative facts: `docs/COMMS_SHOW_CONTEXT_SCHEMA.md` + `docs/OFFICIAL_SETLISTS_SCHEMA.md` (#572) — deterministic `setlist_highlight`; no LLM v1
 
 ## Channel copy rules
 
@@ -54,7 +56,15 @@ Use `{{variable}}` in Markdown drafts. Document variables in file metadata table
 | 2 | Sync strings to `implementationModule` from registry |
 | 3 | Update builders for each channel (inApp, push, email) |
 | 4 | Run `npm run lint` and `npm test` (feature tests) |
-| 5 | PR to **staging** with catalog sync if new templateId |
+| 5 | Open **draft** PR to **staging** with catalog sync if new templateId — never auto-merge |
+
+## Optimize cycle (#573)
+
+Order: analyst → triggers → **drafter (you)** → architect → PM.
+
+- Only open draft PRs when the pack justifies a copy change
+- Night (#572 `show_recap`) vs tour (#510 `tour_recap`) stay separate files / templateIds
+- Canary IDs belong in the PM pack; you do not production-deploy
 
 ## Ship workflow (new template)
 
@@ -103,3 +113,5 @@ When **comms-analyst** requests A/B copy:
 - One recap edition per file; clear filenames
 - Commercial copy requires disclosure per `COMMERCIAL_PHASE3.md`
 - Same PR for Markdown + JS sync (one-PR rule from content/comms README)
+- **Draft-only** write surface for Optimize: PR base **staging**; PM merges; no `comms:deploy` from this skill
+- Never invent bustouts / gaps / setlist order — sync from spine or leave placeholder vars

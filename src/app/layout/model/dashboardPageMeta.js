@@ -47,8 +47,8 @@ function readViewQuery(search) {
  * @param {string} pathname
  * @param {string | URLSearchParams | null | undefined} [search]  `location.search`.
  *   Used by `/dashboard/standings` to hide the global date picker when
- *   `?view=tour` is active (#255) — tour standings are cumulative, so
- *   a date selector has no meaning there.
+ *   `?view=tour` is active (#255), and by `/dashboard/tour-stats` (#555) —
+ *   both are tour-scoped and share the chrome tour picker.
  */
 export function getDashboardPageMeta(pathname, search) {
   const normalized = normalizeDashboardPathname(pathname);
@@ -75,11 +75,13 @@ export function getDashboardPageMeta(pathname, search) {
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
   const isStandings = normalized === '/dashboard/standings';
+  const isTourStats = normalized === '/dashboard/tour-stats';
+  // Tour standings + Tour stats share the chrome tour scope picker (#295 / #555).
   const isStandingsTourView =
-    isStandings && readViewQuery(search) === 'tour';
+    (isStandings && readViewQuery(search) === 'tour') || isTourStats;
 
   const contextTitle = (() => {
-    if (isStandings) return NAV_LABEL_STANDINGS;
+    if (isStandings || isTourStats) return NAV_LABEL_STANDINGS;
     if (normalized === '/dashboard/pools') return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
     if (isProfileIdentity) return NAV_LABEL_PROFILE;
@@ -89,12 +91,15 @@ export function getDashboardPageMeta(pathname, search) {
     return NAV_LABEL_PICKS;
   })();
 
-  const showDatePicker = !isProfileCluster && !isPoolHub && !isStandingsTourView;
+  const showDatePicker =
+    !isProfileCluster && !isPoolHub && !isStandingsTourView;
 
-  // Profile cluster + pool details own in-page headings; Standings owns a sticky
-  // title + Show/Tour/Pools chrome (#552 follow-up) so layout does not duplicate H1.
+  // Profile cluster + pool details own in-page headings; Standings (+ Stats peer)
+  // owns sticky title + Show/Tour/Stats/Pools chrome so layout does not duplicate H1.
   const layoutDesktopHeading =
-    !isProfileCluster && !isPoolHub && !isStandings ? contextTitle : null;
+    !isProfileCluster && !isPoolHub && !isStandings && !isTourStats
+      ? contextTitle
+      : null;
 
   const layoutDetailEyebrow = isPoolHub ? POOL_DETAILS_LAYOUT_EYEBROW : null;
 

@@ -2,6 +2,7 @@ export {
   fetchGlobalMaxScoreForShow,
   fetchGlobalShowWinners,
 } from './api/globalShowAggregation';
+export { normalizeOfficialSetlistDocData } from './api/standingsApi';
 export { default as Leaderboard } from './ui/Leaderboard';
 export { default as GradedPicksShareBar } from './ui/GradedPicksShareBar';
 export { default as StandingsSelfRecapCard } from './ui/StandingsSelfRecapCard';
@@ -24,9 +25,12 @@ export { useStandingsLeaderboardView } from './model/useStandingsLeaderboardView
 export { useStandingsScreen } from './model/useStandingsScreen';
 export {
   DEFAULT_STANDINGS_VIEW,
+  STANDINGS_PATH_VIEWS,
   STANDINGS_VIEWS,
   useStandingsView,
 } from './model/useStandingsView';
+export { buildStandingsViewPath } from './model/standingsViewPath';
+export { useStandingsViewChange } from './model/useStandingsViewChange';
 export { default as ScoringRulesContent } from './ui/ScoringRulesContent';
 export { default as ScoringRulesModal } from './ui/ScoringRulesModal';
 export {

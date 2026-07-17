@@ -22,6 +22,20 @@ describe('readMaterializedSeasonStats', () => {
     });
   });
 
+  it('includes careerCorrectSlots when present on the user doc', () => {
+    expect(
+      readMaterializedSeasonStats(
+        { ...FRESH, careerCorrectSlots: 18 },
+        '2026-04-23'
+      )
+    ).toEqual({
+      totalPoints: 42,
+      shows: 5,
+      wins: 2,
+      careerCorrectSlots: 18,
+    });
+  });
+
   it('returns the materialized triple when the snapshot is ahead of the latest finalized show', () => {
     expect(
       readMaterializedSeasonStats(

@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.22.0  
+**Version:** 1.30.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -18,12 +18,21 @@ All collections live in the default `(default)` Firestore database for project `
 |-------|------|-------|
 | `handle` | string | Display name |
 | `email` | string | Auth email — used for comms delivery |
-| `photoURL` | string? | Avatar URL |
+| `photoURL` | string? | Legacy optional URL field (unused by curated avatar picker) |
+| `avatarId` | string? | **v1.27.0+ (#567)** Curated avatar catalog id (e.g. `ticket`, `flame`). Missing/unknown → default `ticket` |
+| `badges` | map? | **v1.28.0+ (#568)** Earned milestone badges `{ [badgeId]: { awardedAt, scope, sourceThroughShow } }`. Written server-side at rollup; idempotent merge |
+| `favoriteSong` | string? | Display favorite; empty/`Unknown` treated as unset in UI |
 | `termsPrivacyAcceptedAt` | Timestamp? | Legal consent gate |
 | `createdAt` | Timestamp | Account creation |
 | `isAdmin` | boolean? | Admin custom claim mirror |
 | `notificationPrefs` | map | Channel opt-in flags (see §1.2) |
-| `seasonStats.{tourKey}` | map | Per-tour aggregated scoring |
+| `totalPoints` | number? | Career graded points (written by `rollupScoresForShow`) |
+| `showsPlayed` | number? | Career graded non-empty shows |
+| `wins` | number? | Career global night wins (ties share) |
+| `careerCorrectSlots` | number? | **v1.26.0+ (#554)** Sum of pick slots that scored > 0 across graded shows. Used for avg correct / show. Absent until rollup/backfill. |
+| `seasonStatsThroughShow` | string? | YYYY-MM-DD freshness watermark for materialized career/tour stats |
+| `seasonStatsSnapshotAt` | Timestamp? | Last rollup write time |
+| `seasonStats.{tourKey}` | map | Per-tour aggregated scoring (`totalPoints`, `shows`, `wins`, and **v1.26.0+** `correctSlots`) |
 
 ### 1.2 `users/{uid}` — `notificationPrefs` shape
 
@@ -71,6 +80,11 @@ All collections live in the default `(default)` Firestore database for project `
 
 Stores per-user, per-show slot picks and computed scores.
 
+| Field | Type | Notes |
+|-------|------|-------|
+| `correctSlotsCredited` | number? | **v1.26.0+ (#554)** Slots that scored > 0 on last finalize; used for regrade diffs into `users.careerCorrectSlots` |
+| `winCredited` | boolean? | Whether this pick currently counts as a global night win |
+
 ### 1.7 `fcm_notification_log/{dedupId}`
 
 Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). Presence of a doc = trigger already delivered; delete to allow re-send.
@@ -108,6 +122,17 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
 | `schemaVersion` | number | `1` |
+
+### 1.12 `official_setlists/{showDate}`
+
+Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full schema and scoring contract: [`docs/OFFICIAL_SETLISTS_SCHEMA.md`](./OFFICIAL_SETLISTS_SCHEMA.md). Selected declared fields:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `setlist` | Record<string,string> | Slot answers keyed by `FORM_FIELDS` id (`s1o`, `s1c`, …). |
+| `officialSetlist` | string[] | Ordered full-show song list. |
+| `bustouts` | string[] | Per-show bustout snapshot (pre-show gap ≥ 30). Scoring source of truth (#214). |
+| `songGaps` | Record<string,number> | **v1.29.0 (#587 Phase B)** — frozen pre-show gap per dated row, keyed by normalized title. Display-only (Standings “Gap N” signal); not read by scoring. Absent on pre-Phase-B shows. |
 
 ---
 
@@ -231,6 +256,8 @@ When `alreadyLocked` is `true`, the doc already carried `lockReason: admin_overr
 
 Phish.net integration and live scoring functions. Deployed via `npm run deploy:functions:phishnet`. Internal admin use — request/response shapes documented in `docs/PHISHNET_CALLABLE_RUNBOOK.md`.
 
+**Storage object `song-catalog.json` (v1.25.0+, #554):** published by `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog`. Each song object includes `{ name, total, gap, last, debut }` where `debut` is a string (typically `YYYY-MM-DD`) or `""` when unknown. See `docs/SONG_CATALOG.md`. Adding `debut` is a **MINOR** catalog-field addition (clients may ignore unknown fields).
+
 ### 2.4 Comms event adapters (v1.7.0+)
 
 Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-scoring hooks, and scheduled jobs. All adapters route through `deliverCommsTrigger` and are **gated** by `COMMS_EVENT_ADAPTERS_ENABLED=true` (default off).
@@ -293,7 +320,7 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/setup` | Auth | Profile setup (new users) |
 | `/dashboard/*` | Auth | Full game dashboard |
 
-Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
+Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active.
 
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 

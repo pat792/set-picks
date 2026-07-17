@@ -6,6 +6,7 @@ import {
   TOUR_STANDINGS_HEADING,
 } from '../../../shared/config/dashboardVocabulary';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
+import { StandingsPlayerAvatar, usePlayerIdentityMap } from '../../profile';
 import {
   STANDINGS_BOX_BODY,
   STANDINGS_BOX_PAD,
@@ -36,10 +37,18 @@ const rankBadgeClass = (rank) => {
  *   leaders: Array<{ uid: string, handle: string, totalPoints: number, wins: number, shows: number }>,
  *   loading: boolean,
  *   error?: Error | null,
+ *   selfUserId?: string | null,
  * }} props
  */
-export default function TourStandingsSection({ tourName, leaders, loading, error }) {
+export default function TourStandingsSection({
+  tourName,
+  leaders,
+  loading,
+  error,
+  selfUserId = null,
+}) {
   const heading = TOUR_STANDINGS_HEADING;
+  const { identities } = usePlayerIdentityMap(leaders.map((r) => r.uid));
 
   return (
     <section
@@ -82,6 +91,8 @@ export default function TourStandingsSection({ tourName, leaders, loading, error
         <ol className="space-y-2">
           {leaders.map((row, idx) => {
             const rank = idx + 1;
+            const isSelf = Boolean(selfUserId) && row.uid === selfUserId;
+            const identity = identities[row.uid] || null;
             return (
               <li
                 key={row.uid}
@@ -94,6 +105,12 @@ export default function TourStandingsSection({ tourName, leaders, loading, error
                   >
                     {rank}
                   </span>
+                  <StandingsPlayerAvatar
+                    avatarId={identity?.avatarId}
+                    badges={identity?.badges}
+                    isSelf={isSelf}
+                    handle={row.handle}
+                  />
                   <PlayerHandleLink
                     userId={row.uid}
                     handle={row.handle}
