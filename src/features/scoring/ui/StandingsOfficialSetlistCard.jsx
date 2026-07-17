@@ -6,7 +6,6 @@ import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
 import {
   buildBustoutTitleSet,
   buildSongGapMap,
-  GAP_DISPLAY_MIN,
   getOfficialSetlistGap,
   groupOfficialSetlistBySet,
   isOfficialSetlistBustout,
@@ -19,6 +18,10 @@ import {
   STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
 
+/** Invisible 4-col grid per row: # | title | gap | bustout — fixed tracks keep columns aligned. */
+const SETLIST_ROW_GRID =
+  'grid grid-cols-[1.5rem_minmax(0,1fr)_4.75rem_4.5rem] items-center gap-x-2 min-h-[1.75rem]';
+
 function SetSongList({ label, songs, bustoutTitleSet, gapMap }) {
   if (!songs.length) return null;
   return (
@@ -26,36 +29,41 @@ function SetSongList({ label, songs, bustoutTitleSet, gapMap }) {
       <p className={`mb-1.5 ${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
         {label}
       </p>
-      <ol className="space-y-1">
+      <ol className={`space-y-0.5 ${STANDINGS_BOX_BODY} text-slate-100`}>
         {songs.map((title, idx) => {
           const isBustout = isOfficialSetlistBustout(title, bustoutTitleSet);
           const gap = getOfficialSetlistGap(title, gapMap);
-          const showGap = gap != null && gap >= GAP_DISPLAY_MIN;
           return (
             <li
               key={`${label}-${idx}-${title}`}
-              className={`flex items-start gap-2 ${STANDINGS_BOX_BODY} text-slate-100`}
+              className={SETLIST_ROW_GRID}
             >
-              <span className="w-5 shrink-0 tabular-nums text-content-secondary">
+              <span className="tabular-nums text-content-secondary">
                 {idx + 1}.
               </span>
-              <span className="min-w-0 flex-1">{title}</span>
-              {showGap ? (
-                <span
-                  className="shrink-0 tabular-nums text-[10px] font-semibold uppercase tracking-wide text-content-secondary"
-                  title={`${gap} shows since last played (pre-show gap)`}
-                >
-                  Gap {gap}
-                </span>
-              ) : null}
-              {isBustout ? (
-                <span
-                  className="shrink-0 rounded-full border border-orange-300/40 bg-orange-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-orange-100"
-                  title="Bustout Boost eligibility"
-                >
-                  Bustout
-                </span>
-              ) : null}
+              <span className="min-w-0 truncate">{title}</span>
+              <span
+                className="justify-self-end tabular-nums text-[10px] font-semibold uppercase tracking-wide text-content-secondary"
+                title={
+                  gap != null
+                    ? `${gap} shows since last played (pre-show gap)`
+                    : undefined
+                }
+              >
+                {gap != null ? `Gap ${gap}` : '\u00a0'}
+              </span>
+              <span className="justify-self-end">
+                {isBustout ? (
+                  <span
+                    className="inline-block rounded-full border border-orange-300/40 bg-orange-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-orange-100"
+                    title="Bustout Boost eligibility"
+                  >
+                    Bustout
+                  </span>
+                ) : (
+                  '\u00a0'
+                )}
+              </span>
             </li>
           );
         })}

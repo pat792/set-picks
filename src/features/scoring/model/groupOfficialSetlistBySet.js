@@ -121,17 +121,11 @@ export function isOfficialSetlistBustout(title, bustoutTitleSet) {
 }
 
 /**
- * Minimum frozen pre-show gap for a setlist row to surface the muted "Gap N"
- * nerd signal (#587 Phase B). Below this, gaps are too common to be
- * interesting and would clutter the list. Bustouts (gap ≥ 30) are emphasized
- * separately by the bustout badge.
- */
-export const GAP_DISPLAY_MIN = 10;
-
-/**
  * Builds the per-show gap lookup used by Standings setlist rows.
  * `official_setlists.songGaps` (#587 Phase B) is keyed by normalized title;
  * this returns a Map for display lookup by the title shown in the row.
+ * Every frozen gap is eligible for display (including 0); the write path
+ * already stores all dated rows, so filtering at render is unnecessary.
  *
  * @param {null | Record<string, unknown>} actualSetlist
  * @returns {Map<string, number>}
