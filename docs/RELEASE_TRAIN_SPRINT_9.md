@@ -26,9 +26,6 @@
 | [#555](https://github.com/pat792/set-picks/issues/555) | Feature | Public/private tour stats explorer; likely MINOR if new routes or aggregate docs ship |
 | [#587](https://github.com/pat792/set-picks/issues/587) Phase B | Feature / schema | Frozen per-song gap/last-played data; MINOR with `docs/API.md` + schema docs |
 | [#573](https://github.com/pat792/set-picks/issues/573) Phase 0/1 | Comms ops | Optimize playbook + first on-demand pack; draft-only, PM-gated ship |
-| [#510](https://github.com/pat792/set-picks/issues/510) | Comms feature | Personalized `tour_recap` trigger |
-| [#512](https://github.com/pat792/set-picks/issues/512) | Comms feature | Follow-up to non-openers; depends on open/click signal clarity |
-| [#513](https://github.com/pat792/set-picks/issues/513) | Profile / comms feature | Account Preferences hub + Messages inbox-only |
 
 ### STRETCH - land on `staging` if capacity; do not block promote
 
@@ -42,6 +39,8 @@
 | Issue | Why |
 |-------|-----|
 | [#565](https://github.com/pat792/set-picks/issues/565) | Epic remains open until all avatar + badge phases ship; close only if #566/#567/#568 meet epic AC |
+| [#510](https://github.com/pat792/set-picks/issues/510), [#512](https://github.com/pat792/set-picks/issues/512), [#513](https://github.com/pat792/set-picks/issues/513) | Deferred to Sprint 10. #573 Phase 0/1 shipped enough comms autonomy groundwork for this release; #512 needs reliable open/click signal clarity before non-opener automation; #510/#513 are independent feature surfaces and should not hold the stats/personalization promote. |
+| #573 L2+ follow-up children | Deferred to Sprint 10 comms planning after PM review of the first `optimize_for=picks_lock` pack. |
 | [#300](https://github.com/pat792/set-picks/issues/300), [#301](https://github.com/pat792/set-picks/issues/301), [#605](https://github.com/pat792/set-picks/issues/605) | Sprint 10 multi-band train |
 | Ads backlog (#419-#422) | Not part of stats/personalization train unless a sponsor-slot follow-up is explicitly pulled in |
 
@@ -75,9 +74,9 @@ Wave 4  Stats explorer + setlist schema
 
 Wave 5  Comms Optimize and account inbox
         * #573 Phase 0/1 playbook + first on-demand pack
-        * #510 tour_recap trigger
-        * #512 non-opener follow-up / open-tracking path
-        * #513 Account Preferences hub + Messages inbox-only
+        * #510 tour_recap trigger (waived to Sprint 10)
+        * #512 non-opener follow-up / open-tracking path (waived to Sprint 10)
+        * #513 Account Preferences hub + Messages inbox-only (waived to Sprint 10)
 
 Wave 6  Promote freeze
         * Staging soak + QA checklist
@@ -95,7 +94,7 @@ Wave 6  Promote freeze
 1. Each feature PR follows the repo SemVer rules and may bump `package.json` + `CHANGELOG.md` on `staging`.
 2. Docs-only train planning changes do **not** require a version bump.
 3. New public routes, Firestore fields, callable surfaces, or env vars require `docs/API.md` updates in the same PR.
-4. Expected train promote bump is **MINOR** if #555, #587 Phase B, #510, #512, or #513 ship new public/API surface.
+4. Expected train promote bump is **MINOR** because #555 and #587 Phase B shipped new dashboard/schema surface. #510/#512/#513 are deferred and do not affect the Sprint 9 promote version.
 5. On promote day, write one production changelog entry that summarizes the full train.
 6. Agents do **not** tag releases; tagging remains a human step after `staging` -> `main`.
 
@@ -158,3 +157,4 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 | 2026-07-17 | 4 | #625 merged | Tour stats explorer + Stats tab (**1.30.0**); staging tip **1.30.0**. Wave 4 complete. Follow-up scrub: #626. |
 | 2026-07-17 | 5 | #573 Phase 0 merged (#628) | Optimize autonomy L0 playbook + skills; Phase 1 (on-demand pack) next |
 | 2026-07-17 | 5 | #573 L1 pack posted | First on-demand Optimize pack (`optimize_for=picks_lock`) on epic; #584 closed (shipped #615) |
+| 2026-07-17 | 6 | Promote freeze started | Waived #510/#512/#513 and #573 L2+ to Sprint 10; Sprint 9 release promotes shipped stats/personalization + #573 Phase 0/1 as **1.30.0**. |
