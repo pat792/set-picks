@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.30.0] — 2026-07-17
+
+### Added
+- **Tour stats explorer (#555)** — private dashboard route `/dashboard/tour-stats` aggregates the current tour’s `official_setlists` on demand (unique songs, top frequency, bustouts, high-gap highlights) plus a self pick overlay (correct slots / bustout hits / top-song overlap). Linked from Standings → Tour. No public SEO route or rollup schema in v1. SemVer MINOR for the new dashboard surface.
+
+---
+
 ## [1.29.0] — 2026-07-16
 
 ### Added

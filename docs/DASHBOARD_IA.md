@@ -13,6 +13,12 @@ Single reference for **support**, **product**, and **engineering** when adding r
 
 **Admin** (fifth item, single admin user): `/dashboard/admin` — War Room.
 
+### Standings child: Tour stats (#555)
+
+| Route | Path | Notes |
+|-------|------|-------|
+| **Tour stats** | `/dashboard/tour-stats` | Private explorer: unique songs, frequency, bustouts, self pick overlay. Standings tab stays active (Pools/Profile child pattern). No global date picker. Linked from Standings → Tour view. |
+
 ### Profile cluster (#418)
 
 | Sub-nav | Path | Responsibility |

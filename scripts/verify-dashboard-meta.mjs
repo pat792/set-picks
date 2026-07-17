@@ -16,6 +16,7 @@ import {
   NAV_LABEL_POOLS,
   NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
+  NAV_LABEL_TOUR_STATS,
   POOL_DETAILS_LAYOUT_EYEBROW,
 } from '../src/shared/config/dashboardVocabulary.js';
 
@@ -75,6 +76,16 @@ const CASES = [
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #555: Tour stats explorer — secondary under Standings; no date picker.
+    path: '/dashboard/tour-stats',
+    expect: {
+      contextTitle: NAV_LABEL_TOUR_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: NAV_LABEL_TOUR_STATS,
       layoutDetailEyebrow: null,
     },
   },

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
@@ -47,12 +48,22 @@ export default function StandingsTourView({
     );
   }
   return (
-    <TourStandingsSection
-      tourName={tourName}
-      leaders={leaders}
-      loading={loading}
-      error={error}
-      selfUserId={selfUserId}
-    />
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Link
+          to="/dashboard/tour-stats"
+          className="text-xs font-bold uppercase tracking-wider text-teal-300 underline decoration-teal-500/40 underline-offset-2 hover:text-white hover:decoration-teal-300"
+        >
+          Tour stats
+        </Link>
+      </div>
+      <TourStandingsSection
+        tourName={tourName}
+        leaders={leaders}
+        loading={loading}
+        error={error}
+        selfUserId={selfUserId}
+      />
+    </div>
   );
 }

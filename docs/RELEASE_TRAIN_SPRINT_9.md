@@ -153,3 +153,5 @@ Incomplete features must land dark, behind absent UX, flags, or forward-only fie
 | 2026-07-16 | 3 | #621 merged | Curated avatar picker + public mark (**1.27.0**) |
 | 2026-07-16 | 3 | #622 merged | Milestone badges v1 + standings pins / unset-avatar chip (**1.28.1**) |
 | 2026-07-16 | 4 | #587 Phase B in flight (#623) | Frozen per-song `official_setlists.songGaps` + Standings gap grid → **1.29.0**. #555 next: dashboard-first, on-demand tour-setlist aggregation |
+| 2026-07-17 | 3–4 | #622 + #623 merged | Badges/avatars (**1.28.1**) + setlist gaps (**1.29.0**); staging tip **1.29.0** |
+| 2026-07-17 | 4 | #555 in flight | Dashboard Tour stats explorer → **1.30.0** |

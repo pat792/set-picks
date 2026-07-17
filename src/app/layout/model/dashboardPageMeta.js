@@ -15,6 +15,7 @@ import {
   NAV_LABEL_POOLS,
   NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
+  NAV_LABEL_TOUR_STATS,
   POOL_DETAILS_LAYOUT_EYEBROW,
 } from '../../../shared/config/dashboardVocabulary.js';
 import {
@@ -75,11 +76,13 @@ export function getDashboardPageMeta(pathname, search) {
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
   const isStandings = normalized === '/dashboard/standings';
+  const isTourStats = normalized === '/dashboard/tour-stats';
   const isStandingsTourView =
     isStandings && readViewQuery(search) === 'tour';
 
   const contextTitle = (() => {
     if (isStandings) return NAV_LABEL_STANDINGS;
+    if (isTourStats) return NAV_LABEL_TOUR_STATS;
     if (normalized === '/dashboard/pools') return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
     if (isProfileIdentity) return NAV_LABEL_PROFILE;
@@ -89,7 +92,8 @@ export function getDashboardPageMeta(pathname, search) {
     return NAV_LABEL_PICKS;
   })();
 
-  const showDatePicker = !isProfileCluster && !isPoolHub && !isStandingsTourView;
+  const showDatePicker =
+    !isProfileCluster && !isPoolHub && !isStandingsTourView && !isTourStats;
 
   // Profile cluster + pool details own in-page headings; Standings owns a sticky
   // title + Show/Tour/Pools chrome (#552 follow-up) so layout does not duplicate H1.
