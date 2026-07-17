@@ -13,6 +13,12 @@ Single reference for **support**, **product**, and **engineering** when adding r
 
 **Admin** (fifth item, single admin user): `/dashboard/admin` — War Room.
 
+### Standings child: Tour stats (#555)
+
+| Route | Path | Notes |
+|-------|------|-------|
+| **Stats** (Standings peer tab) | `/dashboard/tour-stats` | Private explorer: unique songs, frequency, bustouts, self pick overlay. Discovered via Standings chrome **Show \| Tour \| Stats \| Pools** (not a 5th primary nav tab). Standings tab stays active. Shares the chrome **tour scope** picker with Tour view (`?tour=`). No global date picker. |
+
 ### Profile cluster (#418)
 
 | Sub-nav | Path | Responsibility |
@@ -56,7 +62,7 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Messages** | Profile-cluster inbox + prefs (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. |
 | **Account** | Profile-cluster account surface (`NAV_LABEL_ACCOUNT`); path `/dashboard/profile/account`. |
 | **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
-| **Standings** | Tab, context bar for `/dashboard/standings` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Pools pills live in sticky in-page chrome (not the layout H2) so banners and the leaderboard scroll underneath. View is URL-synced via `?view=show\|tour\|pools` and the Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker (tour standings are cumulative). |
+| **Standings** | Tab, context bar for `/dashboard/standings` and `/dashboard/tour-stats` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Stats/Pools pills live in sticky in-page chrome (not the layout H2) so banners and the leaderboard scroll underneath. View is URL-synced via `?view=show\|tour\|pools` on standings; **Stats** navigates to `/dashboard/tour-stats`. Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` and `/dashboard/tour-stats` hide the global date picker and show the shared tour scope picker (`?tour=`). |
 | **Show standings** | Ordered points for **one show date** only (Standings screen); use this phrase in glossary, help, and cross-links where the “one night” nuance matters. |
 | **All-time standings** | Cumulative points / wins / shows across **every** finalized show (all tours). Canonical name on pool details (`POOL_ALL_TIME_STANDINGS_HEADING`) and optional global companion on Standings. Replaces legacy **Season totals**. See #148. |
 | **Tour standings** | Cumulative points / wins / shows scoped to the **current tour** via `show_calendar.showDatesByTour` (`TOUR_STANDINGS_HEADING`). Global on Standings (#219), pool-scoped on pool details (#148). |

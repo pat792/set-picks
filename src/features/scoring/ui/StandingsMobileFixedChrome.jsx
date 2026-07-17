@@ -9,13 +9,13 @@ import StandingsViewToggle from './StandingsViewToggle';
 
 /**
  * Mobile-only Standings views chrome (#609) — fixed under the context bar.
- * Show/Tour/Pools fills the tools band (Profile-style full-width segmented
+ * Show/Tour/Stats/Pools fills the tools band (Profile-style full-width segmented
  * control). Scoring rules Scale portals into the context-bar trailing slot
- * so the H2 row stays seamless across Show / Tour / Pools.
+ * so the H2 row stays seamless across Standings views.
  *
  * @param {{
- *   view: 'show' | 'tour' | 'pools',
- *   onChange: (next: 'show' | 'tour' | 'pools') => void,
+ *   view: 'show' | 'tour' | 'pools' | 'stats',
+ *   onChange: (next: 'show' | 'tour' | 'pools' | 'stats') => void,
  *   onOpenScoringRules: () => void,
  * }} props
  */

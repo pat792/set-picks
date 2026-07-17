@@ -66,6 +66,7 @@ const AdminPage = lazy(dashboardLazyRouteImport.admin);
 const AccountPage = lazy(dashboardLazyRouteImport.account);
 const PoolHubPage = lazy(dashboardLazyRouteImport.poolHub);
 const NotificationsPage = lazy(dashboardLazyRouteImport.notifications);
+const TourStatsPage = lazy(dashboardLazyRouteImport.tourStats);
 
 function LazyDashboardRoute({ children }) {
   return <Suspense fallback={<RouteSuspenseFallback />}>{children}</Suspense>;
@@ -146,7 +147,9 @@ export default function DashboardLayout() {
   const isWarRoomRoute = meta.desktopHeadingTone === 'warRoom';
   const isStandingsRoute =
     location.pathname === '/dashboard/standings' ||
-    location.pathname === '/dashboard/standings/';
+    location.pathname === '/dashboard/standings/' ||
+    location.pathname === '/dashboard/tour-stats' ||
+    location.pathname === '/dashboard/tour-stats/';
   const isPicksRoute =
     location.pathname === '/dashboard' ||
     location.pathname === '/dashboard/' ||
@@ -200,11 +203,19 @@ export default function DashboardLayout() {
               item.path === '/dashboard/pools' &&
               (location.pathname === '/dashboard/pools' ||
                 location.pathname.startsWith('/dashboard/pool/'));
+            const isStandingsSection =
+              item.path === '/dashboard/standings' &&
+              (location.pathname === '/dashboard/standings' ||
+                location.pathname === '/dashboard/standings/' ||
+                location.pathname === '/dashboard/tour-stats' ||
+                location.pathname === '/dashboard/tour-stats/');
             const isActive =
               isProfileSection ||
               isPoolsSection ||
+              isStandingsSection ||
               (!isProfileSection &&
                 !isPoolsSection &&
+                !isStandingsSection &&
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
@@ -336,6 +347,14 @@ export default function DashboardLayout() {
               }
             />
             <Route
+              path="tour-stats"
+              element={
+                <LazyDashboardRoute>
+                  <TourStatsPage />
+                </LazyDashboardRoute>
+              }
+            />
+            <Route
               path="admin"
               element={
                 <LazyDashboardRoute>
@@ -405,11 +424,19 @@ export default function DashboardLayout() {
               item.path === '/dashboard/pools' &&
               (location.pathname === '/dashboard/pools' ||
                 location.pathname.startsWith('/dashboard/pool/'));
+            const isStandingsSection =
+              item.path === '/dashboard/standings' &&
+              (location.pathname === '/dashboard/standings' ||
+                location.pathname === '/dashboard/standings/' ||
+                location.pathname === '/dashboard/tour-stats' ||
+                location.pathname === '/dashboard/tour-stats/');
             const isActive =
               isProfileSection ||
               isPoolsSection ||
+              isStandingsSection ||
               (!isProfileSection &&
                 !isPoolsSection &&
+                !isStandingsSection &&
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (

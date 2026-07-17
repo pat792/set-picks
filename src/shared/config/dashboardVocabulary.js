@@ -50,6 +50,9 @@ export const NAV_LABEL_NOTIFICATIONS = 'Notifications';
 /** Short tab / mobile context label */
 export const NAV_LABEL_STANDINGS = 'Standings';
 
+/** Tour stats explorer (#555) — secondary route under Standings */
+export const NAV_LABEL_TOUR_STATS = 'Tour stats';
+
 /** Mobile context bar label for a specific pool’s detail route */
 export const NAV_LABEL_POOL_DETAILS = 'Pool Details';
 

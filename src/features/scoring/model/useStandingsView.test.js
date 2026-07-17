@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_STANDINGS_VIEW,
+  STANDINGS_PATH_VIEWS,
   STANDINGS_VIEWS,
   deriveDefaultPoolId,
   deriveStandingsView,
@@ -9,10 +10,15 @@ import {
 } from './useStandingsView';
 
 describe('normalizeView', () => {
-  it('returns known views verbatim', () => {
-    for (const v of STANDINGS_VIEWS) {
+  it('returns known path views verbatim', () => {
+    for (const v of STANDINGS_PATH_VIEWS) {
       expect(normalizeView(v)).toBe(v);
     }
+  });
+
+  it('does not treat Stats as a standings-path view', () => {
+    expect(STANDINGS_VIEWS).toContain('stats');
+    expect(normalizeView('stats')).toBe(DEFAULT_STANDINGS_VIEW);
   });
 
   it.each([

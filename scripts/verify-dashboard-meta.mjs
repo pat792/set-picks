@@ -79,6 +79,16 @@ const CASES = [
     },
   },
   {
+    // #555: Tour stats — peer Standings view; tour scope picker, no date picker.
+    path: '/dashboard/tour-stats',
+    expect: {
+      contextTitle: NAV_LABEL_STANDINGS,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
     path: '/dashboard/pools',
     expect: {
       contextTitle: NAV_LABEL_POOLS,

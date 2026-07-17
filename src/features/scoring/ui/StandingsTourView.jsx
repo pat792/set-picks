@@ -14,6 +14,7 @@ import {
  *
  * Tour selection lives in the dashboard chrome (Tour Date slot) via
  * {@link StandingsTourScopeSelect} (#609), not inline here.
+ * Stats discovery is the peer Standings tab (Show / Tour / Stats / Pools).
  *
  * Pure presentational — all state comes from `useStandingsScreen`.
  */
