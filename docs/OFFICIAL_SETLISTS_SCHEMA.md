@@ -18,6 +18,7 @@ Canonical reference for `official_setlists/{showDate}` documents, how scoring co
 | `setlist` | `Record<string, string>` | **Position / slot answers** — keys are game slot IDs from `FORM_FIELDS` in `src/shared/data/gameConfig.js` (e.g. `s1o`, `s1c`, `s2o`, `s2c`, `enc`, `wild`). Values are song titles as entered for that slot. Used for **exact-slot** and **encore-exact** scoring. |
 | `officialSetlist` | `string[]` | **Ordered full-show song list** as played. Merged with slot values when building “everything that counted as played” for **in-setlist** and **wildcard** scoring. |
 | `bustouts` | `string[]` | **Per-show bustout snapshot** (#214). Song titles whose **pre-show** gap (shows since last play before this show) was ≥ `SCORING_RULES.BUSTOUT_MIN_GAP` (30). Frozen at save time from Phish.net v5 setlist rows' per-row `gap`. Scoring uses this snapshot only — it does **not** fall back to the Storage song catalog (whose gap resets to ~0 after this show plays). Absence or empty array means “no bustouts for this show.” |
+| `songGaps` | `Record<string, number>` | **Per-show frozen gap snapshot** (#587 Phase B). Keyed by **normalized** (lowercased/trimmed) song title, value = the **pre-show** gap for every dated row on the show (not just bustouts). Frozen at write time from the same Phish.net row `gap` that feeds `bustouts`, so historical nights keep the true pre-show gap and never join the weekly `song-catalog.json` (whose gap resets after the song plays). **Display-only** — not read by scoring. Absent/empty means “no gap data captured.” |
 
 **Naming note:** In everyday language “setlist” means the whole show. In Firestore, `setlist` is **only** the slot map; `officialSetlist` is the **chronological** list. Both are authoritative for different scoring paths. A future optional rename to `positionSlots` / `playedSongOrder` is tracked in [#145](https://github.com/pat792/set-picks/issues/145).
 
@@ -118,7 +119,20 @@ The live Storage `song-catalog.json` and the bundled fallbacks (`src/shared/data
 
 ### Partial-feed safety
 
-Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows` merges the prior `bustouts` with the newly-derived set so a bustout captured in an earlier poll is never shrunk away by a partial later one.
+Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows` merges the prior `bustouts` with the newly-derived set so a bustout captured in an earlier poll is never shrunk away by a partial later one. `songGaps` is merged the same way (`mergeSongGaps`, prior value wins for stability — pre-show gap is fixed for a given show).
+
+### Per-song gap snapshot — display (#587 Phase B)
+
+`songGaps` freezes the pre-show gap for **every** dated row (not only bustouts) so Standings setlist rows can surface a “Gap N” nerd signal below the bustout threshold. Same provenance and freeze timing as `bustouts`.
+
+| Path | File | Source for `gap` |
+|------|------|------------------|
+| Live automation | `functions/phishnetLiveSetlistAutomation.js` (`deriveSongGapsFromRows` → `buildSetlistDocFromRows` → `pollSingleShowDate`) | Phish.net row `gap` (direct). |
+| Admin save | `src/features/admin-setlist-config/model/setlistParser.js` (`songGaps` on the parsed DTO) → `mapParsedSetlistToLegacySaveShape` → `saveOfficialSetlistByDate` | Phish.net row `gap` via the parser when ingested from Phish.net (or the fetch-at-save `fetchBustoutsFromPhishnet` fallback). Hand edits / Phish.in omit `songGaps`, preserving any prior snapshot. |
+
+**Display:** `src/features/scoring/model/groupOfficialSetlistBySet.js` (`buildSongGapMap` / `getOfficialSetlistGap`, threshold `GAP_DISPLAY_MIN = 10`) → `src/features/scoring/ui/StandingsOfficialSetlistCard.jsx`. Client read passes through `normalizeOfficialSetlistDocData` (`sanitizeSongGaps`). Not used for scoring — `songGaps` is in `NON_SONG_SETLIST_KEYS` on both the client and Cloud Function scoring paths.
+
+**Backfill:** forward-only. Shows saved before Phase B have no `songGaps`; rows simply omit the gap chip. Re-saving a past show from the admin (Phish.net ingest) freezes the snapshot on demand.
 
 ### Backfill
 
@@ -204,6 +218,8 @@ Network layer: `src/features/admin-setlist-config/api/phishApiClient.js`.
 | Setlist write trigger | `functions/index.js` — `gradePicksOnSetlistWrite` |
 | Per-show bustout snapshot derivation (live) | `functions/phishnetLiveSetlistAutomation.js` — `deriveBustoutsFromRows`, `buildSetlistDocFromRows` |
 | Per-show bustout snapshot derivation (admin) | `src/features/admin-setlist-config/model/setlistParser.js` — `bustoutTitles` on the parsed DTO |
+| Per-show gap snapshot derivation (live/admin) | `functions/phishnetLiveSetlistAutomation.js` — `deriveSongGapsFromRows`; `src/features/admin-setlist-config/model/setlistParser.js` — `songGaps` on the DTO (#587 Phase B) |
+| Per-show gap display | `src/features/scoring/model/groupOfficialSetlistBySet.js` — `buildSongGapMap`, `getOfficialSetlistGap`; `StandingsOfficialSetlistCard.jsx` |
 | Admin fetch-at-save fallback | `src/features/admin/model/setlistAutomation.js` — `fetchBustoutsFromPhishnet` |
 | Backfill callable | `functions/index.js` — `backfillBustoutsForShows` |
 | Cloud Function live scoring core | `functions/index.js` — `recomputeLiveScoresForShow`, `calculateTotalScore`, `calculateSlotScore` |

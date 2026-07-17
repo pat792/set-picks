@@ -5,6 +5,9 @@ import Card from '../../../shared/ui/Card';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
 import {
   buildBustoutTitleSet,
+  buildSongGapMap,
+  GAP_DISPLAY_MIN,
+  getOfficialSetlistGap,
   groupOfficialSetlistBySet,
   isOfficialSetlistBustout,
 } from '../model/groupOfficialSetlistBySet';
@@ -16,7 +19,7 @@ import {
   STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
 
-function SetSongList({ label, songs, bustoutTitleSet }) {
+function SetSongList({ label, songs, bustoutTitleSet, gapMap }) {
   if (!songs.length) return null;
   return (
     <div>
@@ -26,6 +29,8 @@ function SetSongList({ label, songs, bustoutTitleSet }) {
       <ol className="space-y-1">
         {songs.map((title, idx) => {
           const isBustout = isOfficialSetlistBustout(title, bustoutTitleSet);
+          const gap = getOfficialSetlistGap(title, gapMap);
+          const showGap = gap != null && gap >= GAP_DISPLAY_MIN;
           return (
             <li
               key={`${label}-${idx}-${title}`}
@@ -35,6 +40,14 @@ function SetSongList({ label, songs, bustoutTitleSet }) {
                 {idx + 1}.
               </span>
               <span className="min-w-0 flex-1">{title}</span>
+              {showGap ? (
+                <span
+                  className="shrink-0 tabular-nums text-[10px] font-semibold uppercase tracking-wide text-content-secondary"
+                  title={`${gap} shows since last played (pre-show gap)`}
+                >
+                  Gap {gap}
+                </span>
+              ) : null}
               {isBustout ? (
                 <span
                   className="shrink-0 rounded-full border border-orange-300/40 bg-orange-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-orange-100"
@@ -71,6 +84,7 @@ export default function StandingsOfficialSetlistCard({
 }) {
   const grouped = groupOfficialSetlistBySet(actualSetlist);
   const bustoutTitleSet = buildBustoutTitleSet(actualSetlist);
+  const gapMap = buildSongGapMap(actualSetlist);
 
   if (!actualSetlist || (!grouped.hasSongs && !grouped.hasOfficialSlots)) {
     return null;
@@ -127,16 +141,19 @@ export default function StandingsOfficialSetlistCard({
                 label="Set 1"
                 songs={grouped.set1}
                 bustoutTitleSet={bustoutTitleSet}
+                gapMap={gapMap}
               />
               <SetSongList
                 label="Set 2"
                 songs={grouped.set2}
                 bustoutTitleSet={bustoutTitleSet}
+                gapMap={gapMap}
               />
               <SetSongList
                 label="Encore"
                 songs={grouped.encore}
                 bustoutTitleSet={bustoutTitleSet}
+                gapMap={gapMap}
               />
             </div>
           ) : (

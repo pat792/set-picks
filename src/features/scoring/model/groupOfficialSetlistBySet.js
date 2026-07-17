@@ -119,3 +119,44 @@ export function isOfficialSetlistBustout(title, bustoutTitleSet) {
   if (!(bustoutTitleSet instanceof Set) || bustoutTitleSet.size === 0) return false;
   return bustoutTitleSet.has(normalizeOfficialTitle(title));
 }
+
+/**
+ * Minimum frozen pre-show gap for a setlist row to surface the muted "Gap N"
+ * nerd signal (#587 Phase B). Below this, gaps are too common to be
+ * interesting and would clutter the list. Bustouts (gap ≥ 30) are emphasized
+ * separately by the bustout badge.
+ */
+export const GAP_DISPLAY_MIN = 10;
+
+/**
+ * Builds the per-show gap lookup used by Standings setlist rows.
+ * `official_setlists.songGaps` (#587 Phase B) is keyed by normalized title;
+ * this returns a Map for display lookup by the title shown in the row.
+ *
+ * @param {null | Record<string, unknown>} actualSetlist
+ * @returns {Map<string, number>}
+ */
+export function buildSongGapMap(actualSetlist) {
+  if (!actualSetlist || typeof actualSetlist !== 'object') return new Map();
+  const raw = actualSetlist.songGaps;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return new Map();
+  const out = new Map();
+  for (const [key, val] of Object.entries(raw)) {
+    const norm = normalizeOfficialTitle(key);
+    const gap = typeof val === 'number' ? val : Number(val);
+    if (!norm || !Number.isFinite(gap) || gap < 0) continue;
+    out.set(norm, Math.trunc(gap));
+  }
+  return out;
+}
+
+/**
+ * @param {unknown} title
+ * @param {Map<string, number>} gapMap
+ * @returns {number | null} frozen pre-show gap, or null when unknown
+ */
+export function getOfficialSetlistGap(title, gapMap) {
+  if (!(gapMap instanceof Map) || gapMap.size === 0) return null;
+  const gap = gapMap.get(normalizeOfficialTitle(title));
+  return typeof gap === 'number' ? gap : null;
+}

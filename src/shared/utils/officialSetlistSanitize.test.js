@@ -3,6 +3,7 @@ import {
   sanitizeBustouts,
   sanitizeOfficialSongList,
   sanitizeSetlistSlots,
+  sanitizeSongGaps,
 } from './officialSetlistSanitize.js';
 
 describe('sanitizeSetlistSlots', () => {
@@ -40,5 +41,23 @@ describe('sanitizeBustouts (#214)', () => {
   });
   it('drops non-string entries defensively', () => {
     expect(sanitizeBustouts([42, { x: 1 }, 'ok'])).toEqual(['ok']);
+  });
+});
+
+describe('sanitizeSongGaps (#587 Phase B)', () => {
+  it('normalizes keys and coerces integer gaps', () => {
+    expect(sanitizeSongGaps({ '  Reba ': 12, 'AC/DC Bag': '47' })).toEqual({
+      reba: 12,
+      'ac/dc bag': 47,
+    });
+  });
+  it('drops negative, non-finite, blank-key, and non-object input', () => {
+    expect(sanitizeSongGaps({ foo: -1, bar: NaN, '   ': 5, ok: 3 })).toEqual({ ok: 3 });
+    expect(sanitizeSongGaps(null)).toEqual({});
+    expect(sanitizeSongGaps(['a', 'b'])).toEqual({});
+    expect(sanitizeSongGaps('nope')).toEqual({});
+  });
+  it('truncates fractional gaps', () => {
+    expect(sanitizeSongGaps({ tweezer: 30.9 })).toEqual({ tweezer: 30 });
   });
 });

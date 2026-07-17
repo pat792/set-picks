@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.28.0  
+**Version:** 1.29.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -122,6 +122,17 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
 | `schemaVersion` | number | `1` |
+
+### 1.12 `official_setlists/{showDate}`
+
+Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full schema and scoring contract: [`docs/OFFICIAL_SETLISTS_SCHEMA.md`](./OFFICIAL_SETLISTS_SCHEMA.md). Selected declared fields:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `setlist` | Record<string,string> | Slot answers keyed by `FORM_FIELDS` id (`s1o`, `s1c`, …). |
+| `officialSetlist` | string[] | Ordered full-show song list. |
+| `bustouts` | string[] | Per-show bustout snapshot (pre-show gap ≥ 30). Scoring source of truth (#214). |
+| `songGaps` | Record<string,number> | **v1.29.0 (#587 Phase B)** — frozen pre-show gap per dated row, keyed by normalized title. Display-only (Standings “Gap N” signal); not read by scoring. Absent on pre-Phase-B shows. |
 
 ---
 

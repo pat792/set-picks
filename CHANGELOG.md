@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.29.0] — 2026-07-16
+
+### Added
+- **Per-song gap on Standings setlist (#587 Phase B)** — `official_setlists/{showDate}` now freezes a `songGaps` map (normalized title → pre-show gap) at live-automation and admin-save time from the same Phish.net row `gap` that feeds `bustouts`. Standings setlist rows use an invisible 4-col grid (# / Song / Gap / Bustout) and show every frozen gap (including 0); bustouts stay emphasized. Display-only — not read by scoring; historical nights never join the weekly catalog. Ops backfill: `functions/scripts/backfillSongGaps.js` (`npm run backfill:song-gaps`). Schema: `docs/OFFICIAL_SETLISTS_SCHEMA.md`, `docs/API.md` §1.12.
+
+---
+
 ## [1.28.1] — 2026-07-16
 
 ### Changed
