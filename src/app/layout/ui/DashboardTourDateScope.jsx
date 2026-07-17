@@ -45,8 +45,8 @@ export default function DashboardTourDateScope({
       aria-label="Tour date"
       className={
         variant === 'desktop'
-          ? 'show-date-select w-full min-w-0 max-w-full cursor-pointer appearance-none rounded-[11px] border-0 bg-surface-field px-3 py-2.5 text-base font-bold text-white outline-none ring-0 transition-colors focus:border-transparent focus:ring-0'
-          : 'show-date-select w-full max-w-full min-w-0 appearance-none rounded-[7px] border-0 bg-surface-field py-1.5 pl-2.5 pr-2 text-xs font-bold text-white outline-none ring-0 transition-colors cursor-pointer focus:border-transparent focus:ring-0'
+          ? 'show-date-select w-full min-w-0 max-w-full cursor-pointer appearance-none rounded-[11px] border-0 bg-surface-field px-3 py-2.5 text-sm font-bold text-white outline-none ring-0 transition-colors focus:border-transparent focus:ring-0'
+          : 'show-date-select w-full max-w-full min-w-0 appearance-none rounded-[7px] border-0 bg-surface-field py-1.5 pl-2.5 pr-2 text-[11px] font-bold text-white outline-none ring-0 transition-colors cursor-pointer focus:border-transparent focus:ring-0'
       }
     >
       {showDatesByTour.map(({ tour, shows }, idx) => (

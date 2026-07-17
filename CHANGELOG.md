@@ -27,6 +27,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 - **Mobile chrome control harmonization (#609)** — shared `ChromeSegmentedControl` (boxed toggle) for Profile sections and Standings views (icons kept on Show/Tour/Pools); shared `ChromeIconButton` for Scoring rules on Picks/Standings; Pools action pills use unified `text-xs` + `h-3.5` icon sizing.
 - **Standings tour scope in chrome (#609)** — the Tour view's tour selector (`StandingsTourScopeSelect`) now lives in the dashboard chrome Tour Date slot (mobile context bar + desktop sticky row) with the same treatment as the date picker, instead of an in-flow picker above the leaderboard. Single-tour case shows a static label; the in-flow `TourPicker` remains for the pool hub standings section.
 - **Tour Date scope stepper (#609)** — single-row Tour Date control with prev/next double-chevron arrows in rounded-square hit targets (`ChromeScopeStepper` + `DashboardTourDateScope`). Mobile context bar clusters title + date left and keeps a trailing portal for Standings Scoring rules (Scale); Show/Tour/Pools fills the tools band full-width. Tour scope stays a single-row select without arrows (only ~2 selectable tours today; revisit when the list regularly exceeds ~3).
+- **Standings surface harmonization (#609 polish)** — content boxes share invite/sponsor geometry (`rounded-xl`, even pad) and title/body type scale; colors stay per-surface.
+- **Picks mobile Scale → H2 (#609 polish)** — Scoring rules portals into the context-bar trailing slot (mirrors Standings); empty tools band omitted when no lock/saved status.
+- **How pools work (#609 polish)** — in-flow solid panel below chrome (not translucent overlay); trigger font matches other tools pills.
+- **Invite promo copy + shell (#609 polish)** — “Invite your crew” + text/social secondary; sponsor-matching fill/border with teal interior accents. Chooser secondary copy updated for site vs pool paths.
+- **Last-show winner banner (#609 polish)** — visible only while selected show is `NEXT` (picks open); hides after lock (`LIVE`).
+- **Tour Date select font (#609 polish)** — slightly smaller so more venue characters fit before clip.
+- **Share-your-score secondary copy** — “Share your box score via text or social.”
+
+### Fixed
+- **Active Show venue label (#609 polish)** — Standings card uses full desktop show label (no 40-char compact truncate).
+- **Waiting-for-setlist collapse (#609 polish)** — chevron flips and toggles expand/collapse (no separate Collapse control).
 
 ---
 

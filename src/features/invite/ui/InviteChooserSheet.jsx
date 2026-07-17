@@ -119,7 +119,7 @@ export default function InviteChooserSheet({
                   </span>
                   <span className="mt-1 block text-sm font-medium text-content-secondary">
                     {hasHandle
-                      ? `Share your personal link — no pool code.`
+                      ? 'Share a personalized link to join setlistpickem.com'
                       : 'Set your handle on Profile before sharing a site invite.'}
                   </span>
                 </span>
@@ -139,8 +139,9 @@ export default function InviteChooserSheet({
                     Invite to a pool
                   </span>
                   <span className="mt-1 block text-sm font-medium text-content-secondary">
-                    Choose one of your pools, then share its join link
-                    {hasHandle ? ` with @${inviterHandle}.` : '.'}
+                    {hasHandle
+                      ? `Select one of your pools and send an invite link from your handle (@${inviterHandle}).`
+                      : 'Select one of your pools and send an invite link from your handle.'}
                   </span>
                 </span>
               </button>

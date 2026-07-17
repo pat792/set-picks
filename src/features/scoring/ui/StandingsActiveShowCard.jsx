@@ -4,6 +4,12 @@ import { ListMusic, Loader2, Pencil } from 'lucide-react';
 
 import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
+import {
+  STANDINGS_BOX_BODY,
+  STANDINGS_BOX_EYEBROW,
+  STANDINGS_BOX_TITLE,
+  STANDINGS_CARD_SHELL,
+} from './standingsSurfaceClasses';
 
 /**
  * "Tonight's show / make picks" surface for the Standings page Show view
@@ -49,59 +55,59 @@ export default function StandingsActiveShowCard({
   }
 
   return (
-    <Card as="section" variant="venue" padding="sm" className="md:p-6">
-      <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <Card as="section" variant="venue" padding="none" className={STANDINGS_CARD_SHELL}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
+          <p className={`${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
             {eyebrow}
           </p>
           {showLabel ? (
-            <p className="font-display text-lg font-bold leading-snug text-white md:text-xl">
+            <p className={`break-words ${STANDINGS_BOX_TITLE}`}>
               <span className="text-brand-primary">{showLabel}</span>
             </p>
           ) : null}
           {picksStatusLoading ? (
-            <p className="flex items-center gap-2 text-sm font-bold text-content-secondary">
+            <p className={`flex items-center gap-2 ${STANDINGS_BOX_BODY}`}>
               <Loader2
-                className="h-4 w-4 shrink-0 animate-spin text-content-secondary"
+                className="h-3.5 w-3.5 shrink-0 animate-spin text-content-secondary"
                 aria-hidden
               />
               {bodyLine}
             </p>
           ) : (
-            <p className="text-sm font-bold text-content-secondary">{bodyLine}</p>
+            <p className={STANDINGS_BOX_BODY}>{bodyLine}</p>
           )}
         </div>
 
         <div className="flex shrink-0 flex-col gap-2 sm:items-end">
           {picksStatusLoading ? (
             <div
-              className="flex h-11 w-full min-w-[12rem] items-center justify-center rounded-xl border border-border-subtle bg-surface-field sm:w-auto"
+              className="flex h-10 w-full min-w-[11rem] items-center justify-center rounded-xl border border-border-subtle bg-surface-field sm:w-auto"
               aria-busy="true"
               aria-label="Loading picks status"
             >
-              <Loader2 className="h-5 w-5 animate-spin text-content-secondary" />
+              <Loader2 className="h-4 w-4 animate-spin text-content-secondary" />
             </div>
           ) : !isSecured ? (
             <Button
               type="button"
               variant="primary"
-              size="md"
-              className="w-full min-w-[12rem] sm:w-auto uppercase tracking-widest"
+              size="sm"
+              className="w-full min-w-[11rem] sm:w-auto uppercase tracking-widest"
               onClick={() => navigate('/dashboard')}
             >
-              <ListMusic className="mr-2 h-5 w-5 shrink-0" aria-hidden />
+              <ListMusic className="mr-2 h-4 w-4 shrink-0" aria-hidden />
               Make picks
             </Button>
           ) : (
             <Button
               type="button"
               variant="secondary"
-              size="md"
-              className="w-full min-w-[12rem] sm:w-auto uppercase tracking-widest"
+              size="sm"
+              className="w-full min-w-[11rem] sm:w-auto uppercase tracking-widest"
               onClick={() => navigate('/dashboard')}
             >
-              <Pencil className="mr-2 h-5 w-5 shrink-0" aria-hidden />
+              <Pencil className="mr-2 h-4 w-4 shrink-0" aria-hidden />
               View / Edit picks
             </Button>
           )}

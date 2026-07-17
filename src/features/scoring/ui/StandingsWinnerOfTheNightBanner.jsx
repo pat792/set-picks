@@ -73,8 +73,8 @@ export default function StandingsWinnerOfTheNightBanner({
       aria-label={`${heading}: ${handlesLabel} — ${max} points`}
       className={
         compact
-          ? 'relative mx-0.5 mb-2 rounded-lg border border-amber-500/35 bg-gradient-to-br from-amber-500/[0.1] via-amber-500/[0.05] to-brand-primary/[0.06] px-2 py-1.5 shadow-inset-glass'
-          : 'relative mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3 py-2 shadow-inset-glass'
+          ? 'relative mx-0.5 mb-2 rounded-xl border border-amber-500/35 bg-gradient-to-br from-amber-500/[0.1] via-amber-500/[0.05] to-brand-primary/[0.06] px-3.5 py-3 shadow-inset-glass'
+          : 'relative mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3.5 py-3.5 shadow-inset-glass md:px-4 md:py-4'
       }
     >
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
@@ -82,13 +82,7 @@ export default function StandingsWinnerOfTheNightBanner({
           If the heading flex item ever paints over the pill (min-width / overflow),
           keep the link above in the hit-test order.
         */}
-        <p
-          className={
-            compact
-              ? 'relative z-0 min-w-0 text-[9px] font-black uppercase tracking-widest text-amber-300'
-              : 'relative z-0 min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300'
-          }
-        >
+        <p className="relative z-0 min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300">
           {heading}
         </p>
         {showViewResultsLink ? (
@@ -127,8 +121,8 @@ export default function StandingsWinnerOfTheNightBanner({
       <p
         className={
           compact
-            ? 'mt-0.5 line-clamp-2 text-xs font-bold leading-snug text-slate-100 sm:line-clamp-none sm:text-sm'
-            : 'mt-0.5 text-sm font-bold leading-snug text-slate-100'
+            ? 'mt-0.5 line-clamp-2 text-sm font-bold leading-snug text-slate-100 md:text-base sm:line-clamp-none'
+            : 'mt-0.5 text-sm font-bold leading-snug text-slate-100 md:text-base'
         }
       >
         {winners.map((w, idx) => {

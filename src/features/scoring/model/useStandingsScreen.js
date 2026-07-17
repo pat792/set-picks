@@ -14,7 +14,10 @@ import {
   getShowStatus,
   shouldRedactOpponentPicksPreLock,
 } from '../../../shared/utils/timeLogic';
-import { showOptionLabelCompact } from '../../../shared/utils/showOptionLabel';
+import {
+  showOptionLabelCompact,
+  showOptionLabelDesktop,
+} from '../../../shared/utils/showOptionLabel';
 
 import { resolveCurrentTour } from './resolveCurrentTour';
 import { useDisplayedPicks } from './useDisplayedPicks';
@@ -121,9 +124,12 @@ export function useStandingsScreen(selectedDate, options = {}) {
     winnerOfTheNight.winners.length > 0 &&
     !winnerOfTheNight.hasUngradedNonEmptyPick;
 
+  // Prior-night winner callout: show while the selected night is still the
+  // open pick window (NEXT). Hide once picks lock (LIVE) so Standings can
+  // focus on tonight; the banner returns after the next show finalizes and
+  // that night becomes the new prior for the following NEXT date (#305).
   const lastShowWinnerEnabled =
-    showWinnerEligibleView &&
-    (showStatus === 'NEXT' || showStatus === 'LIVE');
+    showWinnerEligibleView && showStatus === 'NEXT';
   const previousShowWinner = usePreviousShowNightWinner(
     selectedDate,
     showDates,
@@ -168,9 +174,11 @@ export function useStandingsScreen(selectedDate, options = {}) {
     error: tourError,
   } = useTourStandings(view === 'tour' ? (selectedTour?.shows ?? null) : null);
 
+  // Card / banner surfaces have room for the full city/venue token —
+  // do not use the 40-char compact picker truncate here (#609 follow-up).
   const showLabel = useMemo(() => {
     const show = showDates.find((s) => s.date === selectedDate);
-    return show ? showOptionLabelCompact(show) : selectedDate;
+    return show ? showOptionLabelDesktop(show) : selectedDate;
   }, [selectedDate, showDates]);
 
   const activePoolName = useMemo(() => {

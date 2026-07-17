@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Users } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Users } from 'lucide-react';
 import { useNextShowPicksStatus } from '../../features/picks';
 import {
   PoolJoinCreateCard,
+  PoolsHowItWorksBody,
   PoolsHowItWorksMenu,
   PoolsMobileFixedChrome,
   UserPoolsSection,
@@ -35,14 +36,23 @@ export default function Pools({ user }) {
       ? false
       : hasSubmittedPicksForNextShow;
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const howItWorksContentId = useId();
+  const [isHowItWorksExpanded, setIsHowItWorksExpanded] = useState(false);
 
   return (
-    <div className="w-full space-y-8 pb-6 md:pb-12">
+    <div className="w-full pb-6 md:pb-12">
       {mobileChromeRoot
-        ? createPortal(<PoolsMobileFixedChrome />, mobileChromeRoot)
+        ? createPortal(
+            <PoolsMobileFixedChrome
+              isHowItWorksExpanded={isHowItWorksExpanded}
+              onToggleHowItWorks={() => setIsHowItWorksExpanded((prev) => !prev)}
+              howItWorksContentId={howItWorksContentId}
+            />,
+            mobileChromeRoot,
+          )
         : null}
 
-      <div className="hidden md:block">
+      <div className="mb-8 hidden md:block">
         <DashboardActionRow>
           <PoolsHowItWorksMenu
             leading={
@@ -55,17 +65,26 @@ export default function Pools({ user }) {
         </DashboardActionRow>
       </div>
 
-      <UserPoolsSection
-        pools={pools}
-        hasPicksForNextShow={isSecured}
-        picksStatusLoading={picksStatusLoading}
-      />
-      <PoolJoinCreateCard
-        loading={loading}
-        error={error}
-        onJoin={handleJoin}
-        onCreate={handleCreate}
-      />
+      <div
+        id={howItWorksContentId}
+        className={isHowItWorksExpanded ? 'mb-6 md:hidden' : 'hidden'}
+      >
+        <PoolsHowItWorksBody />
+      </div>
+
+      <div className="space-y-8">
+        <UserPoolsSection
+          pools={pools}
+          hasPicksForNextShow={isSecured}
+          picksStatusLoading={picksStatusLoading}
+        />
+        <PoolJoinCreateCard
+          loading={loading}
+          error={error}
+          onJoin={handleJoin}
+          onCreate={handleCreate}
+        />
+      </div>
     </div>
   );
 }
