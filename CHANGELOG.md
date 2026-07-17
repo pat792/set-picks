@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.27.0] — 2026-07-16
+
+### Added
+- **Selectable profile avatars (#567)** — curated 12-mark set under `/avatars/*.svg`, persisted as `users.avatarId`. Picker on dashboard Profile; public `/user/:uid` shows the selected mark (default `ticket` when unset).
+
+---
+
 ## [1.26.0] — 2026-07-16
 
 ### Added

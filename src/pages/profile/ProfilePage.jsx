@@ -22,12 +22,14 @@ export default function ProfilePage({ user: userProp }) {
   const {
     handle,
     favoriteSong,
+    avatarId,
     joinDate,
     isLoading,
     isSaving,
     message,
     setHandle,
     setFavoriteSong,
+    setAvatarId,
     saveProfile,
   } = useUserProfile(user);
 
@@ -60,8 +62,10 @@ export default function ProfilePage({ user: userProp }) {
       <ProfileEditForm
         handle={handle}
         favoriteSong={favoriteSong}
+        avatarId={avatarId}
         onHandleChange={setHandle}
         onFavoriteSongChange={setFavoriteSong}
+        onAvatarChange={setAvatarId}
         onSave={saveProfile}
         isSaving={isSaving}
         isLoading={isLoading}

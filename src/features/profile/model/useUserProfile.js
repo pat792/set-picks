@@ -7,6 +7,7 @@ import {
   updateUserProfileWithPickHandles,
 } from '../api/profileApi';
 import { showSuccessToast } from '../../../shared/ui/toast';
+import { DEFAULT_AVATAR_ID, normalizeAvatarId } from './avatarCatalog';
 
 /**
  * Loads the signed-in user's profile, holds edit form state, and persists updates.
@@ -18,6 +19,7 @@ export function useUserProfile(user) {
 
   const [handle, setHandle] = useState('');
   const [favoriteSong, setFavoriteSong] = useState('');
+  const [avatarId, setAvatarId] = useState(DEFAULT_AVATAR_ID);
   const [joinDate, setJoinDate] = useState('');
   const [isLoading, setIsLoading] = useState(!!uid);
   const [isSaving, setIsSaving] = useState(false);
@@ -28,6 +30,7 @@ export function useUserProfile(user) {
       setIsLoading(false);
       setHandle('');
       setFavoriteSong('');
+      setAvatarId(DEFAULT_AVATAR_ID);
       setJoinDate('');
       return;
     }
@@ -40,9 +43,11 @@ export function useUserProfile(user) {
       if (data) {
         setHandle(data.handle || '');
         setFavoriteSong(data.favoriteSong || '');
+        setAvatarId(normalizeAvatarId(data.avatarId));
       } else {
         setHandle('');
         setFavoriteSong('');
+        setAvatarId(DEFAULT_AVATAR_ID);
       }
     };
 
@@ -98,10 +103,13 @@ export function useUserProfile(user) {
       setMessage({ text: '', type: '' });
 
       try {
+        const nextAvatarId = normalizeAvatarId(avatarId);
         await updateUserProfileWithPickHandles(uid, {
           handle: trimmedHandle,
           favoriteSong,
+          avatarId: nextAvatarId,
         });
+        setAvatarId(nextAvatarId);
         setMessage({ text: 'Profile updated successfully! 🎸', type: 'success' });
         showSuccessToast('Profile updated! 🎸');
         return true;
@@ -114,18 +122,20 @@ export function useUserProfile(user) {
         setTimeout(() => setMessage({ text: '', type: '' }), 3000);
       }
     },
-    [uid, handle, favoriteSong],
+    [uid, handle, favoriteSong, avatarId],
   );
 
   return {
     handle,
     favoriteSong,
+    avatarId,
     joinDate,
     isLoading,
     isSaving,
     message,
     setHandle,
     setFavoriteSong,
+    setAvatarId,
     saveProfile,
   };
 }

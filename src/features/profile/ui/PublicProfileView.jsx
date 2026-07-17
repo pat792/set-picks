@@ -9,6 +9,7 @@ import {
   formatAvgCorrectPicksPerShow,
   formatAvgPointsPerShow,
 } from '../model/profileAverages';
+import ProfileAvatar from './ProfileAvatar';
 
 function formatPlayingSince(createdAt) {
   const value = formatMonthYear(createdAt);
@@ -66,15 +67,22 @@ export default function PublicProfileView({
       <div className="max-w-xl mx-auto px-4 py-10 pb-16">
         <BackButton className="mb-8" />
 
-        <header className="mb-2">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500">
-            {handle}
-          </h1>
-          {playingSince && (
-            <p className="mt-2 text-xs font-bold uppercase tracking-widest text-brand-primary">
-              Playing since {playingSince}
-            </p>
-          )}
+        <header className="mb-2 flex items-start gap-4">
+          <ProfileAvatar
+            avatarId={profile.avatarId}
+            size="lg"
+            alt={`${handle}'s avatar`}
+          />
+          <div className="min-w-0">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500">
+              {handle}
+            </h1>
+            {playingSince && (
+              <p className="mt-2 text-xs font-bold uppercase tracking-widest text-brand-primary">
+                Playing since {playingSince}
+              </p>
+            )}
+          </div>
         </header>
 
         <section className="mt-8 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
