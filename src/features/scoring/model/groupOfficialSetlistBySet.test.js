@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { groupOfficialSetlistBySet } from './groupOfficialSetlistBySet';
+import {
+  buildBustoutTitleSet,
+  groupOfficialSetlistBySet,
+  isOfficialSetlistBustout,
+} from './groupOfficialSetlistBySet';
 
 describe('groupOfficialSetlistBySet', () => {
   it('returns empty groups for null/invalid', () => {
@@ -84,5 +88,16 @@ describe('groupOfficialSetlistBySet', () => {
     });
     expect(grouped.hasSongs).toBe(false);
     expect(grouped.hasOfficialSlots).toBe(true);
+  });
+
+  it('builds a normalized bustout title lookup for setlist rows', () => {
+    const bustouts = buildBustoutTitleSet({
+      bustouts: [" Colonel Forbin's Ascent ", "FLUFF'S TRAVELS", ''],
+    });
+
+    expect(isOfficialSetlistBustout("colonel forbin's ascent", bustouts)).toBe(true);
+    expect(isOfficialSetlistBustout("Fluff's Travels", bustouts)).toBe(true);
+    expect(isOfficialSetlistBustout('Tweezer', bustouts)).toBe(false);
+    expect(isOfficialSetlistBustout('Tweezer', buildBustoutTitleSet(null))).toBe(false);
   });
 });

@@ -3,7 +3,11 @@ import { ChevronDown, ExternalLink, ListMusic } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
-import { groupOfficialSetlistBySet } from '../model/groupOfficialSetlistBySet';
+import {
+  buildBustoutTitleSet,
+  groupOfficialSetlistBySet,
+  isOfficialSetlistBustout,
+} from '../model/groupOfficialSetlistBySet';
 import OfficialPickSlotsGrid from './OfficialPickSlotsGrid';
 import {
   STANDINGS_BOX_BODY,
@@ -12,7 +16,7 @@ import {
   STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
 
-function SetSongList({ label, songs }) {
+function SetSongList({ label, songs, bustoutTitleSet }) {
   if (!songs.length) return null;
   return (
     <div>
@@ -20,17 +24,28 @@ function SetSongList({ label, songs }) {
         {label}
       </p>
       <ol className="space-y-1">
-        {songs.map((title, idx) => (
-          <li
-            key={`${label}-${idx}-${title}`}
-            className={`flex gap-2 ${STANDINGS_BOX_BODY} text-slate-100`}
-          >
-            <span className="w-5 shrink-0 tabular-nums text-content-secondary">
-              {idx + 1}.
-            </span>
-            <span className="min-w-0">{title}</span>
-          </li>
-        ))}
+        {songs.map((title, idx) => {
+          const isBustout = isOfficialSetlistBustout(title, bustoutTitleSet);
+          return (
+            <li
+              key={`${label}-${idx}-${title}`}
+              className={`flex items-start gap-2 ${STANDINGS_BOX_BODY} text-slate-100`}
+            >
+              <span className="w-5 shrink-0 tabular-nums text-content-secondary">
+                {idx + 1}.
+              </span>
+              <span className="min-w-0 flex-1">{title}</span>
+              {isBustout ? (
+                <span
+                  className="shrink-0 rounded-full border border-orange-300/40 bg-orange-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-orange-100"
+                  title="Bustout Boost eligibility"
+                >
+                  Bustout
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
@@ -55,6 +70,7 @@ export default function StandingsOfficialSetlistCard({
   className = '',
 }) {
   const grouped = groupOfficialSetlistBySet(actualSetlist);
+  const bustoutTitleSet = buildBustoutTitleSet(actualSetlist);
 
   if (!actualSetlist || (!grouped.hasSongs && !grouped.hasOfficialSlots)) {
     return null;
@@ -107,9 +123,21 @@ export default function StandingsOfficialSetlistCard({
         <div className="mt-4 space-y-5 border-t border-border-subtle pt-4">
           {grouped.hasSongs ? (
             <div className="space-y-4">
-              <SetSongList label="Set 1" songs={grouped.set1} />
-              <SetSongList label="Set 2" songs={grouped.set2} />
-              <SetSongList label="Encore" songs={grouped.encore} />
+              <SetSongList
+                label="Set 1"
+                songs={grouped.set1}
+                bustoutTitleSet={bustoutTitleSet}
+              />
+              <SetSongList
+                label="Set 2"
+                songs={grouped.set2}
+                bustoutTitleSet={bustoutTitleSet}
+              />
+              <SetSongList
+                label="Encore"
+                songs={grouped.encore}
+                bustoutTitleSet={bustoutTitleSet}
+              />
             </div>
           ) : (
             <p className={STANDINGS_BOX_BODY}>
