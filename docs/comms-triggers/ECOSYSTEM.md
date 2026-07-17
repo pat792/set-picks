@@ -8,6 +8,7 @@ message across in‑app, push, and email — fully automated, with **no manual
 It complements the other comms docs:
 
 - [`FRAMEWORK.md`](./FRAMEWORK.md) — the TTDMOM operating model (Trigger → Template → Deliver → Measure → Optimize → Monetize)
+- [`OPTIMIZE_AUTONOMY.md`](./OPTIMIZE_AUTONOMY.md) — Optimize autonomy L0 playbook + PM pack (#573)
 - [`catalog.json`](./catalog.json) / [`TRIGGER_CATALOG.md`](./TRIGGER_CATALOG.md) — the machine + human trigger registry
 - [`MEASUREMENT_PLAN.md`](./MEASUREMENT_PLAN.md) — the GA4 events & funnels
 
