@@ -132,7 +132,7 @@ Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows
 
 **Display:** `src/features/scoring/model/groupOfficialSetlistBySet.js` (`buildSongGapMap` / `getOfficialSetlistGap`, threshold `GAP_DISPLAY_MIN = 10`) → `src/features/scoring/ui/StandingsOfficialSetlistCard.jsx`. Client read passes through `normalizeOfficialSetlistDocData` (`sanitizeSongGaps`). Not used for scoring — `songGaps` is in `NON_SONG_SETLIST_KEYS` on both the client and Cloud Function scoring paths.
 
-**Backfill:** forward-only. Shows saved before Phase B have no `songGaps`; rows simply omit the gap chip. Re-saving a past show from the admin (Phish.net ingest) freezes the snapshot on demand.
+**Backfill:** `functions/scripts/backfillSongGaps.js` (`npm run backfill:song-gaps -- --missing --apply` from `functions/`). Re-fetches Phish.net rows and merge-writes `songGaps` only — no score reconcile. Shows saved before Phase B omit the chip until backfilled; re-saving a past show from admin (Phish.net ingest) also freezes the snapshot.
 
 ### Backfill
 
