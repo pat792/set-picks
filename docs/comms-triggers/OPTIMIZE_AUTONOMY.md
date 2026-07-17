@@ -1,7 +1,7 @@
 # Comms Optimize autonomy (L0 playbook)
 
 **Epic:** [#573](https://github.com/pat792/set-picks/issues/573)  
-**Status:** L0 — playbook documented. Agents run Optimize when invoked; PM still kicks every session.  
+**Status:** L1 — playbook + first on-demand pack proven (2026-07-17, goal `picks_lock`). Scheduled runner (L2) not yet.  
 **Does not replace:** automated **delivery** (`deliverCommsTrigger` / epic #441). This doc is the **editorial + measurement + recommendation** loop.
 
 ---
@@ -15,10 +15,35 @@ Run Optimize for goal <optimize_for> covering <date window / show dates>
 | Input | Examples |
 |-------|----------|
 | `optimize_for` | `picks_lock` · `return_14d` · `tour_retention` · `push_opt_in` · `email_open` · `show_recap_uniqueness` |
-| Window | Show dates (YYYY-MM-DD…) or “last completed show week” |
+| Window | Show dates (YYYY-MM-DD…) or “last completed show week” / GA4 `7daysAgo`→`yesterday` |
 | Constraints | Draft-only; PR base **`staging`**; never `comms:deploy` / never merge without PM |
 
 Post the finished pack as a comment on **#573** (and link any draft PRs).
+
+### Goal-input convention (`optimize_for`)
+
+Pass exactly one primary goal string (snake_case). Optional secondary goals go in the pack **Recommendations** section, not the kickoff line.
+
+| Value | Optimize for |
+|-------|----------------|
+| `picks_lock` | Reminder → open/tap → pick submitted before lock |
+| `return_14d` | Lapsed users returning / logging in |
+| `tour_retention` | Tour engagement + end-of-tour recap (#510) |
+| `push_opt_in` | Push permission + reminder push share |
+| `email_open` | Email open/click signal plane (#512) |
+| `show_recap_uniqueness` | Night narrative quality (#572 → L3) |
+
+**Cloud Agent / on-demand prompt (copy-paste):**
+
+```text
+Using docs/comms-triggers/OPTIMIZE_AUTONOMY.md and the comms squad skills,
+run Optimize for goal picks_lock covering the last 7 complete days (GA4 property 527619709).
+Produce the PM review pack template, post it on GitHub issue #573 with [SKIP-PRD],
+open a draft PR to staging only if a low-risk copy/catalog change is justified,
+and never merge or deploy.
+```
+
+Swap `picks_lock` / window as needed. First L1 pack: [comment on #573](https://github.com/pat792/set-picks/issues/573#issuecomment-5000375612).
 
 ---
 
@@ -119,6 +144,12 @@ Agents **must** use this shape:
 
 ## Maturity ladder (pointer)
 
-Full L0→L4 table lives on [#573](https://github.com/pat792/set-picks/issues/573). This playbook exits **L0**. Next: **L1** on-demand pack end-to-end (Action 2 on the epic).
+Full L0→L4 table lives on [#573](https://github.com/pat792/set-picks/issues/573).
 
-Related Wave 5 siblings: [#512](https://github.com/pat792/set-picks/issues/512) (email open signal), [#513](https://github.com/pat792/set-picks/issues/513) (prefs hub).
+| Level | Repo status |
+|-------|-------------|
+| **L0** | Done — this playbook + skills (#628) |
+| **L1** | Done — first on-demand pack (2026-07-17, `optimize_for=picks_lock`) |
+| **L2+** | Open — scheduled runner; uniqueness; NBA |
+
+Related Wave 5 siblings: [#510](https://github.com/pat792/set-picks/issues/510) (`tour_recap`), [#512](https://github.com/pat792/set-picks/issues/512) (email open signal), [#513](https://github.com/pat792/set-picks/issues/513) (prefs hub).
