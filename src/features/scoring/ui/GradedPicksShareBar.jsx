@@ -129,8 +129,11 @@ export default function GradedPicksShareBar({
 
   return (
     <div className={`rounded-xl border border-border-subtle/50 bg-surface-panel/40 px-3 py-3 ${className}`}>
-      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-content-secondary">
+      <p className="text-[10px] font-black uppercase tracking-widest text-content-secondary">
         Share your score
+      </p>
+      <p className="mb-2 mt-0.5 text-[11px] font-medium leading-snug text-content-secondary md:text-xs">
+        Share your box score via text or social
       </p>
       {actions}
     </div>

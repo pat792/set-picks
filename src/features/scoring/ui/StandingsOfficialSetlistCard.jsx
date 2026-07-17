@@ -5,19 +5,25 @@ import Card from '../../../shared/ui/Card';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
 import { groupOfficialSetlistBySet } from '../model/groupOfficialSetlistBySet';
 import OfficialPickSlotsGrid from './OfficialPickSlotsGrid';
+import {
+  STANDINGS_BOX_BODY,
+  STANDINGS_BOX_EYEBROW,
+  STANDINGS_BOX_TITLE,
+  STANDINGS_CARD_SHELL,
+} from './standingsSurfaceClasses';
 
 function SetSongList({ label, songs }) {
   if (!songs.length) return null;
   return (
     <div>
-      <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-brand-primary">
+      <p className={`mb-1.5 ${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
         {label}
       </p>
       <ol className="space-y-1">
         {songs.map((title, idx) => (
           <li
             key={`${label}-${idx}-${title}`}
-            className="flex gap-2 text-sm font-bold leading-snug text-slate-100"
+            className={`flex gap-2 ${STANDINGS_BOX_BODY} text-slate-100`}
           >
             <span className="w-5 shrink-0 tabular-nums text-content-secondary">
               {idx + 1}.
@@ -62,8 +68,8 @@ export default function StandingsOfficialSetlistCard({
     <Card
       as="section"
       variant="default"
-      padding="sm"
-      className={`mb-3 md:p-5 ${className}`.trim()}
+      padding="none"
+      className={`mb-3 ${STANDINGS_CARD_SHELL} ${className}`.trim()}
     >
       <details className="group" defaultOpen={isLive}>
         <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
@@ -73,7 +79,7 @@ export default function StandingsOfficialSetlistCard({
                 className="h-4 w-4 shrink-0 text-brand-primary"
                 aria-hidden
               />
-              <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
+              <p className={`${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
                 Setlist
               </p>
               <span
@@ -87,13 +93,9 @@ export default function StandingsOfficialSetlistCard({
               </span>
             </div>
             {showLabel ? (
-              <p className="truncate font-display text-base font-bold text-white sm:text-lg">
-                {showLabel}
-              </p>
+              <p className={`truncate ${STANDINGS_BOX_TITLE}`}>{showLabel}</p>
             ) : (
-              <p className="font-display text-base font-bold text-white sm:text-lg">
-                Official setlist
-              </p>
+              <p className={STANDINGS_BOX_TITLE}>Official setlist</p>
             )}
           </div>
           <ChevronDown
@@ -110,13 +112,13 @@ export default function StandingsOfficialSetlistCard({
               <SetSongList label="Encore" songs={grouped.encore} />
             </div>
           ) : (
-            <p className="text-sm font-bold text-content-secondary">
+            <p className={STANDINGS_BOX_BODY}>
               Slot picks are in — full song order lands as the setlist builds.
             </p>
           )}
 
           <div>
-            <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-content-secondary">
+            <p className={`mb-2 ${STANDINGS_BOX_EYEBROW} text-content-secondary`}>
               Official pick slots
             </p>
             <OfficialPickSlotsGrid actualSetlist={actualSetlist} />

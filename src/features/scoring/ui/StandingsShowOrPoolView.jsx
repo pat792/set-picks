@@ -10,6 +10,10 @@ import StandingsActiveShowCard from './StandingsActiveShowCard';
 import StandingsBannerWaitingSetlist from './StandingsBannerWaitingSetlist';
 import StandingsPoolPicker from './StandingsPoolPicker';
 import StandingsWinnerOfTheNightBanner from './StandingsWinnerOfTheNightBanner';
+import {
+  STANDINGS_BOX_BODY,
+  STANDINGS_CARD_SHELL,
+} from './standingsSurfaceClasses';
 
 /**
  * Standings show / pools-view composition. Pure presentational — all state
@@ -166,11 +170,11 @@ export default function StandingsShowOrPoolView({ screen }) {
             onChange={setPoolId}
           />
         ) : null}
-        <Card variant="default" padding="lg" className="text-center">
-          <PageTitle as="h2" variant="section" className="mb-2">
+        <Card variant="default" padding="none" className={`${STANDINGS_CARD_SHELL} text-center`}>
+          <PageTitle as="h2" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
             Results aren&apos;t up yet
           </PageTitle>
-          <p className="mx-auto max-w-sm font-bold leading-relaxed text-content-secondary">
+          <p className={`mx-auto max-w-sm ${STANDINGS_BOX_BODY}`}>
             This date hasn&apos;t happened yet. Lock your picks on Picks, then check
             Standings after the show for scores and rankings.
           </p>
@@ -254,20 +258,20 @@ export default function StandingsShowOrPoolView({ screen }) {
       {displayedPicks.length === 0 ? (
         <Card
           variant="default"
-          padding="lg"
-          className="mt-8 flex flex-col items-center justify-center text-center"
+          padding="none"
+          className={`mt-8 flex flex-col items-center justify-center text-center ${STANDINGS_CARD_SHELL}`}
         >
           {showStatus === 'PAST' ? (
             <>
               <Inbox
-                className="mb-4 h-14 w-14 text-content-secondary"
+                className="mb-3 h-10 w-10 text-content-secondary"
                 strokeWidth={1.5}
                 aria-hidden
               />
-              <PageTitle as="h3" variant="section" className="mb-2">
+              <PageTitle as="h3" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
                 No picks for this show
               </PageTitle>
-              <p className="max-w-sm font-bold text-content-secondary">
+              <p className={`max-w-sm ${STANDINGS_BOX_BODY}`}>
                 {isPoolsView
                   ? 'Nobody in this pool submitted picks for this date.'
                   : 'Nobody submitted picks for this date.'}
@@ -276,14 +280,14 @@ export default function StandingsShowOrPoolView({ screen }) {
           ) : (
             <>
               <Music
-                className="mb-4 h-14 w-14 text-brand-primary/80"
+                className="mb-3 h-10 w-10 text-brand-primary/80"
                 strokeWidth={1.5}
                 aria-hidden
               />
-              <PageTitle as="h3" variant="section" className="mb-2">
+              <PageTitle as="h3" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
                 No picks yet
               </PageTitle>
-              <p className="max-w-sm font-bold text-content-secondary">
+              <p className={`max-w-sm ${STANDINGS_BOX_BODY}`}>
                 {isPoolsView ? (
                   <>
                     Nobody in this pool has locked in yet.{' '}

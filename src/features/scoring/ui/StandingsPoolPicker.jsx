@@ -34,7 +34,7 @@ export default function StandingsPoolPicker({
     return (
       <div
         className={[
-          'mb-4 rounded-2xl border border-border-subtle bg-surface-panel/60 p-4 text-center shadow-inset-glass',
+          'mb-4 rounded-xl border border-border-subtle bg-surface-panel/60 px-3.5 py-3.5 text-center shadow-inset-glass md:px-4 md:py-4',
           className,
         ]
           .filter(Boolean)
@@ -44,7 +44,7 @@ export default function StandingsPoolPicker({
           className="mx-auto mb-2 h-6 w-6 text-content-secondary"
           aria-hidden
         />
-        <p className="mb-3 text-sm font-bold text-content-secondary">
+        <p className="mb-3 text-sm font-bold text-content-secondary md:text-base">
           You aren&apos;t in any pools yet.
         </p>
         <Link

@@ -40,7 +40,7 @@ export default function LeaderboardRow({
   return (
     <div
       id={anchorId || undefined}
-      className={`bg-surface-panel rounded-2xl border overflow-hidden shadow-inset-glass transition-all scroll-mt-24 md:scroll-mt-28 ${borderTone}`}
+      className={`bg-surface-panel rounded-xl border overflow-hidden shadow-inset-glass transition-all scroll-mt-24 md:scroll-mt-28 ${borderTone}`}
     >
       <div
         role="button"
@@ -52,32 +52,32 @@ export default function LeaderboardRow({
             onToggle();
           }
         }}
-        className="w-full flex items-center justify-between p-5 hover:bg-surface-panel-strong/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-t-2xl"
+        className="w-full flex items-center justify-between px-3.5 py-3.5 hover:bg-surface-panel-strong/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-t-xl md:px-4 md:py-4"
       >
         <div className="flex items-center gap-3 text-left min-w-0">
           {rank != null ? (
             <div
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black tabular-nums ${rankBadgeClass(rank)}`}
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-black tabular-nums ${rankBadgeClass(rank)}`}
               aria-label={`Rank ${rank}`}
             >
               {rank}
             </div>
           ) : (
             <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[9px] font-black uppercase tracking-widest bg-brand-primary/15 text-brand-primary ring-1 ring-brand-primary/40"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[9px] font-black uppercase tracking-widest bg-brand-primary/15 text-brand-primary ring-1 ring-brand-primary/40"
               aria-label="Pinned — you"
             >
               You
             </div>
           )}
-          <div className="w-10 h-10 shrink-0 bg-gradient-to-tr from-brand-accent-blue to-brand-primary rounded-full flex items-center justify-center font-bold text-lg shadow-inner text-brand-bg-deep">
+          <div className="w-9 h-9 shrink-0 bg-gradient-to-tr from-brand-accent-blue to-brand-primary rounded-full flex items-center justify-center font-bold text-base shadow-inner text-brand-bg-deep">
             👤
           </div>
           <div className="flex items-center gap-2 min-w-0">
             <PlayerHandleLink
               userId={playerUserId}
               handle={p.handle}
-              className="text-base"
+              className="text-sm md:text-base"
             />
             {isSelf && rank != null ? (
               <span
@@ -90,9 +90,9 @@ export default function LeaderboardRow({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div className="text-right">
-            <span className="font-black text-brand-primary text-xl block leading-none">
+            <span className="font-black text-brand-primary text-base block leading-none md:text-lg">
               {actualSetlist ? score : '-'}
             </span>
             <span className="text-[9px] font-bold uppercase tracking-widest text-content-secondary">
@@ -106,7 +106,7 @@ export default function LeaderboardRow({
       </div>
 
       {isExpanded && (
-        <div className="p-4 border-t border-border-subtle/30 bg-surface-inset">
+        <div className="p-3.5 border-t border-border-subtle/30 bg-surface-inset md:p-4">
           <ScoreBreakdownGrid
             userPicks={userPicks}
             actualSetlist={actualSetlist}

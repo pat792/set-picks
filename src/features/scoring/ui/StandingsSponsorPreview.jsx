@@ -24,10 +24,10 @@ export default function StandingsSponsorPreview({ onCtaClick }) {
         decoding="async"
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold leading-snug text-white">
+        <p className="truncate text-sm font-bold leading-snug text-white md:text-base">
           Bring your crew to Standings
         </p>
-        <p className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-snug text-content-secondary">
+        <p className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-snug text-content-secondary md:text-xs">
           Invite friends to a pool — share the board, own the night.
         </p>
       </div>

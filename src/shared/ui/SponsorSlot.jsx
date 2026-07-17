@@ -45,7 +45,7 @@ export default function SponsorSlot({
       className={['w-full', className].filter(Boolean).join(' ')}
     >
       <div
-        className={`flex w-full flex-col rounded-xl border border-border-subtle/60 bg-surface-panel/40 px-3 pb-3 pt-2 ${minHeight}`}
+        className={`flex w-full flex-col rounded-xl border border-border-subtle/60 bg-surface-panel/40 px-3.5 pb-3.5 pt-2 md:px-4 ${minHeight}`}
       >
         <span className="mb-1.5 self-end text-[9px] font-semibold uppercase tracking-widest text-content-secondary/70">
           Sponsored
