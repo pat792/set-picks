@@ -1,7 +1,6 @@
 import React from 'react';
 import { Inbox, Loader2, Music } from 'lucide-react';
 
-import { InviteChooserTrigger } from '../../invite';
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
 import StandingsSelfRecapCard from './StandingsSelfRecapCard';
@@ -11,6 +10,10 @@ import StandingsActiveShowCard from './StandingsActiveShowCard';
 import StandingsBannerWaitingSetlist from './StandingsBannerWaitingSetlist';
 import StandingsPoolPicker from './StandingsPoolPicker';
 import StandingsWinnerOfTheNightBanner from './StandingsWinnerOfTheNightBanner';
+import {
+  STANDINGS_BOX_BODY,
+  STANDINGS_CARD_SHELL,
+} from './standingsSurfaceClasses';
 
 /**
  * Standings show / pools-view composition. Pure presentational — all state
@@ -167,11 +170,11 @@ export default function StandingsShowOrPoolView({ screen }) {
             onChange={setPoolId}
           />
         ) : null}
-        <Card variant="default" padding="lg" className="text-center">
-          <PageTitle as="h2" variant="section" className="mb-2">
+        <Card variant="default" padding="none" className={`${STANDINGS_CARD_SHELL} text-center`}>
+          <PageTitle as="h2" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
             Results aren&apos;t up yet
           </PageTitle>
-          <p className="mx-auto max-w-sm font-bold leading-relaxed text-content-secondary">
+          <p className={`mx-auto max-w-sm ${STANDINGS_BOX_BODY}`}>
             This date hasn&apos;t happened yet. Lock your picks on Picks, then check
             Standings after the show for scores and rankings.
           </p>
@@ -255,20 +258,20 @@ export default function StandingsShowOrPoolView({ screen }) {
       {displayedPicks.length === 0 ? (
         <Card
           variant="default"
-          padding="lg"
-          className="mt-8 flex flex-col items-center justify-center text-center"
+          padding="none"
+          className={`mt-8 flex flex-col items-center justify-center text-center ${STANDINGS_CARD_SHELL}`}
         >
           {showStatus === 'PAST' ? (
             <>
               <Inbox
-                className="mb-4 h-14 w-14 text-content-secondary"
+                className="mb-3 h-10 w-10 text-content-secondary"
                 strokeWidth={1.5}
                 aria-hidden
               />
-              <PageTitle as="h3" variant="section" className="mb-2">
+              <PageTitle as="h3" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
                 No picks for this show
               </PageTitle>
-              <p className="max-w-sm font-bold text-content-secondary">
+              <p className={`max-w-sm ${STANDINGS_BOX_BODY}`}>
                 {isPoolsView
                   ? 'Nobody in this pool submitted picks for this date.'
                   : 'Nobody submitted picks for this date.'}
@@ -277,42 +280,30 @@ export default function StandingsShowOrPoolView({ screen }) {
           ) : (
             <>
               <Music
-                className="mb-4 h-14 w-14 text-brand-primary/80"
+                className="mb-3 h-10 w-10 text-brand-primary/80"
                 strokeWidth={1.5}
                 aria-hidden
               />
-              <PageTitle as="h3" variant="section" className="mb-2">
+              <PageTitle as="h3" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
                 No picks yet
               </PageTitle>
-              {isPoolsView ? (
-                <>
-                  <p className="mb-4 max-w-sm font-bold text-content-secondary">
-                    Nobody in this pool has locked in yet. Invite friends to join
-                    the fun.
-                  </p>
-                  {inviteChooser?.openChooser ? (
-                    <InviteChooserTrigger
-                      onClick={inviteChooser.openChooser}
-                      variant="emphasis"
-                      label="Invite friends"
-                    />
-                  ) : null}
-                </>
-              ) : (
-                <>
-                  <p className="mb-4 max-w-sm font-bold text-content-secondary">
-                    Be the first to lock in picks for this show — head to the
-                    Picks tab — or invite friends to play along.
-                  </p>
-                  {inviteChooser?.openChooser ? (
-                    <InviteChooserTrigger
-                      onClick={inviteChooser.openChooser}
-                      variant="emphasis"
-                      label="Invite friends to play this show"
-                    />
-                  ) : null}
-                </>
-              )}
+              <p className={`max-w-sm ${STANDINGS_BOX_BODY}`}>
+                {isPoolsView ? (
+                  <>
+                    Nobody in this pool has locked in yet.{' '}
+                    <button
+                      type="button"
+                      onClick={inviteChooser?.openChooser}
+                      className="font-bold text-brand-primary underline decoration-brand-primary/50 underline-offset-2 transition-colors hover:text-brand-primary-strong"
+                    >
+                      Invite friends
+                    </button>{' '}
+                    to join the fun.
+                  </>
+                ) : (
+                  'Be the first to lock in picks for this show — head to the Picks tab.'
+                )}
+              </p>
             </>
           )}
         </Card>

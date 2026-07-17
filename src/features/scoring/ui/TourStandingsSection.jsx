@@ -6,6 +6,12 @@ import {
   TOUR_STANDINGS_HEADING,
 } from '../../../shared/config/dashboardVocabulary';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
+import {
+  STANDINGS_BOX_BODY,
+  STANDINGS_BOX_PAD,
+  STANDINGS_BOX_RADIUS,
+  STANDINGS_BOX_TITLE,
+} from './standingsSurfaceClasses';
 
 const rankBadgeClass = (rank) => {
   if (rank === 1) return 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40';
@@ -38,17 +44,17 @@ export default function TourStandingsSection({ tourName, leaders, loading, error
   return (
     <section
       aria-label={heading}
-      className="mt-10 rounded-2xl border border-border-subtle/35 bg-surface-panel/40 p-4 shadow-inset-glass sm:p-5"
+      className={`mt-10 ${STANDINGS_BOX_RADIUS} border border-border-subtle/35 bg-surface-panel/40 ${STANDINGS_BOX_PAD} shadow-inset-glass`}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-content-secondary">
+          <h2 className="text-[10px] font-black uppercase tracking-widest text-content-secondary">
             {heading}
           </h2>
-          <p className="mt-0.5 text-base font-bold text-white sm:text-lg">
+          <p className={`mt-0.5 ${STANDINGS_BOX_TITLE}`}>
             {tourName || 'Current tour'}
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-content-secondary">
+          <p className={`mt-0.5 ${STANDINGS_BOX_BODY}`}>
             {TOUR_STANDINGS_DESCRIPTION}
           </p>
         </div>
@@ -61,13 +67,13 @@ export default function TourStandingsSection({ tourName, leaders, loading, error
       </div>
 
       {error ? (
-        <p className="rounded-lg border border-red-900/50 bg-red-900/20 px-3 py-2 text-sm font-bold text-red-200">
+        <p className={`rounded-xl border border-red-900/50 bg-red-900/20 px-3.5 py-3 ${STANDINGS_BOX_BODY} !text-red-200`}>
           Couldn&apos;t load tour standings. Try refreshing.
         </p>
       ) : null}
 
       {!loading && !error && leaders.length === 0 ? (
-        <p className="text-sm font-semibold text-content-secondary">
+        <p className={STANDINGS_BOX_BODY}>
           No graded picks in this tour yet.
         </p>
       ) : null}

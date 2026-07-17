@@ -16,7 +16,11 @@ import PicksPage from '../../pages/picks/PicksPage';
 import PoolsPage from '../../pages/pools/PoolsPage';
 import StandingsPage from '../../pages/standings/StandingsPage';
 import ProfilePage from '../../pages/profile/ProfilePage';
-import { ScoringRulesModalProvider } from '../../features/scoring';
+import {
+  ScoringRulesModalProvider,
+  StandingsTourScopeSelect,
+  useStandingsTourSelection,
+} from '../../features/scoring';
 import {
   NAV_LABEL_ADMIN,
   NAV_LABEL_PICKS,
@@ -32,8 +36,6 @@ import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
 import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
 import {
   showOptionLabelCompact,
-  showOptionLabelDesktop,
-  showOptionTitle,
 } from '../../shared/utils/showOptionLabel.js';
 import { PastShowLockBanner, TooEarlyBanner, useSetlistLockToast } from '../../features/picks';
 import { DashboardInstallEngageBanner } from '../../features/install';
@@ -47,15 +49,13 @@ import {
   brandAppChromeMarkImgClassNames,
   brandWordmarkDashboardSidebarScaleWrapperClassNames,
 } from '../../shared/config/branding';
-import {
-  dashboardTourDateLabelGradientClasses,
-  dashboardTourDateSelectChromeDesktopWrap,
-} from '../../shared/config/dashboardHeadingTypography';
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import { usePrefetchDashboardRoutes } from './model/usePrefetchDashboardRoutes';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
+import DashboardTourDateScope from './ui/DashboardTourDateScope';
+import { DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID } from '../../shared/hooks/useDashboardMobileChromePortal';
 
 import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
 
@@ -87,6 +87,10 @@ export default function DashboardLayout() {
   const [searchParams] = useSearchParams();
   const { user, isAdmin } = useAuth();
   const { showDates, showDatesByTour } = useShowCalendar();
+  // URL-synced (`?tour=`) — same instance the Standings screen reads, so the
+  // chrome tour picker and the tour leaderboard stay consistent (#295/#609).
+  const { selectedTour, setTourKey, selectableTours } =
+    useStandingsTourSelection(showDatesByTour);
   usePendingPoolJoin(showDates);
   usePrefetchDashboardRoutes(location.pathname);
 
@@ -140,6 +144,21 @@ export default function DashboardLayout() {
   const showTooEarlyBanner = showDatePickerUserBanners && datePickerStatus === 'FUTURE';
 
   const isWarRoomRoute = meta.desktopHeadingTone === 'warRoom';
+  const isStandingsRoute =
+    location.pathname === '/dashboard/standings' ||
+    location.pathname === '/dashboard/standings/';
+  const isPicksRoute =
+    location.pathname === '/dashboard' ||
+    location.pathname === '/dashboard/' ||
+    location.pathname === '/dashboard/picks' ||
+    location.pathname === '/dashboard/picks/';
+  const isPoolsListRoute =
+    location.pathname === '/dashboard/pools' ||
+    location.pathname === '/dashboard/pools/';
+  const isProfileCluster = isProfileClusterPath(location.pathname);
+  /** Primary tabs nest controls under the mobile context bar (Standings pattern). */
+  const usesMobileFixedChrome =
+    isStandingsRoute || isPicksRoute || isPoolsListRoute || isProfileCluster;
 
   return (
     <ScoringRulesModalProvider>
@@ -204,63 +223,81 @@ export default function DashboardLayout() {
         </div>
       </nav>
 
-      {/* MOBILE TOP HEADERS — safe area + context bar anchored below brand (top-full) */}
+      {/* MOBILE TOP HEADERS — safe area + context (+ page chrome) under brand */}
       <div className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]">
         <div className="relative">
           <DashboardMobileBrandBar user={user} />
-          <DashboardMobileContextBar
-            scrollDirection={scrollDirection}
-            contextTitle={meta.contextTitle}
-            contextTitleTone={meta.desktopHeadingTone}
-            showDatePicker={meta.showDatePicker}
-            selectedDate={selectedDate}
-            onSelectedDateChange={setSelectedDate}
-            showDatesByTour={showDatesByTour}
-          />
+          {/*
+            Context + optional page chrome share one absolute stack under the
+            brand bar so scroll-hide moves them together. Pages portal into
+            #dashboard-mobile-fixed-chrome-root (Standings / Picks / Pools / Profile).
+          */}
+          <div
+            className={`absolute top-full left-0 z-10 w-full transition-transform duration-300 ease-in-out ${
+              scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
+            }`}
+          >
+            <DashboardMobileContextBar
+              contextTitle={meta.contextTitle}
+              contextTitleTone={meta.desktopHeadingTone}
+              showDatePicker={meta.showDatePicker}
+              selectedDate={selectedDate}
+              onSelectedDateChange={setSelectedDate}
+              showDates={showDates}
+              showDatesByTour={showDatesByTour}
+              tourScope={
+                meta.isStandingsTourView
+                  ? {
+                      tours: selectableTours,
+                      selectedTourKey: selectedTour?.tour ?? null,
+                      onSelectTour: setTourKey,
+                    }
+                  : null
+              }
+            />
+            {usesMobileFixedChrome ? (
+              <div id={DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID} />
+            ) : null}
+          </div>
         </div>
       </div>
 
-      {/* MAIN CONTENT AREA — mobile: match header stack + bottom nav + home indicator */}
-      <main className="flex-1 min-w-0 overflow-y-auto pt-[calc(env(safe-area-inset-top,0px)+9rem)] pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8 relative">
+      {/* MAIN CONTENT — routes with fixed chrome get extra top pad for the pills row */}
+      <main
+        className={[
+          'flex-1 min-w-0 overflow-y-auto relative',
+          'pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8',
+          usesMobileFixedChrome
+            ? 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
+            : 'pt-[calc(env(safe-area-inset-top,0px)+9rem)]',
+        ].join(' ')}
+      >
         <div className="max-w-xl mx-auto w-full min-w-0 px-4 pt-2 md:p-8">
           
-          {/* DESKTOP Global Date Picker */}
-          {meta.showDatePicker && (
-            <div className="mb-6 hidden min-w-0 items-center justify-between gap-4 rounded-2xl border border-border-muted/70 bg-surface-panel-strong p-3 shadow-inset-glass ring-1 ring-border-glass/45 backdrop-blur-md md:flex">
-              <span
-                className={`shrink-0 px-2 text-xs font-black uppercase tracking-widest ${dashboardTourDateLabelGradientClasses}`}
-              >
-                Tour Date:
-              </span>
-              <div className="min-w-0 w-64 max-w-full shrink">
-                <div className={dashboardTourDateSelectChromeDesktopWrap}>
-                  <select
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="show-date-select w-full min-w-0 max-w-full cursor-pointer appearance-none rounded-[11px] border-0 bg-surface-field px-3 py-2.5 text-base font-bold text-white outline-none ring-0 transition-colors focus:border-transparent focus:ring-0"
-                  >
-                    {showDatesByTour.map(({ tour, shows }, idx) => (
-                      <optgroup
-                        key={`${tour}-${shows[0]?.date ?? idx}`}
-                        label={tour}
-                        className="tour-optgroup"
-                      >
-                        {shows.map((show) => (
-                          <option
-                            key={show.date}
-                            value={show.date}
-                            title={showOptionTitle(show)}
-                          >
-                            {showOptionLabelDesktop(show)}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
-              </div>
+          {/* DESKTOP Global Date Picker — sticky first chrome row on every route that shows it. */}
+          {meta.showDatePicker ? (
+            <div className="sticky top-0 z-30 -mx-4 mb-6 hidden bg-brand-bg/90 px-4 pb-3 pt-1 backdrop-blur-md supports-[backdrop-filter]:bg-brand-bg/75 md:-mx-8 md:block md:px-8">
+              <DashboardTourDateScope
+                variant="desktop"
+                selectedDate={selectedDate}
+                onSelectedDateChange={setSelectedDate}
+                showDates={showDates}
+                showDatesByTour={showDatesByTour}
+              />
             </div>
-          )}
+          ) : null}
+
+          {/* DESKTOP Tour scope — same sticky slot/treatment as Tour Date on the Standings Tour view. */}
+          {meta.isStandingsTourView ? (
+            <div className="sticky top-0 z-30 -mx-4 mb-6 hidden bg-brand-bg/90 px-4 pb-3 pt-1 backdrop-blur-md supports-[backdrop-filter]:bg-brand-bg/75 md:-mx-8 md:block md:px-8">
+              <StandingsTourScopeSelect
+                variant="desktop"
+                tours={selectableTours}
+                selectedTourKey={selectedTour?.tour ?? null}
+                onSelectTour={setTourKey}
+              />
+            </div>
+          ) : null}
 
           {showPastShowLock && <PastShowLockBanner />}
           {showTooEarlyBanner && (

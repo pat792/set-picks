@@ -353,6 +353,7 @@ These `VITE_*` variables are read at build time. Adding or removing one is a MIN
 | `VITE_SETLIST_API_SOURCE` | No | Setlist data source override |
 | `VITE_USE_CALLABLE_PHISHNET_SETLIST` | No | Route fetches through callable |
 | `VITE_SONG_CATALOG_URL` | No | CDN URL override for song catalog |
+| `VITE_ENABLE_SPONSOR_SLOTS` | No | `true` renders reserved sponsor/ad placements (`SponsorSlot`); omit to hide (default) |
 
 ### 4.1 Cloud Functions runtime env vars
 

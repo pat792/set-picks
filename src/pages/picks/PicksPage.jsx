@@ -1,10 +1,12 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
-import { CheckCircle2, ChevronDown, Lock, Scale } from 'lucide-react';
+import { CheckCircle2, Lock, Scale } from 'lucide-react';
 
 import { logCommsEmailLanded } from '../../features/comms';
 import {
   PicksFieldsForm,
+  PicksMobileFixedChrome,
   PicksSelfRecapSection,
   PicksSubmitButton,
   trackPicksPageInteractive,
@@ -13,6 +15,7 @@ import {
 } from '../../features/picks';
 import { useShowCalendar } from '../../features/show-calendar';
 import { useScoringRulesModal } from '../../features/scoring';
+import { useDashboardMobileChromePortal } from '../../shared/hooks/useDashboardMobileChromePortal';
 import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel';
 import Card from '../../shared/ui/Card';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
@@ -41,6 +44,7 @@ export default function PicksPage({ user, selectedDate }) {
   const statusContentId = useId();
   const landedLoggedRef = useRef(false);
   const interactiveLoggedRef = useRef(false);
+  const mobileChromeRoot = useDashboardMobileChromePortal();
 
   const shouldShowSavedStatus = !isLocked && hasExistingPicks;
   const shouldShowLockedStatus = isLocked;
@@ -75,41 +79,31 @@ export default function PicksPage({ user, selectedDate }) {
       comms_trigger_id: campaign || undefined,
     });
   }, [isLoadingPicks, selectedDate, searchParams]);
+
+  const mobileFixedChrome = (
+    <PicksMobileFixedChrome
+      onOpenScoringRules={openScoringRules}
+      shouldShowStatus={shouldShowStatus}
+      shouldShowLockedStatus={shouldShowLockedStatus}
+      isStatusExpanded={isMobileStatusExpanded}
+      onToggleStatus={() => setIsMobileStatusExpanded((prev) => !prev)}
+      statusContentId={statusContentId}
+    />
+  );
+
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
-      <DashboardActionRow>
-        <div className="flex w-full flex-wrap items-center justify-between gap-2">
+      {mobileChromeRoot
+        ? createPortal(mobileFixedChrome, mobileChromeRoot)
+        : null}
+
+      <div className="hidden md:block">
+        <DashboardActionRow>
           <GhostPill icon={Scale} onClick={openScoringRules}>
             Scoring rules
           </GhostPill>
-          {shouldShowStatus ? (
-            <GhostPill
-              type="button"
-              icon={shouldShowLockedStatus ? Lock : CheckCircle2}
-              className={[
-                'md:hidden',
-                shouldShowLockedStatus
-                  ? 'border-amber-500/35 bg-amber-500/10 text-amber-200/90 hover:border-amber-500/45 hover:bg-amber-500/15 hover:text-amber-100'
-                  : 'border-brand-primary/40 bg-brand-primary/10 text-brand-primary hover:border-brand-primary/55 hover:bg-brand-primary/15 hover:text-brand-primary',
-              ].join(' ')}
-              aria-expanded={isMobileStatusExpanded}
-              aria-controls={statusContentId}
-              onClick={() => setIsMobileStatusExpanded((prev) => !prev)}
-            >
-              <span className="flex items-center gap-1">
-                {shouldShowLockedStatus ? 'Picks locked' : 'Picks saved'}
-                <ChevronDown
-                  className={[
-                    'h-3.5 w-3.5 shrink-0 transition-transform',
-                    isMobileStatusExpanded ? 'rotate-180' : '',
-                  ].join(' ')}
-                  aria-hidden
-                />
-              </span>
-            </GhostPill>
-          ) : null}
-        </div>
-      </DashboardActionRow>
+        </DashboardActionRow>
+      </div>
       <div className="relative">
         {shouldShowStatus ? (
           <>

@@ -1,8 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.22.3",
-  "type": "module",
+  "version": "1.23.0",  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

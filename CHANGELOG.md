@@ -12,6 +12,35 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.23.0] — 2026-07-16
+
+### Added
+- **Sponsor slot seam (#609)** — `shared/ui/SponsorSlot` reserved placement composed on Standings below the sticky chrome; renders nothing unless `VITE_ENABLE_SPONSOR_SLOTS=true` (ads epic #419 Phase 1 seam).
+- **Standings GA4 events (#609)** — `standings_view_change { from, to }` on Show/Tour/Pools switches and `scoring_rules_opened { surface }`, closing the measurement blind spots for standings iteration.
+
+### Changed
+- **Standings sticky chrome declutter (#609)** — sticky tier now holds only the Show/Tour/Pools switcher: full-width equal-thirds segmented control on mobile (never wraps), inline pill group on desktop. Invite moves out of chrome into an in-flow content promo (`StandingsInvitePromo`) on both breakpoints; Scoring rules stays as a desktop sticky utility and a mobile Scale icon. Reserved-padding hacks removed.
+- **Standings mobile Views header (#609)** — Show/Tour/Pools is a fixed H3 header in the mobile chrome stack directly under the Standings context bar (portaled `StandingsMobileFixedChrome`), not sticky-in-`main`. Desktop keeps sticky page chrome.
+- **Desktop Tour Date sticky everywhere** — sticky Tour Date chrome (previously Standings-only) applies on all `showDatePicker` routes (Picks, Pools, Admin, Standings Show/Pools).
+- **Mobile fixed chrome on primary tabs (#609)** — Picks (Scale + status), Pools (Go to Picks + How pools work), and Profile (section sub-nav) nest under the context bar via a shared `#dashboard-mobile-fixed-chrome-root` portal, matching Standings scroll-hide behavior.
+- **Mobile chrome tier heights + surfaces (#609)** — shared `DashboardMobileChromeBar` (`min-h-[3.5rem]`, `bg-brand-bg/95`) so tools rows match across tabs; context bar gains `min-h-[3.375rem]` and stays `surface-chrome`, so the stack reads brand → lighter title chrome → darker page-toned tools → content.
+- **Mobile chrome control harmonization (#609)** — shared `ChromeSegmentedControl` (boxed toggle) for Profile sections and Standings views (icons kept on Show/Tour/Pools); shared `ChromeIconButton` for Scoring rules on Picks/Standings; Pools action pills use unified `text-xs` + `h-3.5` icon sizing.
+- **Standings tour scope in chrome (#609)** — the Tour view's tour selector (`StandingsTourScopeSelect`) now lives in the dashboard chrome Tour Date slot (mobile context bar + desktop sticky row) with the same treatment as the date picker, instead of an in-flow picker above the leaderboard. Single-tour case shows a static label; the in-flow `TourPicker` remains for the pool hub standings section.
+- **Tour Date scope stepper (#609)** — single-row Tour Date control with prev/next double-chevron arrows in rounded-square hit targets (`ChromeScopeStepper` + `DashboardTourDateScope`). Mobile context bar clusters title + date left and keeps a trailing portal for Standings Scoring rules (Scale); Show/Tour/Pools fills the tools band full-width. Tour scope stays a single-row select without arrows (only ~2 selectable tours today; revisit when the list regularly exceeds ~3).
+- **Standings surface harmonization (#609 polish)** — content boxes share invite/sponsor geometry (`rounded-xl`, even pad) and title/body type scale; colors stay per-surface.
+- **Picks mobile Scale → H2 (#609 polish)** — Scoring rules portals into the context-bar trailing slot (mirrors Standings); empty tools band omitted when no lock/saved status.
+- **How pools work (#609 polish)** — in-flow solid panel below chrome (not translucent overlay); trigger font matches other tools pills.
+- **Invite promo copy + shell (#609 polish)** — “Invite your crew” + text/social secondary; sponsor-matching fill/border with teal interior accents. Chooser secondary copy updated for site vs pool paths.
+- **Last-show winner banner (#609 polish)** — visible only while selected show is `NEXT` (picks open); hides after lock (`LIVE`).
+- **Tour Date select font (#609 polish)** — slightly smaller so more venue characters fit before clip.
+- **Share-your-score secondary copy** — “Share your box score via text or social.”
+
+### Fixed
+- **Active Show venue label (#609 polish)** — Standings card uses full desktop show label (no 40-char compact truncate).
+- **Waiting-for-setlist collapse (#609 polish)** — chevron flips and toggles expand/collapse (no separate Collapse control).
+
+---
+
 ## [1.22.3] — 2026-07-16
 
 ### Fixed

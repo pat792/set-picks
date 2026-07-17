@@ -1,24 +1,46 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 import { InviteChooserSheet } from '../../features/invite';
 import {
-  StandingsChrome,
+  StandingsInvitePromo,
+  StandingsMobileFixedChrome,
   StandingsShowOrPoolView,
+  StandingsSponsorPreview,
+  StandingsStickyChrome,
   StandingsTourView,
   useStandingsScreen,
 } from '../../features/scoring';
+import { useDashboardMobileChromePortal } from '../../shared/hooks/useDashboardMobileChromePortal';
+import { SponsorSlot } from '../../shared/ui';
 
 export default function StandingsPage({ selectedDate, onSelectShowDate }) {
   const screen = useStandingsScreen(selectedDate, { onSelectShowDate });
   const invite = screen.inviteChooser;
+  const mobileChromeRoot = useDashboardMobileChromePortal();
+
+  const mobileFixedChrome = (
+    <StandingsMobileFixedChrome
+      view={screen.view}
+      onChange={screen.setView}
+      onOpenScoringRules={screen.openScoringRules}
+    />
+  );
 
   return (
     <div className="w-full">
-      <StandingsChrome
+      {mobileChromeRoot
+        ? createPortal(mobileFixedChrome, mobileChromeRoot)
+        : null}
+
+      {/* Desktop sticky chrome — mobile Views live in the fixed header stack. */}
+      <StandingsStickyChrome
         view={screen.view}
         onChange={screen.setView}
         onOpenScoringRules={screen.openScoringRules}
-        onOpenInvite={invite.openChooser}
+        pinBelowDesktopDatePicker={
+          screen.view !== 'tour' || (screen.selectableTours?.length ?? 0) > 0
+        }
       />
 
       <InviteChooserSheet
@@ -37,20 +59,32 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
         onBackToChoose={invite.backToChoose}
       />
 
-      {screen.view === 'tour' ? (
-        <StandingsTourView
-          tourName={screen.selectedTour?.tour}
-          leaders={screen.tourLeaders}
-          loading={screen.tourLoading}
-          error={screen.tourError}
-          hasCurrentTour={Boolean(screen.selectedTour)}
-          selectableTours={screen.selectableTours}
-          selectedTourKey={screen.selectedTour?.tour ?? null}
-          onSelectTour={screen.setTourKey}
+      <div className="mt-4 md:mt-5">
+        <StandingsInvitePromo
+          onInvite={invite.openChooser}
+          className="mb-4"
         />
-      ) : (
-        <StandingsShowOrPoolView screen={screen} />
-      )}
+
+        {/*
+          Ads epic #419 Phase 1 seam — no-op unless VITE_ENABLE_SPONSOR_SLOTS.
+          Filled house-promo mock for local layout QA (#609); #121 replaces this.
+        */}
+        <SponsorSlot slotId="dashboard-standings-top" className="mb-4">
+          <StandingsSponsorPreview onCtaClick={invite.openChooser} />
+        </SponsorSlot>
+
+        {screen.view === 'tour' ? (
+          <StandingsTourView
+            tourName={screen.selectedTour?.tour}
+            leaders={screen.tourLeaders}
+            loading={screen.tourLoading}
+            error={screen.tourError}
+            hasCurrentTour={Boolean(screen.selectedTour)}
+          />
+        ) : (
+          <StandingsShowOrPoolView screen={screen} />
+        )}
+      </div>
     </div>
   );
 }

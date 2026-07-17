@@ -49,19 +49,19 @@ export default function LeaderboardList({
     <div className="space-y-4 pb-6 md:pb-16 text-white">
       {showLeaderCallout ? (
         <div
-          className="mx-0.5 rounded-xl border border-brand-primary/35 bg-brand-primary/[0.07] px-4 py-3 shadow-inset-glass"
+          className="mx-0.5 rounded-xl border border-brand-primary/35 bg-brand-primary/[0.07] px-3.5 py-3.5 shadow-inset-glass md:px-4 md:py-4"
           role="status"
         >
           <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
             {LEADING_THIS_SHOW}
           </p>
-          <p className="mt-1 text-sm font-bold text-slate-100">
+          <p className="mt-1 text-sm font-bold leading-snug text-slate-100 md:text-base">
             <span className="text-brand-primary">{leader.handle || 'Anonymous'}</span>
             {' — '}
             <span className="tabular-nums text-white">{leaderScore}</span>
             <span className="font-semibold text-content-secondary"> pts</span>
             {sortedPicks.length > 1 ? (
-              <span className="mt-1 block text-xs font-medium text-content-secondary">
+              <span className="mt-1 block text-[11px] font-medium text-content-secondary md:text-xs">
                 Expand a row to compare picks and points for this show.
               </span>
             ) : null}
@@ -71,10 +71,10 @@ export default function LeaderboardList({
 
       <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 px-2">
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-sm font-bold uppercase leading-snug break-words text-content-secondary sm:text-display-sm md:text-display-md-lg sm:leading-none">
+          <h2 className="text-[10px] font-black uppercase tracking-widest text-content-secondary">
             {SHOW_STANDINGS_EYEBROW}
           </h2>
-          <p className="mt-0.5 font-display text-base font-bold text-white break-words sm:text-lg md:text-xl">
+          <p className="mt-0.5 text-sm font-bold leading-snug text-white break-words md:text-base">
             {title}
           </p>
         </div>

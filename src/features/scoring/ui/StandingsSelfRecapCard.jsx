@@ -61,7 +61,7 @@ export default function StandingsSelfRecapCard({
         : rankLine;
 
   const rowLeading = 'leading-none';
-  const rowType = `text-base font-bold ${rowLeading} sm:text-lg`;
+  const rowType = `text-sm font-bold ${rowLeading} md:text-base`;
 
   const rankOfTotalCluster =
     recap.displayRank != null ? (
@@ -177,9 +177,14 @@ export default function StandingsSelfRecapCard({
         className={`${bodyOnly ? 'mt-2' : 'mt-3'} border-t border-border-subtle/35 pt-3`}
       >
         {bodyOnly ? null : (
-          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-content-secondary">
-            Share your score
-          </p>
+          <div className="mb-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-content-secondary">
+              Share your score
+            </p>
+            <p className="mt-0.5 text-[11px] font-medium leading-snug text-content-secondary md:text-xs">
+              Share your box score via text or social
+            </p>
+          </div>
         )}
         <GradedPicksShareBar
           variant="actionsOnly"
@@ -199,7 +204,7 @@ export default function StandingsSelfRecapCard({
       </p>
     ) : null;
 
-  const shellClass = `rounded-xl border border-border-subtle/55 bg-surface-panel/55 px-4 py-2.5 shadow-inset-glass ring-1 ring-brand-primary/15 ${className}`;
+  const shellClass = `rounded-xl border border-border-subtle/55 bg-surface-panel/55 px-3.5 py-3.5 shadow-inset-glass ring-1 ring-brand-primary/15 md:px-4 md:py-4 ${className}`;
 
   if (useCollapsible) {
     return (
