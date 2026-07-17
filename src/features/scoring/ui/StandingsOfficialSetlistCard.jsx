@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronDown, ExternalLink, ListMusic } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
+import { SCORING_RULES } from '../../../shared/utils/scoring';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
 import {
   buildBustoutTitleSet,
@@ -17,6 +18,8 @@ import {
   STANDINGS_BOX_TITLE,
   STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
+
+const { BUSTOUT_MIN_GAP } = SCORING_RULES;
 
 /** Invisible 4-col grid per row: # | title | gap | bustout — fixed tracks keep columns aligned. */
 const SETLIST_ROW_GRID =
@@ -36,7 +39,12 @@ function SetSongList({ label, songs, bustoutTitleSet, gapMap }) {
         <span className="tabular-nums">#</span>
         <span>Song</span>
         <span className="justify-self-end">Gap</span>
-        <span className="justify-self-end">Bustout</span>
+        <span
+          className="justify-self-end"
+          title={`Pre-show gap ≥ ${BUSTOUT_MIN_GAP} shows — Bustout Boost eligible`}
+        >
+          Bustout
+        </span>
       </div>
       <ol className={`space-y-0.5 ${STANDINGS_BOX_BODY} text-slate-100`}>
         {songs.map((title, idx) => {
@@ -172,6 +180,10 @@ export default function StandingsOfficialSetlistCard({
                 bustoutTitleSet={bustoutTitleSet}
                 gapMap={gapMap}
               />
+              <p className="text-[11px] font-semibold leading-relaxed text-content-secondary">
+                Gap = shows since last played before this night. Bustout = gap ≥{' '}
+                {BUSTOUT_MIN_GAP} (Bustout Boost eligible).
+              </p>
             </div>
           ) : (
             <p className={STANDINGS_BOX_BODY}>
