@@ -3,6 +3,10 @@ import { Loader2 } from 'lucide-react';
 
 import { formatMonthYear } from '../../../shared';
 import BackButton from '../../../shared/ui/BackButton';
+import {
+  computeAvgPointsPerShow,
+  formatAvgPointsPerShow,
+} from '../model/profileAverages';
 
 function formatPlayingSince(createdAt) {
   const value = formatMonthYear(createdAt);
@@ -36,9 +40,13 @@ export default function PublicProfileView({
     typeof stats?.totalPoints === 'number' ? stats.totalPoints : 0;
   const wins = typeof stats?.wins === 'number' ? stats.wins : 0;
   const shows = typeof stats?.shows === 'number' ? stats.shows : 0;
+  const avgPointsDisplay = formatAvgPointsPerShow(
+    computeAvgPointsPerShow(stats)
+  );
 
   const statColumns = [
     { key: 'points', label: 'Total points', value: totalPoints },
+    { key: 'avg', label: 'Avg / show', value: avgPointsDisplay },
     { key: 'wins', label: 'Wins', value: wins },
     { key: 'shows', label: 'Shows', value: shows },
   ];
@@ -92,7 +100,7 @@ export default function PublicProfileView({
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-content-secondary">
             Stats
           </h2>
-          <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-center">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-center sm:grid-cols-4">
             {statColumns.map(({ key, label }) => (
               <p
                 key={`${key}-label`}
@@ -120,8 +128,9 @@ export default function PublicProfileView({
             ))}
           </div>
           <p className="mt-3 text-[11px] font-medium leading-relaxed text-content-secondary">
-            Running totals across every graded night. Wins count shows where
-            this player had the top score overall, not just in a single pool.
+            Running totals across every graded night. Avg / show is total
+            points divided by shows played. Wins count nights with the overall
+            top score, not just in a single pool.
           </p>
         </section>
       </div>

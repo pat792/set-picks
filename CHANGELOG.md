@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.24.1] — 2026-07-16
+
+### Added
+- **Profile avg points / show (#554 slice A)** — public profile stats strip derives average points per graded show from existing career totals (no extra Firestore reads).
+
+---
+
 ## [1.24.0] — 2026-07-16
 
 ### Added
