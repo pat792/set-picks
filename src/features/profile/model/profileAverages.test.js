@@ -1,27 +1,74 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildDebutYearBySongName,
   computeAvgPointsPerShow,
+  computeAvgSongVintage,
+  debutYearFromCatalogDebut,
   formatAvgPointsPerShow,
+  formatAvgSongVintage,
 } from './profileAverages';
 
 describe('profileAverages', () => {
-  it('computes avg points per show from career totals', () => {
+  it('computes mean points per show', () => {
     expect(computeAvgPointsPerShow({ totalPoints: 210, shows: 5 })).toBe(42);
     expect(computeAvgPointsPerShow({ totalPoints: 100, shows: 3 })).toBeCloseTo(
-      100 / 3
+      33.333,
+      2,
     );
   });
 
-  it('returns null when shows are missing or zero', () => {
+  it('returns null when shows is missing or zero', () => {
     expect(computeAvgPointsPerShow({ totalPoints: 10, shows: 0 })).toBeNull();
     expect(computeAvgPointsPerShow({ totalPoints: 10 })).toBeNull();
-    expect(computeAvgPointsPerShow(null)).toBeNull();
   });
 
-  it('formats display with at most one decimal', () => {
+  it('formats avg points for display', () => {
     expect(formatAvgPointsPerShow(42)).toBe('42');
-    expect(formatAvgPointsPerShow(100 / 3)).toBe('33.3');
+    expect(formatAvgPointsPerShow(33.333)).toBe('33.3');
     expect(formatAvgPointsPerShow(null)).toBe('—');
+  });
+
+  it('parses debut years from catalog strings', () => {
+    expect(debutYearFromCatalogDebut('1990-09-28')).toBe(1990);
+    expect(debutYearFromCatalogDebut('1983')).toBe(1983);
+    expect(debutYearFromCatalogDebut('')).toBeNull();
+    expect(debutYearFromCatalogDebut('—')).toBeNull();
+    expect(debutYearFromCatalogDebut(1997)).toBe(1997);
+  });
+
+  it('builds a case-insensitive debut year map', () => {
+    const map = buildDebutYearBySongName([
+      { name: 'Tweezer', debut: '1990-09-28' },
+      { name: 'Wilson', debut: '' },
+      { name: 'Ghost', debut: '1997-06-13' },
+    ]);
+    expect(map.get('tweezer')).toBe(1990);
+    expect(map.has('wilson')).toBe(false);
+    expect(map.get('ghost')).toBe(1997);
+  });
+
+  it('averages vintage over unique dated titles only', () => {
+    const debuts = buildDebutYearBySongName([
+      { name: 'Tweezer', debut: '1990-09-28' },
+      { name: 'Ghost', debut: '1997-06-13' },
+    ]);
+    const result = computeAvgSongVintage(
+      ['Tweezer', 'tweezer', 'Ghost', 'Unknown Song'],
+      debuts,
+    );
+    expect(result.uniqueCount).toBe(3);
+    expect(result.datedCount).toBe(2);
+    expect(result.avgYear).toBeCloseTo((1990 + 1997) / 2, 5);
+    expect(formatAvgSongVintage(result.avgYear)).toBe('1994');
+  });
+
+  it('returns null avg when no titles are dated', () => {
+    expect(computeAvgSongVintage(['Foo'], new Map())).toEqual({
+      avgYear: null,
+      datedCount: 0,
+      uniqueCount: 1,
+    });
+    expect(formatAvgSongVintage(null)).toBe('—');
   });
 });

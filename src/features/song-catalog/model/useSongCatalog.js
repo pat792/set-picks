@@ -8,18 +8,18 @@ import {
 import { resolveSongCatalogFetchUrl } from './songCatalogUrl.js';
 
 /**
- * @typedef {{ fetchedAt: number, songs: { name: string, total?: string, gap?: string, last?: string }[], updatedAt?: string }} CatalogCacheV1
+ * @typedef {{ fetchedAt: number, songs: { name: string, total?: string, gap?: string, last?: string, debut?: string }[], updatedAt?: string }} CatalogCacheV1
  */
 
 /**
  * @param {unknown} body
- * @returns {{ name: string, total?: string, gap?: string, last?: string }[] | null}
+ * @returns {{ name: string, total?: string, gap?: string, last?: string, debut?: string }[] | null}
  */
 function songsFromResponseBody(body) {
   if (!body || typeof body !== 'object') return null;
   const songs = /** @type {Record<string, unknown>} */ (body).songs;
   if (!Array.isArray(songs) || songs.length === 0) return null;
-  return /** @type {{ name: string, total?: string, gap?: string, last?: string }[]} */ (
+  return /** @type {{ name: string, total?: string, gap?: string, last?: string, debut?: string }[]} */ (
     songs
   );
 }
@@ -64,7 +64,7 @@ function writeCatalogCache(entry) {
  * Falls back to bundled `PHISH_SONGS` when unavailable.
  *
  * @returns {{
- *   songs: { name: string, total?: string, gap?: string, last?: string }[],
+ *   songs: { name: string, total?: string, gap?: string, last?: string, debut?: string }[],
  *   source: 'cdn' | 'fallback',
  *   loadError: Error | null,
  *   isLoading: boolean,

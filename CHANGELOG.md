@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.25.0] — 2026-07-16
+
+### Added
+- **Song catalog `debut` field (#554 slice B)** — `song-catalog.json` rows now include Phish.net `debut` (string, empty when unknown). Profile avg-vintage helpers join pick titles to catalog debut years in memory; UI surfaces when pick titles are available (slice C / heatmap).
+
+---
+
 ## [1.24.1] — 2026-07-16
 
 ### Added
