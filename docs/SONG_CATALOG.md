@@ -7,7 +7,7 @@
 1. **Source of truth (live):** Phish.net API v5 `GET /v5/songs.json` (server-side only, `PHISHNET_API_KEY`).
 2. **Publish:** Cloud Functions write **`song-catalog.json`** to the **default Firebase Storage bucket** (`makePublic()` is best-effort; not required for the default client path).
 3. **Client URL:** By default the app uses **`getDownloadURL()`** (Firebase Storage SDK) for `song-catalog.json`. That respects **`storage.rules`** (`allow read: if true`) and avoids opening the whole bucket on **GCS IAM**. A raw browser URL like `https://storage.googleapis.com/<bucket>/song-catalog.json` **does not** use Firebase rules and returns **`AccessDenied`** for anonymous users unless you add **`allUsers` → Storage Object Viewer** on the bucket (usually avoid on buckets that hold private uploads). Override with **`VITE_SONG_CATALOG_URL`** only if you host the JSON elsewhere (CDN) with anonymous GET + CORS.
-4. **Fetch + cache:** `useSongCatalog` **`fetch()`**s the resolved URL. **localStorage** (`set-picks.songCatalogCache.v1`): if data was saved **within the last 3 days**, the hook **skips** both `getDownloadURL` and `fetch`. On failure, an **older cache** is used if present; otherwise **`src/shared/data/phishSongs.js`**.
+4. **Fetch + cache:** `useSongCatalog` **`fetch()`**s the resolved URL. **localStorage** (`set-picks.songCatalogCache.v2`): if data was saved **within the last 6 hours**, the hook **skips** both `getDownloadURL` and `fetch`. On failure, an **older cache** is used if present; otherwise **`src/shared/data/phishSongs.js`**.
 5. **Scoring does not read this catalog (post-#214).** `recomputeLiveScoresForShow` and `calculateSlotScore` in `functions/index.js` — and their client counterparts in `src/shared/utils/scoring.js` — read bustout membership from `actualSetlist.bustouts`. `functions/songCatalogSource.js` (5-minute TTL loader) is still present in-tree but is no longer threaded into grading; it can be removed in a follow-up once no code path imports it. The bundled catalogs (`src/shared/data/phishSongs.js`, `functions/phishSongs.js`) remain only as Storage-fallback seeds for `useSongCatalog` / the storage loader.
 
 ## Operations
@@ -43,9 +43,19 @@ Edit **`scripts/song-catalog-storage-cors.json`** if your web origin is not alre
 
 ```json
 {
-  "songs": [{ "name": "…", "total": "…", "gap": "…", "last": "…" }],
+  "songs": [{ "name": "…", "total": "…", "gap": "…", "last": "…", "debut": "…" }],
   "songCount": 975,
   "source": "phish.net/v5/songs",
   "updatedAt": "2026-04-09T12:00:00.000Z"
 }
 ```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `name` | string | Song title (Phish.net `song`) |
+| `total` | string | Times played (`times_played`), or `—` |
+| `gap` | string | Shows since last play (`gap`), or `—` |
+| `last` | string | Last played date (`last_played`), or `—` |
+| `debut` | string | First performance date/year (`debut`), typically `YYYY-MM-DD`; **empty string** when unknown (v1.25.0+, #554). Do **not** treat `gap` / `last` as vintage. |
+
+Bundled fallbacks (`src/shared/data/phishSongs.js`, `functions/phishSongs.js`) may omit `debut` — treat missing as unknown when computing avg song vintage.
