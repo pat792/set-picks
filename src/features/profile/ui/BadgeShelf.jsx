@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { resolveEarnedBadges } from '../model/badgeCatalog';
+import { trackBadgeShelfView } from '../model/profileEngagementAnalytics';
 
 /**
  * Earned milestone badges shelf (#568).
@@ -8,13 +9,25 @@ import { resolveEarnedBadges } from '../model/badgeCatalog';
  * @param {{
  *   badges?: Record<string, unknown> | null,
  *   emptyLabel?: string,
+ *   surface?: 'profile' | 'public_profile',
  * }} props
  */
 export default function BadgeShelf({
   badges = null,
   emptyLabel = 'No badges yet — play a scored show to start earning.',
+  surface = 'profile',
 }) {
   const earned = resolveEarnedBadges(badges);
+  const viewLoggedRef = useRef(false);
+
+  useEffect(() => {
+    if (viewLoggedRef.current) return;
+    viewLoggedRef.current = true;
+    trackBadgeShelfView({
+      surface,
+      badge_count: earned.length,
+    });
+  }, [surface, earned.length]);
 
   return (
     <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">

@@ -61,7 +61,7 @@ export default function ProfilePage({ user: userProp }) {
 
       <ProfileSelfStatsPanel uid={user?.uid} />
 
-      <BadgeShelf badges={badges} />
+      {!isLoading ? <BadgeShelf badges={badges} surface="profile" /> : null}
 
       <div className="mt-6">
         <ProfileEditForm

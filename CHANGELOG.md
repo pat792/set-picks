@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.30.1] — 2026-07-17
+
+### Added
+- **Feature engagement GA4 (#638)** — client events for recent surfaces: `live_setlist_view`, `tour_stats_view`, `avatar_changed`, `badge_shelf_view`; helpers for future `badge_pin_changed` (no pin UI yet) and `feature_spotlight_*` (wired in #639). Wrappers under scoring / tour-stats / profile / feature-discovery.
+
+---
+
 ## [1.30.0] — 2026-07-17
 
 ### Added

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from '../../auth';
 import { formatMonthYear } from '../../../shared';
@@ -8,6 +8,7 @@ import {
 } from '../api/profileApi';
 import { showSuccessToast } from '../../../shared/ui/toast';
 import { DEFAULT_AVATAR_ID, normalizeAvatarId } from './avatarCatalog';
+import { trackAvatarChanged } from './profileEngagementAnalytics';
 
 /**
  * Loads the signed-in user's profile, holds edit form state, and persists updates.
@@ -25,6 +26,8 @@ export function useUserProfile(user) {
   const [isLoading, setIsLoading] = useState(!!uid);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  /** Last persisted avatar — used to detect real changes on save (#638). */
+  const persistedAvatarIdRef = useRef(DEFAULT_AVATAR_ID);
 
   useEffect(() => {
     if (!uid) {
@@ -34,6 +37,7 @@ export function useUserProfile(user) {
       setAvatarId(DEFAULT_AVATAR_ID);
       setBadges(null);
       setJoinDate('');
+      persistedAvatarIdRef.current = DEFAULT_AVATAR_ID;
       return;
     }
 
@@ -45,7 +49,9 @@ export function useUserProfile(user) {
       if (data) {
         setHandle(data.handle || '');
         setFavoriteSong(data.favoriteSong || '');
-        setAvatarId(normalizeAvatarId(data.avatarId));
+        const nextAvatar = normalizeAvatarId(data.avatarId);
+        setAvatarId(nextAvatar);
+        persistedAvatarIdRef.current = nextAvatar;
         setBadges(
           data.badges && typeof data.badges === 'object' && !Array.isArray(data.badges)
             ? data.badges
@@ -55,6 +61,7 @@ export function useUserProfile(user) {
         setHandle('');
         setFavoriteSong('');
         setAvatarId(DEFAULT_AVATAR_ID);
+        persistedAvatarIdRef.current = DEFAULT_AVATAR_ID;
         setBadges(null);
       }
     };
@@ -112,12 +119,17 @@ export function useUserProfile(user) {
 
       try {
         const nextAvatarId = normalizeAvatarId(avatarId);
+        const avatarChanged = nextAvatarId !== persistedAvatarIdRef.current;
         await updateUserProfileWithPickHandles(uid, {
           handle: trimmedHandle,
           favoriteSong,
           avatarId: nextAvatarId,
         });
         setAvatarId(nextAvatarId);
+        persistedAvatarIdRef.current = nextAvatarId;
+        if (avatarChanged) {
+          trackAvatarChanged({ avatar_id: nextAvatarId });
+        }
         setMessage({ text: 'Profile updated successfully! 🎸', type: 'success' });
         showSuccessToast('Profile updated! 🎸');
         return true;

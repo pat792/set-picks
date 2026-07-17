@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ChevronDown, ExternalLink, ListMusic } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
@@ -11,6 +11,10 @@ import {
   groupOfficialSetlistBySet,
   isOfficialSetlistBustout,
 } from '../model/groupOfficialSetlistBySet';
+import {
+  resolveLiveSetlistStatus,
+  trackLiveSetlistView,
+} from '../model/standingsAnalytics';
 import OfficialPickSlotsGrid from './OfficialPickSlotsGrid';
 import {
   STANDINGS_BOX_BODY,
@@ -110,8 +114,25 @@ export default function StandingsOfficialSetlistCard({
   const grouped = groupOfficialSetlistBySet(actualSetlist);
   const bustoutTitleSet = buildBustoutTitleSet(actualSetlist);
   const gapMap = buildSongGapMap(actualSetlist);
+  const viewLoggedRef = useRef('');
 
-  if (!actualSetlist || (!grouped.hasSongs && !grouped.hasOfficialSlots)) {
+  const hasContent =
+    Boolean(actualSetlist) &&
+    (grouped.hasSongs || grouped.hasOfficialSlots);
+
+  useEffect(() => {
+    if (!hasContent) return;
+    const setlistStatus = resolveLiveSetlistStatus(showStatus);
+    const sig = `${showDate}|${setlistStatus}`;
+    if (viewLoggedRef.current === sig) return;
+    viewLoggedRef.current = sig;
+    trackLiveSetlistView({
+      show_date: showDate || '',
+      setlist_status: setlistStatus,
+    });
+  }, [hasContent, showDate, showStatus]);
+
+  if (!hasContent) {
     return null;
   }
 
