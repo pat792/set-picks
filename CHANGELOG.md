@@ -12,6 +12,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.26.0] — 2026-07-16
+
+### Added
+- **Profile avg correct / show (#554 slice C)** — `rollupScoresForShow` materializes `users.careerCorrectSlots` (and per-tour `seasonStats.*.correctSlots`) with pick-level `correctSlotsCredited` for regrade-safe diffs. Public + self Profile show avg correct when the field is present; otherwise —.
+- **Self Profile top-picks strip (#553)** — frequency-forward ranked strip (top 10) on dashboard Profile, live-computed over the last 40 graded shows with correct / exact / wild / bustout secondary counts and `profile_pick_heatmap_computed` telemetry. Public heatmap deferred until a rollup path ships.
+- **Self Profile avg vintage** — mean catalog debut year over titles in the heatmap window (n of m dated).
+
+### Changed
+- Season-aggregates backfill / revert / premature-grade reset scripts now maintain `careerCorrectSlots` + `correctSlotsCredited`.
+
+---
+
 ## [1.25.0] — 2026-07-16
 
 ### Added

@@ -230,3 +230,43 @@ test("computePerPickRollup: null globalMax (no eligible picks) credits nobody", 
   });
   assert.equal(plan.newIsWin, false);
 });
+
+test("computePerPickRollup: first-grade credits full newCorrectSlots", () => {
+  const plan = computePerPickRollup({
+    pickData: { picks: { s1o: "A" } },
+    newScore: 20,
+    newGlobalMax: 30,
+    newCorrectSlots: 3,
+  });
+  assert.equal(plan.newCorrectSlots, 3);
+  assert.equal(plan.correctSlotsDiff, 3);
+});
+
+test("computePerPickRollup: re-grade diffs correctSlotsCredited", () => {
+  const plan = computePerPickRollup({
+    pickData: {
+      picks: { s1o: "A" },
+      isGraded: true,
+      score: 20,
+      correctSlotsCredited: 2,
+    },
+    newScore: 25,
+    newGlobalMax: 30,
+    newCorrectSlots: 4,
+  });
+  assert.equal(plan.correctSlotsDiff, 2);
+});
+
+test("computePerPickRollup: missing correctSlotsCredited on re-grade treats old as 0", () => {
+  const plan = computePerPickRollup({
+    pickData: {
+      picks: { s1o: "A" },
+      isGraded: true,
+      score: 20,
+    },
+    newScore: 20,
+    newGlobalMax: 30,
+    newCorrectSlots: 2,
+  });
+  assert.equal(plan.correctSlotsDiff, 2);
+});

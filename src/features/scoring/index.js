@@ -2,6 +2,7 @@ export {
   fetchGlobalMaxScoreForShow,
   fetchGlobalShowWinners,
 } from './api/globalShowAggregation';
+export { normalizeOfficialSetlistDocData } from './api/standingsApi';
 export { default as Leaderboard } from './ui/Leaderboard';
 export { default as GradedPicksShareBar } from './ui/GradedPicksShareBar';
 export { default as StandingsSelfRecapCard } from './ui/StandingsSelfRecapCard';

@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.25.0  
+**Version:** 1.26.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -23,7 +23,13 @@ All collections live in the default `(default)` Firestore database for project `
 | `createdAt` | Timestamp | Account creation |
 | `isAdmin` | boolean? | Admin custom claim mirror |
 | `notificationPrefs` | map | Channel opt-in flags (see §1.2) |
-| `seasonStats.{tourKey}` | map | Per-tour aggregated scoring |
+| `totalPoints` | number? | Career graded points (written by `rollupScoresForShow`) |
+| `showsPlayed` | number? | Career graded non-empty shows |
+| `wins` | number? | Career global night wins (ties share) |
+| `careerCorrectSlots` | number? | **v1.26.0+ (#554)** Sum of pick slots that scored > 0 across graded shows. Used for avg correct / show. Absent until rollup/backfill. |
+| `seasonStatsThroughShow` | string? | YYYY-MM-DD freshness watermark for materialized career/tour stats |
+| `seasonStatsSnapshotAt` | Timestamp? | Last rollup write time |
+| `seasonStats.{tourKey}` | map | Per-tour aggregated scoring (`totalPoints`, `shows`, `wins`, and **v1.26.0+** `correctSlots`) |
 
 ### 1.2 `users/{uid}` — `notificationPrefs` shape
 
@@ -70,6 +76,11 @@ All collections live in the default `(default)` Firestore database for project `
 ### 1.6 `picks/{pickId}` (subcollection: `pools/{poolId}/picks/{uid}`)
 
 Stores per-user, per-show slot picks and computed scores.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `correctSlotsCredited` | number? | **v1.26.0+ (#554)** Slots that scored > 0 on last finalize; used for regrade diffs into `users.careerCorrectSlots` |
+| `winCredited` | boolean? | Whether this pick currently counts as a global night win |
 
 ### 1.7 `fcm_notification_log/{dedupId}`
 

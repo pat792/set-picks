@@ -10,6 +10,9 @@ import { fetchGlobalMaxScoreForShow } from '../../scoring';
  * @property {number} shows         Number of finalized shows the user played.
  * @property {number} wins          Shows this user won overall (global max
  *                                  among every graded pick for that show).
+ * @property {number | undefined} careerCorrectSlots
+ *   Sum of slots that scored > 0 across graded shows (#554). Absent until
+ *   rollup/backfill writes the field — UI should treat missing as unknown.
  */
 
 /**
@@ -211,5 +214,12 @@ export function readMaterializedSeasonStats(userData, latestFinalizedShow) {
       ? userData.seasonStatsThroughShow
       : '';
   if (!through || through < latestFinalizedShow) return null;
-  return { totalPoints, shows, wins };
+  const out = { totalPoints, shows, wins };
+  if (
+    typeof userData.careerCorrectSlots === 'number' &&
+    Number.isFinite(userData.careerCorrectSlots)
+  ) {
+    out.careerCorrectSlots = userData.careerCorrectSlots;
+  }
+  return out;
 }

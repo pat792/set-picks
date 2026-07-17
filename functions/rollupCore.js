@@ -23,6 +23,7 @@
 
 const {
   calculateTotalScore,
+  countCorrectSlots,
   persistableActualSetlistFromOfficialDoc,
   setlistHasAnyPlayedSong,
 } = require("./scoringCore");
@@ -181,10 +182,13 @@ async function runRollupForShow({
       opCount = 0;
     }
     const newScore = newScoresById.get(pickDoc.id) || 0;
+    const userPicks = pickData.picks || {};
+    const newCorrectSlots = countCorrectSlots(userPicks, actualSetlist);
     const plan = computePerPickRollup({
       pickData,
       newScore,
       newGlobalMax,
+      newCorrectSlots,
     });
 
     if (pickData.userId && plan.isFirstGrade) {
@@ -215,6 +219,7 @@ async function runRollupForShow({
       score: newScore,
       isGraded: true,
       winCredited: plan.newIsWin,
+      correctSlotsCredited: plan.newCorrectSlots,
     };
     if (plan.isFirstGrade) {
       pickUpdate.gradedAt = admin.firestore.FieldValue.serverTimestamp();
@@ -227,6 +232,9 @@ async function runRollupForShow({
         plan.isFirstGrade ? 1 : 0
       ),
       wins: admin.firestore.FieldValue.increment(plan.winsDelta),
+      careerCorrectSlots: admin.firestore.FieldValue.increment(
+        plan.countsTowardSeason ? plan.correctSlotsDiff : 0
+      ),
       seasonStatsSnapshotAt: admin.firestore.FieldValue.serverTimestamp(),
       seasonStatsThroughShow: showDate,
     };
@@ -238,6 +246,9 @@ async function runRollupForShow({
             plan.isFirstGrade ? 1 : 0
           ),
           wins: admin.firestore.FieldValue.increment(plan.winsDelta),
+          correctSlots: admin.firestore.FieldValue.increment(
+            plan.countsTowardSeason ? plan.correctSlotsDiff : 0
+          ),
         },
       };
     }

@@ -1,7 +1,7 @@
 # Profile stats — Sprint 9 foundation (#553 / #554)
 
 **Train:** [Sprint 9 release train](../RELEASE_TRAIN_SPRINT_9.md) Wave 2  
-**Status:** Spec locked for implementation; UI ships in follow-up PRs.
+**Status:** Wave 2 implementation shipping (avg points + debut helpers + avg correct rollup + self top-picks strip).
 
 ---
 
@@ -104,9 +104,9 @@ Output: sorted by `pickedCount` desc, take top N.
 
 1. **This doc** (train kickoff) — merged (#617).
 2. **#554 slice A:** Surface avg points on Profile + public profile (derive from existing stats) — PATCH — merged (#618, 1.24.1).
-3. **#554 slice B:** Catalog `debut` field + avg vintage helpers — MINOR (1.25.0). UI when pick titles available (with slice C / #553).
-4. **#554 slice C:** Avg correct via rollup or bounded live compute — PATCH/MINOR per schema.
-5. **#553:** Top-picks strip UI behind self Profile first; public after rollup.
+3. **#554 slice B:** Catalog `debut` field + avg vintage helpers — MINOR (1.25.0) — merged (#619).
+4. **#554 slice C:** Avg correct via `users.careerCorrectSlots` rollup — MINOR (1.26.0).
+5. **#553:** Top-picks strip UI on self Profile (live, capped); public after rollup.
 
 ---
 

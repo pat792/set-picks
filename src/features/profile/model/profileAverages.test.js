@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDebutYearBySongName,
+  computeAvgCorrectPicksPerShow,
   computeAvgPointsPerShow,
   computeAvgSongVintage,
   debutYearFromCatalogDebut,
+  formatAvgCorrectPicksPerShow,
   formatAvgPointsPerShow,
   formatAvgSongVintage,
 } from './profileAverages';
@@ -70,5 +72,18 @@ describe('profileAverages', () => {
       uniqueCount: 1,
     });
     expect(formatAvgSongVintage(null)).toBe('—');
+  });
+
+  it('computes avg correct slots per show from careerCorrectSlots', () => {
+    // 18 correct across 3 shows × 6 slots → 18/18 = 1
+    expect(
+      computeAvgCorrectPicksPerShow({ careerCorrectSlots: 18, shows: 3 })
+    ).toBe(1);
+    expect(
+      computeAvgCorrectPicksPerShow({ careerCorrectSlots: 9, shows: 3 })
+    ).toBe(0.5);
+    expect(computeAvgCorrectPicksPerShow({ shows: 3 })).toBeNull();
+    expect(formatAvgCorrectPicksPerShow(0.5)).toBe('0.5');
+    expect(formatAvgCorrectPicksPerShow(null)).toBe('—');
   });
 });
