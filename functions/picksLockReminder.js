@@ -9,11 +9,10 @@ const {
 const { hasNonEmptyPicksObject } = require("./rollupSeasonAggregates");
 const { createCommsAdapterRuntime } = require("./commsAdapterRuntime");
 const { resolveDedupKey } = require("./commsCatalog");
-
-/** Mirrors `src/shared/utils/timeLogic.js` (7:55pm local). */
-const SHOW_PICKS_LOCK_HOUR = 19;
-const SHOW_PICKS_LOCK_MINUTE = 55;
-const LOCK_TIME_LOCAL_LABEL = "7:55 PM";
+const {
+  formatLockTimeLocalLabel,
+  resolvePicksLockHm,
+} = require("./picksLockTime");
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 /** Reminder window opens this many minutes before venue-local lock. */
@@ -55,14 +54,24 @@ function localClockParts(showTimeZone, now) {
 }
 
 /**
+ * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null | undefined} show
+ * @returns {number} minutes from midnight
+ */
+function lockMinutesForShow(show) {
+  const lock = resolvePicksLockHm(show);
+  return lock.hour * 60 + lock.minute;
+}
+
+/**
  * @param {string} showYmd
  * @param {string} showTimeZone
  * @param {Date} now
+ * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null} [show]
  */
-function isPastPicksLock(showYmd, showTimeZone, now) {
+function isPastPicksLock(showYmd, showTimeZone, now, show = null) {
   const clock = localClockParts(showTimeZone, now);
   if (!clock || clock.ymd !== showYmd) return false;
-  const lockMinutes = SHOW_PICKS_LOCK_HOUR * 60 + SHOW_PICKS_LOCK_MINUTE;
+  const lockMinutes = lockMinutesForShow(show || { date: showYmd });
   return clock.minutesOfDay >= lockMinutes;
 }
 
@@ -72,11 +81,12 @@ function isPastPicksLock(showYmd, showTimeZone, now) {
  * @param {string} showYmd
  * @param {string} showTimeZone
  * @param {Date} now
+ * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null} [show]
  */
-function isWithinReminderWindow(showYmd, showTimeZone, now) {
+function isWithinReminderWindow(showYmd, showTimeZone, now, show = null) {
   const clock = localClockParts(showTimeZone, now);
   if (!clock || clock.ymd !== showYmd) return false;
-  const lockMinutes = SHOW_PICKS_LOCK_HOUR * 60 + SHOW_PICKS_LOCK_MINUTE;
+  const lockMinutes = lockMinutesForShow(show || { date: showYmd });
   const startMinutes = lockMinutes - REMINDER_LEAD_MINUTES;
   return clock.minutesOfDay >= startMinutes && clock.minutesOfDay < lockMinutes;
 }
@@ -85,13 +95,14 @@ function isWithinReminderWindow(showYmd, showTimeZone, now) {
  * @param {string} showYmd `YYYY-MM-DD`
  * @param {string} showTimeZone IANA tz
  * @param {Date} now
+ * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null} [show]
  * @returns {string}
  */
-function formatTimeToLock(showYmd, showTimeZone, now) {
+function formatTimeToLock(showYmd, showTimeZone, now, show = null) {
   const clock = localClockParts(showTimeZone, now);
   if (!clock || clock.ymd !== showYmd) return "tonight";
 
-  const lockMinutes = SHOW_PICKS_LOCK_HOUR * 60 + SHOW_PICKS_LOCK_MINUTE;
+  const lockMinutes = lockMinutesForShow(show || { date: showYmd });
   const diff = lockMinutes - clock.minutesOfDay;
   if (diff <= 0) return "soon";
 
@@ -103,9 +114,9 @@ function formatTimeToLock(showYmd, showTimeZone, now) {
 }
 
 /**
- * @param {Array<{ date: string, timeZone?: string, venue?: string, city?: string }>} calendarShows
+ * @param {Array<{ date: string, timeZone?: string, venue?: string, city?: string, doorsLocal?: string, picksLockLocal?: string }>} calendarShows
  * @param {Date} now
- * @returns {{ showDate: string, timeZone: string, venue_name: string, venue_city: string } | null}
+ * @returns {{ showDate: string, timeZone: string, venue_name: string, venue_city: string, lock_time_local: string, show: object } | null}
  */
 function findReminderTonightShow(calendarShows, now) {
   if (!Array.isArray(calendarShows) || calendarShows.length === 0) return null;
@@ -117,12 +128,15 @@ function findReminderTonightShow(calendarShows, now) {
       typeof show.timeZone === "string" && show.timeZone.trim()
         ? show.timeZone.trim()
         : DEFAULT_SHOW_TIME_ZONE;
-    if (!isWithinReminderWindow(date, tz, now)) continue;
+    if (!isWithinReminderWindow(date, tz, now, show)) continue;
+    const lockHm = resolvePicksLockHm(show);
     return {
       showDate: date,
       timeZone: tz,
       venue_name: typeof show.venue === "string" ? show.venue.trim() : "",
       venue_city: typeof show.city === "string" ? show.city.trim() : "",
+      lock_time_local: formatLockTimeLocalLabel(lockHm),
+      show,
     };
   }
   return null;
@@ -166,6 +180,10 @@ function buildPicksLockReminderRecipients({
 }) {
   /** @type {Array<{ uid: string, userData: Record<string, unknown>, payload: Record<string, unknown>, vars: Record<string, unknown> }>} */
   const recipients = [];
+  const lockLabel =
+    typeof showMeta.lock_time_local === "string" && showMeta.lock_time_local.trim()
+      ? showMeta.lock_time_local.trim()
+      : formatLockTimeLocalLabel(resolvePicksLockHm({ date: showDate }));
   for (const userDoc of userDocs) {
     if (recipients.length >= cap) break;
     const uid = userDoc.id;
@@ -180,8 +198,13 @@ function buildPicksLockReminderRecipients({
         show_date: showDate,
         venue_name: showMeta.venue_name,
         venue_city: showMeta.venue_city,
-        time_to_lock: formatTimeToLock(showDate, showMeta.timeZone, now),
-        lock_time_local: LOCK_TIME_LOCAL_LABEL,
+        time_to_lock: formatTimeToLock(
+          showDate,
+          showMeta.timeZone,
+          now,
+          showMeta.show || { date: showDate }
+        ),
+        lock_time_local: lockLabel,
       },
       vars: { uid, showYmd: showDate },
     });

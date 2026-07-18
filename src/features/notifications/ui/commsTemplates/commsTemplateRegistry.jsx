@@ -169,8 +169,8 @@ export const COMMS_TEMPLATE_REGISTRY = {
           `${handleOf(p)}, the run kicks off ${dayLabel}.`,
           venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })
             ? `First show: ${venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })}.`
-            : 'Get your picks ready before the first downbeat.',
-          `Picks lock at ${p.lock_time_local || '7:55 PM'} local on show night — don't get shut out.`,
+            : 'The first show is coming up.',
+          'Get your picks ready before the first downbeat.',
         ],
         cta: tourCountdownInAppCta(p),
       };
@@ -185,7 +185,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 18',
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -197,7 +197,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 18',
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -209,7 +209,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 7',
           first_show_venue: 'Kohl Center',
           first_show_city: 'Madison, WI',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -232,7 +232,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_date: 'Jul 7',
           first_show_venue: 'Kohl Center',
           first_show_city: 'Madison, WI',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
           picks_secured: true,
         },
       },
@@ -605,23 +605,24 @@ export const COMMS_TEMPLATE_REGISTRY = {
   'picks-lock-reminder': {
     triggerId: 'picks_lock_reminder',
     displayName: 'Lock reminder',
-    build: (p) => ({
-      icon: AlarmClock,
-      accentClassName: 'text-rose-300',
-      eyebrow: 'Picks lock soon',
-      title: 'Lock in your picks',
-      paragraphs: [
-        `${handleOf(p)}, ${venueLine(p) || "tonight's show"} locks at ${p.lock_time_local || '7:55 PM'} local${
-          p.time_to_lock ? ` — about ${p.time_to_lock} away` : ''
-        }.`,
-        isPicksSecured(p)
-          ? 'Your picks are on the board — open them any time before lock to tweak.'
-          : "You haven't locked picks yet. Don't get shut out of the night.",
-      ],
-      cta: isPicksSecured(p)
-        ? { ...VIEW_EDIT_PICKS_CTA }
-        : { label: 'Make your picks', href: PICKS_HREF },
-    }),
+    build: (p) => {
+      const timeToLock = p.time_to_lock || 'A few hours';
+      return {
+        icon: AlarmClock,
+        accentClassName: 'text-rose-300',
+        eyebrow: 'Picks lock soon',
+        title: `${timeToLock} until picks lock`,
+        paragraphs: [
+          `${handleOf(p)}, lock in your picks${venueLine(p) ? ` for ${venueLine(p)}` : ''}.`,
+          isPicksSecured(p)
+            ? 'Your picks are on the board — open them any time before lock to tweak.'
+            : "You haven't locked picks yet. Don't get shut out of the night.",
+        ],
+        cta: isPicksSecured(p)
+          ? { ...VIEW_EDIT_PICKS_CTA }
+          : { label: 'Make your picks', href: PICKS_HREF },
+      };
+    },
     samples: [
       {
         name: 'Lock reminder',
@@ -631,7 +632,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           venue_name: 'MSG',
           venue_city: 'New York, NY',
           time_to_lock: '3 hours',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
         },
       },
       {
@@ -642,7 +643,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           venue_name: 'MSG',
           venue_city: 'New York, NY',
           time_to_lock: '3 hours',
-          lock_time_local: '7:55 PM',
+          lock_time_local: '7:30 PM',
           picks_secured: true,
         },
       },

@@ -45,7 +45,7 @@
       "githubIssue": null,
       "variants": ["t10", "t5", "t3", "t1"],
       "inAppDeepLink": "/dashboard/picks",
-      "note": "In-app CTA label varies by days_remaining; T-5/T-3/T-1 switch to View / Edit picks when picks_secured (#509). Push/email use open-app phrasing.",
+      "note": "In-app CTA label varies by days_remaining; T-5/T-3/T-1 switch to View / Edit picks when picks_secured (#509). Countdown copy does not state an absolute cutoff; the show-day lock reminder owns relative cutoff messaging.",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "tour_name", "source": "tour metadata", "fallback": null },
@@ -53,7 +53,7 @@
         { "name": "first_show_date", "source": "tour first show", "fallback": null },
         { "name": "first_show_venue", "source": "tour first show venue", "fallback": null },
         { "name": "first_show_city", "source": "tour first show city", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (19:55 venue-local)", "fallback": "7:55 PM" },
+        { "name": "lock_time_local", "source": "computed (doors+offset or 19:30 venue-local)", "fallback": "7:30 PM" },
         { "name": "picks_secured", "source": "picks where showDate=first_show + hasNonEmptyPicksObject", "fallback": false }
       ]
     },
@@ -256,7 +256,7 @@
       "family": "show_calendar",
       "priority": "P0",
       "automation": "automated",
-      "schedule": "every 15min on show days, venue-local T-3h through lock (16:55–19:54 when lock is 19:55)",
+      "schedule": "every 15min on show days, venue-local T-3h through lock (per-show lock from doors+offset or 19:30 fallback)",
       "audience": "users_no_picks_tonight",
       "channels": ["inApp", "push", "email"],
       "prefKeys": ["reminders"],
@@ -265,14 +265,14 @@
       "templateId": "picks-lock-reminder",
       "implementationModule": "functions/picksLockReminder.js",
       "githubIssue": 524,
-      "note": "Email is transactional (CAN-SPAM): bypasses reminders pref but respects email_suppression. Push/in-app still use reminders pref. Audience excludes users with picks; in-app registry still branches on picks_secured for preview (#509).",
+      "note": "Email is transactional (CAN-SPAM): bypasses reminders pref but respects email_suppression. Push/in-app still use reminders pref. Audience excludes users with picks; in-app registry still branches on picks_secured for preview (#509). All channel copy uses only relative time_to_lock, never the absolute local cutoff.",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "show_date", "source": "show_calendar", "fallback": null },
         { "name": "venue_name", "source": "show_calendar", "fallback": null },
         { "name": "venue_city", "source": "show_calendar", "fallback": null },
         { "name": "time_to_lock", "source": "computed at send time", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (19:55 venue-local)", "fallback": "7:55 PM" },
+        { "name": "lock_time_local", "source": "computed (doors+offset or 19:30 venue-local)", "fallback": "7:30 PM" },
         { "name": "picks_secured", "source": "preview/edge only — production fanout skips users with picks", "fallback": false }
       ]
     },
