@@ -1,3 +1,9 @@
+## [1.30.1] — 2026-07-17
+
+### Added
+
+- `docs/scoring-analysis/` — durable repo docs for scoring/prediction canvas research (slot odds, significance, calibration, combos, greenfield model, predictive picker framework); links issues #645–#653.
+
 # Changelog
 
 All notable changes to Setlist Pick'em are documented here.
