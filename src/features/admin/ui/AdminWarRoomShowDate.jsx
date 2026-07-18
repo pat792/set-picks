@@ -1,15 +1,9 @@
 import React from 'react';
 import { CalendarRange } from 'lucide-react';
 import {
-  SHOW_PICKS_LOCK_HOUR_LOCAL,
-  SHOW_PICKS_LOCK_MINUTE_LOCAL,
-} from '../../../shared/utils/timeLogic';
-
-function formatLockTime(hour24, minute) {
-  const hour12 = ((hour24 + 11) % 12) + 1;
-  const suffix = hour24 >= 12 ? 'PM' : 'AM';
-  return `${hour12}:${String(minute).padStart(2, '0')} ${suffix}`;
-}
+  formatLockTimeLocalLabel,
+  resolvePicksLockHm,
+} from '../../../shared/utils/picksLockTime';
 
 /**
  * Admin-only: pick the Firestore `official_setlists/{showDate}` key independently of the
@@ -23,7 +17,14 @@ export default function AdminWarRoomShowDate({
   disabled = false,
   timeZone,
 }) {
-  const lockTimeLabel = formatLockTime(SHOW_PICKS_LOCK_HOUR_LOCAL, SHOW_PICKS_LOCK_MINUTE_LOCAL);
+  const lockHm = resolvePicksLockHm({ date: value });
+  const lockTimeLabel = formatLockTimeLocalLabel(lockHm);
+  const lockSourceNote =
+    lockHm.source === 'doors'
+      ? `doors ${lockHm.doorsLocal} + tour avg − safety`
+      : lockHm.source === 'picksLockLocal'
+        ? 'explicit picksLockLocal'
+        : 'fallback 7:30 PM (doors unknown)';
 
   return (
     <div className="rounded-xl border border-border-subtle bg-[rgb(var(--surface-field)_/_0.35)] px-4 py-3 ring-1 ring-border-glass/20">
@@ -51,6 +52,9 @@ export default function AdminWarRoomShowDate({
           <p className="text-[11px] font-bold leading-relaxed text-content-secondary">
             Picks lock: <span className="text-content-primary">{lockTimeLabel}</span>{' '}
             <span className="text-slate-400">({timeZone})</span>
+            <span className="block text-slate-500 font-medium normal-case tracking-normal">
+              {lockSourceNote}
+            </span>
           </p>
         </div>
       </div>

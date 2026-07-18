@@ -8,7 +8,7 @@ import { showSuccessToast } from '../../../shared/ui/toast';
  *
  * Handles the common case where the user has the dashboard open around show
  * time: without a page reload, the status changes live and the toast fires
- * when 7:55 pm local arrives.  A hard reload after lock (initial status
+ * when the resolved venue-local lock arrives. A hard reload after lock (initial status
  * already 'LIVE') does not re-fire the toast.
  *
  * @param {string|null} showStatus - Result of getShowStatus() for the active
@@ -22,7 +22,7 @@ export function useSetlistLockToast(showStatus) {
     prevStatusRef.current = showStatus;
 
     if (prev === 'NEXT' && showStatus === 'LIVE') {
-      showSuccessToast("Picks are locked — show time! 🎸");
+      showSuccessToast('Picks locked, almost showtime!');
     }
   }, [showStatus]);
 }

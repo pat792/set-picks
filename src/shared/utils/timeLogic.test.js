@@ -56,15 +56,46 @@ describe('venue-local lock + status (#278)', () => {
     expect(getNextShow(shows)).toEqual(shows[1]);
   });
 
-  it('marks a show LIVE at 7:55 in the venue timezone on show date', () => {
+  it('marks a show LIVE at fallback 7:30 in the venue timezone on show date', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-07-11T00:56:00.000Z'));
+    vi.setSystemTime(new Date('2099-06-16T00:31:00.000Z'));
 
     const shows = [
-      { date: '2026-07-10', venue: 'Kohl Center, Madison, WI', timeZone: 'America/Chicago' },
+      { date: '2099-06-15', venue: 'Kohl Center, Madison, WI', timeZone: 'America/Chicago' },
     ];
 
-    expect(getShowStatus('2026-07-10', shows)).toBe('LIVE');
+    expect(getShowStatus('2099-06-15', shows)).toBe('LIVE');
+  });
+
+  it('locks Merriweather at doors+100 (7:10 PM ET) before fallback 7:30', () => {
+    vi.useFakeTimers();
+    // 2026-07-18 23:15Z = 7:15 PM ET → past 7:10 lock, before 7:30 fallback.
+    vi.setSystemTime(new Date('2026-07-18T23:15:00.000Z'));
+
+    const shows = [
+      {
+        date: '2026-07-18',
+        venue: 'Merriweather Post Pavilion, Columbia, MD',
+        timeZone: 'America/New_York',
+      },
+    ];
+
+    expect(getShowStatus('2026-07-18', shows)).toBe('LIVE');
+  });
+
+  it('keeps Merriweather NEXT at 7:00 PM ET (before doors+100 lock)', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-18T23:00:00.000Z'));
+
+    const shows = [
+      {
+        date: '2026-07-18',
+        venue: 'Merriweather Post Pavilion, Columbia, MD',
+        timeZone: 'America/New_York',
+      },
+    ];
+
+    expect(getShowStatus('2026-07-18', shows)).toBe('NEXT');
   });
 
   it('keeps fallback venue parsing for old docs without explicit timeZone', () => {
