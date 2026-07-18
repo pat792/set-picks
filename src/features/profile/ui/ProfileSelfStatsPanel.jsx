@@ -1,5 +1,8 @@
 import React from 'react';
 
+import InfoTooltip, {
+  InfoTooltipProvider,
+} from '../../../shared/ui/InfoTooltip';
 import { useSongCatalog } from '../../song-catalog';
 import {
   buildDebutYearBySongName,
@@ -34,26 +37,36 @@ export default function ProfileSelfStatsPanel({ uid }) {
   );
   const avgVintage = formatAvgSongVintage(vintage.avgYear);
 
+  const vintageDefinition =
+    vintage.datedCount > 0
+      ? `Mean debut year of songs in your recent top-picks window (${vintage.datedCount} of ${vintage.uniqueCount} dated).`
+      : 'Mean debut year of songs in your recent top-picks window.';
+
   const columns = [
     {
       key: 'avgPts',
       label: 'Avg pts / show',
       value: avgPoints,
+      definition: 'Mean points per graded show across your career.',
     },
     {
       key: 'avgCorrect',
       label: 'Avg correct / show',
       value: avgCorrect,
+      definition:
+        'Mean correct pick slots per graded show. Shows — until your account has been rolled up after a finalize.',
     },
     {
       key: 'vintage',
       label: 'Avg vintage',
       value: avgVintage,
+      definition: vintageDefinition,
     },
     {
       key: 'shows',
       label: 'Shows',
       value: typeof stats?.shows === 'number' ? stats.shows : 0,
+      definition: 'Number of finalized shows you have graded picks for.',
     },
   ];
 
@@ -65,29 +78,25 @@ export default function ProfileSelfStatsPanel({ uid }) {
         <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-content-secondary">
           Your stats
         </h2>
-        <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
-          {columns.map(({ key, label, value }) => (
-            <div key={key} className="flex flex-col gap-1.5">
-              <p className="flex flex-1 items-end justify-center px-0.5 text-[10px] font-black uppercase leading-snug tracking-wider text-content-secondary">
-                {label}
-              </p>
-              <div className="flex min-h-[3.25rem] items-center justify-center rounded-2xl border border-border-subtle bg-surface-field px-2 py-3">
-                <span className="text-2xl font-black tabular-nums leading-none tracking-tight text-brand-primary">
-                  {statsLoading && key !== 'vintage' ? '…' : value}
-                </span>
+        <InfoTooltipProvider>
+          <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+            {columns.map(({ key, label, value, definition }) => (
+              <div key={key} className="flex flex-col gap-1.5">
+                <div className="flex flex-1 items-end justify-center gap-1 px-0.5">
+                  <p className="text-[10px] font-black uppercase leading-snug tracking-wider text-content-secondary">
+                    {label}
+                  </p>
+                  <InfoTooltip label={label} definition={definition} />
+                </div>
+                <div className="flex min-h-[3.25rem] items-center justify-center rounded-2xl border border-border-subtle bg-surface-field px-2 py-3">
+                  <span className="text-2xl font-black tabular-nums leading-none tracking-tight text-brand-primary">
+                    {statsLoading && key !== 'vintage' ? '…' : value}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <p className="mt-3 text-[11px] font-medium leading-relaxed text-content-secondary">
-          Career averages across graded nights. Avg correct needs the
-          finalize rollup field (shows — until backfilled). Vintage is the
-          mean debut year of songs in your recent top-picks window
-          {vintage.datedCount > 0
-            ? ` (${vintage.datedCount} of ${vintage.uniqueCount} dated)`
-            : ''}
-          .
-        </p>
+            ))}
+          </div>
+        </InfoTooltipProvider>
       </section>
 
       <TopPicksFrequencyStrip

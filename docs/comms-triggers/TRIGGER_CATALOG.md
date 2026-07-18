@@ -41,7 +41,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | `{{venue_name}}` | `show_calendar` snapshot | — |
 | `{{venue_city}}` | `show_calendar` snapshot | — |
 | `{{time_to_lock}}` | Computed at send time | — |
-| `{{lock_time_local}}` | Computed (19:55 venue-local) | `7:55 PM` |
+| `{{lock_time_local}}` | Computed (doors+1:40 when doors known; else 19:30 venue-local) | `7:30 PM` |
 | `{{tour_name}}` | Tour metadata | — |
 | `{{days_remaining}}` | Computed from tour start date | — |
 | `{{first_show_date}}` | Tour first show | — |
@@ -199,18 +199,18 @@ Every template draws from this shared set. Each trigger declares the subset it u
 
 **Heading:** `{{tour_name}} is tomorrow, {{handle}}`
 
-**Body:** {{first_show_venue}}, {{first_show_city}} — tomorrow night. If you haven't made your picks yet, the window closes at {{lock_time_local}}. Don't go into show 1 without picks on the board.
+**Body:** {{first_show_venue}}, {{first_show_city}} — tomorrow night. Get your picks ready before the first downbeat.
 
 **CTA:** `Lock in your picks →`
 
 #### Template — Email (T-1 only; T-10 and T-5 optional)
 
 **Subject (T-1):** `Last call — {{tour_name}} starts tomorrow`  
-**Preview:** `Picks close at {{lock_time_local}}. {{first_show_venue}}, {{first_show_city}}.`
+**Preview:** `{{first_show_venue}}, {{first_show_city}} — get your picks ready.`
 
 **Body sections:**
 1. Tomorrow is show 1 — set the scene (venue, city, date).
-2. Picks deadline reminder — closes at {{lock_time_local}}.
+2. Get picks ready before the first downbeat.
 3. CTA button: `Make your picks`
 
 ---
@@ -427,7 +427,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Every 15 min on show days, venue-local **T-3h through lock** (16:55–19:54 when lock is 19:55) |
+| **Schedule** | Every 15 min on show days, venue-local **T-3h through lock** (window tracks per-show lock) |
 | **Channels** | `inApp`, `push`, `email` |
 | **Audience** | Users with a handle and **no picks** for tonight's show |
 | **Prefs key** | `reminders` (push + in-app only) |
@@ -451,20 +451,20 @@ Production `picks_lock_reminder` **skips** users with non-empty picks for tonigh
 
 #### Template — In-App
 
-**Heading:** `Don't miss tonight's show, {{handle}}`
+**Heading:** `{{time_to_lock}} until picks lock`
 
-**Body:** Picks for {{venue_name}} close at {{lock_time_local}} — {{time_to_lock}} from now. You're not on the board yet for {{show_date}}.
+**Body:** {{handle}}, lock in your picks for {{venue_name}}. You're not on the board yet for {{show_date}}.
 
 **CTA:** `Make your picks` (or `View / Edit picks` when `picks_secured`)
 
 #### Template — Email
 
 **Subject:** `Picks close in {{time_to_lock}} — {{venue_city}} tonight`  
-**Preview:** `{{venue_name}} · Lock closes at {{lock_time_local}}`
+**Preview:** `{{venue_name}} · {{time_to_lock}} until picks lock`
 
 **Body sections:**
 1. Tonight's show — venue, date.
-2. You haven't picked yet — close at {{lock_time_local}}.
+2. You haven't picked yet — {{time_to_lock}} until picks lock.
 3. CTA button: `Lock in your picks`
 
 ---

@@ -9,6 +9,7 @@ export { default as DashboardMobileChromeBar } from './DashboardMobileChromeBar'
 export { default as DashboardRowPill } from './DashboardRowPill';
 export { default as FilterPill } from './FilterPill';
 export { default as GhostPill } from './GhostPill';
+export { default as InfoTooltip, InfoTooltipProvider } from './InfoTooltip';
 export { default as Input } from './Input';
 export { default as MetaChip } from './MetaChip';
 export { default as PageTitle } from './PageTitle';

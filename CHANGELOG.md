@@ -14,17 +14,21 @@ No unreleased changes.
 
 ---
 
-## [1.31.0] — 2026-07-17
+## [1.31.0] — 2026-07-18
 
 ### Added
+- **Doors-based picks lock (#522)** — wall-clock lock is now `doors + (tour avg doors→start − safety)` when doors are known (Summer Tour 2026 setlist.fm avg 1h59m, safety 19 → **doors+1:40**). The daily Phish.net calendar sync now enriches upcoming dates from first-party Phish.com date pages (`Doors Open` / advertised `Show Time`), preserves prior timing on transient failures, and retains seeded Summer Tour doors as a client/Functions fallback. Unknown doors use the conservative **7:30 PM** venue-local fallback. Client + Functions + `picks_lock_reminder` share the same resolver. Lock toast copy: “Picks locked, almost showtime!”
 - **Feature discovery “New” markers (#639)** — client spotlight registry (`features/feature-discovery`) with soft **New** labels on Standings **Stats**, live/official setlist card, and Profile avatar/badges. Clears on visit/interaction; expires `until` 2026-08-31; localStorage per uid. Wires `feature_spotlight_*` GA4 from #638.
-
----
-
-## [1.30.1] — 2026-07-17
-
-### Added
 - **Feature engagement GA4 (#638)** — client events for recent surfaces: `live_setlist_view`, `tour_stats_view`, `avatar_changed`, `badge_shelf_view`; helpers for future `badge_pin_changed` (no pin UI yet) and `feature_spotlight_*` (wired in #639). Wrappers under scoring / tour-stats / profile / feature-discovery.
+- `docs/scoring-analysis/` — durable repo docs for scoring/prediction canvas research (slot odds, significance, calibration, combos, greenfield model, predictive picker framework); links issues #645–#653.
+
+### Changed
+- War Room show-date panel shows the resolved per-show lock time and source (doors / explicit / fallback).
+- Picks and pre-lock Standings now show a dismissible, session-scoped timing notice with the resolved cutoff and, when known, its relationship to the published doors time. It is the top notice on Standings and stays dismissed for that show across both surfaces. Cutoff-related comms use only relative `time_to_lock` wording; tour countdown copy no longer repeats an absolute deadline.
+- **Profile Your stats copy** — removed the footnote under the self-profile averages grid; each tile now uses the same Info tooltips as Standings → Stats (`InfoTooltip` shared UI).
+
+### Fixed
+- **Profile avg correct on show day (#635 Slice 0)** — live season-stats fallback now preserves `users.careerCorrectSlots`, and `deriveLatestFinalizedShow` excludes today (`d < today`) so an ungraded calendar date no longer falsely stales rollups through yesterday. Multi-day gaps still need the rollup watermark (Slices 1–2).
 
 ---
 

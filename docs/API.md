@@ -95,6 +95,24 @@ Also hosts the per-user daily email fatigue cap (#453): doc ID `email_cap:{uid}:
 
 Tour and show date metadata. Read by `resolveCurrentTour` and `resolveSelectableTours`.
 
+`show_calendar/snapshot` show rows (Phish.net sync) include at minimum:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `date` | string | `YYYY-MM-DD` |
+| `venue` | string | Display venue line |
+| `city` | string? | City |
+| `timeZone` | string | IANA venue timezone |
+| `doorsLocal` | string? | Venue-local doors `HH:mm` from first-party Phish.com date page (client/Functions also seed known Summer Tour 2026 dates) |
+| `scheduledStartLocal` | string? | Advertised venue-local show time `HH:mm` from Phish.com; informational, not the picks lock |
+| `scheduleSource` | `'phish.com'`? | Timing provenance |
+| `scheduleSourceUrl` | string? | Official date-page URL |
+| `picksLockLocal` | string? | Venue-local picks lock `HH:mm` when materialized/overridden |
+
+**Picks wall-clock lock (#522):** when `doorsLocal` (or a seeded doors time) is known, lock = doors + (tour avg doors→start − safety). Summer Tour 2026 defaults: avg **119** min, safety **19** → **doors + 100 min**. When doors are unknown, fallback is **19:30** venue-local. Admin `show_lock_state` and (planned) setlist `s1o` still win as earlier signals.
+
+`scheduledPhishnetShowCalendar` runs daily at 06:00 ET. Phish.net is canonical for dates/tours/venues; the sync then fetches Phish.com upcoming date pages for timing. A Phish.com failure does not fail or erase the calendar: prior timing is preserved.
+
 ### 1.9 `email_suppression/{sha256(email)}`
 
 Server-only email suppression list (issue #442). Document ID is SHA-256 of the normalized recipient address. Presence of `{ suppressed: true }` blocks comms email sends. Written by `commsResendWebhook` and `commsEmailUnsubscribe`.
@@ -270,7 +288,7 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
 | `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
-| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (16:55–19:54 when lock is 19:55); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
+| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (window tracks per-show lock from doors+offset or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
 

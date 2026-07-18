@@ -4,11 +4,50 @@ const assert = require("node:assert/strict");
 const {
   labelGenericCluster,
   buildShowDatesByTour,
+  enrichGroupsWithOfficialSchedule,
+  flattenSnapshotScheduleByDate,
   flattenSnapshotTourByDate,
   mergeToursWithSnapshotPreservation,
   normalizePhishShows,
   parseTourOverridesDoc,
 } = require("./phishnetShowCalendar");
+
+test("official schedule enrichment prefers fresh data and preserves prior timing", () => {
+  const groups = [
+    {
+      tour: "Summer Tour 2026",
+      shows: [
+        { date: "2026-07-21", venue: "Syracuse" },
+        { date: "2026-07-22", venue: "MSG" },
+      ],
+    },
+  ];
+  const fresh = new Map([
+    [
+      "2026-07-21",
+      {
+        date: "2026-07-21",
+        doorsLocal: "17:30",
+        scheduledStartLocal: "19:00",
+        scheduleSource: "phish.com",
+      },
+    ],
+  ]);
+  const previous = flattenSnapshotScheduleByDate({
+    showDates: [
+      {
+        date: "2026-07-22",
+        doorsLocal: "18:30",
+        scheduleSource: "phish.com",
+      },
+    ],
+  });
+
+  const enriched = enrichGroupsWithOfficialSchedule(groups, fresh, previous);
+  assert.equal(enriched[0].shows[0].doorsLocal, "17:30");
+  assert.equal(enriched[0].shows[0].date, "2026-07-21");
+  assert.equal(enriched[0].shows[1].doorsLocal, "18:30");
+});
 
 test("labelGenericCluster: Sphere Run", () => {
   const shows = [

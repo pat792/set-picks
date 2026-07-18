@@ -49,6 +49,31 @@ test("picks-lock-reminder email CTA includes showDate when YYYY-MM-DD (#535)", a
   assert.match(out.email.ctaUrl, /\/dashboard\/picks\?showDate=2026-07-18/);
 });
 
+test("picks-lock-reminder uses relative cutoff only (#522)", async () => {
+  const out = await renderCommsTemplate("picks-lock-reminder", {
+    handle: "HotDogBilly",
+    show_date: "2026-07-18",
+    venue_name: "MSG",
+    venue_city: "New York, NY",
+    time_to_lock: "2h 15m",
+    lock_time_local: "7:30 PM",
+  });
+  const rendered = `${out.push.title} ${out.push.body} ${out.email.subject} ${out.email.text}`;
+  assert.match(rendered, /2h 15m/);
+  assert.doesNotMatch(rendered, /7:30 PM/);
+});
+
+test("tour countdown does not repeat an absolute picks cutoff (#522)", async () => {
+  const out = await renderCommsTemplate("tour-countdown", {
+    handle: "HotDogBilly",
+    tour_name: "Summer Tour",
+    days_remaining: 1,
+    lock_time_local: "7:30 PM",
+  });
+  const rendered = `${out.push.title} ${out.push.body} ${out.email.subject} ${out.email.text}`;
+  assert.doesNotMatch(rendered, /7:30 PM|picks lock/i);
+});
+
 test("picks-lock-reminder email CTA omits showDate for display labels", async () => {
   const out = await renderCommsTemplate("picks-lock-reminder", {
     handle: "HotDogBilly",
