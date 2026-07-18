@@ -205,14 +205,14 @@ const BUILDERS = {
       [
         `${handleOf(p)}, the run kicks off ${when}.`,
         firstShow ? `First show: ${firstShow}.` : "",
-        `Picks lock at ${p.lock_time_local || "7:55 PM"} local on show night.`,
+        "Get your picks ready before the first downbeat.",
       ],
       { ctaUrl: PICKS_CTA_URL }
     );
     return {
       push: {
         title: `${p.tour_name || "The tour"} starts ${when}`,
-        body: `Get your picks ready — locks at ${p.lock_time_local || "7:55 PM"} local.`,
+        body: "Get your picks ready for the first show.",
       },
       email: {
         subject: `${p.tour_name || "The tour"} starts ${when}`,
@@ -398,26 +398,26 @@ const BUILDERS = {
   },
 
   "picks-lock-reminder": (p) => {
-    const venue = venueLine(p);
-    const lockLabel = p.lock_time_local || "7:55 PM";
-    const timePhrase = p.time_to_lock ? ` in ${p.time_to_lock}` : "";
+    const timeToLock = p.time_to_lock || "a few hours";
     const ctaUrl = picksCtaUrl(p);
     const assembled = assembleServiceEmail(
       [
-        `${handleOf(p)}, ${p.venue_name || "tonight's show"} locks at ${lockLabel} local${timePhrase}.`,
+        `${handleOf(p)}, ${timeToLock} until picks lock${
+          p.venue_name ? ` for ${p.venue_name}` : ""
+        }.`,
         "You haven't locked picks yet — don't get shut out.",
       ],
       { ctaUrl, signOff: "See you on tour!" }
     );
     return {
       push: {
-        title: "Tonight's picks lock soon",
-        body: `Lock in your picks${p.venue_name ? ` for ${p.venue_name}` : ""} before ${lockLabel} local.`,
+        title: `${timeToLock} until picks lock`,
+        body: `Lock in your picks${p.venue_name ? ` for ${p.venue_name}` : ""}.`,
       },
       email: {
-        subject: p.time_to_lock
-          ? `Picks close in ${p.time_to_lock}${p.venue_city ? ` — ${p.venue_city} tonight` : ""}`
-          : `Lock in your picks${venue ? ` — ${venue}` : ""}`,
+        subject: `${timeToLock} until picks lock${
+          p.venue_city ? ` — ${p.venue_city} tonight` : ""
+        }`,
         text: assembled.text,
         signOff: assembled.signOff,
         ctaUrl,

@@ -6,6 +6,7 @@ import { CheckCircle2, Lock, Scale } from 'lucide-react';
 import { logCommsEmailLanded } from '../../features/comms';
 import {
   PicksFieldsForm,
+  PicksLockTimingBanner,
   PicksMobileFixedChrome,
   PicksSelfRecapSection,
   PicksSubmitButton,
@@ -34,6 +35,7 @@ export default function PicksPage({ user, selectedDate }) {
     isLoadingPicks,
     isLocked,
     hasExistingPicks,
+    showStatus,
     saveFeedback,
     pickConstraintMessage,
   } = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
@@ -105,6 +107,11 @@ export default function PicksPage({ user, selectedDate }) {
         </DashboardActionRow>
       </div>
       <div className="relative">
+        <PicksLockTimingBanner
+          key={selectedDate}
+          show={showForShare}
+          showStatus={showStatus}
+        />
         {shouldShowStatus ? (
           <>
             <div id={statusContentId} className={isMobileStatusExpanded ? 'md:block' : 'hidden md:block'}>

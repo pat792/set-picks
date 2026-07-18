@@ -183,10 +183,13 @@ export function useStandingsScreen(selectedDate, options = {}) {
 
   // Card / banner surfaces have room for the full city/venue token —
   // do not use the 40-char compact picker truncate here (#609 follow-up).
-  const showLabel = useMemo(() => {
-    const show = showDates.find((s) => s.date === selectedDate);
-    return show ? showOptionLabelDesktop(show) : selectedDate;
-  }, [selectedDate, showDates]);
+  const selectedShow = useMemo(
+    () => showDates.find((show) => show.date === selectedDate) ?? null,
+    [selectedDate, showDates]
+  );
+  const showLabel = selectedShow
+    ? showOptionLabelDesktop(selectedShow)
+    : selectedDate;
 
   const activePoolName = useMemo(() => {
     if (view !== 'pools' || !poolId) return null;
@@ -262,6 +265,7 @@ export function useStandingsScreen(selectedDate, options = {}) {
     loading,
     showStatus,
     showLabel,
+    selectedShow,
     selectedDate,
     isShowToday,
     picks,

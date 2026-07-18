@@ -1569,7 +1569,9 @@ exports.backfillBustoutsForShows = onCall(
  */
 exports.scheduledPhishnetShowCalendar = onSchedule(
   {
-    schedule: "0 6 1 * *",
+    // Daily: new tour dates can publish at any point in the month. Phish.net
+    // supplies canonical dates/tours; Phish.com enriches doors/show time.
+    schedule: "0 6 * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
     secrets: [phishnetApiKey],

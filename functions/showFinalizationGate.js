@@ -7,10 +7,9 @@
  * or the admin passes `force: true`.
  */
 
-const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
+const { resolvePicksLockHm } = require("./picksLockTime");
 
-const SHOW_PICKS_LOCK_HOUR_LOCAL = 19;
-const SHOW_PICKS_LOCK_MINUTE_LOCAL = 55;
+const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
 
 function resolveShowTimeZone(show, fallback = DEFAULT_SHOW_TIME_ZONE) {
   const explicit =
@@ -51,14 +50,25 @@ function showClockOnShowYmd(showYmd, showTimeZone, now = new Date()) {
   return { hour: Number(map.hour), minute: Number(map.minute) };
 }
 
-function isPastPicksLock(showYmd, showTimeZone = DEFAULT_SHOW_TIME_ZONE, now = new Date()) {
+function isPastPicksLock(
+  showYmd,
+  showTimeZone = DEFAULT_SHOW_TIME_ZONE,
+  now = new Date(),
+  showOrLockHm = null
+) {
   const clock = showClockOnShowYmd(showYmd, showTimeZone, now);
   if (!clock) return false;
+  const lockHm =
+    showOrLockHm && typeof showOrLockHm === "object"
+      ? resolvePicksLockHm({
+          date:
+            typeof showOrLockHm.date === "string" ? showOrLockHm.date : showYmd,
+          doorsLocal: showOrLockHm.doorsLocal,
+          picksLockLocal: showOrLockHm.picksLockLocal,
+        })
+      : resolvePicksLockHm({ date: showYmd });
   const { hour, minute } = clock;
-  return (
-    hour > SHOW_PICKS_LOCK_HOUR_LOCAL ||
-    (hour === SHOW_PICKS_LOCK_HOUR_LOCAL && minute >= SHOW_PICKS_LOCK_MINUTE_LOCAL)
-  );
+  return hour > lockHm.hour || (hour === lockHm.hour && minute >= lockHm.minute);
 }
 
 /**
@@ -91,7 +101,16 @@ function getShowStatus(selectedDate, showDates, now = new Date()) {
   if (selectedDate < today) return "PAST";
   if (selectedDate === nextShow.date) {
     if (selectedDate === today) {
-      if (isPastPicksLock(selectedDate, selectedTimeZone, now)) return "LIVE";
+      if (
+        isPastPicksLock(
+          selectedDate,
+          selectedTimeZone,
+          now,
+          selectedShow || { date: selectedDate }
+        )
+      ) {
+        return "LIVE";
+      }
     }
     return "NEXT";
   }

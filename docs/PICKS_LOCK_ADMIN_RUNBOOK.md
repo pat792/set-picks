@@ -27,7 +27,7 @@ Operational guide for **`lockPicksForShowNow`** — the War Room **Lock picks no
 1. Admin clicks **Lock picks now** in War Room while the show is `NEXT`.
 2. Client calls `lockPicksForShowNow({ showDate })`.
 3. Callable writes `show_lock_state/{showDate}` with `lockReason: admin_override`.
-4. All clients subscribed to that doc treat picks as locked even before the 7:55 PM venue-local wall clock.
+4. All clients subscribed to that doc treat picks as locked even before the per-show wall clock (doors+1:40 when doors known; else 7:30 PM venue-local).
 
 Idempotent: re-running on an already-stamped doc returns `{ alreadyLocked: true }` without rewriting timestamps.
 
@@ -103,8 +103,27 @@ node scripts/lockPicksForShowNow.js --showDate=2026-07-08 --lockedBy=pat@road2me
 
 ---
 
-## 5. Related docs
+## 5. Cloud Run invoker (browser callable)
 
-- [`docs/API.md`](./API.md) §1.10 (`show_lock_state`), §2.2b (`lockPicksForShowNow`)
+Gen 2 callables need public invoker so browser CORS preflights succeed (Firebase Auth is still checked in the handler). After deploy, verify:
+
+```bash
+gcloud run services get-iam-policy lockpicksforshownow \
+  --project=set-picks --region=us-central1
+# Expect: allUsers → roles/run.invoker
+```
+
+If missing (OPTIONS → 403, empty Authorization header in logs):
+
+```bash
+gcloud run services add-iam-policy-binding lockpicksforshownow \
+  --project=set-picks --region=us-central1 \
+  --member="allUsers" --role="roles/run.invoker"
+```
+
+## 6. Related docs
+
+- [`docs/API.md`](./API.md) §1.8 (doors / picksLockLocal), §1.10 (`show_lock_state`), §2.2b (`lockPicksForShowNow`)
 - [`docs/ADMIN_CLAIMS_RUNBOOK.md`](./ADMIN_CLAIMS_RUNBOOK.md) — admin claim bootstrap
 - [`docs/PHISHNET_CALLABLE_RUNBOOK.md`](./PHISHNET_CALLABLE_RUNBOOK.md) — phishnet deploy bundle
+- Issue [#522](https://github.com/pat792/set-picks/issues/522) — doors-based wall clock + remaining setlist poll lock

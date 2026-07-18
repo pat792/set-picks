@@ -91,6 +91,32 @@ describe('comms template registry', () => {
     );
   });
 
+  it('picks lock reminder uses relative cutoff only (#522)', () => {
+    const entry = getCommsTemplateEntry('picks-lock-reminder');
+    const result = entry.build({
+      handle: 'HotDogBilly',
+      venue_name: 'MSG',
+      venue_city: 'New York, NY',
+      time_to_lock: '2h 15m',
+      lock_time_local: '7:30 PM',
+    });
+    const text = [result.title, ...result.paragraphs].join(' ');
+    expect(text).toContain('2h 15m until picks lock');
+    expect(text).not.toContain('7:30 PM');
+  });
+
+  it('tour countdown omits an absolute picks cutoff (#522)', () => {
+    const entry = getCommsTemplateEntry('tour-countdown');
+    const result = entry.build({
+      handle: 'HotDogBilly',
+      days_remaining: 1,
+      lock_time_local: '7:30 PM',
+    });
+    const text = [result.title, ...result.paragraphs].join(' ');
+    expect(text).not.toContain('7:30 PM');
+    expect(text).not.toMatch(/picks lock/i);
+  });
+
   it('tour engagement reminder uses in-app picks CTA (not "Open the app")', () => {
     const entry = getCommsTemplateEntry('tour-engagement-reminder');
     expect(entry.build({}).cta).toEqual({
