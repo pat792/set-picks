@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
+import { FeatureNewBadge } from '../../feature-discovery';
 import { resolveEarnedBadges } from '../model/badgeCatalog';
+import { trackBadgeShelfView } from '../model/profileEngagementAnalytics';
 
 /**
  * Earned milestone badges shelf (#568).
@@ -8,18 +10,33 @@ import { resolveEarnedBadges } from '../model/badgeCatalog';
  * @param {{
  *   badges?: Record<string, unknown> | null,
  *   emptyLabel?: string,
+ *   surface?: 'profile' | 'public_profile',
+ *   showNewBadge?: boolean,
  * }} props
  */
 export default function BadgeShelf({
   badges = null,
   emptyLabel = 'No badges yet — play a scored show to start earning.',
+  surface = 'profile',
+  showNewBadge = false,
 }) {
   const earned = resolveEarnedBadges(badges);
+  const viewLoggedRef = useRef(false);
+
+  useEffect(() => {
+    if (viewLoggedRef.current) return;
+    viewLoggedRef.current = true;
+    trackBadgeShelfView({
+      surface,
+      badge_count: earned.length,
+    });
+  }, [surface, earned.length]);
 
   return (
     <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
-      <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-content-secondary">
+      <h2 className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-content-secondary">
         Badges
+        {showNewBadge ? <FeatureNewBadge title="New: milestone badges" /> : null}
       </h2>
       {earned.length === 0 ? (
         <p className="text-sm font-bold text-content-secondary">{emptyLabel}</p>

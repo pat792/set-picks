@@ -1,6 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { todayYmd } from '../../../shared/utils/dateUtils';
 import { pickCountsTowardSeason } from '../../../shared/utils/showAggregation';
 import { fetchGlobalMaxScoreForShow } from '../../scoring';
 
@@ -65,6 +66,8 @@ export const EMPTY_USER_SEASON_STATS_TELEMETRY = Object.freeze({
  *   - `totalPoints` / `shows` — sum of the user's own graded picks.
  *   - `wins` — shows won overall (global high score across every graded,
  *     non-empty pick for that show), not pool-scoped wins. Ties share.
+ *   - `careerCorrectSlots` — preserved from the user doc when present
+ *     (#635 Slice 0); live path does not recompute slot correctness.
  *
  * Also reports per-invocation read-cost counters via the optional
  * `onTelemetry` callback so `useUserSeasonStats` can ship the #220
@@ -177,7 +180,61 @@ export async function computeUserSeasonStats(uid, showDates, options = {}) {
   }
 
   emit();
-  return { totalPoints, shows, wins };
+  // #635 Slice 0: live path only recomputes points/shows/wins. Preserve
+  // rollup/backfill `careerCorrectSlots` so avg correct still renders when
+  // freshness short-circuit fails (ungraded calendar dates, etc.).
+  return withCareerCorrectSlots({ totalPoints, shows, wins }, userData);
+}
+
+/**
+ * Heuristic for "the most recent finalized show the client is aware of" —
+ * the max calendar date **strictly before today**. Used by
+ * `computeUserSeasonStats` (#244) to decide whether the `users/{uid}`
+ * materialized snapshot is fresh enough to short-circuit the
+ * live-compute fallback.
+ *
+ * Today's show is excluded (#635 Slice 0): finalize is still manual, so
+ * treating an ungraded show-day calendar entry as finalized falsely marks
+ * rollups through yesterday as stale. Multi-day calendar gaps still need
+ * the rollup watermark (Slices 1–2 on #635).
+ *
+ * @param {Array<{ date: string }>} showDates
+ * @param {string} [today] YYYY-MM-DD override for unit tests
+ * @returns {string | null}
+ */
+export function deriveLatestFinalizedShow(showDates, today = todayYmd()) {
+  if (!Array.isArray(showDates) || showDates.length === 0) return null;
+  const todayYmdValue =
+    typeof today === 'string' && today ? today : todayYmd();
+  let latest = null;
+  for (const s of showDates) {
+    const d = s && typeof s.date === 'string' ? s.date : '';
+    // Exclude today and future — only prior calendar nights are treated
+    // as potentially finalized.
+    if (!d || d >= todayYmdValue) continue;
+    if (!latest || d > latest) latest = d;
+  }
+  return latest;
+}
+
+/**
+ * Attach `careerCorrectSlots` from a `users/{uid}` snapshot when present.
+ * Used by both the materialized short-circuit and the live fallback so avg
+ * correct (#554 / #635) does not depend on freshness succeeding.
+ *
+ * @param {UserSeasonStats} stats
+ * @param {Record<string, unknown> | null | undefined} userData
+ * @returns {UserSeasonStats}
+ */
+export function withCareerCorrectSlots(stats, userData) {
+  const out = { ...stats };
+  if (
+    typeof userData?.careerCorrectSlots === 'number' &&
+    Number.isFinite(userData.careerCorrectSlots)
+  ) {
+    out.careerCorrectSlots = userData.careerCorrectSlots;
+  }
+  return out;
 }
 
 /**
@@ -214,12 +271,5 @@ export function readMaterializedSeasonStats(userData, latestFinalizedShow) {
       ? userData.seasonStatsThroughShow
       : '';
   if (!through || through < latestFinalizedShow) return null;
-  const out = { totalPoints, shows, wins };
-  if (
-    typeof userData.careerCorrectSlots === 'number' &&
-    Number.isFinite(userData.careerCorrectSlots)
-  ) {
-    out.careerCorrectSlots = userData.careerCorrectSlots;
-  }
-  return out;
+  return withCareerCorrectSlots({ totalPoints, shows, wins }, userData);
 }

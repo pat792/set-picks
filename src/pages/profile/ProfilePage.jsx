@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 
+import { useFeatureSpotlight } from '../../features/feature-discovery';
 import { InstallAppCard } from '../../features/install';
 import {
   BadgeShelf,
@@ -19,6 +20,7 @@ import DashboardRowPill from '../../shared/ui/DashboardRowPill';
 export default function ProfilePage({ user: userProp }) {
   const outlet = useOutletContext();
   const user = userProp ?? outlet?.user;
+  const identitySpotlight = useFeatureSpotlight('profile-identity');
 
   const {
     handle,
@@ -34,6 +36,17 @@ export default function ProfilePage({ user: userProp }) {
     setAvatarId,
     saveProfile,
   } = useUserProfile(user);
+
+  const onAvatarChange = useCallback(
+    (nextId) => {
+      setAvatarId(nextId);
+      if (identitySpotlight.active) {
+        identitySpotlight.trackClick();
+        identitySpotlight.markSeen();
+      }
+    },
+    [setAvatarId, identitySpotlight],
+  );
 
   return (
     <div>
@@ -61,7 +74,13 @@ export default function ProfilePage({ user: userProp }) {
 
       <ProfileSelfStatsPanel uid={user?.uid} />
 
-      <BadgeShelf badges={badges} />
+      {!isLoading ? (
+        <BadgeShelf
+          badges={badges}
+          surface="profile"
+          showNewBadge={identitySpotlight.active}
+        />
+      ) : null}
 
       <div className="mt-6">
         <ProfileEditForm
@@ -70,11 +89,12 @@ export default function ProfilePage({ user: userProp }) {
           avatarId={avatarId}
           onHandleChange={setHandle}
           onFavoriteSongChange={setFavoriteSong}
-          onAvatarChange={setAvatarId}
+          onAvatarChange={onAvatarChange}
           onSave={saveProfile}
           isSaving={isSaving}
           isLoading={isLoading}
           message={message}
+          showAvatarNewBadge={identitySpotlight.active}
         />
       </div>
 

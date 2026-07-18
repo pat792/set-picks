@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ChevronDown, ExternalLink, ListMusic } from 'lucide-react';
 
+import {
+  FeatureNewBadge,
+  useFeatureSpotlight,
+} from '../../feature-discovery';
 import Card from '../../../shared/ui/Card';
 import { SCORING_RULES } from '../../../shared/utils/scoring';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
@@ -11,6 +15,10 @@ import {
   groupOfficialSetlistBySet,
   isOfficialSetlistBustout,
 } from '../model/groupOfficialSetlistBySet';
+import {
+  resolveLiveSetlistStatus,
+  trackLiveSetlistView,
+} from '../model/standingsAnalytics';
 import OfficialPickSlotsGrid from './OfficialPickSlotsGrid';
 import {
   STANDINGS_BOX_BODY,
@@ -110,14 +118,38 @@ export default function StandingsOfficialSetlistCard({
   const grouped = groupOfficialSetlistBySet(actualSetlist);
   const bustoutTitleSet = buildBustoutTitleSet(actualSetlist);
   const gapMap = buildSongGapMap(actualSetlist);
+  const viewLoggedRef = useRef('');
+  const setlistSpotlight = useFeatureSpotlight('live-setlist');
 
-  if (!actualSetlist || (!grouped.hasSongs && !grouped.hasOfficialSlots)) {
+  const hasContent =
+    Boolean(actualSetlist) &&
+    (grouped.hasSongs || grouped.hasOfficialSlots);
+  const isLive = showStatus === 'LIVE';
+
+  useEffect(() => {
+    if (!hasContent) return;
+    const setlistStatus = resolveLiveSetlistStatus(showStatus);
+    const sig = `${showDate}|${setlistStatus}`;
+    if (viewLoggedRef.current === sig) return;
+    viewLoggedRef.current = sig;
+    trackLiveSetlistView({
+      show_date: showDate || '',
+      setlist_status: setlistStatus,
+    });
+  }, [hasContent, showDate, showStatus]);
+
+  if (!hasContent) {
     return null;
   }
 
-  const isLive = showStatus === 'LIVE';
   const statusLabel = isLive ? 'Live' : showStatus === 'PAST' ? 'Final' : 'Official';
   const phishNetHref = buildPhishNetSetlistUrl(showDate);
+
+  const onDetailsToggle = () => {
+    if (setlistSpotlight.active) {
+      setlistSpotlight.markSeen();
+    }
+  };
 
   return (
     <Card
@@ -126,7 +158,11 @@ export default function StandingsOfficialSetlistCard({
       padding="none"
       className={`mb-3 ${STANDINGS_CARD_SHELL} ${className}`.trim()}
     >
-      <details className="group" defaultOpen={isLive}>
+      <details
+        className="group"
+        defaultOpen={isLive}
+        onToggle={onDetailsToggle}
+      >
         <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -146,6 +182,9 @@ export default function StandingsOfficialSetlistCard({
               >
                 {statusLabel}
               </span>
+              {setlistSpotlight.active ? (
+                <FeatureNewBadge title="New: live official setlist" />
+              ) : null}
             </div>
             {showLabel ? (
               <p className={`truncate ${STANDINGS_BOX_TITLE}`}>{showLabel}</p>

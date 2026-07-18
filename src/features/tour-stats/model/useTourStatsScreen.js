@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '../../auth';
@@ -6,6 +6,7 @@ import { useSongCatalog } from '../../song-catalog';
 import { computeTourStatsSelfOverlay } from '../api/computeTourStatsSelfOverlay';
 import { fetchTourOfficialSetlists } from '../api/fetchTourOfficialSetlists';
 import { aggregateTourSetlistStats } from './aggregateTourSetlistStats';
+import { trackTourStatsView } from './tourStatsAnalytics';
 
 /**
  * Normalized (lowercased/trimmed) title → lifetime times-played, from the song
@@ -94,6 +95,23 @@ export function useTourStatsScreen(options = {}) {
         topSongTitles: stats.topSongs.map((r) => r.title),
       }),
   });
+
+  const tourViewLoggedRef = useRef('');
+  useEffect(() => {
+    if (calendarLoading || !selectedTour || !tourName) return;
+    if (setlistQuery.isLoading || setlistQuery.isError) return;
+    if (!setlistQuery.isSuccess) return;
+    if (tourViewLoggedRef.current === tourName) return;
+    tourViewLoggedRef.current = tourName;
+    trackTourStatsView({ tour: tourName });
+  }, [
+    calendarLoading,
+    selectedTour,
+    tourName,
+    setlistQuery.isLoading,
+    setlistQuery.isError,
+    setlistQuery.isSuccess,
+  ]);
 
   return {
     calendarLoading,

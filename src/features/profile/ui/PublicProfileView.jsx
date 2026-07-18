@@ -154,6 +154,7 @@ export default function PublicProfileView({
         <BadgeShelf
           badges={profile.badges}
           emptyLabel="No badges earned yet."
+          surface="public_profile"
         />
       </div>
     </div>
