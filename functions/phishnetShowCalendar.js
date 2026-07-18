@@ -8,6 +8,10 @@
  * `exclude_from_stats` (omit soundchecks / non-counting rows when truthy).
  */
 
+const {
+  fetchOfficialPhishSchedule,
+} = require("./phishOfficialSchedule");
+
 const MONTHS = [
   "Jan",
   "Feb",
@@ -213,6 +217,67 @@ function flattenSnapshotTourByDate(prevData) {
     }
   }
   return map;
+}
+
+/**
+ * Preserve official timing when Phish.com is temporarily unavailable.
+ *
+ * @param {import('firebase-admin').firestore.DocumentData | null | undefined} prevData
+ * @returns {Map<string, {
+ *   doorsLocal?: string,
+ *   scheduledStartLocal?: string,
+ *   scheduleSource?: string,
+ *   scheduleSourceUrl?: string
+ * }>}
+ */
+function flattenSnapshotScheduleByDate(prevData) {
+  const out = new Map();
+  const raw = Array.isArray(prevData?.showDates) ? prevData.showDates : [];
+  for (const show of raw) {
+    if (!show || typeof show !== "object") continue;
+    const date = typeof show.date === "string" ? show.date.trim() : "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    const timing = {};
+    for (const field of [
+      "doorsLocal",
+      "scheduledStartLocal",
+      "scheduleSource",
+      "scheduleSourceUrl",
+    ]) {
+      if (typeof show[field] === "string" && show[field].trim()) {
+        timing[field] = show[field].trim();
+      }
+    }
+    if (Object.keys(timing).length > 0) out.set(date, timing);
+  }
+  return out;
+}
+
+/**
+ * @param {{ tour: string, shows: Record<string, unknown>[] }[]} groups
+ * @param {Map<string, Record<string, unknown>>} officialByDate
+ * @param {Map<string, Record<string, unknown>>} previousByDate
+ */
+function enrichGroupsWithOfficialSchedule(
+  groups,
+  officialByDate,
+  previousByDate
+) {
+  return groups.map((group) => ({
+    ...group,
+    shows: group.shows.map((show) => {
+      const timing =
+        officialByDate.get(String(show.date)) ??
+        previousByDate.get(String(show.date)) ??
+        null;
+      if (!timing) return show;
+      const {
+        date: _sourceDate,
+        ...timingFields
+      } = timing;
+      return { ...show, ...timingFields };
+    }),
+  }));
 }
 
 /**
@@ -587,6 +652,9 @@ async function syncPhishnetShowCalendarToFirestore(db, apiKey, ctx) {
     const prevTourByDate = flattenSnapshotTourByDate(
       prevSnap.exists ? prevSnap.data() : null
     );
+    const prevScheduleByDate = flattenSnapshotScheduleByDate(
+      prevSnap.exists ? prevSnap.data() : null
+    );
     const overridesByDate = parseTourOverridesDoc(
       overridesSnap.exists ? overridesSnap.data() : null
     );
@@ -595,7 +663,7 @@ async function syncPhishnetShowCalendarToFirestore(db, apiKey, ctx) {
 
     const shows = await fetchAllShowsNormalized({ apiKey });
     const computedGroups = buildShowDatesByTour(shows);
-    const { showDatesByTour, reviewQueue } =
+    const { showDatesByTour: groupedShows, reviewQueue } =
       mergeToursWithSnapshotPreservation(
         shows,
         computedGroups,
@@ -603,12 +671,28 @@ async function syncPhishnetShowCalendarToFirestore(db, apiKey, ctx) {
         overridesByDate,
         { isFirstSnapshot }
       );
+    let officialScheduleByDate = new Map();
+    try {
+      officialScheduleByDate = await fetchOfficialPhishSchedule({ logger });
+    } catch (scheduleError) {
+      logger?.warn?.("phish.com schedule enrichment failed; preserving prior timing", {
+        error:
+          scheduleError instanceof Error
+            ? scheduleError.message
+            : String(scheduleError),
+      });
+    }
+    const showDatesByTour = enrichGroupsWithOfficialSchedule(
+      groupedShows,
+      officialScheduleByDate,
+      prevScheduleByDate
+    );
     const flat = showDatesByTour.flatMap((g) => g.shows);
 
     await ref.set(
       {
         schemaVersion: 2,
-        source: "phishnet",
+        source: "phishnet+phish.com",
         updatedAt: new Date(),
         showDatesByTour,
         showDates: flat,
@@ -623,6 +707,8 @@ async function syncPhishnetShowCalendarToFirestore(db, apiKey, ctx) {
       groups: showDatesByTour.length,
       reviewNewDates: reviewQueue.length,
       preservedDates: prevTourByDate.size,
+      officialTimedShows: officialScheduleByDate.size,
+      preservedTimedShows: prevScheduleByDate.size,
     });
     return { showCount: flat.length, groupCount: showDatesByTour.length };
   } catch (e) {
@@ -645,7 +731,9 @@ module.exports = {
   buildShowDatesByTour,
   buildVenueLine,
   fetchAllShowsNormalized,
+  flattenSnapshotScheduleByDate,
   flattenSnapshotTourByDate,
+  enrichGroupsWithOfficialSchedule,
   labelGenericCluster,
   mergeToursWithSnapshotPreservation,
   normalizePhishShows,

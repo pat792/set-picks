@@ -1,6 +1,7 @@
 import React from 'react';
 import { Inbox, Loader2, Music } from 'lucide-react';
 
+import { PicksLockTimingBanner } from '../../picks';
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
 import StandingsSelfRecapCard from './StandingsSelfRecapCard';
@@ -34,6 +35,7 @@ export default function StandingsShowOrPoolView({ screen }) {
     loading,
     showStatus,
     showLabel,
+    selectedShow,
     selectedDate,
     isShowToday,
     picks,
@@ -100,6 +102,11 @@ export default function StandingsShowOrPoolView({ screen }) {
   if (isShowView && showStatus === 'NEXT') {
     return (
       <>
+        <PicksLockTimingBanner
+          key={selectedDate}
+          show={selectedShow}
+          showStatus={showStatus}
+        />
         {showLastShowWinnerBanner ? (
           <StandingsWinnerOfTheNightBanner
             variant="lastShow"

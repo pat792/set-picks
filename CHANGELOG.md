@@ -1,9 +1,3 @@
-## [1.30.1] — 2026-07-17
-
-### Added
-
-- `docs/scoring-analysis/` — durable repo docs for scoring/prediction canvas research (slot odds, significance, calibration, combos, greenfield model, predictive picker framework); links issues #645–#653.
-
 # Changelog
 
 All notable changes to Setlist Pick'em are documented here.
@@ -17,6 +11,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [Unreleased]
 
 No unreleased changes.
+
+---
+
+## [1.31.0] — 2026-07-18
+
+### Added
+- **Doors-based picks lock (#522)** — wall-clock lock is now `doors + (tour avg doors→start − safety)` when doors are known (Summer Tour 2026 setlist.fm avg 1h59m, safety 19 → **doors+1:40**). The daily Phish.net calendar sync now enriches upcoming dates from first-party Phish.com date pages (`Doors Open` / advertised `Show Time`), preserves prior timing on transient failures, and retains seeded Summer Tour doors as a client/Functions fallback. Unknown doors use the conservative **7:30 PM** venue-local fallback. Client + Functions + `picks_lock_reminder` share the same resolver. Lock toast copy: “Picks locked, almost showtime!”
+- `docs/scoring-analysis/` — durable repo docs for scoring/prediction canvas research (slot odds, significance, calibration, combos, greenfield model, predictive picker framework); links issues #645–#653.
+
+### Changed
+- War Room show-date panel shows the resolved per-show lock time and source (doors / explicit / fallback).
+- Picks and pre-lock Standings now show a dismissible, session-scoped timing notice with the resolved cutoff and, when known, its relationship to the published doors time. It is the top notice on Standings and stays dismissed for that show across both surfaces. Cutoff-related comms use only relative `time_to_lock` wording; tour countdown copy no longer repeats an absolute deadline.
 
 ---
 
