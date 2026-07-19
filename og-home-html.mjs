@@ -65,6 +65,11 @@ export function buildHomeOgHtml({
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png?v=20260715" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg?v=20260715" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico?v=20260715" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png?v=20260715" />
+  <link rel="manifest" href="/favicon/site.webmanifest?v=20260715" />
   <link rel="canonical" href="${escapeHtml(url)}" />
   <title>${escapeHtml(title)}</title>
 </head>
@@ -72,6 +77,10 @@ export function buildHomeOgHtml({
 </html>`;
 }
 
-/** Scraper bots only — do NOT match the Instagram in-app browser (contains "Instagram"). */
+/**
+ * Social scrapers only — empty-body OG HTML is for Meta/X/Slack/etc. (no JS).
+ * Do NOT match search/archive bots (Googlebot, bingbot, Applebot, ia_archiver)
+ * or the Instagram in-app browser (UA contains "Instagram").
+ */
 export const SOCIAL_CRAWLER_RE =
-  /facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|LinkedInBot|TelegramBot|Discordbot|redditbot|bingbot|Applebot|Googlebot|ia_archiver/i;
+  /facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|LinkedInBot|TelegramBot|Discordbot|redditbot/i;

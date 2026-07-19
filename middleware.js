@@ -5,6 +5,9 @@
  * `index.html` are usually enough; this guarantees OG meta is the first bytes
  * after charset and busts stale Meta cache issues when paired with a versioned
  * `og:image` URL.
+ *
+ * Search bots (Googlebot, bingbot, …) must fall through to the SPA `index.html`
+ * — they need body content / JSON-LD / favicons, not the empty-body OG shell.
  */
 import { buildHomeOgHtml, SOCIAL_CRAWLER_RE } from './og-home-html.mjs';
 
