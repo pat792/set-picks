@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.31.0  
+**Version:** 1.32.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -326,9 +326,9 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 | Path | Auth | Description |
 |------|------|-------------|
-| `/` | None | Public splash / landing page |
-| `/how-it-works` | None | How to play marketing page |
-| `/how-scoring-works` | None | Scoring rules marketing page |
+| `/` | None | Public splash / landing page. **v1.32.0+ (#659):** build-time prerender injects crawler-visible H1/body + JSON-LD into `dist/index.html` (SPA still boots for browsers). Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
+| `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. |
+| `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile |

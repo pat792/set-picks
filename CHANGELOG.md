@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.32.0] — 2026-07-19
+
+### Added
+- **SEO prerender for public marketing routes (#659)** — post-build step writes crawler-visible HTML (unique title/description, H1/body, JSON-LD, favicons) for `/`, `/how-it-works`, and `/how-scoring-works` into `dist/`. Shared registry `src/shared/config/seoRoutes.js` (Helmet + prerender); `npm run verify:seo-prerender` in CI. Plug point for future public `/tour-stats` (#665). Browsers still boot the SPA via `createRoot`.
+
+---
+
 ## [1.31.1] — 2026-07-19
 
 ### Fixed
