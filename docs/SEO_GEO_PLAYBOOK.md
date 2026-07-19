@@ -101,7 +101,7 @@ Fill one row per week (Sunday or Monday). Source: Search Console Performance (28
 
 | Week starting | Impressions (site) | Clicks | Top query (non-brand) | Best position (C1–C4) | Favicon on `site:setlistpickem.com`? | AI Overview / generative citation? | Notes |
 |---------------|--------------------:|-------:|------------------------|------------------------:|--------------------------------------|------------------------------------|-------|
-| 2026-07-19 | 76 | 24 | _TBD_ | 5.7 (site avg) | _check_ | _check_ | GSC Performance **last 3 months** (Web; through ~2026-07-17): CTR 31.6%, avg position 5.7. Child A live; www reindex requested; playbook (#664). Prefer last-7-days for later weekly rows. |
+| 2026-07-19 | 76 | 24 | _TBD_ | 5.7 (site avg) | **No** (globe) | _check_ | GSC Performance **last 3 months** (Web; through ~2026-07-17): CTR 31.6%, avg position 5.7. Child A live; www reindex requested. Tab favicon OK; SERP still generic globe → track #662 (expect 2–4 weeks post-#658; recheck weekly). Prefer last-7-days for later weekly rows. |
 | 2026-07-26 | | | | | | | |
 | 2026-08-02 | | | | | | | |
 | 2026-08-09 | | | | | | | |
