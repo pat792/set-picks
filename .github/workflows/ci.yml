@@ -72,6 +72,9 @@ jobs:
       - name: Homepage Open Graph (crawler meta)
         run: npm run verify:og-home
 
+      - name: SEO prerender routes (crawler HTML)
+        run: npm run verify:seo-prerender
+
       - name: Client tests (vitest)
         run: npm test
 

@@ -159,7 +159,7 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 | Check | Command / file |
 |-------|----------------|
 | OG shell + social UA matrix | `npm run verify:og-home` (`scripts/verify-og-home.mjs`, `og-home-html.mjs`) |
-| Prerender (when #659 lands) | `verify:seo-prerender` (TBD) |
+| Prerender (#659) | `npm run verify:seo-prerender` (`scripts/prerender-seo.mjs` after build; registry `src/shared/config/seoRoutes.js`) |
 | Automation context | `docs/GITHUB_AUTOMATION_CONTEXT.md` → Public landing SEO |
 
 ---
