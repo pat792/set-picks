@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.31.1] — 2026-07-19
+
+### Fixed
+- **Googlebot empty-body OG (#658)** — homepage edge middleware no longer serves the minimal empty-body OG shell to `Googlebot` / `bingbot` / `Applebot` / `ia_archiver`. Those bots get the normal SPA `index.html`. Social scrapers still get the OG shell, which now also includes favicon `<link>`s.
+
+---
+
 ## [1.31.0] — 2026-07-18
 
 ### Added
