@@ -156,7 +156,7 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 
 Public, aggregate-only tour song stats for SEO marketing routes. Written by Cloud Functions Admin SDK (`refreshPublicTourStats` / nightly schedule). **Never** contains full per-show `officialSetlist` arrays. Clients may read; client writes denied.
 
-Document ID is a kebab-case slug from the calendar tour label (`Sphere Run 2026` → `sphere-run-2026`). Special doc `_index` lists tours for the public filter.
+Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` → `2026-sphere`). Special doc `_index` lists tours for the public filter.
 
 | Field | Type | Notes |
 |-------|------|-------|
@@ -172,7 +172,7 @@ Document ID is a kebab-case slug from the calendar tour label (`Sphere Run 2026`
 | `writtenAt` | string | ISO timestamp |
 | `schemaVersion` | number | `1` |
 
-`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (`sphere-run-2026`), `writtenAt`, `schemaVersion`.
+`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (prefers Sphere when present, e.g. `2026-sphere`), `writtenAt`, `schemaVersion`.
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
 
@@ -356,7 +356,7 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. |
 | `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. |
 | `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. |
-| `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `sphere-run-2026`). Default Sphere slug is also prerendered. |
+| `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `2026-sphere`). Default Sphere slug is also prerendered. |
 | `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |

@@ -178,10 +178,10 @@ const TOUR_STATS_HUB_DESCRIPTION =
   "Aggregate Phish tour setlist stats — most-played songs, bustouts, and gap highlights. Starts with the Sphere run (when Setlist Pick 'Em launched); tours update as Phish.net publishes new dates.";
 const TOUR_STATS_HUB_URL = `${SEO_CONFIG.siteUrl}/tour-stats`;
 
-const TOUR_STATS_SPHERE_TITLE = "Sphere Run 2026 Tour Stats | Setlist Pick'Em";
+const TOUR_STATS_SPHERE_TITLE = "2026 Sphere Tour Stats | Setlist Pick'Em";
 const TOUR_STATS_SPHERE_DESCRIPTION =
-  "Sphere Run 2026 setlist stats for Setlist Pick 'Em — most-played songs, bustouts, and gap highlights from the inaugural Pick'em tour. Aggregate song data only; not full nightly setlists.";
-const TOUR_STATS_SPHERE_URL = `${SEO_CONFIG.siteUrl}/tour-stats/sphere-run-2026`;
+  "2026 Sphere setlist stats for Setlist Pick 'Em — most-played songs, bustouts, and gap highlights from the inaugural Pick'em tour. Aggregate song data only; not full nightly setlists.";
+const TOUR_STATS_SPHERE_URL = `${SEO_CONFIG.siteUrl}/tour-stats/2026-sphere`;
 
 function buildTourStatsHubJsonLd() {
   return {
@@ -246,7 +246,7 @@ function buildTourStatsSphereJsonLd() {
           {
             '@type': 'ListItem',
             position: 3,
-            name: 'Sphere Run 2026',
+            name: '2026 Sphere',
             item: TOUR_STATS_SPHERE_URL,
           },
         ],
@@ -452,13 +452,13 @@ export const PRERENDER_ROUTES = [
     buildJsonLd: buildTourStatsHubJsonLd,
   },
   {
-    path: '/tour-stats/sphere-run-2026',
+    path: '/tour-stats/2026-sphere',
     title: TOUR_STATS_SPHERE_TITLE,
     description: TOUR_STATS_SPHERE_DESCRIPTION,
     canonicalUrl: TOUR_STATS_SPHERE_URL,
-    h1: 'Sphere Run 2026 tour stats',
+    h1: '2026 Sphere tour stats',
     paragraphs: [
-      'Most-played songs, bustouts, and gap highlights from the Sphere run — the inaugural Setlist Pick \'Em tour.',
+      'Most-played songs, bustouts, and gap highlights from the 2026 Sphere run — the inaugural Setlist Pick \'Em tour.',
       'Tour names and dates sync from Phish.net as new shows publish so stats stay current while you make picks for every show.',
       'Aggregate song data only — not night-by-night full setlists.',
     ],

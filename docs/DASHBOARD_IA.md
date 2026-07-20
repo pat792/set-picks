@@ -19,7 +19,7 @@ Single reference for **support**, **product**, and **engineering** when adding r
 |-------|------|-------|
 | **Stats** (Standings peer tab) | `/dashboard/tour-stats` | Private explorer: unique songs, frequency, bustouts, self pick overlay. Discovered via Standings chrome **Show \| Tour \| Stats \| Pools** (not a 5th primary nav tab). Standings tab stays active. Shares the chrome **tour scope** picker with Tour view (`?tour=`). No global date picker. |
 
-**Public marketing counterpart (#665):** `/tour-stats` and `/tour-stats/:tourSlug` — aggregate song datasets only (most played, bustouts, gaps); default tour is Sphere (`sphere-run-2026`). Not a dashboard route; `robots.txt` still Disallows `/dashboard/*`. Do not unlock private Stats or self-overlay for anonymous users.
+**Public marketing counterpart (#665):** `/tour-stats` and `/tour-stats/:tourSlug` — aggregate song datasets only (most played, bustouts, gaps); default tour is Sphere (`2026-sphere` from live calendar label **2026 Sphere**). Not a dashboard route; `robots.txt` still Disallows `/dashboard/*`. Do not unlock private Stats or self-overlay for anonymous users.
 
 ### Feature discovery “New” markers (#639)
 

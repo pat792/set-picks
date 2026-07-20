@@ -21,14 +21,14 @@ import { db } from '../../../shared/lib/firebase';
 export async function fetchPublicTourStatsIndex() {
   const snap = await getDoc(doc(db, 'public_tour_stats', '_index'));
   if (!snap.exists()) {
-    return { tours: [], defaultTourSlug: 'sphere-run-2026' };
+    return { tours: [], defaultTourSlug: '2026-sphere' };
   }
   const data = snap.data() || {};
   const tours = Array.isArray(data.tours) ? data.tours : [];
   const defaultTourSlug =
     typeof data.defaultTourSlug === 'string' && data.defaultTourSlug
       ? data.defaultTourSlug
-      : 'sphere-run-2026';
+      : '2026-sphere';
   return { tours, defaultTourSlug };
 }
 

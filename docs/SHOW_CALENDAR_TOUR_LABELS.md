@@ -19,4 +19,4 @@ Each successful sync also writes **`reviewQueue`** on `snapshot` (empty on **fir
 
 **Related:** [PHISHNET_CALLABLE_RUNBOOK.md](./PHISHNET_CALLABLE_RUNBOOK.md) §8.
 
-**Public tour-stats SEO (#665):** kebab-case slugs from these labels feed `public_tour_stats/{tourSlug}` (e.g. `Sphere Run 2026` → `sphere-run-2026`). Calendar sync and `scheduledPublicTourStatsRefresh` keep aggregates current; see `docs/API.md` §1.13.
+**Public tour-stats SEO (#665):** kebab-case slugs from these labels feed `public_tour_stats/{tourSlug}` (e.g. `2026 Sphere` → `2026-sphere`). Calendar sync and `scheduledPublicTourStatsRefresh` keep aggregates current; see `docs/API.md` §1.13.

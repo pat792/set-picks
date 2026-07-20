@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.34.1] — 2026-07-19
+
+### Fixed
+- **Public tour-stats default slug (#665)** — align default/prerender with live calendar label **2026 Sphere** → `2026-sphere` (was hardcoded `sphere-run-2026`). Index writer prefers any Sphere tour when present.
+
+---
+
 ## [1.34.0] — 2026-07-19
 
 ### Added
