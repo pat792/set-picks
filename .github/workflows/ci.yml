@@ -19,9 +19,9 @@ jobs:
       rules: ${{ steps.filter.outputs.rules }}
       qa_risk: ${{ steps.filter.outputs.qa_risk }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             functions:
@@ -46,9 +46,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -120,9 +120,9 @@ jobs:
     if: github.event_name == 'schedule' || needs.changes.outputs.functions == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -150,15 +150,15 @@ jobs:
     if: github.event_name == 'schedule' || needs.changes.outputs.rules == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -191,9 +191,9 @@ jobs:
       QA_TEST_EMAIL: ${{ secrets.QA_TEST_EMAIL }}
       QA_TEST_PASSWORD: ${{ secrets.QA_TEST_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -206,7 +206,7 @@ jobs:
       # System deps still run via --with-deps (cheap vs Chromium fetch).
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -256,9 +256,9 @@ jobs:
       QA_PREVIEW_BASE_URL: ${{ vars.QA_PREVIEW_BASE_URL }}
       QA_VERCEL_PROTECTION_BYPASS: ${{ secrets.QA_VERCEL_PROTECTION_BYPASS }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
 
