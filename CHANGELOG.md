@@ -14,6 +14,19 @@ No unreleased changes.
 
 ---
 
+## [1.35.3] — 2026-07-20
+
+### Added
+- **Crowd pulse GA4 (#694)** — `crowd_pulse_view`, `crowd_pulse_full_expand`, `crowd_pulse_section_open` on Standings (see `docs/API.md`).
+
+### Changed
+- **Crowd pulse Standings polish (#694)** — top-5 Song · Pickers · Gap · Last table; full-stats expandable sections; setlist-hit highlight; frozen `songGaps` preferred over live catalog for historical nights.
+
+### Fixed
+- **Crowd pulse gap on past shows** — use `official_setlists.songGaps` pre-show gap so played titles match the setlist card instead of post-play catalog reset.
+
+---
+
 ## [1.35.2] — 2026-07-20
 
 ### Changed

@@ -21,10 +21,11 @@ export function parseCatalogGap(gap) {
 }
 
 /**
- * @param {{ name?: unknown, gap?: unknown, debut?: unknown }[] | null | undefined} songs
+ * @param {{ name?: unknown, gap?: unknown, debut?: unknown, last?: unknown }[] | null | undefined} songs
  * @returns {{
  *   gapByName: Map<string, number>,
  *   debutYearByName: Map<string, number>,
+ *   lastByName: Map<string, string>,
  * }}
  */
 export function buildCatalogLookups(songs) {
@@ -32,7 +33,11 @@ export function buildCatalogLookups(songs) {
   const gapByName = new Map();
   /** @type {Map<string, number>} */
   const debutYearByName = new Map();
-  if (!Array.isArray(songs)) return { gapByName, debutYearByName };
+  /** @type {Map<string, string>} */
+  const lastByName = new Map();
+  if (!Array.isArray(songs)) {
+    return { gapByName, debutYearByName, lastByName };
+  }
   for (const song of songs) {
     const name =
       typeof song?.name === 'string' ? song.name.trim().toLowerCase() : '';
@@ -45,8 +50,46 @@ export function buildCatalogLookups(songs) {
       const y = debutYearFromCatalogDebut(song?.debut);
       if (y != null) debutYearByName.set(name, y);
     }
+    if (!lastByName.has(name) && typeof song?.last === 'string') {
+      const last = song.last.trim();
+      if (last && last !== '—' && last !== '-') {
+        lastByName.set(name, last);
+      }
+    }
   }
-  return { gapByName, debutYearByName };
+  return { gapByName, debutYearByName, lastByName };
+}
+
+/**
+ * Merge live catalog gaps with per-show frozen pre-show gaps
+ * (`official_setlists.songGaps`, #587). Frozen values win so historical
+ * nights match Standings / Tour Stats instead of post-play catalog resets.
+ *
+ * @param {Map<string, number>} catalogGapByName
+ * @param {Map<string, number> | Record<string, number> | null | undefined} frozenGaps
+ * @returns {Map<string, number>}
+ */
+export function mergeCrowdGapByName(catalogGapByName, frozenGaps) {
+  const out = new Map(
+    catalogGapByName instanceof Map ? catalogGapByName : new Map()
+  );
+  if (!frozenGaps) return out;
+  const entries =
+    frozenGaps instanceof Map
+      ? frozenGaps.entries()
+      : typeof frozenGaps === 'object' && !Array.isArray(frozenGaps)
+        ? Object.entries(frozenGaps)
+        : [];
+  for (const [rawKey, rawVal] of entries) {
+    const key = String(rawKey ?? '')
+      .trim()
+      .toLowerCase();
+    const gap =
+      typeof rawVal === 'number' ? rawVal : Number(rawVal);
+    if (!key || !Number.isFinite(gap) || gap < 0) continue;
+    out.set(key, Math.trunc(gap));
+  }
+  return out;
 }
 
 /**
@@ -153,7 +196,10 @@ export function computeSlotWeightedVintage(submittedDocs, debutYearByName) {
 /**
  * @param {import('./aggregateCrowdNightSongs').CrowdNightSongStats} nightStats
  * @param {{ name?: unknown, gap?: unknown, debut?: unknown }[] | null | undefined} catalogSongs
- * @param {{ gapTopN?: number }} [options]
+ * @param {{
+ *   gapTopN?: number,
+ *   frozenGaps?: Map<string, number> | Record<string, number> | null,
+ * }} [options]
  */
 export function aggregateCrowdNightCatalog(nightStats, catalogSongs, options = {}) {
   const { gapByName, debutYearByName } = buildCatalogLookups(catalogSongs);
@@ -161,8 +207,9 @@ export function aggregateCrowdNightCatalog(nightStats, catalogSongs, options = {
     typeof options.gapTopN === 'number' && options.gapTopN > 0
       ? Math.trunc(options.gapTopN)
       : 10;
+  const gapLookup = mergeCrowdGapByName(gapByName, options.frozenGaps);
   return {
-    highestGap: rankCrowdNightByGap(nightStats?.songs, gapByName, {
+    highestGap: rankCrowdNightByGap(nightStats?.songs, gapLookup, {
       topN: gapTopN,
     }),
     vintage: computeSlotWeightedVintage(

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { aggregateCrowdNightSongs } from './aggregateCrowdNightSongs';
 import {
   aggregateCrowdNightCatalog,
+  mergeCrowdGapByName,
   parseCatalogGap,
   rankCrowdNightByGap,
   computeSlotWeightedVintage,
@@ -14,6 +15,18 @@ describe('parseCatalogGap', () => {
     expect(parseCatalogGap('12')).toBe(12);
     expect(parseCatalogGap('—')).toBeNull();
     expect(parseCatalogGap('')).toBeNull();
+  });
+});
+
+describe('mergeCrowdGapByName', () => {
+  it('lets frozen pre-show gaps override catalog', () => {
+    const catalog = new Map([
+      ['ghost', 0],
+      ['free', 20],
+    ]);
+    const merged = mergeCrowdGapByName(catalog, { ghost: 47 });
+    expect(merged.get('ghost')).toBe(47);
+    expect(merged.get('free')).toBe(20);
   });
 });
 
@@ -63,6 +76,20 @@ describe('aggregateCrowdNightCatalog (#691)', () => {
     expect(highestGap[0].title).toBe('Ghost');
     expect(highestGap[0].gap).toBe(100);
     expect(highestGap.every((r) => typeof r.gap === 'number')).toBe(true);
+  });
+
+  it('prefers frozen pre-show songGaps over live catalog gap', () => {
+    const night = aggregateCrowdNightSongs('2026-07-17', docs);
+    // Catalog already refreshed post-show (Ghost gap reset to 0).
+    const postShowCatalog = catalog.map((s) =>
+      s.name === 'Ghost' ? { ...s, gap: '0' } : s
+    );
+    const { highestGap } = aggregateCrowdNightCatalog(night, postShowCatalog, {
+      gapTopN: 3,
+      frozenGaps: { ghost: 47 },
+    });
+    expect(highestGap[0].title).toBe('Ghost');
+    expect(highestGap[0].gap).toBe(47);
   });
 
   it('computes slot-weighted vintage', () => {
