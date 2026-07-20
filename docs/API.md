@@ -357,6 +357,7 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. |
 | `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. |
 | `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `sphere-run-2026`). Default Sphere slug is also prerendered. |
+| `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile |

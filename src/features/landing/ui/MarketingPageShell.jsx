@@ -9,7 +9,7 @@ import {
 
 /**
  * Minimal shell for standalone marketing / educational pages
- * (`/how-it-works`, `/how-scoring-works`, `/tour-stats`). Provides a sticky header with home
+ * (`/how-it-works`, `/how-scoring-works`, `/tour-stats`, `/phish-setlist-prediction-game`). Provides a sticky header with home
  * link and a simple footer — no auth logic, no scroll machinery.
  */
 export default function MarketingPageShell({ children }) {
@@ -62,6 +62,7 @@ export default function MarketingPageShell({ children }) {
           <Link to="/how-it-works" className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400">How It Works</Link>
           <Link to="/how-scoring-works" className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400">How Scoring Works</Link>
           <Link to="/tour-stats" className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400">Tour Stats</Link>
+          <Link to="/phish-setlist-prediction-game" className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400">Phish Setlist Game</Link>
           <Link to="/privacy" className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400">Privacy Policy</Link>
           <Link to="/terms" className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400">Terms of Service</Link>
         </p>

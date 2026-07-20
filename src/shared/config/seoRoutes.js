@@ -255,6 +255,75 @@ function buildTourStatsSphereJsonLd() {
   };
 }
 
+const KEYWORD_PAGE_PATH = '/phish-setlist-prediction-game';
+const KEYWORD_PAGE_TITLE =
+  "Phish Setlist Prediction Game | Setlist Pick'Em";
+const KEYWORD_PAGE_DESCRIPTION =
+  "Setlist Pick'Em is the free Phish setlist prediction game: lock openers, closers, encore, and a wildcard before showtime, score live as songs are played, and compete with friends. Not a setlist archive — a game.";
+const KEYWORD_PAGE_URL = `${SEO_CONFIG.siteUrl}${KEYWORD_PAGE_PATH}`;
+
+function buildKeywordIntentPageJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': KEYWORD_PAGE_URL,
+        url: KEYWORD_PAGE_URL,
+        name: KEYWORD_PAGE_TITLE,
+        description: KEYWORD_PAGE_DESCRIPTION,
+        isPartOf: { '@id': `${SEO_CONFIG.siteUrl}/#website` },
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'What is a Phish setlist prediction game?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: "A Phish setlist prediction game asks fans to predict songs and slots before the show. Setlist Pick'Em scores picks live as the setlist unfolds and ranks players in private pools and global standings.",
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'How is Setlist Pick\'Em different from Phish.net or setlist.fm?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Phish.net and setlist.fm are setlist archives and references. Setlist Pick\'Em is a free live prediction game that uses official setlist data for scoring — you compete before and during the show rather than only browsing what was played.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Is Setlist Pick\'Em free?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Yes. There is no charge to sign up and play.',
+            },
+          },
+        ],
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: `${SEO_CONFIG.siteUrl}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Phish setlist prediction game',
+            item: KEYWORD_PAGE_URL,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function buildHowScoringJsonLd() {
   return {
     '@context': 'https://schema.org',
@@ -394,6 +463,19 @@ export const PRERENDER_ROUTES = [
       'Aggregate song data only — not night-by-night full setlists.',
     ],
     buildJsonLd: buildTourStatsSphereJsonLd,
+  },
+  {
+    path: KEYWORD_PAGE_PATH,
+    title: KEYWORD_PAGE_TITLE,
+    description: KEYWORD_PAGE_DESCRIPTION,
+    canonicalUrl: KEYWORD_PAGE_URL,
+    h1: 'The free Phish setlist prediction game',
+    paragraphs: [
+      "Setlist Pick'Em (also called Setlist Pickem / Set Picks) is a live setlist prediction game for Phish fans: lock openers, closers, encore, and a wildcard before showtime, then score as the setlist unfolds.",
+      'A Phish setlist game asks you to predict songs and slots for tonight\'s show—not to archive what already happened. You compete against friends in private pools and against everyone on the global board.',
+      'Sites like Phish.net and setlist.fm are outstanding archives. Setlist Pick\'Em is a game layer: you make picks before the lights go down and earn points as songs are played.',
+    ],
+    buildJsonLd: buildKeywordIntentPageJsonLd,
   },
 ];
 

@@ -1,6 +1,7 @@
 export { default as HowItWorksPageContent } from './ui/HowItWorksPageContent';
 export { default as LandingSeo } from './ui/LandingSeo';
 export { default as MarketingPageShell } from './ui/MarketingPageShell';
+export { default as PhishSetlistPredictionGamePageContent } from './ui/PhishSetlistPredictionGamePageContent';
 export { default as SplashAboutSection } from './ui/SplashAboutSection';
 export { default as SplashAuthModals } from './ui/SplashAuthModals';
 export { default as SplashGetStartedSection } from './ui/SplashGetStartedSection';

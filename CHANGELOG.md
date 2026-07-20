@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.34.0] — 2026-07-19
+
+### Added
+- **Keyword-intent page (#660)** — public `/phish-setlist-prediction-game` educational landing (what a Phish setlist prediction game is, vs archives/trackers, how to play). Prerender + FAQ JSON-LD; sitemap/`llms.txt` + marketing footer links.
+
+---
+
 ## [1.33.0] — 2026-07-19
 
 ### Added

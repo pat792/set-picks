@@ -83,6 +83,8 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | C3 | `phish pick em` / `phish pick'em` |
 | C4 | `live setlist prediction` |
 
+**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C3; disambiguates prediction game vs setlist archives.
+
 ### Stats-intent (after #665 public `/tour-stats`)
 
 | ID | Query |

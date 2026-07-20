@@ -92,6 +92,12 @@ export default function SplashPageShell({
               Tour Stats
             </Link>
             <Link
+              to="/phish-setlist-prediction-game"
+              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
+            >
+              Phish Setlist Game
+            </Link>
+            <Link
               to="/privacy"
               className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
             >
