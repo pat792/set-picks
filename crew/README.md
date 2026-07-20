@@ -34,6 +34,8 @@ crew/.venv/bin/python -m crew.scripts.run_pipeline smoke
 
 **Default for now:** Cursor GA4 MCP → snapshot file → embed in kickoff (not gcloud ADC).
 
+Snapshot **must** include recipe sections A–C in [`knowledge/optimize_snapshot_recipe.md`](knowledge/optimize_snapshot_recipe.md) (aggregates + trigger×channel + email UTM). Pipeline task `challenge_evidence` blocks unqualified email “open cliff” claims when §C is missing.
+
 ```bash
 # After saving an MCP export (or regenerating via --from-file):
 crew/.venv/bin/python -m crew.scripts.ga4_snapshot --from-file path/to/mcp-export.md

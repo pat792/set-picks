@@ -76,6 +76,18 @@ comms_delivered (email) → comms_email_landed → picks_page_interactive → su
 
 Primary metric: **pick submission rate before lock** among reminded users vs holdout (when experiments run).
 
+### Channel planes (do not collapse)
+
+`comms_opened` and `comms_cta_click` are **in-app inbox** (and some push deep-link) client events. They are **not** Resend email opens and **not** email link clicks.
+
+| Channel | Attention / open | Click / land | Notes |
+|---------|------------------|--------------|-------|
+| **inApp** | `comms_opened` | `comms_cta_click` | Default GA “open cliff” lens |
+| **email** | Resend opens ([#512](https://github.com/pat792/set-picks/issues/512)) — missing in GA until landed | Session UTM `source=email` / `medium=comms` (+ `utm_content` / campaign ≈ template) · `comms_email_landed` | **If `comms_cta_click` is 0 for an email-heavy trigger, query UTM sessions before concluding no engagement** |
+| **push** | `comms_push_tap` / open instrumentation | deep link | Sparse volume; verify wiring before judgment |
+
+**Optimize / analyst rule (2026-07-20):** For `picks_lock_reminder`, always report (1) trigger×channel `comms_*` counts **and** (2) UTM email-session `picks_page_interactive` / `submit_picks`. Snapshot recipe: `crew/knowledge/optimize_snapshot_recipe.md`. User-level conversion still needs delivery-log join ([#698](https://github.com/pat792/set-picks/issues/698)).
+
 ### Results (`tour_recap_*`, `post_show_*`)
 
 ```text

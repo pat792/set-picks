@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.35.1] — 2026-07-20
+
+### Changed
+- **Optimize measurement planes (#573 / #695)** — `MEASUREMENT_PLAN` channel matrix + email UTM rule; `comms-analyst` / Leadership snapshot recipe (`crew/knowledge/optimize_snapshot_recipe.md`); Optimize pipeline `challenge_evidence` + Comms Orchestration Lead `SQUAD_KICKOFF` router (learning from email CTA miss).
+
+---
+
 ## [1.35.0] — 2026-07-20
 
 ### Added

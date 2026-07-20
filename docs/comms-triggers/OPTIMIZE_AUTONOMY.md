@@ -112,7 +112,9 @@ Agents **must** use this shape:
 <2–3 sentences>
 
 ### Funnels
-| trigger_id | delivered | opened | CTA | Δ vs prior |
+| trigger_id | channel | delivered | opened / proxy | CTA / land | submit (attrib) | Δ vs prior |
+
+Use channel planes from MEASUREMENT_PLAN: inApp = `comms_opened`/`comms_cta_click`; email = UTM sessions (+ Resend opens when #512 lands); push = `comms_push_tap`. Never collapse email into inApp open/CTA.
 
 ### Gaps
 - …

@@ -131,9 +131,10 @@ Cite only real GA4 numbers; mark gaps unknown. Draft-only; do not merge or deplo
 
 | Leadership role | Invokes when executing |
 |-----------------|------------------------|
-| Comms Orchestration Lead | `comms-analyst`, `comms-triggers`, `comms-drafter`, `comms-architect` |
+| Comms Orchestration Lead | Structured `SQUAD_KICKOFF` → `comms-analyst` → `comms-triggers` → `comms-drafter` → `comms-architect` |
 | Software Architect | `comms-architect` for delivery review |
 | Reporting Lead / Insights | `comms-analyst` + GA4 MCP for numbers |
+| Data Architect | Optimize `challenge_evidence` (falsify cliffs; MCP follow-ups) |
 
 ---
 
@@ -160,3 +161,4 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 | 2026-07-20 | L2: human-gated social/BD draft→approve→publish queue (`social_demand_gen`); optional webhook |
 | 2026-07-20 | LLM runner: `crew.scripts.run_pipeline` + `smoke` pipeline; venv install notes |
 | 2026-07-20 | #697: `ga4_snapshot` + Optimize fails closed without evidence; per-task run artifacts |
+| 2026-07-20 | Optimize learning: channel planes + email UTM recipe; pipeline `challenge_evidence`; CommsLead `SQUAD_KICKOFF` router (#573 correction) |
