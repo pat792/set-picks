@@ -5,6 +5,7 @@ description = "Leadership Ops Crew for Setlist Pick'em (epic #695) — L0 scaffo
 requires-python = ">=3.10,<3.14"
 dependencies = [
   "crewai>=0.80.0",
+  "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]
