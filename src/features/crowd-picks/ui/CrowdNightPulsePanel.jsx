@@ -1,8 +1,10 @@
 import React from 'react';
 import { ChevronDown, Lock } from 'lucide-react';
 
+import FrequencyMeterRow from './FrequencyMeterRow';
+
 /**
- * Crowd pulse summary + expandable deep analysis (C4 prototype).
+ * Crowd pulse summary + expandable deep analysis (#694 ship).
  * Pre-lock (NEXT): top multi-picker songs stay visible; gap / vintage /
  * leaders blur until showtime. Presentational — data from `useCrowdNightStats`.
  *
@@ -31,7 +33,7 @@ export default function CrowdNightPulsePanel({
         aria-label="Crowd pulse"
       >
         <p className="text-[10px] font-black uppercase tracking-widest text-content-secondary">
-          Crowd pulse · prototype
+          Crowd pulse
         </p>
         <p className="mt-1 text-[11px] font-medium text-content-secondary md:text-xs">
           No submitted picks for this show yet.
@@ -58,9 +60,14 @@ export default function CrowdNightPulsePanel({
       aria-label="Crowd pulse"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
-          Crowd pulse · prototype
-        </p>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
+            Crowd pulse
+          </p>
+          <p className="mt-0.5 text-[10px] font-medium text-content-secondary">
+            Songs more than one picker locked in
+          </p>
+        </div>
         <p className="text-[10px] font-semibold text-content-secondary">
           {card.pickers} pickers · {card.uniqueSongs} songs
         </p>
@@ -68,31 +75,15 @@ export default function CrowdNightPulsePanel({
 
       {card.topMulti.length > 0 ? (
         <ul className="mt-2.5 space-y-2">
-          {card.topMulti.map((s) => {
-            const intensity =
-              maxCards > 0 ? Math.max(0.12, s.cardCount / maxCards) : 0.12;
-            return (
-              <li key={s.title}>
-                <div className="flex items-baseline justify-between gap-3 text-[11px] md:text-xs">
-                  <span className="min-w-0 truncate font-semibold text-white">
-                    {s.title}
-                  </span>
-                  <span className="shrink-0 font-medium tabular-nums text-content-secondary">
-                    {s.cardCount} · {s.pctOfPickers}%
-                  </span>
-                </div>
-                <div
-                  className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-field"
-                  aria-hidden
-                >
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-brand-primary/90 to-brand-primary/40"
-                    style={{ width: `${Math.round(intensity * 100)}%` }}
-                  />
-                </div>
-              </li>
-            );
-          })}
+          {card.topMulti.map((s) => (
+            <FrequencyMeterRow
+              key={s.title}
+              title={s.title}
+              meta={`${s.cardCount} · ${s.pctOfPickers}%`}
+              count={s.cardCount}
+              maxCount={maxCards}
+            />
+          ))}
         </ul>
       ) : (
         <p className="mt-2 text-[11px] text-content-secondary">

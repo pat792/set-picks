@@ -14,4 +14,7 @@ export {
   aggregateLeadersTonightPicks,
 } from './model/aggregateLeadersTonightPicks';
 export { useCrowdNightStats } from './model/useCrowdNightStats';
+export { meterIntensity } from './model/meterIntensity';
+export { shouldBlurDeepCrowdStats } from './model/shouldBlurDeepCrowdStats';
 export { default as CrowdNightPulsePanel } from './ui/CrowdNightPulsePanel';
+export { default as FrequencyMeterRow } from './ui/FrequencyMeterRow';

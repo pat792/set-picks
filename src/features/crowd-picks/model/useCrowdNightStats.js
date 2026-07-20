@@ -13,7 +13,7 @@ import {
 } from './aggregateLeadersTonightPicks';
 
 /**
- * Compose C1–C3 crowd night stats for a show date (prototype / #689).
+ * Compose C1–C3 crowd night stats for a show date (#694 / Standings).
  *
  * @param {string} showDate
  * @param {Array<Record<string, unknown>> | null | undefined} pickDocs
