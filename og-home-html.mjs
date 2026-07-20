@@ -15,7 +15,7 @@ export const OG_HOME = {
   imageAlt: "Setlist Pick 'Em — live setlist prediction game",
   title: "Setlist Pick'em | The Ultimate Live Music Prediction Game",
   description:
-    "Setlist Pick 'Em is a free live setlist prediction game for Phish fans. Pick openers, closers, encore, and a wildcard before each show; scores update in real time as songs are played. Compete in a global pool or create private pools with friends.",
+    "Setlist Pick 'Em is a free live setlist prediction game built for Phish fans—and more bands soon. Lock openers, closers, encore, and a wildcard before each show; scores update live as songs are played. Tour insights refresh every night the band plays live. Play to unlock personal stats and compete with friends.",
   publisherName: 'Road2 Media LLC',
 };
 

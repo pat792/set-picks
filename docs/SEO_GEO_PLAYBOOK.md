@@ -14,9 +14,10 @@
 | How it works | `/how-it-works` | In `public/sitemap.xml` |
 | Scoring | `/how-scoring-works` | In `public/sitemap.xml` |
 | Sitemap | `/sitemap.xml` | Listed in `robots.txt` |
-| LLM / agent brief | `/llms.txt` | Static marketing summary |
-| SEO config | `src/shared/config/seo.js` | Titles, description, OG image version |
-| Helmet + JSON-LD | `src/features/landing/ui/LandingSeo.jsx` | Client source of truth for browsers |
+| LLM / agent brief | `/llms.txt` | Static marketing summary + name variants + archive disambiguation (#661) |
+| SEO config | `src/shared/config/seo.js` | Titles, description, OG image version — sync via `npm run verify:seo-strings` (#663) |
+| Helmet + JSON-LD | `src/features/landing/ui/LandingSeo.jsx` | Client source of truth for browsers; homepage FAQ/HowTo also in prerender HTML |
+| Public profiles | `/user/:userId` | **`noindex,follow`** (#661) — not sitemap targets |
 | Dashboard | `/dashboard/*` | **Private** — `robots.txt` Disallow; never prerender for crawlers |
 
 **Search Console:** Prefer a **Domain** property (`setlistpickem.com`) or the **URL-prefix** property for `https://www.setlistpickem.com/`. When inspecting, always use **www** URLs. Apex showing “Page with redirect” is expected and healthy.
@@ -79,9 +80,12 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | ID | Query |
 |----|--------|
 | C1 | `phish setlist game` |
-| C2 | `setlist prediction game` |
-| C3 | `phish pick em` / `phish pick'em` |
+| C2 | `setlist prediction game` / `predicting setlists` |
+| C3 | `phish pick em` / `phish pick'em` / `setlist picks game` |
 | C4 | `live setlist prediction` |
+| C5 | `fantasy setlist` / `fantasy setlists` / `phish fantasy setlist` |
+
+**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C5; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar.
 
 ### Stats-intent (after #665 public `/tour-stats`)
 
@@ -90,6 +94,16 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | S1 | `phish tour setlist stats` |
 | S2 | `phish song frequency [tour year]` (e.g. summer 2026) |
 | S3 | `phish bustouts [tour]` |
+
+Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere shell; other tours hydrate client-side from `public_tour_stats`.
+
+### Profile indexing policy (#661)
+
+| Path | robots | Rationale |
+|------|--------|-----------|
+| `/user/:userId` | `noindex,follow` | Thin/PII risk; shareable links still work. Revisit only if a richer public player-card content bar ships. |
+
+Do **not** add public profiles to `sitemap.xml`.
 
 Add/remove rows as pages ship; keep IDs stable once used in the log.
 
@@ -159,7 +173,7 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 | Check | Command / file |
 |-------|----------------|
 | OG shell + social UA matrix | `npm run verify:og-home` (`scripts/verify-og-home.mjs`, `og-home-html.mjs`) |
-| Prerender (when #659 lands) | `verify:seo-prerender` (TBD) |
+| Prerender (#659) | `npm run verify:seo-prerender` (`scripts/prerender-seo.mjs` after build; registry `src/shared/config/seoRoutes.js`) |
 | Automation context | `docs/GITHUB_AUTOMATION_CONTEXT.md` → Public landing SEO |
 
 ---

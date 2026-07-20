@@ -36,7 +36,6 @@ export default function Splash() {
     getStartedHeadingRef,
     aboutSectionRef,
     aboutHeadingRef,
-    handleScrollToHowItWorks,
     handleScrollToGetStarted,
     handleScrollToAbout,
     handleCreateAccountFromHowItWorks,
@@ -83,9 +82,7 @@ export default function Splash() {
         getStartedHeadingRef={getStartedHeadingRef}
         aboutSectionRef={aboutSectionRef}
         aboutHeadingRef={aboutHeadingRef}
-        onScrollToHowItWorks={handleScrollToHowItWorks}
         onScrollToGetStarted={handleScrollToGetStarted}
-        onScrollToAbout={handleScrollToAbout}
         onCreateAccountFromHowItWorks={handleCreateAccountFromHowItWorks}
         onOpenSignUpModal={openSignUpModal}
         onOpenSignInModal={openSignInModal}

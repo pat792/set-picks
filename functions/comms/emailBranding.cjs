@@ -29,9 +29,6 @@ const EMAIL_WORDMARK_INLINE_CONTENT_ID = 'email-gradient-wordmark';
 const EMAIL_BRAND_PRIMARY = '#2dd4bf';
 const EMAIL_BRAND_PRIMARY_STRONG = '#14b8a6';
 const EMAIL_BRAND_BG_DEEP = '#020617';
-/** Secondary CTA (invite share) — blue to contrast teal primary. */
-const EMAIL_BRAND_SECONDARY = '#2563eb';
-const EMAIL_BRAND_SECONDARY_FG = '#ffffff';
 /** Hint for BIMI / domain-favicon ops — not injected into email HTML. */
 const EMAIL_INBOX_BADGE_FAVICON_PATH = '/favicon/favicon-96x96.png';
 const DEFAULT_SITE_URL = 'https://www.setlistpickem.com';
@@ -127,8 +124,6 @@ module.exports = {
   EMAIL_BRAND_PRIMARY,
   EMAIL_BRAND_PRIMARY_STRONG,
   EMAIL_BRAND_BG_DEEP,
-  EMAIL_BRAND_SECONDARY,
-  EMAIL_BRAND_SECONDARY_FG,
   EMAIL_INBOX_BADGE_FAVICON_PATH,
   buildEmailInBodyLogoUrl,
   buildEmailLogoUrl,

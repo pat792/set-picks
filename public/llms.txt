@@ -1,12 +1,24 @@
 # Setlist Pick 'Em
 
-> Free live setlist prediction game for Phish fans. Predict openers, closers, encore, and a wildcard before each show; compete live as songs are played.
+> Free setlist picks / fantasy setlist game for Phish fans (more bands soon). Predict openers, closers, encore, and a wildcard before each show; compete live as songs are played. Tour insights refresh every night the band plays live.
+
+## Names
+
+- Setlist Pick 'Em
+- Setlist Pick'Em
+- Setlist Pickem
+- setlistpickem.com
+
+## Not a setlist archive
+
+Sites like Phish.net and setlist.fm are outstanding archives of what was already played. Setlist Pick 'Em is a **live setlist prediction game** (fantasy setlist picks): you lock songs and slots before showtime and score as the night unfolds. Built first for jam bands like Phish; more bands soon.
 
 ## How it works
 
-- Lock picks before showtime
-- Scoring updates live during the show
+- Lock picks before showtime (predicting setlists, not browsing archives)
+- Scoring updates live during the show — at the venue or on couch tour
 - Global and private leaderboards
+- Personal stats unlock when you play
 
 ## Scoring (per slot)
 
@@ -21,4 +33,7 @@
 - Home: https://www.setlistpickem.com/
 - How It Works: https://www.setlistpickem.com/how-it-works
 - How Scoring Works: https://www.setlistpickem.com/how-scoring-works
-- Setlist data: https://phish.net (The Mockingbird Foundation)
+- Tour Stats: https://www.setlistpickem.com/tour-stats
+- Sphere Run 2026 Stats: https://www.setlistpickem.com/tour-stats/2026-sphere
+- Phish Setlist Prediction Game: https://www.setlistpickem.com/phish-setlist-prediction-game
+- Setlist data credit: https://phish.net (The Mockingbird Foundation)

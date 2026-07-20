@@ -14,6 +14,82 @@ No unreleased changes.
 
 ---
 
+## [1.34.7] — 2026-07-20
+
+### Added
+- **SEO string sync CI (#663)** — `npm run verify:seo-strings` keeps `seo.js`, `og-home-html.mjs`, `inviteOgHelpers.mjs`, and `index.html` descriptions aligned (wired into `verify` job).
+
+### Changed
+- **GEO enrichment (#661)** — visible splash supporting headline with “Phish setlist prediction game” language; expanded `llms.txt` (name variants + archive disambiguation); public `/user/:userId` profiles send `noindex,follow`.
+- **robots.txt hygiene (#663)** — Disallow `/setup`, `/comms-preview`, `/password-reset-complete` in addition to `/dashboard/`.
+
+---
+
+## [1.34.6] — 2026-07-20
+
+### Changed
+- **Marketing SEO copy voice** — public tour stats, how-it-works, keyword page, splash how-it-works, `llms.txt`, and meta/OG mirrors now say stats refresh every night the band plays live (not “when Phish.net publishes”); emphasize personal stats from playing, multi-band destination framing, and fan-facing prose without technical jargon. Dropped the public “Set Picks” alias in favor of Setlist Pick ’Em / Setlist Pickem only.
+- **Marketing internal links** — shared `surfaceLinkStyles` (teal/emerald, underlined) for readable secondary CTAs; contextual in-copy links across splash sections and marketing pages; splash Game Format scoring link is a real `/how-scoring-works` route.
+- **Keyword page adjacent terms** — gracefully weave fantasy setlist, setlist picks game, predicting setlists, calling the set / couch tour vernacular (informed by incumbent lookalikes) without competitor name-drops.
+
+---
+
+## [1.34.5] — 2026-07-19
+
+### Changed
+- **Public `/tour-stats` default tour (#665)** — default is the current tour (newest `lastShowDate` on `_index`), not a hardcoded Sphere preference.
+
+---
+
+## [1.34.4] — 2026-07-19
+
+### Fixed
+- **`whenFirebaseReady` no-op race** — always kick App Check init instead of resolving immediately when deferred init has not started yet.
+
+---
+
+## [1.34.3] — 2026-07-19
+
+### Fixed
+- **Public tour-stats App Check race (#665)** — await `whenFirebaseReady()` before `public_tour_stats` reads; kick App Check on page mount so localhost/prod enforcement does not 403 the first fetch.
+
+---
+
+## [1.34.2] — 2026-07-19
+
+### Changed
+- **Marketing internal nav (#663)** — shared primary route list drives splash + marketing headers (lg+) and footers; splash hero secondary CTAs are real `<Link>`s to `/how-it-works`, `/tour-stats`, and `/phish-setlist-prediction-game` instead of in-page-only scroll.
+
+---
+
+## [1.34.1] — 2026-07-19
+
+### Fixed
+- **Public tour-stats default slug (#665)** — align default/prerender with live calendar label **2026 Sphere** → `2026-sphere` (was hardcoded `sphere-run-2026`). Index writer prefers any Sphere tour when present.
+
+---
+
+## [1.34.0] — 2026-07-19
+
+### Added
+- **Keyword-intent page (#660)** — public `/phish-setlist-prediction-game` educational landing (what a Phish setlist prediction game is, vs archives/trackers, how to play). Prerender + FAQ JSON-LD; sitemap/`llms.txt` + marketing footer links.
+
+---
+
+## [1.33.0] — 2026-07-19
+
+### Added
+- **Public `/tour-stats` (#665)** — marketing routes `/tour-stats` and `/tour-stats/:tourSlug` with tour filter; default Sphere (`sphere-run-2026`). Aggregate-only Firestore `public_tour_stats` (most played, bustouts, gap highlights — never full nightly setlists). Admin/scheduled refresh; prerender hub + Sphere; sitemap/`llms.txt` links; GA4 `public_tour_stats_view`.
+
+---
+
+## [1.32.0] — 2026-07-19
+
+### Added
+- **SEO prerender for public marketing routes (#659)** — post-build step writes crawler-visible HTML (unique title/description, H1/body, JSON-LD, favicons) for `/`, `/how-it-works`, and `/how-scoring-works` into `dist/`. Shared registry `src/shared/config/seoRoutes.js` (Helmet + prerender); `npm run verify:seo-prerender` in CI. Plug point for future public `/tour-stats` (#665). Browsers still boot the SPA via `createRoot`.
+
+---
+
 ## [1.31.1] — 2026-07-19
 
 ### Fixed

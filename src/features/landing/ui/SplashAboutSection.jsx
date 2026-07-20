@@ -1,15 +1,14 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 import Button from '../../../shared/ui/Button';
+import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
 export default function SplashAboutSection({
   sectionRef,
   headingRef,
-  onHowItWorksClick,
   onGetStartedClick,
 }) {
-  const linkButtonClassName =
-    'rounded-sm text-sm font-bold text-slate-400 underline underline-offset-2 decoration-slate-500 outline-none transition-colors hover:text-white hover:decoration-white focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
-
   return (
     <section
       ref={sectionRef}
@@ -65,9 +64,19 @@ export default function SplashAboutSection({
               and <strong className="text-white">more interesting</strong>.{' '}
               <strong className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-blue-500">Setlist Pick &apos;Em</strong> is that vision taken
               to its logical conclusion: an <strong className="text-white">interactive</strong> home
-              for passionate fans who crave <strong className="text-white">competition</strong>,{' '}
-              <strong className="text-white">show stats</strong>, and{' '}
-              <strong className="text-white">fun with friends</strong>.
+              for passionate fans who crave competition,{' '}
+              <Link to="/tour-stats" className={LINK_ON_DARK}>
+                tour stats
+              </Link>
+              , and fun with friends. Prefer the short version? Read{' '}
+              <Link to="/how-it-works" className={LINK_ON_DARK}>
+                how it works
+              </Link>{' '}
+              or what makes this a{' '}
+              <Link to="/phish-setlist-prediction-game" className={LINK_ON_DARK}>
+                Phish setlist prediction game
+              </Link>
+              .
             </p>
 
             <div className="block lg:hidden mt-10">
@@ -79,16 +88,27 @@ export default function SplashAboutSection({
         </div>
 
         <nav
-          className="mt-16 pt-8 border-t border-slate-800 flex flex-wrap items-center justify-start lg:justify-end gap-x-2 gap-y-2 text-center"
+          className="mt-16 flex flex-wrap items-center justify-start gap-x-2 gap-y-2 border-t border-slate-800 pt-8 text-center text-sm lg:justify-end"
           aria-label="Jump to How it works or Get started"
         >
-          <Button variant="link" type="button" onClick={onHowItWorksClick} className={linkButtonClassName}>
+          <Link to="/how-it-works" className={LINK_ON_DARK}>
             How it works
-          </Button>
-          <span className="mx-2 text-slate-700 select-none" aria-hidden>
+          </Link>
+          <span className="mx-2 select-none text-slate-600" aria-hidden>
             ·
           </span>
-          <Button variant="link" type="button" onClick={onGetStartedClick} className={linkButtonClassName}>
+          <Link to="/tour-stats" className={LINK_ON_DARK}>
+            Tour stats
+          </Link>
+          <span className="mx-2 select-none text-slate-600" aria-hidden>
+            ·
+          </span>
+          <Button
+            variant="link"
+            type="button"
+            onClick={onGetStartedClick}
+            className={LINK_ON_DARK}
+          >
             Get started
           </Button>
         </nav>

@@ -1,9 +1,15 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 import Button from '../../../shared/ui/Button';
 import SplashHeroWordmark from './SplashHeroWordmark';
+import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
-export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, onAboutClick }) {
+/**
+ * Splash hero — primary CTA stays auth/get-started; secondary links are real
+ * marketing routes for crawlable internal linking (#663).
+ */
+export default function SplashHeroSection({ onPlayNowClick }) {
   return (
     <section className="relative flex min-h-[100svh] w-full flex-col bg-transparent pt-[5.35rem] pb-6 sm:min-h-screen sm:pt-[5.25rem] sm:pb-14">
       <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 pt-1 text-center sm:px-6 sm:pt-0 lg:px-8">
@@ -13,22 +19,31 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
         >
           <SplashHeroWordmark />
           <span className="sr-only">
-            Setlist Pick &apos;Em &mdash; the free live setlist prediction game for Phish fans
+            Setlist Pick &apos;Em &mdash; the free Phish setlist prediction game
           </span>
         </h1>
 
         <div className="mx-auto mt-6 max-w-2xl shrink-0 sm:-mt-0.5 md:-mt-1">
           <p className="mb-3 text-lg font-bold tracking-wide text-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] sm:mb-2 md:text-xl">
-            Predict the setlist. Win the night. 
-            Now live on Phish Tour.
+            The free Phish setlist prediction game — live on tour.
           </p>
 
           <p className="text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
-            Make picks for tonight's show, watch scores update as songs are played, and compete with your tour crew for the top spot.
+            Predict the setlist. Win the night. Make picks for tonight&apos;s show, watch scores
+            update as songs are played, and compete with your tour crew for the top spot.
           </p>
 
           <p className="mt-4 text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
-            What started as a game on paper 25 years ago is now a fully automated, live setlist game for friends to play at the show and on couch tour. Invite your friends, track stats, and make every show count.
+            What started as a game on paper 25 years ago is now a live setlist game for friends at
+            the show and on couch tour. Invite your friends, track{' '}
+            <Link to="/tour-stats" className={LINK_ON_DARK}>
+              tour stats
+            </Link>
+            , and make every show count. New here? See{' '}
+            <Link to="/how-it-works" className={LINK_ON_DARK}>
+              how it works
+            </Link>
+            .
           </p>
         </div>
 
@@ -41,27 +56,24 @@ export default function SplashHeroSection({ onHowItWorksClick, onPlayNowClick, o
             type="button"
             onClick={onPlayNowClick}
             aria-label="Play now: go to sign in or create an account"
-            className="w-full sm:w-auto min-w-[12rem]"
+            className="w-full min-w-[12rem] sm:w-auto"
           >
             Make picks now
           </Button>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-400">
-            <button
-              type="button"
-              className="underline decoration-slate-600 underline-offset-4 transition-colors hover:text-emerald-400"
-              onClick={onHowItWorksClick}
-            >
-              Game format
-            </button>
-            <button
-              type="button"
-              className="underline decoration-slate-600 underline-offset-4 transition-colors hover:text-emerald-400"
-              onClick={onAboutClick}
-              aria-label={"About Setlist Pick 'Em"}
-            >
-              About
-            </button>
-          </div>
+          <nav
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm"
+            aria-label="Learn more"
+          >
+            <Link to="/how-it-works" className={LINK_ON_DARK}>
+              How it works
+            </Link>
+            <Link to="/tour-stats" className={LINK_ON_DARK}>
+              Tour stats
+            </Link>
+            <Link to="/phish-setlist-prediction-game" className={LINK_ON_DARK}>
+              What is this game?
+            </Link>
+          </nav>
         </div>
 
         <div className="min-h-2 flex-1 sm:hidden" aria-hidden />

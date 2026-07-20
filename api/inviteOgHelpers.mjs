@@ -10,7 +10,7 @@ export const DEFAULT_OG_IMAGE = `${SITE_URL}/branding/og-card-1200x630.jpg?v=${O
 export const DEFAULT_OG_IMAGE_ALT = "Setlist Pick 'Em — live setlist prediction game";
 export const DEFAULT_TITLE = "Setlist Pick'em | The Ultimate Live Music Prediction Game";
 export const DEFAULT_DESCRIPTION =
-  "Setlist Pick 'Em is a free live setlist prediction game for Phish fans. Pick openers, closers, encore, and a wildcard before each show; scores update in real time as songs are played. Compete in a global pool or create private pools with friends.";
+  "Setlist Pick 'Em is a free live setlist prediction game built for Phish fans—and more bands soon. Lock openers, closers, encore, and a wildcard before each show; scores update live as songs are played. Tour insights refresh every night the band plays live. Play to unlock personal stats and compete with friends.";
 
 /** Social-crawler user-agent detection (case-insensitive substring match). */
 export const CRAWLER_RE =

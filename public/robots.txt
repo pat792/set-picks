@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /dashboard/
+Disallow: /setup
+Disallow: /comms-preview
+Disallow: /password-reset-complete
 Sitemap: https://www.setlistpickem.com/sitemap.xml
