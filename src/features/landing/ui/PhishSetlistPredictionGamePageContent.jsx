@@ -26,13 +26,13 @@ export default function PhishSetlistPredictionGamePageContent() {
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className="font-display text-2xl font-bold text-slate-900">
-            What is a Phish setlist game?
+            What is a setlist prediction game?
           </h2>
           <p>
-            A Phish setlist game asks you to predict songs and slots for tonight&apos;s show—not to
-            dig through yesterday&apos;s archives. You compete with friends in private pools and
-            with everyone on the global board. Scores update live as songs are played. Prefer a
-            short walkthrough? See{' '}
+            For jam bands like Phish, every night is a new setlist—so a setlist prediction game asks
+            you to call songs and slots before showtime, not dig through yesterday&apos;s archives.
+            You compete with friends in private pools and with everyone on the global board. Scores
+            update live as songs are played. Prefer a short walkthrough? See{' '}
             <Link to="/how-it-works" className={LINK_ON_LIGHT}>
               how it works
             </Link>
@@ -44,7 +44,7 @@ export default function PhishSetlistPredictionGamePageContent() {
               tour stats
             </Link>{' '}
             pages and refresh every night the band plays live—insights that help you stay sharp
-            between shows.
+            between shows. We&apos;re live with Phish today and building toward more bands soon.
           </p>
         </section>
 

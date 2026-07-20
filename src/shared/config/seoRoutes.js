@@ -279,10 +279,10 @@ function buildKeywordIntentPageJsonLd() {
         mainEntity: [
           {
             '@type': 'Question',
-            name: 'What is a Phish setlist prediction game?',
+            name: 'What is a setlist prediction game?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: "A Phish setlist prediction game asks fans to predict songs and slots before the show. Setlist Pick'Em scores picks live as the setlist unfolds and ranks players in private pools and global standings.",
+              text: "For jam bands like Phish, every night is a new setlist. A setlist prediction game asks fans to call songs and slots before the show. Setlist Pick'Em scores picks live as the setlist unfolds and ranks players in private pools and global standings—live with Phish today, with more bands ahead.",
             },
           },
           {
@@ -473,7 +473,7 @@ export const PRERENDER_ROUTES = [
     h1: 'The free Phish setlist prediction game',
     paragraphs: [
       "Setlist Pick'Em (also called Setlist Pickem) is a live setlist prediction game built first for Phish fans—and designed for more bands soon.",
-      'Predict songs and slots for tonight\'s show, compete with friends, and score live as the setlist unfolds.',
+      'For jam bands like Phish, every night is a new setlist—so you predict songs and slots before showtime, compete with friends, and score live as the night unfolds.',
       'Tour stats refresh every night the band plays live. Playing unlocks personal stats as you accumulate points against other setlist pickers.',
     ],
     buildJsonLd: buildKeywordIntentPageJsonLd,
