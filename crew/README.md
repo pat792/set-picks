@@ -13,16 +13,29 @@ This folder is a **flexible** multi-agent workspace. Roles and pipelines are hyp
 
 ```bash
 # CLI (once)
-uv tool install crewai --python 3.13
+uv tool install crewai --python 3.13   # optional global CLI
 
 cd crew
-cp .env.example .env   # add keys when you want live LLM runs
+cp .env.example .env   # add OPENAI_API_KEY (required for live kickoff)
 uv venv --python 3.13
 source .venv/bin/activate
-uv pip install -e .
+uv pip install -e .    # or: uv pip install 'crewai>=0.80.0'
 ```
 
-L0 is useful **without** an LLM run: agents, pipelines, Cursor skills, and tool stubs are the deliverable.
+## Run crew agents (LLM)
+
+```bash
+# from repo root — use the project venv
+crew/.venv/bin/python -m crew.scripts.run_pipeline --list
+crew/.venv/bin/python -m crew.scripts.run_pipeline smoke --smoke   # JSON→Crew only
+crew/.venv/bin/python -m crew.scripts.run_pipeline smoke           # live LLM (needs key)
+crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
+  --input optimize_for=picks_lock --input window=last_7_days
+```
+
+Results: `crew/output/runs/*.md` (gitignored). Start with **`smoke`** (2 agents) before **`optimize`** (8 tasks / more tokens).
+
+L0 is useful **without** an LLM run: agents, pipelines, Cursor skills, and tool stubs are the deliverable. Use `--smoke` to validate wiring without a key.
 
 ## Layout
 

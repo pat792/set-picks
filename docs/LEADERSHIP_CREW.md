@@ -29,7 +29,7 @@ This org is a **living operating system**, not a frozen chart. As the product an
 | **L2** | Human-gated social / BD publish | Post/send only after approval |
 | **L3** | Affiliate/sponsor e2e + in-product slots | Requires [COMMERCIAL_PHASE3.md](./comms-triggers/COMMERCIAL_PHASE3.md) |
 
-**Current:** L1 research (`market_intel_sweep`) + **L2** social/BD path (`draft → approve → publish` via `crew.scripts.social_demand_gen`). Publish writes a local queue (or optional webhook); requires `CREW_SOCIAL_PUBLISH_ENABLED=true`. Affiliate inject remains L3.
+**Current:** L1 research + L2 social/BD queue + **LLM runner** (`crew.scripts.run_pipeline`). Put `OPENAI_API_KEY` in `crew/.env` for live kickoff; use `--smoke` to validate wiring without a key. Affiliate inject remains L3.
 
 ---
 
@@ -154,3 +154,4 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 | 2026-07-20 | L0 scaffold: doc, `crew/`, Cursor skills, epic #695 — flexibility/learning principles documented |
 | 2026-07-20 | L1: allowlisted HTTP fetch + `market_intel_sweep` script; tests; status promoted for research only |
 | 2026-07-20 | L2: human-gated social/BD draft→approve→publish queue (`social_demand_gen`); optional webhook |
+| 2026-07-20 | LLM runner: `crew.scripts.run_pipeline` + `smoke` pipeline; venv install notes |
