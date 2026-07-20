@@ -6,9 +6,9 @@ Internal analytics for **nightly picker volume** and **crowd pick composition**.
 
 | Phase | What | Status |
 |-------|------|--------|
-| **A** | Admin report script + methodology | In progress |
-| **B** | Human review of Summer Tour (and later) reports | Pending |
-| **C** | Recommend stats-page series + data/comms follow-ups | After B |
+| **A** | Admin report script + methodology | Done (PR #688) |
+| **B** | Human review of Summer Tour reports | Done — see [02-phase-b-review.md](./02-phase-b-review.md) |
+| **C** | Recommend / build stats-page series + data/comms follow-ups | Ready after sign-off on B |
 
 ## Data spine
 

@@ -147,6 +147,24 @@ function resolveDates(shows, args) {
   if (typeof args.tour === "string" && args.tour.trim()) {
     const needle = args.tour.trim().toLowerCase();
     filtered = filtered.filter((s) => s.tour.toLowerCase().includes(needle));
+    // Prefer current-year dates when the needle matches multiple tour years
+    // (e.g. "Summer Tour" → 2024 + 2025 + 2026). Override with --from/--to.
+    if (
+      filtered.length &&
+      !(typeof args.from === "string" && args.from.trim()) &&
+      !(typeof args.to === "string" && args.to.trim())
+    ) {
+      const years = [
+        ...new Set(filtered.map((s) => s.date.slice(0, 4))),
+      ].sort();
+      if (years.length > 1) {
+        const latest = years[years.length - 1];
+        filtered = filtered.filter((s) => s.date.startsWith(latest));
+        console.error(
+          `  note: --tour matched ${years.join(", ")}; defaulting to ${latest} (pass --from/--to to override)`
+        );
+      }
+    }
   }
   if (typeof args.from === "string" && args.from.trim()) {
     if (!isShowDate(args.from)) throw new Error("--from must be YYYY-MM-DD");
@@ -183,7 +201,13 @@ async function loadPicksForShow(db, showDate) {
  */
 async function loadSetlist(db, showDate) {
   const snap = await db.collection("official_setlists").doc(showDate).get();
-  return snap.exists ? snap.data() || null : null;
+  if (!snap.exists) return null;
+  const data = snap.data() || {};
+  // Slot answers live on `setlist.{s1o,...}` per OFFICIAL_SETLISTS_SCHEMA.
+  if (data.setlist && typeof data.setlist === "object" && !Array.isArray(data.setlist)) {
+    return data.setlist;
+  }
+  return null;
 }
 
 /**
