@@ -84,11 +84,10 @@ export function ensureAppCheckNow() {
 }
 
 /**
- * Resolves once App Check init has completed (or immediately if init was
- * never kicked off, e.g. in SSR / test environments). Earliest-path
- * Firestore callers should `await whenFirebaseReady()` before their first
- * read to avoid racing App Check Enforcement in prod.
+ * Resolves once App Check init has completed. Always kicks deferred init if
+ * nothing has started yet — never resolve early with a no-op promise, or
+ * earliest Firestore reads race App Check enforcement.
  */
 export function whenFirebaseReady() {
-  return readyPromise ?? Promise.resolve();
+  return initializeAppCheckDeferred();
 }

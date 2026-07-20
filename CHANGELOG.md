@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.34.4] — 2026-07-19
+
+### Fixed
+- **`whenFirebaseReady` no-op race** — always kick App Check init instead of resolving immediately when deferred init has not started yet.
+
+---
+
 ## [1.34.3] — 2026-07-19
 
 ### Fixed
