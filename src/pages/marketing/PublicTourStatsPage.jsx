@@ -9,8 +9,14 @@ import {
 } from '../../features/tour-stats';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
+import { ensureAppCheckNow } from '../../shared/lib/firebaseAppCheck';
 
 export default function PublicTourStatsPage() {
+  // Public Firestore reads need App Check before first getDoc (#665 localhost race).
+  useEffect(() => {
+    ensureAppCheckNow();
+  }, []);
+
   const screen = usePublicTourStatsScreen();
   const route = screen.routeHasSlug
     ? getPrerenderRoute(`/tour-stats/${screen.activeSlug}`) ||
