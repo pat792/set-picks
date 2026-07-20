@@ -1,0 +1,14 @@
+// Default crew definition — Optimize oversight (L0)
+// Epic #695 · docs/LEADERSHIP_CREW.md
+// Living system: revise agent subsets when learnings dictate.
+{
+  "name": "setlist_leadership_ops",
+  "process": "sequential",
+  "default_pipeline": "optimize",
+  "verbose": true,
+  "maturity": "L0",
+  "epic": 695,
+  "agents_dir": "agents",
+  "pipelines_dir": "pipelines",
+  "notes": "Roles and pipelines are hypotheses — adapt via docs/LEADERSHIP_CREW.md Changelog and #695."
+}

@@ -1,0 +1,8 @@
+# Leadership Ops Crew — local only
+.env
+.venv/
+venv/
+output/
+__pycache__/
+*.pyc
+.pytest_cache/

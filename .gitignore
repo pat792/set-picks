@@ -21,3 +21,8 @@ secrets/
 .vercel
 .env*.local
 gcp-service-account.json
+
+# Leadership Ops Crew (epic #695) — local run artifacts / venv
+crew/output/
+crew/.venv/
+crew/venv/

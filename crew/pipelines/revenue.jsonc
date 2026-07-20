@@ -1,0 +1,65 @@
+{
+  "id": "revenue",
+  "name": "Revenue framework v0",
+  "maturity": "L0",
+  "agents": [
+    "chief_revenue_officer",
+    "revops_lead",
+    "business_analyst",
+    "monetization_strategist",
+    "chief_data_officer",
+    "chief_customer_officer",
+    "integrations_architect",
+    "editor_in_chief"
+  ],
+  "tasks": [
+    {
+      "id": "frame",
+      "agent": "chief_revenue_officer",
+      "description": "Frame revenue v0 goals within Phase 3 gates — framework only.",
+      "expected_output": "Frame + constraints."
+    },
+    {
+      "id": "coherence",
+      "agent": "revops_lead",
+      "description": "Phase 3 gate checklist and KPI coherence.",
+      "expected_output": "Gate checklist status."
+    },
+    {
+      "id": "economics",
+      "agent": "business_analyst",
+      "description": "Draft unit economics / funnel hypotheses.",
+      "expected_output": "BA section."
+    },
+    {
+      "id": "strategies",
+      "agent": "monetization_strategist",
+      "description": "Propose monetization strategies with tradeoffs (no live enablement).",
+      "expected_output": "Strategy options ranked."
+    },
+    {
+      "id": "kpis",
+      "agent": "chief_data_officer",
+      "description": "KPI and measurement spine for proposals.",
+      "expected_output": "KPI spine."
+    },
+    {
+      "id": "trust",
+      "agent": "chief_customer_officer",
+      "description": "Trust, opt-in, and brand-safe placement constraints.",
+      "expected_output": "CCO constraints."
+    },
+    {
+      "id": "build",
+      "agent": "integrations_architect",
+      "description": "Buildability notes for slots/links/CRM.",
+      "expected_output": "Feasibility notes."
+    },
+    {
+      "id": "disclosure",
+      "agent": "editor_in_chief",
+      "description": "Disclosure/voice pass for any commercial copy patterns.",
+      "expected_output": "revenue-framework-v0.md draft."
+    }
+  ]
+}

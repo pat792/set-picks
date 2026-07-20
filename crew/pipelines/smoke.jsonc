@@ -1,0 +1,24 @@
+{
+  "id": "smoke",
+  "name": "Smoke — two-agent LLM sanity check",
+  "maturity": "L0",
+  "description": "Cheap live test: CoS routes + GPM closes. Use before full optimize.",
+  "agents": [
+    "chief_of_staff",
+    "growth_program_manager"
+  ],
+  "tasks": [
+    {
+      "id": "route",
+      "agent": "chief_of_staff",
+      "description": "Confirm this is a smoke run of the Leadership Ops Crew. List the draft-only guardrails in 3 bullets. Inputs may include optimize_for={optimize_for}.",
+      "expected_output": "Short intake note (under 120 words) confirming smoke + guardrails."
+    },
+    {
+      "id": "close",
+      "agent": "growth_program_manager",
+      "description": "Acknowledge the CoS intake and state that full Optimize oversight would next call CCO → Reporting → EiC. Do not invent GA4 numbers.",
+      "expected_output": "2-4 sentence handoff note that the smoke pipeline succeeded."
+    }
+  ]
+}

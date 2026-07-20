@@ -1,0 +1,58 @@
+{
+  "id": "affiliate_e2e",
+  "name": "Affiliate program e2e proposal",
+  "maturity": "L0",
+  "agents": [
+    "affiliate_program_manager",
+    "revops_lead",
+    "data_architect",
+    "integrations_architect",
+    "product_design_lead",
+    "chief_customer_officer",
+    "editor_in_chief"
+  ],
+  "tasks": [
+    {
+      "id": "program",
+      "agent": "affiliate_program_manager",
+      "description": "Program design: networks, link ingest proposal, slot map, partner ops. No live injection.",
+      "expected_output": "Program spec draft."
+    },
+    {
+      "id": "coherence",
+      "agent": "revops_lead",
+      "description": "KPI/gate coherence with Phase 3.",
+      "expected_output": "RevOps checklist."
+    },
+    {
+      "id": "attribution",
+      "agent": "data_architect",
+      "description": "Attribution join keys and event contracts.",
+      "expected_output": "Attribution contract notes."
+    },
+    {
+      "id": "plumbing",
+      "agent": "integrations_architect",
+      "description": "Integration feasibility for L3.",
+      "expected_output": "Plumbing feasibility."
+    },
+    {
+      "id": "ux",
+      "agent": "product_design_lead",
+      "description": "Slot UX / disclosure UI notes.",
+      "expected_output": "UX notes."
+    },
+    {
+      "id": "trust",
+      "agent": "chief_customer_officer",
+      "description": "Trust and placement constraints.",
+      "expected_output": "CCO constraints."
+    },
+    {
+      "id": "disclosure",
+      "agent": "editor_in_chief",
+      "description": "Disclosure copy patterns.",
+      "expected_output": "affiliate/program-spec.md draft."
+    }
+  ]
+}
