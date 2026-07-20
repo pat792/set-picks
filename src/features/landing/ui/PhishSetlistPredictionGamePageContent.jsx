@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
+
 /**
  * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660).
  */
@@ -29,14 +31,16 @@ export default function PhishSetlistPredictionGamePageContent() {
           <p>
             A Phish setlist game asks you to predict songs and slots for tonight&apos;s show—not to
             dig through yesterday&apos;s archives. You compete with friends in private pools and
-            with everyone on the global board. Scores update live as songs are played.
+            with everyone on the global board. Scores update live as songs are played. Prefer a
+            short walkthrough? See{' '}
+            <Link to="/how-it-works" className={LINK_ON_LIGHT}>
+              how it works
+            </Link>
+            .
           </p>
           <p>
             We follow the tour with you. Song frequency, bustouts, and gap highlights live on our{' '}
-            <Link
-              to="/tour-stats"
-              className="font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
-            >
+            <Link to="/tour-stats" className={LINK_ON_LIGHT}>
               tour stats
             </Link>{' '}
             pages and refresh every night the band plays live—insights that help you stay sharp
@@ -51,7 +55,11 @@ export default function PhishSetlistPredictionGamePageContent() {
           <p>
             Setlist archives are great for looking back. Setlist Pick&apos;Em is about the night
             ahead: make your calls, earn points for slots and wildcards, and chase Bustout Boosts
-            when you nail the longshots.
+            when you nail the longshots. Full point values are on{' '}
+            <Link to="/how-scoring-works" className={LINK_ON_LIGHT}>
+              how scoring works
+            </Link>
+            .
           </p>
           <ul className="list-disc space-y-2 pl-5">
             <li>
@@ -87,16 +95,20 @@ export default function PhishSetlistPredictionGamePageContent() {
           <p className="flex flex-wrap gap-x-4 gap-y-2">
             <Link
               to="/how-it-works"
-              className="inline-flex items-center gap-1 font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
+              className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}
             >
               How it works
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             <Link
               to="/how-scoring-works"
-              className="inline-flex items-center gap-1 font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
+              className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}
             >
               How scoring works
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <Link to="/tour-stats" className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}>
+              Tour stats
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </p>

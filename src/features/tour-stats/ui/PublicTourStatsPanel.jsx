@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import TourStatsView from '../ui/TourStatsView';
+import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
 /**
  * Public marketing chrome around tour stats (#665).
@@ -35,8 +36,16 @@ export default function PublicTourStatsPanel({
         <p className="text-sm leading-relaxed text-slate-400">
           We&apos;re starting with Phish and building toward more bands soon.
           Playing the game unlocks your personal stats as you rack up points and
-          compete with other setlist pickers. This page stays focused on tour-wide
-          song trends—not a full night-by-night setlist archive.
+          compete with other setlist pickers. New to the format? See{' '}
+          <Link to="/how-it-works" className={LINK_ON_DARK}>
+            how it works
+          </Link>{' '}
+          or what makes this a{' '}
+          <Link to="/phish-setlist-prediction-game" className={LINK_ON_DARK}>
+            Phish setlist prediction game
+          </Link>
+          . This page stays focused on tour-wide song trends—not a full
+          night-by-night setlist archive.
         </p>
       </header>
 
@@ -78,9 +87,13 @@ export default function PublicTourStatsPanel({
         overlayLoading={false}
       />
 
-      <div className="mt-10 flex flex-col items-center gap-3 border-t border-white/10 pt-8 sm:flex-row sm:justify-between">
+      <div className="mt-10 flex flex-col items-center gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-400">
-          Ready to compete on the next show?
+          Ready to compete on the next show? Or skim{' '}
+          <Link to="/how-scoring-works" className={LINK_ON_DARK}>
+            how scoring works
+          </Link>{' '}
+          first.
         </p>
         <Link
           to="/"

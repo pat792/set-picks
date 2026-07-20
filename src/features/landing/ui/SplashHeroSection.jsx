@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom';
 
 import Button from '../../../shared/ui/Button';
 import SplashHeroWordmark from './SplashHeroWordmark';
-
-const secondaryLinkClassName =
-  'underline decoration-slate-600 underline-offset-4 transition-colors hover:text-emerald-400';
+import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
 /**
  * Splash hero — primary CTA stays auth/get-started; secondary links are real
@@ -32,11 +30,21 @@ export default function SplashHeroSection({ onPlayNowClick }) {
           </p>
 
           <p className="text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
-            Make picks for tonight&apos;s show, watch scores update as songs are played, and compete with your tour crew for the top spot.
+            Make picks for tonight&apos;s show, watch scores update as songs are played, and compete
+            with your tour crew for the top spot.
           </p>
 
           <p className="mt-4 text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
-            What started as a game on paper 25 years ago is now a fully automated, live setlist game for friends to play at the show and on couch tour. Invite your friends, track stats, and make every show count.
+            What started as a game on paper 25 years ago is now a live setlist game for friends at
+            the show and on couch tour. Invite your friends, track{' '}
+            <Link to="/tour-stats" className={LINK_ON_DARK}>
+              tour stats
+            </Link>
+            , and make every show count. New here? See{' '}
+            <Link to="/how-it-works" className={LINK_ON_DARK}>
+              how it works
+            </Link>
+            .
           </p>
         </div>
 
@@ -53,20 +61,20 @@ export default function SplashHeroSection({ onPlayNowClick }) {
           >
             Make picks now
           </Button>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-400">
-            <Link to="/how-it-works" className={secondaryLinkClassName}>
+          <nav
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm"
+            aria-label="Learn more"
+          >
+            <Link to="/how-it-works" className={LINK_ON_DARK}>
               How it works
             </Link>
-            <Link to="/tour-stats" className={secondaryLinkClassName}>
+            <Link to="/tour-stats" className={LINK_ON_DARK}>
               Tour stats
             </Link>
-            <Link
-              to="/phish-setlist-prediction-game"
-              className={secondaryLinkClassName}
-            >
+            <Link to="/phish-setlist-prediction-game" className={LINK_ON_DARK}>
               What is this game?
             </Link>
-          </div>
+          </nav>
         </div>
 
         <div className="min-h-2 flex-1 sm:hidden" aria-hidden />

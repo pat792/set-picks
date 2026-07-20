@@ -2,6 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+import {
+  CARD_LINK_ON_LIGHT,
+  LINK_ON_LIGHT,
+} from '../../../shared/ui/surfaceLinkStyles';
+
 /**
  * Standalone "How It Works" content for the `/how-it-works` public page.
  */
@@ -13,14 +18,20 @@ export default function HowItWorksPageContent() {
           How to Play Setlist Pick&apos;Em
         </h1>
         <p className="mx-auto mb-6 max-w-2xl text-center text-lg text-slate-600">
-          The free live setlist prediction game for Phish fans—and a home for more
-          bands soon. Lock your picks before the lights go down, score as the
-          setlist unfolds, and compete with friends.
+          The free live{' '}
+          <Link to="/phish-setlist-prediction-game" className={LINK_ON_LIGHT}>
+            setlist prediction game
+          </Link>{' '}
+          for Phish fans—and a home for more bands soon. Lock your picks before the lights go down,
+          score as the setlist unfolds, and compete with friends.
         </p>
         <p className="mx-auto mb-12 max-w-2xl text-center text-base leading-relaxed text-slate-500">
-          We keep an eye on the tour for you: key song trends and bustout signals
-          update every night the band plays live. Sign in to unlock personal stats
-          as you earn points and climb the board against other setlist pickers.
+          We keep an eye on the tour for you: key song trends and bustout signals on{' '}
+          <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+            tour stats
+          </Link>{' '}
+          update every night the band plays live. Sign in to unlock personal stats as you earn points
+          and climb the board against other setlist pickers.
         </p>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
           <div className="flex flex-col items-center rounded-2xl bg-white p-6 text-center shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200/60 md:items-start md:p-8 md:text-left">
@@ -30,10 +41,7 @@ export default function HowItWorksPageContent() {
               Pick openers, closers, encore and wildcard before showtime. Earn points for correct
               picks, higher points for exact slot picks, plus a Bustout Boost&trade; for calling longshots.
             </p>
-            <Link
-              to="/how-scoring-works"
-              className="mt-4 inline-flex items-center gap-1 rounded-md text-sm font-bold text-emerald-700 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-800 hover:decoration-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
-            >
+            <Link to="/how-scoring-works" className={CARD_LINK_ON_LIGHT}>
               Learn how scoring works
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
@@ -57,10 +65,7 @@ export default function HowItWorksPageContent() {
         </div>
         <p className="mx-auto mt-10 max-w-2xl text-center text-sm leading-relaxed text-slate-500">
           Peek at public{' '}
-          <Link
-            to="/tour-stats"
-            className="font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
-          >
+          <Link to="/tour-stats" className={LINK_ON_LIGHT}>
             tour setlist stats
           </Link>{' '}
           anytime—then play to unlock the personal side of the story.
