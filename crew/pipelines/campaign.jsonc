@@ -1,7 +1,7 @@
 {
   "id": "campaign",
   "name": "Campaign brief",
-  "maturity": "L0",
+  "maturity": "L2",
   "agents": [
     "chief_customer_officer",
     "customer_insights_analyst",

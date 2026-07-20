@@ -2,7 +2,7 @@
 
 **Epic:** [#695](https://github.com/pat792/set-picks/issues/695)  
 **Canon:** [`docs/LEADERSHIP_CREW.md`](../docs/LEADERSHIP_CREW.md)  
-**Maturity:** **L1** research (allowlisted GET); tools still default to dry-run. No live social/BD/affiliate injection.
+**Maturity:** **L1** research + **L2** human-gated social/BD publish queue. Affiliate inject still L3.
 
 This folder is a **flexible** multi-agent workspace. Roles and pipelines are hypotheses: adapt them as the team learns (update agents/pipelines + the doc Changelog + comment on #695).
 
@@ -51,24 +51,36 @@ Wire a pipeline into your CrewAI runner of choice (JSON-first or classic). Until
 ## Tools
 
 ```python
-from crew.tools import web_fetch_allowlisted, social_publish
+from crew.tools import web_fetch_allowlisted, social_draft_pack, social_publish
 
-web_fetch_allowlisted("https://www.setlistpickem.com/")  # dry_run plan
 web_fetch_allowlisted("https://www.setlistpickem.com/llms.txt", dry_run=False)  # L1 GET
-social_publish("x", "hello", dry_run=True, approved=False)  # blocked publish
+social_draft_pack("x", "Lock your picks.", dry_run=False)  # persists draft
+social_publish(draft_id="…", dry_run=True)  # plan only until approved + env
 ```
 
 ### Market intel sweep (L1)
 
 ```bash
-# from repo root
 python3.13 -m crew.scripts.market_intel_sweep --dry-run
-python3.13 -m crew.scripts.market_intel_sweep          # live allowlisted fetches
-python3.13 -m unittest discover -s crew/tests -v
+python3.13 -m crew.scripts.market_intel_sweep
 ```
 
 Artifacts: `crew/output/intel/` (gitignored).
 
+### Social / BD demand gen (L2)
+
+```bash
+python3.13 -m crew.scripts.social_demand_gen draft --platform x --body "Show night. Lock your picks."
+python3.13 -m crew.scripts.social_demand_gen approve <draft_id> --approver eic
+CREW_SOCIAL_PUBLISH_ENABLED=true python3.13 -m crew.scripts.social_demand_gen publish <draft_id> --live
+python3.13 -m crew.scripts.social_demand_gen list
+```
+
+Publish writes `crew/output/demand_gen/<kind>/published/` (manual post queue). Optional `SOCIAL_PUBLISH_WEBHOOK` POSTs JSON after gates pass.
+
+```bash
+python3.13 -m unittest discover -s crew/tests -v
+```
 ## Cursor skills
 
 Mirrored under `.cursor/skills/<role-kebab>/SKILL.md`. Meta router: `leadership-crew`.

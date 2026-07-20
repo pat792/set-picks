@@ -54,7 +54,8 @@ class FetchTests(unittest.TestCase):
 
     def test_social_publish_still_gated(self):
         r = social_publish("x", "hi", dry_run=False, approved=True)
-        self.assertFalse(r.ok)  # not wired yet
+        self.assertFalse(r.ok)
+        self.assertIn("CREW_SOCIAL_PUBLISH_ENABLED", r.message)
 
 
 if __name__ == "__main__":

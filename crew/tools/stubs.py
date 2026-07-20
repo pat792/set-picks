@@ -137,42 +137,49 @@ def social_draft_pack(
     body: str,
     *,
     dry_run: bool = True,
+    **kwargs: Any,
 ) -> ToolResult:
-    """Always safe: returns a draft pack structure."""
-    return ToolResult(
-        True,
-        dry_run,
-        "Draft social pack created (not published)",
-        {
-            "platform": platform,
-            "body": body,
-            "status": "draft",
-            "publish_requires": "L2 + EiC/CCO approval",
-        },
+    """L2 draft pack — delegates to tools.social (persist unless dry_run)."""
+    from . import social as social_mod
+
+    result = social_mod.social_draft_pack(
+        platform,
+        body,
+        dry_run=dry_run,
+        persist=not dry_run,
+        **kwargs,
     )
+    return ToolResult(result.ok, result.dry_run, result.message, result.data)
 
 
 def social_publish(
-    platform: str,
-    body: str,
+    platform: str | None = None,
+    body: str | None = None,
     *,
     dry_run: bool = True,
     approved: bool = False,
+    draft_id: str | None = None,
+    **kwargs: Any,
 ) -> ToolResult:
-    """L2 human-gated publish. Refuses unless approved and not dry_run."""
-    if dry_run or not approved:
-        return ToolResult(
-            True,
-            True,
-            "Publish blocked: dry_run or missing approval — draft only",
-            {"platform": platform, "body": body, "approved": approved},
-        )
-    return ToolResult(
-        False,
-        False,
-        "Live social publish not wired — enable L2 integration explicitly",
-        {"platform": platform},
+    """L2 human-gated publish — delegates to tools.social."""
+    from . import social as social_mod
+
+    result = social_mod.social_publish(
+        platform,
+        body,
+        dry_run=dry_run,
+        approved=approved,
+        draft_id=draft_id,
+        **kwargs,
     )
+    return ToolResult(result.ok, result.dry_run, result.message, result.data)
+
+
+def approve_social_draft(*args: Any, **kwargs: Any) -> ToolResult:
+    from . import social as social_mod
+
+    result = social_mod.approve_social_draft(*args, **kwargs)
+    return ToolResult(result.ok, result.dry_run, result.message, result.data)
 
 
 def affiliate_catalog_research(
@@ -217,6 +224,7 @@ __all__ = [
     "web_fetch_allowlisted",
     "social_draft_pack",
     "social_publish",
+    "approve_social_draft",
     "affiliate_catalog_research",
     "lead_pack_export",
     "load_allowlist",
