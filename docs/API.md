@@ -360,7 +360,7 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
-| `/user/:userId` | None | Public player profile |
+| `/user/:userId` | None | Public player profile — **`noindex,follow`** (#661); not a sitemap target |
 | `/privacy` | None | Privacy policy |
 | `/terms` | None | Terms of service |
 | `/password-reset-complete` | None | Firebase Auth continue URL |
