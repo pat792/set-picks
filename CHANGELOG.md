@@ -14,6 +14,14 @@ No unreleased changes.
 
 ---
 
+## [1.35.0] — 2026-07-20
+
+### Added
+- **Crowd pulse on Standings Show (#687 / #689)** — pre-show summary of tonight’s multi-picker songs (frequency meters); deep stats (gap, vintage, tour leaders) blur until picks lock. Feature module `src/features/crowd-picks/`. Further Stats page / helper work parked in #694.
+- **Internal picks rollup report (#687)** — `functions/scripts/picksRollupReport.js` + methodology under `docs/picks-rollup/` for nightly picker volume and song insights.
+
+---
+
 ## [1.34.7] — 2026-07-20
 
 ### Added
