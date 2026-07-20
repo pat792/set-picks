@@ -1,0 +1,73 @@
+{
+  "id": "optimize",
+  "name": "Optimize oversight",
+  "maturity": "L1-evidence",
+  "description": "Leadership Optimize pack for a single optimize_for goal. Requires GA4 snapshot facts (issue #697) including channel + email UTM planes (optimize_snapshot_recipe.md).",
+  "agents": [
+    "chief_of_staff",
+    "growth_program_manager",
+    "chief_customer_officer",
+    "reporting_lead",
+    "customer_insights_analyst",
+    "data_architect",
+    "editor_in_chief",
+    "software_architect",
+    "comms_orchestration_lead"
+  ],
+  "tasks": [
+    {
+      "id": "route",
+      "agent": "chief_of_staff",
+      "description": "Intake for Optimize. Kickoff inputs: optimize_for={optimize_for}, window={window}, ga4_snapshot_path={ga4_snapshot_path}. Confirm draft-only. If ga4_snapshot_path is missing or 'none', flag BLOCKED_NO_EVIDENCE. Do not invent metrics. Remind: snapshot recipe crew/knowledge/optimize_snapshot_recipe.md (sections A–C).",
+      "expected_output": "Intake checklist + whether evidence file is present; RACI reminder; recipe completeness flags."
+    },
+    {
+      "id": "goal",
+      "agent": "chief_customer_officer",
+      "description": "Confirm optimize_for={optimize_for} semantics only. If optimize_for is picks_lock: success = reminder/comms → engagement (channel-aware) → pick submitted before lock (NOT generic acquisition/social OKRs). Window must remain {window}. No invented baselines.",
+      "expected_output": "Goal statement + success definition tied to optimize_for; cohorts as questions not fake %."
+    },
+    {
+      "id": "evidence",
+      "agent": "reporting_lead",
+      "description": "You are given the full GA4 facts markdown below. Quote eventCount/totalUsers from that table ONLY. Path for reference: {ga4_snapshot_path}. Never invent percentages or event names not in the table. If a row is missing write unknown. Explicitly note whether sections B (trigger×channel) and C (email UTM) are present or unknown.\n\n--- GA4 SNAPSHOT START ---\n{ga4_snapshot}\n--- GA4 SNAPSHOT END ---\n\nStructure a measurement section for the PM pack aligned to MEASUREMENT_PLAN / OPTIMIZE_AUTONOMY / optimize_snapshot_recipe.md for optimize_for={optimize_for}, window={window}.",
+      "expected_output": "Measurement section with cited GA4 facts or explicit unknown; A/B/C completeness."
+    },
+    {
+      "id": "insights",
+      "agent": "customer_insights_analyst",
+      "description": "Interpret ONLY the GA4 table embedded for Reporting (same snapshot). For optimize_for={optimize_for} / window={window}. Hypotheses allowed if labeled HYPOTHESIS. No numeric claims beyond the snapshot table. Do not treat in-app open/CTA cliff as email non-engagement if §C is unknown.\n\n--- GA4 SNAPSHOT START ---\n{ga4_snapshot}\n--- GA4 SNAPSHOT END ---",
+      "expected_output": "Insights bullets: facts vs hypotheses clearly labeled; channel caveats."
+    },
+    {
+      "id": "challenge_evidence",
+      "agent": "data_architect",
+      "description": "Adversarial measurement challenge for optimize_for={optimize_for}, window={window}. You may NOT invent numbers. Using only the snapshot below plus MEASUREMENT_PLAN channel planes: (1) List ≥2 alternate evidence planes that could falsify an open/CTA cliff (email UTM sessions, Resend opens/#512, delivery-log join/#698, push tap). (2) For each plane: present in snapshot with cited numbers, OR unknown + exact follow-up GA4 MCP query (dimensions/metrics/filters) Cursor must run. (3) If §C email UTM is missing/unknown, output BLOCK_EMAIL_CONCLUSION — pack must not claim zero email engagement. (4) Note instrumentation gaps (e.g. comms_email_landed under-fire).\n\n--- GA4 SNAPSHOT START ---\n{ga4_snapshot}\n--- GA4 SNAPSHOT END ---",
+      "expected_output": "Challenge memo: falsifiers, MCP follow-ups, BLOCK_EMAIL_CONCLUSION if needed."
+    },
+    {
+      "id": "pack",
+      "agent": "editor_in_chief",
+      "description": "Assemble a draft PM review pack matching OPTIMIZE_AUTONOMY.md shape for optimize_for={optimize_for}, window={window}. Editorial gate: every number must appear in the GA4 snapshot below or be labeled unknown. Incorporate challenge_evidence: do not ship an unqualified open cliff if BLOCK_EMAIL_CONCLUSION. Strip invented metrics. Draft-only.\n\n--- GA4 SNAPSHOT START ---\n{ga4_snapshot}\n--- GA4 SNAPSHOT END ---",
+      "expected_output": "Draft PM pack markdown."
+    },
+    {
+      "id": "feasibility",
+      "agent": "software_architect",
+      "description": "Flag delivery/FSD/adapter risks for recommendations that would touch comms delivery, catalog, or prefs. No code changes. Reference repo paths conceptually (commsDelivery, catalog.json). Note #512 email open plane and #698 delivery-log join when measurement gaps appear.",
+      "expected_output": "Feasibility notes / blockers."
+    },
+    {
+      "id": "handoff",
+      "agent": "comms_orchestration_lead",
+      "description": "Emit a structured SQUAD_KICKOFF block the Cursor agent must execute without re-deriving leadership intent. Format exactly:\n\n```markdown\n## SQUAD_KICKOFF\noptimize_for: {optimize_for}\nwindow: {window}\nga4_snapshot: {ga4_snapshot_path}\nepic: #573\n\n### Ordered skills (run in order; stop for PM between drafter PR and merge)\n1. comms-analyst — re-validate pack with live GA4 MCP; MUST include recipe §B + §C (UTM). Post [SKIP-PRD] on #573.\n2. comms-triggers — catalog proposals only if analyst recommends; else HOLD with reason.\n3. comms-drafter — draft PR to staging ONLY if PM/analyst greenlit copy change; else SKIP.\n4. comms-architect — feasibility on open recommendations (#512/#698 wiring as needed).\n\n### Scored next action (pick one)\n- DRAFT_PR: <why>\n- WAIT_EVIDENCE: <#512|#698|UTM fill>\n- CATALOG_HOLD: <why>\n- MEASUREMENT_ONLY: <why>\n\n### Checklist before claiming done\n- [ ] Channel planes reported (inApp vs email vs push)\n- [ ] Email UTM proxy checked if email delivered\n- [ ] No merge/deploy from agents\n```\n\nDraft-only; never merge/deploy.",
+      "expected_output": "SQUAD_KICKOFF markdown block + scored next action."
+    },
+    {
+      "id": "accountable_close",
+      "agent": "growth_program_manager",
+      "description": "Final coherence pass. Ensure pack did not invent metrics and challenge_evidence was honored. List learnings for epic #695 if structure should adapt (e.g. snapshot recipe). Output the final pack for leadership review + paste-ready SQUAD_KICKOFF.",
+      "expected_output": "Final pack + SQUAD_KICKOFF + optional adaptation note."
+    }
+  ]
+}

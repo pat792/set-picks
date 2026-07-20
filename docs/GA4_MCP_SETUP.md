@@ -76,6 +76,25 @@ In Cursor, open MCP tools / ask the agent to use the Google Analytics MCP: e.g. 
 
 Official walkthrough: [YouTube — Google Analytics MCP setup](https://www.youtube.com/watch?v=nS8HLdwmVlY).
 
+## 5. Leadership Crew Optimize (#697)
+
+Terminal CrewAI does **not** see Cursor MCP automatically. **For now, prefer Cursor GA4 MCP → snapshot file → optimize** (local `gcloud` ADC login often fails on sensitive Analytics scopes).
+
+**Snapshot must follow** [`crew/knowledge/optimize_snapshot_recipe.md`](../crew/knowledge/optimize_snapshot_recipe.md): aggregates (§A) **plus** trigger×channel (§B) **plus** email UTM sessions (§C). Aggregates alone caused a 2026-07-20 false “open cliff” on `picks_lock_reminder` email.
+
+```bash
+# 1) In Cursor: GA4 MCP reports for recipe sections A–C (property 527619709)
+#    Merge into one markdown under crew/output/intel/ (gitignored), then:
+crew/.venv/bin/python -m crew.scripts.ga4_snapshot --from-file path/to/mcp-export.md
+
+# 2) Kickoff (embeds snapshot text into tasks; fails closed if missing)
+crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
+  --input optimize_for=picks_lock --input window=last_7_days \
+  --ga4-snapshot crew/output/intel/ga4-….md
+```
+
+Optional later: ADC / service-account `ga4_snapshot` without `--from-file` when credentials work (`docs/GA4_MCP_SETUP.md` §2). Schema example: `crew/knowledge/ga4_snapshot.example.md`. Property default **527619709**. ADC-only fetch fills §A placeholders for §B/§C — Cursor must complete those before treating the pack as evidence-complete.
+
 ## Security
 
 - Do **not** commit service account JSON or OAuth secrets into the repo.

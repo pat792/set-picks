@@ -1,0 +1,44 @@
+{
+  "id": "sponsor_bd",
+  "name": "Sponsor BD plan",
+  "maturity": "L0",
+  "agents": [
+    "lead_gen_specialist",
+    "sponsor_bd_orchestrator",
+    "monetization_strategist",
+    "chief_revenue_officer",
+    "editor_in_chief"
+  ],
+  "tasks": [
+    {
+      "id": "leads",
+      "agent": "lead_gen_specialist",
+      "description": "Build sponsor lead pack criteria and seed list (public info only).",
+      "expected_output": "Lead pack draft."
+    },
+    {
+      "id": "plan",
+      "agent": "sponsor_bd_orchestrator",
+      "description": "BD plan: one-pager outline, sequence drafts — no send.",
+      "expected_output": "sponsor-plan.md body."
+    },
+    {
+      "id": "fit",
+      "agent": "monetization_strategist",
+      "description": "Fit vs other monetize options.",
+      "expected_output": "Prioritization notes."
+    },
+    {
+      "id": "approve_frame",
+      "agent": "chief_revenue_officer",
+      "description": "CRO frame approval for the plan (still draft-only).",
+      "expected_output": "CRO sign-off notes."
+    },
+    {
+      "id": "voice",
+      "agent": "editor_in_chief",
+      "description": "Outbound voice/disclosure edit.",
+      "expected_output": "Final bd/sponsor-plan.md draft."
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# Generated picks rollup reports (aggregates only).
+# Keep UID/handle dumps out of git.
+*
+!.gitignore
+!README.md

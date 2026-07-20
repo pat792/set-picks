@@ -1,0 +1,16 @@
+[project]
+name = "setlist-leadership-ops"
+version = "0.1.0"
+description = "Leadership Ops Crew for Setlist Pick'em (epic #695) — L0 scaffold"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "crewai>=0.80.0",
+  "python-dotenv>=1.0.0",
+  "google-analytics-data>=0.18.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.uv]
+package = false
