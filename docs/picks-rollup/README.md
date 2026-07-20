@@ -1,0 +1,89 @@
+# Picks rollup report (internal)
+
+Internal analytics for **nightly picker volume** and **crowd pick composition**. Productized stats-page charts and comms recommendations come **after** report review — see [#687](https://github.com/pat792/set-picks/issues/687).
+
+## Phases
+
+| Phase | What | Status |
+|-------|------|--------|
+| **A** | Admin report script + methodology | In progress |
+| **B** | Human review of Summer Tour (and later) reports | Pending |
+| **C** | Recommend stats-page series + data/comms follow-ups | After B |
+
+## Data spine
+
+| Concept | Source |
+|---------|--------|
+| Night key | `picks.showDate` (`YYYY-MM-DD`) |
+| Pick doc | `picks/{showDate}_{userId}` |
+| Submitted | ≥1 non-empty slot in `picks.{s1o,s1c,s2o,s2c,enc,wild}` |
+| Songs | Title strings (case-insensitive keys); no catalog IDs |
+| Calendar | `show_calendar/snapshot` |
+| Optional answers | `official_setlists/{showDate}` for consensus-vs-actual |
+
+Score finalize rollup (`rollupScoresForShow`) is **orthogonal** — this report does not write scores.
+
+## Metrics (v1)
+
+### Nightly series
+
+- Submitted pickers, total pick docs, graded count, empty/draft docs
+- Pool-affiliated %
+- Unique songs; rare songs (exactly one card)
+- Diversity proxy: unique titles / slot fills
+- Slot fill rates
+
+### Song insights
+
+- Top songs overall and by slot (count + % of submitted pickers)
+- Consensus (≥ configurable %, default 25%)
+- Tour-window frequency (card appearances vs slot fills)
+- When setlist present: did each slot’s crowd favorite match the official slot?
+
+### Explicit non-goals (Phase A)
+
+- No new Firestore rollup collection
+- No stats-page UI
+- No per-user handles/UIDs in report artifacts
+
+## How to run
+
+```bash
+cd functions
+# ADC required
+gcloud auth application-default login
+
+node scripts/picksRollupReport.js --tour="Summer Tour"
+node scripts/picksRollupReport.js --from=2026-07-07 --to=2026-07-19 \
+  --out=../docs/picks-rollup/reports
+```
+
+Optional flags: `--dates=...`, `--consensus=25`, `--top=15`, `--no-setlists`.
+
+Unit tests (pure core, no Firebase):
+
+```bash
+cd functions && node --test picksRollupReportCore.test.js
+```
+
+## Output
+
+- **stdout:** markdown summary (always)
+- **`--out=DIR`:** `picks-rollup-{from}_{to}_{date}.md` + `.json`
+
+Generated report files under `reports/` may be kept local (gitignored) or committed as sanitized snapshots — prefer aggregates-only; never commit UID dumps.
+
+Offline mode (no ADC):
+
+```bash
+cd functions
+node scripts/picksRollupReport.js --dump=./picks-dump.json --out=../docs/picks-rollup/reports
+```
+
+Dump shape: JSON array of pick docs (at least `showDate`, `picks`, optional `isGraded` / `pools`), or `{ "picks": [ ... ] }`.
+
+## Related
+
+- Prior offline scoring research: [`docs/scoring-analysis/`](../scoring-analysis/)
+- Profile frequency (live, per-user): `src/features/profile/model/aggregatePickSongStats.js`
+- Prediction epic (downstream): #646
