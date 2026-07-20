@@ -2,9 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import TourStatsView from '../ui/TourStatsView';
+import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
 /**
- * Public marketing chrome around aggregate tour stats (#665).
+ * Public marketing chrome around tour stats (#665).
  */
 export default function PublicTourStatsPanel({
   tours,
@@ -27,14 +28,24 @@ export default function PublicTourStatsPanel({
           Phish tour setlist stats
         </h1>
         <p className="text-base leading-relaxed text-slate-300">
-          Aggregate song frequency, bustouts, and gap highlights for each tour —
-          the same non-personal stats players use when locking picks. We start
-          with the Sphere run (when Setlist Pick &apos;Em launched) and add tours
-          as Phish.net publishes new dates on the calendar.
+          We track the setlist stories that help you make better picks—most-played
+          songs, bustouts, and gap highlights for each tour. Stats refresh every
+          night the band plays live, so the picture keeps getting sharper as the
+          tour rolls on.
         </p>
         <p className="text-sm leading-relaxed text-slate-400">
-          Full nightly setlists stay in the app for signed-in players. This page
-          never lists an entire show&apos;s set — only tour-level song datasets.
+          We&apos;re starting with Phish and building toward more bands soon.
+          Playing the game unlocks your personal stats as you rack up points and
+          compete with other setlist pickers. New to the format? See{' '}
+          <Link to="/how-it-works" className={LINK_ON_DARK}>
+            how it works
+          </Link>{' '}
+          or what makes this a{' '}
+          <Link to="/phish-setlist-prediction-game" className={LINK_ON_DARK}>
+            Phish setlist prediction game
+          </Link>
+          . This page stays focused on tour-wide song trends—not a full
+          night-by-night setlist archive.
         </p>
       </header>
 
@@ -76,9 +87,13 @@ export default function PublicTourStatsPanel({
         overlayLoading={false}
       />
 
-      <div className="mt-10 flex flex-col items-center gap-3 border-t border-white/10 pt-8 sm:flex-row sm:justify-between">
+      <div className="mt-10 flex flex-col items-center gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-400">
-          Ready to compete on the next show?
+          Ready to compete on the next show? Or skim{' '}
+          <Link to="/how-scoring-works" className={LINK_ON_DARK}>
+            how scoring works
+          </Link>{' '}
+          first.
         </p>
         <Link
           to="/"

@@ -16,7 +16,7 @@ export const PROFILE_BADGES = Object.freeze([
   {
     id: 'shows_played_1',
     name: 'First Show Scored',
-    blurb: 'Scored your first Set Picks show.',
+    blurb: "Scored your first Setlist Pick 'Em show.",
     tier: 'common',
     src: '/badges/shows_played_1.svg',
   },

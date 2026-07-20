@@ -1,12 +1,14 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
-import { useScoringRulesModal } from '../../scoring';
 import Button from '../../../shared/ui/Button';
+import {
+  CARD_LINK_ON_LIGHT,
+  LINK_ON_LIGHT,
+} from '../../../shared/ui/surfaceLinkStyles';
 
 export default function SplashHowItWorksSection({ sectionRef, headingRef, onCreateAccountClick }) {
-  const { openScoringRules } = useScoringRulesModal();
-
   return (
     <section
       ref={sectionRef}
@@ -16,10 +18,21 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
         <h2
           ref={headingRef}
           tabIndex={-1}
-          className="mb-12 rounded-md text-center font-display text-display-lg font-bold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue md:text-display-lg-lg"
+          className="mb-4 rounded-md text-center font-display text-display-lg font-bold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue md:text-display-lg-lg"
         >
           Game Format
         </h2>
+        <p className="mx-auto mb-12 max-w-2xl text-center text-base leading-relaxed text-slate-600">
+          Three steps—then you&apos;re in. Prefer the full walkthrough? See{' '}
+          <Link to="/how-it-works" className={LINK_ON_LIGHT}>
+            how it works
+          </Link>
+          , or peek at{' '}
+          <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+            tour stats
+          </Link>{' '}
+          before you lock picks.
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           <div className="rounded-2xl bg-white p-6 md:p-8 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 flex flex-col items-center text-center md:items-start md:text-left transition-transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200/60 duration-300">
@@ -30,14 +43,10 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
             <p className="text-slate-600 leading-relaxed">
               Pick openers, closers, encore and wildcard before showtime. Earn points for correct picks, higher points for exact slot picks, plus a Bustout Boost™ for calling longshots.
             </p>
-            <button
-              type="button"
-              onClick={openScoringRules}
-              className="mt-4 inline-flex items-center gap-1 rounded-md text-sm font-bold text-emerald-700 underline underline-offset-4 decoration-emerald-300 transition-colors hover:text-emerald-800 hover:decoration-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
-            >
+            <Link to="/how-scoring-works" className={CARD_LINK_ON_LIGHT}>
               Learn how scoring works
               <ArrowRight className="h-4 w-4" aria-hidden />
-            </button>
+            </Link>
           </div>
 
           <div className="rounded-2xl bg-white p-6 md:p-8 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 flex flex-col items-center text-center md:items-start md:text-left transition-transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200/60 duration-300">
@@ -46,7 +55,7 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
             </div>
             <h3 className="font-bold text-xl text-slate-900 mb-3">Watch It Unfold</h3>
             <p className="text-slate-600 leading-relaxed">
-              Live scores and standings update in real-time as songs are played. See your picks and everyone else's light up the leaderboard.
+              Live scores and standings update as songs are played. See your picks—and your friends&apos;—light up the leaderboard.
             </p>
           </div>
 
@@ -56,11 +65,12 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
             </div>
             <h3 className="font-bold text-xl text-slate-900 mb-3">Claim the Crown</h3>
             <p className="text-slate-600 leading-relaxed">
-              Challenge friends in private pools and compete in global standings with everyone playing that night. See all-time stats in private pools to compete across tours and years.          </p>
+              Challenge friends in private pools and compete in global standings. Your personal stats grow with every show you play—across the tour and beyond.
+            </p>
           </div>
         </div>
 
-        <div className="mt-14 flex justify-center">
+        <div className="mt-14 flex flex-col items-center gap-4">
           <Button
             variant="primary"
             type="button"
@@ -69,6 +79,13 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
           >
             Create Account
           </Button>
+          <p className="text-center text-sm text-slate-500">
+            Or read the full{' '}
+            <Link to="/how-it-works" className={LINK_ON_LIGHT}>
+              how to play
+            </Link>{' '}
+            guide.
+          </p>
         </div>
       </div>
     </section>

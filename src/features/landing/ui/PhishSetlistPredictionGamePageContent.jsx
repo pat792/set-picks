@@ -2,9 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
+
 /**
  * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660).
- * Entity-dense copy for category queries — not a thin doorway.
  */
 export default function PhishSetlistPredictionGamePageContent() {
   return (
@@ -17,80 +18,81 @@ export default function PhishSetlistPredictionGamePageContent() {
           The free Phish setlist prediction game
         </h1>
         <p className="mb-10 text-center text-lg leading-relaxed text-slate-600">
-          Setlist Pick&apos;Em (also called Setlist Pickem / Set Picks) is a live{' '}
-          <strong className="font-semibold text-slate-800">setlist prediction game</strong> for
-          Phish fans: lock openers, closers, encore, and a wildcard before showtime, then score as
-          the setlist unfolds.
+          Setlist Pick&apos;Em is a free live{' '}
+          <strong className="font-semibold text-slate-800">setlist picks game</strong> for fans who
+          love predicting setlists—built first for Phish, and designed as a home for more bands soon.
+          Lock openers, closers, encore, and a wildcard before showtime, then score as the night
+          unfolds.
         </p>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className="font-display text-2xl font-bold text-slate-900">
-            What is a Phish setlist game?
+            What is a setlist prediction game?
           </h2>
           <p>
-            A Phish setlist game asks you to predict songs and slots for tonight&apos;s show—not to
-            archive what already happened. You compete against friends in private pools and against
-            everyone on the global board. Scores update live as songs are played.
+            For jam bands like Phish, every night is a new setlist. A setlist prediction game—sometimes
+            called a <strong className="font-semibold text-slate-800">fantasy setlist</strong> game—asks
+            you to call songs and slots before the lights go down, not dig through yesterday&apos;s
+            archives. You compete with friends in private pools and with everyone on the global board.
+            Scores update live as songs are played. Prefer a short walkthrough? See{' '}
+            <Link to="/how-it-works" className={LINK_ON_LIGHT}>
+              how it works
+            </Link>
+            .
           </p>
           <p>
-            Setlist Pick&apos;Em started covering the Sphere run in 2026 and follows each tour as
-            Phish.net publishes new dates. Tour-level song frequency, bustouts, and gap highlights
-            are available on our public{' '}
-            <Link
-              to="/tour-stats"
-              className="font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
-            >
+            Fans have been calling the set on paper, in group chats, and on couch tour for years.
+            Setlist Pick&apos;Em turns that ritual into a live game: lock your setlist picks, watch
+            the show, and climb the board together. We&apos;re live with Phish today and building
+            toward more bands soon.
+          </p>
+          <p>
+            We follow the tour with you. Song frequency, bustouts, and gap highlights live on our{' '}
+            <Link to="/tour-stats" className={LINK_ON_LIGHT}>
               tour stats
             </Link>{' '}
-            pages so you can research picks without an account.
+            pages and refresh every night the band plays live—insights that help you stay sharp
+            between shows.
           </p>
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className="font-display text-2xl font-bold text-slate-900">
-            Prediction game vs setlist trackers
+            Fantasy setlists, without the spreadsheet
           </h2>
           <p>
-            Sites like Phish.net and setlist.fm are outstanding archives and reference libraries—
-            they document what was played. Setlist Pick&apos;Em is a{' '}
-            <strong className="font-semibold text-slate-800">game layer on top of that world</strong>
-            : you make picks before the lights go down, earn points for correct slots and wildcards,
-            and chase Bustout Boosts on longshot calls.
+            Setlist archives are great for looking back. A fantasy setlist night is about the show
+            ahead: make your calls, earn points for slots and wildcards, and chase Bustout Boosts when
+            you nail the longshots. Full point values are on{' '}
+            <Link to="/how-scoring-works" className={LINK_ON_LIGHT}>
+              how scoring works
+            </Link>
+            .
           </p>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              <strong className="text-slate-900">Before the show:</strong> lock picks; they freeze
-              near doors / showtime.
+              <strong className="text-slate-900">Before the show:</strong> lock picks before the
+              lights go down.
             </li>
             <li>
               <strong className="text-slate-900">During the show:</strong> live scoring and
-              standings as the setlist updates.
+              standings as the setlist unfolds—at the venue or on couch tour.
             </li>
             <li>
               <strong className="text-slate-900">After the show:</strong> final grades, tour
-              standings, and aggregate song stats—not a replacement for the official archive.
+              standings, and personal stats that grow every night you play.
             </li>
           </ul>
           <p>
-            Song and setlist data for scoring and public stats are provided by{' '}
-            <a
-              href="https://phish.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
-            >
-              The Mockingbird Foundation / Phish.Net
-            </a>
-            .
+            Playing unlocks those personal stats—so you can see how you stack up as you accumulate
+            points against other setlist pickers.
           </p>
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className="font-display text-2xl font-bold text-slate-900">How to play</h2>
           <ol className="list-decimal space-y-3 pl-5">
-            <li>
-              Create a free account and open tonight&apos;s show on the dashboard.
-            </li>
+            <li>Create a free account and open tonight&apos;s show.</li>
             <li>
               Pick Set 1 opener/closer, Set 2 opener/closer, encore, and a wildcard.
             </li>
@@ -101,16 +103,20 @@ export default function PhishSetlistPredictionGamePageContent() {
           <p className="flex flex-wrap gap-x-4 gap-y-2">
             <Link
               to="/how-it-works"
-              className="inline-flex items-center gap-1 font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
+              className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}
             >
               How it works
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             <Link
               to="/how-scoring-works"
-              className="inline-flex items-center gap-1 font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
+              className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}
             >
               How scoring works
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <Link to="/tour-stats" className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}>
+              Tour stats
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </p>
@@ -121,7 +127,7 @@ export default function PhishSetlistPredictionGamePageContent() {
             to="/"
             className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-10 py-3.5 text-base font-bold text-white shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] transition-all hover:bg-brand-primary-hover hover:shadow-[0_15px_30px_-15px_rgba(16,185,129,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
           >
-            Play the Phish setlist prediction game
+            Start predicting setlists
           </Link>
         </div>
       </div>

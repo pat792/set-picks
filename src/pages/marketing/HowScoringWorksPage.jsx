@@ -1,10 +1,12 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 
 import { ScoringRulesContent } from '../../features/scoring';
 import { MarketingPageShell } from '../../features/landing';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
+import { LINK_ON_LIGHT } from '../../shared/ui/surfaceLinkStyles';
 
 const route = getPrerenderRoute('/how-scoring-works');
 
@@ -34,6 +36,21 @@ export default function HowScoringWorksPage() {
       <MarketingPageShell>
         <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
           <ScoringRulesContent />
+          <p className="mt-10 text-center text-sm leading-relaxed text-slate-500">
+            Next:{' '}
+            <Link to="/how-it-works" className={LINK_ON_LIGHT}>
+              how it works
+            </Link>
+            , browse{' '}
+            <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+              tour stats
+            </Link>
+            , or{' '}
+            <Link to="/" className={LINK_ON_LIGHT}>
+              start playing
+            </Link>
+            .
+          </p>
         </div>
       </MarketingPageShell>
     </>
