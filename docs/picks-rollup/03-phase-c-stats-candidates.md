@@ -75,8 +75,7 @@ Post-show-only metrics (crowd vs official slot) stay out of the pre-show card; s
 
 | | |
 |--|--|
-| **Definition (recommended)** | Mean **debut year** across **all filled slots** tonight (slot-weighted). Also report median + % of slots with known debut. |
-| **Alt** | Mean across **unique titles** only (down-weights repeats of Sample/Golgi). Document which in UI. |
+| **Definition (recommended)** | **Locked:** mean **debut year** across **all filled slots** tonight (slot-weighted). Also report median + % of slots with known debut. |
 | **Trust** | **Medium–High** — reuse `profileAverages.debutYearFromCatalogDebut` / catalog `debut`. |
 | **Caveats** | Missing debut → exclude from mean, show coverage. Do **not** use gap as vintage ([SONG_CATALOG.md](../SONG_CATALOG.md), profile sprint #554). |
 | **Card summary** | `Crowd vintage · ~1995` (or “early ’90s”) |
@@ -91,7 +90,7 @@ Post-show-only metrics (crowd vs official slot) stay out of the pre-show card; s
 
 | | |
 |--|--|
-| **Definition** | Take top **K** players on **active tour standings** (default K=5 or 10). Collect their **tonight** pick titles. Aggregate frequency among that subset only. |
+| **Definition** | Take top **5** players on **active tour standings**. Collect their **tonight** pick titles. Aggregate frequency among that subset only. |
 | **Trust** | **Medium** — clear story (“what leaders picked”), but small K ⇒ noisy; leaders may not have picked yet. |
 | **Caveats** | Define rank source: **tour points** (recommended pre-show), not show score. Exclude users with empty tonight picks from the subset (or show “3/5 locked in”). |
 | **Card summary** | “Leaders leaning: {song}” (top 1–2 among K) |
@@ -117,21 +116,14 @@ Post-show-only metrics (crowd vs official slot) stay out of the pre-show card; s
 
 ## Suggested packaging (no UI yet)
 
-### Standings pre-show card — “Crowd pulse” summary
+### Standings pre-show card — “Crowd pulse” summary (v1 — locked)
 
-Minimum useful set:
-
-1. **Pickers tonight** (A)  
-2. **Top multi-picker songs** (1) — 3 titles  
-3. **Unique songs** count (2)  
+1. **Pickers tonight**
+2. **Top multi-picker songs** (≥2 cards) — 3 titles
+3. **Unique songs** count
 4. Link: “Full crowd stats →”
 
-Nice-to-have on card once joins are cheap:
-
-5. Spiciest gap line (3)  
-6. Crowd vintage (4)
-
-Leaders’ picks (5) only if ≥3 of top-K have locked picks.
+**Stats first (not on card v1):** gap top 10, aggregate vintage, leaders’ (tour top 5) tonight picks. Card may promote those later.
 
 ### Stats page — full analysis
 
@@ -178,10 +170,10 @@ Consume the **same aggregates** (don’t re-query ad hoc):
 
 ## Decision ask
 
-Confirm or adjust:
+**Locked 2026-07-20:**
 
-1. Vintage = **slot-weighted mean debut year** (vs unique-title mean)?  
-2. Leaders’ K = **5 or 10**, rank = **tour standings**?  
-3. Card v1 = **A + (1) + (2) + link** only, with gap/vintage on Stats first?
+1. **Vintage** = **slot-weighted** mean debut year (all filled slots; exclude unknown debut; report coverage %).
+2. **Leaders** = **tour standings top 5**; frequency among those who have submitted tonight (show how many of 5 are in).
+3. **Card v1** = pickers tonight + top multi-picker songs (≥2) + unique song count + link to Stats. Gap top-10, vintage, and leaders’ picks ship on **Stats first** (card may promote later).
 
-Once signed off, open C1–C3 as `[SKIP-PRD]` children of #687 (C4/C5 when UI is ready).
+Build order remains C1 → C2 → C3 → C4 (UI) → C5 (helper).
