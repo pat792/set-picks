@@ -25,6 +25,7 @@ Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc R
 
 ## When executing
 
+- On Optimize packs: partner with Reporting; support Data Architect `challenge_evidence` (UTM / Resend / delivery-log falsifiers).
 - Stay in leadership/brief mode unless the user asks for implementation.
 - Comms delivery work → hand off via **comms-orchestration-lead** to existing squad skills.
 - External scrape/post/BD/affiliate live actions → only if maturity level and user explicitly enable (L1–L3).
@@ -33,5 +34,7 @@ Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc R
 ## Read first
 
 1. `docs/LEADERSHIP_CREW.md`
-2. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
-3. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)
+2. `docs/comms-triggers/MEASUREMENT_PLAN.md` (channel planes)
+3. `crew/knowledge/optimize_snapshot_recipe.md`
+4. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
+5. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `SEO_GEO_PLAYBOOK.md`)

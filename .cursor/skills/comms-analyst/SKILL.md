@@ -32,6 +32,18 @@ When asked to **run Optimize** (goal + date window):
 
 **Night vs tour:** #572 `show_recap` (single night) ≠ #510 `tour_recap` (end of tour). Do not conflate metrics or recommendations.
 
+### Channel-aware measurement (mandatory)
+
+Read `docs/comms-triggers/MEASUREMENT_PLAN.md` § channel planes + `crew/knowledge/optimize_snapshot_recipe.md`.
+
+| Channel | Do **not** treat as… | Do use… |
+|---------|----------------------|---------|
+| **inApp** | Email open/click | `comms_opened`, `comms_cta_click` |
+| **email** | `comms_opened` / `comms_cta_click` as the whole story | Resend opens (#512); GA **UTM sessions** `email`/`comms` + `utm_content`/`utm_campaign`; `comms_email_landed` |
+| **push** | inApp open counts | `comms_push_tap` / push deep-link lands |
+
+**Falsification rule:** If `comms_cta_click` (or `comms_opened`) is ~0 for `picks_lock_reminder` but the trigger delivers email, **run the UTM session report before** claiming no engagement. 2026-07-20 miss: Leadership + analyst reported an open/CTA cliff while ~6 users submitted picks in lock-reminder–attributed email sessions.
+
 ## Data sources
 
 | Source | Tool / path | Use |
@@ -48,12 +60,13 @@ Property ID: **527619709** unless `GA4_PROPERTY_ID` overrides.
 ### Weekly (show weeks)
 
 - Picks-lock reminder: eligible vs delivered (from logs) vs pick submitted before lock
+- **Channel split:** `picks_lock_reminder` deliver/open/CTA by `comms_channel` + **email UTM** picks/submit users
 - Push tap rate for `post_show_win` / `near_miss`
 - `notificationPrefs` opt-out trends (reminders, results, nearMiss)
 
 ### Monthly
 
-- Per `trigger_id`: deliver → open → CTA funnel
+- Per `trigger_id`: deliver → open → CTA funnel **and** email UTM proxy where channel mix includes email
 - Cohort: first login → D7 return → first pick submitted
 - Propose new triggers or deprecations for **comms-triggers** skill
 

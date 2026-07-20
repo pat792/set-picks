@@ -36,6 +36,29 @@ class OptimizeEvidenceGate(unittest.TestCase):
         self.assertIn("ga4_snapshot", blob)
         self.assertIn("unknown", blob)
 
+    def test_optimize_has_challenge_evidence_and_squad_kickoff(self):
+        pipeline = validate_pipeline("optimize")
+        ids = [t["id"] for t in pipeline.get("tasks", [])]
+        self.assertIn("challenge_evidence", ids)
+        self.assertIn("data_architect", pipeline.get("agents", []))
+        blob = json_dumps_tasks(pipeline)
+        self.assertIn("SQUAD_KICKOFF", blob)
+        self.assertIn("BLOCK_EMAIL_CONCLUSION", blob)
+        self.assertIn("optimize_snapshot_recipe", blob)
+
+    def test_render_includes_email_utm_section(self):
+        md = render_markdown(
+            property_id="527619709",
+            window="last_7_days",
+            start="7daysAgo",
+            end="yesterday",
+            rows=[{"eventName": "submit_picks", "eventCount": "65", "totalUsers": "19"}],
+            source="test",
+        )
+        self.assertIn("Email UTM proxy", md)
+        self.assertIn("Trigger × channel", md)
+        self.assertIn("optimize_snapshot_recipe.md", md)
+
     def test_resolve_explicit_snapshot(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "ga4.md"
