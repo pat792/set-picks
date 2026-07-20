@@ -38,8 +38,8 @@ export {
   useScoringRulesModal,
 } from './ui/ScoringRulesModalProvider';
 export { default as StandingsActiveShowCard } from './ui/StandingsActiveShowCard';
-export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';
-export { default as StandingsPoolPicker } from './ui/StandingsPoolPicker';
+export { default as StandingsCrowdPulse } from './ui/StandingsCrowdPulse';
+export { default as StandingsBannerWaitingSetlist } from './ui/StandingsBannerWaitingSetlist';export { default as StandingsPoolPicker } from './ui/StandingsPoolPicker';
 export { default as StandingsShowOrPoolView } from './ui/StandingsShowOrPoolView';
 export { default as StandingsTourScopeSelect } from './ui/StandingsTourScopeSelect';
 export { default as StandingsTourView } from './ui/StandingsTourView';
