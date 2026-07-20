@@ -76,6 +76,24 @@ In Cursor, open MCP tools / ask the agent to use the Google Analytics MCP: e.g. 
 
 Official walkthrough: [YouTube — Google Analytics MCP setup](https://www.youtube.com/watch?v=nS8HLdwmVlY).
 
+## 5. Leadership Crew Optimize (#697)
+
+Terminal CrewAI does **not** see Cursor MCP automatically. Feed facts via a snapshot:
+
+```bash
+# Preferred when ADC works (same login as §2):
+crew/.venv/bin/python -m crew.scripts.ga4_snapshot --window last_7_days
+
+# If ADC needs reauth (`gcloud auth application-default login …`), export via Cursor
+# GA4 MCP instead, save markdown, then:
+crew/.venv/bin/python -m crew.scripts.ga4_snapshot --from-file path/to/mcp-export.md
+
+crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
+  --input optimize_for=picks_lock --input window=last_7_days
+```
+
+Default property: **527619709** (`GA4_PROPERTY_ID` override). Schema example: `crew/knowledge/ga4_snapshot.example.md`.
+
 ## Security
 
 - Do **not** commit service account JSON or OAuth secrets into the repo.

@@ -1,8 +1,8 @@
 {
   "id": "optimize",
   "name": "Optimize oversight",
-  "maturity": "L0",
-  "description": "Default pipeline: leadership review of Optimize goals and PM pack handoff to comms squad.",
+  "maturity": "L1-evidence",
+  "description": "Leadership Optimize pack for a single optimize_for goal. Requires GA4 snapshot facts (issue #697).",
   "agents": [
     "chief_of_staff",
     "growth_program_manager",
@@ -17,49 +17,49 @@
     {
       "id": "route",
       "agent": "chief_of_staff",
-      "description": "Confirm optimize pipeline intake: goal placeholder optimize_for, date window, constraints (draft-only).",
-      "expected_output": "Intake checklist and RACI reminder."
+      "description": "Intake for Optimize. Kickoff inputs: optimize_for={optimize_for}, window={window}, ga4_snapshot_path={ga4_snapshot_path}. Confirm draft-only. If ga4_snapshot_path is missing or 'none', flag BLOCKED_NO_EVIDENCE. Do not invent metrics.",
+      "expected_output": "Intake checklist + whether evidence file is present; RACI reminder."
     },
     {
       "id": "goal",
       "agent": "chief_customer_officer",
-      "description": "Set or confirm optimize_for and success definition for acquisition/retention.",
-      "expected_output": "optimize_for + success metrics + cohort focus."
+      "description": "Confirm optimize_for={optimize_for} semantics only. If optimize_for is picks_lock: success = reminder/comms → open/CTA → pick submitted before lock (NOT generic acquisition/social OKRs). Window must remain {window}. No invented baselines.",
+      "expected_output": "Goal statement + success definition tied to optimize_for; cohorts as questions not fake %."
     },
     {
       "id": "evidence",
       "agent": "reporting_lead",
-      "description": "Specify measurement readout structure for the window (GA4 / delivery logs). Partner Insights for cohort notes.",
-      "expected_output": "Measurement section outline for PM pack."
+      "description": "Read ONLY the GA4 snapshot at {ga4_snapshot_path} (if provided). Quote eventCount/totalUsers from that file. For any missing metric write unknown. Never invent conversion/retention percentages. Structure a measurement section for the PM pack aligned to docs/comms-triggers/MEASUREMENT_PLAN.md and OPTIMIZE_AUTONOMY.md.",
+      "expected_output": "Measurement section with cited GA4 facts or explicit unknown."
     },
     {
       "id": "insights",
       "agent": "customer_insights_analyst",
-      "description": "Add cohort/qualitative insights relevant to the goal.",
-      "expected_output": "Insights bullets for the pack."
+      "description": "Interpret the cited GA4 facts for optimize_for={optimize_for} only. Hypotheses allowed if labeled HYPOTHESIS. No new numeric claims beyond the snapshot.",
+      "expected_output": "Insights bullets: facts vs hypotheses clearly labeled."
     },
     {
       "id": "pack",
       "agent": "editor_in_chief",
-      "description": "Assemble Optimize PM review pack shape (see OPTIMIZE_AUTONOMY.md). Editorial gate.",
+      "description": "Assemble a draft PM review pack matching OPTIMIZE_AUTONOMY.md shape for optimize_for={optimize_for}, window={window}. Editorial gate: strip invented metrics; keep night vs tour boundary language if relevant. Draft-only.",
       "expected_output": "Draft PM pack markdown."
     },
     {
       "id": "feasibility",
       "agent": "software_architect",
-      "description": "Flag delivery/FSD/adapter risks for any recommended changes.",
+      "description": "Flag delivery/FSD/adapter risks for recommendations that would touch comms delivery, catalog, or prefs. No code changes. Reference repo paths conceptually (commsDelivery, catalog.json).",
       "expected_output": "Feasibility notes / blockers."
     },
     {
       "id": "handoff",
       "agent": "comms_orchestration_lead",
-      "description": "Write kickoff language for analyst→triggers→drafter→architect. Growth Program Manager accountable for clarity.",
+      "description": "Write kickoff language for the existing Cursor squad: comms-analyst → comms-triggers → comms-drafter → comms-architect. Include optimize_for={optimize_for}, window={window}, and path to GA4 snapshot. Draft PR to staging only; never merge/deploy.",
       "expected_output": "Squad kickoff prompt + handoff checklist."
     },
     {
       "id": "accountable_close",
       "agent": "growth_program_manager",
-      "description": "Final coherence pass; list learnings to post on epic #695 if structure should adapt.",
+      "description": "Final coherence pass. Ensure pack did not invent metrics. List learnings for epic #695 / issue #697 if structure should adapt. Output the final pack for leadership review.",
       "expected_output": "Final pack + optional adaptation note."
     }
   ]

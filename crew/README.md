@@ -25,17 +25,26 @@ uv pip install -e .    # or: uv pip install 'crewai>=0.80.0'
 ## Run crew agents (LLM)
 
 ```bash
-# from repo root — use the project venv
 crew/.venv/bin/python -m crew.scripts.run_pipeline --list
-crew/.venv/bin/python -m crew.scripts.run_pipeline smoke --smoke   # JSON→Crew only
-crew/.venv/bin/python -m crew.scripts.run_pipeline smoke           # live LLM (needs key)
-crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
-  --input optimize_for=picks_lock --input window=last_7_days
+crew/.venv/bin/python -m crew.scripts.run_pipeline smoke --smoke
+crew/.venv/bin/python -m crew.scripts.run_pipeline smoke
 ```
 
-Results: `crew/output/runs/*.md` (gitignored). Start with **`smoke`** (2 agents) before **`optimize`** (8 tasks / more tokens).
+### Optimize (evidence-backed — issue #697)
 
-L0 is useful **without** an LLM run: agents, pipelines, Cursor skills, and tool stubs are the deliverable. Use `--smoke` to validate wiring without a key.
+```bash
+# 1) Facts snapshot (ADC same as docs/GA4_MCP_SETUP.md) OR Cursor GA4 MCP → --from-file
+crew/.venv/bin/python -m crew.scripts.ga4_snapshot --window last_7_days
+
+# 2) Kickoff (fails closed without snapshot unless --allow-no-ga4)
+crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
+  --input optimize_for=picks_lock --input window=last_7_days
+# optional: --ga4-snapshot path/to/ga4-….md
+```
+
+Results: `crew/output/runs/optimize-<stamp>/final.md` plus `tasks/*.md`. Never invent metrics — cite the snapshot.
+
+Start with **`smoke`** before full **`optimize`**.
 
 ## Layout
 

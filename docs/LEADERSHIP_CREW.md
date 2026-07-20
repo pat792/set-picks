@@ -29,7 +29,7 @@ This org is a **living operating system**, not a frozen chart. As the product an
 | **L2** | Human-gated social / BD publish | Post/send only after approval |
 | **L3** | Affiliate/sponsor e2e + in-product slots | Requires [COMMERCIAL_PHASE3.md](./comms-triggers/COMMERCIAL_PHASE3.md) |
 
-**Current:** L1 research + L2 social/BD queue + **LLM runner** (`crew.scripts.run_pipeline`). Put `OPENAI_API_KEY` in `crew/.env` for live kickoff; use `--smoke` to validate wiring without a key. Affiliate inject remains L3.
+**Current:** L1 research + L2 social/BD queue + LLM runner. **Optimize** requires a GA4 snapshot ([#697](https://github.com/pat792/set-picks/issues/697)) — facts-only; no invented metrics. Affiliate inject remains L3.
 
 ---
 
@@ -106,19 +106,20 @@ Default CrewAI run: **`optimize`**.
 
 ### Kickoff prompts
 
-**Cursor (Optimize oversight):**
-
-```text
-Using docs/LEADERSHIP_CREW.md and the leadership skills (Growth Program Manager + CCO + Editor in Chief),
-run Optimize oversight for goal picks_lock covering the last 7 complete days.
-Produce a PM review pack handoff for the comms squad; draft-only; do not merge or deploy.
-```
-
-**Terminal (after L0 install):**
+**Optimize (terminal, evidence-backed — #697):**
 
 ```bash
-cd crew && crewai run          # optimize
-# See crew/README.md for other pipelines
+crew/.venv/bin/python -m crew.scripts.ga4_snapshot --window last_7_days
+crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
+  --input optimize_for=picks_lock --input window=last_7_days
+```
+
+**Cursor (Optimize with GA4 MCP):**
+
+```text
+Using docs/LEADERSHIP_CREW.md, docs/comms-triggers/OPTIMIZE_AUTONOMY.md, and GA4 MCP
+(property 527619709), run Optimize for goal picks_lock covering the last 7 complete days.
+Cite only real GA4 numbers; mark gaps unknown. Draft-only; do not merge or deploy.
 ```
 
 ---
@@ -155,3 +156,4 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 | 2026-07-20 | L1: allowlisted HTTP fetch + `market_intel_sweep` script; tests; status promoted for research only |
 | 2026-07-20 | L2: human-gated social/BD draft→approve→publish queue (`social_demand_gen`); optional webhook |
 | 2026-07-20 | LLM runner: `crew.scripts.run_pipeline` + `smoke` pipeline; venv install notes |
+| 2026-07-20 | #697: `ga4_snapshot` + Optimize fails closed without evidence; per-task run artifacts |
