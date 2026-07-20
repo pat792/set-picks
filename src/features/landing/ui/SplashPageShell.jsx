@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 import useSplashDocumentScrollPadding from '../model/useSplashDocumentScrollPadding';
+import { MarketingFooterNav } from './MarketingSiteNav';
 import SplashAboutSection from './SplashAboutSection';
 import SplashGetStartedSection from './SplashGetStartedSection';
 import SplashHeader from './SplashHeader';
@@ -15,9 +15,7 @@ export default function SplashPageShell({
   getStartedHeadingRef,
   aboutSectionRef,
   aboutHeadingRef,
-  onScrollToHowItWorks,
   onScrollToGetStarted,
-  onScrollToAbout,
   onCreateAccountFromHowItWorks,
   onOpenSignUpModal,
   onOpenSignInModal,
@@ -31,12 +29,8 @@ export default function SplashPageShell({
       <SplashHeader onPlayNowClick={onScrollToGetStarted} onSignInClick={onOpenSignInModal} />
 
       <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
-        <main className="flex-1 w-full relative overflow-x-hidden">
-          <SplashHeroSection
-            onHowItWorksClick={onScrollToHowItWorks}
-            onPlayNowClick={onScrollToGetStarted}
-            onAboutClick={onScrollToAbout}
-          />
+        <main className="relative w-full flex-1 overflow-x-hidden">
+          <SplashHeroSection onPlayNowClick={onScrollToGetStarted} />
           <SplashHowItWorksSection
             sectionRef={howItWorksSectionRef}
             headingRef={howItWorksHeadingRef}
@@ -51,7 +45,6 @@ export default function SplashPageShell({
           <SplashAboutSection
             sectionRef={aboutSectionRef}
             headingRef={aboutHeadingRef}
-            onHowItWorksClick={onScrollToHowItWorks}
             onGetStartedClick={onScrollToGetStarted}
           />
         </main>
@@ -72,44 +65,7 @@ export default function SplashPageShell({
             </a>
             .
           </p>
-          <p className="mt-2 space-x-3">
-            <Link
-              to="/how-it-works"
-              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
-            >
-              How It Works
-            </Link>
-            <Link
-              to="/how-scoring-works"
-              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
-            >
-              How Scoring Works
-            </Link>
-            <Link
-              to="/tour-stats"
-              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
-            >
-              Tour Stats
-            </Link>
-            <Link
-              to="/phish-setlist-prediction-game"
-              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
-            >
-              Phish Setlist Game
-            </Link>
-            <Link
-              to="/privacy"
-              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              to="/terms"
-              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
-            >
-              Terms of Service
-            </Link>
-          </p>
+          <MarketingFooterNav />
         </footer>
 
         {children}
