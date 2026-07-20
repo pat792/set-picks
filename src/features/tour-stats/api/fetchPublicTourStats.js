@@ -23,14 +23,14 @@ export async function fetchPublicTourStatsIndex() {
   await whenFirebaseReady();
   const snap = await getDoc(doc(db, 'public_tour_stats', '_index'));
   if (!snap.exists()) {
-    return { tours: [], defaultTourSlug: '2026-sphere' };
+    return { tours: [], defaultTourSlug: '' };
   }
   const data = snap.data() || {};
   const tours = Array.isArray(data.tours) ? data.tours : [];
   const defaultTourSlug =
     typeof data.defaultTourSlug === 'string' && data.defaultTourSlug
       ? data.defaultTourSlug
-      : '2026-sphere';
+      : tours[0]?.tourSlug || '';
   return { tours, defaultTourSlug };
 }
 

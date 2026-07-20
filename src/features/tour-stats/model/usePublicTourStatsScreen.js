@@ -2,15 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
-  DEFAULT_PUBLIC_TOUR_SLUG,
-} from '../../../shared/lib/tourSlug';
-import {
   fetchPublicTourStatsDoc,
   fetchPublicTourStatsIndex,
 } from '../api/fetchPublicTourStats';
 
 /**
  * Public tour-stats screen (#665) — aggregate docs only; no self overlay.
+ * Default tour = `_index.defaultTourSlug` (current / most recent), not a
+ * hardcoded Sphere or Summer preference.
  */
 export function usePublicTourStatsScreen() {
   const { tourSlug: routeSlug } = useParams();
@@ -18,11 +17,14 @@ export function usePublicTourStatsScreen() {
   const [indexLoading, setIndexLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [tours, setTours] = useState([]);
-  const [defaultTourSlug, setDefaultTourSlug] = useState(DEFAULT_PUBLIC_TOUR_SLUG);
+  const [defaultTourSlug, setDefaultTourSlug] = useState('');
   const [doc, setDoc] = useState(null);
   const [error, setError] = useState(null);
 
-  const activeSlug = (routeSlug || '').trim() || defaultTourSlug;
+  const trimmedRoute = (routeSlug || '').trim();
+  // Wait for index before picking a default so we don't flash the wrong tour.
+  const activeSlug =
+    trimmedRoute || (indexLoading ? '' : defaultTourSlug);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,8 +33,13 @@ export function usePublicTourStatsScreen() {
       try {
         const idx = await fetchPublicTourStatsIndex();
         if (cancelled) return;
-        setTours(Array.isArray(idx.tours) ? idx.tours : []);
-        setDefaultTourSlug(idx.defaultTourSlug || DEFAULT_PUBLIC_TOUR_SLUG);
+        const list = Array.isArray(idx.tours) ? idx.tours : [];
+        setTours(list);
+        const fromIndex =
+          (typeof idx.defaultTourSlug === 'string' && idx.defaultTourSlug.trim()) ||
+          list[0]?.tourSlug ||
+          '';
+        setDefaultTourSlug(fromIndex);
       } catch (err) {
         if (!cancelled) setError(err);
       } finally {
@@ -46,6 +53,11 @@ export function usePublicTourStatsScreen() {
 
   useEffect(() => {
     let cancelled = false;
+    if (!activeSlug) {
+      setStatsLoading(indexLoading);
+      if (!indexLoading) setDoc(null);
+      return undefined;
+    }
     (async () => {
       setStatsLoading(true);
       setError(null);
@@ -65,7 +77,7 @@ export function usePublicTourStatsScreen() {
     return () => {
       cancelled = true;
     };
-  }, [activeSlug]);
+  }, [activeSlug, indexLoading]);
 
   const stats = useMemo(() => {
     if (!doc) {
@@ -107,7 +119,7 @@ export function usePublicTourStatsScreen() {
 
   return {
     activeSlug,
-    routeHasSlug: Boolean((routeSlug || '').trim()),
+    routeHasSlug: Boolean(trimmedRoute),
     defaultTourSlug,
     tours,
     tourName,

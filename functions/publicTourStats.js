@@ -145,27 +145,12 @@ async function refreshPublicTourStats(db, opts = {}) {
 }
 
 /**
- * Prefer Sphere (game launch) when present; else first indexed tour.
- * @param {Array<{ tourSlug: string, tourLabel: string }>} indexTours
+ * Current tour = newest by `lastShowDate` (index already sorted that way).
+ * @param {Array<{ tourSlug: string, tourLabel?: string, lastShowDate?: string | null }>} indexTours
  * @returns {string}
  */
 function pickDefaultPublicTourSlug(indexTours) {
-  const preferredSlugs = [
-    "2026-sphere",
-    "sphere-run-2026",
-    "sphere-2026",
-    "sphere",
-  ];
-  for (const slug of preferredSlugs) {
-    if (indexTours.some((t) => t.tourSlug === slug)) return slug;
-  }
-  const sphere = indexTours.find(
-    (t) =>
-      /sphere/i.test(String(t.tourLabel || "")) ||
-      /sphere/i.test(String(t.tourSlug || ""))
-  );
-  if (sphere) return sphere.tourSlug;
-  return indexTours[0]?.tourSlug || "2026-sphere";
+  return indexTours[0]?.tourSlug || "";
 }
 
 module.exports = {

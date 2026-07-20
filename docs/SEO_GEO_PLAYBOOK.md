@@ -93,7 +93,7 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | S2 | `phish song frequency [tour year]` (e.g. summer 2026) |
 | S3 | `phish bustouts [tour]` |
 
-Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: Sphere (`2026-sphere`). Prerender hub + Sphere shell; other tours hydrate client-side from `public_tour_stats`.
+Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere shell; other tours hydrate client-side from `public_tour_stats`.
 
 Add/remove rows as pages ship; keep IDs stable once used in the log.
 

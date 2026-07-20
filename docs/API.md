@@ -172,7 +172,7 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 | `writtenAt` | string | ISO timestamp |
 | `schemaVersion` | number | `1` |
 
-`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (prefers Sphere when present, e.g. `2026-sphere`), `writtenAt`, `schemaVersion`.
+`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`.
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
 
