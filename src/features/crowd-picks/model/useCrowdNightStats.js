@@ -20,7 +20,7 @@ import {
  * @param {Array<{ uid: string, handle?: string, totalPoints?: number }> | null | undefined} tourLeaders
  */
 export function useCrowdNightStats(showDate, pickDocs, tourLeaders) {
-  const { songs: catalogSongs, loading: catalogLoading } = useSongCatalog();
+  const { songs: catalogSongs, isLoading: catalogLoading } = useSongCatalog();
 
   return useMemo(() => {
     if (!showDate) {
