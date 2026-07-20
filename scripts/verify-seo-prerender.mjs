@@ -39,7 +39,15 @@ function assertRouteHtml(html, route, label) {
   }
 }
 
-assert(PRERENDER_ROUTES.length >= 3, 'expected at least home + how-it-works + how-scoring-works');
+assert(PRERENDER_ROUTES.length >= 5, 'expected home + how-it-works + how-scoring-works + tour-stats hub + sphere');
+assert(
+  PRERENDER_ROUTES.some((r) => r.path === '/tour-stats'),
+  'expected /tour-stats prerender entry',
+);
+assert(
+  PRERENDER_ROUTES.some((r) => r.path === '/tour-stats/sphere-run-2026'),
+  'expected Sphere tour-stats prerender entry',
+);
 assert(
   PRERENDER_ROUTES.every((r) => !r.path.startsWith('/dashboard')),
   'must not prerender /dashboard/*',

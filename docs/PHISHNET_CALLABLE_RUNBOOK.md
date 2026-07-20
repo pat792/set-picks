@@ -101,7 +101,7 @@ Look for `HttpsError` paths vs unexpected throws. Callable maps many failures to
 | Item | Location / value |
 |------|------------------|
 | Firestore doc | `show_calendar/snapshot` (read by signed-in clients) |
-| Scheduled job | `scheduledPhishnetShowCalendar` — 1st of month 6:00 America/New_York (`0 6 1 * *`) |
+| Scheduled job | `scheduledPhishnetShowCalendar` — **daily** 6:00 America/New_York (`0 6 * * *`); new tour dates can publish mid-month |
 | Admin callable | `refreshPhishnetShowCalendar` (same admin email gate as `getPhishnetSetlist`) |
 | Upstream | Phish.net v5 `shows/showyear/{year}.json?order_by=showdate` |
 | Client | `src/features/show-calendar` → `ShowCalendarProvider` (dashboard route); falls back to `src/shared/data/showDates.js` if the doc is missing |
