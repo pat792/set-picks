@@ -1,10 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 import Button from '../../../shared/ui/Button';
 
 export default function SplashAboutSection({
   sectionRef,
   headingRef,
-  onHowItWorksClick,
   onGetStartedClick,
 }) {
   const linkButtonClassName =
@@ -79,13 +80,19 @@ export default function SplashAboutSection({
         </div>
 
         <nav
-          className="mt-16 pt-8 border-t border-slate-800 flex flex-wrap items-center justify-start lg:justify-end gap-x-2 gap-y-2 text-center"
+          className="mt-16 flex flex-wrap items-center justify-start gap-x-2 gap-y-2 border-t border-slate-800 pt-8 text-center lg:justify-end"
           aria-label="Jump to How it works or Get started"
         >
-          <Button variant="link" type="button" onClick={onHowItWorksClick} className={linkButtonClassName}>
+          <Link to="/how-it-works" className={linkButtonClassName}>
             How it works
-          </Button>
-          <span className="mx-2 text-slate-700 select-none" aria-hidden>
+          </Link>
+          <span className="mx-2 select-none text-slate-700" aria-hidden>
+            ·
+          </span>
+          <Link to="/tour-stats" className={linkButtonClassName}>
+            Tour stats
+          </Link>
+          <span className="mx-2 select-none text-slate-700" aria-hidden>
             ·
           </span>
           <Button variant="link" type="button" onClick={onGetStartedClick} className={linkButtonClassName}>

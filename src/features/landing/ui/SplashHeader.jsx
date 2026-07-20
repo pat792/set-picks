@@ -7,6 +7,7 @@ import {
 } from '../../../shared/config/branding';
 import BrandWordmarkBarRow from '../../../shared/ui/BrandWordmarkBarRow';
 import Button from '../../../shared/ui/Button';
+import { MarketingHeaderNav } from './MarketingSiteNav';
 
 export default function SplashHeader({
   onPlayNowClick,
@@ -32,12 +33,13 @@ export default function SplashHeader({
           />
         </button>
 
-        <div className="flex min-w-0 items-center justify-self-end gap-0.25 sm:justify-self-auto sm:gap-4">
+        <div className="flex min-w-0 items-center justify-self-end gap-3 sm:justify-self-auto sm:gap-4">
+          <MarketingHeaderNav />
           <Button
             variant="text"
             size="none"
             onClick={onSignInClick}
-            className="text-sm sm:text-sm whitespace-nowrap"
+            className="whitespace-nowrap text-sm sm:text-sm"
           >
             Sign In
           </Button>

@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.34.2] — 2026-07-19
+
+### Changed
+- **Marketing internal nav (#663)** — shared primary route list drives splash + marketing headers (lg+) and footers; splash hero secondary CTAs are real `<Link>`s to `/how-it-works`, `/tour-stats`, and `/phish-setlist-prediction-game` instead of in-page-only scroll.
+
+---
+
 ## [1.34.1] — 2026-07-19
 
 ### Fixed
