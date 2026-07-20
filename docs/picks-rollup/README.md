@@ -8,7 +8,7 @@ Internal analytics for **nightly picker volume** and **crowd pick composition**.
 |-------|------|--------|
 | **A** | Admin report script + methodology | Done (PR #688) |
 | **B** | Human review of Summer Tour reports | Done — see [02-phase-b-review.md](./02-phase-b-review.md) |
-| **C** | Stats candidates for standings → stats → picks helper | Spec — see [03-phase-c-stats-candidates.md](./03-phase-c-stats-candidates.md) |
+| **C** | Stats candidates + C1–C3 aggregators | Spec [#689](https://github.com/pat792/set-picks/issues/689); code [#690](https://github.com/pat792/set-picks/issues/690)–[#692](https://github.com/pat792/set-picks/issues/692) |
 
 ## Data spine
 
@@ -46,17 +46,15 @@ Score finalize rollup (`rollupScoresForShow`) is **orthogonal** — this report 
 - No stats-page UI
 - No per-user handles/UIDs in report artifacts
 
-## How to run
+## How to run (local review — C1–C3)
 
 ```bash
-cd functions
-# ADC required
-gcloud auth application-default login
-
-node scripts/picksRollupReport.js --tour="Summer Tour"
-node scripts/picksRollupReport.js --from=2026-07-07 --to=2026-07-19 \
-  --out=../docs/picks-rollup/reports
+# From repo root (vite-node resolves ESM without .js extensions)
+npm run crowd:night-stats -- --date=2026-07-19 --tour="Summer Tour"
+npm run crowd:night-stats -- --date=2026-07-19 --out=docs/picks-rollup/reports/crowd-night.json
 ```
+
+Prints card v1 summary, multi-picker table, gap top 10, vintage, leaders tonight.
 
 Optional flags: `--dates=...`, `--consensus=25`, `--top=15`, `--no-setlists`.
 
