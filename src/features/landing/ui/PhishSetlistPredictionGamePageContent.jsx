@@ -4,7 +4,6 @@ import { ArrowRight } from 'lucide-react';
 
 /**
  * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660).
- * Entity-dense copy for category queries — not a thin doorway.
  */
 export default function PhishSetlistPredictionGamePageContent() {
   return (
@@ -18,9 +17,9 @@ export default function PhishSetlistPredictionGamePageContent() {
         </h1>
         <p className="mb-10 text-center text-lg leading-relaxed text-slate-600">
           Setlist Pick&apos;Em (also called Setlist Pickem / Set Picks) is a live{' '}
-          <strong className="font-semibold text-slate-800">setlist prediction game</strong> for
-          Phish fans: lock openers, closers, encore, and a wildcard before showtime, then score as
-          the setlist unfolds.
+          <strong className="font-semibold text-slate-800">setlist prediction game</strong> built
+          first for Phish fans—and designed as a destination for more bands soon. Lock openers,
+          closers, encore, and a wildcard before showtime, then score as the night unfolds.
         </p>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
@@ -29,68 +28,55 @@ export default function PhishSetlistPredictionGamePageContent() {
           </h2>
           <p>
             A Phish setlist game asks you to predict songs and slots for tonight&apos;s show—not to
-            archive what already happened. You compete against friends in private pools and against
-            everyone on the global board. Scores update live as songs are played.
+            dig through yesterday&apos;s archives. You compete with friends in private pools and
+            with everyone on the global board. Scores update live as songs are played.
           </p>
           <p>
-            Setlist Pick&apos;Em started covering the Sphere run in 2026 and follows each tour as
-            Phish.net publishes new dates. Tour-level song frequency, bustouts, and gap highlights
-            are available on our public{' '}
+            We follow the tour with you. Song frequency, bustouts, and gap highlights live on our{' '}
             <Link
               to="/tour-stats"
               className="font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
             >
               tour stats
             </Link>{' '}
-            pages so you can research picks without an account.
+            pages and refresh every night the band plays live—insights that help you stay sharp
+            between shows.
           </p>
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className="font-display text-2xl font-bold text-slate-900">
-            Prediction game vs setlist trackers
+            More than a setlist archive
           </h2>
           <p>
-            Sites like Phish.net and setlist.fm are outstanding archives and reference libraries—
-            they document what was played. Setlist Pick&apos;Em is a{' '}
-            <strong className="font-semibold text-slate-800">game layer on top of that world</strong>
-            : you make picks before the lights go down, earn points for correct slots and wildcards,
-            and chase Bustout Boosts on longshot calls.
+            Setlist archives are great for looking back. Setlist Pick&apos;Em is about the night
+            ahead: make your calls, earn points for slots and wildcards, and chase Bustout Boosts
+            when you nail the longshots.
           </p>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              <strong className="text-slate-900">Before the show:</strong> lock picks; they freeze
-              near doors / showtime.
+              <strong className="text-slate-900">Before the show:</strong> lock picks before the
+              lights go down.
             </li>
             <li>
               <strong className="text-slate-900">During the show:</strong> live scoring and
-              standings as the setlist updates.
+              standings as the setlist unfolds.
             </li>
             <li>
               <strong className="text-slate-900">After the show:</strong> final grades, tour
-              standings, and aggregate song stats—not a replacement for the official archive.
+              standings, and personal stats that grow every night you play.
             </li>
           </ul>
           <p>
-            Song and setlist data for scoring and public stats are provided by{' '}
-            <a
-              href="https://phish.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-emerald-700 underline decoration-emerald-300 underline-offset-2 hover:decoration-emerald-500"
-            >
-              The Mockingbird Foundation / Phish.Net
-            </a>
-            .
+            Playing the game unlocks those personal stats—so you can see how you stack up as you
+            accumulate points against other setlist pickers.
           </p>
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className="font-display text-2xl font-bold text-slate-900">How to play</h2>
           <ol className="list-decimal space-y-3 pl-5">
-            <li>
-              Create a free account and open tonight&apos;s show on the dashboard.
-            </li>
+            <li>Create a free account and open tonight&apos;s show.</li>
             <li>
               Pick Set 1 opener/closer, Set 2 opener/closer, encore, and a wildcard.
             </li>

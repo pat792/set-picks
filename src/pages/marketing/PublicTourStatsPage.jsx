@@ -32,7 +32,7 @@ export default function PublicTourStatsPage() {
   const title = route?.title || `Tour stats | ${SEO_CONFIG.siteName}`;
   const description =
     route?.description ||
-    'Aggregate Phish tour setlist stats — most-played songs, bustouts, and gap highlights.';
+    'Phish tour setlist stats — most-played songs, bustouts, and gap highlights. Updated every night the band plays live.';
   const canonical =
     route?.canonicalUrl ||
     `${SEO_CONFIG.siteUrl}/tour-stats/${screen.activeSlug}`;

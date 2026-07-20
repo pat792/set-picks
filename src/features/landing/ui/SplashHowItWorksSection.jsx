@@ -46,7 +46,7 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
             </div>
             <h3 className="font-bold text-xl text-slate-900 mb-3">Watch It Unfold</h3>
             <p className="text-slate-600 leading-relaxed">
-              Live scores and standings update in real-time as songs are played. See your picks and everyone else's light up the leaderboard.
+              Live scores and standings update as songs are played. See your picks—and your friends&apos;—light up the leaderboard.
             </p>
           </div>
 
@@ -56,7 +56,8 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
             </div>
             <h3 className="font-bold text-xl text-slate-900 mb-3">Claim the Crown</h3>
             <p className="text-slate-600 leading-relaxed">
-              Challenge friends in private pools and compete in global standings with everyone playing that night. See all-time stats in private pools to compete across tours and years.          </p>
+              Challenge friends in private pools and compete in global standings. Your personal stats grow with every show you play—across the tour and beyond.
+            </p>
           </div>
         </div>
 
