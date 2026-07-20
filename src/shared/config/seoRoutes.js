@@ -411,9 +411,9 @@ export const PRERENDER_ROUTES = [
     title: SEO_CONFIG.defaultTitle,
     description: SEO_CONFIG.defaultDescription,
     canonicalUrl: `${SEO_CONFIG.siteUrl}/`,
-    h1: "Setlist Pick 'Em — the free live setlist prediction game for Phish fans (more bands soon)",
+    h1: "Setlist Pick 'Em — the free Phish setlist prediction game (more bands soon)",
     paragraphs: [
-      'Predict the setlist. Win the night. Now live on Phish Tour—and building toward more bands soon.',
+      'The free Phish setlist prediction game — live on tour. Predict the setlist. Win the night.',
       "Make picks for tonight's show, watch scores update as songs are played, and compete with your tour crew for the top spot.",
       "Lock It In: predict openers, closers, encore, and a wildcard before the lights go down. Watch It Unfold as scores update live. Claim the Crown in the global pool or private pools with friends. Play to unlock personal stats as you accumulate points.",
     ],
