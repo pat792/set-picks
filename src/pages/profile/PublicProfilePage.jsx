@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -54,11 +55,18 @@ function PublicProfileContent() {
   );
 }
 
+/**
+ * Public player profiles stay shareable (`follow`) but are not ranking targets
+ * (`noindex`) — thin/PII risk until a richer public player-card bar exists (#661).
+ */
 export default function PublicProfile() {
   // Season stats need the show calendar; the public profile route lives
   // outside the dashboard shell so we provide it locally.
   return (
     <ShowCalendarProvider>
+      <Helmet>
+        <meta name="robots" content="noindex,follow" />
+      </Helmet>
       <PublicProfileContent />
     </ShowCalendarProvider>
   );

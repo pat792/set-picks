@@ -14,9 +14,10 @@
 | How it works | `/how-it-works` | In `public/sitemap.xml` |
 | Scoring | `/how-scoring-works` | In `public/sitemap.xml` |
 | Sitemap | `/sitemap.xml` | Listed in `robots.txt` |
-| LLM / agent brief | `/llms.txt` | Static marketing summary |
-| SEO config | `src/shared/config/seo.js` | Titles, description, OG image version |
-| Helmet + JSON-LD | `src/features/landing/ui/LandingSeo.jsx` | Client source of truth for browsers |
+| LLM / agent brief | `/llms.txt` | Static marketing summary + name variants + archive disambiguation (#661) |
+| SEO config | `src/shared/config/seo.js` | Titles, description, OG image version — sync via `npm run verify:seo-strings` (#663) |
+| Helmet + JSON-LD | `src/features/landing/ui/LandingSeo.jsx` | Client source of truth for browsers; homepage FAQ/HowTo also in prerender HTML |
+| Public profiles | `/user/:userId` | **`noindex,follow`** (#661) — not sitemap targets |
 | Dashboard | `/dashboard/*` | **Private** — `robots.txt` Disallow; never prerender for crawlers |
 
 **Search Console:** Prefer a **Domain** property (`setlistpickem.com`) or the **URL-prefix** property for `https://www.setlistpickem.com/`. When inspecting, always use **www** URLs. Apex showing “Page with redirect” is expected and healthy.
@@ -95,6 +96,14 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | S3 | `phish bustouts [tour]` |
 
 Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere shell; other tours hydrate client-side from `public_tour_stats`.
+
+### Profile indexing policy (#661)
+
+| Path | robots | Rationale |
+|------|--------|-----------|
+| `/user/:userId` | `noindex,follow` | Thin/PII risk; shareable links still work. Revisit only if a richer public player-card content bar ships. |
+
+Do **not** add public profiles to `sitemap.xml`.
 
 Add/remove rows as pages ship; keep IDs stable once used in the log.
 

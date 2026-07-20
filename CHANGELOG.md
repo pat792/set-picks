@@ -14,6 +14,17 @@ No unreleased changes.
 
 ---
 
+## [1.34.7] — 2026-07-20
+
+### Added
+- **SEO string sync CI (#663)** — `npm run verify:seo-strings` keeps `seo.js`, `og-home-html.mjs`, `inviteOgHelpers.mjs`, and `index.html` descriptions aligned (wired into `verify` job).
+
+### Changed
+- **GEO enrichment (#661)** — visible splash supporting headline with “Phish setlist prediction game” language; expanded `llms.txt` (name variants + archive disambiguation); public `/user/:userId` profiles send `noindex,follow`.
+- **robots.txt hygiene (#663)** — Disallow `/setup`, `/comms-preview`, `/password-reset-complete` in addition to `/dashboard/`.
+
+---
+
 ## [1.34.6] — 2026-07-20
 
 ### Changed

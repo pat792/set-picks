@@ -19,19 +19,18 @@ export default function SplashHeroSection({ onPlayNowClick }) {
         >
           <SplashHeroWordmark />
           <span className="sr-only">
-            Setlist Pick &apos;Em &mdash; the free live setlist prediction game for Phish fans
+            Setlist Pick &apos;Em &mdash; the free Phish setlist prediction game
           </span>
         </h1>
 
         <div className="mx-auto mt-6 max-w-2xl shrink-0 sm:-mt-0.5 md:-mt-1">
           <p className="mb-3 text-lg font-bold tracking-wide text-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] sm:mb-2 md:text-xl">
-            Predict the setlist. Win the night.
-            Now live on Phish Tour.
+            The free Phish setlist prediction game — live on tour.
           </p>
 
           <p className="text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
-            Make picks for tonight&apos;s show, watch scores update as songs are played, and compete
-            with your tour crew for the top spot.
+            Predict the setlist. Win the night. Make picks for tonight&apos;s show, watch scores
+            update as songs are played, and compete with your tour crew for the top spot.
           </p>
 
           <p className="mt-4 text-base font-normal leading-relaxed text-slate-300 sm:leading-snug md:text-lg md:leading-relaxed">
