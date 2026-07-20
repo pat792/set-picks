@@ -23,3 +23,7 @@ export {
   PROFILE_BADGES,
   resolveEarnedBadges,
 } from './model/badgeCatalog';
+export {
+  debutYearFromCatalogDebut,
+  buildDebutYearBySongName,
+} from './model/profileAverages';

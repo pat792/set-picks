@@ -9,6 +9,7 @@ import StandingsOfficialSetlistCard from './StandingsOfficialSetlistCard';
 import Leaderboard from './Leaderboard';
 import StandingsActiveShowCard from './StandingsActiveShowCard';
 import StandingsBannerWaitingSetlist from './StandingsBannerWaitingSetlist';
+import StandingsCrowdPulse from './StandingsCrowdPulse';
 import StandingsPoolPicker from './StandingsPoolPicker';
 import StandingsWinnerOfTheNightBanner from './StandingsWinnerOfTheNightBanner';
 import {
@@ -57,6 +58,7 @@ export default function StandingsShowOrPoolView({ screen }) {
     onSelectShowDate,
     redactOpponentPicksPreLock,
     inviteChooser,
+    crowdTourLeaders,
   } = screen;
 
   const isPoolsView = view === 'pools';
@@ -124,6 +126,13 @@ export default function StandingsShowOrPoolView({ screen }) {
           isShowToday={Boolean(isShowToday)}
           isSecured={Boolean(isSecured)}
           picksStatusLoading={Boolean(picksStatusLoading)}
+        />
+        <StandingsCrowdPulse
+          className="mt-3"
+          showDate={selectedDate}
+          picks={picks}
+          tourLeaders={crowdTourLeaders}
+          showStatus={showStatus}
         />
         {displayedPicks.length > 0 ? (
           <div className="mt-4 md:mt-6">
@@ -258,6 +267,16 @@ export default function StandingsShowOrPoolView({ screen }) {
           actualSetlist={actualSetlist}
           showDate={selectedDate}
           showLabel={showLabel}
+          showStatus={showStatus}
+        />
+      ) : null}
+
+      {isShowView ? (
+        <StandingsCrowdPulse
+          className="mb-3"
+          showDate={selectedDate}
+          picks={picks}
+          tourLeaders={crowdTourLeaders}
           showStatus={showStatus}
         />
       ) : null}
