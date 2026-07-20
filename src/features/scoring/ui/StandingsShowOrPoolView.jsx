@@ -132,6 +132,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           showDate={selectedDate}
           picks={picks}
           tourLeaders={crowdTourLeaders}
+          actualSetlist={actualSetlist}
           showStatus={showStatus}
         />
         {displayedPicks.length > 0 ? (
@@ -277,6 +278,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           showDate={selectedDate}
           picks={picks}
           tourLeaders={crowdTourLeaders}
+          actualSetlist={actualSetlist}
           showStatus={showStatus}
         />
       ) : null}

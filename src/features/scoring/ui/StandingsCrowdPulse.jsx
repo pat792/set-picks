@@ -13,10 +13,14 @@ import {
  * Blur gate: `showStatus === 'NEXT'` → deep stats locked until showtime
  * (LIVE/PAST). See `docs/picks-rollup/04-prelock-disclosure.md`.
  *
+ * Gap + played rings: uses `actualSetlist` (LIVE subscription / historical
+ * fetch) for frozen `songGaps` and played-title hits.
+ *
  * @param {object} props
  * @param {string} props.showDate
  * @param {Array<Record<string, unknown>> | null | undefined} props.picks
  * @param {Array<{ uid: string, handle?: string, totalPoints?: number }> | null | undefined} props.tourLeaders
+ * @param {Record<string, unknown> | null | undefined} [props.actualSetlist]
  * @param {string} [props.showStatus] — NEXT blurs deep stats; LIVE/PAST unlock
  * @param {string} [props.className]
  */
@@ -24,21 +28,24 @@ export default function StandingsCrowdPulse({
   showDate,
   picks,
   tourLeaders,
+  actualSetlist = null,
   showStatus = '',
   className = '',
 }) {
-  const { card, night, catalog, leaders, catalogLoading, ready } =
-    useCrowdNightStats(showDate, picks, tourLeaders);
+  const { card, night, catalog, leaders, catalogLoading, ready, playedTitles } =
+    useCrowdNightStats(showDate, picks, tourLeaders, actualSetlist);
 
   if (!ready) return null;
 
   return (
     <CrowdNightPulsePanel
       className={className}
+      showDate={showDate}
       card={card}
       night={night}
       catalog={catalog}
       leaders={leaders}
+      playedTitles={playedTitles}
       catalogLoading={catalogLoading}
       blurDeepStats={shouldBlurDeepCrowdStats(showStatus)}
     />
