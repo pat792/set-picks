@@ -92,7 +92,7 @@ Post-show-only metrics (crowd vs official slot) stay out of the pre-show card; s
 |--|--|
 | **Definition** | Take top **5** players on **active tour standings**. Collect their **tonight** pick titles. Aggregate frequency among that subset only. |
 | **Trust** | **Medium** — clear story (“what leaders picked”), but small K ⇒ noisy; leaders may not have picked yet. |
-| **Caveats** | Define rank source: **tour points** (recommended pre-show), not show score. Exclude users with empty tonight picks from the subset (or show “3/5 locked in”). |
+| **Caveats** | Rank source: **tour points**. Exclude users with empty tonight picks from the subset (or show “3/5 locked in”). |
 | **Card summary** | “Leaders leaning: {song}” (top 1–2 among K) |
 | **Stats page** | Table: song · # of top-K · which slots |
 | **Picks helper** | “Follow the leaders” mode — optional, easy to game later |
