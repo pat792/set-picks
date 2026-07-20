@@ -152,6 +152,30 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 | `bustouts` | string[] | Per-show bustout snapshot (pre-show gap ≥ 30). Scoring source of truth (#214). |
 | `songGaps` | Record<string,number> | **v1.29.0 (#587 Phase B)** — frozen pre-show gap per dated row, keyed by normalized title. Display-only (Standings “Gap N” signal); not read by scoring. Absent on pre-Phase-B shows. |
 
+### 1.13 `public_tour_stats/{tourSlug}` (**v1.33.0 / #665**)
+
+Public, aggregate-only tour song stats for SEO marketing routes. Written by Cloud Functions Admin SDK (`refreshPublicTourStats` / nightly schedule). **Never** contains full per-show `officialSetlist` arrays. Clients may read; client writes denied.
+
+Document ID is a kebab-case slug from the calendar tour label (`Sphere Run 2026` → `sphere-run-2026`). Special doc `_index` lists tours for the public filter.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `tourSlug` | string | Same as doc id |
+| `tourLabel` | string | Display label from `show_calendar` / Phish.net |
+| `showDates` | string[] | Eligible show dates (metadata; not setlists) |
+| `firstShowDate` / `lastShowDate` | string\|null | `YYYY-MM-DD` |
+| `tourShowCount` | number | Dates in scope |
+| `showsWithSetlist` | number | Dates with an `official_setlists` doc |
+| `uniqueSongs` / `totalSongPlays` | number | Aggregate counts |
+| `topSongs` | `{ title, timesPlayed }[]` | Most played — **no** per-song `showDates` lists |
+| `bustouts` / `gapHighlights` | `{ title, gap, showDate? }[]` | Single event date OK; never a full night setlist |
+| `writtenAt` | string | ISO timestamp |
+| `schemaVersion` | number | `1` |
+
+`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (`sphere-run-2026`), `writtenAt`, `schemaVersion`.
+
+Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
+
 ---
 
 ## 2. Cloud Function Callables
@@ -270,9 +294,11 @@ When `alreadyLocked` is `true`, the doc already carried `lockReason: admin_overr
 
 **Ops CLI (no War Room):** `cd functions && node scripts/lockPicksForShowNow.js --showDate=YYYY-MM-DD`
 
-### 2.3 `getPhishnetSetlist`, `scheduledPhishnetShowCalendar`, `refreshPhishnetShowCalendar`, `refreshLiveScoresForShow`, `scheduledPhishnetSongCatalog`, `refreshPhishnetSongCatalog`, `scheduledPhishnetLiveSetlistPoll`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `sendPushCanary`
+### 2.3 `getPhishnetSetlist`, `scheduledPhishnetShowCalendar`, `refreshPhishnetShowCalendar`, `refreshLiveScoresForShow`, `scheduledPhishnetSongCatalog`, `refreshPhishnetSongCatalog`, `scheduledPhishnetLiveSetlistPoll`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `sendPushCanary`, `scheduledPublicTourStatsRefresh`, `refreshPublicTourStats`
 
-Phish.net integration and live scoring functions. Deployed via `npm run deploy:functions:phishnet`. Internal admin use — request/response shapes documented in `docs/PHISHNET_CALLABLE_RUNBOOK.md`.
+Phish.net integration, live scoring, and public tour-stats refresh. Deployed via `npm run deploy:functions:phishnet`. Internal admin use — request/response shapes documented in `docs/PHISHNET_CALLABLE_RUNBOOK.md`.
+
+**`public_tour_stats` (#665):** `scheduledPublicTourStatsRefresh` (daily 07:30 ET) and admin callable `refreshPublicTourStats` rebuild aggregate docs. Calendar sync also triggers a refresh after writing `show_calendar/snapshot`.
 
 **Storage object `song-catalog.json` (v1.25.0+, #554):** published by `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog`. Each song object includes `{ name, total, gap, last, debut }` where `debut` is a string (typically `YYYY-MM-DD`) or `""` when unknown. See `docs/SONG_CATALOG.md`. Adding `debut` is a **MINOR** catalog-field addition (clients may ignore unknown fields).
 
@@ -329,6 +355,8 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/` | None | Public splash / landing page. **v1.32.0+ (#659):** build-time prerender injects crawler-visible H1/body + JSON-LD into `dist/index.html` (SPA still boots for browsers). Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
 | `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. |
 | `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. |
+| `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. |
+| `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `sphere-run-2026`). Default Sphere slug is also prerendered. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile |
@@ -338,7 +366,7 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/setup` | Auth | Profile setup (new users) |
 | `/dashboard/*` | Auth | Full game dashboard |
 
-Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active.
+Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
 
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 

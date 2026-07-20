@@ -208,6 +208,24 @@
       ]
     },
     {
+      "source": "/tour-stats",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    },
+    {
+      "source": "/tour-stats/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    },
+    {
       "source": "/privacy",
       "headers": [
         {

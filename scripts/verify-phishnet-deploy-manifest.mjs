@@ -30,6 +30,8 @@ const REQUIRED_EXPORTS = [
   "pollLiveSetlistNow",
   "sendPushCanary",
   "lockPicksForShowNow",
+  "scheduledPublicTourStatsRefresh",
+  "refreshPublicTourStats",
 ];
 
 const script = pkg.scripts?.["deploy:functions:phishnet"];

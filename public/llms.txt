@@ -21,4 +21,6 @@
 - Home: https://www.setlistpickem.com/
 - How It Works: https://www.setlistpickem.com/how-it-works
 - How Scoring Works: https://www.setlistpickem.com/how-scoring-works
+- Tour Stats: https://www.setlistpickem.com/tour-stats
+- Sphere Run 2026 Stats: https://www.setlistpickem.com/tour-stats/sphere-run-2026
 - Setlist data: https://phish.net (The Mockingbird Foundation)

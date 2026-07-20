@@ -163,6 +163,16 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    /**
+     * Aggregate-only public tour stats for SEO (#665). Written by Cloud Functions
+     * Admin SDK from official_setlists; never contains full per-show setlists.
+     * Doc `_index` lists tours for the public picker. Clients may read; no writes.
+     */
+    match /public_tour_stats/{tourSlug} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     /** Server-written Phish.net show calendar; clients read only (issue #160). */
     match /show_calendar/{docId} {
       allow read: if signedIn();

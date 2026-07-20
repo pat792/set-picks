@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.33.0] — 2026-07-19
+
+### Added
+- **Public `/tour-stats` (#665)** — marketing routes `/tour-stats` and `/tour-stats/:tourSlug` with tour filter; default Sphere (`sphere-run-2026`). Aggregate-only Firestore `public_tour_stats` (most played, bustouts, gap highlights — never full nightly setlists). Admin/scheduled refresh; prerender hub + Sphere; sitemap/`llms.txt` links; GA4 `public_tour_stats_view`.
+
+---
+
 ## [1.32.0] — 2026-07-19
 
 ### Added

@@ -18,3 +18,5 @@ Each successful sync also writes **`reviewQueue`** on `snapshot` (empty on **fir
 **Bulk pass on existing dates:** `reviewQueue` will not list dates that already existed in the last snapshot. To rename those to match phish.com, add **`byShowDate`** entries anyway — **overrides always win** over the preserved snapshot label. From repo root, **`npm run print:phishnet-tour-clusters`** prints current Phish.net clusters + computed labels (helpful checklist before you type overrides in Console).
 
 **Related:** [PHISHNET_CALLABLE_RUNBOOK.md](./PHISHNET_CALLABLE_RUNBOOK.md) §8.
+
+**Public tour-stats SEO (#665):** kebab-case slugs from these labels feed `public_tour_stats/{tourSlug}` (e.g. `Sphere Run 2026` → `sphere-run-2026`). Calendar sync and `scheduledPublicTourStatsRefresh` keep aggregates current; see `docs/API.md` §1.13.

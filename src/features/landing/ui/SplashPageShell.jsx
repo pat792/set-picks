@@ -86,6 +86,12 @@ export default function SplashPageShell({
               How Scoring Works
             </Link>
             <Link
+              to="/tour-stats"
+              className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
+            >
+              Tour Stats
+            </Link>
+            <Link
               to="/privacy"
               className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200 hover:decoration-slate-400"
             >

@@ -48,6 +48,7 @@ const { runAccountDeletionForCaller } = require("./accountDelete");
 const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { getTriggerSpec } = require("./commsCatalog");
+const { refreshPublicTourStats } = require("./publicTourStats");
 const {
   verifyResendWebhookPayload,
   handleResendWebhookEvent,
@@ -1587,6 +1588,11 @@ exports.scheduledPhishnetShowCalendar = onSchedule(
     await syncPhishnetShowCalendarToFirestore(db, String(key).trim(), {
       logger,
     });
+    try {
+      await refreshPublicTourStats(db, { logger });
+    } catch (err) {
+      logger.error("scheduledPhishnetShowCalendar: public tour stats refresh failed", err);
+    }
     return null;
   }
 );
@@ -1618,10 +1624,17 @@ exports.refreshPhishnetShowCalendar = onCall(
         String(key).trim(),
         { logger }
       );
+      let publicTourStats = null;
+      try {
+        publicTourStats = await refreshPublicTourStats(db, { logger });
+      } catch (err) {
+        logger.error("refreshPhishnetShowCalendar: public tour stats refresh failed", err);
+      }
       return {
         ok: true,
         showCount: result.showCount,
         groupCount: result.groupCount,
+        publicTourStats,
       };
     } catch (e) {
       if (e instanceof HttpsError) throw e;
@@ -1630,6 +1643,48 @@ exports.refreshPhishnetShowCalendar = onCall(
       throw new HttpsError(
         "failed-precondition",
         `refreshPhishnetShowCalendar failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Nightly rebuild of aggregate-only `public_tour_stats` docs (#665).
+ * Also runs after calendar sync; this catch-up covers setlist-only updates.
+ */
+exports.scheduledPublicTourStatsRefresh = onSchedule(
+  {
+    schedule: "30 7 * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+  },
+  async () => {
+    await refreshPublicTourStats(db, { logger });
+    return null;
+  }
+);
+
+/**
+ * Admin-only on-demand rebuild of `public_tour_stats` (#665).
+ */
+exports.refreshPublicTourStats = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    try {
+      assertAdminClaim(request);
+      const result = await refreshPublicTourStats(db, { logger });
+      return { ok: true, ...result };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshPublicTourStats unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshPublicTourStats failed: ${msg}`
       );
     }
   }
