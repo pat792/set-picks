@@ -226,6 +226,15 @@
       ]
     },
     {
+      "source": "/phish-setlist-prediction-game",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    },
+    {
       "source": "/privacy",
       "headers": [
         {

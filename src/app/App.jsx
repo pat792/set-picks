@@ -21,6 +21,9 @@ const InviteLandingPage = lazy(() => import('../pages/invite/InviteLandingPage')
 const HowItWorksPage = lazy(() => import('../pages/marketing/HowItWorksPage'));
 const HowScoringWorksPage = lazy(() => import('../pages/marketing/HowScoringWorksPage'));
 const PublicTourStatsPage = lazy(() => import('../pages/marketing/PublicTourStatsPage'));
+const PhishSetlistPredictionGamePage = lazy(
+  () => import('../pages/marketing/PhishSetlistPredictionGamePage'),
+);
 const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
 const SetupRoute = lazy(() => import('./routes/SetupRoute'));
@@ -43,6 +46,10 @@ function App() {
         <Route path="/how-scoring-works" element={<HowScoringWorksPage />} />
         <Route path="/tour-stats" element={<PublicTourStatsPage />} />
         <Route path="/tour-stats/:tourSlug" element={<PublicTourStatsPage />} />
+        <Route
+          path="/phish-setlist-prediction-game"
+          element={<PhishSetlistPredictionGamePage />}
+        />
 
         {/* Legal pages — public, no auth (required for GCP OAuth consent screen) */}
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
