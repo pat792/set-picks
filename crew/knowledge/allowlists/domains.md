@@ -8,4 +8,6 @@
 www.setlistpickem.com
 setlistpickem.com
 github.com
+www.github.com
 developers.google.com
+support.google.com

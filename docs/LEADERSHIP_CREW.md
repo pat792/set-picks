@@ -3,7 +3,7 @@
 **Epic:** [#695](https://github.com/pat792/set-picks/issues/695)  
 **Surfaces:** CrewAI (`crew/`) + Cursor skills (`.cursor/skills/`)  
 **Sits above:** Comms execution squad — `comms-analyst` → `comms-triggers` → `comms-drafter` → `comms-architect`  
-**Status:** **L0** (design scaffold — no live external side effects)
+**Status:** **L1** for market intel (allowlisted read-only fetch); social/BD publish still **L0/L2-gated**; affiliate inject still **L3**
 
 ---
 
@@ -29,7 +29,7 @@ This org is a **living operating system**, not a frozen chart. As the product an
 | **L2** | Human-gated social / BD publish | Post/send only after approval |
 | **L3** | Affiliate/sponsor e2e + in-product slots | Requires [COMMERCIAL_PHASE3.md](./comms-triggers/COMMERCIAL_PHASE3.md) |
 
-**Current: L0.** Tool stubs in `crew/tools/` default to `dry_run: true`.
+**Current: L1 research enabled** via `web_fetch_allowlisted(..., dry_run=False)` and `python3.13 -m crew.scripts.market_intel_sweep`. Tools still default to `dry_run: true`. Social publish / affiliate inject remain blocked.
 
 ---
 
@@ -152,3 +152,4 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 | Date | Change |
 |------|--------|
 | 2026-07-20 | L0 scaffold: doc, `crew/`, Cursor skills, epic #695 — flexibility/learning principles documented |
+| 2026-07-20 | L1: allowlisted HTTP fetch + `market_intel_sweep` script; tests; status promoted for research only |

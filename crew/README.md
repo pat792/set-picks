@@ -2,7 +2,7 @@
 
 **Epic:** [#695](https://github.com/pat792/set-picks/issues/695)  
 **Canon:** [`docs/LEADERSHIP_CREW.md`](../docs/LEADERSHIP_CREW.md)  
-**Maturity:** **L0** — design scaffold; tools default to dry-run; no live scrape/post/BD/affiliate injection.
+**Maturity:** **L1** research (allowlisted GET); tools still default to dry-run. No live social/BD/affiliate injection.
 
 This folder is a **flexible** multi-agent workspace. Roles and pipelines are hypotheses: adapt them as the team learns (update agents/pipelines + the doc Changelog + comment on #695).
 
@@ -48,14 +48,26 @@ L0 is useful **without** an LLM run: agents, pipelines, Cursor skills, and tool 
 
 Wire a pipeline into your CrewAI runner of choice (JSON-first or classic). Until a thin `main.py` runner is added in a follow-up, treat pipeline JSON as the **source of truth** for task order and use Cursor leadership skills for chat execution.
 
-## Tools (L0)
+## Tools
 
 ```python
-from tools.stubs import web_fetch_allowlisted, social_publish
+from crew.tools import web_fetch_allowlisted, social_publish
 
 web_fetch_allowlisted("https://www.setlistpickem.com/")  # dry_run plan
+web_fetch_allowlisted("https://www.setlistpickem.com/llms.txt", dry_run=False)  # L1 GET
 social_publish("x", "hello", dry_run=True, approved=False)  # blocked publish
 ```
+
+### Market intel sweep (L1)
+
+```bash
+# from repo root
+python3.13 -m crew.scripts.market_intel_sweep --dry-run
+python3.13 -m crew.scripts.market_intel_sweep          # live allowlisted fetches
+python3.13 -m unittest discover -s crew/tests -v
+```
+
+Artifacts: `crew/output/intel/` (gitignored).
 
 ## Cursor skills
 

@@ -1,7 +1,7 @@
 {
   "id": "market_intel",
   "name": "Market intel sweep",
-  "maturity": "L1-ready-design",
+  "maturity": "L1",
   "agents": [
     "market_intelligence_operator",
     "customer_insights_analyst",

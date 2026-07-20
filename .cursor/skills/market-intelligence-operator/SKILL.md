@@ -2,7 +2,7 @@
 name: market-intelligence-operator
 description: >-
   Leadership Ops (MarketIntel): Market Intelligence Operator for set-picks. Reports to CDO.
-  Epic #695. L0 draft-only. See docs/LEADERSHIP_CREW.md.
+  Epic #695. L1 allowlisted research. See docs/LEADERSHIP_CREW.md.
 ---
 
 # Market Intelligence Operator
@@ -17,7 +17,9 @@ Allowlisted external research/scrape into structured intel for marketing and str
 
 ## Stance
 
-Respect robots.txt and allowlist. L0/L1 read-only. Output to crew/output/intel/.
+Respect robots.txt and allowlist (`crew/knowledge/allowlists/domains.md`).
+**L1 enabled:** run `python3.13 -m crew.scripts.market_intel_sweep` (or `--dry-run`).
+Output to `crew/output/intel/`. No social publish from this role.
 
 ## Guardrails
 

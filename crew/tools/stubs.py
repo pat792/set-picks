@@ -1,24 +1,26 @@
-"""L0 dry-run tool stubs for Leadership Ops Crew (epic #695).
+"""Leadership Ops Crew tools (epic #695).
 
-All tools default to dry_run=True. Live side effects require explicit
-dry_run=False AND maturity L1+ (research) / L2+ (publish) / L3 (affiliate inject).
-Adapt tools as the team learns — see docs/LEADERSHIP_CREW.md.
+L1: allowlisted read-only HTTP fetch when dry_run=False.
+L2+: social publish still gated. L3 affiliate inject not enabled.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
+from .allowlist import DEFAULT_ALLOWLIST, host_allowed, load_allowlist
 
-# Starter allowlist — expand via crew/knowledge/allowlists/domains.md + PR
-DEFAULT_ALLOWLIST = {
-    "www.setlistpickem.com",
-    "setlistpickem.com",
-    "github.com",
-    "developers.google.com",
-}
+USER_AGENT = (
+    "SetlistPickemLeadershipCrew/0.1 "
+    "(+https://github.com/pat792/set-picks; epic-695; research-only)"
+)
+MAX_BODY_CHARS = 80_000
+FETCH_TIMEOUT_S = 20
 
 
 @dataclass
@@ -33,16 +35,30 @@ def _host(url: str) -> str:
     return (urlparse(url).hostname or "").lower()
 
 
+def _strip_html(text: str) -> str:
+    """Lightweight text extraction for intel digests (not a full HTML parser)."""
+    no_script = re.sub(
+        r"<script[\s\S]*?</script>|<style[\s\S]*?</style>",
+        " ",
+        text,
+        flags=re.IGNORECASE,
+    )
+    plain = re.sub(r"<[^>]+>", " ", no_script)
+    plain = re.sub(r"\s+", " ", plain).strip()
+    return plain
+
+
 def web_fetch_allowlisted(
     url: str,
     *,
     dry_run: bool = True,
     allowlist: set[str] | None = None,
+    max_chars: int = MAX_BODY_CHARS,
 ) -> ToolResult:
-    """L1 research stub. L0 always dry-runs a plan; never fetches when dry_run."""
-    allowed = allowlist or DEFAULT_ALLOWLIST
+    """Allowlisted GET. dry_run=True plans only; False performs read-only fetch (L1)."""
+    allowed = allowlist if allowlist is not None else load_allowlist()
     host = _host(url)
-    if host not in allowed and not any(host.endswith("." + a) for a in allowed):
+    if not host_allowed(host, allowed):
         return ToolResult(
             False,
             dry_run,
@@ -54,13 +70,65 @@ def web_fetch_allowlisted(
             True,
             True,
             "dry_run: would fetch allowlisted URL (no network call)",
-            {"url": url, "host": host, "maturity_required": "L1"},
+            {"url": url, "host": host, "maturity": "L1"},
         )
+
+    req = Request(
+        url,
+        headers={"User-Agent": USER_AGENT, "Accept": "text/html,text/plain,*/*"},
+        method="GET",
+    )
+    try:
+        with urlopen(req, timeout=FETCH_TIMEOUT_S) as resp:  # noqa: S310 — allowlist gated
+            status = getattr(resp, "status", None) or resp.getcode()
+            content_type = (resp.headers.get("Content-Type") or "").split(";")[0].strip()
+            raw = resp.read(max_chars + 1)
+    except HTTPError as exc:
+        return ToolResult(
+            False,
+            False,
+            f"HTTP error {exc.code}",
+            {"url": url, "host": host, "status": exc.code},
+        )
+    except URLError as exc:
+        return ToolResult(
+            False,
+            False,
+            f"URL error: {exc.reason}",
+            {"url": url, "host": host},
+        )
+    except TimeoutError:
+        return ToolResult(
+            False,
+            False,
+            "Fetch timed out",
+            {"url": url, "host": host, "timeout_s": FETCH_TIMEOUT_S},
+        )
+
+    truncated = len(raw) > max_chars
+    body_bytes = raw[:max_chars]
+    try:
+        text = body_bytes.decode("utf-8", errors="replace")
+    except Exception:  # noqa: BLE001
+        text = body_bytes.decode("latin-1", errors="replace")
+
+    excerpt = _strip_html(text) if "html" in content_type.lower() or text.lstrip().startswith("<") else text
+    excerpt = excerpt[:12_000]
+
     return ToolResult(
+        True,
         False,
-        False,
-        "Live fetch not enabled in L0 scaffold — promote to L1 and implement HTTP client",
-        {"url": url},
+        "Fetched allowlisted URL",
+        {
+            "url": url,
+            "host": host,
+            "status": status,
+            "content_type": content_type,
+            "truncated": truncated,
+            "char_count": len(text),
+            "excerpt": excerpt,
+            "maturity": "L1",
+        },
     )
 
 
@@ -102,7 +170,7 @@ def social_publish(
     return ToolResult(
         False,
         False,
-        "Live social publish not wired in L0 — enable L2 integration explicitly",
+        "Live social publish not wired — enable L2 integration explicitly",
         {"platform": platform},
     )
 
@@ -112,7 +180,7 @@ def affiliate_catalog_research(
     *,
     dry_run: bool = True,
 ) -> ToolResult:
-    """L1 research stub for affiliate networks."""
+    """Affiliate network research — L1 can later reuse web_fetch_allowlisted."""
     if dry_run:
         return ToolResult(
             True,
@@ -123,7 +191,7 @@ def affiliate_catalog_research(
     return ToolResult(
         False,
         False,
-        "Live affiliate catalog research not enabled in L0",
+        "Affiliate catalog research: pass allowlisted URLs through web_fetch_allowlisted",
         {"network": network},
     )
 
@@ -133,10 +201,24 @@ def lead_pack_export(
     *,
     dry_run: bool = True,
 ) -> ToolResult:
-    """Export lead pack to structured data (no CRM write in L0)."""
+    """Export lead pack to structured data (no CRM write)."""
     return ToolResult(
         True,
         dry_run,
         f"{'dry_run: would export' if dry_run else 'Exported'} {len(leads)} leads (local only)",
         {"count": len(leads), "leads": leads, "crm_write": False},
     )
+
+
+# Re-export for callers that imported DEFAULT_ALLOWLIST from stubs
+__all__ = [
+    "DEFAULT_ALLOWLIST",
+    "ToolResult",
+    "web_fetch_allowlisted",
+    "social_draft_pack",
+    "social_publish",
+    "affiliate_catalog_research",
+    "lead_pack_export",
+    "load_allowlist",
+    "host_allowed",
+]
