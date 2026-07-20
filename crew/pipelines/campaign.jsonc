@@ -1,0 +1,59 @@
+{
+  "id": "campaign",
+  "name": "Campaign brief",
+  "maturity": "L0",
+  "agents": [
+    "chief_customer_officer",
+    "customer_insights_analyst",
+    "market_intelligence_operator",
+    "marketing_specialist",
+    "social_demand_gen_operator",
+    "brand_systems_partner",
+    "editor_in_chief",
+    "reporting_lead"
+  ],
+  "tasks": [
+    {
+      "id": "objective",
+      "agent": "chief_customer_officer",
+      "description": "Define campaign objective, audience, and non-goals.",
+      "expected_output": "Objective brief."
+    },
+    {
+      "id": "insights",
+      "agent": "customer_insights_analyst",
+      "description": "Audience insights; optional Market Intel digest if research needed (L0: propose queries only).",
+      "expected_output": "Insights section."
+    },
+    {
+      "id": "marketing",
+      "agent": "marketing_specialist",
+      "description": "Channel mix, CTA, landing/SEO notes.",
+      "expected_output": "Marketing section."
+    },
+    {
+      "id": "social",
+      "agent": "social_demand_gen_operator",
+      "description": "Platform-specific post packages (drafts only).",
+      "expected_output": "Social draft pack."
+    },
+    {
+      "id": "brand",
+      "agent": "brand_systems_partner",
+      "description": "Brand/visual consistency check.",
+      "expected_output": "Brand notes."
+    },
+    {
+      "id": "edit",
+      "agent": "editor_in_chief",
+      "description": "Editorial pass; publish gate remains closed at L0.",
+      "expected_output": "Edited campaign-brief.md body."
+    },
+    {
+      "id": "metrics",
+      "agent": "reporting_lead",
+      "description": "Success metrics and measurement plan.",
+      "expected_output": "Metrics section."
+    }
+  ]
+}

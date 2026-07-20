@@ -1,0 +1,37 @@
+{
+  "id": "market_intel",
+  "name": "Market intel sweep",
+  "maturity": "L1-ready-design",
+  "agents": [
+    "market_intelligence_operator",
+    "customer_insights_analyst",
+    "marketing_specialist",
+    "chief_data_officer"
+  ],
+  "tasks": [
+    {
+      "id": "scope",
+      "agent": "chief_data_officer",
+      "description": "Confirm allowlist scope and research questions (L0: no live fetch unless L1 enabled).",
+      "expected_output": "Research questions + allowlist check."
+    },
+    {
+      "id": "collect",
+      "agent": "market_intelligence_operator",
+      "description": "At L0: produce fetch plan. At L1: allowlisted fetch into structured intel.",
+      "expected_output": "Intel draft or fetch plan."
+    },
+    {
+      "id": "synthesize",
+      "agent": "customer_insights_analyst",
+      "description": "Synthesize implications for fans/cohorts.",
+      "expected_output": "Synthesis."
+    },
+    {
+      "id": "digest",
+      "agent": "marketing_specialist",
+      "description": "Marketing digest — no publish.",
+      "expected_output": "intel digest markdown."
+    }
+  ]
+}

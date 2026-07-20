@@ -1,0 +1,66 @@
+{
+  "id": "optimize",
+  "name": "Optimize oversight",
+  "maturity": "L0",
+  "description": "Default pipeline: leadership review of Optimize goals and PM pack handoff to comms squad.",
+  "agents": [
+    "chief_of_staff",
+    "growth_program_manager",
+    "chief_customer_officer",
+    "reporting_lead",
+    "customer_insights_analyst",
+    "editor_in_chief",
+    "software_architect",
+    "comms_orchestration_lead"
+  ],
+  "tasks": [
+    {
+      "id": "route",
+      "agent": "chief_of_staff",
+      "description": "Confirm optimize pipeline intake: goal placeholder optimize_for, date window, constraints (draft-only).",
+      "expected_output": "Intake checklist and RACI reminder."
+    },
+    {
+      "id": "goal",
+      "agent": "chief_customer_officer",
+      "description": "Set or confirm optimize_for and success definition for acquisition/retention.",
+      "expected_output": "optimize_for + success metrics + cohort focus."
+    },
+    {
+      "id": "evidence",
+      "agent": "reporting_lead",
+      "description": "Specify measurement readout structure for the window (GA4 / delivery logs). Partner Insights for cohort notes.",
+      "expected_output": "Measurement section outline for PM pack."
+    },
+    {
+      "id": "insights",
+      "agent": "customer_insights_analyst",
+      "description": "Add cohort/qualitative insights relevant to the goal.",
+      "expected_output": "Insights bullets for the pack."
+    },
+    {
+      "id": "pack",
+      "agent": "editor_in_chief",
+      "description": "Assemble Optimize PM review pack shape (see OPTIMIZE_AUTONOMY.md). Editorial gate.",
+      "expected_output": "Draft PM pack markdown."
+    },
+    {
+      "id": "feasibility",
+      "agent": "software_architect",
+      "description": "Flag delivery/FSD/adapter risks for any recommended changes.",
+      "expected_output": "Feasibility notes / blockers."
+    },
+    {
+      "id": "handoff",
+      "agent": "comms_orchestration_lead",
+      "description": "Write kickoff language for analyst→triggers→drafter→architect. Growth Program Manager accountable for clarity.",
+      "expected_output": "Squad kickoff prompt + handoff checklist."
+    },
+    {
+      "id": "accountable_close",
+      "agent": "growth_program_manager",
+      "description": "Final coherence pass; list learnings to post on epic #695 if structure should adapt.",
+      "expected_output": "Final pack + optional adaptation note."
+    }
+  ]
+}
