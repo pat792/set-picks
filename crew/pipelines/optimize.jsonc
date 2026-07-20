@@ -29,19 +29,19 @@
     {
       "id": "evidence",
       "agent": "reporting_lead",
-      "description": "Read ONLY the GA4 facts from kickoff input ga4_snapshot (full markdown table). Path for reference: {ga4_snapshot_path}. Quote eventCount/totalUsers from that table (e.g. comms_delivered, comms_opened, submit_picks). For any missing metric write unknown. Never invent conversion/retention percentages. Structure a measurement section for the PM pack aligned to docs/comms-triggers/MEASUREMENT_PLAN.md and OPTIMIZE_AUTONOMY.md.",
+      "description": "You are given the full GA4 facts markdown below. Quote eventCount/totalUsers from that table ONLY (comms_delivered, comms_opened, submit_picks, etc.). Path for reference: {ga4_snapshot_path}. Never invent percentages or event names not in the table. If a row is missing write unknown.\n\n--- GA4 SNAPSHOT START ---\n{ga4_snapshot}\n--- GA4 SNAPSHOT END ---\n\nStructure a measurement section for the PM pack aligned to MEASUREMENT_PLAN / OPTIMIZE_AUTONOMY for optimize_for={optimize_for}, window={window}.",
       "expected_output": "Measurement section with cited GA4 facts or explicit unknown."
     },
     {
       "id": "insights",
       "agent": "customer_insights_analyst",
-      "description": "Interpret the cited GA4 facts for optimize_for={optimize_for} only. Hypotheses allowed if labeled HYPOTHESIS. No new numeric claims beyond the snapshot.",
+      "description": "Interpret ONLY the GA4 table embedded for Reporting (same snapshot). For optimize_for={optimize_for} / window={window}. Hypotheses allowed if labeled HYPOTHESIS. No numeric claims beyond the snapshot table.\n\n--- GA4 SNAPSHOT START ---\n{ga4_snapshot}\n--- GA4 SNAPSHOT END ---",
       "expected_output": "Insights bullets: facts vs hypotheses clearly labeled."
     },
     {
       "id": "pack",
       "agent": "editor_in_chief",
-      "description": "Assemble a draft PM review pack matching OPTIMIZE_AUTONOMY.md shape for optimize_for={optimize_for}, window={window}. Editorial gate: strip invented metrics; keep night vs tour boundary language if relevant. Draft-only.",
+      "description": "Assemble a draft PM review pack matching OPTIMIZE_AUTONOMY.md shape for optimize_for={optimize_for}, window={window}. Editorial gate: every number must appear in the GA4 snapshot below or be labeled unknown. Strip invented metrics. Draft-only.\n\n--- GA4 SNAPSHOT START ---\n{ga4_snapshot}\n--- GA4 SNAPSHOT END ---",
       "expected_output": "Draft PM pack markdown."
     },
     {
