@@ -16,7 +16,7 @@ export default function PhishSetlistPredictionGamePageContent() {
           The free Phish setlist prediction game
         </h1>
         <p className="mb-10 text-center text-lg leading-relaxed text-slate-600">
-          Setlist Pick&apos;Em (also called Setlist Pickem / Set Picks) is a live{' '}
+          Setlist Pick&apos;Em (also called Setlist Pickem) is a live{' '}
           <strong className="font-semibold text-slate-800">setlist prediction game</strong> built
           first for Phish fans—and designed as a destination for more bands soon. Lock openers,
           closers, encore, and a wildcard before showtime, then score as the night unfolds.

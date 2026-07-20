@@ -17,7 +17,7 @@ No unreleased changes.
 ## [1.34.6] — 2026-07-20
 
 ### Changed
-- **Marketing SEO copy voice** — public tour stats, how-it-works, keyword page, splash how-it-works, `llms.txt`, and meta/OG mirrors now say stats refresh every night the band plays live (not “when Phish.net publishes”); emphasize personal stats from playing, multi-band destination framing, and fan-facing prose without technical jargon.
+- **Marketing SEO copy voice** — public tour stats, how-it-works, keyword page, splash how-it-works, `llms.txt`, and meta/OG mirrors now say stats refresh every night the band plays live (not “when Phish.net publishes”); emphasize personal stats from playing, multi-band destination framing, and fan-facing prose without technical jargon. Dropped the public “Set Picks” alias in favor of Setlist Pick ’Em / Setlist Pickem only.
 
 ---
 

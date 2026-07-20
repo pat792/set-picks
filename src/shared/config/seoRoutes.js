@@ -472,7 +472,7 @@ export const PRERENDER_ROUTES = [
     canonicalUrl: KEYWORD_PAGE_URL,
     h1: 'The free Phish setlist prediction game',
     paragraphs: [
-      "Setlist Pick'Em (also called Setlist Pickem / Set Picks) is a live setlist prediction game built first for Phish fans—and designed for more bands soon.",
+      "Setlist Pick'Em (also called Setlist Pickem) is a live setlist prediction game built first for Phish fans—and designed for more bands soon.",
       'Predict songs and slots for tonight\'s show, compete with friends, and score live as the setlist unfolds.',
       'Tour stats refresh every night the band plays live. Playing unlocks personal stats as you accumulate points against other setlist pickers.',
     ],
