@@ -8,7 +8,7 @@ Internal analytics for **nightly picker volume** and **crowd pick composition**.
 |-------|------|--------|
 | **A** | Admin report script + methodology | Done (PR #688) |
 | **B** | Human review of Summer Tour reports | Done — see [02-phase-b-review.md](./02-phase-b-review.md) |
-| **C** | Recommend / build stats-page series + data/comms follow-ups | Ready after sign-off on B |
+| **C** | Stats candidates for standings → stats → picks helper | Spec — see [03-phase-c-stats-candidates.md](./03-phase-c-stats-candidates.md) |
 
 ## Data spine
 

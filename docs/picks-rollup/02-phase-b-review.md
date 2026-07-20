@@ -56,22 +56,26 @@ Exclude in-progress nights (e.g. `2026-07-21` with 2 ungraded cards) from trend 
 
 ## Phase C recommendations (draft)
 
-### Stats page / data viz (product)
+**Superseded by product candidates:** [03-phase-c-stats-candidates.md](./03-phase-c-stats-candidates.md)  
+(standings card summary → stats page → picks helper; includes your five metrics + extras from this review).
 
-1. **Ship first:** “Pickers per show night” line/bar for the active tour (exclude future/zero nights).
-2. **Ship second (tour grain):** Top 10 crowd picks this tour (% of cards) — reuse profile aggregation ideas, not per-user.
-3. **Ship later:** Per-night consensus strip **after lock** (or after grade), with copy that N is small.
-4. **Defer:** Rare picks, diversity index, slot fill %.
+### Stats page / data viz (product) — short list
+
+1. **Ship first:** Pickers tonight + top multi-picker songs (≥2 cards) + unique song count.
+2. **Ship second:** Catalog joins — highest-gap top 10 + aggregate vintage (debut year).
+3. **Ship third:** Top ranked (tour) pickers’ tonight picks by frequency.
+4. **Defer:** Rare-only lists, diversity index, slot fill %, pool %.
+5. **Post-show only:** Crowd vs official slot (8% hit this window).
 
 ### Data / pipeline
 
-1. Optional materialized `picks_night_stats/{showDate}` written at lock or finalize (submitted count, top songs) to avoid full `picks` scans on the client.
-2. Keep report CLI as the internal source of truth until that exists.
+1. Optional materialized `picks_night_stats/{showDate}` later; v1 can scan `picks` by `showDate` + cached catalog.
+2. Extend report CLI with gap/vintage for offline QA of candidates.
 
 ### Comms (after product metrics land)
 
-1. Use submitted volume only as a **guardrail** for reminder urgency (e.g. low pickers tonight) — join with existing `no_picks_tonight` eligibility; do not invent a new trigger from this review alone.
-2. Post-show: optional “crowd favorite vs what played” once consensus-vs-setlist is validated on a few nights — fits near `show_recap` (#572), not a new channel.
+1. Use submitted volume only as a **guardrail** for reminder urgency — join with `no_picks_tonight`; do not invent a new trigger from this review alone.
+2. Post-show: optional “crowd favorite vs what played” near `show_recap` (#572).
 3. Do **not** message rare picks or diversity scores.
 
 ## Exit criteria for Phase B
