@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.34.5] — 2026-07-19
+
+### Changed
+- **Public `/tour-stats` default tour (#665)** — default is the current tour (newest `lastShowDate` on `_index`), not a hardcoded Sphere preference.
+
+---
+
 ## [1.34.4] — 2026-07-19
 
 ### Fixed
