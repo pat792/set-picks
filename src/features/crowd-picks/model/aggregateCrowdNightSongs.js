@@ -1,6 +1,8 @@
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import { hasNonEmptyPicksObject } from '../../../shared/utils/showAggregation';
 
+import { buildCatalogLookups, mergeCrowdGapByName } from './aggregateCrowdNightCatalog';
+
 const SLOT_IDS = FORM_FIELDS.map((f) => f.id);
 
 /**
@@ -114,7 +116,7 @@ export function crowdNightCardSummary(stats, options = {}) {
   const topN =
     typeof options.topN === 'number' && options.topN > 0
       ? Math.trunc(options.topN)
-      : 3;
+      : 5;
   return {
     pickers: stats.pickers,
     uniqueSongs: stats.uniqueSongs,
@@ -124,4 +126,51 @@ export function crowdNightCardSummary(stats, options = {}) {
       pctOfPickers: s.pctOfPickers,
     })),
   };
+}
+
+/**
+ * Attach gap + last-played onto crowd song rows (preserves extra fields).
+ * Prefer frozen per-show `songGaps` (pre-show) over live catalog gap so
+ * historical nights match Standings / Tour Stats (#587).
+ *
+ * @template {{ title?: string, gap?: number | null }} T
+ * @param {T[] | null | undefined} rows
+ * @param {{ name?: unknown, gap?: unknown, last?: unknown }[] | null | undefined} catalogSongs
+ * @param {{
+ *   frozenGaps?: Map<string, number> | Record<string, number> | null,
+ * }} [options]
+ * @returns {Array<T & { gap: number | null, last: string | null }>}
+ */
+export function enrichSongRowsWithCatalog(rows, catalogSongs, options = {}) {
+  const { gapByName, lastByName } = buildCatalogLookups(catalogSongs);
+  const gapLookup = mergeCrowdGapByName(gapByName, options.frozenGaps);
+  return (Array.isArray(rows) ? rows : []).map((s) => {
+    const key = typeof s?.title === 'string' ? s.title.trim().toLowerCase() : '';
+    const gapFromLookup = key ? gapLookup.get(key) : undefined;
+    const last = key ? lastByName.get(key) : undefined;
+    const gap =
+      typeof gapFromLookup === 'number'
+        ? gapFromLookup
+        : typeof s?.gap === 'number'
+          ? s.gap
+          : null;
+    return {
+      ...s,
+      gap,
+      last: typeof last === 'string' ? last : null,
+    };
+  });
+}
+
+/**
+ * Attach catalog gap + last-played onto card top rows.
+ *
+ * @param {Array<{ title: string, cardCount: number, pctOfPickers: number }>} topMulti
+ * @param {{ name?: unknown, gap?: unknown, last?: unknown }[] | null | undefined} catalogSongs
+ * @param {{
+ *   frozenGaps?: Map<string, number> | Record<string, number> | null,
+ * }} [options]
+ */
+export function enrichTopMultiWithCatalog(topMulti, catalogSongs, options = {}) {
+  return enrichSongRowsWithCatalog(topMulti, catalogSongs, options);
 }

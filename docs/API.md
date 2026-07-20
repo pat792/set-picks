@@ -369,7 +369,7 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
 
-**Standings Show — Crowd pulse (**v1.35.0 / #687**):** client-side aggregate of submitted picks for the selected `showDate` (multi-picker songs always; gap / vintage / leaders blurred while `showStatus === 'NEXT'`). No new Firestore collection or callable. Productization follow-ups: #694.
+**Standings Show — Crowd pulse (**v1.35.0 / #687**, productized **#694**):** client-side aggregate of submitted picks for the selected `showDate` (multi-picker songs always; gap / vintage / leaders blurred while `showStatus === 'NEXT'`). No new Firestore collection or callable. **GA4 (client):** `crowd_pulse_view` `{ show_date, deep_stats: locked|open, pickers }`, `crowd_pulse_full_expand` `{ show_date }`, `crowd_pulse_section_open` `{ show_date, section }` where `section` is `multi_picker` | `highest_gaps` | `vintage` | `leaders`.
 
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 
