@@ -1,11 +1,11 @@
 # Setlist Pick 'Em
 
-> Free live setlist prediction game for Phish fans (more bands soon). Predict openers, closers, encore, and a wildcard before each show; compete live as songs are played. Tour insights refresh every night the band plays live.
+> Free setlist picks / fantasy setlist game for Phish fans (more bands soon). Predict openers, closers, encore, and a wildcard before each show; compete live as songs are played. Tour insights refresh every night the band plays live.
 
 ## How it works
 
-- Lock picks before showtime
-- Scoring updates live during the show
+- Lock picks before showtime (predicting setlists, not browsing archives)
+- Scoring updates live during the show — at the venue or on couch tour
 - Global and private leaderboards
 - Personal stats unlock when you play
 

@@ -22,8 +22,8 @@ export default function HowItWorksPageContent() {
           <Link to="/phish-setlist-prediction-game" className={LINK_ON_LIGHT}>
             setlist prediction game
           </Link>{' '}
-          for Phish fans—and a home for more bands soon. Lock your picks before the lights go down,
-          score as the setlist unfolds, and compete with friends.
+          for Phish fans—and a home for more bands soon. Lock your setlist picks before the lights go
+          down, score as the setlist unfolds, and compete with friends predicting setlists together.
         </p>
         <p className="mx-auto mb-12 max-w-2xl text-center text-base leading-relaxed text-slate-500">
           We keep an eye on the tour for you: key song trends and bustout signals on{' '}

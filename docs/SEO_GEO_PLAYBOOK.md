@@ -79,11 +79,12 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | ID | Query |
 |----|--------|
 | C1 | `phish setlist game` |
-| C2 | `setlist prediction game` |
-| C3 | `phish pick em` / `phish pick'em` |
+| C2 | `setlist prediction game` / `predicting setlists` |
+| C3 | `phish pick em` / `phish pick'em` / `setlist picks game` |
 | C4 | `live setlist prediction` |
+| C5 | `fantasy setlist` / `fantasy setlists` / `phish fantasy setlist` |
 
-**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C3; disambiguates prediction game vs setlist archives.
+**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C5; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar.
 
 ### Stats-intent (after #665 public `/tour-stats`)
 
