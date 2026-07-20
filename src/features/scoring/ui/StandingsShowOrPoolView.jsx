@@ -132,6 +132,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           showDate={selectedDate}
           picks={picks}
           tourLeaders={crowdTourLeaders}
+          showStatus={showStatus}
         />
         {displayedPicks.length > 0 ? (
           <div className="mt-4 md:mt-6">
@@ -276,6 +277,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           showDate={selectedDate}
           picks={picks}
           tourLeaders={crowdTourLeaders}
+          showStatus={showStatus}
         />
       ) : null}
 

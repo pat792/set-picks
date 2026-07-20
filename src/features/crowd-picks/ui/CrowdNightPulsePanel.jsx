@@ -1,9 +1,10 @@
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Lock } from 'lucide-react';
 
 /**
- * Pre-show crowd pulse summary + expandable full analysis (C4 prototype).
- * Presentational — data from `useCrowdNightStats`.
+ * Crowd pulse summary + expandable deep analysis (C4 prototype).
+ * Pre-lock (NEXT): top multi-picker songs stay visible; gap / vintage /
+ * leaders blur until showtime. Presentational — data from `useCrowdNightStats`.
  *
  * @param {object} props
  * @param {import('../model/aggregateCrowdNightSongs').CrowdNightSongStats | null} props.night
@@ -11,6 +12,7 @@ import { ChevronDown } from 'lucide-react';
  * @param {{ highestGap: Array<{ title: string, gap: number, cardCount: number }>, vintage: { avgYear: number | null, medianYear: number | null, coveragePct: number, datedSlots: number, totalSlots: number } } | null} props.catalog
  * @param {{ lockedInLabel: string, leaders: Array<{ rank: number, handle: string, totalPoints: number }>, songs: Array<{ title: string, cardCount: number, amongLeaders: string[] }> } | null} props.leaders
  * @param {boolean} [props.catalogLoading]
+ * @param {boolean} [props.blurDeepStats] — true while picks still editable (NEXT)
  * @param {string} [props.className]
  */
 export default function CrowdNightPulsePanel({
@@ -19,6 +21,7 @@ export default function CrowdNightPulsePanel({
   catalog,
   leaders,
   catalogLoading = false,
+  blurDeepStats = false,
   className = '',
 }) {
   if (!card || !night || night.pickers === 0) {
@@ -44,6 +47,11 @@ export default function CrowdNightPulsePanel({
         ? '…'
         : '—';
 
+  const maxCards = card.topMulti.reduce(
+    (m, s) => Math.max(m, s.cardCount),
+    0
+  );
+
   return (
     <section
       className={`rounded-xl border border-border-subtle bg-surface-panel/60 px-3.5 py-3 md:px-4 md:py-3.5 ${className}`}
@@ -59,20 +67,32 @@ export default function CrowdNightPulsePanel({
       </div>
 
       {card.topMulti.length > 0 ? (
-        <ul className="mt-2 space-y-1">
-          {card.topMulti.map((s) => (
-            <li
-              key={s.title}
-              className="flex items-baseline justify-between gap-3 text-[11px] md:text-xs"
-            >
-              <span className="min-w-0 truncate font-semibold text-white">
-                {s.title}
-              </span>
-              <span className="shrink-0 font-medium text-content-secondary">
-                {s.cardCount} · {s.pctOfPickers}%
-              </span>
-            </li>
-          ))}
+        <ul className="mt-2.5 space-y-2">
+          {card.topMulti.map((s) => {
+            const intensity =
+              maxCards > 0 ? Math.max(0.12, s.cardCount / maxCards) : 0.12;
+            return (
+              <li key={s.title}>
+                <div className="flex items-baseline justify-between gap-3 text-[11px] md:text-xs">
+                  <span className="min-w-0 truncate font-semibold text-white">
+                    {s.title}
+                  </span>
+                  <span className="shrink-0 font-medium tabular-nums text-content-secondary">
+                    {s.cardCount} · {s.pctOfPickers}%
+                  </span>
+                </div>
+                <div
+                  className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-field"
+                  aria-hidden
+                >
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-brand-primary/90 to-brand-primary/40"
+                    style={{ width: `${Math.round(intensity * 100)}%` }}
+                  />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="mt-2 text-[11px] text-content-secondary">
@@ -82,88 +102,116 @@ export default function CrowdNightPulsePanel({
 
       <details className="group mt-3 border-t border-border-subtle pt-2">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-content-secondary transition-colors hover:text-white [&::-webkit-details-marker]:hidden">
-          <span>Full crowd stats</span>
+          <span className="inline-flex items-center gap-1.5">
+            Full crowd stats
+            {blurDeepStats ? (
+              <Lock className="h-3 w-3 shrink-0" aria-hidden />
+            ) : null}
+          </span>
           <ChevronDown
             className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
             aria-hidden
           />
         </summary>
 
-        <div className="mt-3 space-y-4 text-[11px] md:text-xs">
-          <div>
-            <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
-              Multi-picker songs
-            </p>
-            <CrowdTable
-              headers={['Song', 'Cards', '%']}
-              rows={night.multiPickerSongs.slice(0, 20).map((s) => [
-                s.title,
-                String(s.cardCount),
-                `${s.pctOfPickers}%`,
-              ])}
-            />
-          </div>
+        <div className="relative mt-3 min-h-[7rem]">
+          {blurDeepStats ? (
+            <div
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 rounded-lg px-3 text-center"
+              role="status"
+            >
+              <p className="text-[11px] font-bold text-white md:text-xs">
+                Unlocks at showtime
+              </p>
+              <p className="max-w-[16rem] text-[10px] font-medium text-content-secondary">
+                Gap, vintage, and tour leaders stay private until picks lock
+              </p>
+            </div>
+          ) : null}
 
-          <div>
-            <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
-              Highest gap (top 10)
-            </p>
-            {catalogLoading && (!catalog?.highestGap?.length) ? (
-              <p className="text-content-secondary">Loading catalog…</p>
-            ) : (
+          <div
+            className={`space-y-4 text-[11px] md:text-xs ${
+              blurDeepStats
+                ? 'pointer-events-none select-none blur-sm'
+                : ''
+            }`}
+            aria-hidden={blurDeepStats || undefined}
+          >
+            <div>
+              <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
+                Multi-picker songs
+              </p>
               <CrowdTable
-                headers={['Song', 'Gap', 'Cards']}
-                rows={(catalog?.highestGap || []).map((s) => [
+                headers={['Song', 'Cards', '%']}
+                rows={night.multiPickerSongs.slice(0, 20).map((s) => [
                   s.title,
-                  String(s.gap),
                   String(s.cardCount),
+                  `${s.pctOfPickers}%`,
                 ])}
               />
-            )}
-          </div>
+            </div>
 
-          <div>
-            <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
-              Vintage (slot-weighted)
-            </p>
-            <p className="font-medium text-white">
-              Mean debut {vintageLabel}
-              {catalog?.vintage?.medianYear != null
-                ? ` · median ${Math.round(catalog.vintage.medianYear)}`
-                : ''}
-            </p>
-            <p className="mt-0.5 text-content-secondary">
-              Coverage {catalog?.vintage?.coveragePct ?? 0}% (
-              {catalog?.vintage?.datedSlots ?? 0}/
-              {catalog?.vintage?.totalSlots ?? 0} slots)
-            </p>
-          </div>
+            <div>
+              <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
+                Highest gap (top 10)
+              </p>
+              {catalogLoading && !catalog?.highestGap?.length ? (
+                <p className="text-content-secondary">Loading catalog…</p>
+              ) : (
+                <CrowdTable
+                  headers={['Song', 'Gap', 'Cards']}
+                  rows={(catalog?.highestGap || []).map((s) => [
+                    s.title,
+                    String(s.gap),
+                    String(s.cardCount),
+                  ])}
+                />
+              )}
+            </div>
 
-          <div>
-            <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
-              Tour leaders tonight ({leaders?.lockedInLabel || '0/5'})
-            </p>
-            {leaders?.leaders?.length ? (
-              <ol className="mb-2 space-y-0.5 text-content-secondary">
-                {leaders.leaders.map((l) => (
-                  <li key={l.uid || l.rank}>
-                    #{l.rank}{' '}
-                    <span className="font-semibold text-white">{l.handle}</span>
-                    {typeof l.totalPoints === 'number'
-                      ? ` · ${l.totalPoints} pts`
-                      : ''}
-                  </li>
-                ))}
-              </ol>
-            ) : null}
-            <CrowdTable
-              headers={['Song', 'Among top 5', 'Who']}
-              rows={(leaders?.songs || []).slice(0, 12).map((s) => [
-                s.title,
-                String(s.cardCount),
-                (s.amongLeaders || []).join(', '),
-              ])}
-            />
+            <div>
+              <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
+                Vintage (slot-weighted)
+              </p>
+              <p className="font-medium text-white">
+                Mean debut {vintageLabel}
+                {catalog?.vintage?.medianYear != null
+                  ? ` · median ${Math.round(catalog.vintage.medianYear)}`
+                  : ''}
+              </p>
+              <p className="mt-0.5 text-content-secondary">
+                Coverage {catalog?.vintage?.coveragePct ?? 0}% (
+                {catalog?.vintage?.datedSlots ?? 0}/
+                {catalog?.vintage?.totalSlots ?? 0} slots)
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-content-secondary">
+                Tour leaders tonight ({leaders?.lockedInLabel || '0/5'})
+              </p>
+              {leaders?.leaders?.length ? (
+                <ol className="mb-2 space-y-0.5 text-content-secondary">
+                  {leaders.leaders.map((l) => (
+                    <li key={l.uid || l.rank}>
+                      #{l.rank}{' '}
+                      <span className="font-semibold text-white">{l.handle}</span>
+                      {typeof l.totalPoints === 'number'
+                        ? ` · ${l.totalPoints} pts`
+                        : ''}
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+              <CrowdTable
+                headers={['Song', 'Among top 5', 'Who']}
+                rows={(leaders?.songs || []).slice(0, 12).map((s) => [
+                  s.title,
+                  String(s.cardCount),
+                  (s.amongLeaders || []).join(', '),
+                ])}
+              />
+            </div>
           </div>
         </div>
       </details>

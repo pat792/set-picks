@@ -13,12 +13,14 @@ import {
  * @param {string} props.showDate
  * @param {Array<Record<string, unknown>> | null | undefined} props.picks
  * @param {Array<{ uid: string, handle?: string, totalPoints?: number }> | null | undefined} props.tourLeaders
+ * @param {string} [props.showStatus] — NEXT blurs deep stats; LIVE/PAST unlock
  * @param {string} [props.className]
  */
 export default function StandingsCrowdPulse({
   showDate,
   picks,
   tourLeaders,
+  showStatus = '',
   className = '',
 }) {
   const { card, night, catalog, leaders, catalogLoading, ready } =
@@ -34,6 +36,7 @@ export default function StandingsCrowdPulse({
       catalog={catalog}
       leaders={leaders}
       catalogLoading={catalogLoading}
+      blurDeepStats={showStatus === 'NEXT'}
     />
   );
 }
