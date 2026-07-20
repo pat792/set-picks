@@ -1,6 +1,8 @@
-# Pre-lock disclosure: crowd pulse (#689)
+# Pre-lock disclosure: crowd pulse (#689 / #694)
 
 **Decision (2026-07-20):** Pre-lock, **top songs stay visible**; gap / vintage / leaders / full tables **blur until showtime** (picks lock → LIVE).
+
+**Ship status:** Standings crowd pulse productized in #694 (no “prototype” label). Stats deep-dive + picks helper remain P1/P2 on that issue.
 
 ## Product split
 
@@ -20,12 +22,13 @@ Rationale: named chalk is the engagement hook (“the room is on X”); deep cat
 
 ## UI notes
 
-- Top songs use profile-style **frequency meters** (Standings brand gradient, not profile red→blue).
+- Top songs use **frequency meters** via `crowd-picks/ui/FrequencyMeterRow` (Standings brand gradient).
 - Blur is presentation-only; aggregators still compute (needed for unlock + CLI).
-- Gate: `blurDeepStats={showStatus === 'NEXT'}` on `CrowdNightPulsePanel`.
+- Gate: `blurDeepStats={showStatus === 'NEXT'}` on `CrowdNightPulsePanel` (wired in `StandingsCrowdPulse`).
 
 ## Out of scope (later)
 
 - Opt-out pref for competitive players (“hide crowd pulse”)
 - Picks helper: live consensus chips only post-lock; historical tour chalk pre-lock
 - Telemetry: teaser expand attempts vs post-lock full expand
+- Link to dedicated Stats surface (P1 on #694)

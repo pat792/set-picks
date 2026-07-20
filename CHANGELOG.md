@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.35.2] — 2026-07-20
+
+### Changed
+- **Crowd pulse ship (#694)** — drop Standings “prototype” label; final chrome/copy; extract `FrequencyMeterRow`; blur gate helper + tests. Stats deep-dive / picks helper remain on #694 P1–P2.
+
+---
+
 ## [1.35.1] — 2026-07-20
 
 ### Changed
@@ -24,7 +31,7 @@ No unreleased changes.
 ## [1.35.0] — 2026-07-20
 
 ### Added
-- **Crowd pulse on Standings Show (#687 / #689)** — pre-show summary of tonight’s multi-picker songs (frequency meters); deep stats (gap, vintage, tour leaders) blur until picks lock. Feature module `src/features/crowd-picks/`. Further Stats page / helper work parked in #694.
+- **Crowd pulse on Standings Show (#687 / #689)** — pre-show summary of tonight’s multi-picker songs (frequency meters); deep stats (gap, vintage, tour leaders) blur until picks lock. Feature module `src/features/crowd-picks/`. Standings productization in **1.35.2** (#694); Stats page / helper remain #694 P1–P2.
 - **Internal picks rollup report (#687)** — `functions/scripts/picksRollupReport.js` + methodology under `docs/picks-rollup/` for nightly picker volume and song insights.
 
 ---
