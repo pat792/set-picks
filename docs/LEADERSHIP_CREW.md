@@ -106,13 +106,16 @@ Default CrewAI run: **`optimize`**.
 
 ### Kickoff prompts
 
-**Optimize (terminal, evidence-backed — #697):**
+**Optimize (terminal — MCP snapshot embed, #697):**
 
 ```bash
-crew/.venv/bin/python -m crew.scripts.ga4_snapshot --window last_7_days
+crew/.venv/bin/python -m crew.scripts.ga4_snapshot --from-file path/to/mcp-export.md
 crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
-  --input optimize_for=picks_lock --input window=last_7_days
+  --input optimize_for=picks_lock --input window=last_7_days \
+  --ga4-snapshot crew/output/intel/ga4-….md
 ```
+
+Details: `docs/GA4_MCP_SETUP.md` §5.
 
 **Cursor (Optimize with GA4 MCP):**
 

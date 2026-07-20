@@ -78,21 +78,20 @@ Official walkthrough: [YouTube — Google Analytics MCP setup](https://www.youtu
 
 ## 5. Leadership Crew Optimize (#697)
 
-Terminal CrewAI does **not** see Cursor MCP automatically. Feed facts via a snapshot:
+Terminal CrewAI does **not** see Cursor MCP automatically. **For now, prefer Cursor GA4 MCP → snapshot file → optimize** (local `gcloud` ADC login often fails on sensitive Analytics scopes).
 
 ```bash
-# Preferred when ADC works (same login as §2):
-crew/.venv/bin/python -m crew.scripts.ga4_snapshot --window last_7_days
-
-# If ADC needs reauth (`gcloud auth application-default login …`), export via Cursor
-# GA4 MCP instead, save markdown, then:
+# 1) In Cursor: run a GA4 MCP report (property 527619709, last 7 days / picks_lock events)
+#    Save or regenerate markdown under crew/output/intel/ (gitignored), e.g.:
 crew/.venv/bin/python -m crew.scripts.ga4_snapshot --from-file path/to/mcp-export.md
 
+# 2) Kickoff (embeds snapshot text into tasks; fails closed if missing)
 crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
-  --input optimize_for=picks_lock --input window=last_7_days
+  --input optimize_for=picks_lock --input window=last_7_days \
+  --ga4-snapshot crew/output/intel/ga4-….md
 ```
 
-Default property: **527619709** (`GA4_PROPERTY_ID` override). Schema example: `crew/knowledge/ga4_snapshot.example.md`.
+Optional later: ADC / service-account `ga4_snapshot` without `--from-file` when credentials work (`docs/GA4_MCP_SETUP.md` §2). Schema example: `crew/knowledge/ga4_snapshot.example.md`. Property default **527619709**.
 
 ## Security
 

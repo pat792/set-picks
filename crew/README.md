@@ -32,19 +32,17 @@ crew/.venv/bin/python -m crew.scripts.run_pipeline smoke
 
 ### Optimize (evidence-backed — issue #697)
 
-```bash
-# 1) Facts snapshot (ADC same as docs/GA4_MCP_SETUP.md) OR Cursor GA4 MCP → --from-file
-crew/.venv/bin/python -m crew.scripts.ga4_snapshot --window last_7_days
+**Default for now:** Cursor GA4 MCP → snapshot file → embed in kickoff (not gcloud ADC).
 
-# 2) Kickoff (fails closed without snapshot unless --allow-no-ga4)
+```bash
+# After saving an MCP export (or regenerating via --from-file):
+crew/.venv/bin/python -m crew.scripts.ga4_snapshot --from-file path/to/mcp-export.md
 crew/.venv/bin/python -m crew.scripts.run_pipeline optimize \
-  --input optimize_for=picks_lock --input window=last_7_days
-# optional: --ga4-snapshot path/to/ga4-….md
+  --input optimize_for=picks_lock --input window=last_7_days \
+  --ga4-snapshot crew/output/intel/ga4-….md
 ```
 
-Results: `crew/output/runs/optimize-<stamp>/final.md` plus `tasks/*.md`. Never invent metrics — cite the snapshot.
-
-Start with **`smoke`** before full **`optimize`**.
+See `docs/GA4_MCP_SETUP.md` §5. Results: `crew/output/runs/optimize-<stamp>/final.md` + `tasks/`. Cite snapshot only — no invented metrics.
 
 ## Layout
 
