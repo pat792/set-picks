@@ -129,9 +129,10 @@ def build_crew(pipeline_id: str, *, verbose: bool = True):
         tasks.append(
             Task(
                 description=task_spec["description"]
-                + "\n\nUse kickoff inputs (optimize_for, window, ga4_snapshot_path, ga4_snapshot). "
+                + "\n\nKickoff inputs include: optimize_for, window, ga4_snapshot_path, and ga4_snapshot "
+                "(the full facts markdown — you cannot open local files; use ga4_snapshot text). "
                 "Stay draft-only; never claim to have merged, deployed, or sent production messages. "
-                "Never invent metrics — cite ga4_snapshot or write unknown.",
+                "Never invent metrics — cite ga4_snapshot table rows or write unknown.",
                 expected_output=task_spec["expected_output"],
                 agent=agents_by_id[agent_id],
             )

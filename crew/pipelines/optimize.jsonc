@@ -29,7 +29,7 @@
     {
       "id": "evidence",
       "agent": "reporting_lead",
-      "description": "Read ONLY the GA4 snapshot at {ga4_snapshot_path} (if provided). Quote eventCount/totalUsers from that file. For any missing metric write unknown. Never invent conversion/retention percentages. Structure a measurement section for the PM pack aligned to docs/comms-triggers/MEASUREMENT_PLAN.md and OPTIMIZE_AUTONOMY.md.",
+      "description": "Read ONLY the GA4 facts from kickoff input ga4_snapshot (full markdown table). Path for reference: {ga4_snapshot_path}. Quote eventCount/totalUsers from that table (e.g. comms_delivered, comms_opened, submit_picks). For any missing metric write unknown. Never invent conversion/retention percentages. Structure a measurement section for the PM pack aligned to docs/comms-triggers/MEASUREMENT_PLAN.md and OPTIMIZE_AUTONOMY.md.",
       "expected_output": "Measurement section with cited GA4 facts or explicit unknown."
     },
     {
