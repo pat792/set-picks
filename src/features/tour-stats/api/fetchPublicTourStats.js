@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 
 import { db } from '../../../shared/lib/firebase';
+import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 
 /**
  * @typedef {{
@@ -19,6 +20,7 @@ import { db } from '../../../shared/lib/firebase';
  * }>}
  */
 export async function fetchPublicTourStatsIndex() {
+  await whenFirebaseReady();
   const snap = await getDoc(doc(db, 'public_tour_stats', '_index'));
   if (!snap.exists()) {
     return { tours: [], defaultTourSlug: '2026-sphere' };
@@ -39,6 +41,7 @@ export async function fetchPublicTourStatsIndex() {
 export async function fetchPublicTourStatsDoc(tourSlug) {
   const slug = String(tourSlug ?? '').trim();
   if (!slug || slug.startsWith('_')) return null;
+  await whenFirebaseReady();
   const snap = await getDoc(doc(db, 'public_tour_stats', slug));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() };
@@ -49,6 +52,7 @@ export async function fetchPublicTourStatsDoc(tourSlug) {
  * @returns {Promise<PublicTourIndexEntry[]>}
  */
 export async function listPublicTourStatsDocs() {
+  await whenFirebaseReady();
   const q = query(collection(db, 'public_tour_stats'), where('schemaVersion', '==', 1));
   const snap = await getDocs(q);
   return snap.docs

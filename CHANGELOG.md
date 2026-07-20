@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.34.3] — 2026-07-19
+
+### Fixed
+- **Public tour-stats App Check race (#665)** — await `whenFirebaseReady()` before `public_tour_stats` reads; kick App Check on page mount so localhost/prod enforcement does not 403 the first fetch.
+
+---
+
 ## [1.34.2] — 2026-07-19
 
 ### Changed
