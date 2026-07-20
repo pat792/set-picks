@@ -10,8 +10,8 @@ const {
 } = require("./aggregateTourSetlistStats.cjs");
 
 describe("tourLabelToSlug", () => {
-  it("kebab-cases Sphere Run 2026", () => {
-    assert.equal(tourLabelToSlug("Sphere Run 2026"), "sphere-run-2026");
+  it("kebab-cases 2026 Sphere", () => {
+    assert.equal(tourLabelToSlug("2026 Sphere"), "2026-sphere");
   });
   it("kebab-cases Summer Tour 2026", () => {
     assert.equal(tourLabelToSlug("Summer Tour 2026"), "summer-tour-2026");

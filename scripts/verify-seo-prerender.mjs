@@ -45,7 +45,7 @@ assert(
   'expected /tour-stats prerender entry',
 );
 assert(
-  PRERENDER_ROUTES.some((r) => r.path === '/tour-stats/sphere-run-2026'),
+  PRERENDER_ROUTES.some((r) => r.path === '/tour-stats/2026-sphere'),
   'expected Sphere tour-stats prerender entry',
 );
 assert(

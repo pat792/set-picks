@@ -129,20 +129,47 @@ async function refreshPublicTourStats(db, opts = {}) {
       return a.tourLabel.localeCompare(b.tourLabel);
     });
 
+  const defaultTourSlug = pickDefaultPublicTourSlug(indexTours);
+
   await db.collection("public_tour_stats").doc("_index").set(
     {
       tours: indexTours,
-      defaultTourSlug: "sphere-run-2026",
+      defaultTourSlug,
       writtenAt,
       schemaVersion: 1,
     },
     { merge: false }
   );
 
-  return { toursWritten, today, indexCount: indexTours.length };
+  return { toursWritten, today, indexCount: indexTours.length, defaultTourSlug };
+}
+
+/**
+ * Prefer Sphere (game launch) when present; else first indexed tour.
+ * @param {Array<{ tourSlug: string, tourLabel: string }>} indexTours
+ * @returns {string}
+ */
+function pickDefaultPublicTourSlug(indexTours) {
+  const preferredSlugs = [
+    "2026-sphere",
+    "sphere-run-2026",
+    "sphere-2026",
+    "sphere",
+  ];
+  for (const slug of preferredSlugs) {
+    if (indexTours.some((t) => t.tourSlug === slug)) return slug;
+  }
+  const sphere = indexTours.find(
+    (t) =>
+      /sphere/i.test(String(t.tourLabel || "")) ||
+      /sphere/i.test(String(t.tourSlug || ""))
+  );
+  if (sphere) return sphere.tourSlug;
+  return indexTours[0]?.tourSlug || "2026-sphere";
 }
 
 module.exports = {
   refreshPublicTourStats,
+  pickDefaultPublicTourSlug,
   GAME_LAUNCH_SHOW_DATE,
 };
