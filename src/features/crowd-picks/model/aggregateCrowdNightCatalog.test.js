@@ -102,7 +102,7 @@ describe('aggregateCrowdNightCatalog (#691)', () => {
       ],
       { a: 2000, b: 1990 }
     );
-    // 2×2000 + 4×1990 = 4000+7960 = 11960 / 6 = 1993.333…
-    expect(v.avgYear).toBeCloseTo(11960 / 6, 5);
+    // 2×2000 + 4×1990 = 11960 / 6 → rounded to 3 decimals
+    expect(v.avgYear).toBe(1993.333);
   });
 });
