@@ -14,6 +14,15 @@ No unreleased changes.
 
 ---
 
+## [1.35.4] — 2026-07-21
+
+### Changed
+- **Dashboard card system (#710)** — shared `dashboardCardClasses` module (radius, pad, L1/L2 heights, type scale); `standingsSurfaceClasses` re-exports it; Standings, crowd pulse, SponsorSlot, and Tour Stats consume the shared tokens.
+- **Stats naming polish (#710)** — "Picking average" unified across profile + tour stats with batting-average display (`.167`); "Avg pts / show" → "Points per show" with PPG tooltip; public profile stats gain InfoTooltips (footnote paragraph removed).
+- **Tour stats view (#710)** — "Your picks this tour" on shared `StatTile` (bottom-pinned `x/y correct` sub-line); personal section recolored to the muted blue family with an emerald hybrid Bustout Boost band; `InfoTooltip` accepts `triggerClassName`.
+
+---
+
 ## [1.35.3] — 2026-07-20
 
 ### Added

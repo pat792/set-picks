@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChartNoAxesCombined, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -8,6 +8,14 @@ import {
   STANDINGS_SHARE_AFTER_FINALIZE_INLINE,
 } from '../../../shared/config/dashboardVocabulary';
 import GradedPicksShareBar from './GradedPicksShareBar';
+import {
+  STANDINGS_BOX_CHEVRON,
+  STANDINGS_BOX_EYEBROW,
+  STANDINGS_BOX_EYEBROW_ICON,
+  STANDINGS_BOX_L2_MIN_H,
+  STANDINGS_BOX_PAD,
+  STANDINGS_BOX_RADIUS,
+} from './standingsSurfaceClasses';
 
 /**
  * Self recap: rank + points (no handle — user is always “you” here), share after finalize,
@@ -109,7 +117,13 @@ export default function StandingsSelfRecapCard({
       className={`flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 ${useCollapsible ? 'flex-1' : 'w-full'} ${showEyebrow ? 'justify-between' : 'justify-end'} ${rowLeading}`}
     >
       {showEyebrow ? (
-        <span className="shrink-0 text-xs font-black uppercase tracking-widest text-amber-200/90">
+        <span
+          className={`inline-flex shrink-0 items-center gap-1.5 ${STANDINGS_BOX_EYEBROW} text-amber-200/90`}
+        >
+          <ChartNoAxesCombined
+            className={`${STANDINGS_BOX_EYEBROW_ICON} text-amber-200/90`}
+            aria-hidden
+          />
           {STANDINGS_SELF_RECAP_EYEBROW}
         </span>
       ) : null}
@@ -137,7 +151,7 @@ export default function StandingsSelfRecapCard({
 
   const chevronToggle = useCollapsible ? (
     <ChevronDown
-      className="h-4 w-4 shrink-0 text-content-secondary opacity-80 transition-transform duration-200 ease-out group-open:rotate-180"
+      className={`${STANDINGS_BOX_CHEVRON} duration-200 ease-out group-open:rotate-180`}
       aria-hidden
     />
   ) : null;
@@ -204,7 +218,7 @@ export default function StandingsSelfRecapCard({
       </p>
     ) : null;
 
-  const shellClass = `rounded-xl border border-border-subtle/55 bg-surface-panel/55 px-3.5 py-3.5 shadow-inset-glass ring-1 ring-brand-primary/15 md:px-4 md:py-4 ${className}`;
+  const shellClass = `flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_BOX_RADIUS} border border-border-subtle/55 bg-surface-panel/55 ${STANDINGS_BOX_PAD} shadow-inset-glass ring-1 ring-brand-primary/15 ${className}`;
 
   if (useCollapsible) {
     return (

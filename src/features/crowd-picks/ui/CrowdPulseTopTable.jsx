@@ -9,7 +9,9 @@ const HEADER_INSET = 'px-[calc(0.5rem+1.5px)]';
 
 /**
  * Crowd song table: Song · Pickers (or custom) · Gap · Last, optional intensity meters.
- * Rows that appear in the official setlist get a red→blue gradient highlight.
+ * Rows that appear in the official setlist get a brand-teal highlight
+ * (success/score role per docs/design.md §2) so they contrast with the
+ * red→blue intensity meters.
  *
  * @param {object} props
  * @param {Array<{
@@ -80,7 +82,7 @@ export default function CrowdPulseTopTable({
               key={s.title}
               className={`${ROW_SHELL} ${
                 played
-                  ? 'bg-gradient-to-r from-brand-accent-red via-violet-500 to-brand-accent-blue shadow-[0_0_14px_-3px_rgba(59,130,246,0.55)]'
+                  ? 'bg-brand-primary/80 shadow-[0_0_14px_-3px_rgba(45,212,191,0.55)]'
                   : 'bg-transparent'
               }`}
             >
@@ -128,7 +130,7 @@ export default function CrowdPulseTopTable({
                     aria-hidden
                   >
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-brand-primary/90 to-brand-primary/40"
+                      className="h-full rounded-full bg-gradient-to-r from-brand-accent-red to-brand-accent-blue"
                       style={{ width: `${Math.round(intensity * 100)}%` }}
                     />
                   </div>

@@ -45,16 +45,17 @@ export default function ProfileSelfStatsPanel({ uid }) {
   const columns = [
     {
       key: 'avgPts',
-      label: 'Avg pts / show',
+      label: 'Points per show',
       value: avgPoints,
-      definition: 'Mean points per graded show across your career.',
+      definition:
+        'Like points per game in basketball — mean points per graded show across your career.',
     },
     {
       key: 'avgCorrect',
-      label: 'Avg correct / show',
+      label: 'Picking average',
       value: avgCorrect,
       definition:
-        'Mean correct pick slots per graded show. Shows — until your account has been rolled up after a finalize.',
+        'Like a batting average in baseball — lifetime correct picks ÷ total picks across your graded shows (.500 means half your picks hit). Shows — until your account has been rolled up after a finalize.',
     },
     {
       key: 'vintage',

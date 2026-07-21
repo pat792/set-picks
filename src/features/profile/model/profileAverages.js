@@ -65,18 +65,17 @@ export function computeAvgCorrectPicksPerShow(stats) {
 }
 
 /**
- * @param {number | null | undefined} avg
+ * Displayed batting-average style (".167", "1.000") — the bare ratio
+ * ("0.17") read like a count of correct picks (#554 follow-up).
+ *
+ * @param {number | null | undefined} avg — slot-hit ratio in [0, 1]
  * @returns {string}
  */
 export function formatAvgCorrectPicksPerShow(avg) {
   if (typeof avg !== 'number' || !Number.isFinite(avg)) return '—';
-  const rounded = Math.round(avg * 100) / 100;
-  if (Number.isInteger(rounded)) return String(rounded);
-  const one = Math.round(avg * 10) / 10;
-  if (Math.abs(one - rounded) < 1e-9) {
-    return Number.isInteger(one) ? String(one) : one.toFixed(1);
-  }
-  return rounded.toFixed(2);
+  const fixed = avg.toFixed(3);
+  // Batting-average convention: drop the leading zero (.167), keep 1.000.
+  return fixed.startsWith('0.') ? fixed.slice(1) : fixed;
 }
 
 /**

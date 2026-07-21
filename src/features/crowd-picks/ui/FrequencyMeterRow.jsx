@@ -2,7 +2,7 @@ import { meterIntensity } from '../model/meterIntensity';
 
 /**
  * One song row with label, count line, and intensity meter (#694).
- * Standings uses brand gradient; profile strip keeps its own colors.
+ * Standings uses the red→blue accent gradient; profile strip keeps its own colors.
  *
  * @param {object} props
  * @param {string} props.title
@@ -17,7 +17,7 @@ export default function FrequencyMeterRow({
   meta,
   count,
   maxCount,
-  barClassName = 'bg-gradient-to-r from-brand-primary/90 to-brand-primary/40',
+  barClassName = 'bg-gradient-to-r from-brand-accent-red to-brand-accent-blue',
   titleClassName = 'font-semibold text-white',
   metaClassName = 'font-medium tabular-nums text-content-secondary',
 }) {

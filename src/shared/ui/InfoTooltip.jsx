@@ -80,9 +80,14 @@ function clampTooltipPosition(triggerRect, tooltipWidth, tooltipHeight) {
  * @param {{
  *   label: string,
  *   definition: string,
+ *   triggerClassName?: string, // color override for the info icon button
  * }} props
  */
-export default function InfoTooltip({ label, definition }) {
+export default function InfoTooltip({
+  label,
+  definition,
+  triggerClassName = 'text-brand-primary/85 hover:text-brand-primary',
+}) {
   const reactId = useId();
   const tooltipId = `info-tip-${reactId}`;
   const { openId, setOpenId } = useContext(InfoTooltipContext);
@@ -158,7 +163,7 @@ export default function InfoTooltip({ label, definition }) {
       <button
         ref={triggerRef}
         type="button"
-        className="shrink-0 rounded p-0.5 text-brand-primary/85 transition-colors hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+        className={`shrink-0 rounded p-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg ${triggerClassName}`}
         aria-label={`About ${label}`}
         aria-expanded={open}
         aria-controls={tooltipId}

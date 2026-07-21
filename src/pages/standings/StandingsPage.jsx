@@ -62,14 +62,14 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
       <div className="mt-4 md:mt-5">
         <StandingsInvitePromo
           onInvite={invite.openChooser}
-          className="mb-4"
+          className="mb-3"
         />
 
         {/*
           Ads epic #419 Phase 1 seam — no-op unless VITE_ENABLE_SPONSOR_SLOTS.
           Filled house-promo mock for local layout QA (#609); #121 replaces this.
         */}
-        <SponsorSlot slotId="dashboard-standings-top" className="mb-4">
+        <SponsorSlot slotId="dashboard-standings-top" className="mb-3">
           <StandingsSponsorPreview onCtaClick={invite.openChooser} />
         </SponsorSlot>
 

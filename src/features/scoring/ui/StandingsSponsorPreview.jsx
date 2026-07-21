@@ -4,6 +4,11 @@ import {
   BRAND_APP_CHROME_MARK_SRC,
 } from '../../../shared/config/branding';
 import Button from '../../../shared/ui/Button';
+import {
+  STANDINGS_BOX_BODY,
+  STANDINGS_BOX_MEDIA_TILE,
+  STANDINGS_BOX_TITLE,
+} from './standingsSurfaceClasses';
 
 /**
  * Local house-promo mock for the Standings `SponsorSlot` seam (#609).
@@ -20,14 +25,14 @@ export default function StandingsSponsorPreview({ onCtaClick }) {
         alt=""
         width={56}
         height={56}
-        className="h-14 w-14 shrink-0 rounded-xl object-contain"
+        className={`${STANDINGS_BOX_MEDIA_TILE} object-contain`}
         decoding="async"
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold leading-snug text-white md:text-base">
+        <p className={`truncate ${STANDINGS_BOX_TITLE}`}>
           Bring your crew to Standings
         </p>
-        <p className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-snug text-content-secondary md:text-xs">
+        <p className={`mt-0.5 line-clamp-2 ${STANDINGS_BOX_BODY}`}>
           Invite friends to a pool — share the board, own the night.
         </p>
       </div>
