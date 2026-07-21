@@ -22,7 +22,10 @@ import {
 import OfficialPickSlotsGrid from './OfficialPickSlotsGrid';
 import {
   STANDINGS_BOX_BODY,
+  STANDINGS_BOX_CHEVRON,
   STANDINGS_BOX_EYEBROW,
+  STANDINGS_BOX_EYEBROW_ICON,
+  STANDINGS_BOX_L2_MIN_H,
   STANDINGS_BOX_TITLE,
   STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
@@ -156,7 +159,7 @@ export default function StandingsOfficialSetlistCard({
       as="section"
       variant="default"
       padding="none"
-      className={`mb-3 ${STANDINGS_CARD_SHELL} ${className}`.trim()}
+      className={`mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_CARD_SHELL} ${className}`.trim()}
     >
       <details
         className="group"
@@ -167,7 +170,7 @@ export default function StandingsOfficialSetlistCard({
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <ListMusic
-                className="h-4 w-4 shrink-0 text-brand-primary"
+                className={`${STANDINGS_BOX_EYEBROW_ICON} text-brand-primary`}
                 aria-hidden
               />
               <p className={`${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
@@ -193,7 +196,7 @@ export default function StandingsOfficialSetlistCard({
             )}
           </div>
           <ChevronDown
-            className="mt-1 h-5 w-5 shrink-0 text-content-secondary transition-transform group-open:rotate-180"
+            className={`mt-0.5 ${STANDINGS_BOX_CHEVRON} group-open:rotate-180`}
             aria-hidden
           />
         </summary>

@@ -1,6 +1,15 @@
 import React, { useEffect, useRef } from 'react';
-import { ChevronDown, Lock } from 'lucide-react';
+import { ChevronDown, Lock, Radio } from 'lucide-react';
 
+import {
+  DASHBOARD_CARD_BODY,
+  DASHBOARD_CARD_CHEVRON,
+  DASHBOARD_CARD_EYEBROW,
+  DASHBOARD_CARD_EYEBROW_ICON,
+  DASHBOARD_CARD_L2_MIN_H,
+  DASHBOARD_CARD_PAD,
+  DASHBOARD_CARD_RADIUS,
+} from '../../../shared/ui/dashboardCardClasses';
 import {
   trackCrowdPulseFullExpand,
   trackCrowdPulseSectionOpen,
@@ -10,6 +19,9 @@ import CrowdPulseTopTable from './CrowdPulseTopTable';
 
 /**
  * Crowd pulse summary + expandable deep analysis (#694 ship).
+ * Collapsed by default to match sibling Standings card heights: the summary
+ * row teases the leading multi-picker song; expanding reveals the top table
+ * and the "Full crowd stats" disclosure.
  * Pre-lock (NEXT): top multi-picker songs stay visible; gap / vintage /
  * leaders blur until showtime. Presentational — data from `useCrowdNightStats`.
  *
@@ -51,13 +63,16 @@ export default function CrowdNightPulsePanel({
   if (!card || !night || night.pickers === 0) {
     return (
       <section
-        className={`rounded-xl border border-border-subtle bg-surface-panel/60 px-3.5 py-3 ${className}`}
+        className={`flex ${DASHBOARD_CARD_L2_MIN_H} flex-col justify-center ${DASHBOARD_CARD_RADIUS} border border-border-subtle bg-surface-panel/60 ${DASHBOARD_CARD_PAD} ${className}`}
         aria-label="Crowd pulse"
       >
-        <p className="text-[10px] font-black uppercase tracking-widest text-content-secondary">
+        <p
+          className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-content-secondary`}
+        >
+          <Radio className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
           Crowd pulse
         </p>
-        <p className="mt-1 text-[11px] font-medium text-content-secondary md:text-xs">
+        <p className={`mt-1 ${DASHBOARD_CARD_BODY}`}>
           No submitted picks for this show yet.
         </p>
       </section>
@@ -81,157 +96,179 @@ export default function CrowdNightPulsePanel({
     }
   };
 
+  const onPanelToggle = (event) => {
+    if (event.currentTarget.open) {
+      trackCrowdPulseSectionOpen({
+        show_date: showDate || '',
+        section: 'top_songs',
+      });
+    }
+  };
+
+  const topSong = card.topMulti[0] || null;
+  const teaser = topSong
+    ? `“${topSong.title}” leads on ${topSong.cardCount} cards`
+    : 'No multi-picker songs yet (everyone unique).';
+
   return (
     <section
-      className={`rounded-xl border border-border-subtle bg-surface-panel/60 px-3.5 py-3 md:px-4 md:py-3.5 ${className}`}
+      className={`flex ${DASHBOARD_CARD_L2_MIN_H} flex-col justify-center ${DASHBOARD_CARD_RADIUS} border border-border-subtle bg-surface-panel/60 ${DASHBOARD_CARD_PAD} ${className}`}
       aria-label="Crowd pulse"
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
-            Crowd pulse
-          </p>
-          <p className="mt-0.5 text-[10px] font-medium text-content-secondary">
-            Top multi-picker songs tonight
-          </p>
-        </div>
-        <p className="text-[10px] font-semibold text-content-secondary">
-          {card.pickers} pickers · {card.uniqueSongs} songs
-        </p>
-      </div>
-
-      {showPlayedLegend ? (
-        <p className="mt-2 inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider text-content-secondary">
-          <span
-            className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm bg-gradient-to-r from-brand-accent-red to-brand-accent-blue"
-            aria-hidden
-          />
-          Highlight = played in setlist
-        </p>
-      ) : null}
-
-      {card.topMulti.length > 0 ? (
-        <CrowdPulseTopTable
-          rows={card.topMulti}
-          playedTitles={playedTitles}
-          catalogLoading={catalogLoading}
-        />
-      ) : (
-        <p className="mt-2 text-[11px] text-content-secondary">
-          No multi-picker songs yet (everyone unique).
-        </p>
-      )}
-
-      <details
-        className="group mt-3 border-t border-border-subtle pt-2"
-        onToggle={onFullToggle}
-      >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-brand-primary transition-colors hover:text-brand-primary-strong [&::-webkit-details-marker]:hidden">
-          <span className="inline-flex items-center gap-1.5">
-            Full crowd stats
-            {blurDeepStats ? (
-              <Lock className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-            ) : null}
-          </span>
-          <ChevronDown
-            className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
-            aria-hidden
-          />
+      <details className="group/pulse" onToggle={onPanelToggle}>
+        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <div className="flex items-center justify-between gap-2">
+            <p
+              className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-primary transition-colors group-hover/pulse:text-brand-primary-strong`}
+            >
+              <Radio className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
+              Crowd pulse
+            </p>
+            <p className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-semibold text-content-secondary">
+              {card.pickers} pickers · {card.uniqueSongs} songs
+              <ChevronDown
+                className={`${DASHBOARD_CARD_CHEVRON} group-open/pulse:rotate-180`}
+                aria-hidden
+              />
+            </p>
+          </div>
+          {/* Full-width row so long song titles get the whole card width. */}
+          <p className={`mt-0.5 truncate ${DASHBOARD_CARD_BODY}`}>{teaser}</p>
         </summary>
 
-        <div className="relative mt-3 min-h-[7rem]">
-          {blurDeepStats ? (
-            <div
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 rounded-lg px-3 text-center"
-              role="status"
-            >
-              <p className="text-[11px] font-bold text-white md:text-xs">
-                Unlocks at showtime
-              </p>
-              <p className="max-w-[16rem] text-[10px] font-medium text-content-secondary">
-                Full tables, vintage, and tour leaders stay private until picks
-                lock
-              </p>
-            </div>
-          ) : null}
+        {showPlayedLegend ? (
+          <p className="mt-2 inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider text-content-secondary">
+            <span
+              className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm bg-brand-primary/80"
+              aria-hidden
+            />
+            Highlight = played in setlist
+          </p>
+        ) : null}
 
-          <div
-            className={`space-y-2 ${
-              blurDeepStats
-                ? 'pointer-events-none select-none blur-sm'
-                : ''
-            }`}
-            aria-hidden={blurDeepStats || undefined}
-          >
-            <CrowdDeepSection
-              title="Multi-picker songs"
-              subtitle="Every song on 2+ cards tonight"
-              sectionId="multi_picker"
-              showDate={showDate}
-            >
-              <CrowdPulseTopTable
-                rows={multiFull}
-                playedTitles={playedTitles}
-                catalogLoading={catalogLoading}
-                className=""
-              />
-            </CrowdDeepSection>
+        {card.topMulti.length > 0 ? (
+          <CrowdPulseTopTable
+            rows={card.topMulti}
+            playedTitles={playedTitles}
+            catalogLoading={catalogLoading}
+          />
+        ) : (
+          <p className="mt-2 text-[11px] text-content-secondary">
+            No multi-picker songs yet (everyone unique).
+          </p>
+        )}
 
-            <CrowdDeepSection
-              title="Highest gaps"
-              subtitle="Top 10 picks by pre-show gap"
-              sectionId="highest_gaps"
-              showDate={showDate}
-            >
-              {catalogLoading && !catalog?.highestGap?.length ? (
-                <p className="text-[11px] text-content-secondary md:text-xs">
-                  Loading catalog…
+        <details
+          className="group mt-3 border-t border-border-subtle pt-2"
+          onToggle={onFullToggle}
+        >
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-brand-primary transition-colors hover:text-brand-primary-strong [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-1.5">
+              Full crowd stats
+              {blurDeepStats ? (
+                <Lock className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
+              ) : null}
+            </span>
+            <ChevronDown
+              className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+
+          <div className="relative mt-3 min-h-[7rem]">
+            {blurDeepStats ? (
+              <div
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 rounded-lg px-3 text-center"
+                role="status"
+              >
+                <p className="text-[11px] font-bold text-white md:text-xs">
+                  Unlocks at showtime
                 </p>
-              ) : (
+                <p className="max-w-[16rem] text-[10px] font-medium text-content-secondary">
+                  Full tables, vintage, and tour leaders stay private until
+                  picks lock
+                </p>
+              </div>
+            ) : null}
+
+            <div
+              className={`space-y-2 ${
+                blurDeepStats
+                  ? 'pointer-events-none select-none blur-sm'
+                  : ''
+              }`}
+              aria-hidden={blurDeepStats || undefined}
+            >
+              <CrowdDeepSection
+                title="Multi-picker songs"
+                subtitle="Every song on 2+ cards tonight"
+                sectionId="multi_picker"
+                showDate={showDate}
+              >
                 <CrowdPulseTopTable
-                  rows={catalog?.highestGap || []}
+                  rows={multiFull}
                   playedTitles={playedTitles}
                   catalogLoading={catalogLoading}
                   className=""
                 />
-              )}
-            </CrowdDeepSection>
+              </CrowdDeepSection>
 
-            <CrowdDeepSection
-              title="Crowd vintage"
-              subtitle="Slot-weighted debut years across all picks"
-              sectionId="vintage"
-              showDate={showDate}
-            >
-              <p className="text-[12px] font-semibold text-white md:text-sm">
-                Mean debut {vintageLabel}
-                {catalog?.vintage?.medianYear != null
-                  ? ` · median ${Math.round(catalog.vintage.medianYear)}`
-                  : ''}
-              </p>
-              <p className="mt-1 text-[10px] font-medium text-content-secondary md:text-[11px]">
-                Coverage {catalog?.vintage?.coveragePct ?? 0}% (
-                {catalog?.vintage?.datedSlots ?? 0}/
-                {catalog?.vintage?.totalSlots ?? 0} slots)
-              </p>
-            </CrowdDeepSection>
+              <CrowdDeepSection
+                title="Highest gaps"
+                subtitle="Top 10 picks by pre-show gap"
+                sectionId="highest_gaps"
+                showDate={showDate}
+              >
+                {catalogLoading && !catalog?.highestGap?.length ? (
+                  <p className="text-[11px] text-content-secondary md:text-xs">
+                    Loading catalog…
+                  </p>
+                ) : (
+                  <CrowdPulseTopTable
+                    rows={catalog?.highestGap || []}
+                    playedTitles={playedTitles}
+                    catalogLoading={catalogLoading}
+                    className=""
+                  />
+                )}
+              </CrowdDeepSection>
 
-            <CrowdDeepSection
-              title="Songs from top tour leaders"
-              subtitle="What the tour top 5 locked in tonight"
-              sectionId="leaders"
-              showDate={showDate}
-            >
-              <CrowdPulseTopTable
-                rows={leaders?.songs || []}
-                playedTitles={playedTitles}
-                catalogLoading={catalogLoading}
-                countHeader="Among"
-                className=""
-              />
-            </CrowdDeepSection>
+              <CrowdDeepSection
+                title="Crowd vintage"
+                subtitle="Slot-weighted debut years across all picks"
+                sectionId="vintage"
+                showDate={showDate}
+              >
+                <p className="text-[12px] font-semibold text-white md:text-sm">
+                  Mean debut {vintageLabel}
+                  {catalog?.vintage?.medianYear != null
+                    ? ` · median ${Math.round(catalog.vintage.medianYear)}`
+                    : ''}
+                </p>
+                <p className="mt-1 text-[10px] font-medium text-content-secondary md:text-[11px]">
+                  Coverage {catalog?.vintage?.coveragePct ?? 0}% (
+                  {catalog?.vintage?.datedSlots ?? 0}/
+                  {catalog?.vintage?.totalSlots ?? 0} slots)
+                </p>
+              </CrowdDeepSection>
+
+              <CrowdDeepSection
+                title="Songs from top tour leaders"
+                subtitle="What the tour top 5 locked in tonight"
+                sectionId="leaders"
+                showDate={showDate}
+              >
+                <CrowdPulseTopTable
+                  rows={leaders?.songs || []}
+                  playedTitles={playedTitles}
+                  catalogLoading={catalogLoading}
+                  countHeader="Among"
+                  className=""
+                />
+              </CrowdDeepSection>
+            </div>
           </div>
-        </div>
+        </details>
       </details>
     </section>
   );

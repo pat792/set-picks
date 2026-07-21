@@ -1,26 +1,27 @@
 import React, { useEffect, useRef } from 'react';
 
 import { FeatureNewBadge } from '../../feature-discovery';
-import { resolveEarnedBadges } from '../model/badgeCatalog';
+import { resolveBadgeLadder } from '../model/badgeCatalog';
 import { trackBadgeShelfView } from '../model/profileEngagementAnalytics';
 
 /**
- * Earned milestone badges shelf (#568).
+ * Milestone badges shelf (#568): the full catalog ladder in hierarchy order.
+ * Earned badges render in color; unearned ones as shadow (grayscale/dimmed)
+ * tiles so the remaining milestones are visible (#710).
  *
  * @param {{
  *   badges?: Record<string, unknown> | null,
- *   emptyLabel?: string,
  *   surface?: 'profile' | 'public_profile',
  *   showNewBadge?: boolean,
  * }} props
  */
 export default function BadgeShelf({
   badges = null,
-  emptyLabel = 'No badges yet — play a scored show to start earning.',
   surface = 'profile',
   showNewBadge = false,
 }) {
-  const earned = resolveEarnedBadges(badges);
+  const ladder = resolveBadgeLadder(badges);
+  const earnedCount = ladder.filter((b) => b.earned).length;
   const viewLoggedRef = useRef(false);
 
   useEffect(() => {
@@ -28,9 +29,9 @@ export default function BadgeShelf({
     viewLoggedRef.current = true;
     trackBadgeShelfView({
       surface,
-      badge_count: earned.length,
+      badge_count: earnedCount,
     });
-  }, [surface, earned.length]);
+  }, [surface, earnedCount]);
 
   return (
     <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
@@ -38,33 +39,40 @@ export default function BadgeShelf({
         Badges
         {showNewBadge ? <FeatureNewBadge title="New: milestone badges" /> : null}
       </h2>
-      {earned.length === 0 ? (
-        <p className="text-sm font-bold text-content-secondary">{emptyLabel}</p>
-      ) : (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {earned.map((badge) => (
-            <li
-              key={badge.id}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-border-subtle bg-surface-field px-2 py-3 text-center"
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {ladder.map((badge) => (
+          <li
+            key={badge.id}
+            title={badge.blurb}
+            className={`flex flex-col items-center gap-2 rounded-2xl border px-2 py-3 text-center ${
+              badge.earned
+                ? 'border-border-subtle bg-surface-field'
+                : 'border-dashed border-border-subtle/60 bg-surface-field/40'
+            }`}
+          >
+            <img
+              src={badge.src}
+              alt=""
+              width={48}
+              height={48}
+              className={`h-12 w-12 ${
+                badge.earned ? '' : 'opacity-30 grayscale'
+              }`}
+              decoding="async"
+            />
+            <p
+              className={`text-[11px] font-black uppercase leading-snug tracking-wide ${
+                badge.earned ? 'text-brand-primary' : 'text-content-secondary/70'
+              }`}
+              aria-label={`${badge.name}. ${badge.blurb}${
+                badge.earned ? '' : ' Not earned yet.'
+              }`}
             >
-              <img
-                src={badge.src}
-                alt=""
-                width={48}
-                height={48}
-                className="h-12 w-12"
-                decoding="async"
-              />
-              <p
-                className="text-[11px] font-black uppercase leading-snug tracking-wide text-brand-primary"
-                aria-label={`${badge.name}. ${badge.blurb}`}
-              >
-                {badge.name}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
+              {badge.name}
+            </p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

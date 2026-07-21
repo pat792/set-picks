@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -8,6 +8,13 @@ import {
 } from '../../../shared/config/dashboardVocabulary';
 import DashboardRowPill from '../../../shared/ui/DashboardRowPill';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
+import {
+  STANDINGS_BOX_EYEBROW,
+  STANDINGS_BOX_EYEBROW_ICON,
+  STANDINGS_BOX_L2_MIN_H,
+  STANDINGS_BOX_PAD,
+  STANDINGS_BOX_RADIUS,
+} from './standingsSurfaceClasses';
 
 /**
  * "Overall winner of the night" callout for `/dashboard/standings` (#218).
@@ -73,8 +80,8 @@ export default function StandingsWinnerOfTheNightBanner({
       aria-label={`${heading}: ${handlesLabel} — ${max} points`}
       className={
         compact
-          ? 'relative mx-0.5 mb-2 rounded-xl border border-amber-500/35 bg-gradient-to-br from-amber-500/[0.1] via-amber-500/[0.05] to-brand-primary/[0.06] px-3.5 py-3 shadow-inset-glass'
-          : 'relative mx-0.5 mb-4 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] px-3.5 py-3.5 shadow-inset-glass md:px-4 md:py-4'
+          ? `relative mx-0.5 mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_BOX_RADIUS} border border-amber-500/35 bg-gradient-to-br from-amber-500/[0.1] via-amber-500/[0.05] to-brand-primary/[0.06] ${STANDINGS_BOX_PAD} shadow-inset-glass`
+          : `relative mx-0.5 mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_BOX_RADIUS} border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] ${STANDINGS_BOX_PAD} shadow-inset-glass`
       }
     >
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
@@ -82,7 +89,13 @@ export default function StandingsWinnerOfTheNightBanner({
           If the heading flex item ever paints over the pill (min-width / overflow),
           keep the link above in the hit-test order.
         */}
-        <p className="relative z-0 min-w-0 text-[10px] font-black uppercase tracking-widest text-amber-300">
+        <p
+          className={`relative z-0 inline-flex min-w-0 items-center gap-1.5 ${STANDINGS_BOX_EYEBROW} text-amber-300`}
+        >
+          <Trophy
+            className={`${STANDINGS_BOX_EYEBROW_ICON} text-amber-300`}
+            aria-hidden
+          />
           {heading}
         </p>
         {showViewResultsLink ? (

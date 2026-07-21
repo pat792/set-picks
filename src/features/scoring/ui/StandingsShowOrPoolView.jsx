@@ -136,7 +136,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           showStatus={showStatus}
         />
         {displayedPicks.length > 0 ? (
-          <div className="mt-4 md:mt-6">
+          <div className="mt-3">
             {!actualSetlist && picks.length > 0 ? (
               <StandingsBannerWaitingSetlist />
             ) : null}
@@ -255,7 +255,7 @@ export default function StandingsShowOrPoolView({ screen }) {
           actualSetlist={actualSetlist}
           shareGradedRecapAllowed={shareGradedRecapAllowed}
           collapsible
-          className="mb-2"
+          className="mb-3"
         />
       ) : null}
 

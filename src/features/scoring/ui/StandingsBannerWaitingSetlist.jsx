@@ -21,7 +21,7 @@ export default function StandingsBannerWaitingSetlist() {
   const copy = 'Waiting for official setlist. Stay tuned...';
 
   return (
-    <div className="mb-3 md:mb-6">
+    <div className="mb-3">
       <div className="md:hidden">
         <button
           type="button"

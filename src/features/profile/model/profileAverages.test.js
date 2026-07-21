@@ -83,7 +83,9 @@ describe('profileAverages', () => {
       computeAvgCorrectPicksPerShow({ careerCorrectSlots: 9, shows: 3 })
     ).toBe(0.5);
     expect(computeAvgCorrectPicksPerShow({ shows: 3 })).toBeNull();
-    expect(formatAvgCorrectPicksPerShow(0.5)).toBe('0.5');
+    expect(formatAvgCorrectPicksPerShow(0.5)).toBe('.500');
+    expect(formatAvgCorrectPicksPerShow(1 / 6)).toBe('.167');
+    expect(formatAvgCorrectPicksPerShow(1)).toBe('1.000');
     expect(formatAvgCorrectPicksPerShow(null)).toBe('—');
   });
 });
