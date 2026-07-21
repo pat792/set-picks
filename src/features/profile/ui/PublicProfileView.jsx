@@ -176,11 +176,7 @@ export default function PublicProfileView({
           </InfoTooltipProvider>
         </section>
 
-        <BadgeShelf
-          badges={profile.badges}
-          emptyLabel="No badges earned yet."
-          surface="public_profile"
-        />
+        <BadgeShelf badges={profile.badges} surface="public_profile" />
       </div>
     </div>
   );

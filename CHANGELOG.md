@@ -20,6 +20,7 @@ No unreleased changes.
 - **Dashboard card system (#710)** — shared `dashboardCardClasses` module (radius, pad, L1/L2 heights, type scale); `standingsSurfaceClasses` re-exports it; Standings, crowd pulse, SponsorSlot, and Tour Stats consume the shared tokens.
 - **Stats naming polish (#710)** — "Picking average" unified across profile + tour stats with batting-average display (`.167`); "Avg pts / show" → "Points per show" with PPG tooltip; public profile stats gain InfoTooltips (footnote paragraph removed).
 - **Tour stats view (#710)** — "Your picks this tour" on shared `StatTile` (bottom-pinned `x/y correct` sub-line); personal section recolored to the muted blue family with an emerald hybrid Bustout Boost band; `InfoTooltip` accepts `triggerClassName`.
+- **Badge hierarchy + shadow shelf (#710)** — explicit `rank` on the badge catalog (Ten-Show Run > First Night Win > Five on the Board > First Show Scored) so standings avatar pins showcase the highest earned badge; Badges shelf now renders the full ladder with dimmed shadow tiles for unearned milestones.
 
 ---
 
