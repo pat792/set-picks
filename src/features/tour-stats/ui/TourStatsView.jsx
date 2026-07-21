@@ -5,14 +5,18 @@ import Card from '../../../shared/ui/Card';
 import InfoTooltip, {
   InfoTooltipProvider,
 } from '../../../shared/ui/InfoTooltip';
+import {
+  formatAvgCorrectPicksPerShow,
+  PROFILE_SLOTS_PER_SHOW,
+} from '../../profile';
 import { SCORING_RULES } from '../../../shared/utils/scoring';
+import {
+  DASHBOARD_CARD_EYEBROW as STANDINGS_BOX_EYEBROW,
+  DASHBOARD_CARD_SHELL as STANDINGS_CARD_SHELL,
+} from '../../../shared/ui/dashboardCardClasses';
 import { TOUR_STATS_GAP_HIGHLIGHT_MIN } from '../model/aggregateTourSetlistStats';
 
 const { BUSTOUT_MIN_GAP } = SCORING_RULES;
-
-/** Matches Standings content-box shell (`standingsSurfaceClasses.js`). */
-const STANDINGS_CARD_SHELL = '!rounded-xl !p-3.5 md:!p-4';
-const STANDINGS_BOX_EYEBROW = 'text-[10px] font-black uppercase tracking-widest';
 
 /** Invisible 3-col grid: # | Song | Plays — fixed tracks keep columns aligned. */
 const TOP_SONGS_ROW_GRID =
@@ -162,17 +166,45 @@ export default function TourStatsView({
         ) : overlay ? (
           <TourStatsSectionCard
             title="Your picks this tour"
-            variant="venue"
-            headerTone="personal"
+            headerTone="muted"
           >
-            <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4 sm:gap-x-6">
-              <OverlayStat label="Shows" value={overlay.showsPicked} />
-              <OverlayStat
-                label="Correct"
-                value={`${overlay.slotsCorrect}/${overlay.slotsFilled}`}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatTile
+                label="Shows"
+                value={overlay.showsPicked}
+                accent="personal"
+                definition="Tour shows where you submitted picks."
               />
-              <OverlayStat label="Bustout hits" value={overlay.bustoutHits} />
-              <OverlayStat label="In most played" value={overlay.topSongOverlap} />
+              <StatTile
+                label="Picking average"
+                value={formatAvgCorrectPicksPerShow(
+                  overlay.showsPicked > 0
+                    ? overlay.slotsCorrect /
+                        (overlay.showsPicked * PROFILE_SLOTS_PER_SHOW)
+                    : null
+                )}
+                sub={
+                  overlay.showsPicked > 0
+                    ? `${overlay.slotsCorrect}/${
+                        overlay.showsPicked * PROFILE_SLOTS_PER_SHOW
+                      } correct`
+                    : null
+                }
+                accent="personal"
+                definition={`Like a batting average in baseball — correct picks ÷ total picks (${PROFILE_SLOTS_PER_SHOW} per show) across your tour shows (.500 means half your picks hit).`}
+              />
+              <StatTile
+                label="Bustout Boost"
+                value={overlay.bustoutHits}
+                accent="personalBustout"
+                definition={`Picks that earned the Bustout Boost — a hit on a song with a pre-show gap ≥ ${BUSTOUT_MIN_GAP}.`}
+              />
+              <StatTile
+                label="In most played"
+                value={overlay.topSongOverlap}
+                accent="personal"
+                definition="How many of this tour's most-played songs you've picked."
+              />
             </div>
           </TourStatsSectionCard>
         ) : null}
@@ -305,10 +337,6 @@ const HEADER_TONE = {
     bar: 'border-brand-primary/35 bg-brand-primary/10',
     text: 'text-brand-primary',
   },
-  personal: {
-    bar: 'border-brand-primary/45 bg-gradient-to-r from-brand-primary/15 to-transparent',
-    text: 'text-brand-primary',
-  },
   bustout: {
     bar: 'border-amber-500/35 bg-amber-500/10',
     text: 'text-amber-200',
@@ -324,7 +352,6 @@ const HEADER_TONE = {
  *   title: string,
  *   definition?: string,
  *   headerTone?: keyof typeof HEADER_TONE,
- *   variant?: 'frosted' | 'venue',
  *   children: React.ReactNode,
  * }} props
  */
@@ -332,13 +359,12 @@ function TourStatsSectionCard({
   title,
   definition,
   headerTone = 'default',
-  variant = 'frosted',
   children,
 }) {
   const tone = HEADER_TONE[headerTone] ?? HEADER_TONE.default;
 
   return (
-    <Card variant={variant} padding="none" className={STANDINGS_CARD_SHELL}>
+    <Card variant="frosted" padding="none" className={STANDINGS_CARD_SHELL}>
       <div className={`-mx-3.5 -mt-3.5 mb-3 rounded-t-xl border-b px-3.5 py-2.5 md:-mx-4 md:-mt-4 md:px-4 ${tone.bar}`}>
         <div className="flex items-center gap-1">
           <p className={`${STANDINGS_BOX_EYEBROW} ${tone.text}`}>{title}</p>
@@ -352,64 +378,89 @@ function TourStatsSectionCard({
   );
 }
 
-/**
- * @param {{ label: string, value: React.ReactNode }} props
- */
-function OverlayStat({ label, value }) {
-  return (
-    <div className="flex min-w-0 flex-col items-center text-center">
-      <p className="flex min-h-[2.25rem] w-full items-end justify-center text-[10px] font-black uppercase leading-tight tracking-wider text-brand-primary/90">
-        {label}
-      </p>
-      <p className="mt-1 w-full text-xl font-black tabular-nums text-white sm:text-2xl">
-        {value}
-      </p>
-    </div>
-  );
-}
+const TILE_ACCENT = {
+  /** Tour-wide row — brand teal. */
+  default: {
+    band: 'border-brand-primary/30 bg-brand-primary/10',
+    label: 'text-brand-primary',
+    value: 'text-brand-primary',
+    tooltip: 'text-brand-primary/85 hover:text-brand-primary',
+  },
+  /** Bustout gold (tour-wide Bustouts tile). */
+  bustout: {
+    band: 'border-amber-500/30 bg-amber-500/10',
+    label: 'text-amber-200',
+    value: 'text-amber-200',
+    tooltip: 'text-amber-200/85 hover:text-amber-200',
+  },
+  /**
+   * "Your picks this tour" tiles — band matches the muted section header
+   * blue; numbers stay brand teal so values read consistently across rows.
+   */
+  personal: {
+    band: 'border-brand-accent-blue/30 bg-brand-accent-blue/10',
+    label: 'text-blue-200',
+    value: 'text-brand-primary',
+    tooltip: 'text-blue-200/85 hover:text-blue-200',
+  },
+  /**
+   * Personal Bustout Boost — gold+blue hybrid (light green) band; label,
+   * number, and tooltip keep bustout gold so "amber = bustout" still reads.
+   */
+  personalBustout: {
+    band: 'border-emerald-400/30 bg-emerald-400/10',
+    label: 'text-amber-200',
+    value: 'text-amber-200',
+    tooltip: 'text-amber-200/85 hover:text-amber-200',
+  },
+};
 
 /**
  * @param {{
  *   label: string,
  *   value: React.ReactNode,
  *   definition: string,
- *   accent?: 'default' | 'bustout',
+ *   accent?: keyof typeof TILE_ACCENT,
+ *   sub?: React.ReactNode,
  * }} props
  */
-function StatTile({ label, value, definition, accent = 'default' }) {
-  const isBustout = accent === 'bustout';
+function StatTile({ label, value, definition, accent = 'default', sub = null }) {
+  const tone = TILE_ACCENT[accent] ?? TILE_ACCENT.default;
 
   return (
     <Card
       variant="frosted"
       padding="none"
-      className={`${STANDINGS_CARD_SHELL} flex flex-col gap-1 text-center`}
+      className={`${STANDINGS_CARD_SHELL} relative flex flex-col gap-1 text-center`}
     >
       <div
-        className={`-mx-3.5 -mt-3.5 mb-1 rounded-t-xl border-b px-2 py-2 md:-mx-4 md:-mt-4 ${
-          isBustout
-            ? 'border-amber-500/30 bg-amber-500/10'
-            : 'border-brand-primary/30 bg-brand-primary/10'
-        }`}
+        className={`-mx-3.5 -mt-3.5 mb-1 rounded-t-xl border-b px-2 py-2 md:-mx-4 md:-mt-4 ${tone.band}`}
       >
-        <div className="flex items-start justify-center gap-1">
-          <p
-            className={`min-w-0 ${STANDINGS_BOX_EYEBROW} ${
-              isBustout ? 'text-amber-200' : 'text-brand-primary'
-            }`}
-          >
+        {/* min-h fits a two-line label so one-line tiles (Bustouts) keep the
+            same header band height as wrapping ones at desktop width */}
+        <div className="flex min-h-[1.875rem] items-center justify-center gap-1">
+          <p className={`min-w-0 ${STANDINGS_BOX_EYEBROW} ${tone.label}`}>
             {label}
           </p>
-          <InfoTooltip label={label} definition={definition} />
+          <InfoTooltip
+            label={label}
+            definition={definition}
+            triggerClassName={tone.tooltip}
+          />
         </div>
       </div>
       <p
-        className={`px-2 pb-1 pt-0.5 text-2xl font-black tabular-nums ${
-          isBustout ? 'text-amber-200' : 'text-brand-primary'
-        }`}
+        className={`flex flex-1 items-center justify-center px-2 pb-1 pt-0.5 text-2xl font-black tabular-nums ${tone.value}`}
       >
         {value}
       </p>
+      {/* Pinned to the tile bottom (out of flow) so the big number stays
+          vertically aligned with sub-less sibling tiles in the same row */}
+      {sub ? (
+        <p className="absolute inset-x-0 bottom-1 text-[10px] font-semibold tabular-nums text-content-secondary">
+          {sub}
+        </p>
+      ) : null}
     </Card>
   );
 }

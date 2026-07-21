@@ -26,4 +26,6 @@ export {
 export {
   debutYearFromCatalogDebut,
   buildDebutYearBySongName,
+  formatAvgCorrectPicksPerShow,
+  PROFILE_SLOTS_PER_SHOW,
 } from './model/profileAverages';

@@ -1,12 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ListMusic, Loader2, Pencil } from 'lucide-react';
+import { ListMusic, Loader2, Pencil, Ticket } from 'lucide-react';
 
 import Button from '../../../shared/ui/Button';
 import Card from '../../../shared/ui/Card';
 import {
   STANDINGS_BOX_BODY,
   STANDINGS_BOX_EYEBROW,
+  STANDINGS_BOX_EYEBROW_ICON,
   STANDINGS_BOX_TITLE,
   STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
@@ -58,7 +59,13 @@ export default function StandingsActiveShowCard({
     <Card as="section" variant="venue" padding="none" className={STANDINGS_CARD_SHELL}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <p className={`${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
+          <p
+            className={`inline-flex items-center gap-1.5 ${STANDINGS_BOX_EYEBROW} text-brand-primary`}
+          >
+            <Ticket
+              className={`${STANDINGS_BOX_EYEBROW_ICON} text-brand-primary`}
+              aria-hidden
+            />
             {eyebrow}
           </p>
           {showLabel ? (

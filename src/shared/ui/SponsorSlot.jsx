@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { DASHBOARD_CARD_L1_MIN_H } from './dashboardCardClasses';
+
 /**
  * Reserved, clearly-labeled promo/sponsor placement (domain-agnostic).
  *
@@ -35,8 +37,10 @@ export default function SponsorSlot({
   const enabled = import.meta.env.VITE_ENABLE_SPONSOR_SLOTS === 'true';
   if (!enabled) return null;
 
+  // Banner variant reserves the shared L1 promo height so it lines up with
+  // sibling L1 cards (e.g. Invite promo) in dashboard stacks.
   const minHeight =
-    variant === 'card' ? 'min-h-[7.5rem]' : 'min-h-[5rem] md:min-h-[5.5rem]';
+    variant === 'card' ? 'min-h-[7.5rem]' : DASHBOARD_CARD_L1_MIN_H;
 
   return (
     <aside
