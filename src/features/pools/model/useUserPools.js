@@ -14,7 +14,9 @@ import { subscribeUserPoolsInvalidate } from './userPoolsRefreshBus';
 export default function useUserPools(userId, options = {}) {
   const { showDates = [] } = options;
   const [pools, setPools] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  /** @type {['join' | 'create' | null, import('react').Dispatch<import('react').SetStateAction<'join' | 'create' | null>>]} */
+  const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState(null);
 
   const refreshPools = useCallback(async () => {
@@ -24,7 +26,7 @@ export default function useUserPools(userId, options = {}) {
       return [];
     }
 
-    setLoading(true);
+    setListLoading(true);
     setError(null);
     try {
       const nextPools = await fetchPools(userId);
@@ -34,7 +36,7 @@ export default function useUserPools(userId, options = {}) {
       setError(err);
       throw err;
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
   }, [userId]);
 
@@ -50,7 +52,7 @@ export default function useUserPools(userId, options = {}) {
 
   const handleCreate = useCallback(
     async (name) => {
-      setLoading(true);
+      setActionLoading('create');
       setError(null);
       try {
         const createdPool = await createPoolApi({ userId, name, showDates });
@@ -60,7 +62,7 @@ export default function useUserPools(userId, options = {}) {
         setError(err);
         throw err;
       } finally {
-        setLoading(false);
+        setActionLoading(null);
       }
     },
     [userId, showDates]
@@ -68,7 +70,7 @@ export default function useUserPools(userId, options = {}) {
 
   const handleJoin = useCallback(
     async (inviteCode) => {
-      setLoading(true);
+      setActionLoading('join');
       setError(null);
       try {
         const joinedPool = await joinPoolApi({ userId, inviteCode, showDates });
@@ -81,7 +83,7 @@ export default function useUserPools(userId, options = {}) {
         setError(err);
         throw err;
       } finally {
-        setLoading(false);
+        setActionLoading(null);
       }
     },
     [userId, showDates]
@@ -89,7 +91,10 @@ export default function useUserPools(userId, options = {}) {
 
   return {
     pools,
-    loading,
+    listLoading,
+    actionLoading,
+    /** @deprecated Prefer `listLoading` / `actionLoading` (#728). True when either is active. */
+    loading: listLoading || actionLoading != null,
     error,
     refreshPools,
     handleCreate,

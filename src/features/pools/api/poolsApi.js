@@ -134,6 +134,7 @@ export async function joinPool({ userId, inviteCode, showDates }) {
   if (poolData.members?.includes(userId)) {
     const err = new Error('User already in pool.');
     err.code = 'already-in-pool';
+    err.poolId = poolDoc.id;
     throw err;
   }
 
@@ -164,16 +165,15 @@ export async function joinPool({ userId, inviteCode, showDates }) {
       : '';
 
   // Legacy pools only: backfill pick.pools so pre-join graded shows count.
+  // Non-blocking (#729) — membership already committed; do not hold Join UI.
   if (!fromMembership) {
-    try {
-      await arrayUnionPoolOntoUserPickDocs(
-        userId,
-        { id: poolDoc.id, name: poolName },
-        showDates
-      );
-    } catch (e) {
+    void arrayUnionPoolOntoUserPickDocs(
+      userId,
+      { id: poolDoc.id, name: poolName },
+      showDates
+    ).catch((e) => {
       console.error('joinPool: pick snapshot backfill failed:', e);
-    }
+    });
   }
 
   const nextMemberJoinedAt = fromMembership

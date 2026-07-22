@@ -14,6 +14,15 @@ No unreleased changes.
 
 ---
 
+## [1.39.3] — 2026-07-22
+
+### Fixed
+- **Invite auth loading gap (#727)** — guest → sign-in keeps auth `loading` until the first profile snapshot, so returning users are not dumped onto Almost There. Profile setup subcopy uses pool-enter framing only when a pending invite breadcrumb is present.
+- **Pending pool join UX (#728)** — post-auth with a stored invite lands on `/dashboard/pools` (overrides remembered last-tab). Pending-join status machine drives “Joining your pool…” chrome; `useUserPools` splits `listLoading` vs `actionLoading` so Join/Create buttons no longer flash from list refresh.
+- **Join backfill + timeout (#729)** — legacy pick-doc pool snapshot backfill no longer blocks `joinPool` after membership commit. Pending join times out at ~15s with Retry (breadcrumb kept; in-flight dedupe cleared). Pending-join effect no longer cancels on calendar `showDates` identity churn (avoids stuck invite breadcrumb after a successful membership write).
+
+---
+
 ## [1.39.2] — 2026-07-22
 
 ### Changed

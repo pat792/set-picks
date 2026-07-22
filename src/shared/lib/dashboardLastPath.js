@@ -4,12 +4,17 @@
  *
  * Profile cluster is excluded: users often open Profile/Account only to sign out;
  * remembering that route would send them back to Profile after every login.
+ *
+ * Pending pool invite (`phish_pool_pending_invite`) overrides remembered tab so
+ * post-auth lands on Pools for honest joining chrome (#728).
  */
 
 import { isProfileClusterPath } from '../config/dashboardRoutes';
+import { POOL_INVITE_STORAGE_KEY } from '../config/poolInvite';
 import { getLocalStorageItem, setLocalStorageItem } from './local-storage';
 
 export const DASHBOARD_LAST_PATH_STORAGE_KEY = 'setpicks_dash_last_loc_v1';
+export const DASHBOARD_POOLS_HREF = '/dashboard/pools';
 
 /** Query string must be empty or ?key=value&... with safe characters only. */
 function isSafeDashboardSearch(search) {
@@ -65,6 +70,12 @@ export function shouldPersistDashboardPath(pathname, search = '', opts = {}) {
  * @returns {string} path + search for <Navigate to={...} /> or location.assign
  */
 export function getDashboardEntryHref(opts = {}) {
+  // Invite join: skip remembered last-tab so Pools shows "Joining…" instead of
+  // a stale Standings/Picks flash while usePendingPoolJoin runs (#728).
+  if (getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()) {
+    return DASHBOARD_POOLS_HREF;
+  }
+
   const raw = getLocalStorageItem(DASHBOARD_LAST_PATH_STORAGE_KEY);
   if (!raw) return '/dashboard';
   try {
