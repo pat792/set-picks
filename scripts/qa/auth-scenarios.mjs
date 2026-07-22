@@ -115,6 +115,13 @@ async function signOutViaAccount(page, origin) {
   });
   await page.getByRole('button', { name: /^log out$/i }).click();
   await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 });
+  // Sign-out clears invite breadcrumb and may lag AuthProvider — wait for splash
+  // CTAs so a follow-up /join/:code is not treated as signed-in.
+  await page
+    .getByRole('button', { name: /create account/i })
+    .first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
+  await page.waitForTimeout(500);
 }
 
 /**
@@ -153,6 +160,148 @@ async function signInEmail(page, origin, email, password) {
   await dialog.locator('#si-pass').fill(password);
   await dialog.locator('button[type="submit"]').click();
   await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
+}
+
+/**
+ * Create a pool on /dashboard/pools and return its 5-char invite code.
+ * @param {import('playwright').Page} page
+ * @param {string} origin
+ * @param {string} poolName
+ */
+async function createPoolViaUi(page, origin, poolName) {
+  const base = origin.replace(/\/$/, '');
+  await page.goto(`${base}/dashboard/pools`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
+  // Tab vs submit share a case-insensitive accessible name — use type=submit.
+  await page.getByRole('button', { name: 'Create Pool', exact: true }).click();
+  await page.locator('#pool-create-name').fill(poolName);
+  await page.locator('form').filter({ has: page.locator('#pool-create-name') })
+    .locator('button[type="submit"]')
+    .click();
+  await page.getByText(/pool created!/i).waitFor({ timeout: 30_000 });
+  const code = (await page.locator('code').first().innerText()).trim().toUpperCase();
+  if (!/^[A-Z0-9]{5}$/.test(code)) {
+    throw new Error(`expected 5-char invite code, got ${JSON.stringify(code)}`);
+  }
+  return code;
+}
+
+/**
+ * Unsigned VIP landing → Sign in → wait for dashboard (invite breadcrumb preserved).
+ * @param {import('playwright').Page} page
+ * @param {string} origin
+ * @param {string} inviteCode
+ * @param {string} email
+ * @param {string} password
+ */
+async function signInViaPoolInvite(page, origin, inviteCode, email, password) {
+  const base = origin.replace(/\/$/, '');
+  const code = inviteCode.trim().toUpperCase();
+  await page.goto(`${base}/join/${code}`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
+  // Wait for unsigned VIP chrome — if auth is still settling, /join redirects to
+  // dashboard and pending-join can clear the breadcrumb before we assert (#728).
+  await page
+    .getByText(/^pool invite$/i)
+    .waitFor({ state: 'visible', timeout: 30_000 });
+  await page.getByRole('button', { name: /^sign in$/i }).waitFor({
+    state: 'visible',
+    timeout: 15_000,
+  });
+  const stored = await page.evaluate(() =>
+    localStorage.getItem('phish_pool_pending_invite'),
+  );
+  if (stored !== code) {
+    throw new Error(`expected invite ${code} in storage, got ${stored}`);
+  }
+  await page.getByRole('button', { name: /^sign in$/i }).click();
+  const dialog = page.getByRole('dialog', { name: /^sign in$/i });
+  await dialog.waitFor({ state: 'visible', timeout: 15_000 });
+  await dialog
+    .getByText(/you're joining a pool/i)
+    .waitFor({ state: 'visible', timeout: 5_000 });
+  await dialog.locator('#si-email').fill(email);
+  await dialog.locator('#si-pass').fill(password);
+  await dialog.locator('button[type="submit"]').click();
+  await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
+}
+
+/**
+ * Unsigned VIP landing → Create account → wait for /setup (new user).
+ * @param {import('playwright').Page} page
+ * @param {string} origin
+ * @param {string} inviteCode
+ * @param {{ email: string, password: string }} creds
+ */
+async function signUpViaPoolInvite(page, origin, inviteCode, creds) {
+  const base = origin.replace(/\/$/, '');
+  const code = inviteCode.trim().toUpperCase();
+  await page.goto(`${base}/join/${code}`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
+  await page
+    .getByText(/^pool invite$/i)
+    .waitFor({ state: 'visible', timeout: 30_000 });
+  await page.getByRole('button', { name: /create account/i }).click();
+  const dialog = page.getByRole('dialog', { name: /^create account$/i });
+  await dialog.waitFor({ state: 'visible', timeout: 15_000 });
+  await dialog
+    .getByText(/you're joining a pool/i)
+    .waitFor({ state: 'visible', timeout: 5_000 });
+  await dialog.locator('input[type="checkbox"]').check();
+  await dialog.locator('#su-email').fill(creds.email);
+  await dialog.locator('#su-pass').fill(creds.password);
+  await dialog.locator('#su-confirm').fill(creds.password);
+  await dialog.locator('button[type="submit"]').click();
+  await page.waitForURL(/\/setup/, { timeout: 60_000 });
+}
+
+/**
+ * Complete Almost There profile setup.
+ * @param {import('playwright').Page} page
+ * @param {string} handle
+ */
+async function completeProfileSetup(page, handle) {
+  await page.getByRole('heading', { name: /almost there/i }).waitFor({
+    state: 'visible',
+    timeout: 30_000,
+  });
+  await page
+    .getByText(/complete your profile to enter the pool/i)
+    .waitFor({ state: 'visible', timeout: 5_000 });
+  await page.getByPlaceholder(/lawnboy99/i).fill(handle);
+  await page.getByRole('button', { name: /lock profile in/i }).click();
+  await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
+}
+
+/**
+ * Self-serve delete for disposable QA joiners (must not own pools).
+ * @param {import('playwright').Page} page
+ * @param {string} origin
+ */
+async function deleteAccountViaUi(page, origin) {
+  const base = origin.replace(/\/$/, '');
+  await page.goto(`${base}/dashboard/profile/account`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
+  const expand = page.getByRole('button', {
+    name: /i need to delete my account/i,
+  });
+  await expand.waitFor({ state: 'visible', timeout: 30_000 });
+  await expand.scrollIntoViewIfNeeded();
+  await expand.click({ timeout: 30_000 });
+  await page.locator('input[type="checkbox"]').check();
+  await page.locator('#delete-account-phrase').fill('DELETE MY ACCOUNT');
+  await page
+    .getByRole('button', { name: /delete my account forever/i })
+    .click();
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 60_000 });
 }
 
 function requireQaCreds() {
@@ -241,14 +390,20 @@ async function main() {
       results,
     );
 
-    // ── ROUTING B: invite link opens create-account modal ──────────────────
+    // ── ROUTING B: invite VIP landing stores code + opens create-account ───
     await runScenario(
       'UR-B1',
-      '/join/:code stores invite + opens create-account modal',
+      '/join/:code VIP landing stores invite + opens create-account modal',
       async () => {
         await signOutViaAccount(page, dev.url);
-        await page.goto(`${dev.url}/join/YEM42`, { waitUntil: 'domcontentloaded' });
-        await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 });
+        await page.goto(`${dev.url}/join/YEM42`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 60_000,
+        });
+        await page.waitForURL((url) => url.pathname === '/join/YEM42', {
+          timeout: 15_000,
+        });
+        await page.getByRole('button', { name: /create account/i }).click();
         const dialog = page.getByRole('dialog', { name: /^create account$/i });
         await dialog.waitFor({ state: 'visible', timeout: 15_000 });
         await dialog
@@ -269,6 +424,154 @@ async function main() {
         );
         if (stillStored !== 'YEM42') {
           throw new Error(`invite cleared after switcher, got ${stillStored}`);
+        }
+        await page.keyboard.press('Escape');
+      },
+      results,
+    );
+
+    // ── ROUTING B2 / Wave 0: create pool → join link → existing user ───────
+    // QA_TEST_* owns the pool, so deferred join resolves as already-member
+    // (still exercises invite storage, pools landing override, no Almost There).
+    await runScenario(
+      'UR-B2',
+      'Create pool → /join/:code → existing user (already-member, Wave 0)',
+      async () => {
+        await dismissSplashChrome(page, dev.url);
+        try {
+          // Ensure signed in as QA returning user.
+          if (!page.url().includes('/dashboard')) {
+            await signInEmail(page, dev.url, email, password);
+          }
+
+          const poolName = `QA Wave0 ${Date.now().toString(36).slice(-6)}`;
+          const inviteCode = await createPoolViaUi(page, dev.url, poolName);
+
+          await signOutViaAccount(page, dev.url);
+          await signInViaPoolInvite(page, dev.url, inviteCode, email, password);
+
+          // Wave 0: pending invite overrides last-tab → pools (then may replace
+          // to pool detail on already-member success).
+          await page.waitForURL(
+            (url) =>
+              url.pathname === '/dashboard/pools' ||
+              /^\/dashboard\/pool\/[A-Za-z0-9_-]+$/.test(url.pathname),
+            { timeout: 45_000 },
+          );
+
+          if (page.url().includes('/setup')) {
+            throw new Error(`Almost There /setup after invite sign-in: ${page.url()}`);
+          }
+          const almostThere = page.getByRole('heading', { name: /almost there/i });
+          if (await almostThere.count()) {
+            throw new Error('Almost There heading visible after invite sign-in');
+          }
+
+          // Breadcrumb cleared after joined / already-member.
+          await page.waitForFunction(
+            () => !localStorage.getItem('phish_pool_pending_invite')?.trim(),
+            null,
+            { timeout: 30_000 },
+          );
+
+          // Empty-state copy must not win once membership is known.
+          const empty = page.getByText(/you are not in any pools yet/i);
+          if (await empty.isVisible().catch(() => false)) {
+            throw new Error('empty pools copy visible after invite join');
+          }
+        } finally {
+          // Leave unsigned so later splash-modal scenarios are not redirected.
+          try {
+            if (page.url().includes('/dashboard')) {
+              await signOutViaAccount(page, dev.url);
+            }
+          } catch {
+            await page.evaluate(() => {
+              localStorage.removeItem('phish_pool_pending_invite');
+            });
+            await page.goto(dev.url.replace(/\/$/, ''), {
+              waitUntil: 'domcontentloaded',
+            });
+          }
+        }
+      },
+      results,
+    );
+
+    // ── ROUTING B3 / Wave 0: create pool → /join → disposable new user ─────
+    // True first-membership write + Almost There pool-enter copy, then cleanup
+    // via self-serve delete (no second permanent QA secret required).
+    await runScenario(
+      'UR-B3',
+      'Create pool → /join/:code → new user join + delete cleanup (Wave 0)',
+      async () => {
+        await dismissSplashChrome(page, dev.url);
+        const stamp = Date.now().toString(36);
+        const joinerEmail = `qa.wave0.${stamp}@setlistpickem-qa.test`;
+        const joinerPassword = `QaWave0-${stamp}!`;
+        const joinerHandle = `qa${stamp}`.slice(0, 20);
+        let createdJoiner = false;
+
+        try {
+          if (!page.url().includes('/dashboard')) {
+            await signInEmail(page, dev.url, email, password);
+          }
+
+          const poolName = `QA Wave0 New ${stamp.slice(-6)}`;
+          const inviteCode = await createPoolViaUi(page, dev.url, poolName);
+          await signOutViaAccount(page, dev.url);
+
+          await signUpViaPoolInvite(page, dev.url, inviteCode, {
+            email: joinerEmail,
+            password: joinerPassword,
+          });
+          createdJoiner = true;
+
+          await completeProfileSetup(page, joinerHandle);
+
+          await page.waitForURL(
+            (url) =>
+              url.pathname === '/dashboard/pools' ||
+              /^\/dashboard\/pool\/[A-Za-z0-9_-]+$/.test(url.pathname),
+            { timeout: 45_000 },
+          );
+
+          await page.waitForFunction(
+            () => !localStorage.getItem('phish_pool_pending_invite')?.trim(),
+            null,
+            { timeout: 30_000 },
+          );
+
+          const empty = page.getByText(/you are not in any pools yet/i);
+          if (await empty.isVisible().catch(() => false)) {
+            throw new Error('empty pools copy visible after new-user invite join');
+          }
+
+          await deleteAccountViaUi(page, dev.url);
+          createdJoiner = false;
+        } finally {
+          if (createdJoiner) {
+            try {
+              await deleteAccountViaUi(page, dev.url);
+            } catch (cleanupErr) {
+              console.warn(
+                '[qa:auth-scenarios] UR-B3 cleanup delete failed:',
+                cleanupErr?.message || cleanupErr,
+              );
+            }
+          }
+          try {
+            if (page.url().includes('/dashboard')) {
+              await signOutViaAccount(page, dev.url);
+            }
+          } catch {
+            await page.evaluate(() => {
+              localStorage.removeItem('phish_pool_pending_invite');
+            });
+            await page.goto(dev.url.replace(/\/$/, ''), {
+              waitUntil: 'domcontentloaded',
+            });
+          }
         }
       },
       results,
@@ -399,12 +702,10 @@ async function main() {
     }
 
     console.log('\n### Not automated here (interactive / Google OAuth popup)');
-    console.log('- UF-1 / UR-A: first-time new user → /setup (agent UI or reset test account)');
-    console.log('- AT-5: sign_up telemetry (new account creation)');
+    console.log('- UF-1 / UR-A: first-time new user → /setup without invite (agent UI)');
+    console.log('- AT-5: sign_up telemetry (organic new account, no invite)');
     console.log('- AT-6: signin_modal_new_user_blocked (Google on Sign-in modal)');
-    console.log('- AT-7: auth_partial_profile / auth_rollback* (anomaly paths)');
-    console.log('- UR-B2: post-auth pool join → /dashboard/pools (needs valid pool code + Firestore)');
-  } finally {
+    console.log('- AT-7: auth_partial_profile / auth_rollback* (anomaly paths)');  } finally {
     await Promise.race([
       (async () => {
         await browser.close().catch(() => {});
