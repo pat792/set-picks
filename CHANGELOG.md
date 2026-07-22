@@ -14,6 +14,16 @@ No unreleased changes.
 
 ---
 
+## [1.36.0] — 2026-07-21
+
+### Added
+- **Song catalog archives (#647)** — each `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog` sync writes a private dated snapshot at `song-catalog/archive/YYYY-MM-DDTHH-mm-ssZ.json` (same payload as live) for leakage-safe prediction backtests (#646). Live `song-catalog.json` client path unchanged. Callable may return optional `archivePath`.
+
+### Changed
+- **`docs/SONG_CATALOG.md`** — documents the every-6h schedule (was stale “weekly”), archive layout/retention, and Storage rules for archive objects.
+
+---
+
 ## [1.35.4] — 2026-07-21
 
 ### Changed

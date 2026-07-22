@@ -1757,6 +1757,7 @@ exports.refreshPhishnetSongCatalog = onCall(
         ok: true,
         songCount: result.songCount,
         publicUrl: result.publicUrl,
+        archivePath: result.archivePath ?? null,
       };
     } catch (e) {
       if (e instanceof HttpsError) throw e;
