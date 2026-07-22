@@ -3,15 +3,39 @@
  *
  * Endpoint: `GET https://api.phish.net/v5/songs.json?order_by=song&direction=asc&limit=10000&apikey=…`
  *
- * Publishes `song-catalog.json` to the default Firebase Storage bucket (public read for CDN fetch).
+ * Publishes live `song-catalog.json` plus a dated private archive under
+ * `song-catalog/archive/` (#647) to the default Firebase Storage bucket.
  */
 
 const crypto = require("node:crypto");
 const admin = require("firebase-admin");
 
-/** Object path in the default Storage bucket. */
+/** Object path in the default Storage bucket (live autocomplete fast path). */
 const CATALOG_STORAGE_PATH = "song-catalog.json";
 
+/**
+ * Dated pre-show snapshots for leakage-safe recommendation backtests (#647 / #646).
+ * Not public-read — Admin SDK / ops only. Live clients keep using `song-catalog.json`.
+ */
+const CATALOG_ARCHIVE_PREFIX = "song-catalog/archive/";
+
+/**
+ * Build archive object path from an ISO timestamp.
+ * Example: `2026-07-21T18:00:00.000Z` → `song-catalog/archive/2026-07-21T18-00-00Z.json`
+ *
+ * @param {string} updatedAtIso
+ * @returns {string}
+ */
+function catalogArchiveObjectPath(updatedAtIso) {
+  const raw = String(updatedAtIso ?? "").trim();
+  const d = raw ? new Date(raw) : new Date();
+  if (Number.isNaN(d.getTime())) {
+    throw new Error(`Invalid catalog archive timestamp: ${raw}`);
+  }
+  const iso = d.toISOString(); // always `YYYY-MM-DDTHH:mm:ss.sssZ`
+  const stamp = iso.replace(/\.\d{3}Z$/, "Z").replace(/:/g, "-");
+  return `${CATALOG_ARCHIVE_PREFIX}${stamp}.json`;
+}
 /**
  * @param {unknown} data
  * @returns {boolean}
@@ -144,11 +168,13 @@ function publicGcsUrlForCatalog(bucketName) {
 }
 
 /**
- * Fetch from Phish.net, write `song-catalog.json` to Storage, make object world-readable for GET/fetch().
+ * Fetch from Phish.net, write live `song-catalog.json` plus a dated archive snapshot.
+ * Archive write is best-effort: live catalog failure throws; archive failure logs and continues
+ * so autocomplete never depends on archive success (#647).
  *
  * @param {string} apiKey
  * @param {{ logger?: { info?: Function, warn?: Function, error?: Function }, bucketName?: string }} [opts]
- * @returns {Promise<{ songCount: number, publicUrl: string, bucket: string }>}
+ * @returns {Promise<{ songCount: number, publicUrl: string, bucket: string, archivePath: string | null }>}
  */
 async function syncPhishnetSongCatalogToStorage(apiKey, opts = {}) {
   const { logger, bucketName } = opts;
@@ -161,13 +187,14 @@ async function syncPhishnetSongCatalogToStorage(apiKey, opts = {}) {
     updatedAt,
   };
   const json = JSON.stringify(payload);
+  const body = Buffer.from(json, "utf8");
 
   const bucket = bucketName
     ? admin.storage().bucket(bucketName)
     : admin.storage().bucket();
   const file = bucket.file(CATALOG_STORAGE_PATH);
 
-  await file.save(Buffer.from(json, "utf8"), {
+  await file.save(body, {
     metadata: {
       contentType: "application/json; charset=utf-8",
       cacheControl: "public, max-age=300",
@@ -188,15 +215,47 @@ async function syncPhishnetSongCatalogToStorage(apiKey, opts = {}) {
     );
   }
 
+  let archivePath = null;
+  try {
+    archivePath = catalogArchiveObjectPath(updatedAt);
+    const archiveFile = bucket.file(archivePath);
+    await archiveFile.save(body, {
+      metadata: {
+        contentType: "application/json; charset=utf-8",
+        // Private ops object — no download token / makePublic.
+        cacheControl: "private, max-age=0",
+      },
+    });
+    logger?.info?.("song catalog archive uploaded", {
+      songCount: songs.length,
+      bucket: bucket.name,
+      object: archivePath,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logger?.error?.(
+      "song catalog: archive snapshot failed (live catalog still updated)",
+      msg,
+      e
+    );
+    archivePath = null;
+  }
+
   const publicUrl = publicGcsUrlForCatalog(bucket.name);
   logger?.info?.("song catalog uploaded to Storage", {
     songCount: songs.length,
     publicUrl,
     bucket: bucket.name,
     object: CATALOG_STORAGE_PATH,
+    archivePath,
   });
 
-  return { songCount: songs.length, publicUrl, bucket: bucket.name };
+  return {
+    songCount: songs.length,
+    publicUrl,
+    bucket: bucket.name,
+    archivePath,
+  };
 }
 
 module.exports = {
@@ -204,6 +263,8 @@ module.exports = {
   normalizePhishnetSongRow,
   normalizeDebutField,
   isPhishNetPayloadOk,
+  catalogArchiveObjectPath,
   CATALOG_STORAGE_PATH,
+  CATALOG_ARCHIVE_PREFIX,
   publicGcsUrlForCatalog,
 };

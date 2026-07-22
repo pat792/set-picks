@@ -302,6 +302,8 @@ Phish.net integration, live scoring, and public tour-stats refresh. Deployed via
 
 **Storage object `song-catalog.json` (v1.25.0+, #554):** published by `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog`. Each song object includes `{ name, total, gap, last, debut }` where `debut` is a string (typically `YYYY-MM-DD`) or `""` when unknown. See `docs/SONG_CATALOG.md`. Adding `debut` is a **MINOR** catalog-field addition (clients may ignore unknown fields).
 
+**Storage archive `song-catalog/archive/{stamp}.json` (v1.36.0+, #647):** each catalog sync also writes a dated private snapshot (same JSON payload as live) at `song-catalog/archive/YYYY-MM-DDTHH-mm-ssZ.json` for leakage-safe recommendation backtests (#646). Not public-read (Admin SDK / ops only). Live client path is unchanged. `refreshPhishnetSongCatalog` may return optional `archivePath` (`string | null`) when the archive write succeeded.
+
 ### 2.4 Comms event adapters (v1.7.0+)
 
 Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-scoring hooks, and scheduled jobs. All adapters route through `deliverCommsTrigger` and are **gated** by `COMMS_EVENT_ADAPTERS_ENABLED=true` (default off).
