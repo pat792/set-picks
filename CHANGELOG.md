@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.39.2] — 2026-07-22
+
+### Changed
+- **Picks lock offset** — doors-based wall clock moves from doors+100 (1h40) to doors+85 (1h25): safety buffer raised 19 → 34 against the Summer Tour 2026 avg doors→start of 119. Client + Functions + lock-reminder copy share the same resolver.
+
+---
+
 ## [1.39.1] — 2026-07-22
 
 ### Fixed

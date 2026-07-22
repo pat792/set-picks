@@ -2,7 +2,7 @@
  * Per-show picks wall-clock lock (#522).
  *
  * When doors are known: lock = doors + (tourAvgDoorsToStart − safety).
- * Summer Tour 2026 setlist.fm avg doors→start is 1h59m (119); safety 19 → doors+100.
+ * Summer Tour 2026 setlist.fm avg doors→start is 1h59m (119); safety 34 → doors+85 (1h25).
  * Fallback when doors unknown: 19:30 venue-local.
  */
 
@@ -16,8 +16,8 @@ export const SHOW_PICKS_LOCK_MINUTE_LOCAL = DEFAULT_PICKS_LOCK_HM.minute;
 /** setlist.fm Summer Tour 2026 “Avg start time after doors”. */
 export const TOUR_AVG_DOORS_TO_START_MIN = 119;
 
-/** Minutes before average start to lock picks (doors+100 when avg is 119). */
-export const PICKS_LOCK_SAFETY_MIN = 19;
+/** Minutes before average start to lock picks (doors+85 when avg is 119). */
+export const PICKS_LOCK_SAFETY_MIN = 34;
 
 /**
  * Known doors times (venue-local 24h `HH:mm`) from setlist.fm / tickets.

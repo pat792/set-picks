@@ -109,7 +109,7 @@ Tour and show date metadata. Read by `resolveCurrentTour` and `resolveSelectable
 | `scheduleSourceUrl` | string? | Official date-page URL |
 | `picksLockLocal` | string? | Venue-local picks lock `HH:mm` when materialized/overridden |
 
-**Picks wall-clock lock (#522):** when `doorsLocal` (or a seeded doors time) is known, lock = doors + (tour avg doors→start − safety). Summer Tour 2026 defaults: avg **119** min, safety **19** → **doors + 100 min**. When doors are unknown, fallback is **19:30** venue-local. Admin `show_lock_state` and (planned) setlist `s1o` still win as earlier signals.
+**Picks wall-clock lock (#522):** when `doorsLocal` (or a seeded doors time) is known, lock = doors + (tour avg doors→start − safety). Summer Tour 2026 defaults: avg **119** min, safety **34** → **doors + 85 min** (1h25). When doors are unknown, fallback is **19:30** venue-local. Admin `show_lock_state` and (planned) setlist `s1o` still win as earlier signals.
 
 `scheduledPhishnetShowCalendar` runs daily at 06:00 ET. Phish.net is canonical for dates/tours/venues; the sync then fetches Phish.com upcoming date pages for timing. A Phish.com failure does not fail or erase the calendar: prior timing is preserved.
 
