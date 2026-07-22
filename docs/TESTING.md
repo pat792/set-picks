@@ -37,9 +37,12 @@ Whenever you need to simulate a brand new user hitting the site for the very fir
 ```bash
 npm run qa:setup          # materialize-env + qa:cache + qa:google-signup gating
 npm run qa:auth-scenarios # full auth telemetry + routing matrix (QA_TEST_* only)
+# includes UR-B2: create pool → /join/:code → existing user (already-member)
 ```
 
 This materializes `.env.qa.local` from injected secrets, runs `qa:cache` (email returning user), and `qa:google-signup` gating tests.
+
+**Pool invite E2E (`qa:auth-scenarios` UR-B2):** signs in as `QA_TEST_*`, creates a throwaway pool, signs out, opens `/join/:code`, signs back in. Because the QA user already owns the pool, deferred join resolves as **already-member** — still validates Wave 0 invite storage, pools landing override, and no Almost There flash. A true first-membership join needs a second joiner account (not automated yet).
 
 ### Secret inventory
 
