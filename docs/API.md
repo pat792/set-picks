@@ -294,7 +294,7 @@ When `alreadyLocked` is `true`, the doc already carried `lockReason: admin_overr
 
 **Ops CLI (no War Room):** `cd functions && node scripts/lockPicksForShowNow.js --showDate=YYYY-MM-DD`
 
-### 2.3 `getPhishnetSetlist`, `scheduledPhishnetShowCalendar`, `refreshPhishnetShowCalendar`, `refreshLiveScoresForShow`, `scheduledPhishnetSongCatalog`, `refreshPhishnetSongCatalog`, `scheduledPhishnetLiveSetlistPoll`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `sendPushCanary`, `scheduledPublicTourStatsRefresh`, `refreshPublicTourStats`
+### 2.3 `getPhishnetSetlist`, `scheduledPhishnetShowCalendar`, `refreshPhishnetShowCalendar`, `refreshLiveScoresForShow`, `scheduledPhishnetSongCatalog`, `refreshPhishnetSongCatalog`, `scheduledPickRecommendations`, `refreshPickRecommendations`, `scheduledPhishnetLiveSetlistPoll`, `setLiveSetlistAutomationState`, `pollLiveSetlistNow`, `sendPushCanary`, `scheduledPublicTourStatsRefresh`, `refreshPublicTourStats`
 
 Phish.net integration, live scoring, and public tour-stats refresh. Deployed via `npm run deploy:functions:phishnet`. Internal admin use — request/response shapes documented in `docs/PHISHNET_CALLABLE_RUNBOOK.md`.
 
@@ -303,6 +303,8 @@ Phish.net integration, live scoring, and public tour-stats refresh. Deployed via
 **Storage object `song-catalog.json` (v1.25.0+, #554):** published by `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog`. Each song object includes `{ name, total, gap, last, debut }` where `debut` is a string (typically `YYYY-MM-DD`) or `""` when unknown. See `docs/SONG_CATALOG.md`. Adding `debut` is a **MINOR** catalog-field addition (clients may ignore unknown fields).
 
 **Storage archive `song-catalog/archive/{stamp}.json` (v1.36.0+, #647):** each catalog sync also writes a dated private snapshot (same JSON payload as live) at `song-catalog/archive/YYYY-MM-DDTHH-mm-ssZ.json` for leakage-safe recommendation backtests (#646). Not public-read (Admin SDK / ops only). Live client path is unchanged. `refreshPhishnetSongCatalog` may return optional `archivePath` (`string | null`) when the archive write succeeded.
+
+**Storage object `pick-recommendations.json` (v1.37.0+, #650):** published by `scheduledPickRecommendations` (cron `15 */6 * * *` ET) and admin callable `refreshPickRecommendations`. Payload includes `generatedAt`, `modelVersion`, `targetShow`, `historyShowCount`, `topK`, and `slots` (`s1o`/`s1c`/`s2o`/`s2c`/`enc`/`wild`) — each an array of `{ name, normalizedName, rank, score, playProb, slotAffinity, confidence, riskBand, reasons }`. Join to catalog by `normalizedName` / normalized title. No-op (skip publish) when there is no upcoming show or insufficient `official_setlists` history. Optional private archives under `pick-recommendations/archive/`. Client: Storage `getDownloadURL` + localStorage TTL (override `VITE_PICK_RECOMMENDATIONS_URL`). See `docs/PICK_RECOMMENDATIONS.md`.
 
 ### 2.4 Comms event adapters (v1.7.0+)
 
@@ -431,6 +433,7 @@ These `VITE_*` variables are read at build time. Adding or removing one is a MIN
 | `VITE_SETLIST_API_SOURCE` | No | Setlist data source override |
 | `VITE_USE_CALLABLE_PHISHNET_SETLIST` | No | Route fetches through callable |
 | `VITE_SONG_CATALOG_URL` | No | CDN URL override for song catalog |
+| `VITE_PICK_RECOMMENDATIONS_URL` | No | CDN URL override for pick recommendations (#650) |
 | `VITE_ENABLE_SPONSOR_SLOTS` | No | `true` renders reserved sponsor/ad placements (`SponsorSlot`); omit to hide (default) |
 
 ### 4.1 Cloud Functions runtime env vars

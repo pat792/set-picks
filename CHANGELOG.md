@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.37.0] — 2026-07-22
+
+### Added
+- **Pick recommendations Storage artifact (#650)** — `pick-recommendations.json` published by `scheduledPickRecommendations` / `refreshPickRecommendations` for the upcoming show (`modelVersion` v0.1.0-explainable). Client `usePickRecommendations` with TTL/stale fallback; optional `VITE_PICK_RECOMMENDATIONS_URL`. See `docs/PICK_RECOMMENDATIONS.md` / `docs/API.md`.
+
+---
+
 ## [1.36.0] — 2026-07-21
 
 ### Added

@@ -12,5 +12,15 @@ service firebase.storage {
     match /song-catalog/archive/{fileName} {
       allow read, write: if false;
     }
+
+    // Upcoming-show recommendation artifact (#650). Client TTL fetch; Admin SDK write.
+    match /pick-recommendations.json {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /pick-recommendations/archive/{fileName} {
+      allow read, write: if false;
+    }
   }
 }

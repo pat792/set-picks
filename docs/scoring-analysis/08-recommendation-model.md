@@ -29,7 +29,7 @@ npm run backtest:recommendations
 
 PASS when `combined_explainable` meets or beats each baseline on **slotHit@5** or **recall@10**. Exit code `2` on FAIL.
 
-Weights live in `scripts/prediction-backtest/lib/model.mjs` (`MODEL_WEIGHTS`). Bump `MODEL_VERSION` when weights change and re-run the harness.
+Weights live in `scripts/prediction-backtest/lib/model.mjs` (`MODEL_WEIGHTS`) **and** the production CJS port `functions/pickRecommendationsModel.js` (keep in sync). Bump `MODEL_VERSION` when weights change and re-run the harness.
 
 ## Empirical freeze note (2026-07-22)
 
