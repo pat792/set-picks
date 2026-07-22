@@ -15,7 +15,7 @@ export default function AdminPicksLockControls({
   const canLock = showStatus === 'NEXT' && !picksAlreadyLocked && !disabled;
 
   let helperText =
-    'Picks lock at doors + ~1:40 (tour avg start − safety), at fallback 7:30 PM venue-local when doors are unknown, when set 1 starts on Phish.net, or when you lock them here.';
+    'Picks lock at doors + ~1:25 (tour avg start − safety), at fallback 7:30 PM venue-local when doors are unknown, when set 1 starts on Phish.net, or when you lock them here.';
   if (showStatus && showStatus !== 'NEXT') {
     helperText = 'Lock picks now is only available while this show is NEXT (before wall-clock lock).';
   } else if (adminLockActive) {
