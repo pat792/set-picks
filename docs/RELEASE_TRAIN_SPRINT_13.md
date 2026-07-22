@@ -161,5 +161,6 @@ Agent-assisted eng-day ranges used to size waves (not a commit):
 | Date | Wave | PR / action | Notes |
 |------|------|-------------|-------|
 | 2026-07-21 | Baseline | Confirm `main`/`staging` at **1.35.4** | Fast-forward train branch to `main` tip |
-| 2026-07-21 | 0 | Manifest authored | Prediction epic #646 is primary IN; multi-band OUT |
-| 2026-07-21 | 1 | Next | `#647` catalog snapshot archive |
+| 2026-07-21 | 0 | [#714](https://github.com/pat792/set-picks/pull/714) merged | Manifest on staging |
+| 2026-07-21 | 1 | [#715](https://github.com/pat792/set-picks/pull/715) merged + deployed | #647 archives verified (`…/archive/2026-07-22T04-55-51Z.json`); issue closed |
+| 2026-07-21 | 2 | #648 in flight | Offline import + leakage-safe baseline backtest harness |
