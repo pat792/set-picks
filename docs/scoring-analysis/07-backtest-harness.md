@@ -55,7 +55,7 @@ npm run test:prediction-backtest
 | `gap_ascending` | Reconstructed shows-since-last-play (low gap first), then plays — mirrors autocomplete heuristic |
 | `recent_frequency` | Plays in trailing N shows (default 25) before `T` |
 
-These are **slot-agnostic**. #649 adds play-likelihood × slot affinity and must beat these on the same harness.
+These are **slot-agnostic**. #649 adds `combined_explainable` (play × slot affinity) on the same harness — see [08-recommendation-model.md](./08-recommendation-model.md).
 
 ## Interpreting the report
 

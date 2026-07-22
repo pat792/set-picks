@@ -71,8 +71,15 @@ if (!apiKey) {
 const { fetchAllShowsNormalized } = loadShowCalendar();
 const { fetchPhishnetSetlistForDate } = loadSetlistAutomation();
 
-console.log(`Listing Phish.net shows ${from} → ${to}…`);
-const allShows = await fetchAllShowsNormalized({ apiKey });
+const fromYear = Number(from.slice(0, 4));
+const toYear = Number(to.slice(0, 4));
+
+console.log(`Listing Phish.net shows ${from} → ${to} (years ${fromYear}–${toYear})…`);
+const allShows = await fetchAllShowsNormalized({
+  apiKey,
+  minYear: fromYear,
+  maxYear: toYear,
+});
 const dates = allShows
   .map((s) => s.date)
   .filter((d) => typeof d === "string" && d >= from && d <= to)
