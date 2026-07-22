@@ -23,6 +23,7 @@ describe('groupPickRecommendations', () => {
       { name: 'Beta', normalizedName: 'beta', riskBand: 'long_shot', rank: 1 },
       { name: 'Gamma', normalizedName: 'gamma', riskBand: 'slot_fit', rank: 1 },
       { name: 'Alpha Dup', normalizedName: 'alpha', riskBand: 'safe', rank: 1 },
+      { name: 'Skip Me', normalizedName: 'skip me', riskBand: 'unbanded', rank: 1 },
     ];
     const groups = groupRecommendationsByRiskBand(
       rows,
@@ -34,7 +35,9 @@ describe('groupPickRecommendations', () => {
       'long_shot',
     ]);
     expect(groups[0].items).toEqual([]);
+    expect(groups[0].hint).toMatch(/somewhere/i);
     expect(groups[1].items.map((i) => i.name)).toEqual(['Gamma']);
+    expect(groups[1].hint).toMatch(/this slot/i);
     expect(groups[2].items.map((i) => i.name)).toEqual(['Beta']);
   });
 });

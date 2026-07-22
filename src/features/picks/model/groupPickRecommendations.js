@@ -10,6 +10,12 @@ const BAND_LABELS = {
   long_shot: 'Long shot',
 };
 
+const BAND_HINTS = {
+  safe: 'Likely to play somewhere tonight',
+  slot_fit: 'Historically common in this slot',
+  long_shot: 'Long gap / bustout upside',
+};
+
 /**
  * @param {unknown} title
  * @returns {string}
@@ -43,7 +49,7 @@ export function selectedTitleKeys(formData, activeSlotId) {
 /**
  * @param {Array<{ name?: string, normalizedName?: string, riskBand?: string, rank?: number }> | null | undefined} rows
  * @param {Set<string>} excludeKeys
- * @returns {{ band: string, label: string, items: object[] }[]}
+ * @returns {{ band: string, label: string, hint: string, items: object[] }[]}
  */
 export function groupRecommendationsByRiskBand(rows, excludeKeys = new Set()) {
   /** @type {Record<string, object[]>} */
@@ -52,6 +58,7 @@ export function groupRecommendationsByRiskBand(rows, excludeKeys = new Set()) {
     return BAND_ORDER.map((band) => ({
       band,
       label: BAND_LABELS[band],
+      hint: BAND_HINTS[band],
       items: [],
     }));
   }
@@ -62,13 +69,15 @@ export function groupRecommendationsByRiskBand(rows, excludeKeys = new Set()) {
       normalizePickTitle(row.normalizedName) ||
       normalizePickTitle(row.name);
     if (!key || excludeKeys.has(key)) continue;
-    const band =
-      row.riskBand === 'safe' ||
-      row.riskBand === 'long_shot' ||
-      row.riskBand === 'slot_fit'
-        ? row.riskBand
-        : 'slot_fit';
-    buckets[band].push(row);
+    // Only Lab bands — skip unbanded / unknown residuals.
+    if (
+      row.riskBand !== 'safe' &&
+      row.riskBand !== 'long_shot' &&
+      row.riskBand !== 'slot_fit'
+    ) {
+      continue;
+    }
+    buckets[row.riskBand].push(row);
   }
 
   for (const band of BAND_ORDER) {
@@ -80,8 +89,9 @@ export function groupRecommendationsByRiskBand(rows, excludeKeys = new Set()) {
   return BAND_ORDER.map((band) => ({
     band,
     label: BAND_LABELS[band],
+    hint: BAND_HINTS[band],
     items: buckets[band],
   }));
 }
 
-export { BAND_LABELS, BAND_ORDER };
+export { BAND_HINTS, BAND_LABELS, BAND_ORDER };

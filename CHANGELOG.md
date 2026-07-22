@@ -19,6 +19,9 @@ No unreleased changes.
 ### Added
 - **Prediction Lab (#651)** — opt-in, default-collapsed panel on Picks: Safe / Slot fit / Long shot recommendations with “Use” apply-to-slot. Consumes `pick-recommendations.json`; hidden when locked or artifact unavailable. GA4: `prediction_lab_open`, `prediction_lab_impression`, `prediction_lab_select`.
 
+### Changed
+- **Recommendation risk bands (`v0.1.1-explainable`)** — Slot fit = historically strong for the selected slot (`slotHits` / show window *t*); Safe = high show-wide play probability; Long shot = bustout upside. Lab hides `unbanded` residuals.
+
 ---
 
 ## [1.37.0] — 2026-07-22

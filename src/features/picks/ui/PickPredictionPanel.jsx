@@ -214,6 +214,12 @@ export default function PickPredictionPanel({
                   className={`mb-1.5 ${DASHBOARD_CARD_EYEBROW} text-content-secondary`}
                 >
                   {group.label}
+                  {group.hint ? (
+                    <span className="font-normal text-content-secondary/80">
+                      {' '}
+                      · {group.hint}
+                    </span>
+                  ) : null}
                 </p>
                 <ul className="space-y-1.5">
                   {group.items.slice(0, 5).map((row) => (
