@@ -47,7 +47,12 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      // Guest → sign-in (and user switches): keep guards in `loading` until the
+      // first profile snapshot. Otherwise `loading:false + user + profile:null`
+      // briefly looks like "needs setup" and dumps returning users onto Almost There (#727).
       setUser(u);
+      setUserProfile(null);
+      setLoading(true);
 
       resolveIsAdmin(u)
         .then((flag) => {

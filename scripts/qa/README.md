@@ -70,6 +70,7 @@ console.
 | `chunk-split.mjs` | `npm run qa:chunks` | §A chunk-load |
 | `firestore-cache.mjs` | `npm run qa:cache` | §B Firestore read cache |
 | `preview-cache-headers.mjs` | `npm run qa:preview-headers` | §C cache-control on **deployed** preview |
+| `auth-scenarios.mjs` | `npm run qa:auth-scenarios` | Auth/routing matrix; UR-B2 already-member + UR-B3 disposable new-user join |
 | `google-new-user-signup.mjs` | `npm run qa:google-signup` | Google new-user sign-up gating + optional OAuth |
 
 Playwright runners (`qa:chunks`, `qa:cache`, `qa:google-signup`) spawn `vite preview`

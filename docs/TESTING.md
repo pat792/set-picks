@@ -37,9 +37,14 @@ Whenever you need to simulate a brand new user hitting the site for the very fir
 ```bash
 npm run qa:setup          # materialize-env + qa:cache + qa:google-signup gating
 npm run qa:auth-scenarios # full auth telemetry + routing matrix (QA_TEST_* only)
+# includes UR-B2: create pool → /join/:code → existing user (already-member)
 ```
 
 This materializes `.env.qa.local` from injected secrets, runs `qa:cache` (email returning user), and `qa:google-signup` gating tests.
+
+**Pool invite E2E (`qa:auth-scenarios`):**
+- **UR-B2** — `QA_TEST_*` creates a pool, signs out, rejoins via `/join/:code` (**already-member**).
+- **UR-B3** — same create path, then a **disposable** email signup completes Almost There (pool-enter copy), joins as a first-time member, and self-deletes via Account → Delete account (no second permanent QA secret).
 
 ### Secret inventory
 

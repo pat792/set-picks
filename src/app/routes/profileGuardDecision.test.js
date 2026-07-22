@@ -60,6 +60,18 @@ describe('decideDashboardRoute', () => {
       .toEqual({ kind: 'loading' });
   });
 
+  it('guest→sign-in profile-pending window never chooses setup (#727)', () => {
+    // AuthProvider must set loading:true after setUser until the first profile
+    // snapshot. Without that, loading:false + user + profile:null dumps
+    // returning users onto Almost There.
+    expect(
+      decideDashboardRoute({ loading: true, user, userProfile: null }),
+    ).toEqual({ kind: 'loading' });
+    expect(
+      decideSetupRoute({ loading: true, user, userProfile: null }),
+    ).toEqual({ kind: 'loading' });
+  });
+
   it('redirects unsigned-in visitors to the splash', () => {
     expect(decideDashboardRoute({ loading: false, user: null, userProfile: null }))
       .toEqual({ kind: 'redirect-home' });
