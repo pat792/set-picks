@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.39.0] — 2026-07-22
+
+### Added
+- **Pick-recommendations 1y Phish.net history (#721)** — private Storage window `pick-recommendations/history/window.json` synced from Phish.net (outside `official_setlists`). Publisher merges with Firestore priors; artifact adds `historySource`. Callables/schedules: `refreshPickRecommendationHistory`, `scheduledPickRecommendationHistory`.
+
+---
+
 ## [1.38.0] — 2026-07-22
 
 ### Added

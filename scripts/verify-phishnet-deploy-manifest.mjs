@@ -26,6 +26,8 @@ const REQUIRED_EXPORTS = [
   "refreshPhishnetSongCatalog",
   "scheduledPickRecommendations",
   "refreshPickRecommendations",
+  "scheduledPickRecommendationHistory",
+  "refreshPickRecommendationHistory",
   "scheduledPhishnetLiveSetlistPoll",
   "scheduledPicksLockReminder",
   "setLiveSetlistAutomationState",

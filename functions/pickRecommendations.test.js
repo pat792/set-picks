@@ -84,6 +84,7 @@ test("buildPickRecommendationsArtifact emits versioned slots", () => {
   assert.equal(out.artifact.modelVersion, MODEL_VERSION);
   assert.equal(out.artifact.targetShow.date, "2024-07-10");
   assert.equal(out.artifact.historyShowCount, 2);
+  assert.equal(out.artifact.historySource, "firestore");
   assert.ok(Array.isArray(out.artifact.slots.s1o));
   assert.ok(out.artifact.slots.s1o.length >= 1);
   assert.equal(out.artifact.slots.s1o[0].rank, 1);

@@ -5,7 +5,7 @@ Versioned Storage JSON for the upcoming show’s slot-aware song recommendations
 ## Publish path
 
 1. Resolve upcoming show from `show_calendar/snapshot` via `getNextShow`.
-2. Load prior `official_setlists` docs with document id `< targetDate` (leakage-safe).
+2. Load priors: private Phish.net history window (`pick-recommendations/history/window.json`, ~1y) **merged** with `official_setlists` docs (`showDate < targetDate`; Firestore wins on date ties).
 3. Rank with `v0.1.1-explainable` (`functions/pickRecommendationsModel.js`).
 4. Write live **`pick-recommendations.json`** (+ optional private archive).
 
@@ -13,10 +13,13 @@ Versioned Storage JSON for the upcoming show’s slot-aware song recommendations
 |---------|--------|
 | Schedule `15 */6 * * *` ET | `scheduledPickRecommendations` |
 | Admin callable | `refreshPickRecommendations` |
+| Schedule `40 4 * * *` ET | `scheduledPickRecommendationHistory` (Phish.net window sync) |
+| Admin callable | `refreshPickRecommendationHistory` (`{ force?, years? }`) |
 
-**No-op** when: no upcoming show, invalid target, or empty history (`skipped: true` + `reason`).
+**No-op** when: no upcoming show, invalid target, or empty merged history (`skipped: true` + `reason`).
 
-Deploy: `npm run deploy:functions:phishnet` (includes both exports). Storage rules: `firebase deploy --only storage`.
+Deploy: `firebase deploy --only storage` (history rules) + `npm run deploy:functions:phishnet`.
+First-time ops: run `refreshPickRecommendationHistory` (or local Admin SDK sync) once so the window exists, then refresh recommendations.
 
 ## Client
 
@@ -31,6 +34,7 @@ Deploy: `npm run deploy:functions:phishnet` (includes both exports). Storage rul
   "modelVersion": "v0.1.1-explainable",
   "targetShow": { "date", "venue", "city", "tour", "timeZone" },
   "historyShowCount": 80,
+  "historySource": "merged",
   "topK": 25,
   "slots": {
     "s1o": [{ "name", "normalizedName", "rank", "score", "playProb", "slotAffinity", "confidence", "riskBand", "reasons" }],

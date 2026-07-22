@@ -1,8 +1,9 @@
 /**
- * Generate + publish versioned `pick-recommendations.json` to Storage (#650).
+ * Generate + publish versioned `pick-recommendations.json` to Storage (#650/#721).
  *
  * Mirrors song-catalog publish: public live object + download token, scheduled
- * and admin refresh. Uses official_setlists history with showDate < target only.
+ * and admin refresh. Priors: Phish.net 1y history window (Storage) merged with
+ * `official_setlists` (Firestore wins on date ties); `showDate < target` only.
  */
 "use strict";
 
@@ -20,10 +21,16 @@ const { getNextShow } = require("./showFinalizationGate");
 const {
   parseShowCalendarSnapshotToShows,
 } = require("./phishnetLiveSetlistAutomation");
+const {
+  DEFAULT_MERGED_HISTORY_LIMIT,
+  loadHistoryWindowFromStorage,
+  mergePriorShowRecords,
+} = require("./pickRecommendationsHistory");
 
 const REC_STORAGE_PATH = "pick-recommendations.json";
 const REC_ARCHIVE_PREFIX = "pick-recommendations/archive/";
-const DEFAULT_HISTORY_LIMIT = 80;
+/** @deprecated Prefer DEFAULT_MERGED_HISTORY_LIMIT — kept as alias for callers. */
+const DEFAULT_HISTORY_LIMIT = DEFAULT_MERGED_HISTORY_LIMIT;
 const DEFAULT_TOP_K = 25;
 
 /**
@@ -88,6 +95,8 @@ function showRecordFromOfficialDoc(data, showDate) {
 }
 
 /**
+ * Firestore-only priors (legacy path / tests). Prefer loadMergedPriorShowRecords.
+ *
  * @param {import('firebase-admin').firestore.Firestore} db
  * @param {string} targetDate
  * @param {number} [limit]
@@ -109,6 +118,54 @@ async function loadPriorShowRecords(db, targetDate, limit = DEFAULT_HISTORY_LIMI
     return records.slice(records.length - limit);
   }
   return records;
+}
+
+/**
+ * Merge private Phish.net history window + Firestore official_setlists (#721).
+ *
+ * @param {import('firebase-admin').firestore.Firestore} db
+ * @param {string} targetDate
+ * @param {{
+ *   bucketName?: string,
+ *   limit?: number,
+ *   logger?: { info?: Function, warn?: Function },
+ * }} [opts]
+ */
+async function loadMergedPriorShowRecords(db, targetDate, opts = {}) {
+  const {
+    bucketName,
+    limit = DEFAULT_HISTORY_LIMIT,
+    logger,
+  } = opts;
+
+  const firestoreShows = await loadPriorShowRecords(db, targetDate, limit);
+
+  let phishnetShows = [];
+  try {
+    const bucket = bucketName
+      ? admin.storage().bucket(bucketName)
+      : admin.storage().bucket();
+    const window = await loadHistoryWindowFromStorage(bucket);
+    if (window?.shows?.length) {
+      phishnetShows = window.shows;
+    } else {
+      logger?.warn?.(
+        "pick recommendations: no Phish.net history window; using Firestore only"
+      );
+    }
+  } catch (e) {
+    logger?.warn?.(
+      "pick recommendations: history window load failed; using Firestore only",
+      e instanceof Error ? e.message : String(e)
+    );
+  }
+
+  return mergePriorShowRecords({
+    phishnetShows,
+    firestoreShows,
+    targetDate,
+    limit,
+  });
 }
 
 /**
@@ -155,10 +212,17 @@ function serializeRanked(ranked, priors, topK) {
  *   priors: object[],
  *   topK?: number,
  *   now?: Date,
+ *   historySource?: 'merged' | 'phishnet' | 'firestore',
  * }} args
  */
 function buildPickRecommendationsArtifact(args) {
-  const { targetShow, priors, topK = DEFAULT_TOP_K, now = new Date() } = args;
+  const {
+    targetShow,
+    priors,
+    topK = DEFAULT_TOP_K,
+    now = new Date(),
+    historySource = "firestore",
+  } = args;
   const targetDate = targetShow?.date;
   if (!targetDate || !/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
     return { skipped: true, reason: "invalid-target-date" };
@@ -190,6 +254,7 @@ function buildPickRecommendationsArtifact(args) {
         timeZone: targetShow.timeZone || "",
       },
       historyShowCount: priors.length,
+      historySource,
       topK,
       slots,
     },
@@ -243,12 +308,17 @@ async function syncPickRecommendationsToStorage(db, opts = {}) {
     };
   }
 
-  const priors = await loadPriorShowRecords(db, upcoming.date, historyLimit);
+  const { priors, historySource } = await loadMergedPriorShowRecords(
+    db,
+    upcoming.date,
+    { bucketName, limit: historyLimit, logger }
+  );
   const built = buildPickRecommendationsArtifact({
     targetShow: upcoming,
     priors,
     topK,
     now,
+    historySource,
   });
   if (built.skipped) {
     logger?.info?.("pick recommendations: skip publish", { reason: built.reason });
@@ -314,6 +384,7 @@ async function syncPickRecommendationsToStorage(db, opts = {}) {
     targetDate: upcoming.date,
     modelVersion: MODEL_VERSION,
     historyShowCount: priors.length,
+    historySource,
     publicUrl,
     archivePath,
   });
@@ -324,6 +395,7 @@ async function syncPickRecommendationsToStorage(db, opts = {}) {
     targetDate: upcoming.date,
     modelVersion: MODEL_VERSION,
     historyShowCount: priors.length,
+    historySource,
     publicUrl,
     bucket: bucket.name,
     archivePath,
@@ -341,5 +413,6 @@ module.exports = {
   buildPickRecommendationsArtifact,
   resolveUpcomingShow,
   loadPriorShowRecords,
+  loadMergedPriorShowRecords,
   syncPickRecommendationsToStorage,
 };
