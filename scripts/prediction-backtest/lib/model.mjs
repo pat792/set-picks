@@ -12,12 +12,21 @@ import {
 } from "./features.mjs";
 import { normalizeTitle, POSITIONAL_SLOTS } from "./shared.mjs";
 
-/** Frozen identifier once calibration ships — bump when weights change. */
-export const MODEL_VERSION = "v0.1.0-explainable";
+/** Frozen identifier once calibration ships — bump when weights / bands change. */
+export const MODEL_VERSION = "v0.1.1-explainable";
 
 /** Training-window description for reports / artifact metadata. */
 export const MODEL_TRAINING_WINDOW =
   "rolling-origin; features from all prior cached shows";
+
+/** Human labels for slot-frequency reasons (analytical window t). */
+const SLOT_FREQUENCY_LABELS = {
+  s1o: "set 1 opener",
+  s1c: "set 1 closer",
+  s2o: "set 2 opener",
+  s2c: "set 2 closer",
+  enc: "encore",
+};
 
 /**
  * Hand-tuned v0 weights — replace only with a version bump after re-backtest.
@@ -33,6 +42,14 @@ export const MODEL_WEIGHTS = {
   daysSincePriorScale: 0.05,
   slotSmoothingAlpha: 1.5,
   bustoutGapMin: 30,
+  /** Show-wide: high P(play somewhere tonight). */
+  safePlayProbMin: 0.55,
+  /**
+   * Slot fit: strong for this slot over window t — min times occupying the
+   * slot and min share of shows (slotHits / showCount).
+   */
+  slotFitMinHits: 2,
+  slotFitMinRate: 0.06,
 };
 
 /**
@@ -142,34 +159,58 @@ function scorePlayLikelihood(f) {
  */
 function slotAffinityFromCtx(ctx, songKey, slot) {
   const plays = ctx.idx.playCount.get(songKey) || 0;
+  const showCount = ctx.idx.showCount || 0;
   const slotMap = ctx.idx.slotCounts.get(slot) || new Map();
   const slotHits = slotMap.get(songKey) || 0;
   const alpha = MODEL_WEIGHTS.slotSmoothingAlpha;
   if (slot === "wild") {
-    return { affinity: 1, reason: null };
+    return { affinity: 1, reason: null, slotHits: 0, showCount };
   }
   const affinity =
     (slotHits + alpha) / (plays + alpha * POSITIONAL_SLOTS.length);
+  const label = SLOT_FREQUENCY_LABELS[slot] || slot;
   const reason =
-    slotHits > 0 ? `strong ${slot} history (${slotHits}/${plays || 0})` : null;
-  return { affinity, reason };
+    slotHits > 0
+      ? `${label} in ${slotHits} of ${showCount} shows`
+      : null;
+  return { affinity, reason, slotHits, showCount };
 }
 
 /**
+ * Risk bands (mutually exclusive, priority order):
+ * 1. long_shot — bustout gap + low show-wide playProb
+ * 2. slot_fit — strong for this slot over window t (slotHits / showCount)
+ * 3. safe — high P(play somewhere tonight)
+ * 4. unbanded — residual (still ranked in artifact; Lab hides these)
+ *
  * @param {number} playProb
  * @param {number} gap
- * @returns {'safe' | 'slot_fit' | 'long_shot'}
+ * @param {{ slot?: string, slotHits?: number, showCount?: number }} [ctx]
+ * @returns {'safe' | 'slot_fit' | 'long_shot' | 'unbanded'}
  */
-export function riskBand(playProb, gap) {
-  if (playProb >= 0.55) return "safe";
+export function riskBand(playProb, gap, ctx = {}) {
+  const w = MODEL_WEIGHTS;
+  const slot = ctx.slot || "wild";
+  const slotHits = Number(ctx.slotHits) || 0;
+  const showCount = Number(ctx.showCount) || 0;
+  const slotRate = showCount > 0 ? slotHits / showCount : 0;
+
   if (
     Number.isFinite(gap) &&
-    gap >= MODEL_WEIGHTS.bustoutGapMin &&
+    gap >= w.bustoutGapMin &&
     playProb < 0.4
   ) {
     return "long_shot";
   }
-  return "slot_fit";
+
+  const strongForSlot =
+    slot !== "wild" &&
+    slotHits >= w.slotFitMinHits &&
+    slotRate >= w.slotFitMinRate;
+  if (strongForSlot) return "slot_fit";
+
+  if (playProb >= w.safePlayProbMin) return "safe";
+  return "unbanded";
 }
 
 /**
@@ -199,7 +240,11 @@ export function rankCombinedForSlot(priors, targetDate, slot) {
     const aff = slotAffinityFromCtx(ctx, songKey, slot);
     const score =
       slot === "wild" ? playProb : playProb * Math.max(0.05, aff.affinity);
-    const band = riskBand(playProb, f.gap);
+    const band = riskBand(playProb, f.gap, {
+      slot,
+      slotHits: aff.slotHits,
+      showCount: aff.showCount,
+    });
     /** @type {string[]} */
     const allReasons = [...reasons];
     if (aff.reason) allReasons.unshift(aff.reason);

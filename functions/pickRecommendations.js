@@ -142,7 +142,7 @@ function serializeRanked(ranked, priors, topK) {
         ? Number(r.slotAffinity.toFixed(6))
         : null,
     confidence: Number((r.playProb ?? r.score).toFixed(6)),
-    riskBand: r.riskBand || "slot_fit",
+    riskBand: r.riskBand || "unbanded",
     reasons: Array.isArray(r.reasons) ? r.reasons.slice(0, 2) : [],
   }));
 }

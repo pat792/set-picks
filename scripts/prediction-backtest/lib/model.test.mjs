@@ -41,10 +41,24 @@ test("MODEL_VERSION is set", () => {
   assert.match(MODEL_VERSION, /^v\d+\.\d+\.\d+/);
 });
 
-test("riskBand maps safe / long_shot", () => {
+test("riskBand maps safe / slot_fit / long_shot / unbanded", () => {
   assert.equal(riskBand(0.7, 5), "safe");
   assert.equal(riskBand(0.2, 40), "long_shot");
-  assert.equal(riskBand(0.45, 5), "slot_fit");
+  assert.equal(riskBand(0.45, 5), "unbanded");
+  assert.equal(
+    riskBand(0.45, 5, { slot: "s1o", slotHits: 5, showCount: 40 }),
+    "slot_fit"
+  );
+  assert.equal(
+    riskBand(0.7, 5, { slot: "s1o", slotHits: 5, showCount: 40 }),
+    "slot_fit",
+    "slot strength wins over high playProb when browsing a slot"
+  );
+  assert.equal(
+    riskBand(0.45, 5, { slot: "s1o", slotHits: 1, showCount: 40 }),
+    "unbanded",
+    "single slot hit is not strong enough"
+  );
 });
 
 test("combined model is slot-aware and leakage-safe", () => {

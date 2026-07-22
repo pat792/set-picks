@@ -4,10 +4,10 @@ Frozen explainable play × slot model used by the offline harness and (later) `#
 
 | Field | Value |
 |-------|--------|
-| `modelVersion` | `v0.1.0-explainable` |
+| `modelVersion` | `v0.1.1-explainable` |
 | Training | Rolling-origin on cached Phish.net setlists (`showDate < target`) |
 | Formula | `slotScore = playProb × smoothedSlotAffinity` · `wildcardScore = playProb` |
-| Risk bands | `safe` / `slot_fit` / `long_shot` (bustout gap ≥ 30 + low playProb) |
+| Risk bands | `safe` (high show-wide playProb) · `slot_fit` (strong for this slot over window *t*: `slotHits ≥ 2` and `slotHits/showCount ≥ 6%`) · `long_shot` (bustout gap ≥ 30 + low playProb) · `unbanded` (residual; Lab hides) |
 
 ## Features (leakage-safe)
 
@@ -48,8 +48,10 @@ Re-run on a wider window before Wave 3; bump `MODEL_VERSION` if weights change.
 
 Each ranked song carries up to two short reasons, e.g.:
 
-- strong s1o history (12/40)
+- set 1 opener in 12 of 40 shows
 - frequent this tour window
 - due vs cadence (gap 8)
 - unlikely repeat after prior night
 - bustout / long-shot upside (gap 42)
+
+**Slot fit analytical frame:** for each positional slot, count how often each song occupied that slot across the prior window *t* (all prior shows in the artifact / backtest cache). Songs meeting the frequency thresholds are `slot_fit`; the same rule applies to s1o, s1c, s2o, s2c, and enc. Wildcard has no positional history — only `safe` / `long_shot` / `unbanded`.
