@@ -219,9 +219,22 @@ ${buildOgMetaTags(og)}
  * @param {{ title: string, description: string, url: string, image: string }} og
  * @returns {string}
  */
+/**
+ * Post-build SEO prerender injects crawler copy into `#root` on `dist/index.html`.
+ * Invite landings must not flash that home-page body before React boots.
+ */
+export function stripPrerenderBodyFromSpaShell(spaHtml) {
+  if (typeof spaHtml !== 'string' || !spaHtml) return spaHtml;
+  return spaHtml.replace(
+    /<div id="root">[\s\S]*?<\/div>/i,
+    '<div id="root"></div>',
+  );
+}
+
 export function injectOgIntoSpa(spaHtml, og) {
   const dynamicTags = buildOgMetaTags(og);
-  return spaHtml.replace(
+  const cleanedShell = stripPrerenderBodyFromSpaShell(spaHtml);
+  return cleanedShell.replace(
     /(<meta\s+charset[^>]*\/?>)/i,
     `$1\n${dynamicTags}`,
   );
