@@ -163,4 +163,5 @@ Agent-assisted eng-day ranges used to size waves (not a commit):
 | 2026-07-21 | Baseline | Confirm `main`/`staging` at **1.35.4** | Fast-forward train branch to `main` tip |
 | 2026-07-21 | 0 | [#714](https://github.com/pat792/set-picks/pull/714) merged | Manifest on staging |
 | 2026-07-21 | 1 | [#715](https://github.com/pat792/set-picks/pull/715) merged + deployed | #647 archives verified (`…/archive/2026-07-22T04-55-51Z.json`); issue closed |
-| 2026-07-21 | 2 | #648 in flight | Offline import + leakage-safe baseline backtest harness |
+| 2026-07-21 | 2 | [#716](https://github.com/pat792/set-picks/pull/716) (#648) | Offline import + leakage-safe baseline harness |
+| 2026-07-21 | 2 | #649 in flight | Combined explainable model `v0.1.0-explainable` + go/no-go |
