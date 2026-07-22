@@ -32,9 +32,9 @@ service cloud.firestore {
     function isPoolSelfJoinMembershipTimestamp() {
       let prior = resource.data.get('memberJoinedAt', {});
       let next = request.resource.data.memberJoinedAt;
+      // Only the joiner's key may be added; existing timestamps must be unchanged.
       return next is map
-        && next.keys().hasAll(prior.keys())
-        && next.keys().size() == prior.keys().size() + 1
+        && next.diff(prior).affectedKeys().hasOnly([request.auth.uid])
         && request.auth.uid in next
         && !(request.auth.uid in prior)
         && next[request.auth.uid] is string;
