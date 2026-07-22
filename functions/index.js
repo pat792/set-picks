@@ -11,6 +11,9 @@ const {
   syncPhishnetSongCatalogToStorage,
 } = require("./phishnetSongCatalog");
 const {
+  syncPickRecommendationsToStorage,
+} = require("./pickRecommendations");
+const {
   candidateShowDates,
   parseShowCalendarSnapshotToShows,
   pollSingleShowDate,
@@ -1766,6 +1769,75 @@ exports.refreshPhishnetSongCatalog = onCall(
       throw new HttpsError(
         "failed-precondition",
         `refreshPhishnetSongCatalog failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Publish versioned `pick-recommendations.json` for the upcoming show (#650).
+ * Same 6h cadence as song catalog; no Phish.net secret required (uses Firestore history).
+ */
+exports.scheduledPickRecommendations = onSchedule(
+  {
+    schedule: "15 */6 * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+  },
+  async () => {
+    try {
+      const result = await syncPickRecommendationsToStorage(admin.firestore(), {
+        logger,
+      });
+      if (result.skipped) {
+        logger.info("scheduledPickRecommendations skipped", result.reason);
+      } else {
+        logger.info(
+          "scheduledPickRecommendations public URL",
+          result.publicUrl,
+          result.targetDate
+        );
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledPickRecommendations failed", msg, e);
+    }
+    return null;
+  }
+);
+
+/**
+ * Admin-only on-demand refresh of Storage `pick-recommendations.json` (#650).
+ */
+exports.refreshPickRecommendations = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    try {
+      assertAdminClaim(request);
+      const result = await syncPickRecommendationsToStorage(admin.firestore(), {
+        logger,
+      });
+      return {
+        ok: true,
+        skipped: Boolean(result.skipped),
+        reason: result.reason ?? null,
+        targetDate: result.targetDate ?? null,
+        modelVersion: result.modelVersion ?? null,
+        historyShowCount: result.historyShowCount ?? null,
+        publicUrl: result.publicUrl ?? null,
+        archivePath: result.archivePath ?? null,
+      };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshPickRecommendations unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshPickRecommendations failed: ${msg}`
       );
     }
   }
