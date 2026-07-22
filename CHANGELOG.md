@@ -14,12 +14,46 @@ No unreleased changes.
 
 ---
 
-## [1.35.5] — 2026-07-22
+## [1.39.1] — 2026-07-22
 
 ### Fixed
 - **Pool invite join** — Firestore rules now allow `memberJoinedAt` on self-join for `from_membership` pools (new pools since #417). Without this, every invite-link join failed with permission denied and surfaced “Could not join the pool.”
 - **Pool invite flash** — `/join/:code` server-rendered SPA shell no longer injects the home-page SEO prerender body into `#root` before React boots (eliminates the brief “About Setlist Pick'Em” marketing copy flash).
 - **Pending invite retry** — Deep-link join keeps the stored invite code in `localStorage` until join succeeds or is definitively invalid, so transient failures can be retried from the Pools tab without re-opening the link.
+
+---
+
+## [1.39.0] — 2026-07-22
+
+### Added
+- **Pick-recommendations 1y Phish.net history (#721)** — private Storage window `pick-recommendations/history/window.json` synced from Phish.net (outside `official_setlists`). Publisher merges with Firestore priors; artifact adds `historySource`. Callables/schedules: `refreshPickRecommendationHistory`, `scheduledPickRecommendationHistory`.
+
+---
+
+## [1.38.0] — 2026-07-22
+
+### Added
+- **Prediction Lab (#651)** — opt-in, default-collapsed panel on Picks: Safe / Slot fit / Long shot recommendations with “Use” apply-to-slot. Consumes `pick-recommendations.json`; hidden when locked or artifact unavailable. GA4: `prediction_lab_open`, `prediction_lab_impression`, `prediction_lab_select`.
+
+### Changed
+- **Recommendation risk bands (`v0.1.1-explainable`)** — Slot fit = historically strong for the selected slot (`slotHits` / show window *t*); Safe = high show-wide play probability; Long shot = bustout upside. Lab hides `unbanded` residuals.
+
+---
+
+## [1.37.0] — 2026-07-22
+
+### Added
+- **Pick recommendations Storage artifact (#650)** — `pick-recommendations.json` published by `scheduledPickRecommendations` / `refreshPickRecommendations` for the upcoming show (`modelVersion` v0.1.0-explainable). Client `usePickRecommendations` with TTL/stale fallback; optional `VITE_PICK_RECOMMENDATIONS_URL`. See `docs/PICK_RECOMMENDATIONS.md` / `docs/API.md`.
+
+---
+
+## [1.36.0] — 2026-07-21
+
+### Added
+- **Song catalog archives (#647)** — each `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog` sync writes a private dated snapshot at `song-catalog/archive/YYYY-MM-DDTHH-mm-ssZ.json` (same payload as live) for leakage-safe prediction backtests (#646). Live `song-catalog.json` client path unchanged. Callable may return optional `archivePath`.
+
+### Changed
+- **`docs/SONG_CATALOG.md`** — documents the every-6h schedule (was stale “weekly”), archive layout/retention, and Storage rules for archive objects.
 
 ---
 

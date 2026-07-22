@@ -9,7 +9,7 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "secrets:sync-phishnet": "node ../scripts/sync-phishnet-secret.mjs",
-    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow,functions:scheduledPhishnetSongCatalog,functions:refreshPhishnetSongCatalog,functions:scheduledPhishnetLiveSetlistPoll,functions:scheduledPicksLockReminder,functions:setLiveSetlistAutomationState,functions:pollLiveSetlistNow,functions:sendPushCanary,functions:lockPicksForShowNow",
+    "deploy:functions:phishnet": "firebase deploy --only functions:getPhishnetSetlist,functions:scheduledPhishnetShowCalendar,functions:refreshPhishnetShowCalendar,functions:refreshLiveScoresForShow,functions:scheduledPhishnetSongCatalog,functions:refreshPhishnetSongCatalog,functions:scheduledPickRecommendations,functions:refreshPickRecommendations,functions:scheduledPickRecommendationHistory,functions:refreshPickRecommendationHistory,functions:scheduledPhishnetLiveSetlistPoll,functions:scheduledPicksLockReminder,functions:setLiveSetlistAutomationState,functions:pollLiveSetlistNow,functions:sendPushCanary,functions:lockPicksForShowNow",
     "lock:picks-now": "node scripts/lockPicksForShowNow.js",
     "diagnose:phishnet": "node ../scripts/diagnose-phishnet-local.mjs",
     "qa:clone-picks-for-show": "node scripts/clonePicksForShowQa.js",

@@ -6,5 +6,26 @@ service firebase.storage {
       allow read: if true;
       allow write: if false;
     }
+
+    // Dated catalog archives for prediction backtests (#647). Admin SDK only —
+    // do not grant public read (live clients use song-catalog.json).
+    match /song-catalog/archive/{fileName} {
+      allow read, write: if false;
+    }
+
+    // Upcoming-show recommendation artifact (#650). Client TTL fetch; Admin SDK write.
+    match /pick-recommendations.json {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /pick-recommendations/archive/{fileName} {
+      allow read, write: if false;
+    }
+
+    // Recommendation-only Phish.net history window (#721). Admin SDK only.
+    match /pick-recommendations/history/{fileName} {
+      allow read, write: if false;
+    }
   }
 }

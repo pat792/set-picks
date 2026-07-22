@@ -11,6 +11,13 @@ const {
   syncPhishnetSongCatalogToStorage,
 } = require("./phishnetSongCatalog");
 const {
+  syncPickRecommendationsToStorage,
+} = require("./pickRecommendations");
+const {
+  syncRecommendationHistoryFromPhishnet,
+  DEFAULT_HISTORY_YEARS,
+} = require("./pickRecommendationsHistory");
+const {
   candidateShowDates,
   parseShowCalendarSnapshotToShows,
   pollSingleShowDate,
@@ -1757,6 +1764,7 @@ exports.refreshPhishnetSongCatalog = onCall(
         ok: true,
         songCount: result.songCount,
         publicUrl: result.publicUrl,
+        archivePath: result.archivePath ?? null,
       };
     } catch (e) {
       if (e instanceof HttpsError) throw e;
@@ -1765,6 +1773,158 @@ exports.refreshPhishnetSongCatalog = onCall(
       throw new HttpsError(
         "failed-precondition",
         `refreshPhishnetSongCatalog failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Publish versioned `pick-recommendations.json` for the upcoming show (#650/#721).
+ * Uses private Phish.net history window when present (merged with Firestore).
+ */
+exports.scheduledPickRecommendations = onSchedule(
+  {
+    schedule: "15 */6 * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+  },
+  async () => {
+    try {
+      const result = await syncPickRecommendationsToStorage(admin.firestore(), {
+        logger,
+      });
+      if (result.skipped) {
+        logger.info("scheduledPickRecommendations skipped", result.reason);
+      } else {
+        logger.info(
+          "scheduledPickRecommendations public URL",
+          result.publicUrl,
+          result.targetDate,
+          result.historyShowCount,
+          result.historySource
+        );
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledPickRecommendations failed", msg, e);
+    }
+    return null;
+  }
+);
+
+/**
+ * Daily refresh of private Phish.net recommendation history window (#721).
+ * Does not write `official_setlists`. Full year backfill on first run; then incremental.
+ */
+exports.scheduledPickRecommendationHistory = onSchedule(
+  {
+    schedule: "40 4 * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+    timeoutSeconds: 540,
+    memory: "512MiB",
+  },
+  async () => {
+    try {
+      const key = phishnetApiKey.value();
+      if (!key) {
+        logger.warn(
+          "scheduledPickRecommendationHistory: PHISHNET_API_KEY missing; skip"
+        );
+        return null;
+      }
+      const result = await syncRecommendationHistoryFromPhishnet({
+        apiKey: key,
+        years: DEFAULT_HISTORY_YEARS,
+        logger,
+      });
+      logger.info("scheduledPickRecommendationHistory ok", result);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledPickRecommendationHistory failed", msg, e);
+    }
+    return null;
+  }
+);
+
+/**
+ * Admin-only on-demand refresh of Storage `pick-recommendations.json` (#650).
+ */
+exports.refreshPickRecommendations = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    try {
+      assertAdminClaim(request);
+      const result = await syncPickRecommendationsToStorage(admin.firestore(), {
+        logger,
+      });
+      return {
+        ok: true,
+        skipped: Boolean(result.skipped),
+        reason: result.reason ?? null,
+        targetDate: result.targetDate ?? null,
+        modelVersion: result.modelVersion ?? null,
+        historyShowCount: result.historyShowCount ?? null,
+        historySource: result.historySource ?? null,
+        publicUrl: result.publicUrl ?? null,
+        archivePath: result.archivePath ?? null,
+      };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshPickRecommendations unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshPickRecommendations failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Admin-only sync of private Phish.net recommendation history window (#721).
+ * Optional `{ force: true }` re-fetches all dates in the window.
+ */
+exports.refreshPickRecommendationHistory = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+    secrets: [phishnetApiKey],
+    timeoutSeconds: 540,
+    memory: "512MiB",
+  },
+  async (request) => {
+    try {
+      assertAdminClaim(request);
+      const key = phishnetApiKey.value();
+      if (!key) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+        );
+      }
+      const force = Boolean(request.data?.force);
+      const years = Number(request.data?.years) || DEFAULT_HISTORY_YEARS;
+      const result = await syncRecommendationHistoryFromPhishnet({
+        apiKey: key,
+        years,
+        force,
+        logger,
+      });
+      return { ok: true, ...result };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshPickRecommendationHistory unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshPickRecommendationHistory failed: ${msg}`
       );
     }
   }
