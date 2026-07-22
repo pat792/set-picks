@@ -14,6 +14,10 @@ const {
   syncPickRecommendationsToStorage,
 } = require("./pickRecommendations");
 const {
+  syncRecommendationHistoryFromPhishnet,
+  DEFAULT_HISTORY_YEARS,
+} = require("./pickRecommendationsHistory");
+const {
   candidateShowDates,
   parseShowCalendarSnapshotToShows,
   pollSingleShowDate,
@@ -1775,8 +1779,8 @@ exports.refreshPhishnetSongCatalog = onCall(
 );
 
 /**
- * Publish versioned `pick-recommendations.json` for the upcoming show (#650).
- * Same 6h cadence as song catalog; no Phish.net secret required (uses Firestore history).
+ * Publish versioned `pick-recommendations.json` for the upcoming show (#650/#721).
+ * Uses private Phish.net history window when present (merged with Firestore).
  */
 exports.scheduledPickRecommendations = onSchedule(
   {
@@ -1795,12 +1799,50 @@ exports.scheduledPickRecommendations = onSchedule(
         logger.info(
           "scheduledPickRecommendations public URL",
           result.publicUrl,
-          result.targetDate
+          result.targetDate,
+          result.historyShowCount,
+          result.historySource
         );
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       logger.error("scheduledPickRecommendations failed", msg, e);
+    }
+    return null;
+  }
+);
+
+/**
+ * Daily refresh of private Phish.net recommendation history window (#721).
+ * Does not write `official_setlists`. Full year backfill on first run; then incremental.
+ */
+exports.scheduledPickRecommendationHistory = onSchedule(
+  {
+    schedule: "40 4 * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [phishnetApiKey],
+    timeoutSeconds: 540,
+    memory: "512MiB",
+  },
+  async () => {
+    try {
+      const key = phishnetApiKey.value();
+      if (!key) {
+        logger.warn(
+          "scheduledPickRecommendationHistory: PHISHNET_API_KEY missing; skip"
+        );
+        return null;
+      }
+      const result = await syncRecommendationHistoryFromPhishnet({
+        apiKey: key,
+        years: DEFAULT_HISTORY_YEARS,
+        logger,
+      });
+      logger.info("scheduledPickRecommendationHistory ok", result);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledPickRecommendationHistory failed", msg, e);
     }
     return null;
   }
@@ -1828,6 +1870,7 @@ exports.refreshPickRecommendations = onCall(
         targetDate: result.targetDate ?? null,
         modelVersion: result.modelVersion ?? null,
         historyShowCount: result.historyShowCount ?? null,
+        historySource: result.historySource ?? null,
         publicUrl: result.publicUrl ?? null,
         archivePath: result.archivePath ?? null,
       };
@@ -1838,6 +1881,50 @@ exports.refreshPickRecommendations = onCall(
       throw new HttpsError(
         "failed-precondition",
         `refreshPickRecommendations failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Admin-only sync of private Phish.net recommendation history window (#721).
+ * Optional `{ force: true }` re-fetches all dates in the window.
+ */
+exports.refreshPickRecommendationHistory = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+    secrets: [phishnetApiKey],
+    timeoutSeconds: 540,
+    memory: "512MiB",
+  },
+  async (request) => {
+    try {
+      assertAdminClaim(request);
+      const key = phishnetApiKey.value();
+      if (!key) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Phish.net API key is not configured (set secret PHISHNET_API_KEY)."
+        );
+      }
+      const force = Boolean(request.data?.force);
+      const years = Number(request.data?.years) || DEFAULT_HISTORY_YEARS;
+      const result = await syncRecommendationHistoryFromPhishnet({
+        apiKey: key,
+        years,
+        force,
+        logger,
+      });
+      return { ok: true, ...result };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshPickRecommendationHistory unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshPickRecommendationHistory failed: ${msg}`
       );
     }
   }

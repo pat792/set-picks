@@ -22,5 +22,10 @@ service firebase.storage {
     match /pick-recommendations/archive/{fileName} {
       allow read, write: if false;
     }
+
+    // Recommendation-only Phish.net history window (#721). Admin SDK only.
+    match /pick-recommendations/history/{fileName} {
+      allow read, write: if false;
+    }
   }
 }
