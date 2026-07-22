@@ -230,6 +230,80 @@ async function signInViaPoolInvite(page, origin, inviteCode, email, password) {
   await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
 }
 
+/**
+ * Unsigned VIP landing → Create account → wait for /setup (new user).
+ * @param {import('playwright').Page} page
+ * @param {string} origin
+ * @param {string} inviteCode
+ * @param {{ email: string, password: string }} creds
+ */
+async function signUpViaPoolInvite(page, origin, inviteCode, creds) {
+  const base = origin.replace(/\/$/, '');
+  const code = inviteCode.trim().toUpperCase();
+  await page.goto(`${base}/join/${code}`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
+  await page
+    .getByText(/^pool invite$/i)
+    .waitFor({ state: 'visible', timeout: 30_000 });
+  await page.getByRole('button', { name: /create account/i }).click();
+  const dialog = page.getByRole('dialog', { name: /^create account$/i });
+  await dialog.waitFor({ state: 'visible', timeout: 15_000 });
+  await dialog
+    .getByText(/you're joining a pool/i)
+    .waitFor({ state: 'visible', timeout: 5_000 });
+  await dialog.locator('input[type="checkbox"]').check();
+  await dialog.locator('#su-email').fill(creds.email);
+  await dialog.locator('#su-pass').fill(creds.password);
+  await dialog.locator('#su-confirm').fill(creds.password);
+  await dialog.locator('button[type="submit"]').click();
+  await page.waitForURL(/\/setup/, { timeout: 60_000 });
+}
+
+/**
+ * Complete Almost There profile setup.
+ * @param {import('playwright').Page} page
+ * @param {string} handle
+ */
+async function completeProfileSetup(page, handle) {
+  await page.getByRole('heading', { name: /almost there/i }).waitFor({
+    state: 'visible',
+    timeout: 30_000,
+  });
+  await page
+    .getByText(/complete your profile to enter the pool/i)
+    .waitFor({ state: 'visible', timeout: 5_000 });
+  await page.getByPlaceholder(/lawnboy99/i).fill(handle);
+  await page.getByRole('button', { name: /lock profile in/i }).click();
+  await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
+}
+
+/**
+ * Self-serve delete for disposable QA joiners (must not own pools).
+ * @param {import('playwright').Page} page
+ * @param {string} origin
+ */
+async function deleteAccountViaUi(page, origin) {
+  const base = origin.replace(/\/$/, '');
+  await page.goto(`${base}/dashboard/profile/account`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
+  const expand = page.getByRole('button', {
+    name: /i need to delete my account/i,
+  });
+  await expand.waitFor({ state: 'visible', timeout: 30_000 });
+  await expand.scrollIntoViewIfNeeded();
+  await expand.click({ timeout: 30_000 });
+  await page.locator('input[type="checkbox"]').check();
+  await page.locator('#delete-account-phrase').fill('DELETE MY ACCOUNT');
+  await page
+    .getByRole('button', { name: /delete my account forever/i })
+    .click();
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 60_000 });
+}
+
 function requireQaCreds() {
   const email = process.env.QA_TEST_EMAIL?.trim();
   const password = process.env.QA_TEST_PASSWORD?.trim();
@@ -424,6 +498,85 @@ async function main() {
       results,
     );
 
+    // ── ROUTING B3 / Wave 0: create pool → /join → disposable new user ─────
+    // True first-membership write + Almost There pool-enter copy, then cleanup
+    // via self-serve delete (no second permanent QA secret required).
+    await runScenario(
+      'UR-B3',
+      'Create pool → /join/:code → new user join + delete cleanup (Wave 0)',
+      async () => {
+        await dismissSplashChrome(page, dev.url);
+        const stamp = Date.now().toString(36);
+        const joinerEmail = `qa.wave0.${stamp}@setlistpickem-qa.test`;
+        const joinerPassword = `QaWave0-${stamp}!`;
+        const joinerHandle = `qa${stamp}`.slice(0, 20);
+        let createdJoiner = false;
+
+        try {
+          if (!page.url().includes('/dashboard')) {
+            await signInEmail(page, dev.url, email, password);
+          }
+
+          const poolName = `QA Wave0 New ${stamp.slice(-6)}`;
+          const inviteCode = await createPoolViaUi(page, dev.url, poolName);
+          await signOutViaAccount(page, dev.url);
+
+          await signUpViaPoolInvite(page, dev.url, inviteCode, {
+            email: joinerEmail,
+            password: joinerPassword,
+          });
+          createdJoiner = true;
+
+          await completeProfileSetup(page, joinerHandle);
+
+          await page.waitForURL(
+            (url) =>
+              url.pathname === '/dashboard/pools' ||
+              /^\/dashboard\/pool\/[A-Za-z0-9_-]+$/.test(url.pathname),
+            { timeout: 45_000 },
+          );
+
+          await page.waitForFunction(
+            () => !localStorage.getItem('phish_pool_pending_invite')?.trim(),
+            null,
+            { timeout: 30_000 },
+          );
+
+          const empty = page.getByText(/you are not in any pools yet/i);
+          if (await empty.isVisible().catch(() => false)) {
+            throw new Error('empty pools copy visible after new-user invite join');
+          }
+
+          await deleteAccountViaUi(page, dev.url);
+          createdJoiner = false;
+        } finally {
+          if (createdJoiner) {
+            try {
+              await deleteAccountViaUi(page, dev.url);
+            } catch (cleanupErr) {
+              console.warn(
+                '[qa:auth-scenarios] UR-B3 cleanup delete failed:',
+                cleanupErr?.message || cleanupErr,
+              );
+            }
+          }
+          try {
+            if (page.url().includes('/dashboard')) {
+              await signOutViaAccount(page, dev.url);
+            }
+          } catch {
+            await page.evaluate(() => {
+              localStorage.removeItem('phish_pool_pending_invite');
+            });
+            await page.goto(dev.url.replace(/\/$/, ''), {
+              waitUntil: 'domcontentloaded',
+            });
+          }
+        }
+      },
+      results,
+    );
+
     // ── ROUTING E partial: ?login=true ─────────────────────────────────────
     await runScenario(
       'UR-E1',
@@ -549,13 +702,10 @@ async function main() {
     }
 
     console.log('\n### Not automated here (interactive / Google OAuth popup)');
-    console.log('- UF-1 / UR-A: first-time new user → /setup (agent UI or reset test account)');
-    console.log('- AT-5: sign_up telemetry (new account creation)');
+    console.log('- UF-1 / UR-A: first-time new user → /setup without invite (agent UI)');
+    console.log('- AT-5: sign_up telemetry (organic new account, no invite)');
     console.log('- AT-6: signin_modal_new_user_blocked (Google on Sign-in modal)');
-    console.log('- AT-7: auth_partial_profile / auth_rollback* (anomaly paths)');
-    console.log(
-      '- UR-B3: first-time membership write via /join (needs second QA joiner account)',
-    );  } finally {
+    console.log('- AT-7: auth_partial_profile / auth_rollback* (anomaly paths)');  } finally {
     await Promise.race([
       (async () => {
         await browser.close().catch(() => {});

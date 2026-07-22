@@ -42,7 +42,9 @@ npm run qa:auth-scenarios # full auth telemetry + routing matrix (QA_TEST_* only
 
 This materializes `.env.qa.local` from injected secrets, runs `qa:cache` (email returning user), and `qa:google-signup` gating tests.
 
-**Pool invite E2E (`qa:auth-scenarios` UR-B2):** signs in as `QA_TEST_*`, creates a throwaway pool, signs out, opens `/join/:code`, signs back in. Because the QA user already owns the pool, deferred join resolves as **already-member** — still validates Wave 0 invite storage, pools landing override, and no Almost There flash. A true first-membership join needs a second joiner account (not automated yet).
+**Pool invite E2E (`qa:auth-scenarios`):**
+- **UR-B2** — `QA_TEST_*` creates a pool, signs out, rejoins via `/join/:code` (**already-member**).
+- **UR-B3** — same create path, then a **disposable** email signup completes Almost There (pool-enter copy), joins as a first-time member, and self-deletes via Account → Delete account (no second permanent QA secret).
 
 ### Secret inventory
 

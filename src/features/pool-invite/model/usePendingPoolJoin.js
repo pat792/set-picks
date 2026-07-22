@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthSession } from '../../auth';
@@ -30,11 +30,45 @@ export function clearPendingPoolJoinInFlight() {
 }
 
 /**
+ * @param {string | null | undefined} poolId
+ * @param {import('react-router-dom').NavigateFunction} navigate
+ * @param {boolean} shouldNavigate
+ */
+function finishSuccessfulJoin({
+  outcome,
+  poolId,
+  navigate,
+  shouldNavigate,
+}) {
+  removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
+  invalidateUserPools();
+  setPendingPoolJoinStatus({
+    state: 'succeeded',
+    inviteCode: null,
+    poolId: poolId ?? null,
+    errorKind: null,
+  });
+  if (!shouldNavigate) return;
+  if (outcome === 'joined') {
+    showSuccessToast('You joined the pool!');
+  } else {
+    showSuccessToast("You're already in this pool.");
+  }
+  const href = poolId ? `/dashboard/pool/${poolId}` : '/dashboard/pools';
+  navigate(href, { replace: true });
+}
+
+/**
  * @param {Array<string | { date?: string }>} showDates Season calendar dates for pick-doc pool snapshot backfill after join.
  */
 export function usePendingPoolJoin(showDates = []) {
   const { userId } = useAuthSession();
   const navigate = useNavigate();
+  // Calendar identity often changes FALLBACK → live while join is in flight.
+  // Do not re-run / cancel the effect on that — membership may already be written
+  // and a cancelled success handler would leave the invite breadcrumb stuck (UR-B3).
+  const showDatesRef = useRef(showDates);
+  showDatesRef.current = showDates;
 
   useEffect(() => {
     if (!userId) return;
@@ -74,17 +108,25 @@ export function usePendingPoolJoin(showDates = []) {
         const result = await joinPoolByInviteCode({
           userId,
           inviteCode: code,
-          showDates,
+          showDates: showDatesRef.current,
         });
 
-        if (cancelled) return;
+        const success =
+          result.outcome === 'joined' || result.outcome === 'already-member';
+
+        // Unmount / dep churn: still heal breadcrumb if membership landed.
+        if (cancelled) {
+          if (success) {
+            removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
+            invalidateUserPools();
+            resetPendingPoolJoinStatus();
+          }
+          return;
+        }
 
         // Late completion after timeout: heal membership chrome without fighting Retry.
         if (timedOut) {
-          if (
-            result.outcome === 'joined' ||
-            result.outcome === 'already-member'
-          ) {
+          if (success) {
             removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
             invalidateUserPools();
             resetPendingPoolJoinStatus();
@@ -94,36 +136,13 @@ export function usePendingPoolJoin(showDates = []) {
 
         clearTimeout(timeoutId);
 
-        if (result.outcome === 'joined') {
-          removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
-          invalidateUserPools();
-          setPendingPoolJoinStatus({
-            state: 'succeeded',
-            inviteCode: null,
-            poolId: result.poolId ?? null,
-            errorKind: null,
+        if (result.outcome === 'joined' || result.outcome === 'already-member') {
+          finishSuccessfulJoin({
+            outcome: result.outcome,
+            poolId: result.poolId,
+            navigate,
+            shouldNavigate: true,
           });
-          showSuccessToast('You joined the pool!');
-          const href = result.poolId
-            ? `/dashboard/pool/${result.poolId}`
-            : '/dashboard/pools';
-          navigate(href, { replace: true });
-          return;
-        }
-        if (result.outcome === 'already-member') {
-          removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
-          invalidateUserPools();
-          setPendingPoolJoinStatus({
-            state: 'succeeded',
-            inviteCode: null,
-            poolId: result.poolId ?? null,
-            errorKind: null,
-          });
-          showSuccessToast("You're already in this pool.");
-          const href = result.poolId
-            ? `/dashboard/pool/${result.poolId}`
-            : '/dashboard/pools';
-          navigate(href, { replace: true });
           return;
         }
         if (result.outcome === 'invalid-code') {
@@ -166,5 +185,5 @@ export function usePendingPoolJoin(showDates = []) {
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [userId, navigate, showDates]);
+  }, [userId, navigate]);
 }
