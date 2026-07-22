@@ -93,20 +93,21 @@ function showRecordFromOfficialDoc(data, showDate) {
  * @param {number} [limit]
  */
 async function loadPriorShowRecords(db, targetDate, limit = DEFAULT_HISTORY_LIMIT) {
-  const snap = await db
-    .collection("official_setlists")
-    .where(admin.firestore.FieldPath.documentId(), "<", targetDate)
-    .orderBy(admin.firestore.FieldPath.documentId(), "desc")
-    .limit(limit)
-    .get();
+  // Avoid documentId orderBy/startAfter index requirements on this collection.
+  // Game-scale official_setlists is small — filter + sort in memory.
+  const snap = await db.collection("official_setlists").get();
 
   /** @type {ReturnType<typeof showRecordFromOfficialDoc>[]} */
   const records = [];
   for (const doc of snap.docs) {
+    if (doc.id >= targetDate) continue;
     const rec = showRecordFromOfficialDoc(doc.data(), doc.id);
     if (rec) records.push(rec);
   }
-  records.reverse(); // ascending
+  records.sort((a, b) => a.showDate.localeCompare(b.showDate));
+  if (records.length > limit) {
+    return records.slice(records.length - limit);
+  }
   return records;
 }
 
