@@ -512,3 +512,78 @@ test("users: signed-in user may query profiles (standings/pool lookup)", async (
   );
   assert.ok(snap && snap.size >= 2);
 });
+
+// ─── pools/{poolId} ──────────────────────────────────────────────────────────
+
+test("pools: member may self-join a legacy pool (members only)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "pools", "pool1"), {
+      name: "Legacy Crew",
+      inviteCode: "ABCDE",
+      ownerId: "alice",
+      members: ["alice"],
+      status: "active",
+    });
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob", pools: [] });
+  });
+
+  const db = signedInAs("bob");
+  await assertSucceeds(
+    updateDoc(doc(db, "pools", "pool1"), {
+      members: ["alice", "bob"],
+    })
+  );
+});
+
+test("pools: member may self-join a from_membership pool with memberJoinedAt", async () => {
+  const joinedAt = "2026-07-22T12:00:00.000Z";
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "pools", "pool1"), {
+      name: "Tour Crew",
+      inviteCode: "FGHJK",
+      ownerId: "alice",
+      members: ["alice"],
+      status: "active",
+      standingsScope: "from_membership",
+      memberJoinedAt: { alice: "2026-07-01T12:00:00.000Z" },
+    });
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob", pools: [] });
+  });
+
+  const db = signedInAs("bob");
+  await assertSucceeds(
+    updateDoc(doc(db, "pools", "pool1"), {
+      members: ["alice", "bob"],
+      memberJoinedAt: {
+        alice: "2026-07-01T12:00:00.000Z",
+        bob: joinedAt,
+      },
+    })
+  );
+});
+
+test("pools: self-join cannot rewrite another member's memberJoinedAt", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "pools", "pool1"), {
+      name: "Tour Crew",
+      inviteCode: "FGHJK",
+      ownerId: "alice",
+      members: ["alice"],
+      status: "active",
+      standingsScope: "from_membership",
+      memberJoinedAt: { alice: "2026-07-01T12:00:00.000Z" },
+    });
+    await setDoc(doc(adminDb, "users", "bob"), { handle: "bob", pools: [] });
+  });
+
+  const db = signedInAs("bob");
+  await assertFails(
+    updateDoc(doc(db, "pools", "pool1"), {
+      members: ["alice", "bob"],
+      memberJoinedAt: {
+        alice: "2026-01-01T00:00:00.000Z",
+        bob: "2026-07-22T12:00:00.000Z",
+      },
+    })
+  );
+});

@@ -12,6 +12,8 @@ import {
   POOL_INVITE_GENERIC_DESCRIPTION,
   resolveInviteOgContent,
   SITE_INVITE_DESCRIPTION,
+  injectOgIntoSpa,
+  stripPrerenderBodyFromSpaShell,
 } from './inviteOgHelpers.mjs';
 
 describe('inviteOgHelpers', () => {
@@ -80,5 +82,22 @@ describe('inviteOgHelpers', () => {
       title: buildPoolInviteShareTitle(),
       description: POOL_INVITE_GENERIC_DESCRIPTION,
     });
+  });
+
+  it('strips SEO prerender body from SPA shell before invite boot', () => {
+    const shell = `<!DOCTYPE html><html><head><meta charset="UTF-8" /></head><body><div id="root"><!--seo-prerender:/-->
+  <main data-seo-prerender="true"><h1>About Setlist Pick'Em</h1></main></div></body></html>`;
+    expect(stripPrerenderBodyFromSpaShell(shell)).toBe(
+      '<!DOCTYPE html><html><head><meta charset="UTF-8" /></head><body><div id="root"></div></body></html>',
+    );
+    const injected = injectOgIntoSpa(shell, {
+      title: 'Pool invite',
+      description: 'Join the pool',
+      url: 'https://www.setlistpickem.com/join/YEM42',
+      image: 'https://www.setlistpickem.com/branding/og-card-1200x630.jpg',
+    });
+    expect(injected).toContain('<div id="root"></div>');
+    expect(injected).not.toContain('About Setlist Pick');
+    expect(injected).toContain('property="og:title"');
   });
 });
