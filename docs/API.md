@@ -375,6 +375,8 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary
 
 **Standings Show — Crowd pulse (**v1.35.0 / #687**, productized **#694**):** client-side aggregate of submitted picks for the selected `showDate` (multi-picker songs always; gap / vintage / leaders blurred while `showStatus === 'NEXT'`). No new Firestore collection or callable. **GA4 (client):** `crowd_pulse_view` `{ show_date, deep_stats: locked|open, pickers }`, `crowd_pulse_full_expand` `{ show_date }`, `crowd_pulse_section_open` `{ show_date, section }` where `section` is `multi_picker` | `highest_gaps` | `vintage` | `leaders`.
 
+**Picks — Prediction Lab (**v1.38.0 / #651**):** opt-in collapsed panel on `/dashboard/picks` consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete unchanged when Lab unused/unavailable. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
+
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 
 Service comms email bodies expose **one** tracked CTA link (the teal button). The header wordmark is decorative (CSS background, not a link).
