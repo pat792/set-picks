@@ -8,11 +8,11 @@ describe('buildPicksLockTimingMessage', () => {
       buildPicksLockTimingMessage({
         date: '2026-07-18',
         doorsLocal: '17:30',
-        picksLockLocal: '19:10',
+        picksLockLocal: '18:55',
         picksLockSource: 'doors',
       })
     ).toBe(
-      'Picks lock at 7:10 PM — 1 hour 40 minutes after tonight’s published doors time (5:30 PM).'
+      'Picks lock at 6:55 PM — 1 hour 25 minutes after tonight’s published doors time (5:30 PM).'
     );
   });
 

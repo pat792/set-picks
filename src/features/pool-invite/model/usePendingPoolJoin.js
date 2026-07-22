@@ -32,8 +32,6 @@ export function usePendingPoolJoin(showDates = []) {
     pendingJoinKeyInFlight = dedupeKey;
 
     (async () => {
-      removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
-
       try {
         const outcome = await joinPoolByInviteCode({
           userId,
@@ -42,23 +40,32 @@ export function usePendingPoolJoin(showDates = []) {
         });
 
         if (outcome === 'joined') {
+          removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
           invalidateUserPools();
           showSuccessToast('You joined the pool!');
           navigate('/dashboard/pools', { replace: true });
           return;
         }
         if (outcome === 'already-member') {
+          removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
           invalidateUserPools();
           showSuccessToast("You're already in this pool.");
           navigate('/dashboard/pools', { replace: true });
           return;
         }
         if (outcome === 'invalid-code') {
+          removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
           showErrorToast('That invite link is invalid or expired.');
           return;
         }
         if (outcome === 'pool-full') {
+          removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
           showErrorToast('This pool is full.');
+          return;
+        }
+        if (outcome === 'pool-archived') {
+          removeLocalStorageItem(POOL_INVITE_STORAGE_KEY);
+          showErrorToast('That pool is archived and no longer accepts new members.');
           return;
         }
       } catch {

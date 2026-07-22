@@ -41,7 +41,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | `{{venue_name}}` | `show_calendar` snapshot | — |
 | `{{venue_city}}` | `show_calendar` snapshot | — |
 | `{{time_to_lock}}` | Computed at send time | — |
-| `{{lock_time_local}}` | Computed (doors+1:40 when doors known; else 19:30 venue-local) | `7:30 PM` |
+| `{{lock_time_local}}` | Computed (doors+1:25 when doors known; else 19:30 venue-local) | `7:30 PM` |
 | `{{tour_name}}` | Tour metadata | — |
 | `{{days_remaining}}` | Computed from tour start date | — |
 | `{{first_show_date}}` | Tour first show | — |

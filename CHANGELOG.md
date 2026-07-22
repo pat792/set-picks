@@ -14,6 +14,18 @@ No unreleased changes.
 
 ---
 
+## [1.35.5] — 2026-07-22
+
+### Fixed
+- **Pool invite join** — Firestore rules now allow `memberJoinedAt` on self-join for `from_membership` pools (new pools since #417). Without this, every invite-link join failed with permission denied and surfaced “Could not join the pool.”
+- **Pool invite flash** — `/join/:code` server-rendered SPA shell no longer injects the home-page SEO prerender body into `#root` before React boots (eliminates the brief “About Setlist Pick'Em” marketing copy flash).
+- **Pending invite retry** — Deep-link join keeps the stored invite code in `localStorage` until join succeeds or is definitively invalid, so transient failures can be retried from the Pools tab without re-opening the link.
+
+### Changed
+- **Picks lock offset** — doors-based wall clock moves from doors+100 (1h40) to doors+85 (1h25): safety buffer raised 19 → 34 against the Summer Tour 2026 avg doors→start of 119. Client + Functions + lock-reminder copy share the same resolver.
+
+---
+
 ## [1.35.4] — 2026-07-21
 
 ### Changed

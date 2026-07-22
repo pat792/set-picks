@@ -7,7 +7,7 @@
 
 const DEFAULT_PICKS_LOCK_HM = Object.freeze({ hour: 19, minute: 30 });
 const TOUR_AVG_DOORS_TO_START_MIN = 119;
-const PICKS_LOCK_SAFETY_MIN = 19;
+const PICKS_LOCK_SAFETY_MIN = 34;
 
 const SHOW_DOORS_LOCAL_BY_DATE = Object.freeze({
   "2026-07-18": "17:30",
