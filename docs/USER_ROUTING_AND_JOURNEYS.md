@@ -97,10 +97,10 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 
 1. `usePoolInviteCodeStorage` (`src/features/pool-invite/model/usePoolInviteCodeStorage.js`): valid code → saved under pool-invite storage key → **VIP landing stays on `/join/:code`** (`InviteVipLanding` via `PoolInvitePage`). Optional `?from=` resolves inviter handle for personalized H1.
 2. User taps **Create account** or **Sign in** → splash auth modals with pool join banner (`poolInvitePending`). Create account honors legal checkbox (#577).
-3. After auth → `useInviteLanding` redirect → `getDashboardEntryHref` → usually **`/dashboard`** (new device/browser).
-4. `DashboardRoute` → **`/setup`** if no profile; after setup → **`/dashboard`** (then step 5).
-5. `usePendingPoolJoin` (`src/features/pool-invite/model/usePendingPoolJoin.js`) inside `DashboardLayout`: consumes invite code, joins pool → on **`joined`** or **`already-member`** → **`navigate('/dashboard/pools', { replace: true })`**. This **overrides** the URL from step 3–4 for those outcomes.
-6. Invalid/expired code: no navigation to Pools; user stays on the URL from `getDashboardEntryHref` (often Picks).
+3. After auth → `useInviteLanding` redirect → `getDashboardEntryHref` → **`/dashboard/pools`** while invite breadcrumb is present (overrides remembered last-tab for that session, #728).
+4. `DashboardRoute` → **`/setup`** if no profile; after setup → **`/dashboard/pools`** again via the same invite override.
+5. `usePendingPoolJoin` (`src/features/pool-invite/model/usePendingPoolJoin.js`) inside `DashboardLayout`: status machine `idle | joining | succeeded | failed`; consumes invite code, joins pool. Pools UI shows **“Joining your pool…”** (never empty-state) while `joining`. On **`joined`** / **`already-member`** → toast + navigate to **pool detail** when id known, else **`/dashboard/pools`**. Timeout (~15s) keeps breadcrumb + Retry (#729).
+6. Invalid/expired code: no navigation to pool detail; user stays on Pools; breadcrumb cleared.
 
 ### B2. First-time user with site invite (`/invite/:handle`)
 
@@ -116,9 +116,9 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 ### D. Existing user with a new invite link
 
 1. **Pool:** Same as B.1–B.2 (code stored on landing; signed-in visitors redirect immediately to dashboard with code already in storage).
-2. After sign-in, **`getDashboardEntryHref`** may briefly send the user to a **remembered** tab (e.g. Standings). Once `DashboardLayout` mounts, **`usePendingPoolJoin`** runs. On successful join / already-member → **`/dashboard/pools`** with **`replace: true`**.
+2. After sign-in, **`getDashboardEntryHref`** returns **`/dashboard/pools`** while the invite breadcrumb is present (not the remembered tab). **`usePendingPoolJoin`** runs with honest joining chrome on Pools.
 
-**Priority:** successful **invite join navigation** overrides the restored tab for those outcomes.
+**Priority:** pending-invite entry to **Pools** + successful **invite join navigation** (pool detail when known) override the restored tab for those outcomes.
 
 ### E. Signed out → sign in again
 

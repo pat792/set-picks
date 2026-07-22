@@ -8,11 +8,15 @@ import PoolInviteCodeRow from './PoolInviteCodeRow';
 import PoolInviteShareButton from './PoolInviteShareButton';
 
 export default function PoolJoinCreateCard({
-  loading,
+  actionLoading = null,
+  /** @deprecated Prefer `actionLoading` (#728). */
+  loading = false,
   error,
   onJoin,
   onCreate,
 }) {
+  const joinBusy = actionLoading === 'join' || (actionLoading == null && loading);
+  const createBusy = actionLoading === 'create' || (actionLoading == null && loading);
   const [activeTab, setActiveTab] = useState('join');
   const [joinCode, setJoinCode] = useState('');
   const [createName, setCreateName] = useState('');
@@ -153,8 +157,8 @@ export default function PoolJoinCreateCard({
                 className="text-center font-mono text-xl font-black tracking-widest uppercase"
               />
             </div>
-            <Button variant="primary" type="submit" disabled={loading} className="w-full text-lg uppercase tracking-widest">
-              {loading ? 'Joining...' : 'Join Pool'}
+            <Button variant="primary" type="submit" disabled={joinBusy} className="w-full text-lg uppercase tracking-widest">
+              {joinBusy ? 'Joining...' : 'Join Pool'}
             </Button>
           </form>
         ) : createSuccess ? (
@@ -198,8 +202,8 @@ export default function PoolJoinCreateCard({
                 placeholder="e.g. Denver Crew 2026"
               />
             </div>
-            <Button variant="primary" type="submit" disabled={loading} className="w-full text-lg uppercase tracking-widest">
-              {loading ? 'Creating...' : 'Create pool'}
+            <Button variant="primary" type="submit" disabled={createBusy} className="w-full text-lg uppercase tracking-widest">
+              {createBusy ? 'Creating...' : 'Create pool'}
             </Button>
           </form>
         )}
