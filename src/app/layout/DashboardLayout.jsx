@@ -55,7 +55,10 @@ import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
 import DashboardTourDateScope from './ui/DashboardTourDateScope';
-import { DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID } from '../../shared/hooks/useDashboardMobileChromePortal';
+import {
+  DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID,
+  DASHBOARD_SCROLLPORT_ID,
+} from '../../shared/hooks/useDashboardMobileChromePortal';
 
 import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
 
@@ -275,6 +278,7 @@ export default function DashboardLayout() {
 
       {/* MAIN CONTENT — routes with fixed chrome get extra top pad for the pills row */}
       <main
+        id={DASHBOARD_SCROLLPORT_ID}
         className={[
           'flex-1 min-w-0 overflow-y-auto relative',
           'pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8',
