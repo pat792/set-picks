@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Lock, Radio } from 'lucide-react';
 
 import {
@@ -22,8 +22,10 @@ import CrowdPulseTopTable from './CrowdPulseTopTable';
  * Collapsed by default to match sibling Standings card heights: the summary
  * row teases the leading multi-picker song; expanding reveals the top table
  * and the "Full crowd stats" disclosure.
- * Pre-lock (NEXT): top multi-picker songs stay visible; gap / vintage /
- * leaders blur until showtime. Presentational — data from `useCrowdNightStats`.
+ * Pre-lock (NEXT): preview Song + Last blur (pickers / gap stay clear);
+ * deep tables (full multi / gaps / vintage / leaders) blur until showtime.
+ * Deep sections are exclusive (one open at a time).
+ * Presentational — data from `useCrowdNightStats`.
  *
  * @param {object} props
  * @param {string} [props.showDate]
@@ -55,6 +57,9 @@ export default function CrowdNightPulsePanel({
   playedTitles = null,
   className = '',
 }) {
+  const [openDeepSection, setOpenDeepSection] = useState(
+    /** @type {string | null} */ (null)
+  );
   const pickers =
     card && night && night.pickers > 0 ? card.pickers : 0;
 
@@ -67,7 +72,7 @@ export default function CrowdNightPulsePanel({
         aria-label="Crowd pulse"
       >
         <p
-          className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-content-secondary`}
+          className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-accent-red`}
         >
           <Radio className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
           Crowd pulse
@@ -87,12 +92,20 @@ export default function CrowdNightPulsePanel({
         : '—';
 
   const multiFull = night.multiPickerFull || night.multiPickerSongs || [];
+  const highestGapRows = catalog?.highestGap || [];
+  const leaderSongs = leaders?.songs || [];
   const showPlayedLegend =
     playedTitles instanceof Set && playedTitles.size > 0;
+
+  const multiLead = multiFull[0] || null;
+  const gapLead = highestGapRows[0] || null;
+  const leadersLead = leaderSongs[0] || null;
 
   const onFullToggle = (event) => {
     if (event.currentTarget.open) {
       trackCrowdPulseFullExpand({ show_date: showDate || '' });
+    } else {
+      setOpenDeepSection(null);
     }
   };
 
@@ -106,9 +119,6 @@ export default function CrowdNightPulsePanel({
   };
 
   const topSong = card.topMulti[0] || null;
-  const teaser = topSong
-    ? `“${topSong.title}” leads on ${topSong.cardCount} cards`
-    : 'No multi-picker songs yet (everyone unique).';
 
   return (
     <section
@@ -119,7 +129,7 @@ export default function CrowdNightPulsePanel({
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
           <div className="flex items-center justify-between gap-2">
             <p
-              className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-primary transition-colors group-hover/pulse:text-brand-primary-strong`}
+              className={`inline-flex shrink-0 items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-accent-red transition-colors group-hover/pulse:text-red-400`}
             >
               <Radio className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
               Crowd pulse
@@ -133,7 +143,20 @@ export default function CrowdNightPulsePanel({
             </p>
           </div>
           {/* Full-width row so long song titles get the whole card width. */}
-          <p className={`mt-0.5 truncate ${DASHBOARD_CARD_BODY}`}>{teaser}</p>
+          {topSong ? (
+            <p className={`mt-0.5 truncate ${DASHBOARD_CARD_BODY}`}>
+              <BlurredSongTitle
+                title={topSong.title}
+                blur={blurDeepStats}
+                tone="blue"
+              />{' '}
+              leads on {topSong.cardCount} cards
+            </p>
+          ) : (
+            <p className={`mt-0.5 truncate ${DASHBOARD_CARD_BODY}`}>
+              No multi-picker songs yet (everyone unique).
+            </p>
+          )}
         </summary>
 
         {showPlayedLegend ? (
@@ -151,6 +174,7 @@ export default function CrowdNightPulsePanel({
             rows={card.topMulti}
             playedTitles={playedTitles}
             catalogLoading={catalogLoading}
+            blurSongTitles={blurDeepStats}
           />
         ) : (
           <p className="mt-2 text-[11px] text-content-secondary">
@@ -162,7 +186,7 @@ export default function CrowdNightPulsePanel({
           className="group mt-3 border-t border-border-subtle pt-2"
           onToggle={onFullToggle}
         >
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-brand-primary transition-colors hover:text-brand-primary-strong [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-brand-accent-red transition-colors hover:text-red-400 [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-1.5">
               Full crowd stats
               {blurDeepStats ? (
@@ -204,11 +228,25 @@ export default function CrowdNightPulsePanel({
                 subtitle="Every song on 2+ cards tonight"
                 sectionId="multi_picker"
                 showDate={showDate}
+                open={openDeepSection === 'multi_picker'}
+                onOpenChange={setOpenDeepSection}
+                teaser={
+                  multiLead ? (
+                    <>
+                      <BlurredSongTitle
+                        title={multiLead.title}
+                        blur={blurDeepStats}
+                      />{' '}
+                      leads on {multiLead.cardCount} cards
+                    </>
+                  ) : null
+                }
               >
                 <CrowdPulseTopTable
                   rows={multiFull}
                   playedTitles={playedTitles}
                   catalogLoading={catalogLoading}
+                  blurSongTitles={blurDeepStats}
                   className=""
                 />
               </CrowdDeepSection>
@@ -218,16 +256,34 @@ export default function CrowdNightPulsePanel({
                 subtitle="Top 10 picks by pre-show gap"
                 sectionId="highest_gaps"
                 showDate={showDate}
+                open={openDeepSection === 'highest_gaps'}
+                onOpenChange={setOpenDeepSection}
+                teaser={
+                  gapLead ? (
+                    <>
+                      <BlurredSongTitle
+                        title={gapLead.title}
+                        blur={blurDeepStats}
+                      />
+                      {typeof gapLead.gap === 'number'
+                        ? ` · gap ${gapLead.gap}`
+                        : ''}
+                    </>
+                  ) : catalogLoading ? (
+                    'Loading…'
+                  ) : null
+                }
               >
-                {catalogLoading && !catalog?.highestGap?.length ? (
+                {catalogLoading && !highestGapRows.length ? (
                   <p className="text-[11px] text-content-secondary md:text-xs">
                     Loading catalog…
                   </p>
                 ) : (
                   <CrowdPulseTopTable
-                    rows={catalog?.highestGap || []}
+                    rows={highestGapRows}
                     playedTitles={playedTitles}
                     catalogLoading={catalogLoading}
+                    blurSongTitles={blurDeepStats}
                     className=""
                   />
                 )}
@@ -238,6 +294,8 @@ export default function CrowdNightPulsePanel({
                 subtitle="Slot-weighted debut years across all picks"
                 sectionId="vintage"
                 showDate={showDate}
+                open={openDeepSection === 'vintage'}
+                onOpenChange={setOpenDeepSection}
               >
                 <p className="text-[12px] font-semibold text-white md:text-sm">
                   Mean debut {vintageLabel}
@@ -257,11 +315,26 @@ export default function CrowdNightPulsePanel({
                 subtitle="What the tour top 5 locked in tonight"
                 sectionId="leaders"
                 showDate={showDate}
+                open={openDeepSection === 'leaders'}
+                onOpenChange={setOpenDeepSection}
+                teaser={
+                  leadersLead ? (
+                    <>
+                      <BlurredSongTitle
+                        title={leadersLead.title}
+                        blur={blurDeepStats}
+                      />{' '}
+                      · on {leadersLead.cardCount} leader
+                      {leadersLead.cardCount === 1 ? '' : 's'}
+                    </>
+                  ) : null
+                }
               >
                 <CrowdPulseTopTable
-                  rows={leaders?.songs || []}
+                  rows={leaderSongs}
                   playedTitles={playedTitles}
                   catalogLoading={catalogLoading}
+                  blurSongTitles={blurDeepStats}
                   countHeader="Among"
                   className=""
                 />
@@ -296,15 +369,17 @@ function useCrowdPulseViewTelemetry(showDate, blurDeepStats, pickers) {
 }
 
 /**
- * Independently expandable deep-stats card.
+ * Exclusive expandable deep-stats card (one open at a time via parent).
  *
  * @param {{
  *   title: string,
  *   subtitle?: string,
  *   sectionId: string,
  *   showDate?: string,
+ *   open: boolean,
+ *   onOpenChange: (sectionId: string | null) => void,
+ *   teaser?: React.ReactNode,
  *   children: React.ReactNode,
- *   defaultOpen?: boolean,
  * }} props
  */
 function CrowdDeepSection({
@@ -312,32 +387,43 @@ function CrowdDeepSection({
   subtitle,
   sectionId,
   showDate = '',
+  open,
+  onOpenChange,
+  teaser = null,
   children,
-  defaultOpen = false,
 }) {
   const onToggle = (event) => {
-    if (event.currentTarget.open) {
+    const nextOpen = event.currentTarget.open;
+    if (nextOpen) {
+      onOpenChange(sectionId);
       trackCrowdPulseSectionOpen({
         show_date: showDate || '',
         section: sectionId,
       });
+      return;
     }
+    if (open) onOpenChange(null);
   };
 
   return (
     <details
       className="group/deep rounded-lg border border-border-subtle/70 bg-brand-bg/35 open:bg-brand-bg/50"
-      open={defaultOpen || undefined}
+      open={open}
       onToggle={onToggle}
     >
       <summary className="flex cursor-pointer list-none items-start justify-between gap-2 px-2.5 py-2 transition-colors hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <div className="min-w-0">
-          <p className="text-[12px] font-bold leading-snug text-white md:text-[13px]">
+          <p className="text-[12px] font-bold leading-snug text-brand-accent-blue md:text-[13px]">
             {title}
           </p>
           {subtitle ? (
             <p className="mt-0.5 text-[10px] font-medium leading-snug text-content-secondary md:text-[11px]">
               {subtitle}
+            </p>
+          ) : null}
+          {teaser ? (
+            <p className="mt-0.5 truncate text-[10px] font-medium leading-snug text-content-secondary md:text-[11px]">
+              {teaser}
             </p>
           ) : null}
         </div>
@@ -350,5 +436,28 @@ function CrowdDeepSection({
         {children}
       </div>
     </details>
+  );
+}
+
+/**
+ * @param {{ title: string, blur?: boolean, tone?: 'red' | 'blue' }} props
+ */
+function BlurredSongTitle({ title, blur = false, tone = 'red' }) {
+  const toneClass =
+    tone === 'blue' ? 'text-brand-accent-blue' : 'text-brand-accent-red';
+  return (
+    <>
+      <span
+        className={`${toneClass} ${
+          blur ? 'inline select-none blur-[5px]' : 'inline'
+        }`}
+        aria-hidden={blur || undefined}
+      >
+        “{title}”
+      </span>
+      {blur ? (
+        <span className="sr-only">Song title hidden until showtime</span>
+      ) : null}
+    </>
   );
 }

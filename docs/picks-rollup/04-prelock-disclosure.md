@@ -1,6 +1,6 @@
 # Pre-lock disclosure: crowd pulse (#689 / #694)
 
-**Decision (2026-07-20):** Pre-lock, **top songs stay visible**; gap / vintage / leaders / full tables **blur until showtime** (picks lock → LIVE).
+**Decision (2026-07-27):** Pre-lock, **preview Song + Last blur**; Pickers / Gap stay visible. Full deep tables (multi list / gaps / vintage / leaders) **blur until showtime**. (Earlier 2026-07-20 decision kept named top songs visible; tightened after product feedback.)
 
 **Ship status:** Standings crowd pulse productized in #694 (no “prototype” label). Stats deep-dive + picks helper remain P1/P2 on that issue.
 
@@ -9,15 +9,16 @@
 | Surface | Pre-lock (`NEXT`) | Post-lock (`LIVE` / `PAST`) |
 |---------|-------------------|-----------------------------|
 | Pickers · unique song counts | Visible | Visible |
-| **Top multi-picker songs** (named + % + meters) | **Visible** | Visible |
+| **Top multi-picker preview** (Song · Last) | **Blurred** | Clear |
+| **Top multi-picker preview** (Pickers · Gap · meters) | Visible | Visible |
 | Full multi list, highest gap, vintage, tour leaders tonight | **Blurred** (“Unlocks at showtime”) | Clear |
 
-Rationale: named chalk is the engagement hook (“the room is on X”); deep catalog/leader meta is the competitive edge we withhold until nobody can edit. Aligns partially with opponent pick redaction — individual cards stay private; aggregate top lean is public social proof.
+Rationale: aggregate lean (how many cards / gap) stays as social proof; named chalk + last-played stay private until nobody can edit. Deep catalog/leader meta remains the higher-leverage lock.
 
 ## Tradeoffs accepted
 
-- Late editors can still lean into **visible** top songs.
-- Gap coaching and “what leaders locked” stay locked — the higher-leverage edges.
+- Late editors see pick counts / gaps but not named chalk or last-played until showtime.
+- Gap coaching tables and “what leaders locked” stay fully locked — the higher-leverage edges.
 - Expandable “Full crowd stats” remains discoverable pre-lock (blurred preview + lock affordance) so unlock feels like a reward at showtime.
 
 ## UI notes
