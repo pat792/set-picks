@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.35.9] — 2026-07-27
+
+### Fixed
+- **Primary nav scroll-to-top (#740)** — sidebar, bottom tabs, brand home, Profile/Standings segmented controls snap the dashboard scrollport to top on click (including same-tab re-taps).
+
+---
+
 ## [1.35.8] — 2026-07-27
 
 ### Fixed
