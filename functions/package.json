@@ -40,7 +40,7 @@
     "svix": "^1.96.1"
   },
   "devDependencies": {
-    "firebase-functions-test": "^3.4.1"
+    "firebase-functions-test": "^3.5.0"
   },
   "private": true
 }
