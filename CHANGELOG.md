@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.39.6] — 2026-07-27
+
+### Fixed
+- **Primary nav scroll-to-top** — sidebar, bottom tabs, brand home, Profile/Standings segmented controls call `scrollAppToTop` on click (including same-tab re-taps). Route changes also key off `search` so Standings view switches reset scroll.
+
+---
+
 ## [1.39.5] — 2026-07-27
 
 ### Fixed
