@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
+import { scrollAppToTop } from '../lib/scrollAppToTop';
+
 const trayClass =
   'flex w-full min-w-0 gap-1 rounded-xl border border-border-subtle/60 bg-surface-panel-strong p-1 shadow-inset-glass';
 
@@ -52,6 +54,7 @@ export default function ChromeSegmentedControl({
             key={to}
             to={to}
             end={end}
+            onClick={scrollAppToTop}
             className={({ isActive }) =>
               [segmentBase, isActive ? segmentActive : segmentInactive].join(' ')
             }
@@ -79,7 +82,10 @@ export default function ChromeSegmentedControl({
             type="button"
             role="tab"
             aria-selected={selected}
-            onClick={() => onChange?.(id)}
+            onClick={() => {
+              scrollAppToTop();
+              onChange?.(id);
+            }}
             className={[segmentBase, selected ? segmentActive : segmentInactive].join(' ')}
           >
             {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
