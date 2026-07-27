@@ -26,6 +26,7 @@ const HEADER_INSET = 'px-[calc(0.5rem+1.5px)]';
  * @param {boolean} [props.catalogLoading]
  * @param {string} [props.countHeader='Pickers']
  * @param {boolean} [props.showMeter=true]
+ * @param {boolean} [props.blurSongTitles=false] — blur Song + Last columns (pickers/gap stay clear)
  * @param {string} [props.className]
  * @param {string} [props.emptyLabel='None yet.']
  */
@@ -35,6 +36,7 @@ export default function CrowdPulseTopTable({
   catalogLoading = false,
   countHeader = 'Pickers',
   showMeter = true,
+  blurSongTitles = false,
   className = 'mt-2.5',
   emptyLabel = 'None yet.',
 }) {
@@ -93,14 +95,29 @@ export default function CrowdPulseTopTable({
                   className={`grid ${gridCols} items-baseline gap-x-2 text-[11px] md:text-xs`}
                 >
                   <div className="min-w-0">
-                    <span className="block truncate font-semibold text-white">
+                    <span
+                      className={`block truncate font-semibold text-white ${
+                        blurSongTitles
+                          ? 'select-none blur-[5px]'
+                          : ''
+                      }`}
+                      aria-hidden={blurSongTitles || undefined}
+                    >
                       {s.title}
-                      {played ? (
+                      {played && !blurSongTitles ? (
                         <span className="sr-only"> (played in setlist)</span>
                       ) : null}
                     </span>
+                    {blurSongTitles ? (
+                      <span className="sr-only">Song title hidden until showtime</span>
+                    ) : null}
                     {s.subtitle ? (
-                      <span className="mt-0.5 block truncate text-[10px] font-medium text-content-secondary">
+                      <span
+                        className={`mt-0.5 block truncate text-[10px] font-medium text-content-secondary ${
+                          blurSongTitles ? 'select-none blur-[5px]' : ''
+                        }`}
+                        aria-hidden={blurSongTitles || undefined}
+                      >
                         {s.subtitle}
                       </span>
                     ) : null}
@@ -117,11 +134,25 @@ export default function CrowdPulseTopTable({
                   <span className="text-right font-medium tabular-nums text-content-secondary">
                     {gapLabel}
                   </span>
-                  <span
-                    className="text-right font-medium tabular-nums text-content-secondary"
-                    title={typeof s.last === 'string' ? s.last : undefined}
-                  >
-                    {lastLabel}
+                  <span className="text-right">
+                    <span
+                      className={`font-medium tabular-nums text-content-secondary ${
+                        blurSongTitles ? 'select-none blur-[5px]' : ''
+                      }`}
+                      title={
+                        blurSongTitles || typeof s.last !== 'string'
+                          ? undefined
+                          : s.last
+                      }
+                      aria-hidden={blurSongTitles || undefined}
+                    >
+                      {lastLabel}
+                    </span>
+                    {blurSongTitles ? (
+                      <span className="sr-only">
+                        Last played hidden until showtime
+                      </span>
+                    ) : null}
                   </span>
                 </div>
                 {showMeter ? (
