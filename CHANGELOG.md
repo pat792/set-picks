@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.35.7] — 2026-07-27
+
+### Changed
+- **Crowd pulse preview blur (#736)** — while the show is still `NEXT`, preview **Song** and **Last** stay blurred (Pickers / Gap remain visible); deep stats stay locked until showtime. Exclusive accordion for full-stats sections with category teasers; chrome uses red/blue accent contrast. Standings pick-privacy tooltip copy generalized.
+
+---
+
 ## [1.35.6] — 2026-07-22
 
 ### Fixed
