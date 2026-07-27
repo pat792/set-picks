@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 export const DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID =
   'dashboard-mobile-fixed-chrome-root';
 
+/** Dashboard `main` overflow scrollport — reset on route change (see ScrollToTop). */
+export const DASHBOARD_SCROLLPORT_ID = 'dashboard-scrollport';
+
 /** Trailing slot in the mobile context bar (e.g. Standings Scoring rules). */
 export const DASHBOARD_MOBILE_CONTEXT_TRAILING_ROOT_ID =
   'dashboard-mobile-context-trailing-root';
