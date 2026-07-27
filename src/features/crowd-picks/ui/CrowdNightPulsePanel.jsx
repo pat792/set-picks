@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ChevronDown, Lock, Radio } from 'lucide-react';
 
 import {
@@ -24,7 +24,8 @@ import CrowdPulseTopTable from './CrowdPulseTopTable';
  * and the "Full crowd stats" disclosure.
  * Pre-lock (NEXT): preview Song + Last blur (pickers / gap stay clear);
  * deep tables (full multi / gaps / vintage / leaders) blur until showtime.
- * Deep sections are exclusive (one open at a time).
+ * Deep sections are exclusive (one open at a time); opening one pins its
+ * header to the top of the dashboard scrollport after sibling collapse.
  * Presentational — data from `useCrowdNightStats`.
  *
  * @param {object} props
@@ -370,6 +371,8 @@ function useCrowdPulseViewTelemetry(showDate, blurDeepStats, pickers) {
 
 /**
  * Exclusive expandable deep-stats card (one open at a time via parent).
+ * When opened, pins this header to the top of the dashboard `main`
+ * scrollport after sibling sections collapse (avoids landing mid-list).
  *
  * @param {{
  *   title: string,
@@ -392,6 +395,8 @@ function CrowdDeepSection({
   teaser = null,
   children,
 }) {
+  const detailsRef = useRef(/** @type {HTMLDetailsElement | null} */ (null));
+
   const onToggle = (event) => {
     const nextOpen = event.currentTarget.open;
     if (nextOpen) {
@@ -405,9 +410,19 @@ function CrowdDeepSection({
     if (open) onOpenChange(null);
   };
 
+  // Instant pin after paint of exclusive open/close — smooth scroll fought
+  // the layout shift and left the viewport mid-list.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const el = detailsRef.current;
+    if (!el) return;
+    pinElementToScrollportTop(el);
+  }, [open]);
+
   return (
     <details
-      className="group/deep rounded-lg border border-border-subtle/70 bg-brand-bg/35 open:bg-brand-bg/50"
+      ref={detailsRef}
+      className="group/deep scroll-mt-24 rounded-lg border border-border-subtle/70 bg-brand-bg/35 open:bg-brand-bg/50 md:scroll-mt-28"
       open={open}
       onToggle={onToggle}
     >
@@ -437,6 +452,43 @@ function CrowdDeepSection({
       </div>
     </details>
   );
+}
+
+/**
+ * @param {Element} node
+ * @returns {Element}
+ */
+function getScrollParent(node) {
+  let el = node.parentElement;
+  while (el) {
+    const { overflowY } = window.getComputedStyle(el);
+    if (
+      overflowY === 'auto' ||
+      overflowY === 'scroll' ||
+      overflowY === 'overlay'
+    ) {
+      return el;
+    }
+    el = el.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+/**
+ * Instantly align `el` with the top of its scrollport (sticky chrome pad).
+ * @param {HTMLElement} el
+ */
+function pinElementToScrollportTop(el) {
+  const parent = getScrollParent(el);
+  const stickyPad = window.matchMedia('(min-width: 768px)').matches ? 112 : 96;
+  const parentTop =
+    parent === document.scrollingElement ||
+    parent === document.documentElement
+      ? 0
+      : parent.getBoundingClientRect().top;
+  const delta = el.getBoundingClientRect().top - parentTop;
+  const nextTop = (parent.scrollTop || 0) + delta - stickyPad;
+  parent.scrollTop = Math.max(0, nextTop);
 }
 
 /**
