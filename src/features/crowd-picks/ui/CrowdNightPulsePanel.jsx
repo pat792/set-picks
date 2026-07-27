@@ -24,8 +24,8 @@ import CrowdPulseTopTable from './CrowdPulseTopTable';
  * and the "Full crowd stats" disclosure.
  * Pre-lock (NEXT): preview Song + Last blur (pickers / gap stay clear);
  * deep tables (full multi / gaps / vintage / leaders) blur until showtime.
- * Deep sections are exclusive (one open at a time); opening one pins its
- * header to the top of the dashboard scrollport after sibling collapse.
+ * Deep sections are exclusive (one open at a time). Closing a sibling shifts
+ * layout; we keep the tapped header at its pre-click viewport Y (no pin-to-top).
  * Presentational — data from `useCrowdNightStats`.
  *
  * @param {object} props
@@ -371,9 +371,9 @@ function useCrowdPulseViewTelemetry(showDate, blurDeepStats, pickers) {
 
 /**
  * Exclusive expandable deep-stats card (one open at a time via parent).
- * Sibling sections are closed in the DOM synchronously on open (before React
- * paint) so we can pin this header without landing mid-list after a tall
- * section collapses above.
+ * On open, siblings close synchronously; scroll is adjusted only enough to
+ * keep the tapped header at the same viewport Y (avoids mid-list landings
+ * and pin-to-top overshoot under fixed dashboard chrome).
  *
  * @param {{
  *   title: string,
@@ -406,25 +406,22 @@ function CrowdDeepSection({
     const details = event.currentTarget;
     const nextOpen = details.open;
     if (nextOpen) {
-      const summary = summaryRef.current;
-      const anchorY =
-        anchorYRef.current ??
-        summary?.getBoundingClientRect().top ??
-        null;
-      anchorYRef.current = null;
+      // Keep anchor through sibling close + React commit (useLayoutEffect).
+      if (anchorYRef.current == null && summaryRef.current) {
+        anchorYRef.current = summaryRef.current.getBoundingClientRect().top;
+      }
 
-      // Close siblings now (sync layout) — waiting on React left the old
-      // tall section open while we measured, so pin landed mid-list.
       closeSiblingDetails(details);
-
       onOpenChange(sectionId);
       trackCrowdPulseSectionOpen({
         show_date: showDate || '',
         section: sectionId,
       });
 
-      if (summary) {
-        restoreAndPinSectionHeader(summary, anchorY);
+      const summary = summaryRef.current;
+      const anchorY = anchorYRef.current;
+      if (summary && typeof anchorY === 'number') {
+        keepHeaderAtViewportY(summary, anchorY);
       }
       return;
     }
@@ -433,17 +430,19 @@ function CrowdDeepSection({
     onOpenChange((current) => (current === sectionId ? null : current));
   };
 
-  // React commit may reflow again after controlled `open` props sync.
+  // React controlled `open` may shift layout again after the sync close.
   useLayoutEffect(() => {
     if (!open) return;
     const summary = summaryRef.current;
-    if (!summary) return;
-    pinElementToScrollportTop(summary);
+    const anchorY = anchorYRef.current;
+    if (!summary || typeof anchorY !== 'number') return;
+    keepHeaderAtViewportY(summary, anchorY);
+    anchorYRef.current = null;
   }, [open]);
 
   return (
     <details
-      className="group/deep scroll-mt-24 rounded-lg border border-border-subtle/70 bg-brand-bg/35 open:bg-brand-bg/50 md:scroll-mt-28"
+      className="group/deep rounded-lg border border-border-subtle/70 bg-brand-bg/35 open:bg-brand-bg/50"
       open={open}
       onToggle={onToggle}
     >
@@ -534,28 +533,16 @@ function getScrollParent(node) {
 }
 
 /**
+ * After sibling collapse, keep `headerEl` at the same viewport Y as before.
  * @param {HTMLElement} headerEl
- * @param {number | null} anchorY — header viewport Y before sibling collapse
+ * @param {number} anchorY
  */
-function restoreAndPinSectionHeader(headerEl, anchorY) {
+function keepHeaderAtViewportY(headerEl, anchorY) {
   const parent = getScrollParent(headerEl);
-  if (typeof anchorY === 'number') {
-    const nowY = headerEl.getBoundingClientRect().top;
-    parent.scrollTop += nowY - anchorY;
-  }
-  pinElementToScrollportTop(headerEl);
-}
-
-/**
- * Instantly align `el` with the top of its scrollport (sticky chrome pad).
- * @param {HTMLElement} el
- */
-function pinElementToScrollportTop(el) {
-  const parent = getScrollParent(el);
-  const stickyPad = window.matchMedia('(min-width: 768px)').matches ? 112 : 96;
-  const parentTop = parent.getBoundingClientRect().top;
-  const delta = el.getBoundingClientRect().top - parentTop;
-  parent.scrollTop += delta - stickyPad;
+  const nowY = headerEl.getBoundingClientRect().top;
+  const dy = nowY - anchorY;
+  if (Math.abs(dy) < 1) return;
+  parent.scrollTop += dy;
   if (parent.scrollTop < 0) parent.scrollTop = 0;
 }
 
