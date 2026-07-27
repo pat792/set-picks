@@ -8,6 +8,7 @@ import {
   NAV_LABEL_PROFILE,
 } from '../../../shared/config/dashboardVocabulary';
 import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
+import { scrollAppToTop } from '../../../shared/lib/scrollAppToTop';
 import { useDashboardMobileChromePortal } from '../../../shared/hooks/useDashboardMobileChromePortal';
 import ProfileMobileFixedChrome from './ProfileMobileFixedChrome';
 
@@ -42,6 +43,7 @@ export default function ProfileClusterLayout({ user }) {
             key={to}
             to={to}
             end={end}
+            onClick={scrollAppToTop}
             className={({ isActive }) =>
               [
                 'flex-1 rounded-xl px-2 py-2.5 text-center text-[11px] font-black uppercase tracking-widest transition-colors sm:text-xs',

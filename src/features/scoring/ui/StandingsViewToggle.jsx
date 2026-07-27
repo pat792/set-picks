@@ -6,6 +6,7 @@ import {
   useFeatureSpotlight,
 } from '../../feature-discovery';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
+import { scrollAppToTop } from '../../../shared/lib/scrollAppToTop';
 
 const OPTIONS = [
   { id: 'show', label: 'Show', icon: ListOrdered },
@@ -51,6 +52,7 @@ export default function StandingsViewToggle({ view, onChange, className = '' }) 
   const tourStatsSpotlight = useFeatureSpotlight('tour-stats');
 
   const handleChange = (next) => {
+    scrollAppToTop();
     if (next === 'stats' && tourStatsSpotlight.active) {
       tourStatsSpotlight.trackClick();
     }
