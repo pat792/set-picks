@@ -371,8 +371,9 @@ function useCrowdPulseViewTelemetry(showDate, blurDeepStats, pickers) {
 
 /**
  * Exclusive expandable deep-stats card (one open at a time via parent).
- * When opened, pins this header to the top of the dashboard `main`
- * scrollport after sibling sections collapse (avoids landing mid-list).
+ * Sibling sections are closed in the DOM synchronously on open (before React
+ * paint) so we can pin this header without landing mid-list after a tall
+ * section collapses above.
  *
  * @param {{
  *   title: string,
@@ -380,7 +381,9 @@ function useCrowdPulseViewTelemetry(showDate, blurDeepStats, pickers) {
  *   sectionId: string,
  *   showDate?: string,
  *   open: boolean,
- *   onOpenChange: (sectionId: string | null) => void,
+ *   onOpenChange: (
+ *     next: string | null | ((current: string | null) => string | null)
+ *   ) => void,
  *   teaser?: React.ReactNode,
  *   children: React.ReactNode,
  * }} props
@@ -395,38 +398,64 @@ function CrowdDeepSection({
   teaser = null,
   children,
 }) {
-  const detailsRef = useRef(/** @type {HTMLDetailsElement | null} */ (null));
+  const summaryRef = useRef(/** @type {HTMLElement | null} */ (null));
+  /** @type {React.MutableRefObject<number | null>} */
+  const anchorYRef = useRef(null);
 
   const onToggle = (event) => {
-    const nextOpen = event.currentTarget.open;
+    const details = event.currentTarget;
+    const nextOpen = details.open;
     if (nextOpen) {
+      const summary = summaryRef.current;
+      const anchorY =
+        anchorYRef.current ??
+        summary?.getBoundingClientRect().top ??
+        null;
+      anchorYRef.current = null;
+
+      // Close siblings now (sync layout) — waiting on React left the old
+      // tall section open while we measured, so pin landed mid-list.
+      closeSiblingDetails(details);
+
       onOpenChange(sectionId);
       trackCrowdPulseSectionOpen({
         show_date: showDate || '',
         section: sectionId,
       });
+
+      if (summary) {
+        restoreAndPinSectionHeader(summary, anchorY);
+      }
       return;
     }
-    if (open) onOpenChange(null);
+    // Sibling close sets `.open = false` and fires toggle — don't clobber
+    // the section that just opened.
+    onOpenChange((current) => (current === sectionId ? null : current));
   };
 
-  // Instant pin after paint of exclusive open/close — smooth scroll fought
-  // the layout shift and left the viewport mid-list.
+  // React commit may reflow again after controlled `open` props sync.
   useLayoutEffect(() => {
     if (!open) return;
-    const el = detailsRef.current;
-    if (!el) return;
-    pinElementToScrollportTop(el);
+    const summary = summaryRef.current;
+    if (!summary) return;
+    pinElementToScrollportTop(summary);
   }, [open]);
 
   return (
     <details
-      ref={detailsRef}
       className="group/deep scroll-mt-24 rounded-lg border border-border-subtle/70 bg-brand-bg/35 open:bg-brand-bg/50 md:scroll-mt-28"
       open={open}
       onToggle={onToggle}
     >
-      <summary className="flex cursor-pointer list-none items-start justify-between gap-2 px-2.5 py-2 transition-colors hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+      <summary
+        ref={summaryRef}
+        className="flex cursor-pointer list-none items-start justify-between gap-2 px-2.5 py-2 transition-colors hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden"
+        onPointerDown={(event) => {
+          if (!open) {
+            anchorYRef.current = event.currentTarget.getBoundingClientRect().top;
+          }
+        }}
+      >
         <div className="min-w-0">
           <p className="text-[12px] font-bold leading-snug text-brand-accent-blue md:text-[13px]">
             {title}
@@ -455,23 +484,66 @@ function CrowdDeepSection({
 }
 
 /**
+ * @param {HTMLDetailsElement} current
+ */
+function closeSiblingDetails(current) {
+  const parent = current.parentElement;
+  if (!parent) return;
+  for (const child of parent.children) {
+    if (
+      child !== current &&
+      child instanceof HTMLDetailsElement &&
+      child.open
+    ) {
+      child.open = false;
+    }
+  }
+}
+
+/**
+ * Prefer the dashboard `main` scrollport; fall back to nearest scroller.
  * @param {Element} node
- * @returns {Element}
+ * @returns {HTMLElement}
  */
 function getScrollParent(node) {
+  /** @type {HTMLElement | null} */
+  let mainEl = null;
+  /** @type {HTMLElement | null} */
+  let firstScrollable = null;
   let el = node.parentElement;
   while (el) {
-    const { overflowY } = window.getComputedStyle(el);
-    if (
-      overflowY === 'auto' ||
-      overflowY === 'scroll' ||
-      overflowY === 'overlay'
-    ) {
-      return el;
+    if (el instanceof HTMLElement) {
+      if (el.tagName === 'MAIN') mainEl = el;
+      const { overflowY } = window.getComputedStyle(el);
+      const scrolls =
+        (overflowY === 'auto' ||
+          overflowY === 'scroll' ||
+          overflowY === 'overlay') &&
+        el.scrollHeight > el.clientHeight + 1;
+      if (scrolls && !firstScrollable) firstScrollable = el;
     }
     el = el.parentElement;
   }
-  return document.scrollingElement || document.documentElement;
+  if (mainEl && mainEl.scrollHeight > mainEl.clientHeight + 1) {
+    return mainEl;
+  }
+  if (firstScrollable) return firstScrollable;
+  if (mainEl) return mainEl;
+  const doc = document.scrollingElement || document.documentElement;
+  return doc instanceof HTMLElement ? doc : document.documentElement;
+}
+
+/**
+ * @param {HTMLElement} headerEl
+ * @param {number | null} anchorY — header viewport Y before sibling collapse
+ */
+function restoreAndPinSectionHeader(headerEl, anchorY) {
+  const parent = getScrollParent(headerEl);
+  if (typeof anchorY === 'number') {
+    const nowY = headerEl.getBoundingClientRect().top;
+    parent.scrollTop += nowY - anchorY;
+  }
+  pinElementToScrollportTop(headerEl);
 }
 
 /**
@@ -481,14 +553,10 @@ function getScrollParent(node) {
 function pinElementToScrollportTop(el) {
   const parent = getScrollParent(el);
   const stickyPad = window.matchMedia('(min-width: 768px)').matches ? 112 : 96;
-  const parentTop =
-    parent === document.scrollingElement ||
-    parent === document.documentElement
-      ? 0
-      : parent.getBoundingClientRect().top;
+  const parentTop = parent.getBoundingClientRect().top;
   const delta = el.getBoundingClientRect().top - parentTop;
-  const nextTop = (parent.scrollTop || 0) + delta - stickyPad;
-  parent.scrollTop = Math.max(0, nextTop);
+  parent.scrollTop += delta - stickyPad;
+  if (parent.scrollTop < 0) parent.scrollTop = 0;
 }
 
 /**
