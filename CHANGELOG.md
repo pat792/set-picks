@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.35.8] — 2026-07-27
+
+### Fixed
+- **Dashboard route scroll (#738)** — navigating between dashboard tabs (e.g. Standings → Picks) resets the `main` scrollport to the top, not only `window` scroll.
+
+---
+
 ## [1.35.7] — 2026-07-27
 
 ### Changed
