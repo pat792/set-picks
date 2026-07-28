@@ -50,7 +50,7 @@ Keep in `features/picks` (api/model/ui). Extend `SongAutocomplete` only with gen
 
 ## Rollout
 
-1. Offline backtest (#648–#649)  
+1. Offline backtest (#648–#649) — see [07-backtest-harness.md](./07-backtest-harness.md) and [08-recommendation-model.md](./08-recommendation-model.md)  
 2. Artifact (#650)  
 3. Prediction Lab (#651)  
 4. Predictive Mode if panel evidence OK (#652)  

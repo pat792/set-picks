@@ -1,7 +1,7 @@
 /**
  * Song catalog source for Cloud Function grading (issue #167).
  *
- * Reads the authoritative `song-catalog.json` that the weekly
+ * Reads the authoritative `song-catalog.json` that the every-6h
  * `scheduledPhishnetSongCatalog` / admin `refreshPhishnetSongCatalog` callable
  * publishes to Firebase Storage, so live scoring uses the same catalog the
  * client uses (see `src/shared/data/phishSongs.js` / `useSongCatalog`).
@@ -17,7 +17,7 @@
 const admin = require("firebase-admin");
 const { CATALOG_STORAGE_PATH } = require("./phishnetSongCatalog");
 
-/** 5 minute in-memory cache; catalog refreshes weekly. */
+/** 5 minute in-memory cache; live catalog refreshes on a ~6h schedule. */
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 let cached = null;

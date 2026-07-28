@@ -5,12 +5,15 @@ import { CheckCircle2, Lock, Scale } from 'lucide-react';
 
 import { logCommsEmailLanded } from '../../features/comms';
 import {
+  PickPredictionPanel,
   PicksFieldsForm,
   PicksLockTimingBanner,
   PicksMobileFixedChrome,
   PicksSelfRecapSection,
   PicksSubmitButton,
+  isPredictionLabEnabled,
   trackPicksPageInteractive,
+  usePickRecommendations,
   usePicksForm,
   usePicksSelfRecap,
 } from '../../features/picks';
@@ -41,6 +44,12 @@ export default function PicksPage({ user, selectedDate }) {
   } = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
 
   const picksRecap = usePicksSelfRecap({ user, selectedDate, showDates, formData });
+  const predictionLabEnabled = isPredictionLabEnabled();
+  const {
+    artifact: pickRecsArtifact,
+    isLoading: pickRecsLoading,
+    loadError: pickRecsError,
+  } = usePickRecommendations();
 
   const { openScoringRules } = useScoringRulesModal();
   const statusContentId = useId();
@@ -154,6 +163,17 @@ export default function PicksPage({ user, selectedDate }) {
                 ? `/dashboard/standings?showDate=${encodeURIComponent(selectedDate)}`
                 : '/dashboard/standings'
             }
+          />
+        ) : null}
+        {predictionLabEnabled && !isLoadingPicks ? (
+          <PickPredictionPanel
+            selectedDate={selectedDate}
+            artifact={pickRecsArtifact}
+            isLoading={pickRecsLoading}
+            loadError={pickRecsError}
+            formData={formData}
+            isLocked={isLocked}
+            onApplySong={handleInput}
           />
         ) : null}
         <Card

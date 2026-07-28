@@ -20,13 +20,47 @@ This is **not** recurring weekly noise — it was a **one-time enablement avalan
 
 ---
 
-## Current policy (post ops-reset 2026-07-04)
+## Current policy (reworked 2026-07-28, #744)
 
 | Setting | Value | Why |
 |---------|-------|-----|
+| Groups | **minor/patch only** (`*-safe` groups) | One breaking major must never block a week of safe updates (July 2026 wave: #518/#519/#624 sat open ~3 weeks) |
+| Majors | **Individual PRs**, one dependency each | Each major gets its own migration + QA; see "Major upgrades" below |
+| `firebase-admin` majors in `/functions` | **Ignored** | `firebase-functions-test` peer-supports admin ≤13; admin 14 PRs always fail `npm ci` (#624). Remove the ignore when upstream catches up |
+| CI `build` job | Runs on any PR touching `package.json` / `package-lock.json` / build config | `verify` doesn't run the production build and qa-runners skip lockfile-only diffs, so Tailwind-4-class breaks were only visible on Vercel (#519) |
 | `open-pull-requests-limit` | **5** root/functions, **3** actions (re-enabled 2026-07-05, #504) | Was **0** during ops reset; triage max 1–2 merges/week |
 | SemVer gate | Skips `dependabot/*` + `skip-version-bump` label | Deps PRs never bump `package.json` |
 | Vercel | `ignoreCommand` → `scripts/vercel-should-build.sh` | No SPA preview for Actions/functions-only bumps |
+
+### Merge policy by PR class
+
+| PR class | Policy |
+|----------|--------|
+| `*-safe` group (minor/patch) | Mergeable on green checks (`verify` + `build` + Vercel + `functions` when it runs). Human says "merge"; no extra QA needed |
+| Actions group | Mergeable on green `verify`; CI-only impact |
+| Individual **major** PR | **Never merge on green alone.** Open a dedicated migration issue/PR, apply `ci/qa` (and `ci/full` for toolchain), follow "Major upgrades" below |
+
+### Major upgrades (dedicated migration work)
+
+Green CI is *necessary but not sufficient* for majors — dep-only diffs skip the
+Playwright behavioral suite. Treat each as a feature PR:
+
+1. Branch `feat/<issue#>-<dep>-<major>`; apply the bump, run codemods/migration guides.
+2. Label `ci/qa` (forces qa-runners) and `ci/full` for build-toolchain deps.
+3. Browser-verify on the Vercel preview per `.cursor/skills/pr-qa/SKILL.md`.
+
+Known pending majors (from the closed July 2026 group PRs — tracked in #744):
+
+| Dependency | Risk | Notes |
+|------------|------|-------|
+| eslint 10, sharp 0.35 | Low | Do first, quick wins |
+| vite 8 + @vitejs/plugin-react 6 + vitest 4 | High | Move as one unit (rolldown-based); re-check `qa:chunks` manual-chunk strategy |
+| tailwindcss 4 | High | PostCSS plugin moved to `@tailwindcss/postcss`; CSS-first config; visual QA (border/ring defaults changed) |
+| react 19 + react-router-dom 7 | High | Dedicated migration, full `ci/qa` |
+| firebase 12 | High | QA WebChannel + App Check flows (see pr-qa traps.md) |
+| @firebase/rules-unit-testing 5 | Medium | Pair with `npm run test:rules` |
+| resend 6 (`/functions`) | Medium | Comms email worker QA + `functions` job |
+| firebase-admin 14 (`/functions`) | **Blocked** | Wait for firebase-functions-test peer support; ignore rule in `dependabot.yml` |
 
 ### Re-enabling Dependabot (human step)
 
@@ -50,10 +84,9 @@ This is **not** recurring weekly noise — it was a **one-time enablement avalan
 | PR type | Agent action |
 |---------|----------------|
 | `dependabot/github_actions/*` | Triage together; merge only if `verify` green; never bump version |
-| Root production group | Run `npm test`; merge if patch/minor only |
-| Root **development** group | **Defer** if vite/eslint/tailwind major jumps bundled |
-| `functions/*` production | Run `cd functions && npm test`; merge individually |
-| `functions/*` development | Low priority; merge when functions CI green |
+| `*-safe` npm groups (minor/patch) | Confirm green (`verify` + `build` + Vercel; `functions` job for `/functions` groups); report ready-to-merge |
+| Individual **major** PR | Do NOT merge on green; route through "Major upgrades" above |
+| Stale/red group PR | If lockfile desync (EUSAGE): regenerate with `npm install` in the affected dir and push to the PR branch (#521 pattern). If ERESOLVE peer conflict: check upstream peer ranges before assuming it's fixable (#624 pattern) |
 
 ### Never
 
@@ -81,10 +114,10 @@ Set `open-pull-requests-limit: 0` in `dependabot.yml` until re-enable.
 | PR class | Merge? | Notes |
 |----------|--------|-------|
 | Actions only (#486-class) | Optional batch | CI-only; Vercel skip |
-| Root prod patch bumps | Yes, one PR/week | `npm test` |
-| Root dev (vite 8, tailwind 4) | **No** | Dedicated upgrade issue |
-| Functions prod | Case-by-case | `functions` job must pass |
-| Functions dev | Low priority | Test-only dep |
+| `*-safe` groups (minor/patch) | Yes, when green | `build` job now covers the bundle |
+| Individual majors | **No — migration flow** | See "Major upgrades"; `ci/qa` label mandatory |
+| Functions prod safe group | Case-by-case | `functions` job must pass |
+| Functions dev safe group | Low priority | Test-only dep |
 
 ---
 

@@ -18,10 +18,11 @@ jobs:
       functions: ${{ steps.filter.outputs.functions }}
       rules: ${{ steps.filter.outputs.rules }}
       qa_risk: ${{ steps.filter.outputs.qa_risk }}
+      deps: ${{ steps.filter.outputs.deps }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             functions:
@@ -31,6 +32,12 @@ jobs:
               - 'firestore.indexes.json'
               - 'firestore.rules.test.cjs'
               - 'firestore.rules.test.*'
+            deps:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'vite.config.*'
+              - 'postcss.config.*'
+              - 'tailwind.config.*'
             qa_risk:
               - 'src/app/**'
               - 'src/pages/**'
@@ -46,9 +53,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -115,14 +122,37 @@ jobs:
           fi
           echo "✓ version $CURRENT is ahead of last release $TAGGED"
 
-  functions:
+  # Dep-only PRs don't touch src/, so `verify` (lint + vitest, no build) and
+  # qa-runners both stay silent while a toolchain bump can still break the
+  # production bundle (#519 Tailwind 4 / #744). Run the real build whenever
+  # the root manifest, lockfile, or build config changes.
+  build:
     needs: changes
-    if: github.event_name == 'schedule' || needs.changes.outputs.functions == 'true'
+    if: github.event_name == 'schedule' || needs.changes.outputs.deps == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build (vite + SEO prerender)
+        run: npm run build
+
+  functions:
+    needs: changes
+    if: github.event_name == 'schedule' || needs.changes.outputs.functions == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -150,15 +180,15 @@ jobs:
     if: github.event_name == 'schedule' || needs.changes.outputs.rules == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -191,9 +221,9 @@ jobs:
       QA_TEST_EMAIL: ${{ secrets.QA_TEST_EMAIL }}
       QA_TEST_PASSWORD: ${{ secrets.QA_TEST_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -206,7 +236,7 @@ jobs:
       # System deps still run via --with-deps (cheap vs Chromium fetch).
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -256,9 +286,9 @@ jobs:
       QA_PREVIEW_BASE_URL: ${{ vars.QA_PREVIEW_BASE_URL }}
       QA_VERCEL_PROTECTION_BYPASS: ${{ secrets.QA_VERCEL_PROTECTION_BYPASS }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
 

@@ -1,4 +1,6 @@
-import importPlugin from "eslint-plugin-import";
+// eslint-plugin-import-x: maintained fork of eslint-plugin-import with
+// ESLint 10 support (the original peer-caps at ESLint 9). Same rule API.
+import importX from "eslint-plugin-import-x";
 
 export default [
   {
@@ -16,10 +18,10 @@ export default [
       },
     },
     plugins: {
-      import: importPlugin,
+      "import-x": importX,
     },
     rules: {
-      "import/no-restricted-paths": [
+      "import-x/no-restricted-paths": [
         "error",
         {
           zones: [

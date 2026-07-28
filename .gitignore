@@ -26,3 +26,6 @@ gcp-service-account.json
 crew/output/
 crew/.venv/
 crew/venv/
+
+# Prediction backtest cache / reports (#648) — regenerated locally
+data/prediction-backtest/

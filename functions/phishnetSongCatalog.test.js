@@ -3,6 +3,8 @@ const assert = require("node:assert/strict");
 const {
   normalizePhishnetSongRow,
   isPhishNetPayloadOk,
+  catalogArchiveObjectPath,
+  CATALOG_ARCHIVE_PREFIX,
 } = require("./phishnetSongCatalog.js");
 
 test("isPhishNetPayloadOk accepts error:false", () => {
@@ -39,6 +41,21 @@ test("normalizePhishnetSongRow maps missing debut to empty string", () => {
 
 test("normalizePhishnetSongRow returns null for empty song", () => {
   assert.equal(normalizePhishnetSongRow({ song: "  " }), null);
+});
+
+test("catalogArchiveObjectPath uses colon-safe UTC stamp under archive prefix", () => {
+  assert.equal(
+    catalogArchiveObjectPath("2026-07-21T18:00:00.000Z"),
+    `${CATALOG_ARCHIVE_PREFIX}2026-07-21T18-00-00Z.json`
+  );
+  assert.equal(
+    catalogArchiveObjectPath("2026-07-21T06:30:45.123Z"),
+    `${CATALOG_ARCHIVE_PREFIX}2026-07-21T06-30-45Z.json`
+  );
+});
+
+test("catalogArchiveObjectPath rejects invalid timestamps", () => {
+  assert.throws(() => catalogArchiveObjectPath("not-a-date"), /Invalid catalog archive/);
 });
 
 // Regression guard for #261: the displayed `Gap` and `Last` in

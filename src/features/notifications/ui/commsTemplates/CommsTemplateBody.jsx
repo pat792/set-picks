@@ -1,10 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
+import { sameOriginAppPath } from './sameOriginAppPath.js';
 
 /**
  * Generic, data-driven in-app message body. Template build functions return a
  * plain structure (eyebrow / title / paragraphs / stats / cta) and this component
  * renders it with the dashboard design tokens — so adding a new trigger template is
  * a copy change, not a new bespoke component.
+ *
+ * Same-origin CTA hrefs use React Router `Link` so inbox clicks soft-navigate
+ * (no full reload / home SEO flash — #743). External hrefs stay normal anchors.
+ * Modifier / middle-click “open in new tab” still works via `Link`.
  *
  * @param {{
  *   icon?: React.ComponentType<{ className?: string }>,
@@ -27,6 +34,10 @@ export default function CommsTemplateBody({
   cta,
   onCtaClick,
 }) {
+  const ctaClassName =
+    'inline-flex items-center justify-center rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20';
+  const spaPath = cta ? sameOriginAppPath(cta.href) : null;
+
   return (
     <article className="space-y-3 text-sm font-normal leading-relaxed text-content-secondary">
       {(eyebrow || title) && (
@@ -69,13 +80,23 @@ export default function CommsTemplateBody({
 
       {cta ? (
         <div className="pt-2">
-          <a
-            href={cta.href || '#'}
-            onClick={() => onCtaClick?.(cta)}
-            className="inline-flex items-center justify-center rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20"
-          >
-            {cta.label}
-          </a>
+          {spaPath ? (
+            <Link
+              to={spaPath}
+              onClick={() => onCtaClick?.(cta)}
+              className={ctaClassName}
+            >
+              {cta.label}
+            </Link>
+          ) : (
+            <a
+              href={cta.href || '#'}
+              onClick={() => onCtaClick?.(cta)}
+              className={ctaClassName}
+            >
+              {cta.label}
+            </a>
+          )}
         </div>
       ) : null}
     </article>

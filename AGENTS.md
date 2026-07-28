@@ -57,7 +57,7 @@ Core local commands:
 ### Dependabot / npm audit (#414)
 
 - **Runbook:** **`docs/DEPENDABOT_OPERATIONS.md`** — first-enable timeline, ops-reset procedure, re-enable steps. Read before touching `dependabot.yml` or triaging dep PRs.
-- **Dependabot** (`.github/dependabot.yml`) — **paused** (`open-pull-requests-limit: 0`) after 2026-07-04 enablement-wave reset. When active: weekly grouped npm PRs + monthly Actions; base `staging`; auto `skip-version-bump`; CI exempts `dependabot/*`. Agents must **not** bump `package.json` on Dependabot PRs.
+- **Dependabot** (`.github/dependabot.yml`) — **active** (re-enabled 2026-07-05, reworked 2026-07-28 #744): weekly npm groups contain **minor/patch only** (`*-safe` groups); **majors arrive as individual PRs** and require dedicated migration work (never merge on green alone — see `docs/DEPENDABOT_OPERATIONS.md` "Major upgrades"). Monthly Actions group; base `staging`; auto `skip-version-bump`; CI exempts `dependabot/*` and runs a `build` job on any dep/lockfile diff. Agents must **not** bump `package.json` on Dependabot PRs. `firebase-admin` majors ignored in `/functions` until `firebase-functions-test` supports admin 14.
 - **Vercel:** `ignoreCommand` → `scripts/vercel-should-build.sh` skips previews for Actions/functions-only dep PRs.
 - **CI `npm audit`** on the `verify` job is **informational** (`continue-on-error: true`). It does not block merge.
 - **Triage:** Critical/high in **production** deps → fix or upgrade in a normal PR. Dev-only / low noise → defer or group into a maintenance PR. Do not mass-upgrade without running `npm test` and `cd functions && npm test`.

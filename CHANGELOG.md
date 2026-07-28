@@ -14,28 +14,60 @@ No unreleased changes.
 
 ---
 
-## [1.35.9] — 2026-07-27
+## [1.40.1] — 2026-07-28
 
 ### Fixed
-- **Primary nav scroll-to-top (#740)** — sidebar, bottom tabs, brand home, Profile/Standings segmented controls snap the dashboard scrollport to top on click (including same-tab re-taps).
+- **SEO prerender flash on app hard loads (#743)** — empty-root SPA shell at `dist/dashboard/index.html` + Vercel rewrites for `/dashboard/*`, `/setup`, `/user/*`, `/privacy`, `/terms`, and related app paths so hard navigations no longer flash home marketing copy. In-app inbox CTAs use React Router `Link` for same-origin destinations (no full reload).
 
 ---
 
-## [1.35.8] — 2026-07-27
+## [1.40.0] — 2026-07-28
 
-### Fixed
-- **Dashboard route scroll (#738)** — navigating between dashboard tabs (e.g. Standings → Picks) resets the `main` scrollport to the top, not only `window` scroll.
+### Added
+- **`VITE_ENABLE_PREDICTION_LAB`** — build-time gate for Prediction Lab UI and recommendations fetch (same pattern as sponsor slots). Omit in Production to ship the rest of the staging train without launching the lab; set `true` on Preview/local to keep QA access.
 
 ---
 
-## [1.35.7] — 2026-07-27
+## [1.39.8] — 2026-07-28
 
 ### Changed
-- **Crowd pulse preview blur (#736)** — while the show is still `NEXT`, preview **Song** and **Last** stay blurred (Pickers / Gap remain visible); deep stats stay locked until showtime. Exclusive accordion for full-stats sections with category teasers; chrome uses red/blue accent contrast. Standings pick-privacy tooltip copy generalized.
+- **Build toolchain majors (#744, step 2)** — Vite 4 → 8 (Rolldown-based), `@vitejs/plugin-react` 4 → 6, Vitest 1 → 4. Added explicit `vite-node@6` devDep (Vitest 4 no longer bundles the binary used by `crowd:night-stats`). Route-level code splitting and all six vendor/firebase manual chunks verified unchanged; bundle ~4% smaller.
+
+### Fixed
+- **`qa:chunks` chunk-name parser** — Rolldown emits base64url file hashes that can contain dashes (`PasswordResetCompletePage-Bdu-qXPb.js`); the parser assumed dash-free hashes and timed out. Now matches the fixed 8-char hash tail under both hash styles.
 
 ---
 
-## [1.35.6] — 2026-07-22
+## [1.39.7] — 2026-07-28
+
+### Changed
+- **Dev tooling majors (#744, step 1)** — ESLint 9 → 10 and sharp 0.34 → 0.35. Replaced `eslint-plugin-import` (peer-caps at ESLint 9) with the maintained `eslint-plugin-import-x` fork; FSD boundary rule renamed `import/no-restricted-paths` → `import-x/no-restricted-paths` with identical zones. No app-runtime impact.
+
+---
+
+## [1.39.6] — 2026-07-27
+
+### Fixed
+- **Primary nav scroll-to-top** — sidebar, bottom tabs, brand home, Profile/Standings segmented controls call `scrollAppToTop` on click (including same-tab re-taps). Route changes also key off `search` so Standings view switches reset scroll.
+
+---
+
+## [1.39.5] — 2026-07-27
+
+### Fixed
+- **Dashboard route scroll** — navigating between dashboard tabs (e.g. Standings → Picks) resets the `main` scrollport to the top, not only `window` scroll.
+
+---
+
+## [1.39.4] — 2026-07-27
+
+### Changed
+- **Crowd pulse preview blur** — while the show is still `NEXT`, preview **Song** and **Last** stay blurred (Pickers / Gap remain visible); deep stats stay locked until showtime. Exclusive accordion for full-stats sections; category teasers for multi-picker / highest gaps / leaders.
+- **Crowd pulse chrome** — title + Full crowd stats use brand accent red; deep section headers use accent blue; teaser song names use red/blue contrast. Standings pick-privacy tooltip copy generalized (no “user feedback” framing).
+
+---
+
+## [1.39.3] — 2026-07-22
 
 ### Fixed
 - **Invite auth loading gap (#727)** — guest → sign-in keeps auth `loading` until the first profile snapshot, so returning users are not dumped onto Almost There. Profile setup subcopy uses pool-enter framing only when a pending invite breadcrumb is present.
@@ -44,15 +76,89 @@ No unreleased changes.
 
 ---
 
-## [1.35.5] — 2026-07-22
+## [1.39.2] — 2026-07-22
+
+### Changed
+- **Picks lock offset** — doors-based wall clock moves from doors+100 (1h40) to doors+85 (1h25): safety buffer raised 19 → 34 against the Summer Tour 2026 avg doors→start of 119. Client + Functions + lock-reminder copy share the same resolver.
+
+---
+
+## [1.39.1] — 2026-07-22
 
 ### Fixed
 - **Pool invite join** — Firestore rules now allow `memberJoinedAt` on self-join for `from_membership` pools (new pools since #417). Without this, every invite-link join failed with permission denied and surfaced “Could not join the pool.”
 - **Pool invite flash** — `/join/:code` server-rendered SPA shell no longer injects the home-page SEO prerender body into `#root` before React boots (eliminates the brief “About Setlist Pick'Em” marketing copy flash).
 - **Pending invite retry** — Deep-link join keeps the stored invite code in `localStorage` until join succeeds or is definitively invalid, so transient failures can be retried from the Pools tab without re-opening the link.
 
+---
+
+## [1.39.0] — 2026-07-22
+
+### Added
+- **Pick-recommendations 1y Phish.net history (#721)** — private Storage window `pick-recommendations/history/window.json` synced from Phish.net (outside `official_setlists`). Publisher merges with Firestore priors; artifact adds `historySource`. Callables/schedules: `refreshPickRecommendationHistory`, `scheduledPickRecommendationHistory`.
+
+---
+
+## [1.38.0] — 2026-07-22
+
+### Added
+- **Prediction Lab (#651)** — opt-in, default-collapsed panel on Picks: Safe / Slot fit / Long shot recommendations with “Use” apply-to-slot. Consumes `pick-recommendations.json`; hidden when locked or artifact unavailable. GA4: `prediction_lab_open`, `prediction_lab_impression`, `prediction_lab_select`.
+
 ### Changed
-- **Picks lock offset** — doors-based wall clock moves from doors+100 (1h40) to doors+85 (1h25): safety buffer raised 19 → 34 against the Summer Tour 2026 avg doors→start of 119. Client + Functions + lock-reminder copy share the same resolver.
+- **Recommendation risk bands (`v0.1.1-explainable`)** — Slot fit = historically strong for the selected slot (`slotHits` / show window *t*); Safe = high show-wide play probability; Long shot = bustout upside. Lab hides `unbanded` residuals.
+
+---
+
+## [1.37.0] — 2026-07-22
+
+### Added
+- **Pick recommendations Storage artifact (#650)** — `pick-recommendations.json` published by `scheduledPickRecommendations` / `refreshPickRecommendations` for the upcoming show (`modelVersion` v0.1.0-explainable). Client `usePickRecommendations` with TTL/stale fallback; optional `VITE_PICK_RECOMMENDATIONS_URL`. See `docs/PICK_RECOMMENDATIONS.md` / `docs/API.md`.
+
+---
+
+## [1.36.0] — 2026-07-21
+
+### Added
+- **Song catalog archives (#647)** — each `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog` sync writes a private dated snapshot at `song-catalog/archive/YYYY-MM-DDTHH-mm-ssZ.json` (same payload as live) for leakage-safe prediction backtests (#646). Live `song-catalog.json` client path unchanged. Callable may return optional `archivePath`.
+
+### Changed
+- **`docs/SONG_CATALOG.md`** — documents the every-6h schedule (was stale “weekly”), archive layout/retention, and Storage rules for archive objects.
+
+---
+
+
+## [1.35.9] — 2026-07-27
+
+### Fixed
+- **Primary nav scroll-to-top (#740)** — production hotfix of the staging 1.39.6 nav scroll behavior.
+
+---
+
+## [1.35.8] — 2026-07-27
+
+### Fixed
+- **Dashboard route scroll (#738)** — production hotfix of the staging 1.39.5 scrollport reset.
+
+---
+
+## [1.35.7] — 2026-07-27
+
+### Changed
+- **Crowd pulse preview blur (#736)** — production hotfix of the staging 1.39.4 crowd-pulse preview behavior.
+
+---
+
+## [1.35.6] — 2026-07-22
+
+### Fixed
+- Invite Wave 0 UX / join reliability (#727–#729) — see staging 1.39.3 notes (same train).
+
+---
+
+## [1.35.5] — 2026-07-22
+
+### Fixed
+- Pool invite join / SEO flash / pending invite retry — see staging 1.39.1 notes (same train).
 
 ---
 

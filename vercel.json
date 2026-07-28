@@ -37,6 +37,42 @@
       "destination": "/api/invite?code=:code"
     },
     {
+      "source": "/dashboard",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/dashboard/(.*)",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/setup",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/user/(.*)",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/password-reset-complete",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/comms-preview",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/join",
+      "destination": "/dashboard/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
