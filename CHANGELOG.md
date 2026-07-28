@@ -126,6 +126,42 @@ No unreleased changes.
 
 ---
 
+
+## [1.35.9] — 2026-07-27
+
+### Fixed
+- **Primary nav scroll-to-top (#740)** — production hotfix of the staging 1.39.6 nav scroll behavior.
+
+---
+
+## [1.35.8] — 2026-07-27
+
+### Fixed
+- **Dashboard route scroll (#738)** — production hotfix of the staging 1.39.5 scrollport reset.
+
+---
+
+## [1.35.7] — 2026-07-27
+
+### Changed
+- **Crowd pulse preview blur (#736)** — production hotfix of the staging 1.39.4 crowd-pulse preview behavior.
+
+---
+
+## [1.35.6] — 2026-07-22
+
+### Fixed
+- Invite Wave 0 UX / join reliability (#727–#729) — see staging 1.39.3 notes (same train).
+
+---
+
+## [1.35.5] — 2026-07-22
+
+### Fixed
+- Pool invite join / SEO flash / pending invite retry — see staging 1.39.1 notes (same train).
+
+---
+
 ## [1.35.4] — 2026-07-21
 
 ### Changed
