@@ -44,6 +44,7 @@ import {
   DashboardNotificationsBell,
 } from '../../features/notifications';
 import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
+import { scrollAppToTop } from '../../shared/lib/scrollAppToTop';
 import {
   BRAND_APP_CHROME_MARK_SRC,
   brandAppChromeMarkImgClassNames,
@@ -55,7 +56,10 @@ import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
 import DashboardTourDateScope from './ui/DashboardTourDateScope';
-import { DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID } from '../../shared/hooks/useDashboardMobileChromePortal';
+import {
+  DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID,
+  DASHBOARD_SCROLLPORT_ID,
+} from '../../shared/hooks/useDashboardMobileChromePortal';
 
 import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
 
@@ -174,6 +178,7 @@ export default function DashboardLayout() {
           <h1 className="w-full overflow-visible text-center leading-none">
             <Link
               to="/dashboard"
+              onClick={scrollAppToTop}
               className="block w-full overflow-visible outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity md:flex md:justify-center"
               aria-label="Setlist Pick 'Em — dashboard home"
             >
@@ -222,6 +227,7 @@ export default function DashboardLayout() {
               <Link
                 key={item.name}
                 to={item.path}
+                onClick={scrollAppToTop}
                 {...navPrefetchHandlers(item.path)}
                 className={`flex items-center gap-3 rounded-xl px-4 py-3 font-bold transition-all ${isActive ? 'bg-brand-primary/10 text-brand-primary' : 'text-content-secondary hover:bg-surface-inset hover:text-white'}`}
               >
@@ -275,6 +281,7 @@ export default function DashboardLayout() {
 
       {/* MAIN CONTENT — routes with fixed chrome get extra top pad for the pills row */}
       <main
+        id={DASHBOARD_SCROLLPORT_ID}
         className={[
           'flex-1 min-w-0 overflow-y-auto relative',
           'pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8',
@@ -443,6 +450,7 @@ export default function DashboardLayout() {
               <Link
                 key={item.name}
                 to={item.path}
+                onClick={scrollAppToTop}
                 {...navPrefetchHandlers(item.path)}
                 className={`flex h-[calc(100%-10px)] min-h-0 w-full flex-col items-center justify-center space-y-1 self-center rounded-xl transition-colors ${
                   isActive

@@ -11,6 +11,7 @@ import {
   brandWordmarkDashboardMobileLeadingClassNames,
 } from '../../../shared/config/branding';
 import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
+import { scrollAppToTop } from '../../../shared/lib/scrollAppToTop';
 import BrandWordmarkBarRow from '../../../shared/ui/BrandWordmarkBarRow';
 
 function avatarInitial(userProfile, user) {
@@ -31,6 +32,7 @@ export default function DashboardMobileBrandBar({ user }) {
         <h1 className={brandWordmarkDashboardMobileLeadingClassNames}>
           <Link
             to="/dashboard"
+            onClick={scrollAppToTop}
             className="inline-flex max-w-full items-center justify-start overflow-visible text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm hover:opacity-80 transition-opacity"
             aria-label="Setlist Pick 'Em — dashboard home"
           >

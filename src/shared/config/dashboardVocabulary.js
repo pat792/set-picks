@@ -144,12 +144,17 @@ export function lastShowWinnerHeading(winnerCount, poolScopeLabel) {
 export const STANDINGS_PICK_PRIVACY_INLINE =
   "Other players' picks stay hidden until showtime.";
 
-/** Accessible name for the info control. */
+/** Accessible name for the standings pick-privacy info control. */
 export const STANDINGS_PICK_PRIVACY_INFO_LABEL = 'About hidden picks';
 
-/** Full detail: disclosure panel + optional native `title` on summary (#303). */
-export const STANDINGS_PICK_PRIVACY_TOOLTIP =
-  "We've made a key change our users have asked for: hiding other players' picks until showtime. You'll still see players and their picks, but those picks are now blurred to improve competition!";
+/**
+ * Shared showtime-blur explanation for Standings leaderboard info tooltip.
+ */
+export const SHOWTIME_SONG_BLUR_TOOLTIP =
+  'To improve competition, song names and data stay blurred until showtime.';
+
+/** Standings leaderboard tooltip. */
+export const STANDINGS_PICK_PRIVACY_TOOLTIP = SHOWTIME_SONG_BLUR_TOOLTIP;
 
 /** Standings self-recap card eyebrow (rank + points snapshot). */
 export const STANDINGS_SELF_RECAP_EYEBROW = 'Your rank';
