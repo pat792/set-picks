@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.40.1] — 2026-07-28
+
+### Fixed
+- **SEO prerender flash on app hard loads (#743)** — empty-root SPA shell at `dist/dashboard/index.html` + Vercel rewrites for `/dashboard/*`, `/setup`, `/user/*`, `/privacy`, `/terms`, and related app paths so hard navigations no longer flash home marketing copy. In-app inbox CTAs use React Router `Link` for same-origin destinations (no full reload).
+
+---
+
 ## [1.40.0] — 2026-07-28
 
 ### Added
