@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  APP_BOOT_SHELL_REL_PATH,
   PRERENDER_ROUTES,
   buildFixtureShellHtml,
   injectPrerenderHtml,
@@ -76,6 +77,24 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     const html = readFileSync(outPath, 'utf8');
     assertRouteHtml(html, route, `dist ${route.path}`);
   }
+
+  const appBootPath = join(root, 'dist', APP_BOOT_SHELL_REL_PATH);
+  assert(existsSync(appBootPath), `dist missing ${APP_BOOT_SHELL_REL_PATH} — run npm run build`);
+  const appBootHtml = readFileSync(appBootPath, 'utf8');
+  assert(
+    /<div id="root">\s*<\/div>/i.test(appBootHtml),
+    'app boot shell must have empty #root',
+  );
+  assert(
+    !appBootHtml.includes('data-seo-prerender'),
+    'app boot shell must not include SEO prerender body',
+  );
+  assert(
+    existsSync(distIndex) &&
+      readFileSync(distIndex, 'utf8').includes('data-seo-prerender'),
+    'home dist/index.html must still include SEO prerender body',
+  );
+
   console.log('verify:seo-prerender: dist/ checked');
 } else {
   console.log('verify:seo-prerender: fixture-only (dist/ not prerendered)');

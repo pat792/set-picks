@@ -7,8 +7,17 @@ import {
   PRERENDER_ROUTES,
   SEO_FAVICON_VERSION,
 } from '../src/shared/config/seoRoutes.js';
+import {
+  APP_BOOT_SHELL_REL_PATH,
+  stripPrerenderBodyFromSpaShell,
+} from './seo-strip-body.mjs';
 
-export { PRERENDER_ROUTES, SEO_FAVICON_VERSION };
+export {
+  PRERENDER_ROUTES,
+  SEO_FAVICON_VERSION,
+  APP_BOOT_SHELL_REL_PATH,
+  stripPrerenderBodyFromSpaShell,
+};
 
 function escapeHtml(str) {
   return String(str ?? '')
