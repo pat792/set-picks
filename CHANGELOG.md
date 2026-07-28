@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.39.7] — 2026-07-28
+
+### Changed
+- **Dev tooling majors (#744, step 1)** — ESLint 9 → 10 and sharp 0.34 → 0.35. Replaced `eslint-plugin-import` (peer-caps at ESLint 9) with the maintained `eslint-plugin-import-x` fork; FSD boundary rule renamed `import/no-restricted-paths` → `import-x/no-restricted-paths` with identical zones. No app-runtime impact.
+
+---
+
 ## [1.39.6] — 2026-07-27
 
 ### Fixed
