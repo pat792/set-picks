@@ -68,7 +68,7 @@
     "playwright": "^1.59.1",
     "postcss": "^8.4.27",
     "sharp": "^0.35.3",
-    "tailwindcss": "^3.3.3",
+    "tailwindcss": "^4.3.3",
     "vite": "^8.1.5",
     "vite-node": "^6.0.0",
     "vitest": "^4.1.10"
