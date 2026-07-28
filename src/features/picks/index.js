@@ -12,6 +12,7 @@ export { default as usePicksForm } from './model/usePicksForm';
 export { usePicksSelfRecap } from './model/usePicksSelfRecap';
 export { useNextShowPicksStatus } from './model/useNextShowPicksStatus';
 export { usePickRecommendations } from './model/usePickRecommendations';
+export { isPredictionLabEnabled } from './model/isPredictionLabEnabled';
 export {
   hasNonEmptyPicksObject,
   pickEntryHasSubmission,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { resolvePickRecommendationsFetchUrl } from '../api/pickRecommendationsUrl.js';
+import { isPredictionLabEnabled } from './isPredictionLabEnabled.js';
 import {
   PICK_RECOMMENDATIONS_CACHE_KEY,
   PICK_RECOMMENDATIONS_CACHE_MAX_AGE_MS,
@@ -49,6 +50,7 @@ function writeCache(entry) {
 /**
  * Loads versioned pick recommendations from Storage with TTL + stale fallback (#650).
  * Returns null artifact when unavailable (Lab / Predictive Mode stay dark).
+ * No-ops when `VITE_ENABLE_PREDICTION_LAB` is not exactly `'true'` (prod default).
  *
  * @returns {{
  *   artifact: object | null,
@@ -58,12 +60,15 @@ function writeCache(entry) {
  * }}
  */
 export function usePickRecommendations() {
+  const enabled = isPredictionLabEnabled();
   const [artifact, setArtifact] = useState(/** @type {object | null} */ (null));
   const [loadError, setLoadError] = useState(/** @type {Error | null} */ (null));
-  const [resolved, setResolved] = useState(false);
+  const [resolved, setResolved] = useState(!enabled);
   const [loadedFromCache, setLoadedFromCache] = useState(false);
 
   useEffect(() => {
+    if (!enabled) return undefined;
+
     const ac = new AbortController();
     let cancelled = false;
 
@@ -141,7 +146,7 @@ export function usePickRecommendations() {
       cancelled = true;
       ac.abort();
     };
-  }, []);
+  }, [enabled]);
 
   return {
     artifact,

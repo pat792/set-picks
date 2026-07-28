@@ -439,6 +439,7 @@ These `VITE_*` variables are read at build time. Adding or removing one is a MIN
 | `VITE_SONG_CATALOG_URL` | No | CDN URL override for song catalog |
 | `VITE_PICK_RECOMMENDATIONS_URL` | No | CDN URL override for pick recommendations (#650) |
 | `VITE_ENABLE_SPONSOR_SLOTS` | No | `true` renders reserved sponsor/ad placements (`SponsorSlot`); omit to hide (default) |
+| `VITE_ENABLE_PREDICTION_LAB` | No | `true` renders Prediction Lab + loads pick-recommendations artifact on Picks; omit to hide (default). Use on Preview/local for QA; leave unset in Production until launch |
 
 ### 4.1 Cloud Functions runtime env vars
 

@@ -24,6 +24,8 @@ import {
 
 /**
  * Opt-in Prediction Lab — default-collapsed slot recommendations (#651).
+ * Parent pages should gate with `isPredictionLabEnabled()` / `VITE_ENABLE_PREDICTION_LAB`
+ * (fetch also no-ops in `usePickRecommendations` when the flag is off).
  *
  * @param {object} props
  * @param {string} props.selectedDate

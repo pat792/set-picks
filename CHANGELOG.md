@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.40.0] — 2026-07-28
+
+### Added
+- **`VITE_ENABLE_PREDICTION_LAB`** — build-time gate for Prediction Lab UI and recommendations fetch (same pattern as sponsor slots). Omit in Production to ship the rest of the staging train without launching the lab; set `true` on Preview/local to keep QA access.
+
+---
+
 ## [1.39.8] — 2026-07-28
 
 ### Changed
