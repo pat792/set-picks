@@ -52,17 +52,19 @@ const NAV_TIMEOUT_MS = 20_000;
  *
  * Vite's default `output.chunkFileNames` shape is
  * `assets/[name]-[hash].js` where `[name]` is allowed to contain
- * dashes (e.g. `firebase-storage`) and `[hash]` is alphanumeric only.
- * The non-greedy name capture plus a `[A-Za-z0-9_]+` (dash-free) hash
- * pattern lets us correctly parse both `PublicProfilePage-AbCd1234.js`
- * and `firebase-storage-AbCd1234.js`.
+ * dashes (e.g. `firebase-storage`) and `[hash]` is always 8 chars.
+ * Rolldown-based Vite (8+) emits base64url hashes that may themselves
+ * contain dashes (`PasswordResetCompletePage-Bdu-qXPb.js`), so the
+ * hash cannot be matched as "dash-free" — instead the greedy name
+ * capture leaves exactly the trailing 8 hash chars. Works for the old
+ * alphanumeric hashes too (also 8 chars).
  *
  * @param {string} url
  * @returns {string | null}
  */
 function chunkNameFromUrl(url) {
   const match = url.match(
-    /\/assets\/([A-Za-z0-9_-]+?)-[A-Za-z0-9_]+\.js(?:\?.*)?$/,
+    /\/assets\/([A-Za-z0-9_-]+)-[A-Za-z0-9_-]{8}\.js(?:\?.*)?$/,
   );
   return match ? match[1] : null;
 }
