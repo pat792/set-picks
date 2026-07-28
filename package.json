@@ -1,7 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.39.7",
+  "version": "1.39.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.4",
-    "@vitejs/plugin-react": "^4.0.0",
+    "@vitejs/plugin-react": "^6.0.4",
     "autoprefixer": "^10.4.14",
     "eslint": "^10.8.0",
     "eslint-plugin-import-x": "^4.17.1",
@@ -69,8 +69,9 @@
     "postcss": "^8.4.27",
     "sharp": "^0.35.3",
     "tailwindcss": "^3.3.3",
-    "vite": "^4.4.0",
-    "vitest": "^1.6.1"
+    "vite": "^8.1.5",
+    "vite-node": "^6.0.0",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "firebase": "10.14.1"

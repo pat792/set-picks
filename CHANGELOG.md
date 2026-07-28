@@ -14,6 +14,16 @@ No unreleased changes.
 
 ---
 
+## [1.39.8] — 2026-07-28
+
+### Changed
+- **Build toolchain majors (#744, step 2)** — Vite 4 → 8 (Rolldown-based), `@vitejs/plugin-react` 4 → 6, Vitest 1 → 4. Added explicit `vite-node@6` devDep (Vitest 4 no longer bundles the binary used by `crowd:night-stats`). Route-level code splitting and all six vendor/firebase manual chunks verified unchanged; bundle ~4% smaller.
+
+### Fixed
+- **`qa:chunks` chunk-name parser** — Rolldown emits base64url file hashes that can contain dashes (`PasswordResetCompletePage-Bdu-qXPb.js`); the parser assumed dash-free hashes and timed out. Now matches the fixed 8-char hash tail under both hash styles.
+
+---
+
 ## [1.39.7] — 2026-07-28
 
 ### Changed
