@@ -11,6 +11,7 @@ import {
   PicksMobileFixedChrome,
   PicksSelfRecapSection,
   PicksSubmitButton,
+  isPredictionLabEnabled,
   trackPicksPageInteractive,
   usePickRecommendations,
   usePicksForm,
@@ -43,6 +44,7 @@ export default function PicksPage({ user, selectedDate }) {
   } = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
 
   const picksRecap = usePicksSelfRecap({ user, selectedDate, showDates, formData });
+  const predictionLabEnabled = isPredictionLabEnabled();
   const {
     artifact: pickRecsArtifact,
     isLoading: pickRecsLoading,
@@ -163,7 +165,7 @@ export default function PicksPage({ user, selectedDate }) {
             }
           />
         ) : null}
-        {!isLoadingPicks ? (
+        {predictionLabEnabled && !isLoadingPicks ? (
           <PickPredictionPanel
             selectedDate={selectedDate}
             artifact={pickRecsArtifact}
