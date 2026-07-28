@@ -3,7 +3,10 @@
 # PRs target `staging` (repo PR base), not `main`.
 #
 # Re-enabled 2026-07-05 (Sprint 6 wrap, #504) after v1.18 enablement-wave ops reset.
-# Triage: docs/DEPENDABOT_OPERATIONS.md — max 1–2 merges/week; never batch-rebase all PRs.
+# Reworked 2026-07-28 (#744): groups contain ONLY minor/patch ("safe") updates so
+# they stay green and mergeable. Major versions arrive as individual PRs and get
+# dedicated migration work — see docs/DEPENDABOT_OPERATIONS.md "Major upgrades".
+# Triage: max 1–2 merges/week; never batch-rebase all PRs.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -17,10 +20,12 @@ updates:
       - dependencies
       - skip-version-bump
     groups:
-      root-production:
+      root-production-safe:
         dependency-type: production
-      root-development:
+        update-types: ["minor", "patch"]
+      root-development-safe:
         dependency-type: development
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: npm
     directory: "/functions"
@@ -32,11 +37,19 @@ updates:
     labels:
       - dependencies
       - skip-version-bump
+    ignore:
+      # firebase-functions-test (even latest) peer-supports firebase-admin <=13,
+      # so admin 14 PRs always fail `npm ci` with ERESOLVE (#624, #744).
+      # Remove once firebase-functions-test allows firebase-admin ^14.
+      - dependency-name: "firebase-admin"
+        update-types: ["version-update:semver-major"]
     groups:
-      functions-production:
+      functions-production-safe:
         dependency-type: production
-      functions-development:
+        update-types: ["minor", "patch"]
+      functions-development-safe:
         dependency-type: development
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: github-actions
     directory: "/"
