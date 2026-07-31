@@ -27,7 +27,7 @@ Operational guide for **`lockPicksForShowNow`** — the War Room **Lock picks no
 1. Admin clicks **Lock picks now** in War Room while the show is `NEXT`.
 2. Client calls `lockPicksForShowNow({ showDate })`.
 3. Callable writes `show_lock_state/{showDate}` with `lockReason: admin_override`.
-4. All clients subscribed to that doc treat picks as locked even before the per-show wall clock (doors+1:25 when doors known; else 7:30 PM venue-local).
+4. All clients subscribed to that doc treat picks as locked even before the per-show wall clock (published ticket/show time + 20 min when known; else 7:30 PM venue-local).
 
 Idempotent: re-running on an already-stamped doc returns `{ alreadyLocked: true }` without rewriting timestamps.
 
@@ -126,4 +126,4 @@ gcloud run services add-iam-policy-binding lockpicksforshownow \
 - [`docs/API.md`](./API.md) §1.8 (doors / picksLockLocal), §1.10 (`show_lock_state`), §2.2b (`lockPicksForShowNow`)
 - [`docs/ADMIN_CLAIMS_RUNBOOK.md`](./ADMIN_CLAIMS_RUNBOOK.md) — admin claim bootstrap
 - [`docs/PHISHNET_CALLABLE_RUNBOOK.md`](./PHISHNET_CALLABLE_RUNBOOK.md) — phishnet deploy bundle
-- Issue [#522](https://github.com/pat792/set-picks/issues/522) — doors-based wall clock + remaining setlist poll lock
+- Issue [#522](https://github.com/pat792/set-picks/issues/522) — ticket-time wall clock + remaining setlist poll lock

@@ -6,8 +6,7 @@
  */
 
 const DEFAULT_PICKS_LOCK_HM = Object.freeze({ hour: 19, minute: 30 });
-const TOUR_AVG_DOORS_TO_START_MIN = 119;
-const PICKS_LOCK_SAFETY_MIN = 34;
+const PICKS_LOCK_AFTER_START_MIN = 20;
 
 const SHOW_DOORS_LOCAL_BY_DATE = Object.freeze({
   "2026-07-18": "17:30",
@@ -23,6 +22,22 @@ const SHOW_DOORS_LOCAL_BY_DATE = Object.freeze({
   "2026-09-04": "18:00",
   "2026-09-05": "18:00",
   "2026-09-06": "18:00",
+});
+
+const SHOW_SCHEDULED_START_LOCAL_BY_DATE = Object.freeze({
+  "2026-07-18": "19:00",
+  "2026-07-19": "19:00",
+  "2026-07-21": "19:00",
+  "2026-07-22": "20:00",
+  "2026-07-24": "20:00",
+  "2026-07-25": "20:00",
+  "2026-07-27": "20:00",
+  "2026-07-29": "20:00",
+  "2026-07-31": "19:00",
+  "2026-08-01": "19:00",
+  "2026-09-04": "19:30",
+  "2026-09-05": "19:30",
+  "2026-09-06": "19:30",
 });
 
 /**
@@ -93,75 +108,93 @@ function formatLockTimeLocalLabel(hm) {
 }
 
 /**
- * @param {{ hour: number, minute: number }} doors
- * @param {{ tourAvgDoorsToStartMin?: number, safetyMin?: number }} [opts]
+ * @param {{ hour: number, minute: number }} start
+ * @param {{ afterStartMin?: number }} [opts]
  */
-function lockHmFromDoors(
-  doors,
-  {
-    tourAvgDoorsToStartMin = TOUR_AVG_DOORS_TO_START_MIN,
-    safetyMin = PICKS_LOCK_SAFETY_MIN,
-  } = {}
+function lockHmFromScheduledStart(
+  start,
+  { afterStartMin = PICKS_LOCK_AFTER_START_MIN } = {}
 ) {
-  const offset = Math.max(0, tourAvgDoorsToStartMin - safetyMin);
-  const total = doors.hour * 60 + doors.minute + offset;
+  const offset = Math.max(0, afterStartMin);
+  const total = start.hour * 60 + start.minute + offset;
   const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
   return { hour: Math.floor(wrapped / 60), minute: wrapped % 60 };
 }
 
 /**
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null | undefined} show
  * @param {{
+ *   date?: string,
+ *   doorsLocal?: string,
+ *   scheduledStartLocal?: string,
+ *   picksLockLocal?: string,
+ * } | null | undefined} show
+ * @param {{
+ *   startByDate?: Record<string, string>,
  *   doorsByDate?: Record<string, string>,
- *   tourAvgDoorsToStartMin?: number,
- *   safetyMin?: number,
+ *   afterStartMin?: number,
  *   fallback?: { hour: number, minute: number },
  * }} [opts]
  */
 function resolvePicksLockHm(show, opts = {}) {
   const fallback = opts.fallback ?? DEFAULT_PICKS_LOCK_HM;
+  const startByDate = opts.startByDate ?? SHOW_SCHEDULED_START_LOCAL_BY_DATE;
   const doorsByDate = opts.doorsByDate ?? SHOW_DOORS_LOCAL_BY_DATE;
+
+  const date = typeof show?.date === "string" ? show.date.trim() : "";
+  const doorsParsed = parseLocalHm(
+    (typeof show?.doorsLocal === "string" && show.doorsLocal.trim()) ||
+      (date && doorsByDate[date]) ||
+      null
+  );
+  const doorsLocal = doorsParsed ? formatLocalHm24(doorsParsed) : null;
 
   const explicitLock = parseLocalHm(show?.picksLockLocal);
   if (explicitLock) {
+    const start = parseLocalHm(
+      typeof show?.scheduledStartLocal === "string"
+        ? show.scheduledStartLocal.trim()
+        : null
+    );
     return {
       ...explicitLock,
       source: "picksLockLocal",
-      doorsLocal:
-        typeof show?.doorsLocal === "string" ? show.doorsLocal.trim() || null : null,
+      scheduledStartLocal: start ? formatLocalHm24(start) : null,
+      doorsLocal,
     };
   }
 
-  const date = typeof show?.date === "string" ? show.date.trim() : "";
-  const doorsRaw =
-    (typeof show?.doorsLocal === "string" && show.doorsLocal.trim()) ||
-    (date && doorsByDate[date]) ||
-    null;
-  const doors = parseLocalHm(doorsRaw);
-  if (doors) {
-    const lock = lockHmFromDoors(doors, opts);
+  const start = parseLocalHm(
+    (typeof show?.scheduledStartLocal === "string" &&
+      show.scheduledStartLocal.trim()) ||
+      (date && startByDate[date]) ||
+      null
+  );
+  if (start) {
+    const lock = lockHmFromScheduledStart(start, opts);
     return {
       ...lock,
-      source: "doors",
-      doorsLocal: formatLocalHm24(doors),
+      source: "scheduledStart",
+      scheduledStartLocal: formatLocalHm24(start),
+      doorsLocal,
     };
   }
 
   return {
     ...fallback,
     source: "fallback",
-    doorsLocal: null,
+    scheduledStartLocal: null,
+    doorsLocal,
   };
 }
 
 module.exports = {
   DEFAULT_PICKS_LOCK_HM,
-  PICKS_LOCK_SAFETY_MIN,
+  PICKS_LOCK_AFTER_START_MIN,
   SHOW_DOORS_LOCAL_BY_DATE,
-  TOUR_AVG_DOORS_TO_START_MIN,
+  SHOW_SCHEDULED_START_LOCAL_BY_DATE,
   formatLocalHm24,
   formatLockTimeLocalLabel,
-  lockHmFromDoors,
+  lockHmFromScheduledStart,
   parseLocalHm,
   resolvePicksLockHm,
 };

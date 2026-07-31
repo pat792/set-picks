@@ -58,7 +58,7 @@ function showClockOnShowYmd(showYmd, showTimeZone, now = new Date()) {
  * @param {string} showYmd
  * @param {string} [showTimeZone]
  * @param {Date} [now]
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | { hour: number, minute: number } | null} [showOrLockHm]
+ * @param {{ date?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string } | { hour: number, minute: number } | null} [showOrLockHm]
  *   Show row (preferred) or explicit `{ hour, minute }` lock. Defaults to 19:30.
  */
 export function isPastPicksLock(
@@ -77,7 +77,7 @@ export function isPastPicksLock(
 
 /**
  * @param {string} showYmd
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | { hour: number, minute: number } | null | undefined} showOrLockHm
+ * @param {{ date?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string } | { hour: number, minute: number } | null | undefined} showOrLockHm
  */
 function coercePicksLockHm(showYmd, showOrLockHm) {
   if (
@@ -87,6 +87,7 @@ function coercePicksLockHm(showYmd, showOrLockHm) {
     Number.isInteger(showOrLockHm.minute) &&
     showOrLockHm.date === undefined &&
     showOrLockHm.doorsLocal === undefined &&
+    showOrLockHm.scheduledStartLocal === undefined &&
     showOrLockHm.picksLockLocal === undefined
   ) {
     return { hour: showOrLockHm.hour, minute: showOrLockHm.minute };
@@ -95,6 +96,7 @@ function coercePicksLockHm(showYmd, showOrLockHm) {
     return resolvePicksLockHm({
       date: typeof showOrLockHm.date === 'string' ? showOrLockHm.date : showYmd,
       doorsLocal: showOrLockHm.doorsLocal,
+      scheduledStartLocal: showOrLockHm.scheduledStartLocal,
       picksLockLocal: showOrLockHm.picksLockLocal,
     });
   }
@@ -141,7 +143,7 @@ export function getShowBeforeDate(ymd, showDates) {
 
 /**
  * @param {string} selectedDate — YYYY-MM-DD
- * @param {{ date: string, doorsLocal?: string, picksLockLocal?: string }[]} showDates
+ * @param {{ date: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string }[]} showDates
  */
 export const getShowStatus = (selectedDate, showDates) => {
   const nextShow = getNextShow(showDates);
