@@ -10,6 +10,10 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+---
+
+## [1.42.0] — 2026-08-01
+
 ### Added
 - **picks_lock delivery-log conversion join (#698)** — `npm run comms:picks-lock-conversion` joins `fcm_notification_log` ↔ `picks` for true before-lock conversion % (channel split + lock-relative timing); Optimize recipe §E.
 
