@@ -12,6 +12,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Added
 - **Comms Optimize L2 kickoff scheduler (#778)** — `docs/comms-triggers/optimize_for.md` goal rotation, `npm run comms:optimize-kickoff`, and `.github/workflows/comms-optimize-schedule.yml` (daily cron posts agent prompts on epic #573; no auto-merge/deploy).
+- **Show-recap narrative QA (#779)** — `npm run comms:show-recap-qa` checklist + branch samples against `comms_show_context` / fixtures; post-show Optimize kickoffs attach the report on #573 (fail → `DRAFT_PR`).
 
 ---
 

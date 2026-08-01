@@ -15,6 +15,8 @@ This directory is the **canonical home** for triggered, templated communications
 | [EXPERIMENT_PLAYBOOK.md](./EXPERIMENT_PLAYBOOK.md) | A/B rules, variant assignment, ship/kill criteria |
 | [OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md) | **Optimize autonomy** — cycle order, PM pack template, L2 schedule (#573 / #778) |
 | [optimize_for.md](./optimize_for.md) | Scheduled goal rotation + override for Optimize kickoffs (#778) |
+
+CLI: `npm run comms:optimize-kickoff` · `npm run comms:show-recap-qa` (#779)
 | [EMAIL_INBOX_BADGE.md](./EMAIL_INBOX_BADGE.md) | Inbox sender badge (BIMI/DMARC) vs in-body email logo (#498) |
 | [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md) | Sponsor / affiliate / offer gates (Phase 3) |
 

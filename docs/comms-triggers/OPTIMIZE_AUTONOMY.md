@@ -62,9 +62,28 @@ Swap `picks_lock` / window as needed. First L1 pack: [comment on #573](https://g
 
 | When | Mode | `optimize_for` |
 |------|------|----------------|
-| Morning after a calendar show date | `post_show` | always `show_recap_uniqueness` (narrative QA → [#779](https://github.com/pat792/set-picks/issues/779)) |
+| Morning after a calendar show date | `post_show` | always `show_recap_uniqueness` + narrative QA report ([#779](https://github.com/pat792/set-picks/issues/779)) |
 | Monday (Denver), no post-show | `weekly` | ISO-week rotation in `optimize_for.md` (show-week vs off-tour) |
 | Manual | `workflow_dispatch` or CLI | `--mode weekly\|post_show` |
+
+### Show-recap uniqueness QA (#779)
+
+Post-show kickoffs attach a **Show-recap uniqueness QA** section (or run standalone):
+
+```bash
+# Fixture smoke (CI / no Firestore)
+npm run comms:show-recap-qa -- --fixture fenway_labeled
+npm run comms:show-recap-qa -- --fixture fenway_unlabeled   # expect FAIL (pre-#780)
+
+# Live context (rebuild highlight from official_setlists + songGaps)
+npm run comms:show-recap-qa -- --show-date 2026-07-31 --live
+npm run comms:show-recap-qa -- --show-date 2026-07-31 --live --rebuild
+
+# Post report on #573
+npm run comms:show-recap-qa -- --show-date 2026-07-31 --live --post
+```
+
+Checklist (fail → scored `DRAFT_PR`): `Bustout:` / `Bustouts:` labels, trailing period, `;` separators for multi, gap shape, cold/hot wrappers keep the label, catalog example matches runtime. Renders `cold` / `mixed` / `hot_night` / `bustout_hero` via `tour-rankings-daily` (dry — no Resend).
 
 **What the cron does vs does not**
 
@@ -73,6 +92,7 @@ Swap `picks_lock` / window as needed. First L1 pack: [comment on #573](https://g
 | Resolve goal + window from calendar + rotation | Run GA4 MCP / CrewAI / Cursor squad itself |
 | Post agent prompt on #573 | Open draft PRs or deploy |
 | Prefer post-show over weekly when both apply | Invent metrics |
+| Attach narrative QA on post_show (#779) | Send Resend canaries (optional separate script) |
 
 **Human / Cloud Agent step after each kickoff:** run the embedded prompt (or Leadership `crew` optimize → `SQUAD_KICKOFF` → squad). Post the finished **PM review pack** as a follow-up comment on #573. L2 exit criteria (two consecutive packs without chat kickoff) count when those pack comments land from the scheduled kickoffs.
 
