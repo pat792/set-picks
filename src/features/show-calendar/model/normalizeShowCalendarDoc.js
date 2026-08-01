@@ -3,14 +3,14 @@ import { resolveShowTimeZone } from '../../../shared/utils/showTimeZone';
 
 /**
  * @param {Record<string, unknown>} s
- * @returns {{ date: string, venue: string, timeZone: string, doorsLocal?: string, picksLockLocal?: string, picksLockSource?: string } | null}
+ * @returns {{ date: string, venue: string, timeZone: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string, picksLockSource?: string } | null}
  */
 function normalizeShowRow(s) {
   if (!s || typeof s !== 'object') return null;
   const date = typeof s.date === 'string' ? s.date.trim() : '';
   const venue = typeof s.venue === 'string' ? s.venue.trim() : '';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !venue) return null;
-  /** @type {{ date: string, venue: string, timeZone: string, doorsLocal?: string, picksLockLocal?: string }} */
+  /** @type {{ date: string, venue: string, timeZone: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string }} */
   const base = {
     date,
     venue,
@@ -21,6 +21,9 @@ function normalizeShowRow(s) {
   if (typeof s.doorsLocal === 'string' && s.doorsLocal.trim()) {
     base.doorsLocal = s.doorsLocal.trim();
   }
+  if (typeof s.scheduledStartLocal === 'string' && s.scheduledStartLocal.trim()) {
+    base.scheduledStartLocal = s.scheduledStartLocal.trim();
+  }
   if (typeof s.picksLockLocal === 'string' && s.picksLockLocal.trim()) {
     base.picksLockLocal = s.picksLockLocal.trim();
   }
@@ -29,9 +32,9 @@ function normalizeShowRow(s) {
 
 /**
  * Validates Firestore `show_calendar/snapshot` written by Cloud Functions (issue #160).
- * Enriches each show with `doorsLocal` / `picksLockLocal` (#522 doors-based lock).
+ * Enriches each show with `scheduledStartLocal` / `picksLockLocal` (#522 ticket-time lock).
  * @param {import('firebase/firestore').DocumentData | null | undefined} data
- * @returns {{ showDatesByTour: { tour: string, shows: { date: string, venue: string, timeZone: string, doorsLocal?: string, picksLockLocal?: string }[] }[], showDates: { date: string, venue: string, timeZone: string, doorsLocal?: string, picksLockLocal?: string }[], syncError?: string | null } | null}
+ * @returns {{ showDatesByTour: { tour: string, shows: { date: string, venue: string, timeZone: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string }[] }[], showDates: { date: string, venue: string, timeZone: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string }[], syncError?: string | null } | null}
  */
 export function normalizeShowCalendarDoc(data) {
   if (!data || typeof data !== 'object') return null;

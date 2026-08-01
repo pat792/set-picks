@@ -114,6 +114,7 @@ export default function AdminForm({ user, selectedDate }) {
         onChange={setWarRoomShowDate}
         disabled={isSaving}
         timeZone={warRoomTimeZone}
+        show={warRoomShow}
       />
       <AdminClaimBootstrap user={user} />
       <Card variant="danger" padding="sm" className="mb-6 mt-4">

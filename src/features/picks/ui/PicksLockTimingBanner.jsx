@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Clock3, X } from 'lucide-react';
 
 import {
-  PICKS_LOCK_SAFETY_MIN,
-  TOUR_AVG_DOORS_TO_START_MIN,
+  PICKS_LOCK_AFTER_START_MIN,
   formatLockTimeLocalLabel,
   parseLocalHm,
   resolvePicksLockHm,
@@ -19,21 +18,26 @@ function durationWords(minutes) {
 }
 
 /**
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string, picksLockSource?: string } | null | undefined} show
+ * @param {{
+ *   date?: string,
+ *   doorsLocal?: string,
+ *   scheduledStartLocal?: string,
+ *   picksLockLocal?: string,
+ *   picksLockSource?: string,
+ * } | null | undefined} show
  */
 export function buildPicksLockTimingMessage(show) {
   const lock = resolvePicksLockHm(show);
   const lockLabel = formatLockTimeLocalLabel(lock);
-  const doors = parseLocalHm(lock.doorsLocal);
-  const isDoorsBased =
-    lock.source === 'doors' || show?.picksLockSource === 'doors';
+  const start = parseLocalHm(lock.scheduledStartLocal);
+  const isStartBased =
+    lock.source === 'scheduledStart' ||
+    show?.picksLockSource === 'scheduledStart';
 
-  if (doors && isDoorsBased) {
-    const offsetMinutes =
-      TOUR_AVG_DOORS_TO_START_MIN - PICKS_LOCK_SAFETY_MIN;
+  if (start && isStartBased) {
     return `Picks lock at ${lockLabel} — ${durationWords(
-      offsetMinutes
-    )} after tonight’s published doors time (${formatLockTimeLocalLabel(doors)}).`;
+      PICKS_LOCK_AFTER_START_MIN
+    )} after tonight’s published ticket time (${formatLockTimeLocalLabel(start)}).`;
   }
 
   return `Picks lock at ${lockLabel} venue-local.`;
@@ -65,7 +69,13 @@ function rememberDismissal(showDate) {
  * Small pre-lock timing notice shared by Picks and Standings.
  *
  * @param {{
- *   show: { date?: string, doorsLocal?: string, picksLockLocal?: string, picksLockSource?: string } | null | undefined,
+ *   show: {
+ *     date?: string,
+ *     doorsLocal?: string,
+ *     scheduledStartLocal?: string,
+ *     picksLockLocal?: string,
+ *     picksLockSource?: string,
+ *   } | null | undefined,
  *   showStatus: string | null | undefined
  * }} props
  */

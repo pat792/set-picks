@@ -1,9 +1,9 @@
 /**
  * Per-show picks wall-clock lock (#522).
  *
- * When doors are known: lock = doors + (tourAvgDoorsToStart − safety).
- * Summer Tour 2026 setlist.fm avg doors→start is 1h59m (119); safety 34 → doors+85 (1h25).
- * Fallback when doors unknown: 19:30 venue-local.
+ * When advertised ticket/show time is known (Phish.com `Show Time` →
+ * `scheduledStartLocal`): lock = start + PICKS_LOCK_AFTER_START_MIN.
+ * Fallback when show time unknown: 19:30 venue-local.
  */
 
 /** @type {{ hour: number, minute: number }} */
@@ -13,16 +13,12 @@ export const DEFAULT_PICKS_LOCK_HM = Object.freeze({ hour: 19, minute: 30 });
 export const SHOW_PICKS_LOCK_HOUR_LOCAL = DEFAULT_PICKS_LOCK_HM.hour;
 export const SHOW_PICKS_LOCK_MINUTE_LOCAL = DEFAULT_PICKS_LOCK_HM.minute;
 
-/** setlist.fm Summer Tour 2026 “Avg start time after doors”. */
-export const TOUR_AVG_DOORS_TO_START_MIN = 119;
-
-/** Minutes before average start to lock picks (doors+85 when avg is 119). */
-export const PICKS_LOCK_SAFETY_MIN = 34;
+/** Minutes after published ticket/show time to lock picks. */
+export const PICKS_LOCK_AFTER_START_MIN = 20;
 
 /**
- * Known doors times (venue-local 24h `HH:mm`) from setlist.fm / tickets.
- * Ops: extend as future dates publish. Calendar fields `doorsLocal` /
- * `picksLockLocal` override this seed when present.
+ * Known doors times (venue-local 24h `HH:mm`) from Phish.com / tickets.
+ * Informational + War Room context; no longer drives the lock formula.
  *
  * @type {Readonly<Record<string, string>>}
  */
@@ -40,6 +36,29 @@ export const SHOW_DOORS_LOCAL_BY_DATE = Object.freeze({
   '2026-09-04': '18:00', // Dick's
   '2026-09-05': '18:00',
   '2026-09-06': '18:00',
+});
+
+/**
+ * Known advertised show/ticket times (venue-local 24h `HH:mm`) from Phish.com.
+ * Calendar field `scheduledStartLocal` overrides this seed when present.
+ * Ops: extend as future dates publish.
+ *
+ * @type {Readonly<Record<string, string>>}
+ */
+export const SHOW_SCHEDULED_START_LOCAL_BY_DATE = Object.freeze({
+  '2026-07-18': '19:00', // Merriweather
+  '2026-07-19': '19:00',
+  '2026-07-21': '19:00', // Syracuse
+  '2026-07-22': '20:00', // MSG
+  '2026-07-24': '20:00',
+  '2026-07-25': '20:00',
+  '2026-07-27': '20:00',
+  '2026-07-29': '20:00',
+  '2026-07-31': '19:00', // Fenway
+  '2026-08-01': '19:00',
+  '2026-09-04': '19:30', // Dick's
+  '2026-09-05': '19:30',
+  '2026-09-06': '19:30',
 });
 
 /**
@@ -110,19 +129,16 @@ export function formatLockTimeLocalLabel(hm) {
 }
 
 /**
- * @param {{ hour: number, minute: number }} doors
- * @param {{ tourAvgDoorsToStartMin?: number, safetyMin?: number }} [opts]
+ * @param {{ hour: number, minute: number }} start
+ * @param {{ afterStartMin?: number }} [opts]
  * @returns {{ hour: number, minute: number }}
  */
-export function lockHmFromDoors(
-  doors,
-  {
-    tourAvgDoorsToStartMin = TOUR_AVG_DOORS_TO_START_MIN,
-    safetyMin = PICKS_LOCK_SAFETY_MIN,
-  } = {}
+export function lockHmFromScheduledStart(
+  start,
+  { afterStartMin = PICKS_LOCK_AFTER_START_MIN } = {}
 ) {
-  const offset = Math.max(0, tourAvgDoorsToStartMin - safetyMin);
-  const total = doors.hour * 60 + doors.minute + offset;
+  const offset = Math.max(0, afterStartMin);
+  const total = start.hour * 60 + start.minute + offset;
   const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
   return { hour: Math.floor(wrapped / 60), minute: wrapped % 60 };
 }
@@ -132,61 +148,100 @@ export function lockHmFromDoors(
  *
  * Priority:
  * 1. `show.picksLockLocal` (materialized / override)
- * 2. `show.doorsLocal` or seeded doors for `show.date` → doors + (avg − safety)
+ * 2. `show.scheduledStartLocal` or seeded show time for `show.date` → start + 20
  * 3. Default 19:30
  *
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null | undefined} show
  * @param {{
+ *   date?: string,
+ *   doorsLocal?: string,
+ *   scheduledStartLocal?: string,
+ *   picksLockLocal?: string,
+ * } | null | undefined} show
+ * @param {{
+ *   startByDate?: Record<string, string>,
  *   doorsByDate?: Record<string, string>,
- *   tourAvgDoorsToStartMin?: number,
- *   safetyMin?: number,
+ *   afterStartMin?: number,
  *   fallback?: { hour: number, minute: number },
  * }} [opts]
- * @returns {{ hour: number, minute: number, source: 'picksLockLocal' | 'doors' | 'fallback', doorsLocal: string | null }}
+ * @returns {{
+ *   hour: number,
+ *   minute: number,
+ *   source: 'picksLockLocal' | 'scheduledStart' | 'fallback',
+ *   scheduledStartLocal: string | null,
+ *   doorsLocal: string | null,
+ * }}
  */
 export function resolvePicksLockHm(show, opts = {}) {
   const fallback = opts.fallback ?? DEFAULT_PICKS_LOCK_HM;
+  const startByDate = opts.startByDate ?? SHOW_SCHEDULED_START_LOCAL_BY_DATE;
   const doorsByDate = opts.doorsByDate ?? SHOW_DOORS_LOCAL_BY_DATE;
+
+  const date = typeof show?.date === 'string' ? show.date.trim() : '';
+  const doorsParsed = parseLocalHm(
+    (typeof show?.doorsLocal === 'string' && show.doorsLocal.trim()) ||
+      (date && doorsByDate[date]) ||
+      null
+  );
+  const doorsLocal = doorsParsed ? formatLocalHm24(doorsParsed) : null;
 
   const explicitLock = parseLocalHm(show?.picksLockLocal);
   if (explicitLock) {
+    const start = parseLocalHm(
+      typeof show?.scheduledStartLocal === 'string'
+        ? show.scheduledStartLocal.trim()
+        : null
+    );
     return {
       ...explicitLock,
       source: 'picksLockLocal',
-      doorsLocal: typeof show?.doorsLocal === 'string' ? show.doorsLocal.trim() || null : null,
+      scheduledStartLocal: start ? formatLocalHm24(start) : null,
+      doorsLocal,
     };
   }
 
-  const date = typeof show?.date === 'string' ? show.date.trim() : '';
-  const doorsRaw =
-    (typeof show?.doorsLocal === 'string' && show.doorsLocal.trim()) ||
-    (date && doorsByDate[date]) ||
-    null;
-  const doors = parseLocalHm(doorsRaw);
-  if (doors) {
-    const lock = lockHmFromDoors(doors, opts);
+  const start = parseLocalHm(
+    (typeof show?.scheduledStartLocal === 'string' &&
+      show.scheduledStartLocal.trim()) ||
+      (date && startByDate[date]) ||
+      null
+  );
+  if (start) {
+    const lock = lockHmFromScheduledStart(start, opts);
     return {
       ...lock,
-      source: 'doors',
-      doorsLocal: formatLocalHm24(doors),
+      source: 'scheduledStart',
+      scheduledStartLocal: formatLocalHm24(start),
+      doorsLocal,
     };
   }
 
   return {
     ...fallback,
     source: 'fallback',
-    doorsLocal: null,
+    scheduledStartLocal: null,
+    doorsLocal,
   };
 }
 
 /**
  * Enrich a show row with resolved lock fields (idempotent).
- * @param {{ date: string, venue?: string, timeZone?: string, doorsLocal?: string, picksLockLocal?: string }} show
+ * @param {{
+ *   date: string,
+ *   venue?: string,
+ *   timeZone?: string,
+ *   doorsLocal?: string,
+ *   scheduledStartLocal?: string,
+ *   picksLockLocal?: string,
+ * }} show
  */
 export function enrichShowWithPicksLock(show) {
   if (!show || typeof show !== 'object') return show;
   const resolved = resolvePicksLockHm(show);
-  if (resolved.source === 'fallback') return { ...show };
+  if (resolved.source === 'fallback') {
+    const out = { ...show };
+    if (resolved.doorsLocal && !out.doorsLocal) out.doorsLocal = resolved.doorsLocal;
+    return out;
+  }
 
   const enriched = {
     ...show,
@@ -195,5 +250,8 @@ export function enrichShowWithPicksLock(show) {
   };
   const doorsLocal = show.doorsLocal || resolved.doorsLocal;
   if (doorsLocal) enriched.doorsLocal = doorsLocal;
+  const scheduledStartLocal =
+    show.scheduledStartLocal || resolved.scheduledStartLocal;
+  if (scheduledStartLocal) enriched.scheduledStartLocal = scheduledStartLocal;
   return enriched;
 }

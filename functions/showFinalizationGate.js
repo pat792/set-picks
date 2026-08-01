@@ -64,6 +64,7 @@ function isPastPicksLock(
           date:
             typeof showOrLockHm.date === "string" ? showOrLockHm.date : showYmd,
           doorsLocal: showOrLockHm.doorsLocal,
+          scheduledStartLocal: showOrLockHm.scheduledStartLocal,
           picksLockLocal: showOrLockHm.picksLockLocal,
         })
       : resolvePicksLockHm({ date: showYmd });

@@ -54,7 +54,7 @@ function localClockParts(showTimeZone, now) {
 }
 
 /**
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null | undefined} show
+ * @param {{ date?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string } | null | undefined} show
  * @returns {number} minutes from midnight
  */
 function lockMinutesForShow(show) {
@@ -66,7 +66,7 @@ function lockMinutesForShow(show) {
  * @param {string} showYmd
  * @param {string} showTimeZone
  * @param {Date} now
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null} [show]
+ * @param {{ date?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string } | null} [show]
  */
 function isPastPicksLock(showYmd, showTimeZone, now, show = null) {
   const clock = localClockParts(showTimeZone, now);
@@ -81,7 +81,7 @@ function isPastPicksLock(showYmd, showTimeZone, now, show = null) {
  * @param {string} showYmd
  * @param {string} showTimeZone
  * @param {Date} now
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null} [show]
+ * @param {{ date?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string } | null} [show]
  */
 function isWithinReminderWindow(showYmd, showTimeZone, now, show = null) {
   const clock = localClockParts(showTimeZone, now);
@@ -95,7 +95,7 @@ function isWithinReminderWindow(showYmd, showTimeZone, now, show = null) {
  * @param {string} showYmd `YYYY-MM-DD`
  * @param {string} showTimeZone IANA tz
  * @param {Date} now
- * @param {{ date?: string, doorsLocal?: string, picksLockLocal?: string } | null} [show]
+ * @param {{ date?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string } | null} [show]
  * @returns {string}
  */
 function formatTimeToLock(showYmd, showTimeZone, now, show = null) {
@@ -114,7 +114,7 @@ function formatTimeToLock(showYmd, showTimeZone, now, show = null) {
 }
 
 /**
- * @param {Array<{ date: string, timeZone?: string, venue?: string, city?: string, doorsLocal?: string, picksLockLocal?: string }>} calendarShows
+ * @param {Array<{ date: string, timeZone?: string, venue?: string, city?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string }>} calendarShows
  * @param {Date} now
  * @returns {{ showDate: string, timeZone: string, venue_name: string, venue_city: string, lock_time_local: string, show: object } | null}
  */

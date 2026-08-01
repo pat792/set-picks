@@ -103,13 +103,13 @@ Tour and show date metadata. Read by `resolveCurrentTour` and `resolveSelectable
 | `venue` | string | Display venue line |
 | `city` | string? | City |
 | `timeZone` | string | IANA venue timezone |
-| `doorsLocal` | string? | Venue-local doors `HH:mm` from first-party Phish.com date page (client/Functions also seed known Summer Tour 2026 dates) |
-| `scheduledStartLocal` | string? | Advertised venue-local show time `HH:mm` from Phish.com; informational, not the picks lock |
+| `doorsLocal` | string? | Venue-local doors `HH:mm` from first-party Phish.com date page (informational; client/Functions also seed known Summer Tour 2026 dates) |
+| `scheduledStartLocal` | string? | Advertised venue-local ticket/show time `HH:mm` from Phish.com; primary input for the picks wall-clock lock |
 | `scheduleSource` | `'phish.com'`? | Timing provenance |
 | `scheduleSourceUrl` | string? | Official date-page URL |
 | `picksLockLocal` | string? | Venue-local picks lock `HH:mm` when materialized/overridden |
 
-**Picks wall-clock lock (#522):** when `doorsLocal` (or a seeded doors time) is known, lock = doors + (tour avg doors→start − safety). Summer Tour 2026 defaults: avg **119** min, safety **34** → **doors + 85 min** (1h25). When doors are unknown, fallback is **19:30** venue-local. Admin `show_lock_state` and (planned) setlist `s1o` still win as earlier signals.
+**Picks wall-clock lock (#522):** when `scheduledStartLocal` (or a seeded advertised show time) is known, lock = **published ticket/show time + 20 minutes**. Same Phish.com date-page source as doors (`Show Time`). When show time is unknown, fallback is **19:30** venue-local. Admin `show_lock_state` and (planned) setlist `s1o` still win as earlier signals.
 
 `scheduledPhishnetShowCalendar` runs daily at 06:00 ET. Phish.net is canonical for dates/tours/venues; the sync then fetches Phish.com upcoming date pages for timing. A Phish.com failure does not fail or erase the calendar: prior timing is preserved.
 
@@ -320,7 +320,7 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
 | `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
-| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (window tracks per-show lock from doors+offset or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
+| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (window tracks per-show lock from ticket-time+20 or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
 
