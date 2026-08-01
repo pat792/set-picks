@@ -1,0 +1,59 @@
+# Scheduled Comms Optimize kickoff (#778 / epic #573).
+# Posts a [SKIP-PRD] agent prompt on #573 when:
+#   - yesterday was a show date (post_show → show_recap_uniqueness), or
+#   - today is Monday America/Denver and there was no post-show (weekly rotation).
+#
+# Does NOT run the full Leadership/Cursor squad (needs GA4 MCP + LLM).
+# A Cloud Agent / Cursor Automation / human picks up the kickoff comment.
+# Agents never merge or comms:deploy from this workflow.
+
+name: Comms Optimize schedule
+
+on:
+  schedule:
+    # ~09:00 America/Denver during MDT (15:00 UTC); after tour_rankings_daily 08:00 PT.
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "auto | weekly | post_show"
+        required: true
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - weekly
+          - post_show
+      show_date:
+        description: "Optional YYYY-MM-DD for post_show"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  kickoff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Resolve + post kickoff on #573
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'auto' }}
+          SHOW_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.show_date || '' }}
+        run: |
+          set -euo pipefail
+          ARGS=(--mode "$MODE" --post)
+          if [ -n "${SHOW_DATE}" ]; then
+            ARGS+=(--show-date "$SHOW_DATE")
+          fi
+          node scripts/comms-optimize-kickoff.mjs "${ARGS[@]}"

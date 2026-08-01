@@ -10,7 +10,8 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
-No unreleased changes.
+### Added
+- **Comms Optimize L2 kickoff scheduler (#778)** — `docs/comms-triggers/optimize_for.md` goal rotation, `npm run comms:optimize-kickoff`, and `.github/workflows/comms-optimize-schedule.yml` (daily cron posts agent prompts on epic #573; no auto-merge/deploy).
 
 ---
 

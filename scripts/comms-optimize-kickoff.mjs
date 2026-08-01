@@ -1,0 +1,124 @@
+#!/usr/bin/env node
+/**
+ * Scheduled / manual Comms Optimize kickoff (#778).
+ *
+ *   npm run comms:optimize-kickoff
+ *   npm run comms:optimize-kickoff -- --mode weekly --post
+ *   npm run comms:optimize-kickoff -- --mode post_show --show-date 2026-07-31 --post
+ *
+ * --post comments on GitHub issue #573 (requires `gh` auth).
+ */
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
+import {
+  buildKickoffMarkdown,
+  calendarDateInTz,
+  parseOverrideFromOptimizeForMd,
+  parseShowDatesFromSource,
+  resolveOptimizeKickoff,
+} from "./lib/commsOptimizeSchedule.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(__dirname, "..");
+const EPIC = 573;
+const TZ = "America/Denver";
+
+function parseArgs(argv) {
+  const args = {
+    mode: "auto",
+    post: false,
+    showDate: null,
+    date: null,
+    force: false,
+  };
+  for (let i = 0; i < argv.length; i += 1) {
+    const a = argv[i];
+    if (a === "--mode") args.mode = argv[++i] || "auto";
+    else if (a === "--post") args.post = true;
+    else if (a === "--show-date") args.showDate = argv[++i] || null;
+    else if (a === "--date") args.date = argv[++i] || null;
+    else if (a === "--force") args.force = true;
+    else if (a === "--help" || a === "-h") {
+      console.log(`Usage: comms-optimize-kickoff [--mode auto|weekly|post_show] [--date YYYY-MM-DD] [--show-date YYYY-MM-DD] [--post] [--force]`);
+      process.exit(0);
+    }
+  }
+  if (!["auto", "weekly", "post_show"].includes(args.mode)) {
+    console.error(`Invalid --mode ${args.mode}`);
+    process.exit(1);
+  }
+  return args;
+}
+
+function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const showDatesPath = path.join(root, "src/shared/data/showDates.js");
+  const optimizeForPath = path.join(
+    root,
+    "docs/comms-triggers/optimize_for.md",
+  );
+  const showDates = parseShowDatesFromSource(
+    fs.readFileSync(showDatesPath, "utf8"),
+  );
+  const override = parseOverrideFromOptimizeForMd(
+    fs.readFileSync(optimizeForPath, "utf8"),
+  );
+
+  const todayYmd =
+    args.date || calendarDateInTz(new Date(), TZ);
+  const resolved = resolveOptimizeKickoff({
+    mode: args.mode,
+    todayYmd,
+    timeZone: TZ,
+    showDates,
+    override,
+    showDate: args.showDate,
+  });
+
+  if (resolved.action === "skip" && !args.force) {
+    console.log(`SKIP: ${resolved.reason}`);
+    process.exit(0);
+  }
+
+  if (resolved.action === "skip" && args.force) {
+    console.error("Nothing to force-kick (resolution skipped). Use --mode weekly|post_show.");
+    process.exit(1);
+  }
+
+  const body = buildKickoffMarkdown({
+    optimize_for: resolved.optimize_for,
+    window: resolved.window,
+    mode: resolved.mode,
+    showDate: resolved.showDate,
+    reason: resolved.reason,
+    runDate: todayYmd,
+  });
+
+  console.log(body);
+
+  if (!args.post) {
+    console.error("\n(dry) Pass --post to comment on GitHub issue #573.");
+    return;
+  }
+
+  const r = spawnSync(
+    "gh",
+    ["issue", "comment", String(EPIC), "--body-file", "-"],
+    {
+      cwd: root,
+      input: body,
+      encoding: "utf8",
+    },
+  );
+  if (r.status !== 0) {
+    console.error(r.stderr || r.stdout || "gh issue comment failed");
+    process.exit(r.status ?? 1);
+  }
+  console.error(`\nPosted kickoff comment on #${EPIC}`);
+  if (r.stdout) console.error(r.stdout.trim());
+}
+
+main();

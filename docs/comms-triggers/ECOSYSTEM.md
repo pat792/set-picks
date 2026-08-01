@@ -8,7 +8,8 @@ message across in‑app, push, and email — fully automated, with **no manual
 It complements the other comms docs:
 
 - [`FRAMEWORK.md`](./FRAMEWORK.md) — the TTDMOM operating model (Trigger → Template → Deliver → Measure → Optimize → Monetize)
-- [`OPTIMIZE_AUTONOMY.md`](./OPTIMIZE_AUTONOMY.md) — Optimize autonomy L0 playbook + PM pack (#573)
+- [`OPTIMIZE_AUTONOMY.md`](./OPTIMIZE_AUTONOMY.md) — Optimize autonomy playbook + L2 schedule (#573 / #778)
+- [`optimize_for.md`](./optimize_for.md) — Scheduled `optimize_for` rotation
 - [`catalog.json`](./catalog.json) / [`TRIGGER_CATALOG.md`](./TRIGGER_CATALOG.md) — the machine + human trigger registry
 - [`MEASUREMENT_PLAN.md`](./MEASUREMENT_PLAN.md) — the GA4 events & funnels
 
@@ -135,7 +136,7 @@ change regardless of which agent (or human) makes it.
 
 ### 3.4 Optimize (feedback loop)
 
-Canonical playbook: **[OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md)** (#573 L0).
+Canonical playbook: **[OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md)** (#573). L2 kickoff cron: [#778](https://github.com/pat792/set-picks/issues/778).
 
 Cycle order: `comms-analyst` → `comms-triggers` → `comms-drafter` → `comms-architect` → **PM**.
 
