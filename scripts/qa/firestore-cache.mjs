@@ -3,9 +3,10 @@
  * QA runner for `.cursor/skills/pr-qa/recipes.md` §B — Firestore read
  * cache verification (issue #251 pilot, #349 auth).
  *
- * What it asserts: navigating away from `/user/<uid>` and back via SPA
- * routing reuses the React Query cache for `useUserSeasonStats`,
- * skipping the Firestore read that initially populated the page.
+ * What it asserts: navigating away from `/user/<uid>` (to `/how-it-works`)
+ * and back via SPA routing reuses the React Query cache for
+ * `useUserSeasonStats`, skipping the Firestore read that initially
+ * populated the page.
  *
  * **Auth:** `firestore.rules` require `signedIn()` for `users/{uid}`,
  * `pools`, `show_calendar`, etc. The runner signs in with
@@ -32,7 +33,8 @@ const BASELINE_MIN_BYTES = 512;
 // landed ~280–600 B; 350 B was still flaky on some accounts; 1 KiB was too strict.
 const SAVED_MIN_BYTES = 250;
 
-const BOUNCE_UID = 'qa-cache-bounce-not-a-real-uid';
+/** Soft-nav away target — marketing route (no Firestore season-stats hook). */
+const BOUNCE_PATH = '/how-it-works';
 
 const NAV_TIMEOUT_MS = 20_000;
 
@@ -58,23 +60,25 @@ async function spaNavigate(page, path) {
  * @param {import('playwright').Page} page
  */
 async function waitForProfileSettled(page) {
+  // Do not wait for `networkidle` — signed-in Firestore WebChannel never idles.
   await page.waitForSelector('text=/Total points/i', { timeout: NAV_TIMEOUT_MS });
   await page.waitForFunction(
     () => !document.querySelector('[aria-label^="Loading "]'),
     null,
     { timeout: NAV_TIMEOUT_MS },
   );
-  await page.waitForLoadState('networkidle');
+  // Brief settle so CDP `loadingFinished` events for the profile read land
+  // before we flip measurement phase — without waiting for full network idle.
+  await page.waitForTimeout(750);
 }
 
 /**
  * @param {import('playwright').Page} page
  */
-async function waitForNotFound(page) {
-  await page.waitForSelector('text=/Player not found/i', {
+async function waitForBounceSettled(page) {
+  await page.waitForSelector('text=/How it works/i', {
     timeout: NAV_TIMEOUT_MS,
   });
-  await page.waitForLoadState('networkidle');
 }
 
 /**
@@ -185,8 +189,8 @@ async function run() {
     }
 
     phase = 'idle';
-    await spaNavigate(page, `/user/${BOUNCE_UID}`);
-    await waitForNotFound(page);
+    await spaNavigate(page, BOUNCE_PATH);
+    await waitForBounceSettled(page);
 
     phase = 'postNav';
     await spaNavigate(page, `/user/${PUBLIC_PROFILE_UID}`);

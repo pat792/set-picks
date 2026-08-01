@@ -10,7 +10,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
-No unreleased changes.
+### Added
+- **Comms Optimize L2 kickoff scheduler (#778)** — `docs/comms-triggers/optimize_for.md` goal rotation, `npm run comms:optimize-kickoff`, and `.github/workflows/comms-optimize-schedule.yml` (daily cron posts agent prompts on epic #573; no auto-merge/deploy).
+- **Show-recap narrative QA (#779)** — `npm run comms:show-recap-qa` checklist + branch samples against `comms_show_context` / fixtures; post-show Optimize kickoffs attach the report on #573 (fail → `DRAFT_PR`).
+
+---
+
+## [1.40.3] — 2026-08-01
+
+### Changed
+- **Show recap bustout highlight (#780)** — `setlist_highlight` now labels nights as `Bustout: Song - a/an N show gap.` (one) or `Bustouts: …; ….` (two+). Fixes cold-branch email reading like a vague memory line when a single bustout landed (e.g. Fenway Melt the Guns).
 
 ---
 

@@ -10,8 +10,10 @@
  */
 export async function signInViaSplashEmailPassword(page, origin, email, password) {
   const base = origin.replace(/\/$/, '');
+  // Avoid `networkidle` — after Auth, Firestore keeps a long-lived WebChannel
+  // open so idle never settles (AGENTS.md / pr-qa traps).
   await page.goto(`${base}/?login=true`, {
-    waitUntil: 'networkidle',
+    waitUntil: 'domcontentloaded',
     timeout: 90_000,
   });
 
@@ -26,5 +28,10 @@ export async function signInViaSplashEmailPassword(page, origin, email, password
   await dialog.locator('button[type="submit"]').click();
 
   await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
-  await page.waitForLoadState('networkidle');
+  // Concrete post-auth chrome — not networkidle (WebChannel stays open).
+  await page
+    .getByRole('navigation')
+    .or(page.getByRole('main'))
+    .first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
 }

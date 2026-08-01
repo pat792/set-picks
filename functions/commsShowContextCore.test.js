@@ -45,7 +45,7 @@ describe("tourDebutTitles", () => {
 });
 
 describe("composeSetlistHighlight", () => {
-  it("formats bustout as Song - gap", () => {
+  it("labels a single bustout as Bustout: Song - gap.", () => {
     assert.equal(
       composeSetlistHighlight({
         bustoutTitles: ["Curtain With"],
@@ -54,7 +54,23 @@ describe("composeSetlistHighlight", () => {
         openerTitle: "YEM",
         encoreTitle: "Tweeprise",
       }),
-      "Curtain With - a 142 show gap",
+      "Bustout: Curtain With - a 142 show gap.",
+    );
+  });
+
+  it("labels multiple bustouts with Bustouts: and semicolon separators", () => {
+    assert.equal(
+      composeSetlistHighlight({
+        bustoutTitles: ["Curtain With", "Fluffhead"],
+        bustoutEntries: [
+          { title: "Curtain With", gap: 142 },
+          { title: "Fluffhead", gap: 87 },
+        ],
+        tourDebuts: [],
+        openerTitle: "YEM",
+        encoreTitle: "Tweeprise",
+      }),
+      "Bustouts: Curtain With - a 142 show gap; Fluffhead - an 87 show gap.",
     );
   });
 });
@@ -79,7 +95,7 @@ describe("buildCommsShowContext", () => {
         { title: "Slave", gap: 10 },
       ],
     });
-    assert.equal(ctx.setlist_highlight, "Wolfman's - an 87 show gap");
+    assert.equal(ctx.setlist_highlight, "Bustout: Wolfman's - an 87 show gap.");
     assert.match(ctx.set_flow_summary, /Set 1 opened with YEM/);
     assert.ok(ctx.show_moment_tags.includes("bustout"));
     assert.ok(ctx.tour_debut_titles.includes("Wolfman's"));

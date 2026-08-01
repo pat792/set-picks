@@ -23,7 +23,7 @@ Standalone collection (same rationale as `rollup_audit`): do not nest on
 | `bustout_entries` | `{ title, gap }[]` | Bustouts with Phish.net pre-show gap when rows available |
 | `tour_debut_titles` | string[] | Tonight titles not seen earlier this tour |
 | `set_flow_summary` | string \| null | Short S1/S2/E structure line |
-| `setlist_highlight` | string \| null | One-liner for push / Tonight |
+| `setlist_highlight` | string \| null | One-liner for push / Tonight. Bustouts: `Bustout: Song - a/an N show gap.` or `Bustouts: A - …; B - ….` (#780) |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut`, `multi_encore` |
 | `set_counts` | map | `{ set1, set2, encore }` lengths |
 | `schemaVersion` | number | `1` |

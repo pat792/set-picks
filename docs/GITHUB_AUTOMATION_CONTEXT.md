@@ -8,6 +8,7 @@
 
 - **GitHub Actions:** Workflows run from the **default branch**’s `.github/workflows/` copy. If `[SKIP-PRD]` handling was added on another branch, merge to **default** before expecting skips to work on newly opened issues.
 - **Body:** If the issue body (after leading whitespace) starts with **`[SKIP-PRD]`**, automation must **not** replace the body (Cursor agent–authored specs). The Action refetches the issue via the REST API and treats the **first non-empty line** as `[SKIP-PRD]` (after stripping a UTF-8 BOM if present).
+- **Comms Optimize schedule (#778):** `.github/workflows/comms-optimize-schedule.yml` posts `[SKIP-PRD]` **comments** on epic #573 (kickoff prompts only — not issue-body rewrites). Same skip-prd discipline; agents never merge/deploy from that workflow.
 - **Labels:** Do not run auto-PRD / do not groom if the issue has any of:
   - **`skip-prd`** — no GitHub Action PRD rewrite on open (use with `[SKIP-PRD]` for belt-and-suspenders).
   - **`cursor-authored`** — treat as human/agent final copy; skip Action and groom rewrites.
