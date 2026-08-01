@@ -50,6 +50,7 @@ Read `docs/comms-triggers/MEASUREMENT_PLAN.md` § channel planes + `crew/knowled
 |--------|-------------|-----|
 | GA4 | Google Analytics MCP (`run_report`, `run_realtime_report`) | Login, sign_up, comms_* events |
 | Firestore | Admin scripts, Cloud Functions logs | `fcm_notification_log`, `commsInbox.readAt` |
+| Delivery→pick conversion (#698) | `npm run comms:picks-lock-conversion -- --write` → `crew/output/intel/picks_lock-conversion-*.md` | True `picks_lock` conv_% + channel split + lock-relative timing |
 | Catalog | `docs/comms-triggers/catalog.json` | Trigger inventory by status |
 | Show calendar | `show_calendar/snapshot`, `src/shared/data/showDates.js` | Show-day context |
 
@@ -59,8 +60,8 @@ Property ID: **527619709** unless `GA4_PROPERTY_ID` overrides.
 
 ### Weekly (show weeks)
 
-- Picks-lock reminder: eligible vs delivered (from logs) vs pick submitted before lock
-- **Channel split:** `picks_lock_reminder` deliver/open/CTA by `comms_channel` + **email UTM** picks/submit users
+- Picks-lock reminder: eligible vs delivered (from logs) vs pick submitted before lock — cite **§E** conversion snapshot (`comms:picks-lock-conversion`) for `conv_%`, not GA4 aggregates alone
+- **Channel split:** snapshot §E channel rows + GA4 `picks_lock_reminder` deliver/open/CTA by `comms_channel` + **email UTM** picks/submit users
 - Push tap rate for `post_show_win` / `near_miss`
 - `notificationPrefs` opt-out trends (reminders, results, nearMiss)
 
