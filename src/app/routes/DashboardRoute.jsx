@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import {
-  AuthLoadingScreen,
   trackAuthPartialProfile,
   useAuth,
 } from '../../features/auth';
@@ -11,6 +10,7 @@ import { ShowCalendarProvider } from '../../features/show-calendar';
 import { ensureAppCheckNow } from '../../shared/lib/firebaseAppCheck';
 import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
 import DashboardLayout from '../layout/DashboardLayout';
+import DashboardBootSkeleton from '../layout/ui/DashboardBootSkeleton';
 import { decideDashboardRoute } from './profileGuardDecision';
 
 export default function DashboardRoute() {
@@ -18,7 +18,7 @@ export default function DashboardRoute() {
   const { user, userProfile, loading } = useAuth();
   const decision = decideDashboardRoute({ loading, user, userProfile });
 
-  // #535: email deep links need Firestore ASAP — don't wait for idle timeout.
+  // #535 / #773: belt-and-suspenders if soft-nav reached dashboard without boot warm.
   useEffect(() => {
     ensureAppCheckNow();
   }, []);
@@ -45,7 +45,8 @@ export default function DashboardRoute() {
     return <Navigate to="/" replace />;
   }
 
-  if (decision.kind === 'loading') return <AuthLoadingScreen />;
+  // Keep branded chrome while session/profile resolve (#773) — no bare "Loading…".
+  if (decision.kind === 'loading') return <DashboardBootSkeleton />;
   if (decision.kind === 'redirect-setup') {
     return <Navigate to="/setup" replace />;
   }

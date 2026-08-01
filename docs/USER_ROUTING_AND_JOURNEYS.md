@@ -28,6 +28,12 @@ Defined in `src/app/App.jsx`.
 - **No user profile doc** (first-time setup) → `Navigate` to `/setup`
 - **Else** → `DashboardLayout`
 
+### Email / push hard opens (`/dashboard/*`)
+
+Cold document loads (email CTAs, push, refresh) are rewritten by Vercel to `dist/dashboard/index.html` — a **branded static skeleton** (#773 Phase 1; empty-root precursor #743) so users see chrome before React + Auth mount. `createRoot` replaces `#root` as usual. Marketing SEO prerender stays on `dist/index.html` only (`verify:seo-prerender`).
+
+**Phase 2 (TTI):** on `/dashboard/*` (and related warm paths), `main.jsx` calls `ensureAppCheckNow()` and kicks a dynamic `import()` of `DashboardRoute` before first paint; the boot shell also `modulepreload`s the `DashboardRoute` chunk. Auth seeds `auth.currentUser`, paints profile via `getDoc` then `onSnapshot`, and dashboard loading uses `DashboardBootSkeleton` instead of bare “Loading…”. Splash stays lazy + deferred App Check. Phase 2b (WebView redirect sign-in) is still open on #773.
+
 ### Setup
 
 `src/app/routes/SetupRoute.jsx`:

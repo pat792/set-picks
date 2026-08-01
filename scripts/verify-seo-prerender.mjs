@@ -11,7 +11,9 @@ import { fileURLToPath } from 'node:url';
 
 import {
   APP_BOOT_SHELL_REL_PATH,
+  DASHBOARD_BOOT_SHELL_MARKER,
   PRERENDER_ROUTES,
+  buildDashboardBootShellHtml,
   buildFixtureShellHtml,
   injectPrerenderHtml,
   prerenderOutputRelPath,
@@ -67,6 +69,26 @@ for (const route of PRERENDER_ROUTES) {
   assertRouteHtml(html, route, `fixture ${route.path}`);
 }
 
+// Fixture: branded dashboard boot shell (#773) — no SEO body, marker present.
+const dirtyShell =
+  '<!DOCTYPE html><html><head><meta charset="UTF-8" /></head><body>' +
+  '<div id="root"><main data-seo-prerender="true"><h1>leak</h1></main></div>' +
+  '</body></html>';
+const fixtureBoot = buildDashboardBootShellHtml(dirtyShell);
+assert(
+  fixtureBoot.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`),
+  'boot shell fixture must include dashboard boot marker',
+);
+assert(
+  fixtureBoot.includes('/branding/splash-vinyl-mark.webp'),
+  'boot shell fixture must include vinyl brand mark',
+);
+assert(
+  !fixtureBoot.includes('data-seo-prerender'),
+  'boot shell fixture must not include SEO prerender body',
+);
+assert(!fixtureBoot.includes('<h1>leak</h1>'), 'boot shell must strip prior #root body');
+
 const distIndex = join(root, 'dist', 'index.html');
 const distHowItWorks = join(root, 'dist', 'how-it-works', 'index.html');
 // Only validate dist when post-build prerender has clearly run (subdir artifact).
@@ -82,17 +104,34 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   assert(existsSync(appBootPath), `dist missing ${APP_BOOT_SHELL_REL_PATH} — run npm run build`);
   const appBootHtml = readFileSync(appBootPath, 'utf8');
   assert(
-    /<div id="root">\s*<\/div>/i.test(appBootHtml),
-    'app boot shell must have empty #root',
+    appBootHtml.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`),
+    'app boot shell must include branded dashboard skeleton marker',
+  );
+  assert(
+    appBootHtml.includes('/branding/splash-vinyl-mark.webp'),
+    'app boot shell must include vinyl brand mark',
+  );
+  assert(
+    /<div id="root">[\s\S]*?<\/div>/i.test(appBootHtml),
+    'app boot shell must keep a #root mount point',
   );
   assert(
     !appBootHtml.includes('data-seo-prerender'),
     'app boot shell must not include SEO prerender body',
   );
   assert(
-    existsSync(distIndex) &&
-      readFileSync(distIndex, 'utf8').includes('data-seo-prerender'),
+    appBootHtml.includes('data-dashboard-boot-preload="true"') &&
+      appBootHtml.includes('DashboardRoute-'),
+    'app boot shell must modulepreload DashboardRoute chunk',
+  );
+  const homeHtml = readFileSync(distIndex, 'utf8');
+  assert(
+    homeHtml.includes('data-seo-prerender'),
     'home dist/index.html must still include SEO prerender body',
+  );
+  assert(
+    !homeHtml.includes('data-dashboard-boot-preload'),
+    'home dist/index.html must not gain dashboard boot modulepreloads',
   );
 
   console.log('verify:seo-prerender: dist/ checked');
