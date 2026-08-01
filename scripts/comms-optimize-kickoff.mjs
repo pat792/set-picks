@@ -88,7 +88,7 @@ function main() {
     process.exit(1);
   }
 
-  const body = buildKickoffMarkdown({
+  let body = buildKickoffMarkdown({
     optimize_for: resolved.optimize_for,
     window: resolved.window,
     mode: resolved.mode,
@@ -96,6 +96,43 @@ function main() {
     reason: resolved.reason,
     runDate: todayYmd,
   });
+
+  // Post-show: attach deterministic narrative QA (#779). Prefer live Firestore
+  // context; fall back to labeled fixture smoke when credentials are missing.
+  if (resolved.mode === "post_show" && resolved.showDate) {
+    const qaScript = path.join(root, "scripts/comms-show-recap-narrative-qa.mjs");
+    let qa = spawnSync(
+      process.execPath,
+      [qaScript, "--show-date", resolved.showDate, "--live"],
+      { cwd: root, encoding: "utf8" },
+    );
+    let qaNote = "";
+    if (qa.status !== 0 && qa.status !== 2) {
+      qaNote =
+        "_Live `comms_show_context` unavailable — fixture smoke (`fenway_labeled`)._\n\n";
+      qa = spawnSync(
+        process.execPath,
+        [
+          qaScript,
+          "--fixture",
+          "fenway_labeled",
+          "--show-date",
+          resolved.showDate,
+        ],
+        { cwd: root, encoding: "utf8" },
+      );
+    }
+    if (qa.status === 0 || qa.status === 2) {
+      const qaBody = String(qa.stdout || "")
+        .replace(/^\[SKIP-PRD\]\s*/i, "")
+        .trim();
+      body = `${body.trim()}\n\n---\n\n${qaNote}${qaBody}\n`;
+    } else {
+      body = `${body.trim()}\n\n---\n\n### Show-recap uniqueness QA\n\n_QA script failed_ (exit ${qa.status}): ${
+        (qa.stderr || "").split("\n").filter(Boolean)[0] || "unknown"
+      }\n`;
+    }
+  }
 
   console.log(body);
 
