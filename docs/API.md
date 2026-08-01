@@ -134,7 +134,7 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `setlist_highlight` | string? | One-liner for push / Tonight block |
+| `setlist_highlight` | string? | One-liner for push / Tonight block. Bustout nights: `Bustout: Song - a/an N show gap.` (singular) or `Bustouts: …; ….` (plural, `;`-separated) (#780). |
 | `set_flow_summary` | string? | Short S1/S2/E structure |
 | `bustout_titles` | string[] | From official setlist bustouts |
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
