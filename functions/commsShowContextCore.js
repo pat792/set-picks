@@ -219,7 +219,7 @@ function formatBustoutSongGap(entries) {
         ? `${e.title} - ${indefiniteArticleForGap(e.gap)} ${e.gap} show gap`
         : e.title,
     )
-    .join(", ");
+    .join("; ");
 }
 
 /**
@@ -246,7 +246,9 @@ function composeSetlistHighlight({
       : (bustoutTitles || []).map((title) => ({ title, gap: null }));
   const bustoutLine = formatBustoutSongGap(entries);
   if (bustoutLine) {
-    return entries.length === 1 ? bustoutLine : `Bustouts: ${bustoutLine}.`;
+    // Single: "Bustout: Song - a N show gap." Multi: "Bustouts: A - …; B - …." (#780)
+    const label = entries.length === 1 ? "Bustout" : "Bustouts";
+    return `${label}: ${bustoutLine}.`;
   }
   if (tourDebuts.length >= 3) {
     return `${tourDebuts.length} songs new to this tour — including ${tourDebuts[0]}.`;

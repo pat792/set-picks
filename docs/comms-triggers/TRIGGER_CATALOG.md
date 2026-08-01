@@ -412,7 +412,7 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 **Body sections:**
 1. **Your night** *(absorbed from `show_recap`, #451)* — score, rank (global + pool if applicable), correct picks count.
 2. **Pick-by-pick** — opener, closer, encore, wildcard results with song names. Bustout Boost called out if earned.
-3. **Setlist context** — `{{setlist_highlight}}` (e.g., "It was the first time Reba opened a show in 6 years").
+3. **Setlist context** — `{{setlist_highlight}}` (e.g., `Bustout: Melt the Guns - a 2051 show gap.` or `Bustouts: Song A - an 87 show gap; Song B - a 40 show gap.`).
 4. **Your tour position** — rank, points, shows played, rank change vs yesterday.
 5. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
 6. **Next show** — {{next_show_venue}}, {{next_show_date}}. Picks are open.

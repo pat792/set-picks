@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.40.3] — 2026-08-01
+
+### Changed
+- **Show recap bustout highlight (#780)** — `setlist_highlight` now labels nights as `Bustout: Song - a/an N show gap.` (one) or `Bustouts: …; ….` (two+). Fixes cold-branch email reading like a vague memory line when a single bustout landed (e.g. Fenway Melt the Guns).
+
+---
+
 ## [1.40.2] — 2026-07-31
 
 ### Changed

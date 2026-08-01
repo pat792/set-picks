@@ -409,7 +409,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           pool_rank: 1,
           correct_picks_count: 3,
           total_picks_count: 4,
-          setlist_highlight: "Wolfman's Brother - an 87 show gap",
+          setlist_highlight: "Bustout: Wolfman's Brother - an 87 show gap.",
           narrative_line: "You caught a bustout — Wolfman's Brother - an 87 show gap.",
           narrative_branch: 'bustout_hero',
           bustout_bonus: 20,
