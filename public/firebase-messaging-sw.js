@@ -18,6 +18,26 @@ const messaging = firebase.messaging();
 
 const DEFAULT_CLICK_URL = '/dashboard/profile/notifications';
 
+/**
+ * Same-origin path for SPA soft-nav (#773 Phase 3).
+ * Duplicated here (SW cannot import app modules).
+ * @param {string} absoluteOrRelativeUrl
+ * @returns {string | null}
+ */
+function appPathFromPushTargetUrl(absoluteOrRelativeUrl) {
+  try {
+    const url = new URL(absoluteOrRelativeUrl, self.location.origin);
+    if (url.origin !== self.location.origin) return null;
+    const path = `${url.pathname}${url.search}${url.hash}`;
+    if (!path.startsWith('/') || path.startsWith('//') || path.includes('://')) {
+      return null;
+    }
+    return path;
+  } catch {
+    return null;
+  }
+}
+
 // Registering `onBackgroundMessage` takes over notification display from the
 // FCM SDK's own default handler, which means its automatic `fcmOptions.link`
 // click-to-open behavior no longer applies either — we have to wire our own
@@ -35,13 +55,14 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(title, options);
 });
 
-// Focus an existing Setlist Pick'em tab (navigating it to the target URL) or
-// open a new one — without this, tapping/clicking a notification just closes
-// it with no navigation.
+// Focus an existing Setlist Pick'em tab and soft-navigate via postMessage, or
+// open a new window when none exists (#773 Phase 3). Avoid `client.navigate()`
+// on an open SPA tab — that forces a full document reload.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const targetUrl = event.notification?.data?.url || DEFAULT_CLICK_URL;
   const targetHref = new URL(targetUrl, self.location.origin).href;
+  const appPath = appPathFromPushTargetUrl(targetHref) || DEFAULT_CLICK_URL;
 
   event.waitUntil(
     (async () => {
@@ -51,12 +72,10 @@ self.addEventListener('notificationclick', (event) => {
       });
       for (const client of windowClients) {
         if (client.url.startsWith(self.location.origin) && 'focus' in client) {
-          if ('navigate' in client) {
-            try {
-              await client.navigate(targetHref);
-            } catch {
-              // Cross-origin or unsupported navigate — fall back to focus only.
-            }
+          try {
+            client.postMessage({ type: 'NAVIGATE', path: appPath });
+          } catch {
+            // Older clients without a listener — focus only; user can navigate.
           }
           return client.focus();
         }

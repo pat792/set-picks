@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.42.4] — 2026-08-01
+
+### Changed
+- **Push SPA soft-nav (#773 Phase 3)** — notification clicks on an already-open same-origin tab `postMessage` a `NAVIGATE` path into the SPA (no `client.navigate` full reload); cold open still uses `openWindow`.
+
+---
+
 ## [1.42.3] — 2026-08-01
 
 ### Changed

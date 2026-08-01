@@ -36,6 +36,8 @@ Cold document loads (email CTAs, push, refresh) are rewritten by Vercel to `dist
 
 **Phase 2b (signed-out / WebView):** email in-app browsers get an “Open in browser” banner plus Google **redirect** auth (`signInWithRedirect` / `getRedirectResult`) instead of popup. Intended dashboard path is still preserved via `persistDashboardPath` (#535) before the home bounce. Normal browsers keep popup Google sign-in.
 
+**Phase 3 (push SPA handoff):** when a push notification is tapped and a same-origin tab already exists, `firebase-messaging-sw.js` `postMessage`s `{ type: 'NAVIGATE', path }` and focuses that tab (React Router soft-nav via `usePushNavigationBridge`). No existing tab → `clients.openWindow` hard open as before.
+
 ### Setup
 
 `src/app/routes/SetupRoute.jsx`:
