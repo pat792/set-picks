@@ -1,6 +1,6 @@
 /**
  * Post-build: write crawler-visible HTML for public marketing routes (#659).
- * Also writes an empty-root SPA shell for dashboard / app hard loads (#743).
+ * Also writes a branded SPA boot shell for dashboard / app hard loads (#743 / #773).
  * Run after `vite build`. Safe to re-run.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -10,9 +10,9 @@ import { fileURLToPath } from 'node:url';
 import {
   APP_BOOT_SHELL_REL_PATH,
   PRERENDER_ROUTES,
+  buildDashboardBootShellHtml,
   injectPrerenderHtml,
   prerenderOutputRelPath,
-  stripPrerenderBodyFromSpaShell,
 } from './seo-prerender-lib.mjs';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
@@ -35,14 +35,14 @@ for (const route of PRERENDER_ROUTES) {
   console.log(`prerender-seo: wrote dist/${rel} (${Buffer.byteLength(html, 'utf8')} bytes)`);
 }
 
-// Empty-root boot shell for /dashboard/* (and other app paths via vercel.json).
+// Branded boot shell for /dashboard/* (and other app paths via vercel.json).
 // Use the pre-prerender Vite shell so we never copy home SEO body into it.
-const appBootHtml = stripPrerenderBodyFromSpaShell(shell);
+const appBootHtml = buildDashboardBootShellHtml(shell);
 const appBootPath = join(distDir, APP_BOOT_SHELL_REL_PATH);
 mkdirSync(dirname(appBootPath), { recursive: true });
 writeFileSync(appBootPath, appBootHtml, 'utf8');
 console.log(
-  `prerender-seo: wrote dist/${APP_BOOT_SHELL_REL_PATH} (empty #root boot shell)`,
+  `prerender-seo: wrote dist/${APP_BOOT_SHELL_REL_PATH} (branded #root boot shell)`,
 );
 
 console.log(`prerender-seo: OK (${PRERENDER_ROUTES.length} routes + app boot shell)`);

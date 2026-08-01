@@ -17,5 +17,8 @@ export function stripPrerenderBodyFromSpaShell(spaHtml) {
   );
 }
 
-/** Dist-relative empty-root SPA shell for authenticated / app hard loads (#743). */
+/**
+ * Dist-relative SPA shell for authenticated / app hard loads
+ * (#743 empty root → #773 branded skeleton).
+ */
 export const APP_BOOT_SHELL_REL_PATH = 'dashboard/index.html';

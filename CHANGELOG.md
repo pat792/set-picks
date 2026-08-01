@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.42.1] — 2026-08-01
+
+### Changed
+- **Email CTA branded dashboard boot shell (#773 Phase 1)** — `dist/dashboard/index.html` now ships a generic vinyl-mark + muted nav / skeleton-card shell (no SEO body) so hard opens paint branded chrome before React mounts. `verify:seo-prerender` asserts the boot marker and keeps home prerender intact.
+
+---
+
 ## [1.42.0] — 2026-08-01
 
 ### Added

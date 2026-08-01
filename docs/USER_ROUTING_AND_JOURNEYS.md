@@ -28,6 +28,10 @@ Defined in `src/app/App.jsx`.
 - **No user profile doc** (first-time setup) → `Navigate` to `/setup`
 - **Else** → `DashboardLayout`
 
+### Email / push hard opens (`/dashboard/*`)
+
+Cold document loads (email CTAs, push, refresh) are rewritten by Vercel to `dist/dashboard/index.html` — a **branded static skeleton** (#773 Phase 1; empty-root precursor #743) so users see chrome before React + Auth mount. `createRoot` replaces `#root` as usual. Marketing SEO prerender stays on `dist/index.html` only (`verify:seo-prerender`). TTI work (eager dashboard entry, auth polish) is Phase 2 on the same epic.
+
 ### Setup
 
 `src/app/routes/SetupRoute.jsx`:

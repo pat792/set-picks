@@ -11,12 +11,20 @@ import {
   APP_BOOT_SHELL_REL_PATH,
   stripPrerenderBodyFromSpaShell,
 } from './seo-strip-body.mjs';
+import {
+  DASHBOARD_BOOT_SHELL_MARKER,
+  buildDashboardBootShellHtml,
+  buildDashboardBootShellMarkup,
+} from './dashboard-boot-shell.mjs';
 
 export {
   PRERENDER_ROUTES,
   SEO_FAVICON_VERSION,
   APP_BOOT_SHELL_REL_PATH,
   stripPrerenderBodyFromSpaShell,
+  DASHBOARD_BOOT_SHELL_MARKER,
+  buildDashboardBootShellHtml,
+  buildDashboardBootShellMarkup,
 };
 
 function escapeHtml(str) {
