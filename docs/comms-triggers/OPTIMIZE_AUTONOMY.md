@@ -1,7 +1,7 @@
-# Comms Optimize autonomy (L0 playbook)
+# Comms Optimize autonomy (L0–L2 playbook)
 
 **Epic:** [#573](https://github.com/pat792/set-picks/issues/573)  
-**Status:** L1 — playbook + first on-demand pack proven (2026-07-17, goal `picks_lock`). Scheduled runner (L2) not yet.  
+**Status:** L2 kickoff automation shipped ([#778](https://github.com/pat792/set-picks/issues/778)) — daily GH Action posts a pack kickoff on #573; full Leadership → squad execution still agent-driven from that comment. L1 on-demand packs remain supported.  
 **Does not replace:** automated **delivery** (`deliverCommsTrigger` / epic #441). This doc is the **editorial + measurement + recommendation** loop.
 
 ---
@@ -44,6 +44,45 @@ and never merge or deploy.
 ```
 
 Swap `picks_lock` / window as needed. First L1 pack: [comment on #573](https://github.com/pat792/set-picks/issues/573#issuecomment-5000375612).
+
+---
+
+## Scheduled runner (L2 — #778)
+
+| Piece | Path |
+|-------|------|
+| Goal rotation | [`optimize_for.md`](./optimize_for.md) |
+| Kickoff script | `npm run comms:optimize-kickoff` (`scripts/comms-optimize-kickoff.mjs`) |
+| Cron | `.github/workflows/comms-optimize-schedule.yml` — daily `15:00` UTC (~09:00 America/Denver) |
+| Epic comments | Workflow posts `[SKIP-PRD]` kickoff on **#573** (does not merge/deploy) |
+
+**Note:** GitHub `schedule` workflows run only from the repo **default branch** (`main`). Merge to `staging` first; cron becomes live after promote to `main`. Use `workflow_dispatch` on the workflow file’s branch for earlier dry runs.
+
+**Cadence**
+
+| When | Mode | `optimize_for` |
+|------|------|----------------|
+| Morning after a calendar show date | `post_show` | always `show_recap_uniqueness` (narrative QA → [#779](https://github.com/pat792/set-picks/issues/779)) |
+| Monday (Denver), no post-show | `weekly` | ISO-week rotation in `optimize_for.md` (show-week vs off-tour) |
+| Manual | `workflow_dispatch` or CLI | `--mode weekly\|post_show` |
+
+**What the cron does vs does not**
+
+| Does | Does not |
+|------|----------|
+| Resolve goal + window from calendar + rotation | Run GA4 MCP / CrewAI / Cursor squad itself |
+| Post agent prompt on #573 | Open draft PRs or deploy |
+| Prefer post-show over weekly when both apply | Invent metrics |
+
+**Human / Cloud Agent step after each kickoff:** run the embedded prompt (or Leadership `crew` optimize → `SQUAD_KICKOFF` → squad). Post the finished **PM review pack** as a follow-up comment on #573. L2 exit criteria (two consecutive packs without chat kickoff) count when those pack comments land from the scheduled kickoffs.
+
+```bash
+# Dry-run (prints markdown)
+npm run comms:optimize-kickoff -- --mode auto
+
+# Post to #573 (needs gh auth)
+npm run comms:optimize-kickoff -- --mode weekly --post
+```
 
 ---
 
@@ -152,6 +191,7 @@ Full L0→L4 table lives on [#573](https://github.com/pat792/set-picks/issues/57
 |-------|-------------|
 | **L0** | Done — this playbook + skills (#628) |
 | **L1** | Done — first on-demand pack (2026-07-17, `optimize_for=picks_lock`) |
-| **L2+** | Open — scheduled runner; uniqueness; NBA |
+| **L2** | Kickoff cron shipped (#778) — exit when **two consecutive** packs land from scheduled kickoffs without chat |
+| **L3+** | Open — narrative QA (#779); uniqueness metrics; NBA |
 
 Related Wave 5 siblings: [#510](https://github.com/pat792/set-picks/issues/510) (`tour_recap`), [#512](https://github.com/pat792/set-picks/issues/512) (email open signal), [#513](https://github.com/pat792/set-picks/issues/513) (prefs hub).
