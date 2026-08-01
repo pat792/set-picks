@@ -2,10 +2,12 @@ import {
   createUserWithEmailAndPassword,
   deleteUser,
   getAdditionalUserInfo,
+  getRedirectResult,
   GoogleAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 
 import { getPasswordResetActionCodeSettings } from '../utils/passwordResetActionSettings';
@@ -33,6 +35,33 @@ function getGoogleProvider() {
  */
 export async function signInWithGoogle(auth) {
   const cred = await signInWithPopup(auth, getGoogleProvider());
+  const extra = getAdditionalUserInfo(cred);
+  return { isNewUser: Boolean(extra?.isNewUser) };
+}
+
+/**
+ * Full-page Google redirect — preferred in email / in-app WebViews where
+ * popups are blocked or flaky (#773 Phase 2b / #576 / #412).
+ *
+ * Does not resolve with a credential; the page navigates away. Call
+ * {@link consumeGoogleRedirectResult} on the next load.
+ *
+ * @param {import('firebase/auth').Auth} auth
+ * @returns {Promise<void>}
+ */
+export function startGoogleSignInRedirect(auth) {
+  return signInWithRedirect(auth, getGoogleProvider());
+}
+
+/**
+ * Complete a pending Google redirect, if any.
+ *
+ * @param {import('firebase/auth').Auth} auth
+ * @returns {Promise<{ isNewUser: boolean } | null>}
+ */
+export async function consumeGoogleRedirectResult(auth) {
+  const cred = await getRedirectResult(auth);
+  if (!cred) return null;
   const extra = getAdditionalUserInfo(cred);
   return { isNewUser: Boolean(extra?.isNewUser) };
 }

@@ -13,6 +13,7 @@ export default function SplashSignUpModal({
   onClose,
   onSwitchToSignIn,
   poolInvitePending = false,
+  seedError = '',
 }) {
   const {
     email,
@@ -28,7 +29,8 @@ export default function SplashSignUpModal({
     closeModal,
     handleGoogle,
     handleEmailSignUp,
-  } = useSplashSignUp(isOpen, onClose);
+    inAppBrowser,
+  } = useSplashSignUp(isOpen, onClose, { seedError });
 
   const consentBlock = (
     <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border-subtle bg-surface-field/80 p-4 text-left text-sm font-semibold leading-snug text-slate-200">
@@ -89,7 +91,11 @@ export default function SplashSignUpModal({
       busy={busy}
       googleDisabled={busy || !legalAccepted}
       prependContent={prependContent}
-      googleFootnote="You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
+      googleFootnote={
+        inAppBrowser
+          ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
+          : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
+      }
       closeOnBackdropClick={false}
     >
         <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">

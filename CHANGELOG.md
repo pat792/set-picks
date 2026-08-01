@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.42.3] — 2026-08-01
+
+### Changed
+- **Email WebView auth path (#773 Phase 2b)** — in-app browsers prefer Google `signInWithRedirect` (with splash intent restore) and show an Open-in-browser banner; popup Google remains the default elsewhere. Return URL via `persistDashboardPath` unchanged.
+
+---
+
 ## [1.42.2] — 2026-08-01
 
 ### Changed
