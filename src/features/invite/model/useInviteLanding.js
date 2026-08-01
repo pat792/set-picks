@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   isSplashGoogleModalInflight,
   useAuth,
+  useGoogleRedirectCompletion,
 } from '../../auth';
 import { normalizeInviteHandle } from '../../../shared/lib/inviteKit';
 import { getDashboardEntryHref } from '../../../shared/lib/dashboardLastPath';
@@ -19,12 +20,23 @@ export function useInviteLanding({ inviteKind, handle: rawHandle }) {
   const handle = normalizeInviteHandle(rawHandle);
   const { user, isAdmin: isAdminUser } = useAuth();
   const [authModal, setAuthModal] = useState(null);
+  const [redirectAuthError, setRedirectAuthError] = useState('');
   const [inviter, setInviter] = useState(null);
   const [resolveState, setResolveState] = useState(handle ? 'loading' : 'idle');
 
   const closeModal = useCallback(() => setAuthModal(null), []);
   const openSignUpModal = useCallback(() => setAuthModal('signup'), []);
   const openSignInModal = useCallback(() => setAuthModal('signin'), []);
+  const onRedirectError = useCallback((message, intent) => {
+    setRedirectAuthError(message || '');
+    if (intent === 'signup') setAuthModal('signup');
+    else setAuthModal('signin');
+  }, []);
+  useGoogleRedirectCompletion({
+    onOpenSignIn: openSignInModal,
+    onOpenSignUp: openSignUpModal,
+    onError: onRedirectError,
+  });
 
   useEffect(() => {
     if (!handle) {
@@ -74,6 +86,8 @@ export function useInviteLanding({ inviteKind, handle: rawHandle }) {
     closeModal,
     openSignUpModal,
     openSignInModal,
+    redirectAuthError,
+    clearRedirectAuthError: () => setRedirectAuthError(''),
     redirectTo,
   };
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { isLikelyInAppBrowser } from '../../../shared/lib/inAppBrowser';
 import { auth } from '../../../shared/lib/firebase';
 import { recordTermsPrivacyConsent } from '../api/legalConsentApi';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
@@ -7,26 +8,33 @@ import {
   deleteAuthUserIfPresent,
   registerWithEmail,
   signInWithGoogle,
+  startGoogleSignInRedirect,
 } from '../api/splashAuthApi';
 import {
   clearSplashGoogleModalInflight,
   setSplashGoogleModalInflight,
 } from '../utils/splashGoogleModalInflight';
+import { stashGoogleRedirectIntent } from '../utils/googleRedirectIntent';
 import {
   trackAuthError,
-  trackAuthLogin,
   trackAuthRollback,
   trackAuthRollbackFailed,
   trackAuthSignUp,
 } from './authAnalytics';
+import { completeGoogleSplashAuth } from './completeGoogleSplashAuth';
 
-export function useSplashSignUp(isOpen, onClose) {
+export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const inAppBrowser = isLikelyInAppBrowser();
+
+  useEffect(() => {
+    if (isOpen && seedError) setError(seedError);
+  }, [isOpen, seedError]);
 
   const resetForm = useCallback(() => {
     setEmail('');
@@ -67,32 +75,21 @@ export function useSplashSignUp(isOpen, onClose) {
     setBusy(true);
     setSplashGoogleModalInflight();
     try {
+      if (inAppBrowser) {
+        stashGoogleRedirectIntent('signup');
+        await startGoogleSignInRedirect(auth);
+        return;
+      }
+
       const { isNewUser } = await signInWithGoogle(auth);
-      if (isNewUser) {
-        try {
-          await recordTermsPrivacyConsent(auth.currentUser.uid);
-        } catch (consentErr) {
-          console.error('Consent write after Google sign-up:', consentErr);
-          trackAuthRollback({ method: 'google', stage: 'consent_write' });
-          const rollback = await deleteAuthUserIfPresent(auth.currentUser);
-          if (!rollback.deleted) {
-            trackAuthRollbackFailed({
-              method: 'google',
-              error_code: rollback.errorCode || 'unknown',
-            });
-            console.error(
-              'Auth rollback delete failed after Google sign-up:',
-              rollback.errorCode
-            );
-          }
-          setError('Could not finish creating your account. Please try again.');
-          return;
-        }
-        trackAuthSignUp('google', { surface: 'create_account' });
-      } else {
-        // Existing Google account used Create account — treat as login, not a
-        // blocked sign-up. Surface tag lets GA4 separate this from Sign-in.
-        trackAuthLogin('google', { surface: 'create_account' });
+      const outcome = await completeGoogleSplashAuth({
+        intent: 'signup',
+        isNewUser,
+        flow: 'popup',
+      });
+      if (outcome.kind === 'error') {
+        setError(outcome.message);
+        return;
       }
       closeModal();
     } catch (err) {
@@ -101,13 +98,16 @@ export function useSplashSignUp(isOpen, onClose) {
         method: 'google',
         error_code: err.code,
         surface: 'create_account',
+        auth_flow: inAppBrowser ? 'redirect' : 'popup',
       });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
-      clearSplashGoogleModalInflight();
-      setBusy(false);
+      if (!inAppBrowser) {
+        clearSplashGoogleModalInflight();
+        setBusy(false);
+      }
     }
-  }, [closeModal, legalAccepted]);
+  }, [closeModal, inAppBrowser, legalAccepted]);
 
   const handleEmailSignUp = useCallback(
     async (e) => {
@@ -178,5 +178,6 @@ export function useSplashSignUp(isOpen, onClose) {
     closeModal,
     handleGoogle,
     handleEmailSignUp,
+    inAppBrowser,
   };
 }

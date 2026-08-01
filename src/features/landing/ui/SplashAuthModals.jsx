@@ -8,20 +8,29 @@ export default function SplashAuthModals({
   onSwitchToSignIn,
   onSwitchToSignUp,
   poolInvitePending = false,
+  redirectAuthError = '',
+  onClearRedirectAuthError,
 }) {
+  const handleClose = () => {
+    onClearRedirectAuthError?.();
+    closeModal();
+  };
+
   return (
     <>
       <SplashSignUpModal
         isOpen={authModal === 'signup'}
-        onClose={closeModal}
+        onClose={handleClose}
         onSwitchToSignIn={onSwitchToSignIn}
         poolInvitePending={poolInvitePending}
+        seedError={authModal === 'signup' ? redirectAuthError : ''}
       />
       <SplashSignInModal
         isOpen={authModal === 'signin'}
-        onClose={closeModal}
+        onClose={handleClose}
         onSwitchToSignUp={onSwitchToSignUp}
         poolInvitePending={poolInvitePending}
+        seedError={authModal === 'signin' ? redirectAuthError : ''}
       />
     </>
   );
