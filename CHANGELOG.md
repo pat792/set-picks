@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.42.2] — 2026-08-01
+
+### Changed
+- **Email CTA cold-boot TTI (#773 Phase 2)** — dashboard hard opens warm App Check + kick `DashboardRoute` before paint; boot shell `modulepreload`s the dashboard chunk (splash untouched); Auth paints profile via `getDoc` then `onSnapshot` and shows `DashboardBootSkeleton` instead of bare “Loading…”.
+
+---
+
 ## [1.42.1] — 2026-08-01
 
 ### Changed

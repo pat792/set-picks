@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
+import { auth } from '../../../shared/lib/firebase';
+import { ensureAppCheckNow } from '../../../shared/lib/firebaseAppCheck';
 import {
+  fetchUserProfile,
   resolveIsAdmin,
   subscribeToAuthState,
   subscribeToIdTokenChanges,
@@ -12,9 +15,14 @@ const AuthContext = createContext(null);
 /**
  * Single app-wide auth + profile subscription (#496).
  * Replaces N× `useAuth()` listeners with one provider.
+ *
+ * #773 Phase 2: seed from `auth.currentUser`, warm App Check on session, and
+ * paint profile via `getDoc` before attaching `onSnapshot` (mirror #730).
+ * Guards still keep `loading:true` until the first profile result so
+ * `loading:false + user + profile:null` cannot flash Almost There (#727).
  */
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => auth.currentUser ?? null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -47,8 +55,11 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      // Persisted / fresh session — start App Check immediately (#730 / #773).
+      ensureAppCheckNow();
+
       // Guest → sign-in (and user switches): keep guards in `loading` until the
-      // first profile snapshot. Otherwise `loading:false + user + profile:null`
+      // first profile result. Otherwise `loading:false + user + profile:null`
       // briefly looks like "needs setup" and dumps returning users onto Almost There (#727).
       setUser(u);
       setUserProfile(null);
@@ -63,12 +74,17 @@ export function AuthProvider({ children }) {
         });
 
       try {
+        // Fast path: single getDoc before live listener (#773 / #730).
+        const initialProfile = await fetchUserProfile(u.uid);
+        if (cancelled) return;
+        setUserProfile(initialProfile);
+        setLoading(false);
+
         const unsub = await subscribeToUserProfile(
           u.uid,
           (profile) => {
             if (cancelled) return;
             setUserProfile(profile);
-            setLoading(false);
           },
           (err) => {
             console.error('AuthProvider profile subscription error:', err);
@@ -89,7 +105,7 @@ export function AuthProvider({ children }) {
 
         detachProfile = unsub;
       } catch (err) {
-        console.error('AuthProvider profile subscribe failed:', err);
+        console.error('AuthProvider profile load failed:', err);
         if (!cancelled) {
           setUserProfile(null);
           setLoading(false);

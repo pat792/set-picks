@@ -15,6 +15,7 @@ import {
   DASHBOARD_BOOT_SHELL_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
+  injectDashboardBootModulepreloads,
 } from './dashboard-boot-shell.mjs';
 
 export {
@@ -25,6 +26,7 @@ export {
   DASHBOARD_BOOT_SHELL_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
+  injectDashboardBootModulepreloads,
 };
 
 function escapeHtml(str) {

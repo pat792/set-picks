@@ -7,12 +7,30 @@ import App from './app/App.jsx'
 import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import ScrollToTop from './app/ScrollToTop.jsx'
 import { AuthProvider } from './features/auth'
+import {
+  isDashboardEntryPath,
+  shouldWarmAppCheckOnBoot,
+} from './shared/lib/appBootPath'
 import { initGa4 } from './shared/lib/ga4'
-import { initializeAppCheckDeferred } from './shared/lib/firebaseAppCheck'
+import {
+  ensureAppCheckNow,
+  initializeAppCheckDeferred,
+} from './shared/lib/firebaseAppCheck'
 import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
 import './index.css'
 
 initGa4()
+
+// #773 Phase 2: email / app hard opens — warm App Check + kick DashboardRoute
+// chunk before first paint. Splash keeps deferred App Check + lazy dashboard.
+const bootPath =
+  typeof window !== 'undefined' ? window.location.pathname : ''
+if (shouldWarmAppCheckOnBoot(bootPath)) {
+  ensureAppCheckNow()
+}
+if (isDashboardEntryPath(bootPath)) {
+  void import('./app/routes/DashboardRoute.jsx')
+}
 
 // Shared client for React Query caches (#243 profile/tour standings, #507
 // show-scoped standings). Defaults tuned for read-heavy dashboard hooks

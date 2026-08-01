@@ -120,9 +120,18 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'app boot shell must not include SEO prerender body',
   );
   assert(
-    existsSync(distIndex) &&
-      readFileSync(distIndex, 'utf8').includes('data-seo-prerender'),
+    appBootHtml.includes('data-dashboard-boot-preload="true"') &&
+      appBootHtml.includes('DashboardRoute-'),
+    'app boot shell must modulepreload DashboardRoute chunk',
+  );
+  const homeHtml = readFileSync(distIndex, 'utf8');
+  assert(
+    homeHtml.includes('data-seo-prerender'),
     'home dist/index.html must still include SEO prerender body',
+  );
+  assert(
+    !homeHtml.includes('data-dashboard-boot-preload'),
+    'home dist/index.html must not gain dashboard boot modulepreloads',
   );
 
   console.log('verify:seo-prerender: dist/ checked');

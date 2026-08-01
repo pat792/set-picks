@@ -1,10 +1,13 @@
 /**
- * Generic branded dashboard boot shell for hard loads (#773 Phase 1).
+ * Generic branded dashboard boot shell for hard loads (#773 Phase 1–2).
  * Pure HTML/CSS — no src/ imports (safe for build scripts).
  *
  * Injected into `dist/dashboard/index.html` after Vite build. React
  * `createRoot` still replaces `#root` once the SPA mounts.
  */
+
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { stripPrerenderBodyFromSpaShell } from './seo-strip-body.mjs';
 
@@ -275,4 +278,54 @@ export function buildDashboardBootShellHtml(spaHtml) {
     /<div id="root">\s*<\/div>/i,
     `<div id="root">${markup}</div>`,
   );
+}
+
+/** Chunk filename prefixes to modulepreload on the dashboard boot shell only (#773). */
+export const DASHBOARD_BOOT_MODULEPRELOAD_PREFIXES = ['DashboardRoute-'];
+
+/**
+ * Resolve hashed asset filenames under `dist/assets` for dashboard boot preloads.
+ *
+ * @param {string} assetsDir
+ * @returns {string[]} absolute hrefs like `/assets/DashboardRoute-….js`
+ */
+export function resolveDashboardBootModulepreloadHrefs(assetsDir) {
+  let names = [];
+  try {
+    names = readdirSync(assetsDir);
+  } catch {
+    return [];
+  }
+  const hrefs = [];
+  for (const prefix of DASHBOARD_BOOT_MODULEPRELOAD_PREFIXES) {
+    const match = names.find(
+      (name) => name.startsWith(prefix) && name.endsWith('.js'),
+    );
+    if (match) hrefs.push(`/assets/${match}`);
+  }
+  return hrefs;
+}
+
+/**
+ * Append `<link rel="modulepreload">` for dashboard-critical chunks into `<head>`.
+ * Idempotent; skips hrefs already present. Does not touch splash `dist/index.html`.
+ *
+ * @param {string} html
+ * @param {string} distDir absolute path to `dist/`
+ * @returns {string}
+ */
+export function injectDashboardBootModulepreloads(html, distDir) {
+  if (typeof html !== 'string' || !html) return html;
+  const hrefs = resolveDashboardBootModulepreloadHrefs(join(distDir, 'assets'));
+  if (!hrefs.length) return html;
+
+  const tags = hrefs
+    .filter((href) => !html.includes(`href="${href}"`))
+    .map(
+      (href) =>
+        `  <link rel="modulepreload" crossorigin href="${href}" data-dashboard-boot-preload="true" />`,
+    );
+  if (!tags.length) return html;
+  if (!/<\/head>/i.test(html)) return html;
+  return html.replace(/<\/head>/i, `${tags.join('\n')}\n</head>`);
 }

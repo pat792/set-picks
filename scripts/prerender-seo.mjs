@@ -11,6 +11,7 @@ import {
   APP_BOOT_SHELL_REL_PATH,
   PRERENDER_ROUTES,
   buildDashboardBootShellHtml,
+  injectDashboardBootModulepreloads,
   injectPrerenderHtml,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
@@ -37,12 +38,16 @@ for (const route of PRERENDER_ROUTES) {
 
 // Branded boot shell for /dashboard/* (and other app paths via vercel.json).
 // Use the pre-prerender Vite shell so we never copy home SEO body into it.
-const appBootHtml = buildDashboardBootShellHtml(shell);
+// Phase 2: modulepreload DashboardRoute on this shell only (not splash).
+const appBootHtml = injectDashboardBootModulepreloads(
+  buildDashboardBootShellHtml(shell),
+  distDir,
+);
 const appBootPath = join(distDir, APP_BOOT_SHELL_REL_PATH);
 mkdirSync(dirname(appBootPath), { recursive: true });
 writeFileSync(appBootPath, appBootHtml, 'utf8');
 console.log(
-  `prerender-seo: wrote dist/${APP_BOOT_SHELL_REL_PATH} (branded #root boot shell)`,
+  `prerender-seo: wrote dist/${APP_BOOT_SHELL_REL_PATH} (branded #root boot shell + modulepreload)`,
 );
 
 console.log(`prerender-seo: OK (${PRERENDER_ROUTES.length} routes + app boot shell)`);

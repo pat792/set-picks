@@ -1,11 +1,13 @@
 import React, { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
+import { isDashboardEntryPath } from '../../shared/lib/appBootPath';
 import { useServiceWorkerUpdate } from '../../shared/lib/useServiceWorkerUpdate';
 import AppBackground from '../../shared/ui/AppBackground';
 import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
 import UpdateAvailableBanner from '../../shared/ui/UpdateAvailableBanner';
 import { shellTransitionKey } from './model/shellTransitionKey';
+import DashboardBootSkeleton from './ui/DashboardBootSkeleton';
 
 /**
  * Global chrome: ambient background + top-level route outlet with enter animation.
@@ -29,7 +31,15 @@ export default function RootAppShell() {
       <AppBackground />
       <div className="relative z-[1] min-h-screen">
         <div key={transitionKey} className="min-h-screen animate-page-enter">
-          <Suspense fallback={<RouteSuspenseFallback />}>
+          <Suspense
+            fallback={
+              isDashboardEntryPath(pathname) ? (
+                <DashboardBootSkeleton />
+              ) : (
+                <RouteSuspenseFallback />
+              )
+            }
+          >
             <Outlet />
           </Suspense>
         </div>
