@@ -37,15 +37,32 @@ Highlight rows where `sessionManualAdContent` / campaign contains `picks-lock-re
 
 - `comms_delivered` + `picks_lock_reminder` by `hour` × `customEvent:comms_channel`
 - `submit_picks` / `picks_page_interactive` by `hour`  
-Label **HYPOTHESIS** until delivery-log join (#698).
+Label **HYPOTHESIS** for hour-of-day patterns; prefer §E for true conversion %.
+
+### E — Delivery-log ↔ picks conversion (#698) — **required for `optimize_for=picks_lock`**
+
+```bash
+npm run comms:picks-lock-conversion -- --days 14 --write
+# or: --show-dates 2026-07-31,2026-08-01 --write
+```
+
+Artifact: `crew/output/intel/picks_lock-conversion-<stamp>.md`
+
+| Join | Definition |
+|------|------------|
+| Delivery cohort | `fcm_notification_log` where `triggerId=picks_lock_reminder`, doc id `reminder_{YYYY-MM-DD}_{uid}` |
+| Converted before lock | Non-empty `picks/{showDate}_{uid}` with `updatedAt` &lt; venue-local lock (`resolvePicksLockHm` + show `timeZone`; earlier `show_lock_state.picksLockedAt` wins) |
+| Channel split | Non-exclusive over `channels[]` (successful send planes) |
+
+If the file is missing, pack `submit (attrib)` = `unknown` and score `WAIT_EVIDENCE: #698` / re-run the CLI. Do **not** invent conversion % from GA4 aggregates alone.
 
 ## Channel-plane cheat sheet
 
 | Channel | Open / attention | Click / land | Conversion |
 |---------|------------------|--------------|------------|
-| **inApp** | `comms_opened` | `comms_cta_click` | `submit_picks` (join via #698) |
-| **email** | Resend opens (#512) — **not** in GA today | UTM sessions (`email`/`comms`) + `comms_email_landed` | `submit_picks` in those sessions |
-| **push** | `comms_push_tap` / open instrumentation | deep link land | `submit_picks` |
+| **inApp** | `comms_opened` | `comms_cta_click` | §E delivery-log join |
+| **email** | Resend opens (#512) — **not** in GA today | UTM sessions (`email`/`comms`) + `comms_email_landed` | §E (channel row) + UTM submit proxy |
+| **push** | `comms_push_tap` / open instrumentation | deep link land | §E (channel row) |
 
 ## Challenge rule (pipeline `challenge_evidence`)
 

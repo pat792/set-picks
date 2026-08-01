@@ -46,8 +46,10 @@
     "comms:sync": "node scripts/sync-comms-to-functions.mjs",
     "comms:optimize-kickoff": "node scripts/comms-optimize-kickoff.mjs",
     "comms:show-recap-qa": "node scripts/comms-show-recap-narrative-qa.mjs",
+    "comms:picks-lock-conversion": "node scripts/comms-picks-lock-conversion.mjs",
     "test:comms-optimize-schedule": "node --test scripts/lib/commsOptimizeSchedule.test.mjs",
     "test:comms-show-recap-qa": "node --test scripts/lib/showRecapNarrativeQa.test.mjs",
+    "test:comms-picks-lock-conversion": "node --test scripts/lib/picksLockConversion.test.mjs",
     "emails:build": "npm run build --prefix emails",
     "emails:preview": "npm run preview --prefix emails"
   },
