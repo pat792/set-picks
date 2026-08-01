@@ -9,22 +9,29 @@ import {
  * Admin-only: pick the Firestore `official_setlists/{showDate}` key independently of the
  * global dashboard tour picker (which may omit past legs or reset to “next show”).
  *
- * @param {{ value: string, onChange: (ymd: string) => void, disabled?: boolean, timeZone: string }} props
+ * @param {{
+ *   value: string,
+ *   onChange: (ymd: string) => void,
+ *   disabled?: boolean,
+ *   timeZone: string,
+ *   show?: { date?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string } | null,
+ * }} props
  */
 export default function AdminWarRoomShowDate({
   value,
   onChange,
   disabled = false,
   timeZone,
+  show = null,
 }) {
-  const lockHm = resolvePicksLockHm({ date: value });
+  const lockHm = resolvePicksLockHm(show || { date: value });
   const lockTimeLabel = formatLockTimeLocalLabel(lockHm);
   const lockSourceNote =
-    lockHm.source === 'doors'
-      ? `doors ${lockHm.doorsLocal} + tour avg − safety`
+    lockHm.source === 'scheduledStart'
+      ? `published ticket time ${lockHm.scheduledStartLocal} + 20 min`
       : lockHm.source === 'picksLockLocal'
         ? 'explicit picksLockLocal'
-        : 'fallback 7:30 PM (doors unknown)';
+        : 'fallback 7:30 PM (ticket time unknown)';
 
   return (
     <div className="rounded-xl border border-border-subtle bg-[rgb(var(--surface-field)_/_0.35)] px-4 py-3 ring-1 ring-border-glass/20">

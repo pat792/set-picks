@@ -14,6 +14,13 @@ No unreleased changes.
 
 ---
 
+## [1.40.2] — 2026-07-31
+
+### Changed
+- **Picks lock basis** — wall clock moves from doors+(tour avg − safety) to **published ticket/show time + 20 minutes** (Phish.com `Show Time` → `scheduledStartLocal`). Client + Functions + lock-reminder share the same resolver; timing banner / War Room / admin helper copy updated. Fallback remains **7:30 PM** venue-local when show time is unknown.
+
+---
+
 ## [1.40.1] — 2026-07-28
 
 ### Fixed

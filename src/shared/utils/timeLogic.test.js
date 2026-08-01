@@ -67,10 +67,10 @@ describe('venue-local lock + status (#278)', () => {
     expect(getShowStatus('2099-06-15', shows)).toBe('LIVE');
   });
 
-  it('locks Merriweather at doors+85 (6:55 PM ET) before fallback 7:30', () => {
+  it('locks Merriweather at ticket+20 (7:20 PM ET) after published show time', () => {
     vi.useFakeTimers();
-    // 2026-07-18 23:00Z = 7:00 PM ET → past 6:55 lock, before 7:30 fallback.
-    vi.setSystemTime(new Date('2026-07-18T23:00:00.000Z'));
+    // 2026-07-18 23:25Z = 7:25 PM ET → past 7:20 lock (seeded show 7:00 + 20).
+    vi.setSystemTime(new Date('2026-07-18T23:25:00.000Z'));
 
     const shows = [
       {
@@ -83,9 +83,9 @@ describe('venue-local lock + status (#278)', () => {
     expect(getShowStatus('2026-07-18', shows)).toBe('LIVE');
   });
 
-  it('keeps Merriweather NEXT at 6:45 PM ET (before doors+85 lock)', () => {
+  it('keeps Merriweather NEXT at 7:10 PM ET (before ticket+20 lock)', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-07-18T22:45:00.000Z'));
+    vi.setSystemTime(new Date('2026-07-18T23:10:00.000Z'));
 
     const shows = [
       {

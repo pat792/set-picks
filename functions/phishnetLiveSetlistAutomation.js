@@ -219,7 +219,7 @@ function parseShowCalendarSnapshotToShows(snapshotData) {
             ? item.timezone.trim()
             : ""
         : "";
-    /** @type {{ date: string, timeZone: string, venue?: string, city?: string, tour_name?: string, tour?: string, doorsLocal?: string, picksLockLocal?: string }} */
+    /** @type {{ date: string, timeZone: string, venue?: string, city?: string, tour_name?: string, tour?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string }} */
     const show = { date, timeZone: explicitTz || DEFAULT_SHOW_TIME_ZONE };
     if (item && typeof item === "object") {
       if (typeof item.venue === "string" && item.venue.trim()) {
@@ -236,6 +236,12 @@ function parseShowCalendarSnapshotToShows(snapshotData) {
       }
       if (typeof item.doorsLocal === "string" && item.doorsLocal.trim()) {
         show.doorsLocal = item.doorsLocal.trim();
+      }
+      if (
+        typeof item.scheduledStartLocal === "string" &&
+        item.scheduledStartLocal.trim()
+      ) {
+        show.scheduledStartLocal = item.scheduledStartLocal.trim();
       }
       if (typeof item.picksLockLocal === "string" && item.picksLockLocal.trim()) {
         show.picksLockLocal = item.picksLockLocal.trim();
@@ -304,7 +310,7 @@ function parseShowCalendarSnapshotToShowsByTour(snapshotData) {
           : typeof item.timezone === "string" && item.timezone.trim()
             ? item.timezone.trim()
             : "";
-      /** @type {{ date: string, timeZone: string, venue?: string, city?: string, tour?: string, tour_name?: string, doorsLocal?: string, picksLockLocal?: string }} */
+      /** @type {{ date: string, timeZone: string, venue?: string, city?: string, tour?: string, tour_name?: string, doorsLocal?: string, scheduledStartLocal?: string, picksLockLocal?: string }} */
       const show = {
         date,
         timeZone: explicitTz || DEFAULT_SHOW_TIME_ZONE,
@@ -319,6 +325,12 @@ function parseShowCalendarSnapshotToShowsByTour(snapshotData) {
       }
       if (typeof item.doorsLocal === "string" && item.doorsLocal.trim()) {
         show.doorsLocal = item.doorsLocal.trim();
+      }
+      if (
+        typeof item.scheduledStartLocal === "string" &&
+        item.scheduledStartLocal.trim()
+      ) {
+        show.scheduledStartLocal = item.scheduledStartLocal.trim();
       }
       if (typeof item.picksLockLocal === "string" && item.picksLockLocal.trim()) {
         show.picksLockLocal = item.picksLockLocal.trim();

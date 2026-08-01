@@ -53,7 +53,7 @@
         { "name": "first_show_date", "source": "tour first show", "fallback": null },
         { "name": "first_show_venue", "source": "tour first show venue", "fallback": null },
         { "name": "first_show_city", "source": "tour first show city", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (doors+offset or 19:30 venue-local)", "fallback": "7:30 PM" },
+        { "name": "lock_time_local", "source": "computed (ticket/show time + 20 min or 19:30 venue-local)", "fallback": "7:30 PM" },
         { "name": "picks_secured", "source": "picks where showDate=first_show + hasNonEmptyPicksObject", "fallback": false }
       ]
     },
@@ -256,7 +256,7 @@
       "family": "show_calendar",
       "priority": "P0",
       "automation": "automated",
-      "schedule": "every 15min on show days, venue-local T-3h through lock (per-show lock from doors+offset or 19:30 fallback)",
+      "schedule": "every 15min on show days, venue-local T-3h through lock (per-show lock from ticket/show time + 20 min or 19:30 fallback)",
       "audience": "users_no_picks_tonight",
       "channels": ["inApp", "push", "email"],
       "prefKeys": ["reminders"],
@@ -272,7 +272,7 @@
         { "name": "venue_name", "source": "show_calendar", "fallback": null },
         { "name": "venue_city", "source": "show_calendar", "fallback": null },
         { "name": "time_to_lock", "source": "computed at send time", "fallback": null },
-        { "name": "lock_time_local", "source": "computed (doors+offset or 19:30 venue-local)", "fallback": "7:30 PM" },
+        { "name": "lock_time_local", "source": "computed (ticket/show time + 20 min or 19:30 venue-local)", "fallback": "7:30 PM" },
         { "name": "picks_secured", "source": "preview/edge only — production fanout skips users with picks", "fallback": false }
       ]
     },
