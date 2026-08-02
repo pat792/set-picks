@@ -2,6 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
+import { OpenInBrowserBanner } from '../../auth';
 import { MarketingPageShell, SplashAuthModals } from '../../landing';
 import { SEO_CONFIG } from '../../../shared/config/seo';
 import Button from '../../../shared/ui/Button';
@@ -19,6 +20,8 @@ export default function InviteVipLanding({
   closeModal,
   openSignUpModal,
   openSignInModal,
+  redirectAuthError = '',
+  clearRedirectAuthError,
 }) {
   const { pathname, search } = useLocation();
   const pageTitle = `${headline} | Setlist Pick'Em`;
@@ -40,6 +43,7 @@ export default function InviteVipLanding({
         <meta name="twitter:image" content={SEO_CONFIG.ogImageUrl} />
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
+      <OpenInBrowserBanner />
       <MarketingPageShell>
         <section className="mx-auto flex min-h-[calc(100vh-5.35rem)] max-w-2xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6 lg:px-8">
           {resolveState === 'loading' ? (
@@ -83,6 +87,8 @@ export default function InviteVipLanding({
         onSwitchToSignIn={openSignInModal}
         onSwitchToSignUp={openSignUpModal}
         poolInvitePending={poolInvitePending}
+        redirectAuthError={redirectAuthError}
+        onClearRedirectAuthError={clearRedirectAuthError}
       />
     </>
   );

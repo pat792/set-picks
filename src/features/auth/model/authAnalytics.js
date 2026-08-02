@@ -10,12 +10,13 @@ function mirrorAuthTelemetry(event, params) {
 
 /**
  * @param {string} method
- * @param {{ surface?: AuthModalSurface }} [opts]
+ * @param {{ surface?: AuthModalSurface, auth_flow?: 'popup' | 'redirect' }} [opts]
  */
 export function trackAuthSignUp(method, opts = {}) {
   const params = {
     method,
     ...(opts.surface ? { surface: opts.surface } : {}),
+    ...(opts.auth_flow ? { auth_flow: opts.auth_flow } : {}),
   };
   mirrorAuthTelemetry('sign_up', params);
   ga4Event('sign_up', params);
@@ -23,25 +24,32 @@ export function trackAuthSignUp(method, opts = {}) {
 
 /**
  * @param {string} method
- * @param {{ surface?: AuthModalSurface }} [opts]
+ * @param {{ surface?: AuthModalSurface, auth_flow?: 'popup' | 'redirect' }} [opts]
  */
 export function trackAuthLogin(method, opts = {}) {
   const params = {
     method,
     ...(opts.surface ? { surface: opts.surface } : {}),
+    ...(opts.auth_flow ? { auth_flow: opts.auth_flow } : {}),
   };
   mirrorAuthTelemetry('login', params);
   ga4Event('login', params);
 }
 
 /**
- * @param {{ method: string, error_code?: string, surface?: AuthModalSurface }} payload
+ * @param {{
+ *   method: string,
+ *   error_code?: string,
+ *   surface?: AuthModalSurface,
+ *   auth_flow?: 'popup' | 'redirect',
+ * }} payload
  */
 export function trackAuthError(payload) {
   const params = {
     method: payload.method,
     error_code: payload.error_code ?? 'unknown',
     ...(payload.surface ? { surface: payload.surface } : {}),
+    ...(payload.auth_flow ? { auth_flow: payload.auth_flow } : {}),
   };
   mirrorAuthTelemetry('auth_error', params);
   ga4Event('auth_error', params);

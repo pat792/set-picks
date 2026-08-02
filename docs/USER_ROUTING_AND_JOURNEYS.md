@@ -28,6 +28,16 @@ Defined in `src/app/App.jsx`.
 - **No user profile doc** (first-time setup) → `Navigate` to `/setup`
 - **Else** → `DashboardLayout`
 
+### Email / push hard opens (`/dashboard/*`)
+
+Cold document loads (email CTAs, push, refresh) are rewritten by Vercel to `dist/dashboard/index.html` — a **branded static skeleton** (#773 Phase 1; empty-root precursor #743) so users see chrome before React + Auth mount. `createRoot` replaces `#root` as usual. Marketing SEO prerender stays on `dist/index.html` only (`verify:seo-prerender`).
+
+**Phase 2 (TTI):** on `/dashboard/*` (and related warm paths), `main.jsx` calls `ensureAppCheckNow()` and kicks a dynamic `import()` of `DashboardRoute` before first paint; the boot shell also `modulepreload`s the `DashboardRoute` chunk. Auth seeds `auth.currentUser`, paints profile via `getDoc` then `onSnapshot`, and dashboard loading uses `DashboardBootSkeleton` instead of bare “Loading…”. Splash stays lazy + deferred App Check.
+
+**Phase 2b (signed-out / WebView):** email in-app browsers get an “Open in browser” banner plus Google **redirect** auth (`signInWithRedirect` / `getRedirectResult`) instead of popup. Intended dashboard path is still preserved via `persistDashboardPath` (#535) before the home bounce. Normal browsers keep popup Google sign-in.
+
+**Phase 3 (push SPA handoff):** when a push notification is tapped and a same-origin tab already exists, `firebase-messaging-sw.js` `postMessage`s `{ type: 'NAVIGATE', path }` and focuses that tab (React Router soft-nav via `usePushNavigationBridge`). No existing tab → `clients.openWindow` hard open as before.
+
 ### Setup
 
 `src/app/routes/SetupRoute.jsx`:

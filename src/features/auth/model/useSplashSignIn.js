@@ -1,27 +1,33 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { isLikelyInAppBrowser } from '../../../shared/lib/inAppBrowser';
 import { auth } from '../../../shared/lib/firebase';
-import { signOutUser } from '../api/authApi';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import {
-  deleteAuthUserIfPresent,
   sendResetEmail,
   signInWithEmail,
   signInWithGoogle,
+  startGoogleSignInRedirect,
 } from '../api/splashAuthApi';
 import {
   clearSplashGoogleModalInflight,
   setSplashGoogleModalInflight,
 } from '../utils/splashGoogleModalInflight';
+import { stashGoogleRedirectIntent } from '../utils/googleRedirectIntent';
 import { trackAuthError, trackAuthLogin } from './authAnalytics';
-import { decideSignInModalGoogleAction } from './signInModalGuard';
+import { completeGoogleSplashAuth } from './completeGoogleSplashAuth';
 
-export function useSplashSignIn(isOpen, onClose) {
+export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [resetLinkNotice, setResetLinkNotice] = useState({ text: '', type: '' });
+  const inAppBrowser = isLikelyInAppBrowser();
+
+  useEffect(() => {
+    if (isOpen && seedError) setError(seedError);
+  }, [isOpen, seedError]);
 
   const resetForm = useCallback(() => {
     setEmail('');
@@ -57,30 +63,23 @@ export function useSplashSignIn(isOpen, onClose) {
     setBusy(true);
     setSplashGoogleModalInflight();
     try {
-      const { isNewUser } = await signInWithGoogle(auth);
-      const action = decideSignInModalGoogleAction(isNewUser);
-      if (action.kind === 'block-new-user') {
-        // Sign-in modal is for returning users only — it never presented
-        // the Terms/Privacy clickwrap. Roll back the auth account
-        // (best-effort) and force a sign-out so a partially-rolled-back
-        // account can't sit in a signed-in but unconsented state. Route
-        // them to the Create Account modal where the consent checkbox is
-        // enforced.
-        await deleteAuthUserIfPresent(auth.currentUser);
-        try {
-          await signOutUser();
-        } catch (signOutErr) {
-          console.error('signOut after sign-in modal block:', signOutErr);
-        }
-        trackAuthError({
-          method: 'google',
-          error_code: action.telemetryErrorCode,
-          surface: 'sign_in',
-        });
-        setError(action.errorMessage);
+      if (inAppBrowser) {
+        stashGoogleRedirectIntent('signin');
+        await startGoogleSignInRedirect(auth);
+        // Navigates away — leave busy/inflight set until unload.
         return;
       }
-      trackAuthLogin('google', { surface: 'sign_in' });
+
+      const { isNewUser } = await signInWithGoogle(auth);
+      const outcome = await completeGoogleSplashAuth({
+        intent: 'signin',
+        isNewUser,
+        flow: 'popup',
+      });
+      if (outcome.kind === 'error') {
+        setError(outcome.message);
+        return;
+      }
       closeModal();
     } catch (err) {
       console.error('Google sign-in:', err);
@@ -88,13 +87,16 @@ export function useSplashSignIn(isOpen, onClose) {
         method: 'google',
         error_code: err.code,
         surface: 'sign_in',
+        auth_flow: inAppBrowser ? 'redirect' : 'popup',
       });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
-      clearSplashGoogleModalInflight();
-      setBusy(false);
+      if (!inAppBrowser) {
+        clearSplashGoogleModalInflight();
+        setBusy(false);
+      }
     }
-  }, [closeModal]);
+  }, [closeModal, inAppBrowser]);
 
   const handleEmailSignIn = useCallback(
     async (e) => {
@@ -117,7 +119,7 @@ export function useSplashSignIn(isOpen, onClose) {
         setBusy(false);
       }
     },
-    [closeModal, email, password]
+    [closeModal, email, password],
   );
 
   const handleSendPasswordResetEmail = useCallback(async () => {
@@ -161,5 +163,6 @@ export function useSplashSignIn(isOpen, onClose) {
     handleGoogle,
     handleEmailSignIn,
     handleSendPasswordResetEmail,
+    inAppBrowser,
   };
 }

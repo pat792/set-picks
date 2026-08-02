@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { consumeSplashResumeAuthModal } from '../../features/auth';
+import {
+  OpenInBrowserBanner,
+  consumeSplashResumeAuthModal,
+  useGoogleRedirectCompletion,
+} from '../../features/auth';
 import {
   SplashAuthModals,
   SplashPageShell,
@@ -16,9 +20,20 @@ let lastDeferredPoolInvitePromptAt = 0;
 
 export default function Splash() {
   const [authModal, setAuthModal] = useState(null);
+  const [redirectAuthError, setRedirectAuthError] = useState('');
   const closeModal = useCallback(() => setAuthModal(null), []);
   const openSignUpModal = useCallback(() => setAuthModal('signup'), []);
   const openSignInModal = useCallback(() => setAuthModal('signin'), []);
+  const onRedirectError = useCallback((message, intent) => {
+    setRedirectAuthError(message || '');
+    if (intent === 'signup') setAuthModal('signup');
+    else setAuthModal('signin');
+  }, []);
+  useGoogleRedirectCompletion({
+    onOpenSignIn: openSignInModal,
+    onOpenSignUp: openSignUpModal,
+    onError: onRedirectError,
+  });
   /** Invite is stored before splash mounts; seed once for modal join-context copy. */
   const [poolInvitePending] = useState(
     () => Boolean(getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()),
@@ -75,6 +90,7 @@ export default function Splash() {
 
   return (
     <ScoringRulesModalProvider>
+      <OpenInBrowserBanner />
       <SplashPageShell
         howItWorksSectionRef={howItWorksSectionRef}
         howItWorksHeadingRef={howItWorksHeadingRef}
@@ -93,6 +109,8 @@ export default function Splash() {
         onSwitchToSignIn={openSignInModal}
         onSwitchToSignUp={openSignUpModal}
         poolInvitePending={poolInvitePending}
+        redirectAuthError={redirectAuthError}
+        onClearRedirectAuthError={() => setRedirectAuthError('')}
       />
     </ScoringRulesModalProvider>
   );

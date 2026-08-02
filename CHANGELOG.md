@@ -12,6 +12,34 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.42.4] — 2026-08-01
+
+### Changed
+- **Push SPA soft-nav (#773 Phase 3)** — notification clicks on an already-open same-origin tab `postMessage` a `NAVIGATE` path into the SPA (no `client.navigate` full reload); cold open still uses `openWindow`.
+
+---
+
+## [1.42.3] — 2026-08-01
+
+### Changed
+- **Email WebView auth path (#773 Phase 2b)** — in-app browsers prefer Google `signInWithRedirect` (with splash intent restore) and show an Open-in-browser banner; popup Google remains the default elsewhere. Return URL via `persistDashboardPath` unchanged.
+
+---
+
+## [1.42.2] — 2026-08-01
+
+### Changed
+- **Email CTA cold-boot TTI (#773 Phase 2)** — dashboard hard opens warm App Check + kick `DashboardRoute` before paint; boot shell `modulepreload`s the dashboard chunk (splash untouched); Auth paints profile via `getDoc` then `onSnapshot` and shows `DashboardBootSkeleton` instead of bare “Loading…”.
+
+---
+
+## [1.42.1] — 2026-08-01
+
+### Changed
+- **Email CTA branded dashboard boot shell (#773 Phase 1)** — `dist/dashboard/index.html` now ships a generic vinyl-mark + muted nav / skeleton-card shell (no SEO body) so hard opens paint branded chrome before React mounts. `verify:seo-prerender` asserts the boot marker and keeps home prerender intact.
+
+---
+
 ## [1.42.0] — 2026-08-01
 
 ### Added

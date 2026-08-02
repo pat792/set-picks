@@ -11,6 +11,7 @@ export default function SplashSignInModal({
   onClose,
   onSwitchToSignUp,
   poolInvitePending = false,
+  seedError = '',
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,7 +27,8 @@ export default function SplashSignInModal({
     handleGoogle,
     handleEmailSignIn,
     handleSendPasswordResetEmail,
-  } = useSplashSignIn(isOpen, onClose);
+    inAppBrowser,
+  } = useSplashSignIn(isOpen, onClose, { seedError });
 
   const prependContent =
     poolInvitePending || error ? (
@@ -52,6 +54,11 @@ export default function SplashSignInModal({
       handleGoogle={handleGoogle}
       busy={busy}
       prependContent={prependContent}
+      googleFootnote={
+        inAppBrowser
+          ? 'Continues with a full-page Google sign-in (more reliable in this browser).'
+          : undefined
+      }
       closeOnBackdropClick={false}
     >
         <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">

@@ -1,4 +1,5 @@
 export { default as AuthLoadingScreen } from './ui/AuthLoadingScreen';
+export { default as OpenInBrowserBanner } from './ui/OpenInBrowserBanner';
 export { default as SplashAuthEntryCard } from './ui/SplashAuthEntryCard';
 export { default as SplashAuthModalShell } from './ui/SplashAuthModalShell';
 export { default as SplashSignInModal } from './ui/SplashSignInModal';
@@ -7,6 +8,7 @@ export { default as PasswordResetForm } from './ui/PasswordResetForm';
 export { default as ProfileSetupForm } from './ui/ProfileSetupForm';
 export { AuthProvider, useAuth } from './model/AuthContext.jsx';
 export { useAuthSession } from './model/useAuthSession';
+export { useGoogleRedirectCompletion } from './model/useGoogleRedirectCompletion';
 export { trackAuthPartialProfile } from './model/authAnalytics';
 export { usePasswordReset } from './model/usePasswordReset';
 export { usePasswordResetCompleteState } from './model/usePasswordResetCompleteState';
