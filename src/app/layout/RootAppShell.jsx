@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { isDashboardEntryPath } from '../../shared/lib/appBootPath';
+import { usePushNavigationBridge } from '../../shared/lib/usePushNavigationBridge';
 import { useServiceWorkerUpdate } from '../../shared/lib/useServiceWorkerUpdate';
 import AppBackground from '../../shared/ui/AppBackground';
 import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
@@ -25,6 +26,7 @@ export default function RootAppShell() {
   const { pathname } = useLocation();
   const transitionKey = shellTransitionKey(pathname);
   const { updateAvailable, applyUpdate } = useServiceWorkerUpdate();
+  usePushNavigationBridge();
 
   return (
     <>
