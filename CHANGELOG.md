@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.44.2] — 2026-08-03
+
+### Changed
+- **Invite HTML + FCM SW (#732)** — `api/invite` dynamic-imports `firebase-admin` only for crawler OG lookups; defer FCM service-worker registration on public cold-open routes until idle.
+
+---
+
 ## [1.44.1] — 2026-08-03
 
 ### Changed

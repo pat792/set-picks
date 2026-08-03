@@ -9,6 +9,7 @@ import ScrollToTop from './app/ScrollToTop.jsx'
 import { AuthProvider } from './features/auth'
 import {
   isDashboardEntryPath,
+  isPublicColdOpenPath,
   shouldWarmAppCheckOnBoot,
 } from './shared/lib/appBootPath'
 import { initGa4 } from './shared/lib/ga4'
@@ -32,6 +33,25 @@ if (shouldWarmAppCheckOnBoot(bootPath)) {
 }
 if (isDashboardEntryPath(bootPath)) {
   void import('./app/routes/DashboardRoute.jsx')
+}
+
+/**
+ * FCM SW: immediate on app surfaces; idle-defer on public cold-open (#732).
+ * `getMessagingClient` still registers on demand for push opt-in.
+ */
+function scheduleMessagingServiceWorker(pathname) {
+  if (isPublicColdOpenPath(pathname)) {
+    const start = () => {
+      void registerMessagingServiceWorker()
+    }
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(start, { timeout: 5000 })
+    } else {
+      window.setTimeout(start, 2500)
+    }
+    return
+  }
+  void registerMessagingServiceWorker()
 }
 
 // Shared client for React Query caches (#243 profile/tour standings, #507
@@ -66,4 +86,4 @@ root.render(
 )
 
 initializeAppCheckDeferred()
-registerMessagingServiceWorker()
+scheduleMessagingServiceWorker(bootPath)
