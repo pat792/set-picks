@@ -49,6 +49,11 @@ const {
 const { applyRevertRollupForShow } = require("./revertRollupCore");
 const { deliverSphere2026TourRecapInbox } = require("./sphereTourRecapDelivery");
 const { deliverMarketingSummerTour2026Launch } = require("./marketingBatchDelivery");
+const { deliverMarketingSummer2026AlmostEnd } = require("./marketingAlmostEndDelivery");
+const { claimMarketingRun, finishMarketingRun } = require("./marketingRunLock");
+const {
+  CAMPAIGN_ID: ALMOST_END_CAMPAIGN_ID,
+} = require("./marketingAlmostEndCore");
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
 const { applyLockPicksForShowNow } = require("./picksLockOverride");
 const { runAccountDeletionForCaller } = require("./accountDelete");
@@ -513,6 +518,91 @@ exports.deliverMarketingSummerTour2026Launch = onCall(
       resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET,
       logger,
     });
+  }
+);
+
+/**
+ * Admin-only batch — Summer 2026 almost-end (email players + forced inbox all users).
+ * Defaults to dryRun. Pass dryRun: false to send.
+ */
+exports.deliverMarketingSummer2026AlmostEnd = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    invoker: "public",
+    enforceAppCheck: false,
+    secrets: commsDeliverySecrets,
+  },
+  async (request) => {
+    assertAdminClaim(request);
+    const dryRun = request.data?.dryRun !== false;
+    const forceResend = request.data?.forceResend === true;
+    const onlyUids = Array.isArray(request.data?.onlyUids)
+      ? request.data.onlyUids.map((u) => String(u).trim()).filter(Boolean)
+      : undefined;
+    return deliverMarketingSummer2026AlmostEnd({
+      db,
+      admin,
+      dryRun,
+      forceResend,
+      onlyUids,
+      resendApiKey: process.env.RESEND_API_KEY,
+      resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET,
+      logger,
+    });
+  }
+);
+
+/**
+ * One-shot scheduled send — Summer 2026 almost-end at 08:00 America/Denver on 2026-08-03.
+ * Uses Firestore run-lock `comms_marketing_runs/summer_2026_almost_end`.
+ */
+exports.scheduledMarketingSummer2026AlmostEnd = onSchedule(
+  {
+    schedule: "0 8 3 8 *",
+    timeZone: "America/Denver",
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: commsDeliverySecrets,
+  },
+  async () => {
+    const runId = ALMOST_END_CAMPAIGN_ID;
+    const targetDate = "2026-08-03";
+    try {
+      const claim = await claimMarketingRun(db, admin, runId, { targetDate });
+      if (!claim.claimed) {
+        logger.info("scheduledMarketingSummer2026AlmostEnd skipped", claim);
+        return null;
+      }
+      const result = await deliverMarketingSummer2026AlmostEnd({
+        db,
+        admin,
+        dryRun: false,
+        forceResend: false,
+        resendApiKey: process.env.RESEND_API_KEY,
+        resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET,
+        logger,
+      });
+      await finishMarketingRun(db, admin, runId, result.ok !== false ? "completed" : "failed", {
+        resultSummary: {
+          ok: result.ok,
+          inboxDelivered: result.inboxDelivered,
+          emailCohortSize: result.emailCohortSize,
+        },
+      });
+      logger.info("scheduledMarketingSummer2026AlmostEnd complete", {
+        ok: result.ok,
+        inboxDelivered: result.inboxDelivered,
+        emailCohortSize: result.emailCohortSize,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("scheduledMarketingSummer2026AlmostEnd failed", { msg, err: e });
+      try {
+        await finishMarketingRun(db, admin, runId, "failed", { error: msg });
+      } catch (finishErr) {
+        logger.error("failed to mark almost-end run failed", { finishErr });
+      }
+    }
+    return null;
   }
 );
 

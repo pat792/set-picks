@@ -79,6 +79,7 @@ function recipientAllowsChannel(userData, spec, channel) {
  *   bypassDailyCap?: boolean,
  *   fatigueCap?: number,
  *   variant?: string,
+ *   channels?: string[],
  *   logger?: { info?: Function, warn?: Function, error?: Function },
  *   sendGa4Delivered?: typeof sendCommsDeliveredEvent,
  * }} params
@@ -94,6 +95,7 @@ async function deliverCommsTrigger({
   bypassDailyCap = false,
   fatigueCap = DEFAULT_FATIGUE_CAP,
   variant = "control",
+  channels: channelFilter,
   logger,
   sendGa4Delivered = sendCommsDeliveredEvent,
 }) {
@@ -101,6 +103,11 @@ async function deliverCommsTrigger({
   if (!spec) {
     return { ok: false, reason: "unknown_trigger", triggerId };
   }
+
+  const activeChannels =
+    Array.isArray(channelFilter) && channelFilter.length > 0
+      ? spec.channels.filter((c) => channelFilter.includes(c))
+      : spec.channels;
 
   const summary = {
     ok: true,
@@ -171,7 +178,7 @@ async function deliverCommsTrigger({
 
     const deliveredChannels = [];
     const channelResults = {};
-    for (const channel of spec.channels) {
+    for (const channel of activeChannels) {
       const worker = workers[channel];
       if (typeof worker !== "function") {
         channelResults[channel] = { ok: false, skipReason: "no_worker" };
@@ -238,7 +245,9 @@ async function deliverCommsTrigger({
       summary.results.push({
         uid,
         status: dryRun ? "would_deliver" : "delivered",
-        channels: dryRun ? spec.channels.filter((c) => channelResults[c]?.ok) : deliveredChannels,
+        channels: dryRun
+          ? activeChannels.filter((c) => channelResults[c]?.ok)
+          : deliveredChannels,
         dedupId,
       });
     } else {

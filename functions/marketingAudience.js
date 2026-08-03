@@ -119,8 +119,52 @@ async function resolveSummerTour2026LaunchAudience(db) {
   return [...byUid.entries()].map(([uid, segment]) => ({ uid, segment }));
 }
 
+const {
+  isExcludedQaUser,
+  seasonStatsFromUser,
+} = require("./marketingAlmostEndCore");
+
+/**
+ * Summer 2026 almost-end — email cohort: players with ≥1 Summer Tour show.
+ *
+ * @param {import("firebase-admin").firestore.Firestore} db
+ * @returns {Promise<Array<{ uid: string }>>}
+ */
+async function resolveSummer2026AlmostEndEmailAudience(db) {
+  const usersSnap = await db.collection("users").get();
+  /** @type {Array<{ uid: string }>} */
+  const out = [];
+  for (const doc of usersSnap.docs) {
+    const data = doc.data() || {};
+    if (isExcludedQaUser(doc.id, data)) continue;
+    if (!seasonStatsFromUser(data)) continue;
+    out.push({ uid: doc.id });
+  }
+  return out;
+}
+
+/**
+ * Summer 2026 almost-end — inbox cohort: all users (QA excluded). No play filter.
+ *
+ * @param {import("firebase-admin").firestore.Firestore} db
+ * @returns {Promise<Array<{ uid: string }>>}
+ */
+async function resolveSummer2026AlmostEndInboxAudience(db) {
+  const usersSnap = await db.collection("users").get();
+  /** @type {Array<{ uid: string }>} */
+  const out = [];
+  for (const doc of usersSnap.docs) {
+    const data = doc.data() || {};
+    if (isExcludedQaUser(doc.id, data)) continue;
+    out.push({ uid: doc.id });
+  }
+  return out;
+}
+
 module.exports = {
   SPHERE_2026_INAUGURAL_SHOW_DATES,
   SPHERE_GO_LIVE_ISO,
   resolveSummerTour2026LaunchAudience,
+  resolveSummer2026AlmostEndEmailAudience,
+  resolveSummer2026AlmostEndInboxAudience,
 };

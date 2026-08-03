@@ -1,10 +1,15 @@
 /**
- * Marketing email template renderers (#468).
+ * Marketing email template renderers (#468 launch + almost-end).
  *
- * Long-form React Email HTML is pre-built in `emails/renderSummerTour2026Launch.cjs`.
+ * Long-form React Email HTML is pre-built under `functions/emails/*.cjs`.
  */
 
 "use strict";
+
+const {
+  DEFAULT_SUBJECT: ALMOST_END_SUBJECT,
+  TEMPLATE_ID: ALMOST_END_TEMPLATE_ID,
+} = require("./marketingAlmostEndCore");
 
 const DEFAULT_SUBJECT = "Summer Tour's almost here — bring your crew →";
 
@@ -15,6 +20,11 @@ const DEFAULT_SUBJECT = "Summer Tour's almost here — bring your crew →";
 function loadRenderSummerTour2026LaunchEmail() {
   // eslint-disable-next-line global-require
   return require("./emails/renderSummerTour2026Launch.cjs").renderSummerTour2026LaunchEmail;
+}
+
+function loadRenderSummer2026AlmostEndEmail() {
+  // eslint-disable-next-line global-require
+  return require("./emails/renderSummer2026AlmostEnd.cjs").renderSummer2026AlmostEndEmail;
 }
 
 /**
@@ -49,7 +59,55 @@ async function buildSummerTour2026LaunchChannels(payload = {}) {
   };
 }
 
+/**
+ * @param {Record<string, unknown>} payload
+ * @returns {Promise<{
+ *   inApp: { templateId: string, payload: Record<string, unknown> },
+ *   push: { title: string, body: string },
+ *   email: { subject: string, text: string, html: string, ctaUrl?: string }
+ * }>}
+ */
+async function buildSummer2026AlmostEndChannels(payload = {}) {
+  const renderSummer2026AlmostEndEmail = loadRenderSummer2026AlmostEndEmail();
+  const withNonce = {
+    ...payload,
+    messageNonce:
+      typeof payload.messageNonce === "string" && payload.messageNonce.trim()
+        ? payload.messageNonce.trim()
+        : `ae${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`,
+  };
+  const { html, text } = await renderSummer2026AlmostEndEmail(withNonce);
+  const subject =
+    typeof withNonce.subject === "string" && withNonce.subject.trim()
+      ? withNonce.subject.trim()
+      : ALMOST_END_SUBJECT;
+  const ctaUrl =
+    typeof withNonce.standingsUrl === "string" && withNonce.standingsUrl.trim()
+      ? withNonce.standingsUrl.trim()
+      : typeof withNonce.shareUrl === "string" && withNonce.shareUrl.trim()
+        ? withNonce.shareUrl.trim()
+        : undefined;
+
+  return {
+    inApp: {
+      templateId: ALMOST_END_TEMPLATE_ID,
+      payload: withNonce,
+    },
+    push: {
+      title: "Almost tour end",
+      body: "Fenway wrapped · Dick's still ahead — your tape is inside.",
+    },
+    email: {
+      subject,
+      text,
+      html,
+      ...(ctaUrl ? { ctaUrl } : {}),
+    },
+  };
+}
+
 module.exports = {
   buildSummerTour2026LaunchChannels,
+  buildSummer2026AlmostEndChannels,
   DEFAULT_SUBJECT,
 };

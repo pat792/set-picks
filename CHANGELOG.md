@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.43.0] — 2026-08-02
+
+### Added
+- **Summer 2026 almost-end marketing batch** — trigger `marketing_summer_2026_almost_end` / template `summer-2026-almost-end`: email to Summer Tour players (lifecycle prefs), forced in-app inbox for all users (no prefs), React Email template, admin callable `deliverMarketingSummer2026AlmostEnd`, CLI, and one-shot scheduler `scheduledMarketingSummer2026AlmostEnd` (2026-08-03 08:00 America/Denver) with Firestore run-lock.
+
+### Changed
+- `deliverCommsTrigger` accepts optional `channels` filter so multi-channel catalog rows can dispatch a subset (email-only for almost-end while inbox uses a prefs-bypass fanout).
+
+---
+
 ## [1.42.4] — 2026-08-01
 
 ### Changed

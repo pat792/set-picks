@@ -2,7 +2,7 @@ import { Text } from "@react-email/components";
 
 const titleStyle = {
   margin: "0 0 4px",
-  fontSize: "15px",
+  fontSize: "18px",
   fontWeight: 700,
   color: "#1a1a2e",
   lineHeight: 1.4,
@@ -10,7 +10,7 @@ const titleStyle = {
 
 const bodyStyle = {
   margin: "0 0 16px",
-  fontSize: "15px",
+  fontSize: "18px",
   color: "#333355",
   lineHeight: 1.55,
 };

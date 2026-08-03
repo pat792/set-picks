@@ -29,6 +29,7 @@ Label rule: **never promise a surface the href does not deliver.** Inbox cards s
 | `show-recap` | `/dashboard/standings#self-recap` | Rare (email folded into morning send #451) |
 | `tour-rankings_daily` | `/dashboard/picks` | Catalog: “Make picks for next show”; includes invite share block when `invite_url` present (#583) |
 | `summer-tour-2026-launch` | invite `shareUrl` / `invite_url` | Pool `/join/{code}?from={handle}` or site `/invite/{handle}` + UTMs (#583) |
+| `summer-2026-almost-end` | `/dashboard/standings` (invite / check it out) | Players: invite CTA; no-play: Standings CTA + UTMs `summer_2026_almost_end` |
 | `picks-lock-reminder` | `/dashboard/picks` | |
 
 ## Push deep links

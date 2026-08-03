@@ -210,10 +210,19 @@ async function deliverMarketingSummerTour2026Launch({
   };
 }
 
+const {
+  deliverMarketingSummer2026AlmostEnd,
+  TRIGGER_ID: ALMOST_END_TRIGGER_ID,
+  CAMPAIGN_ID: ALMOST_END_CAMPAIGN_ID,
+} = require("./marketingAlmostEndDelivery");
+
 module.exports = {
   TRIGGER_ID,
   CAMPAIGN_ID,
   deliverMarketingSummerTour2026Launch,
   buildEmailPayload,
   buildSummerTour2026LaunchChannels,
+  deliverMarketingSummer2026AlmostEnd,
+  ALMOST_END_TRIGGER_ID,
+  ALMOST_END_CAMPAIGN_ID,
 };

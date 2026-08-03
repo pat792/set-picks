@@ -38,7 +38,7 @@ const { buildOneClickUnsubscribeUrl } = require("./commsEmailUnsubscribe");
 const { reserveEmailDailyCapSlot } = require("./commsEmailDailyCap");
 const { getTriggerSpec } = require("./commsCatalog");
 const {
-  buildEmailWordmarkUrl,
+  buildEmailWordmarkHeroHtml,
   EMAIL_BRAND_PRIMARY,
   EMAIL_BRAND_PRIMARY_STRONG,
   EMAIL_BRAND_BG_DEEP,
@@ -49,9 +49,6 @@ const { buildCommsEmailHeaderHtml } = require("./comms/emailCommsHeader.cjs");
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
 const UNSUB_PATH = "/dashboard/profile/notifications";
-/** ~96% of the 416px inner shell width; height tracks email-gradient-wordmark.svg (~3:1). */
-const EMAIL_SHELL_WORDMARK_WIDTH_PX = 400;
-const EMAIL_SHELL_WORDMARK_HEIGHT_PX = 132;
 const EMAIL_SHELL_ACCENT_BORDER_PX = 2;
 
 /**
@@ -278,10 +275,7 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
   const buttonLabel = typeof ctaLabel === "string" && ctaLabel.trim() ? ctaLabel.trim() : "Open Setlist Pick'em";
   const signOffLine = typeof signOff === "string" ? signOff.trim() : "";
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
-  const resolvedWordmarkSrc =
-    typeof wordmarkSrc === "string" && wordmarkSrc.trim()
-      ? wordmarkSrc.trim()
-      : buildEmailWordmarkUrl(base);
+  const wordmarkHeroHtml = buildEmailWordmarkHeroHtml(base, { wordmarkSrc });
   const paragraphs = bodyTextToHtmlParagraphs(bodyText, { signOff: signOffLine });
   const headerHtml = buildCommsEmailHeaderHtml(header);
   const signOffHtml = signOffLine
@@ -289,16 +283,6 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
     : "";
   const inviteHtml =
     typeof inviteBlockHtml === "string" && inviteBlockHtml.trim() ? inviteBlockHtml.trim() : "";
-  const wordmarkBlockStyle = [
-    `width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px`,
-    "max-width:100%",
-    `height:${EMAIL_SHELL_WORDMARK_HEIGHT_PX}px`,
-    "margin:0 auto",
-    `background-image:url('${escapeHtml(resolvedWordmarkSrc)}')`,
-    "background-size:contain",
-    "background-repeat:no-repeat",
-    "background-position:center",
-  ].join(";");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -315,12 +299,7 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;border-top:${EMAIL_SHELL_ACCENT_BORDER_PX}px solid ${EMAIL_BRAND_PRIMARY};">
             <tr>
               <td style="padding:16px 24px 8px 24px;text-align:center;">
-                <!--[if mso]>
-                <img src="${escapeHtml(resolvedWordmarkSrc)}" width="${EMAIL_SHELL_WORDMARK_WIDTH_PX}" height="${EMAIL_SHELL_WORDMARK_HEIGHT_PX}" alt="Setlist Pick'em" style="display:block;margin:0 auto;max-width:${EMAIL_SHELL_WORDMARK_WIDTH_PX}px;width:100%;height:auto;border:0;" />
-                <![endif]-->
-                <!--[if !mso]><!-->
-                <div role="presentation" aria-hidden="true" style="${wordmarkBlockStyle}"></div>
-                <!--<![endif]-->
+                ${wordmarkHeroHtml}
               </td>
             </tr>
             <tr>
