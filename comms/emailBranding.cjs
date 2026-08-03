@@ -4,20 +4,20 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Email branding assets — two layers, do not conflate:
+ * Email branding assets — do not conflate layers:
  *
- * 1. **In-body header** (`EMAIL_IN_BODY_LOGO_PATH`) — large vinyl mark inside the opened
- *    email HTML. Controlled by `buildEmailInBodyLogoUrl()` in templates.
+ * 1. **In-body header hero** — horizontal gradient wordmark at
+ *    `/branding/email-gradient-wordmark.png` via {@link buildEmailWordmarkHeroHtml}.
+ *    CSS background (not a linked `<img>`) so clients cannot open the raw PNG on tap;
+ *    Outlook gets a conditional unlinked `<img>` fallback. Used by service shell +
+ *    marketing `MarketingLayout`.
  *
  * 2. **Inbox sender badge** — small avatar beside the sender name in Gmail/Apple Mail list
- *    views. NOT driven by the HTML `<img>`. Requires BIMI + DMARC (primary) and/or domain
+ *    views. NOT driven by the HTML hero. Requires BIMI + DMARC (primary) and/or domain
  *    favicon at the From host (fallback). See docs/comms-triggers/EMAIL_INBOX_BADGE.md (#498).
  *
- * 3. **Service shell wordmark** — raster PNG at `/branding/email-gradient-wordmark.png`
- *    (hosted HTTPS URL, same pattern as marketing `buildEmailLogoUrl`). Asset must live in
- *    `public/branding/` on the deployed site. Do not use CID attachments — Gmail exposes
- *    those as downloadable files. Render as a CSS background (not `<img>`) so clients
- *    cannot open the raw PNG on tap; Outlook gets a conditional unlinked `<img>` fallback.
+ * 3. **Legacy vinyl path** (`EMAIL_IN_BODY_LOGO_PATH` / `buildEmailInBodyLogoUrl`) — kept for
+ *    call-site stability; do not use for new email headers.
  */
 const EMAIL_IN_BODY_LOGO_PATH = '/favicon/web-app-manifest-512x512.png';
 /** Public CDN path — deploy via Vercel (`public/branding/`). */
@@ -25,7 +25,10 @@ const EMAIL_WORDMARK_GRADIENT_PATH = '/branding/email-gradient-wordmark.png';
 const EMAIL_WORDMARK_PNG_FILE = 'email-gradient-wordmark.png';
 /** Resend inline attachment id — referenced as `cid:…` in the HTML shell. */
 const EMAIL_WORDMARK_INLINE_CONTENT_ID = 'email-gradient-wordmark';
-/** design.md brand tokens — service comms HTML shell only. */
+/** ~96% of the 416px inner shell width; height tracks email-gradient-wordmark.svg (~3:1). */
+const EMAIL_SHELL_WORDMARK_WIDTH_PX = 400;
+const EMAIL_SHELL_WORDMARK_HEIGHT_PX = 132;
+/** design.md brand tokens — service / marketing email shells. */
 const EMAIL_BRAND_PRIMARY = '#2dd4bf';
 const EMAIL_BRAND_PRIMARY_STRONG = '#14b8a6';
 const EMAIL_BRAND_BG_DEEP = '#020617';
@@ -59,6 +62,54 @@ function buildEmailLogoUrl(siteUrl = DEFAULT_SITE_URL) {
 function buildEmailWordmarkUrl(siteUrl = DEFAULT_SITE_URL) {
   const base = String(siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, '');
   return `${base}${EMAIL_WORDMARK_GRADIENT_PATH}`;
+}
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeHtmlAttr(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Non-clickable horizontal brand hero for email headers (service + marketing).
+ * CSS background for modern clients; MSO conditional unlinked `<img>` fallback.
+ *
+ * @param {string} [siteUrl]
+ * @param {{ wordmarkSrc?: string }} [opts]
+ * @returns {string} HTML fragment (no outer wrapper)
+ */
+function buildEmailWordmarkHeroHtml(siteUrl = DEFAULT_SITE_URL, opts = {}) {
+  const resolved =
+    typeof opts.wordmarkSrc === 'string' && opts.wordmarkSrc.trim()
+      ? opts.wordmarkSrc.trim()
+      : buildEmailWordmarkUrl(siteUrl);
+  const src = escapeHtmlAttr(resolved);
+  const w = EMAIL_SHELL_WORDMARK_WIDTH_PX;
+  const h = EMAIL_SHELL_WORDMARK_HEIGHT_PX;
+  const blockStyle = [
+    `width:${w}px`,
+    'max-width:100%',
+    `height:${h}px`,
+    'margin:0 auto',
+    `background-image:url('${src}')`,
+    'background-size:contain',
+    'background-repeat:no-repeat',
+    'background-position:center',
+  ].join(';');
+
+  return `<!--[if mso]>
+<img src="${src}" width="${w}" height="${h}" alt="Setlist Pick'em" style="display:block;margin:0 auto;max-width:${w}px;width:100%;height:auto;border:0;" />
+<![endif]-->
+<!--[if !mso]><!-->
+<div role="presentation" aria-hidden="true" style="${blockStyle}"></div>
+<!--<![endif]-->`;
 }
 
 /**
@@ -121,6 +172,8 @@ module.exports = {
   EMAIL_IN_BODY_LOGO_PATH,
   EMAIL_WORDMARK_GRADIENT_PATH,
   EMAIL_WORDMARK_INLINE_CONTENT_ID,
+  EMAIL_SHELL_WORDMARK_WIDTH_PX,
+  EMAIL_SHELL_WORDMARK_HEIGHT_PX,
   EMAIL_BRAND_PRIMARY,
   EMAIL_BRAND_PRIMARY_STRONG,
   EMAIL_BRAND_BG_DEEP,
@@ -128,6 +181,7 @@ module.exports = {
   buildEmailInBodyLogoUrl,
   buildEmailLogoUrl,
   buildEmailWordmarkUrl,
+  buildEmailWordmarkHeroHtml,
   buildEmailWordmarkCidSrc,
   buildEmailWordmarkResendAttachment,
   formatWordmarkAttachmentForResendApi,

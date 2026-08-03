@@ -19,6 +19,7 @@ const EXPECTED_TEMPLATE_IDS = [
   'picks-lock-reminder',
   'tour-engagement-reminder',
   'sphere-2026-inaugural',
+  'summer-2026-almost-end',
 ];
 
 describe('comms template registry', () => {
