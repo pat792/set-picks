@@ -123,6 +123,17 @@ const TRIGGER_SPECS = {
     family: "lifecycle",
     priority: "P1",
   },
+  // inApp is forced for all users via Sphere-style fanout (no prefs gate).
+  // Email uses deliverCommsTrigger with channelFilter=["email"] + lifecycle prefs.
+  marketing_summer_2026_almost_end: {
+    triggerId: "marketing_summer_2026_almost_end",
+    templateId: "summer-2026-almost-end",
+    channels: ["email", "inApp"],
+    prefKeys: ["lifecycle"],
+    dedupKey: "marketing:{campaignId}:{uid}",
+    family: "lifecycle",
+    priority: "P1",
+  },
 };
 
 /**

@@ -468,6 +468,17 @@ async function renderCommsTemplate(templateId, payload = {}) {
     };
   }
 
+  if (templateId === "summer-2026-almost-end") {
+    // eslint-disable-next-line global-require
+    const { buildSummer2026AlmostEndChannels } = require("./marketingCommsTemplates");
+    const channels = await buildSummer2026AlmostEndChannels(payload);
+    return {
+      inApp: channels.inApp || { templateId, payload },
+      push: channels.push,
+      email: channels.email,
+    };
+  }
+
   const builder = BUILDERS[templateId];
   const channels = builder
     ? builder(payload)
@@ -494,6 +505,7 @@ async function renderCommsTemplate(templateId, payload = {}) {
 
 function hasTemplate(templateId) {
   if (templateId === "summer-tour-2026-launch") return true;
+  if (templateId === "summer-2026-almost-end") return true;
   return Object.prototype.hasOwnProperty.call(BUILDERS, templateId);
 }
 

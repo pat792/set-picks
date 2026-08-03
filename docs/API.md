@@ -274,6 +274,16 @@ Batch marketing email for Summer Tour 2026 pre-opener. Resolves Sphere alum ∪ 
 
 CLI: `functions/scripts/deliverMarketingSummerTour2026Launch.js` (`--execute`, `--uid <uid>`, `--force-resend`). Secrets: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` (Secret Manager on the callable).
 
+### 2.2a-ii `deliverMarketingSummer2026AlmostEnd` + `scheduledMarketingSummer2026AlmostEnd` (admin / one-shot)
+
+Mid-tour almost-end recap (pre–Dick’s). **Email** → Summer Tour players (`seasonStats["2026 Summer Tour"].shows ≥ 1`, lifecycle prefs). **In-app** → all users (QA handles excluded), **no prefs gate**, fixed inbox doc `marketing_summer_2026_almost_end`. Non-players get the `noPlay` copy branch (inbox only).
+
+**Callable request:** same shape as §2.2a (`dryRun` default true, `forceResend`, `onlyUids`).
+
+**Scheduler:** `scheduledMarketingSummer2026AlmostEnd` — cron `0 8 3 8 *` `America/Denver` (2026-08-03 08:00 MT / 10:00 ET). Firestore run-lock `comms_marketing_runs/summer_2026_almost_end` (`pending` → `running` → `completed` / `cancelled` / `failed`). Abort before send: set status `cancelled`.
+
+CLI: `functions/scripts/deliverMarketingSummer2026AlmostEnd.js` (`npm run comms:deliver-summer-2026-almost-end` in `functions/`). Email channel uses `deliverCommsTrigger` with `channels: ["email"]`; inbox is a Sphere-style Admin SDK fanout.
+
 ### 2.2b `lockPicksForShowNow` (admin-only, #522)
 
 One-click War Room escape hatch: stamps `show_lock_state/{showDate}` so clients lock picks immediately. Idempotent; no setlist or scoring side effects.
@@ -447,7 +457,7 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger`, `deliverMarketingSummerTour2026Launch`, and comms adapters |
+| `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger`, `deliverMarketingSummerTour2026Launch`, `deliverMarketingSummer2026AlmostEnd`, `scheduledMarketingSummer2026AlmostEnd`, and comms adapters |
 | `RESEND_WEBHOOK_SECRET` | For email deliverability | Resend/Svix webhook signing secret (`whsec_…`); also signs one-click unsubscribe URLs |
 | `GA4_MEASUREMENT_ID` | For server `comms_delivered` MP | Same `G-…` id as `VITE_GA_MEASUREMENT_ID`; Functions `defineString` / `.env.set-picks` |
 | `GA4_MP_API_SECRET` | For server `comms_delivered` MP | GA4 Measurement Protocol API secret (Secret Manager); bound on all `deliverCommsTrigger` hosts; unset → no-op |

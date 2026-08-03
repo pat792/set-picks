@@ -549,6 +549,37 @@ Founder letter (Pat) with feature blocks + primary CTA (share with friends via `
 
 ---
 
+## 11 — `marketing_summer_2026_almost_end`
+
+| Field | Value |
+|-------|-------|
+| **Status** | `shipped` |
+| **Automation** | `batch` — one-shot `scheduledMarketingSummer2026AlmostEnd` (2026-08-03 08:00 America/Denver) + admin callable / CLI |
+| **Event** | Manual / scheduled execute via `deliverMarketingSummer2026AlmostEnd` |
+| **Channels** | `email` + `inApp` |
+| **Audience** | **Email:** Summer Tour players (`seasonStats["2026 Summer Tour"].shows ≥ 1`). **In-app:** all users. Both exclude QA handles (`QATester`, `MrPickPhive`). |
+| **Prefs** | Email honors `lifecycle`. **In-app ignores prefs** (Sphere-style forced fanout; fixed inbox doc id `marketing_summer_2026_almost_end`). |
+| **Dedup** | Email: `marketing:{campaignId}:{uid}` (`campaignId` = `summer_2026_almost_end`). Inbox: fixed doc id. |
+| **Implementation** | `functions/marketingBatchDelivery.js` · React Email `Summer2026AlmostEnd.jsx` |
+| **Editorial** | `content/comms/tours/summer-2026-almost-end.md` |
+
+#### Variables used
+
+`{{greeting_name}}`, `{{branch}}`, `{{rank}}`, `{{points}}`, `{{wins}}`, `{{showsPlayed}}`, `{{avg_points}}`, `{{batting_avg}}`, `{{participantCount}}`, Top 5 snapshot, invite fields
+
+#### Template — Email (full)
+
+**Subject:** `Between the Past and Future, Where We Drift in Time: An almost Tour End Recap`  
+**Preview:** `18 shows in the books · Fenway wrapped · Dick's still ahead · your (almost) tour-end tape inside`
+
+Mid-tour recap (Pat) with tour tape, Top 5 table, personalized rank branch, invite ask (players), feature callouts. Non-players get the `noPlay` branch (inbox-only for non-players).
+
+#### Template — In-app
+
+Abbreviated recap + Standings / invite CTA. Forced to every inbox (no play filter, no prefs).
+
+---
+
 ## System triggers
 
 ### `push_canary`

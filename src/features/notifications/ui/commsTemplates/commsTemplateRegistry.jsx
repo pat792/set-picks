@@ -704,6 +704,53 @@ export const COMMS_TEMPLATE_REGISTRY = {
     ],
   },
 
+  'summer-2026-almost-end': {
+    triggerId: 'marketing_summer_2026_almost_end',
+    displayName: 'Summer 2026 almost-end',
+    build: (p) => {
+      const tape =
+        typeof p.personalTape === 'string' && p.personalTape.trim()
+          ? p.personalTape.trim()
+          : "Fenway wrapped · Dick's still ahead — your (almost) tour-end tape is ready.";
+      const invite = p.showInvite === true || (p.branch && p.branch !== 'noPlay');
+      return {
+        icon: Trophy,
+        accentClassName: 'text-teal-300',
+        eyebrow: 'Summer Tour 2026',
+        title: 'An almost tour-end recap',
+        paragraphs: [
+          `${handleOf(p)}, ${tape.charAt(0).toLowerCase()}${tape.slice(1)}`,
+          "Three more nights at Dick's — rest up, study the gaps, and don't sleep on the wildcard.",
+        ],
+        cta: invite
+          ? { label: 'Invite a friend from Standings', href: '/dashboard/standings' }
+          : { label: 'Check it out on Standings', href: '/dashboard/standings' },
+      };
+    },
+    samples: [
+      {
+        name: 'Top 5 player',
+        payload: {
+          handle: 'Rivertranced',
+          branch: 'rank2to5',
+          showInvite: true,
+          personalTape:
+            "You're in the Top 5 at #4 — 270 points, 1 win, 15.9 pts/show, picking avg .353 over 17 shows. One hot Dick's run (or a rival cold streak) and this whole picture redraws.",
+        },
+      },
+      {
+        name: 'No plays yet',
+        payload: {
+          handle: 'NewPicker',
+          branch: 'noPlay',
+          showInvite: false,
+          personalTape:
+            "You've been in the mix — just not on the board yet this tour. Three nights at Dick's is a clean slate.",
+        },
+      },
+    ],
+  },
+
   [SPHERE_2026_RECAP_ID]: {
     triggerId: 'tour_recap_sphere_2026',
     displayName: "Sphere 2026 recap",

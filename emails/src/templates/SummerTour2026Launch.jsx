@@ -3,42 +3,13 @@ import { CommsEmailHeader } from "../components/CommsEmailHeader.jsx";
 import { FeatureBlock } from "../components/FeatureBlock.jsx";
 import { InviteShareBlock } from "../components/InviteShareBlock.jsx";
 import { MarketingLayout } from "../components/MarketingLayout.jsx";
-
-const greetingStyle = {
-  margin: "0 0 16px",
-  fontSize: "16px",
-  fontWeight: 700,
-  color: "#1a1a2e",
-};
-
-const paragraphStyle = {
-  margin: "0 0 16px",
-  fontSize: "15px",
-  lineHeight: 1.6,
-  color: "#1a1a2e",
-};
-
-const sectionHeadingStyle = {
-  margin: "24px 0 12px",
-  fontSize: "16px",
-  fontWeight: 800,
-  color: "#1a1a2e",
-};
-
-const signoffStyle = {
-  margin: "24px 0 8px",
-  fontSize: "15px",
-  lineHeight: 1.6,
-  color: "#1a1a2e",
-};
-
-const inlineLinkStyle = {
-  display: "block",
-  margin: "-8px 0 16px",
-  fontSize: "14px",
-  color: "#7c3aed",
-  textDecoration: "underline",
-};
+import {
+  greetingStyle,
+  inlineLinkStyle,
+  paragraphStyle,
+  sectionHeadingStyle,
+  signoffStyle,
+} from "../styles/marketingEmailText.js";
 
 /**
  * Marketing email #1 — Summer Tour 2026 pre-opener launch (#468).
@@ -59,6 +30,7 @@ export function SummerTour2026Launch({
   openerLabel = "Tuesday, July 7",
   siteUrl = "https://www.setlistpickem.com",
   settingsUrl,
+  messageNonce,
   /** Tour / run label for header eyebrow — e.g. Summer Tour 2026, Fall Tour, Dick's. */
   tourLabel = "Summer Tour 2026",
   /** Header title under eyebrow. */
@@ -83,6 +55,7 @@ export function SummerTour2026Launch({
       siteUrl={siteUrl}
       settingsUrl={settingsUrl}
       preheader={`Bring your crew → Summer Tour starts ${openerLabel}.`}
+      messageNonce={messageNonce}
     >
       <CommsEmailHeader
         icon="🎸"

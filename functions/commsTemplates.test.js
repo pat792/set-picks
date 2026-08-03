@@ -16,13 +16,24 @@ test("every catalog template renders push + email + inApp payloads", async () =>
             siteUrl: "https://www.setlistpickem.com",
             settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
           }
+        : spec.templateId === "summer-2026-almost-end"
+          ? {
+              greetingName: "RiverTranced",
+              personalTape: "You're #2 with 320 points.",
+              showInvite: true,
+              siteUrl: "https://www.setlistpickem.com",
+              standingsUrl: "https://www.setlistpickem.com/dashboard/standings",
+            }
         : { handle: "RiverTranced" };
     const out = await renderCommsTemplate(spec.templateId, payload);
     assert.equal(out.inApp.templateId, spec.templateId, `${spec.templateId} inApp`);
     assert.ok(out.push.title, `${spec.templateId} push.title`);
     assert.ok(out.push.body, `${spec.templateId} push.body`);
     assert.ok(out.email.subject, `${spec.templateId} email.subject`);
-    if (spec.templateId === "summer-tour-2026-launch") {
+    if (
+      spec.templateId === "summer-tour-2026-launch" ||
+      spec.templateId === "summer-2026-almost-end"
+    ) {
       assert.ok(out.email.html, `${spec.templateId} email.html`);
       assert.match(out.email.text, /RiverTranced|Rivertranced/i, `${spec.templateId} personalized text`);
     } else {

@@ -2,15 +2,15 @@ import { Link, Text } from "@react-email/components";
 
 const introStyle = {
   margin: "24px 0 8px",
-  fontSize: "15px",
+  fontSize: "18px",
   fontWeight: 400,
-  lineHeight: 1.5,
+  lineHeight: 1.55,
   color: "#1a1a2e",
 };
 
 const forwardStyle = {
   margin: "0 0 8px",
-  fontSize: "14px",
+  fontSize: "16px",
   fontWeight: 400,
   lineHeight: 1.5,
   color: "#64748b",
@@ -24,7 +24,7 @@ const softLinkStyle = {
   color: "#2563eb",
   textDecoration: "underline",
   fontWeight: 700,
-  fontSize: "15px",
+  fontSize: "18px",
 };
 
 const INVITE_NUDGE_INTRO =

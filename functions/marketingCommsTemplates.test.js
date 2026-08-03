@@ -40,3 +40,36 @@ test("post_sphere_signup segment uses welcome copy in html", async () => {
   assert.match(out.email.html, /Welcome/i);
   assert.doesNotMatch(out.email.html, /Sphere weekend 1/i);
 });
+
+const { buildSummer2026AlmostEndChannels } = require("./marketingCommsTemplates");
+
+test("buildSummer2026AlmostEndChannels returns html, subject, and inApp", async () => {
+  const out = await buildSummer2026AlmostEndChannels({
+    greetingName: "YarmouthMeg",
+    personalTape: "You're #6 of 28 with 230 points across 17 shows.",
+    showInvite: true,
+    fieldPickingAvg: ".231",
+    fieldPlayerCount: 28,
+    top5: [
+      {
+        rank: 1,
+        handle: "I have the book",
+        points: 385,
+        wins: 5,
+        nights: 18,
+        battingAvg: ".296",
+      },
+    ],
+    standingsUrl: "https://www.setlistpickem.com/dashboard/standings",
+    siteUrl: "https://www.setlistpickem.com",
+  });
+
+  assert.match(out.email.subject, /almost Tour End Recap/i);
+  assert.match(out.email.html, /YarmouthMeg/);
+  assert.match(out.email.html, /Melt the Guns/);
+  assert.match(out.email.html, /Bustout Boost/);
+  assert.match(out.email.html, /I have the book/);
+  assert.match(out.email.html, /Invite a friend from Standings/);
+  assert.equal(out.inApp.templateId, "summer-2026-almost-end");
+  assert.ok(out.email.html.includes("<!DOCTYPE html") || out.email.html.includes("<html"));
+});

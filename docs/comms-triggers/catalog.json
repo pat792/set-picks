@@ -334,6 +334,38 @@
         { "name": "pool_name", "source": "users.pools[0] → pools.name", "fallback": null },
         { "name": "campaignId", "source": "vars.campaignId", "fallback": "summer_tour_2026" }
       ]
+    },
+    {
+      "triggerId": "marketing_summer_2026_almost_end",
+      "displayName": "Marketing — Summer 2026 almost-end (pre–Dick’s)",
+      "status": "shipped",
+      "phase": "v1",
+      "family": "lifecycle",
+      "priority": "P1",
+      "automation": "batch",
+      "event": "one-shot scheduler 2026-08-03 08:00 America/Denver; also admin callable / CLI",
+      "audience": "email: summer_tour_players; inApp: all_users (QA handles excluded); inApp ignores prefs",
+      "channels": ["email", "inApp"],
+      "prefKeys": ["lifecycle"],
+      "dedupKey": "marketing:{campaignId}:{uid}",
+      "templateId": "summer-2026-almost-end",
+      "implementationModule": "functions/marketingBatchDelivery.js",
+      "githubIssue": null,
+      "variables": [
+        { "name": "greeting_name", "source": "users/{uid}.handle", "fallback": "friend" },
+        { "name": "branch", "source": "rank / showsPlayed", "fallback": "noPlay" },
+        { "name": "rank", "source": "competition rank from seasonStats", "fallback": null },
+        { "name": "points", "source": "seasonStats.totalPoints", "fallback": 0 },
+        { "name": "wins", "source": "seasonStats.wins", "fallback": 0 },
+        { "name": "showsPlayed", "source": "seasonStats.shows", "fallback": 0 },
+        { "name": "avg_points", "source": "points / shows", "fallback": null },
+        { "name": "batting_avg", "source": "correctSlots / (shows * 6)", "fallback": null },
+        { "name": "participantCount", "source": "email cohort size", "fallback": null },
+        { "name": "fieldPickingAvg", "source": "mean of player batting avgs", "fallback": null },
+        { "name": "top5", "source": "Top 5 snapshot from players", "fallback": [] },
+        { "name": "share_url", "source": "invite kit URL with email UTMs", "fallback": null },
+        { "name": "campaignId", "source": "vars.campaignId", "fallback": "summer_2026_almost_end" }
+      ]
     }
   ],
   "system": [

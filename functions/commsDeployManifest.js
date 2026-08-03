@@ -52,6 +52,18 @@ const COMMS_DEPLOY_GROUPS = {
       note: "admin batch marketing email #468",
       secretExpectation: "resend",
     },
+    {
+      export: "deliverMarketingSummer2026AlmostEnd",
+      triggerId: "marketing_summer_2026_almost_end",
+      note: "admin batch almost-end email + forced inbox",
+      secretExpectation: "resend",
+    },
+    {
+      export: "scheduledMarketingSummer2026AlmostEnd",
+      triggerId: "marketing_summer_2026_almost_end",
+      note: "one-shot 2026-08-03 08:00 America/Denver",
+      secretExpectation: "resend",
+    },
     { export: "commsResendWebhook", note: "Resend bounce/complaint webhook", secretExpectation: "webhook" },
     { export: "commsEmailUnsubscribe", note: "RFC 8058 one-click unsubscribe", secretExpectation: "none" },
     { export: "getCommsEmailStatus", note: "email prefs status", secretExpectation: "none" },
