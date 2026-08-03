@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isDashboardEntryPath,
   isPublicColdOpenPath,
+  shouldPrefetchDashboardOnBoot,
   shouldWarmAppCheckOnBoot,
 } from './appBootPath.js';
 
@@ -48,5 +49,30 @@ describe('shouldWarmAppCheckOnBoot', () => {
     expect(shouldWarmAppCheckOnBoot('/invite/pat')).toBe(false);
     expect(shouldWarmAppCheckOnBoot('/how-it-works')).toBe(false);
     expect(shouldWarmAppCheckOnBoot('/privacy')).toBe(false);
+  });
+});
+
+describe('shouldPrefetchDashboardOnBoot', () => {
+  it('always prefetches on a dashboard hard open', () => {
+    expect(shouldPrefetchDashboardOnBoot('/dashboard')).toBe(true);
+    expect(shouldPrefetchDashboardOnBoot('/dashboard/pools', { hasSession: false })).toBe(
+      true,
+    );
+  });
+
+  it('prefetches on cold-open surfaces only with a session hint (#804)', () => {
+    expect(shouldPrefetchDashboardOnBoot('/', { hasSession: true })).toBe(true);
+    expect(shouldPrefetchDashboardOnBoot('/join/ABC', { hasSession: true })).toBe(true);
+    expect(shouldPrefetchDashboardOnBoot('/setup', { hasSession: true })).toBe(true);
+    expect(shouldPrefetchDashboardOnBoot('/')).toBe(false);
+    expect(shouldPrefetchDashboardOnBoot('/join/ABC', { hasSession: false })).toBe(false);
+  });
+
+  it('leaves marketing and unknown paths alone', () => {
+    expect(shouldPrefetchDashboardOnBoot('/how-it-works', { hasSession: true })).toBe(
+      false,
+    );
+    expect(shouldPrefetchDashboardOnBoot('', { hasSession: true })).toBe(false);
+    expect(shouldPrefetchDashboardOnBoot(undefined)).toBe(false);
   });
 });

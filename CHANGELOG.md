@@ -12,6 +12,19 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.44.3] — 2026-08-03
+
+### Added
+- **Route chunk prefetch registry (#805)** — `shared/lib/routeChunkPrefetch` lets features warm `dashboard` / `setup` / `home` chunks by string key without importing app-layer route modules. Splash and invite auth modals prefetch `dashboard` + `setup` on open.
+- **Persisted session hint (#804)** — auth writes `setpicks_session_hint_v1` to localStorage on session resolve and clears it on sign-out, so a cold open on `/` can start the `DashboardRoute` download in the entry tick instead of waiting for Firebase auth to settle. Anonymous visitors are unaffected.
+
+### Changed
+- **Lazy `HomeRoute` (#731)** — the splash route joined every other top-level route behind `lazy()`; `prerender-seo` now modulepreloads the `HomeRoute-*.js` chunk into `dist/index.html` so splash first paint keeps its budget. `verify:seo-prerender` asserts each shell preloads only its own route (splash never gets `DashboardRoute`, the app boot shell never gets `HomeRoute`).
+- **Auth provider barrel (#731)** — `main.jsx` imports `AuthProvider` from `features/auth/provider` so the entry bundle no longer statically pulls splash/auth-modal UI from the root auth barrel.
+- **Earlier pool join (#731)** — `/join/:code` starts the invite join as soon as auth resolves, overlapping the write with the DashboardRoute download and the `/setup` detour. `usePendingPoolJoin` adopts that same in-flight request rather than issuing a second one, so toasts, navigation and the retry timeout are unchanged. Site invites (`/invite/:handle`) remain free of pool side effects.
+
+---
+
 ## [1.44.2] — 2026-08-03
 
 ### Changed

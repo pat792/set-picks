@@ -6,10 +6,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './app/App.jsx'
 import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import ScrollToTop from './app/ScrollToTop.jsx'
-import { AuthProvider } from './features/auth'
+import { AuthProvider } from './features/auth/provider'
 import {
-  isDashboardEntryPath,
   isPublicColdOpenPath,
+  shouldPrefetchDashboardOnBoot,
   shouldWarmAppCheckOnBoot,
 } from './shared/lib/appBootPath'
 import { initGa4 } from './shared/lib/ga4'
@@ -18,6 +18,8 @@ import {
   initializeAppCheckDeferred,
 } from './shared/lib/firebaseAppCheck'
 import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
+import { hasPersistedSessionHint } from './shared/lib/persistedSessionHint'
+import { prefetchRouteChunk } from './shared/lib/routeChunkPrefetch'
 import { initWebVitals } from './shared/lib/webVitals'
 import './index.css'
 
@@ -31,8 +33,13 @@ const bootPath =
 if (shouldWarmAppCheckOnBoot(bootPath)) {
   ensureAppCheckNow()
 }
-if (isDashboardEntryPath(bootPath)) {
-  void import('./app/routes/DashboardRoute.jsx')
+// #804: returning sessions land on `/` only to bounce to the dashboard. Start
+// that chunk in the same tick as the entry bundle instead of after auth
+// resolves, so the redirect is not a serial download.
+if (
+  shouldPrefetchDashboardOnBoot(bootPath, { hasSession: hasPersistedSessionHint() })
+) {
+  prefetchRouteChunk('dashboard')
 }
 
 /**

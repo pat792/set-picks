@@ -36,7 +36,11 @@ import { startPreview } from './_lib/preview.mjs';
 // of these appearing on a navigation to a *different* route is a
 // cross-route leak — the static-import graph reaches across routes
 // and partially defeats route-level code splitting (#240/#242).
+// `HomeRoute` is lazy as of #731 and is modulepreloaded by the prerendered
+// `dist/index.html`, so it lands in `initialChunks` on the splash hard load and
+// is correctly excluded from later navigation deltas.
 const LAZY_ROUTE_COMPONENTS = [
+  'HomeRoute',
   'PasswordResetCompletePage',
   'PublicProfilePage',
   'PoolInviteMissingCodePage',

@@ -15,8 +15,13 @@ import {
   DASHBOARD_BOOT_SHELL_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
-  injectDashboardBootModulepreloads,
 } from './dashboard-boot-shell.mjs';
+import {
+  DASHBOARD_BOOT_PRELOAD_MARKER,
+  SPLASH_BOOT_PRELOAD_MARKER,
+  injectDashboardBootModulepreloads,
+  injectSplashBootModulepreloads,
+} from './boot-modulepreload.mjs';
 
 export {
   PRERENDER_ROUTES,
@@ -24,9 +29,12 @@ export {
   APP_BOOT_SHELL_REL_PATH,
   stripPrerenderBodyFromSpaShell,
   DASHBOARD_BOOT_SHELL_MARKER,
+  DASHBOARD_BOOT_PRELOAD_MARKER,
+  SPLASH_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
   injectDashboardBootModulepreloads,
+  injectSplashBootModulepreloads,
 };
 
 function escapeHtml(str) {
