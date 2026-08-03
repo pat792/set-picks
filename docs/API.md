@@ -426,6 +426,8 @@ Social crawlers (Meta, X, Slack, …) do not execute JavaScript. Invite URLs are
 
 Copy mirrors `src/shared/lib/inviteKit.js` (`buildSiteInviteShareTitle`, `buildPoolInviteShareTitleFromInviter`) and legacy pool OG (`Join my Setlist Pick 'Em pool: {name}`) when `from` is absent. Constants mirror `src/shared/config/seo.js` in `api/inviteOgHelpers.mjs` (no `src/` imports in serverless).
 
+**v1.44.2 / #732:** `firebase-admin` is dynamic-imported only on the crawler/Firestore branch so browser requests do not pay Admin module cold-start. Client FCM service-worker registration is idle-deferred on `/`, `/join/*`, and `/invite/*` (still on-demand via messaging helpers).
+
 **Vercel env:** `FIREBASE_SERVICE_ACCOUNT` (JSON) enables Firestore Admin lookups for crawlers.
 
 **Tests:** `api/inviteOgHelpers.test.js` (pure helpers; no Vercel runtime).
