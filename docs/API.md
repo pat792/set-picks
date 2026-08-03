@@ -389,6 +389,8 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary
 
 **Picks — Prediction Lab (**v1.38.0 / #651**):** opt-in collapsed panel on `/dashboard/picks` consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete unchanged when Lab unused/unavailable. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
 
+**Field RUM — web-vitals (**v1.44.0 / #801**):** production hostnames only. Client emits GA4 `web_vital` for LCP, INP, CLS, TTFB, FCP after idle. Params: `{ metric_name, value, metric_id, metric_rating, route_group, navigation_type }` where `route_group` is `splash` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` and `navigation_type` is `navigate` \| `reload` \| `back_forward` \| `prerender`. Ops: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
+
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 
 Service comms email bodies expose **one** tracked CTA link (the teal button). The header wordmark is decorative (CSS background, not a link).

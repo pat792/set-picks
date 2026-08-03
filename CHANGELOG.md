@@ -12,6 +12,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.44.0] — 2026-08-03
+
+### Added
+- **Field RUM (#801)** — production `web_vital` GA4 events (LCP/INP/CLS/TTFB/FCP) with `route_group` + `navigation_type`; see `docs/WEB_VITALS_RUM.md`.
+- **Self-hosted Inter (#802)** — variable Inter woff2 under `public/fonts/inter/` with preload; removes render-blocking Google Fonts CSS.
+
+### Changed
+- CSP Report-Only `style-src` / `font-src` no longer allow `fonts.googleapis.com` / `fonts.gstatic.com` (fonts are first-party).
+
+---
+
 ## [1.43.0] — 2026-08-02
 
 ### Added
