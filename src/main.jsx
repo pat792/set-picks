@@ -23,8 +23,8 @@ import './index.css'
 initGa4()
 initWebVitals()
 
-// #773 Phase 2: email / app hard opens — warm App Check + kick DashboardRoute
-// chunk before first paint. Splash keeps deferred App Check + lazy dashboard.
+// #773 / #803: dashboard + setup warm App Check on boot; splash/join/invite
+// stay deferred for anonymous visitors (session + auth modal warm instead).
 const bootPath =
   typeof window !== 'undefined' ? window.location.pathname : ''
 if (shouldWarmAppCheckOnBoot(bootPath)) {

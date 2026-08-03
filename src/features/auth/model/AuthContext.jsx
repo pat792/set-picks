@@ -31,6 +31,12 @@ export function AuthProvider({ children }) {
     let cancelled = false;
     let detachProfile = null;
 
+    // Persisted session: warm App Check before auth callback settles (#803).
+    // Anonymous cold-open paths stay on deferred init until auth CTA.
+    if (auth.currentUser) {
+      ensureAppCheckNow();
+    }
+
     const stopProfileListener = () => {
       if (typeof detachProfile === 'function') {
         try {
@@ -55,7 +61,7 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Persisted / fresh session — start App Check immediately (#730 / #773).
+      // Persisted / fresh session — start App Check immediately (#803 / #773).
       ensureAppCheckNow();
 
       // Guest → sign-in (and user switches): keep guards in `loading` until the
