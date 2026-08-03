@@ -44,8 +44,8 @@ object-src 'none';
 frame-ancestors 'none';
 form-action 'self';
 script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com https://www.gstatic.com https://apis.google.com https://www.recaptcha.net;
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src 'self' https://fonts.gstatic.com data:;
+style-src 'self' 'unsafe-inline';
+font-src 'self' data:;
 img-src 'self' data: blob: https:;
 connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net https://*.firebaseapp.com https://*.firebasestorage.app https://firebasestorage.googleapis.com https://storage.googleapis.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://analytics.google.com https://www.google.com https://www.gstatic.com https://phish.in wss://*.googleapis.com wss://*.firebaseio.com;
 frame-src https://accounts.google.com https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net https://recaptcha.google.com;
@@ -57,8 +57,8 @@ upgrade-insecure-requests
 | Directive | Why these hosts |
 |-----------|-----------------|
 | `script-src` | Vite bundles (`'self'`); GA4; Google Identity / gapi; App Check **reCAPTCHA Enterprise** (`google.com`, `gstatic.com`, `recaptcha.net`) |
-| `style-src` | App CSS; Google Fonts CSS; `'unsafe-inline'` for runtime style attributes (Tailwind / UI) |
-| `font-src` | Inter from `fonts.gstatic.com` |
+| `style-src` | App CSS; `'unsafe-inline'` for runtime style attributes (Tailwind / UI) |
+| `font-src` | Self-hosted Inter + Space Grotesk (`public/fonts/*`) |
 | `img-src` | Local assets, avatars, Google favicon on splash, HTTPS images |
 | `connect-src` | Firebase (Auth, Firestore, Storage, Installations, App Check, Functions), GA4 beacons, Phish.in admin fetch, WebChannel `wss://` |
 | `frame-src` | Google sign-in, Firebase auth helper frames, reCAPTCHA challenges |

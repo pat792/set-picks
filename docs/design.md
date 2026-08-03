@@ -4,7 +4,7 @@
 
 Setlist Pick'em features a deep, high-contrast "dark mode" interface that captures the midnight excitement of live music. The design uses a neon teal (`#2dd4bf`) as the primary brand accent against deep venue backgrounds (see **`brand-bg` / `brand-bg-deep`** in `src/index.css` — Kuroda-tinted indigo). The aesthetic relies heavily on "glassmorphism"—translucent **surface** tokens (`surface-panel`, etc.) and subtle border glows rather than flat, opaque cards. 
 
-The typography utilizes a two-font system: **Space Grotesk** for high-impact, stylized headings and branding, and **Inter** for highly legible, dense data (like leaderboards and settings). 
+The typography utilizes a two-font system: **Space Grotesk** for high-impact, stylized headings and branding, and **Inter** for highly legible, dense data (like leaderboards and settings). Both are **self-hosted** variable fonts under `public/fonts/` (no Google Fonts CSS). 
 
 **Key Characteristics:**
 - **Neon Teal** (`#2dd4bf`) as the primary interactive accent, often paired with a custom neon drop-shadow glow (`shadow-glow-brand`).
@@ -77,8 +77,8 @@ As each **menu tab** (Standings, Picks, Pools, Profile, etc.) gains more **card 
 ## 3. Typography Rules
 
 ### Font Families
-- **Display (`font-display`)**: `Space Grotesk` — Used for all page titles, hero text, and the brand wordmark.
-- **Sans/Body (`font-sans`)**: `Inter` — Used for all buttons, UI elements, song names, and leaderboards.
+- **Display (`font-display`)**: `Space Grotesk` — Used for all page titles, hero text, and the brand wordmark. File: `public/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2`.
+- **Sans/Body (`font-sans`)**: `Inter` — Used for all buttons, UI elements, song names, and leaderboards. File: `public/fonts/inter/InterVariable.woff2` (#802).
 
 ### Hierarchy (Tailwind Classes)
 

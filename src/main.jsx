@@ -17,9 +17,11 @@ import {
   initializeAppCheckDeferred,
 } from './shared/lib/firebaseAppCheck'
 import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
+import { initWebVitals } from './shared/lib/webVitals'
 import './index.css'
 
 initGa4()
+initWebVitals()
 
 // #773 Phase 2: email / app hard opens — warm App Check + kick DashboardRoute
 // chunk before first paint. Splash keeps deferred App Check + lazy dashboard.
