@@ -3,6 +3,10 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { auth } from '../../../shared/lib/firebase';
 import { ensureAppCheckNow } from '../../../shared/lib/firebaseAppCheck';
 import {
+  clearPersistedSessionHint,
+  markPersistedSession,
+} from '../../../shared/lib/persistedSessionHint';
+import {
   fetchUserProfile,
   resolveIsAdmin,
   subscribeToAuthState,
@@ -35,6 +39,7 @@ export function AuthProvider({ children }) {
     // Anonymous cold-open paths stay on deferred init until auth CTA.
     if (auth.currentUser) {
       ensureAppCheckNow();
+      markPersistedSession();
     }
 
     const stopProfileListener = () => {
@@ -54,6 +59,8 @@ export function AuthProvider({ children }) {
       if (cancelled) return;
 
       if (!u) {
+        // Next cold open on `/` is anonymous — stop prefetching the dashboard (#804).
+        clearPersistedSessionHint();
         setUser(null);
         setUserProfile(null);
         setIsAdmin(false);
@@ -63,6 +70,7 @@ export function AuthProvider({ children }) {
 
       // Persisted / fresh session — start App Check immediately (#803 / #773).
       ensureAppCheckNow();
+      markPersistedSession();
 
       // Guest → sign-in (and user switches): keep guards in `loading` until the
       // first profile result. Otherwise `loading:false + user + profile:null`

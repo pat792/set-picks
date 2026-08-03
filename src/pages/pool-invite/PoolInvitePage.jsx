@@ -6,10 +6,15 @@ import {
   normalizeInviteHandle,
   useInviteLanding,
 } from '../../features/invite';
-import { usePoolInviteCodeStorage } from '../../features/pool-invite';
+import {
+  useEarlyPoolInviteJoin,
+  usePoolInviteCodeStorage,
+} from '../../features/pool-invite';
 
 export default function PoolInvitePage() {
   usePoolInviteCodeStorage();
+  // Pool invites only — `/invite/:handle` must stay side-effect free (#731).
+  useEarlyPoolInviteJoin();
   const [searchParams] = useSearchParams();
   const fromHandle = normalizeInviteHandle(searchParams.get('from'));
   const landing = useInviteLanding({

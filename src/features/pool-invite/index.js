@@ -4,6 +4,7 @@ export {
   storePoolInviteCodeFromParam,
   usePoolInviteCodeStorage,
 } from './model/usePoolInviteCodeStorage';
+export { useEarlyPoolInviteJoin } from './model/useEarlyPoolInviteJoin';
 export {
   clearPendingPoolJoinInFlight,
   usePendingPoolJoin,

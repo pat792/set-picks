@@ -13,6 +13,7 @@ import {
   buildDashboardBootShellHtml,
   injectDashboardBootModulepreloads,
   injectPrerenderHtml,
+  injectSplashBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 
@@ -28,7 +29,12 @@ if (!existsSync(distIndex)) {
 const shell = readFileSync(distIndex, 'utf8');
 
 for (const route of PRERENDER_ROUTES) {
-  const html = injectPrerenderHtml(shell, route);
+  let html = injectPrerenderHtml(shell, route);
+  // Splash only: `HomeRoute` is lazy since #731, so preload its chunk here or
+  // the landing paint waits a round trip on the entry bundle.
+  if (route.path === '/') {
+    html = injectSplashBootModulepreloads(html, distDir);
+  }
   const rel = prerenderOutputRelPath(route.path);
   const outPath = join(distDir, rel);
   mkdirSync(dirname(outPath), { recursive: true });

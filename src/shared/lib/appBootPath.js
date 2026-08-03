@@ -39,3 +39,21 @@ export function shouldWarmAppCheckOnBoot(pathname) {
   if (typeof pathname !== 'string' || !pathname) return false;
   return isDashboardEntryPath(pathname) || pathname === '/setup';
 }
+
+/**
+ * Should boot kick off the `DashboardRoute` import (#804)?
+ *
+ * Dashboard hard opens always do. Public cold-open surfaces only do when a
+ * persisted session hint says the visitor is about to be redirected there —
+ * anonymous visitors must not pay for the dashboard graph on splash.
+ *
+ * @param {string} [pathname]
+ * @param {{ hasSession?: boolean }} [opts]
+ * @returns {boolean}
+ */
+export function shouldPrefetchDashboardOnBoot(pathname, opts = {}) {
+  if (typeof pathname !== 'string' || !pathname) return false;
+  if (isDashboardEntryPath(pathname)) return true;
+  if (!opts.hasSession) return false;
+  return pathname === '/' || pathname === '/setup' || isPublicColdOpenPath(pathname);
+}
