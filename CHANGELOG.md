@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.44.1] — 2026-08-03
+
+### Changed
+- **App Check first-paint policy (#803)** — anonymous `/`, `/join`, `/invite` keep deferred reCAPTCHA until auth modal open; persisted sessions and `/dashboard`/`/setup` still warm immediately.
+
+---
+
 ## [1.44.0] — 2026-08-03
 
 ### Added

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { SplashSignInModal, SplashSignUpModal } from '../../auth';
+import { ensureAppCheckNow } from '../../../shared/lib/firebaseAppCheck';
 
 export default function SplashAuthModals({
   authModal,
@@ -11,6 +12,13 @@ export default function SplashAuthModals({
   redirectAuthError = '',
   onClearRedirectAuthError,
 }) {
+  // Anonymous splash/invite: warm reCAPTCHA when auth CTA opens (#803).
+  useEffect(() => {
+    if (authModal === 'signup' || authModal === 'signin') {
+      ensureAppCheckNow();
+    }
+  }, [authModal]);
+
   const handleClose = () => {
     onClearRedirectAuthError?.();
     closeModal();
