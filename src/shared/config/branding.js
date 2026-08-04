@@ -19,14 +19,14 @@ export const BRAND_HERO_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
  * #837: laptop/desktop uses a shorter frame + tighter max-width so header→copy isn’t crushed.
  */
 export const brandHeroWordmarkAspectFrameClassNames =
-  'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[5/1] sm:w-full sm:max-w-[min(92vw,42rem)] md:max-w-[min(90vw,48rem)] lg:aspect-[4.5/1] lg:max-w-[min(88vw,56rem)] xl:max-w-[min(86vw,64rem)]';
+  'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[6/1] sm:w-full sm:max-w-[min(90vw,40rem)] md:max-w-[min(88vw,46rem)] lg:aspect-[5/1] lg:max-w-[min(86vw,54rem)] xl:max-w-[min(84vw,62rem)]';
 
 /**
- * Hero `<img>` classes. Mobile: `object-top`. sm+: shift crop down so transparent SVG headroom
- * above the letterforms doesn’t read as a gap under the fixed header (#837).
+ * Hero `<img>` classes. Mobile: `object-top` (keep current mobile crop).
+ * sm+: higher object-position skips transparent SVG headroom above letterforms (#837).
  */
 export const brandHeroWordmarkImgClassNames =
-  'block h-full w-full min-h-0 object-cover object-top sm:object-[center_48%]';
+  'block h-full w-full min-h-0 object-cover object-top sm:object-[center_62%]';
 
 /**
  * Mobile “1.2×” via **layout width** (`120vw` + `-ml-[10vw]`) so the graphic scales as vector paint,
