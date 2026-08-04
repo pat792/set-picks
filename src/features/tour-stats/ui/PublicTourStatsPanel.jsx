@@ -67,6 +67,11 @@ export default function PublicTourStatsPanel({
             ))}
           </select>
         </label>
+      ) : indexLoading ? (
+        <div
+          className="mb-6 h-[4.25rem] animate-pulse rounded-xl border border-white/10 bg-white/5 sm:max-w-xs"
+          aria-hidden
+        />
       ) : null}
 
       {error ? (

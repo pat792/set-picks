@@ -25,8 +25,9 @@ import './index.css'
 initGa4()
 initWebVitals()
 
-// #773 / #803: dashboard + setup warm App Check on boot; splash/join/invite
-// stay deferred for anonymous visitors (session + auth modal warm instead).
+// #773 / #803 / #827: dashboard, setup, and public /tour-stats* warm App Check
+// on boot; splash/join/invite stay deferred for anonymous visitors (session +
+// auth modal warm instead).
 const bootPath =
   typeof window !== 'undefined' ? window.location.pathname : ''
 if (shouldWarmAppCheckOnBoot(bootPath)) {
