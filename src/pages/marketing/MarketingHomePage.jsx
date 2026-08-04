@@ -4,7 +4,7 @@ import {
   LandingSeo,
   SplashPageShell,
   useScrollToSectionFocus,
-} from '../../features/landing';
+} from '../../features/landing/splash';
 
 function goLogin({ signup = false } = {}) {
   window.location.assign(signup ? '/login?mode=signup' : '/login');

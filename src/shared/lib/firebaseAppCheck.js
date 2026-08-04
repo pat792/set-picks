@@ -1,4 +1,4 @@
-import { app } from './firebase';
+import { ensureFirebase } from './ensureFirebase';
 
 const APP_CHECK_SITE_KEY = '6LdmOKAsAAAAACN1guy_JoAMDhjN6eljCiLLyMSJ';
 
@@ -10,6 +10,8 @@ const APP_CHECK_SITE_KEY = '6LdmOKAsAAAAACN1guy_JoAMDhjN6eljCiLLyMSJ';
 // (issue #242)
 // Dashboard / email deep links can call `ensureAppCheckNow()` (#535) to skip
 // the idle wait without double-initializing.
+// #835: do not statically import `./firebase` — that pulled firebase-core onto
+// every app.html boot including anon `/login` before the form painted.
 
 let readyPromise = null;
 /** @type {null | (() => void)} */
@@ -18,19 +20,20 @@ let cancelDeferredStart = null;
 /** Registered in Firebase Console → App Check → debug tokens (see docs/TESTING.md). */
 const DEV_APPCHECK_DEBUG_TOKEN = '38422efd-029f-45b4-b028-7cf7fcaeeffc';
 
-function runInitialization() {
+async function runInitialization() {
   if (import.meta.env.DEV && typeof self !== 'undefined') {
     // Use the registered UUID directly — `true` mints a random token that 403s until
     // manually added to the Console and seeded in IndexedDB.
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = DEV_APPCHECK_DEBUG_TOKEN;
   }
-  return import('firebase/app-check').then(
-    ({ initializeAppCheck, ReCaptchaEnterpriseProvider }) =>
-      initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
-        isTokenAutoRefreshEnabled: true,
-      })
+  const { app } = await ensureFirebase();
+  const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import(
+    'firebase/app-check'
   );
+  return initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+  });
 }
 
 /**

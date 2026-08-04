@@ -12,6 +12,7 @@ import {
   shouldPrefetchDashboardOnBoot,
   shouldWarmAppCheckOnBoot,
 } from './shared/lib/appBootPath'
+import { shouldDeferFirebaseBoot } from './shared/lib/ensureFirebase'
 import { initGa4 } from './shared/lib/ga4'
 import {
   ensureAppCheckNow,
@@ -20,6 +21,7 @@ import {
 import { hasPersistedSessionHint } from './shared/lib/persistedSessionHint'
 import { prefetchRouteChunk } from './shared/lib/routeChunkPrefetch'
 import { initWebVitals } from './shared/lib/webVitals'
+import { peekGoogleRedirectIntent } from './features/auth/utils/googleRedirectIntent'
 import './index.css'
 
 initGa4()
@@ -28,10 +30,18 @@ initWebVitals()
 // #773 / #803 / #827: dashboard, setup, and public /tour-stats* warm App Check
 // on boot; splash/join/invite stay deferred for anonymous visitors (session +
 // auth modal warm instead).
+// #835: anon `/login` skips idle App Check entirely — first auth CTA calls
+// ensureAuthReady() so firebase-core is not downloaded to paint the form.
 const bootPath =
   typeof window !== 'undefined' ? window.location.pathname : ''
+const deferFirebaseBoot = shouldDeferFirebaseBoot(bootPath, {
+  hasSession: hasPersistedSessionHint(),
+  hasRedirectIntent: Boolean(peekGoogleRedirectIntent()),
+})
 if (shouldWarmAppCheckOnBoot(bootPath)) {
   ensureAppCheckNow()
+} else if (!deferFirebaseBoot) {
+  initializeAppCheckDeferred()
 }
 // #804: returning sessions land on `/` only to bounce to the dashboard. Start
 // that chunk in the same tick as the entry bundle instead of after auth
@@ -96,5 +106,7 @@ root.render(
   </React.StrictMode>
 )
 
-initializeAppCheckDeferred()
-scheduleMessagingServiceWorker(bootPath)
+// Anon `/login` must not idle-import firebaseMessaging (static → firebase.js).
+if (!deferFirebaseBoot) {
+  scheduleMessagingServiceWorker(bootPath)
+}

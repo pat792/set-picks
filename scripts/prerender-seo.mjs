@@ -13,9 +13,11 @@ import { fileURLToPath } from 'node:url';
 import {
   APP_BOOT_SHELL_REL_PATH,
   LIGHT_SPA_BOOT_SHELL_REL_PATH,
+  LOGIN_BOOT_SHELL_REL_PATH,
   PRERENDER_ROUTES,
   buildDashboardBootShellHtml,
   injectDashboardBootModulepreloads,
+  injectLoginBootModulepreloads,
   injectPrerenderHtml,
   injectTourStatsBootModulepreloads,
   prerenderOutputRelPath,
@@ -78,6 +80,15 @@ console.log(
   `prerender-seo: wrote dist/${LIGHT_SPA_BOOT_SHELL_REL_PATH} (branded shell, no route modulepreload)`,
 );
 
+// `/login`: branded skeleton + LoginPage UI preload — no firebase-core (#835).
+const loginBootHtml = injectLoginBootModulepreloads(brandedShell, distDir);
+const loginBootPath = join(distDir, LOGIN_BOOT_SHELL_REL_PATH);
+mkdirSync(dirname(loginBootPath), { recursive: true });
+writeFileSync(loginBootPath, loginBootHtml, 'utf8');
 console.log(
-  `prerender-seo: OK (${PRERENDER_ROUTES.length} routes + app boot shell + light spa boot)`,
+  `prerender-seo: wrote dist/${LOGIN_BOOT_SHELL_REL_PATH} (branded shell + LoginPage preload, no firebase)`,
+);
+
+console.log(
+  `prerender-seo: OK (${PRERENDER_ROUTES.length} routes + app boot + light spa + login boot)`,
 );

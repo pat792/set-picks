@@ -1,7 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../shared/lib/firebase', () => ({
+vi.mock('../../../shared/lib/firebase.js', () => ({
+  app: {},
   auth: { currentUser: { uid: 'u1' } },
+  db: {},
+}));
+vi.mock('../../../shared/lib/firebase', () => ({
+  app: {},
+  auth: { currentUser: { uid: 'u1' } },
+  db: {},
 }));
 
 const signOutUser = vi.fn(async () => {});

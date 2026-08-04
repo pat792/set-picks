@@ -1,10 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import MarketingHomePage from '../pages/marketing/MarketingHomePage';
-import HowItWorksPage from '../pages/marketing/HowItWorksPage';
-import HowScoringWorksPage from '../pages/marketing/HowScoringWorksPage';
-import PhishSetlistPredictionGamePage from '../pages/marketing/PhishSetlistPredictionGamePage';
+
+// Sibling marketing routes stay off the `/` cold-open graph (#835).
+// Home statically imports splash UI only; these load on navigation / deep link.
+const HowItWorksPage = lazy(() => import('../pages/marketing/HowItWorksPage'));
+const HowScoringWorksPage = lazy(
+  () => import('../pages/marketing/HowScoringWorksPage'),
+);
+const PhishSetlistPredictionGamePage = lazy(
+  () => import('../pages/marketing/PhishSetlistPredictionGamePage'),
+);
 
 /** Paths that still boot the authenticated SPA document (`app.html`) (#832). */
 function isAppDocumentPath(pathname) {
@@ -51,18 +58,49 @@ function LoadAppDocument() {
   );
 }
 
+function MarketingRouteFallback() {
+  return (
+    <div
+      className="flex min-h-[40vh] items-center justify-center bg-brand-bg text-sm font-medium text-slate-400"
+      aria-busy="true"
+    >
+      Loading…
+    </div>
+  );
+}
+
 /**
  * Marketing cold-open router (#832). Real product UI, no AuthProvider.
+ * Only `/` is eager — other marketing pages are lazy so home cold open
+ * does not download/score their chunks (#835 paint fix).
  */
 export default function MarketingApp() {
   return (
     <Routes>
       <Route path="/" element={<MarketingHomePage />} />
-      <Route path="/how-it-works" element={<HowItWorksPage />} />
-      <Route path="/how-scoring-works" element={<HowScoringWorksPage />} />
+      <Route
+        path="/how-it-works"
+        element={
+          <Suspense fallback={<MarketingRouteFallback />}>
+            <HowItWorksPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/how-scoring-works"
+        element={
+          <Suspense fallback={<MarketingRouteFallback />}>
+            <HowScoringWorksPage />
+          </Suspense>
+        }
+      />
       <Route
         path="/phish-setlist-prediction-game"
-        element={<PhishSetlistPredictionGamePage />}
+        element={
+          <Suspense fallback={<MarketingRouteFallback />}>
+            <PhishSetlistPredictionGamePage />
+          </Suspense>
+        }
       />
       {/* App-document surfaces — full load so Firebase/AuthProvider can boot. */}
       <Route path="*" element={<LoadAppDocument />} />

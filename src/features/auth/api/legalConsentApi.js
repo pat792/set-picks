@@ -1,6 +1,7 @@
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-import { db } from '../../../shared/lib/firebase';
+import { ensureFirebase } from '../../../shared/lib/ensureFirebase';
+import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 
 /**
  * Records affirmative Terms + Privacy consent at account creation (sign-up).
@@ -12,6 +13,8 @@ export async function recordTermsPrivacyConsent(uid) {
   if (!uid?.trim()) {
     throw new Error('Missing uid.');
   }
+  await whenFirebaseReady();
+  const { db } = await ensureFirebase();
   await setDoc(
     doc(db, 'users', uid.trim()),
     {
