@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.48.0] — 2026-08-04
+
+### Added
+- **Inline full-page `/login` (#834)** — sign-in and create-account render as page forms (shared panel chrome with splash modals). Query `mode=signup|signin` preferred; `signup=1` still accepted. Invite VIP (`/join`, `/invite`) keeps modal auth.
+
+### Changed
+- Marketing / legacy hops emit `/login?mode=signup` instead of `signup=1`.
+
+---
+
 ## [1.47.3] — 2026-08-04
 
 ### Added

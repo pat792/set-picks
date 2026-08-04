@@ -2,79 +2,88 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
-  OpenInBrowserBanner,
+  LoginAuthScreen,
   useAuth,
   useGoogleRedirectCompletion,
 } from '../../features/auth';
-import { SplashAuthModals } from '../../features/landing/auth-modals';
 import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
 
 /**
- * Authenticated-SPA login surface (#832). Hosts the existing splash auth modals
- * on `/login` so marketing cold opens never pay Firebase until a CTA.
+ * Resolve `/login` mode from search params (#834).
+ * Prefers `mode=signup|signin`; keeps `signup=1` as a compatibility alias.
+ * @param {URLSearchParams} searchParams
+ * @returns {'signin' | 'signup'}
+ */
+export function resolveLoginMode(searchParams) {
+  const mode = (searchParams.get('mode') || '').trim().toLowerCase();
+  if (mode === 'signup' || mode === 'signin') return mode;
+  if (searchParams.get('signup') === '1') return 'signup';
+  return 'signin';
+}
+
+/**
+ * Authenticated-SPA login surface (#832 / #834).
+ * Full-page inline forms — invite VIP landings keep modal chrome separately.
  */
 export default function LoginPage() {
   const { user, isAdmin: isAdminUser, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const wantSignup = searchParams.get('signup') === '1';
-  const [authModal, setAuthModal] = useState(() => (wantSignup ? 'signup' : 'signin'));
+  const initialMode = resolveLoginMode(searchParams);
+  const [mode, setMode] = useState(initialMode);
   const [redirectAuthError, setRedirectAuthError] = useState('');
   const [poolInvitePending] = useState(
     () => Boolean(getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()),
   );
-  const didStripSignupRef = useRef(false);
+  const didStripQueryRef = useRef(false);
 
-  const closeModal = useCallback(() => {
-    // Closing returns to marketing home (separate document).
+  const goHome = useCallback(() => {
     window.location.assign('/');
   }, []);
-  const openSignUpModal = useCallback(() => setAuthModal('signup'), []);
-  const openSignInModal = useCallback(() => setAuthModal('signin'), []);
+  const openSignUp = useCallback(() => {
+    setRedirectAuthError('');
+    setMode('signup');
+  }, []);
+  const openSignIn = useCallback(() => {
+    setRedirectAuthError('');
+    setMode('signin');
+  }, []);
   const onRedirectError = useCallback((message, intent) => {
     setRedirectAuthError(message || '');
-    if (intent === 'signup') setAuthModal('signup');
-    else setAuthModal('signin');
+    if (intent === 'signup') setMode('signup');
+    else setMode('signin');
   }, []);
 
   useGoogleRedirectCompletion({
-    onOpenSignIn: openSignInModal,
-    onOpenSignUp: openSignUpModal,
+    onOpenSignIn: openSignIn,
+    onOpenSignUp: openSignUp,
     onError: onRedirectError,
   });
 
+  // Strip mode/signup query after first paint so refresh stays clean.
   useEffect(() => {
-    if (!wantSignup || didStripSignupRef.current) return;
-    didStripSignupRef.current = true;
+    if (didStripQueryRef.current) return;
+    const hasMode = Boolean(searchParams.get('mode'));
+    const hasSignup = searchParams.get('signup') === '1';
+    if (!hasMode && !hasSignup) return;
+    didStripQueryRef.current = true;
     navigate('/login', { replace: true });
-  }, [navigate, wantSignup]);
+  }, [navigate, searchParams]);
 
   if (!loading && user) {
     return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-transparent text-white">
-      <OpenInBrowserBanner />
-      <div className="relative z-10 px-4 text-center">
-        <p className="mb-2 font-display text-lg font-bold tracking-tight text-white">
-          Setlist Pick&nbsp;&apos;Em
-        </p>
-        <p className="text-sm font-medium text-slate-400">
-          {authModal === 'signup' ? 'Create your free account' : 'Sign in to make picks'}
-        </p>
-      </div>
-      <SplashAuthModals
-        authModal={authModal}
-        closeModal={closeModal}
-        onSwitchToSignIn={openSignInModal}
-        onSwitchToSignUp={openSignUpModal}
-        poolInvitePending={poolInvitePending}
-        redirectAuthError={redirectAuthError}
-        onClearRedirectAuthError={() => setRedirectAuthError('')}
-      />
-    </div>
+    <LoginAuthScreen
+      mode={mode}
+      onSwitchToSignIn={openSignIn}
+      onSwitchToSignUp={openSignUp}
+      onClose={goHome}
+      poolInvitePending={poolInvitePending}
+      seedError={redirectAuthError}
+    />
   );
 }

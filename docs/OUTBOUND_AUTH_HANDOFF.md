@@ -28,7 +28,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | `/`, `/how-it-works`, `/how-scoring-works`, `/phish-setlist-prediction-game` | Marketing entry; some email allowlist paths | `public-static` | No Firebase until CTA → `/login` |
 | `/tour-stats*` | Public Firestore UI | `app-ok` | App document (not marketing) |
 | `/join/:code`, `/invite/:handle` | Invite kits, OG `api/invite` | `invite-shell` | Prefers `dist/app.html` |
-| Marketing splash CTAs | `MarketingHomePage` | `retarget-auth` | **Done (#832):** hard-nav `/login` / `/login?signup=1` |
+| Marketing splash CTAs | `MarketingHomePage` | `retarget-auth` | **Done (#832 / #834):** hard-nav `/login` / `/login?mode=signup` (full-page forms) |
 | Password-reset success | `PasswordResetCompletePage` | `retarget-auth` | **Done:** `to="/login"` |
 | `/?login=true` (+ optional `signup=1`) | Legacy deep links, older QA | `retarget-auth` | Compat hops: `marketingMain` + `SplashPage` → `/login` |
 | Unauth hard-open `/dashboard/*` or `/setup` | `DashboardRoute` / `SetupRoute` | `retarget-auth` | **#830:** bounce to `/login` (keeps `persistDashboardPath`) |

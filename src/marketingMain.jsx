@@ -28,7 +28,7 @@ try {
     const q = new URLSearchParams(window.location.search)
     if (q.get('login') === 'true') {
       const signup = q.get('signup') === '1'
-      window.location.replace(signup ? '/login?signup=1' : '/login')
+      window.location.replace(signup ? '/login?mode=signup' : '/login')
     }
   }
 } catch {
