@@ -29,6 +29,17 @@ export function isPublicColdOpenPath(pathname) {
 }
 
 /**
+ * Defer FCM service-worker registration until idle on non-app hard opens.
+ * Dashboard/setup keep immediate registration (push surfaces).
+ * @param {string} [pathname]
+ * @returns {boolean}
+ */
+export function shouldDeferMessagingServiceWorker(pathname) {
+  if (typeof pathname !== 'string' || !pathname) return true;
+  return !isDashboardEntryPath(pathname) && pathname !== '/setup';
+}
+
+/**
  * Surfaces that need Firestore ASAP on hard open (skip App Check idle deferral).
  * Invite/join anonymous paths are intentionally excluded (#803) — warm on
  * persisted session or auth modal open instead.

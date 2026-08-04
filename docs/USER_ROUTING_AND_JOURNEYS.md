@@ -30,7 +30,7 @@ Defined in `src/app/App.jsx`.
 
 ### Email / push hard opens (`/dashboard/*`)
 
-Cold document loads (email CTAs, push, refresh) are rewritten by Vercel to `dist/dashboard/index.html` — a **branded static skeleton** (#773 Phase 1; empty-root precursor #743) so users see chrome before React + Auth mount. `createRoot` replaces `#root` as usual. Marketing SEO prerender stays on `dist/index.html` only (`verify:seo-prerender`).
+Cold document loads for `/dashboard/*` and `/setup` are rewritten by Vercel to `dist/dashboard/index.html` — a **branded static skeleton** with `DashboardRoute` modulepreload (#773). Legal, public profile, bare `/join`, and related hard opens use `dist/spa-boot/index.html` (same skeleton, **no** fat route preload) so they do not download the dashboard graph. Marketing SEO prerender stays on `dist/index.html` (+ marketing boot overlay) (`verify:seo-prerender`).
 
 **Phase 2 (TTI):** on `/dashboard/*` (and related warm paths), `main.jsx` calls `ensureAppCheckNow()` and kicks a dynamic `import()` of `DashboardRoute` before first paint; the boot shell also `modulepreload`s the `DashboardRoute` chunk. Auth seeds `auth.currentUser`, paints profile via `getDoc` then `onSnapshot`, and dashboard loading uses `DashboardBootSkeleton` instead of bare “Loading…”. Splash stays lazy + deferred App Check.
 

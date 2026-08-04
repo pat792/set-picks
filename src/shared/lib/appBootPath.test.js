@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isDashboardEntryPath,
   isPublicColdOpenPath,
+  shouldDeferMessagingServiceWorker,
   shouldPrefetchDashboardOnBoot,
   shouldWarmAppCheckOnBoot,
 } from './appBootPath.js';
@@ -49,6 +50,25 @@ describe('shouldWarmAppCheckOnBoot', () => {
     expect(shouldWarmAppCheckOnBoot('/invite/pat')).toBe(false);
     expect(shouldWarmAppCheckOnBoot('/how-it-works')).toBe(false);
     expect(shouldWarmAppCheckOnBoot('/privacy')).toBe(false);
+  });
+});
+
+describe('shouldDeferMessagingServiceWorker', () => {
+  it('keeps FCM registration immediate on dashboard and setup', () => {
+    expect(shouldDeferMessagingServiceWorker('/dashboard')).toBe(false);
+    expect(shouldDeferMessagingServiceWorker('/dashboard/picks')).toBe(false);
+    expect(shouldDeferMessagingServiceWorker('/setup')).toBe(false);
+  });
+
+  it('defers FCM on splash, invite, marketing, and legal hard opens', () => {
+    expect(shouldDeferMessagingServiceWorker('/')).toBe(true);
+    expect(shouldDeferMessagingServiceWorker('/join/ABC')).toBe(true);
+    expect(shouldDeferMessagingServiceWorker('/invite/pat')).toBe(true);
+    expect(shouldDeferMessagingServiceWorker('/how-it-works')).toBe(true);
+    expect(shouldDeferMessagingServiceWorker('/tour-stats')).toBe(true);
+    expect(shouldDeferMessagingServiceWorker('/privacy')).toBe(true);
+    expect(shouldDeferMessagingServiceWorker('/terms')).toBe(true);
+    expect(shouldDeferMessagingServiceWorker('/user/abc')).toBe(true);
   });
 });
 
