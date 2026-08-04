@@ -30,7 +30,7 @@ Defined in `src/app/App.jsx`.
 
 ### Email / push hard opens (`/dashboard/*`)
 
-Cold document loads for `/dashboard/*` and `/setup` are rewritten by Vercel to `dist/dashboard/index.html` — a **branded static skeleton** with `DashboardRoute` modulepreload (#773). Legal, public profile, bare `/join`, and related hard opens use `dist/spa-boot/index.html` (same skeleton, **no** fat route preload) so they do not download the dashboard graph. Marketing SEO prerender stays on `dist/index.html` (+ marketing boot overlay) (`verify:seo-prerender`).
+Cold document loads for `/dashboard/*` and `/setup` are rewritten by Vercel to `dist/dashboard/index.html` — a **branded static skeleton** with `DashboardRoute` modulepreload (#773). `/login`, legal, public profile, bare `/join`, and related app hard opens use `dist/spa-boot/index.html` (same skeleton, **no** fat route preload). **Public marketing hard opens (#829)** use HTML-first documents (no SPA entry / Firebase) with CTAs to `/login`; `verify:seo-prerender` asserts that.
 
 **Phase 2 (TTI):** on `/dashboard/*` (and related warm paths), `main.jsx` calls `ensureAppCheckNow()` and kicks a dynamic `import()` of `DashboardRoute` before first paint; the boot shell also `modulepreload`s the `DashboardRoute` chunk. Auth seeds `auth.currentUser`, paints profile via `getDoc` then `onSnapshot`, and dashboard loading uses `DashboardBootSkeleton` instead of bare “Loading…”. Splash stays lazy + deferred App Check.
 
@@ -134,7 +134,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 
 - Last screen was **Profile** (typical sign-out path): Profile is **not** persisted, so restore uses the **previous** eligible tab or **`/dashboard`**.
 - Cleared site data / new browser: no storage → **`/dashboard`**.
-- Deep link **`/?login=true`**: splash opens **Sign in** (password reset, QA, returning users) — not Create account.
+- Deep link **`/login`**: app auth entry opens **Sign in** (password reset, QA). **`/login?signup=1`** opens Create account. Legacy **`/?login=true`** on the HTML-first home document redirects to `/login` (#829).
 
 ### F. Other entry points
 

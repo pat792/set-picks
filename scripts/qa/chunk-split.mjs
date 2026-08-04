@@ -36,11 +36,12 @@ import { startPreview } from './_lib/preview.mjs';
 // of these appearing on a navigation to a *different* route is a
 // cross-route leak — the static-import graph reaches across routes
 // and partially defeats route-level code splitting (#240/#242).
-// `HomeRoute` is lazy as of #731 and is modulepreloaded by the prerendered
-// `dist/index.html`, so it lands in `initialChunks` on the splash hard load and
-// is correctly excluded from later navigation deltas.
+// Marketing `/` is HTML-first (#829) with no SPA entry, so this runner boots
+// from `/login` (spa-boot). Lazy route names below are still leak-checked on
+// in-app navigations from that app shell.
 const LAZY_ROUTE_COMPONENTS = [
   'HomeRoute',
+  'LoginRoute',
   'PasswordResetCompletePage',
   'PublicProfilePage',
   'PoolInviteMissingCodePage',
@@ -157,13 +158,19 @@ async function run() {
       loadedChunks.add(name);
     });
 
-    // Initial paint: hard-load splash. Anything Vite emits
-    // <link rel="modulepreload"> for ends up in `initialChunks` and
-    // is correctly excluded from later deltas.
-    await page.goto(`${preview.url}/`, { waitUntil: 'networkidle' });
+    // Initial paint: hard-load app auth entry (public `/` has no SPA #829).
+    // Avoid networkidle — Auth/Firestore WebChannel may never go idle.
+    await page.goto(`${preview.url}/login`, {
+      waitUntil: 'domcontentloaded',
+      timeout: NAV_TIMEOUT_MS,
+    });
+    await page
+      .getByRole('button', { name: /sign in/i })
+      .first()
+      .waitFor({ state: 'visible', timeout: NAV_TIMEOUT_MS });
     const initialChunks = new Set(loadedChunks);
 
-    // Scenario 1: / -> /user/<UID> expects PublicProfilePage chunk.
+    // Scenario 1: /login -> /user/<UID> expects PublicProfilePage chunk.
     await spaNavigateAndWaitForChunk(
       page,
       preview.url,
@@ -191,7 +198,7 @@ async function run() {
 
     const scenarios = [
       {
-        from: '/',
+        from: '/login',
         to: '/user/<uid>',
         expected: 'PublicProfilePage',
         delta: userDelta,

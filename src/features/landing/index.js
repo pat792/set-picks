@@ -6,6 +6,7 @@ export { MARKETING_LEGAL_NAV, MARKETING_PRIMARY_NAV } from './model/marketingNav
 export { default as PhishSetlistPredictionGamePageContent } from './ui/PhishSetlistPredictionGamePageContent';
 export { default as SplashAboutSection } from './ui/SplashAboutSection';
 export { default as SplashAuthModals } from './ui/SplashAuthModals';
+export { default as LoginScreen } from './ui/LoginScreen';
 export { default as SplashGetStartedSection } from './ui/SplashGetStartedSection';
 export { default as SplashHeader } from './ui/SplashHeader';
 export { default as SplashHeroSection } from './ui/SplashHeroSection';

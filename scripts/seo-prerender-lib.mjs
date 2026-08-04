@@ -1,5 +1,6 @@
 /**
  * Build-time SEO prerender helpers (#659).
+ * #829 Bucket A: marketing routes become HTML-first documents (no SPA entry).
  * Used by `prerender-seo.mjs` (post-vite) and `verify-seo-prerender.mjs` (CI).
  */
 import { SEO_CONFIG } from '../src/shared/config/seo.js';
@@ -22,6 +23,12 @@ import {
   buildMarketingBootShellMarkup,
 } from './marketing-boot-shell.mjs';
 import {
+  MARKETING_STATIC_PAGE_MARKER,
+  buildMarketingBootScript,
+  buildMarketingStaticBody,
+  stripSpaRuntimeFromHtml,
+} from './marketing-static-page.mjs';
+import {
   DASHBOARD_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
   injectDashboardBootModulepreloads,
@@ -36,11 +43,14 @@ export {
   stripPrerenderBodyFromSpaShell,
   DASHBOARD_BOOT_SHELL_MARKER,
   MARKETING_BOOT_SHELL_MARKER,
+  MARKETING_STATIC_PAGE_MARKER,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
   buildMarketingBootShellMarkup,
+  buildMarketingStaticBody,
+  stripSpaRuntimeFromHtml,
   injectDashboardBootModulepreloads,
   injectSplashBootModulepreloads,
 };
@@ -122,26 +132,11 @@ function ensureFavicons(html) {
 function injectJsonLd(html, jsonLd) {
   const json = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
   const script = `<script type="application/ld+json" data-seo-prerender="true">${json}</script>`;
-  // Drop prior prerender JSON-LD if re-running.
   const cleaned = html.replace(
     /<script type="application\/ld\+json" data-seo-prerender="true">[\s\S]*?<\/script>\s*/gi,
     '',
   );
   return cleaned.replace(/<\/head>/i, `  ${script}\n</head>`);
-}
-
-function buildCrawlerBody(route) {
-  const paras = route.paragraphs
-    .map((p) => `    <p>${escapeHtml(p)}</p>`)
-    .join('\n');
-  // Boot overlay paints immediately for browsers; crawler main stays in DOM
-  // for non-JS consumers. createRoot replaces the whole #root.
-  return `${buildMarketingBootShellMarkup()}
-<!--seo-prerender:${escapeHtml(route.path)}-->
-  <main data-seo-prerender="true">
-    <h1>${escapeHtml(route.h1)}</h1>
-${paras}
-  </main>`;
 }
 
 function injectRootBody(html, bodyInner) {
@@ -151,9 +146,17 @@ function injectRootBody(html, bodyInner) {
   return html.replace(/<body([^>]*)>/i, `<body$1>\n${replacement}\n`);
 }
 
+function injectHeadBootScript(html, routePath) {
+  const script = buildMarketingBootScript({
+    includeSessionRedirect: routePath === '/',
+  });
+  if (html.includes(`${MARKETING_STATIC_PAGE_MARKER}-boot`)) return html;
+  return html.replace(/<\/head>/i, `  ${script}\n</head>`);
+}
+
 /**
- * Inject route-specific SEO into a Vite SPA `index.html` shell.
- * React `createRoot` still replaces `#root` for browsers.
+ * Build HTML-first marketing document from the Vite shell (#829).
+ * Strips SPA entry + modulepreloads; injects visible content + CTA links.
  */
 export function injectPrerenderHtml(shellHtml, route) {
   let html = shellHtml;
@@ -174,7 +177,9 @@ export function injectPrerenderHtml(shellHtml, route) {
   html = upsertLinkCanonical(html, route.canonicalUrl);
   html = ensureFavicons(html);
   html = injectJsonLd(html, route.buildJsonLd());
-  html = injectRootBody(html, buildCrawlerBody(route));
+  html = injectRootBody(html, buildMarketingStaticBody(route));
+  html = injectHeadBootScript(html, route.path);
+  html = stripSpaRuntimeFromHtml(html);
   return html;
 }
 

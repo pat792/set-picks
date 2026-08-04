@@ -49,6 +49,10 @@
       "destination": "/dashboard/index.html"
     },
     {
+      "source": "/login",
+      "destination": "/spa-boot/index.html"
+    },
+    {
       "source": "/user/(.*)",
       "destination": "/spa-boot/index.html"
     },

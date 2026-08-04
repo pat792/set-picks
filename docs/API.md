@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.42.0  
+**Version:** 1.47.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -375,12 +375,13 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 | Path | Auth | Description |
 |------|------|-------------|
-| `/` | None | Public splash / landing page. **v1.32.0+ (#659):** build-time prerender injects crawler-visible H1/body + JSON-LD into `dist/index.html` (SPA still boots for browsers). Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
-| `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. |
-| `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. |
-| `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. |
-| `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `2026-sphere`). Default Sphere slug is also prerendered. |
-| `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. |
+| `/` | None | Public splash / landing. **v1.47.0 (#829):** HTML-first document (branded content + CTAs, JSON-LD) with **no** SPA/Firebase entry on cold open. Session-hint may redirect to `/dashboard`. Legacy `?login=true` redirects to `/login`. In-app client navigations may still mount `HomeRoute`. Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
+| `/login` | None | **v1.47.0 (#829):** app auth entry (Sign in / Create account). Hard opens use `spa-boot/index.html`. Marketing CTAs link here so acquisition HTML never boots Firebase. |
+| `/how-it-works` | None | How to play marketing page. **v1.47.0 (#829):** HTML-first (no SPA entry); **v1.32.0+ (#659):** prerendered `dist/how-it-works/index.html`. |
+| `/how-scoring-works` | None | Scoring rules marketing page. **v1.47.0 (#829):** HTML-first; **v1.32.0+ (#659):** prerendered when present. |
+| `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats. **v1.47.0 (#829):** HTML-first marketing shell on cold open (live interactive table remains available via in-app / follow-ups). Never full nightly setlists. |
+| `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `2026-sphere`). **v1.47.0 (#829):** HTML-first on cold open. |
+| `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page. **v1.47.0 (#829):** HTML-first; prerendered HTML + FAQ JSON-LD. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile — **`noindex,follow`** (#661); not a sitemap target |

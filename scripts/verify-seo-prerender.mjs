@@ -1,6 +1,5 @@
 /**
- * CI guard: prerendered public marketing HTML has unique title/description,
- * crawler body, JSON-LD, and favicon links (#659).
+ * CI guard: HTML-first public marketing documents (#659 / #829).
  *
  * Does not require a Vite build — uses a fixture shell. Optionally re-checks
  * `dist/` when present (after `npm run build`).
@@ -11,14 +10,11 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
-  resolveModulepreloadClosure,
-} from './boot-modulepreload.mjs';
-import {
   APP_BOOT_SHELL_REL_PATH,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   DASHBOARD_BOOT_SHELL_MARKER,
   LIGHT_SPA_BOOT_SHELL_REL_PATH,
-  MARKETING_BOOT_SHELL_MARKER,
+  MARKETING_STATIC_PAGE_MARKER,
   PRERENDER_ROUTES,
   SPLASH_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
@@ -27,6 +23,7 @@ import {
   injectPrerenderHtml,
   injectSplashBootModulepreloads,
   prerenderOutputRelPath,
+  stripSpaRuntimeFromHtml,
 } from './seo-prerender-lib.mjs';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
@@ -38,6 +35,25 @@ function assert(condition, message) {
   }
 }
 
+function assertNoSpaEntry(html, label) {
+  assert(
+    !/<script\b[^>]*\btype=["']module["']/i.test(html),
+    `${label}: must not include SPA type=module entry (#829)`,
+  );
+  assert(
+    !/rel=["']modulepreload["']/i.test(html),
+    `${label}: must not modulepreload app chunks (#829)`,
+  );
+  assert(
+    !/\/assets\/index-[^"'\s>]+\.js/i.test(html),
+    `${label}: must not reference /assets/index-*.js SPA entry (#829)`,
+  );
+  assert(
+    !html.includes('firebase-core'),
+    `${label}: must not reference firebase-core (#829)`,
+  );
+}
+
 function assertRouteHtml(html, route, label) {
   assert(html.includes(`<title>${route.title}</title>`) || html.includes(route.title), `${label}: missing title`);
   assert(html.includes(route.description), `${label}: missing description`);
@@ -45,14 +61,16 @@ function assertRouteHtml(html, route, label) {
   assert(html.includes('application/ld+json'), `${label}: missing JSON-LD`);
   assert(html.includes('data-seo-prerender="true"'), `${label}: missing prerender markers`);
   assert(
-    html.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),
-    `${label}: missing marketing boot overlay (covers SEO body until React mounts)`,
+    html.includes(`${MARKETING_STATIC_PAGE_MARKER}="true"`),
+    `${label}: missing HTML-first marketing static page marker (#829)`,
+  );
+  assert(html.includes('href="/login"'), `${label}: missing Sign in CTA to /login`);
+  assert(
+    html.includes('href="/login?signup=1"'),
+    `${label}: missing Create account CTA to /login?signup=1`,
   );
   assert(html.includes('rel="icon"'), `${label}: missing favicon link`);
   assert(html.includes('/favicon/favicon.ico'), `${label}: missing favicon.ico link`);
-  // #662: Google SERP favicons need a linked square icon >= 48px at a stable
-  // URL; PNG/ICO are primary. The old favicon.svg (854 KB embedded raster)
-  // must not come back.
   assert(
     html.includes('/favicon/favicon-96x96.png'),
     `${label}: missing 96x96 PNG icon link (SERP needs square >=48px, #662)`,
@@ -69,6 +87,7 @@ function assertRouteHtml(html, route, label) {
   for (const p of route.paragraphs) {
     assert(html.includes(p.slice(0, Math.min(40, p.length))), `${label}: missing body excerpt`);
   }
+  assertNoSpaEntry(html, label);
 }
 
 assert(PRERENDER_ROUTES.length >= 6, 'expected marketing + tour-stats + keyword-intent routes');
@@ -98,6 +117,13 @@ for (const route of PRERENDER_ROUTES) {
   assertRouteHtml(html, route, `fixture ${route.path}`);
 }
 
+assert(
+  stripSpaRuntimeFromHtml(
+    '<html><head><script type="module" src="/assets/index-x.js"></script><link rel="modulepreload" href="/assets/HomeRoute-x.js"></head><body></body></html>',
+  ).includes('type="module"') === false,
+  'stripSpaRuntimeFromHtml must remove module entry scripts',
+);
+
 // Fixture: branded dashboard boot shell (#773) — no SEO body, marker present.
 const dirtyShell =
   '<!DOCTYPE html><html><head><meta charset="UTF-8" /></head><body>' +
@@ -118,8 +144,7 @@ assert(
 );
 assert(!fixtureBoot.includes('<h1>leak</h1>'), 'boot shell must strip prior #root body');
 
-// Fixture: each shell modulepreloads its own route chunk + static closure (#731).
-// Both route leaves exist; HomeRoute pulls a fake auth dep so closure is covered.
+// App shells still modulepreload their route closure; marketing must not.
 const fakeDist = mkdtempSync(join(tmpdir(), 'seo-prerender-'));
 mkdirSync(join(fakeDist, 'assets'), { recursive: true });
 writeFileSync(
@@ -135,28 +160,8 @@ const fixtureSplashPreload = injectSplashBootModulepreloads(
   fakeDist,
 );
 assert(
-  fixtureSplashPreload.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`) &&
-    fixtureSplashPreload.includes('/assets/HomeRoute-a1b2c3d4.js'),
-  'splash must modulepreload the HomeRoute chunk',
-);
-assert(
-  fixtureSplashPreload.includes('/assets/auth-deadbeef.js'),
-  'splash must modulepreload HomeRoute static deps (auth closure)',
-);
-assert(
-  !fixtureSplashPreload.includes('DashboardRoute-'),
-  'splash must not modulepreload the DashboardRoute chunk',
-);
-assert(
-  injectSplashBootModulepreloads(fixtureSplashPreload, fakeDist) ===
-    fixtureSplashPreload,
-  'splash modulepreload injection must be idempotent',
-);
-assert(
-  resolveModulepreloadClosure(join(fakeDist, 'assets'), [
-    '/assets/HomeRoute-a1b2c3d4.js',
-  ]).includes('/assets/auth-deadbeef.js'),
-  'closure walker must follow static from "./chunk.js" edges',
+  fixtureSplashPreload.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`),
+  'injectSplashBootModulepreloads helper must still work for tests',
 );
 
 const fixtureDashboardPreload = injectDashboardBootModulepreloads(
@@ -173,9 +178,18 @@ assert(
   'app boot shell must not modulepreload the HomeRoute chunk',
 );
 
+const homeFixture = injectPrerenderHtml(shell, PRERENDER_ROUTES.find((r) => r.path === '/'));
+assert(
+  homeFixture.includes('setpicks_session_hint_v1'),
+  'home HTML-first doc must include session-hint redirect boot script',
+);
+assert(
+  homeFixture.includes('/login'),
+  'home boot script / CTAs must reference /login app entry',
+);
+
 const distIndex = join(root, 'dist', 'index.html');
 const distHowItWorks = join(root, 'dist', 'how-it-works', 'index.html');
-// Only validate dist when post-build prerender has clearly run (subdir artifact).
 if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   for (const route of PRERENDER_ROUTES) {
     const outPath = join(root, 'dist', prerenderOutputRelPath(route.path));
@@ -209,50 +223,20 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'app boot shell must modulepreload DashboardRoute chunk',
   );
   assert(
-    !appBootHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
-    'app boot shell must not gain splash modulepreloads',
+    /<script\b[^>]*\btype=["']module["']/i.test(appBootHtml),
+    'app boot shell must keep the SPA module entry',
   );
+
   const homeHtml = readFileSync(distIndex, 'utf8');
   assert(
-    homeHtml.includes('data-seo-prerender'),
-    'home dist/index.html must still include SEO prerender body',
+    homeHtml.includes(`${MARKETING_STATIC_PAGE_MARKER}="true"`),
+    'home dist/index.html must be HTML-first static marketing',
   );
   assert(
-    !homeHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER),
-    'home dist/index.html must not gain dashboard boot modulepreloads',
+    homeHtml.includes('setpicks_session_hint_v1'),
+    'home dist/index.html must session-redirect returning users',
   );
-  assert(
-    homeHtml.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`) &&
-      homeHtml.includes('HomeRoute-'),
-    'home dist/index.html must modulepreload the lazy HomeRoute chunk (#731)',
-  );
-  // Leaf-only preload left a waterfall on Landing's auth/shared graph.
-  assert(
-    (homeHtml.match(new RegExp(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`, 'g')) || [])
-      .length >= 2,
-    'home splash modulepreload must cover HomeRoute static closure, not only the leaf',
-  );
-  assert(
-    /auth-[^"]+\.js/.test(homeHtml) && homeHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
-    'home splash modulepreload closure should include the auth chunk',
-  );
-  assert(
-    homeHtml.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),
-    'home dist/index.html must include marketing boot overlay',
-  );
-  assert(
-    !homeHtml.includes('href="/fonts/inter/InterVariable.woff2"'),
-    'home dist/index.html must not preload Inter (~344KB)',
-  );
-  const howItWorksHtml = readFileSync(distHowItWorks, 'utf8');
-  assert(
-    !howItWorksHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
-    'marketing routes must not gain splash modulepreloads',
-  );
-  assert(
-    howItWorksHtml.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),
-    'marketing routes must include marketing boot overlay',
-  );
+  assertNoSpaEntry(homeHtml, 'home dist/index.html');
 
   const lightBootPath = join(root, 'dist', LIGHT_SPA_BOOT_SHELL_REL_PATH);
   assert(existsSync(lightBootPath), `dist missing ${LIGHT_SPA_BOOT_SHELL_REL_PATH} — run npm run build`);
@@ -266,16 +250,12 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'light spa boot must not modulepreload DashboardRoute',
   );
   assert(
-    !lightBootHtml.includes('DashboardRoute-'),
-    'light spa boot must not reference DashboardRoute chunk',
-  );
-  assert(
-    !lightBootHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
-    'light spa boot must not gain splash modulepreloads',
-  );
-  assert(
     !lightBootHtml.includes('data-seo-prerender'),
     'light spa boot must not include SEO prerender body',
+  );
+  assert(
+    /<script\b[^>]*\btype=["']module["']/i.test(lightBootHtml),
+    'light spa boot must keep the SPA module entry for /login etc.',
   );
 
   console.log('verify:seo-prerender: dist/ checked');

@@ -89,8 +89,7 @@ Two phases:
 **Not covered:** new users who tap Google on the **Sign in** modal — that path is
 intentionally blocked (PR #406) with copy directing them to Create account. Pool
 invite (`/join/:code`) opens **Create account** so new Google joiners see the
-legal checkbox (#577). `/?login=true` still opens **Sign in** (password reset /
-QA / returning deep links).
+legal checkbox (#577). `/login` opens **Sign in** (password reset / QA / returning deep links; #829).
 
 GA4 funnel readout: `npm run ga4:auth-funnel` (needs `GA4_ACCESS_TOKEN` or
 `gcloud` with `analytics.readonly`). See `docs/AUTH_TELEMETRY_RUNBOOK.md`.

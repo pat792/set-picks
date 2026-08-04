@@ -10,13 +10,12 @@ import RootAppShell from './layout/RootAppShell';
 // first paint. The shared Suspense boundary lives in `RootAppShell` (one
 // place → consistent fallback).
 //
-// `HomeRoute` joined them in #731: `/join`, `/invite/:handle` and every
-// dashboard hard open were downloading the Landing graph they never render.
-// The splash keeps its first-paint budget because `prerender-seo.mjs`
-// modulepreloads the HomeRoute chunk into `dist/index.html`.
+// `HomeRoute` is lazy for in-app client navigations. Hard opens of public
+// marketing URLs are HTML-first documents with no SPA entry (#829).
 const loadHomeRoute = () => import('./routes/HomeRoute');
 const loadSetupRoute = () => import('./routes/SetupRoute');
 const loadDashboardRoute = () => import('./routes/DashboardRoute');
+const loadLoginRoute = () => import('./routes/LoginRoute');
 
 // Feature surfaces (auth modals, invite CTAs) prefetch these by key so they
 // never have to import app-layer route modules (#805).
@@ -27,6 +26,7 @@ registerRouteChunkLoaders({
 });
 
 const HomeRoute = lazy(loadHomeRoute);
+const LoginRoute = lazy(loadLoginRoute);
 const PasswordResetCompletePage = lazy(() =>
   import('../pages/auth/PasswordResetCompletePage')
 );
@@ -73,8 +73,11 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsOfServicePage />} />
 
-        {/* Public splash — no auth loading gate (WRS / SEO friendly) */}
+        {/* Public splash — in-app client nav; hard opens use HTML-first dist (#829) */}
         <Route path="/" element={<HomeRoute />} />
+
+        {/* App auth entry for HTML-first marketing CTAs (#829) */}
+        <Route path="/login" element={<LoginRoute />} />
 
         {/* Pool invite: no code — drop stale breadcrumb */}
         <Route path="/join" element={<PoolInviteMissingCodePage />} />

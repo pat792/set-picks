@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.47.0] — 2026-08-04
+
+### Added
+- **`/login` app auth entry (#829 Bucket A)** — Sign in / Create account for HTML-first marketing CTAs; hard opens use `spa-boot`. Password-reset and QA sign-in retargeted from `/?login=true`.
+
+### Changed
+- **HTML-first public marketing documents (#829 Bucket A)** — `/`, `/how-it-works`, `/how-scoring-works`, `/tour-stats*`, and `/phish-setlist-prediction-game` ship branded static HTML (content + CTAs to `/login`) with **no** Vite SPA entry, modulepreloads, or Firebase on cold open. Returning sessions on `/` still bounce to `/dashboard` via session-hint boot script. Authenticated `/dashboard/*` + `/setup` boot shells unchanged. Outbound email/invite inventory is Bucket B (#830).
+
+---
+
 ## [1.46.5] — 2026-08-04
 
 ### Fixed
