@@ -51,6 +51,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.46.2] — 2026-08-03
+
+### Changed
+- **Inbox sender badge DNS audit documented (#498)** — `docs/comms-triggers/EMAIL_INBOX_BADGE.md` now carries the 2026-08-03 live DNS audit: DMARC `p=quarantine` already meets the BIMI prerequisite, Resend DKIM is aligned, but `send.setlistpickem.com` is missing the SPF TXT half of Resend's record pair (DMARC passes on DKIM alone), `default._bimi` is unpublished, and DMARC `rua` reports go to the registrar's unmonitored default. Prioritized human DNS/registrar action list included (SPF fix, VMC-vs-CMC decision, BIMI SVG prep, optional Gmail avatar fallback).
+
+---
+
 ## [1.44.3] — 2026-08-03
 
 ### Added
