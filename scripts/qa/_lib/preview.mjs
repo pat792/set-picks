@@ -93,11 +93,16 @@ export async function startPreview() {
   // `--strictPort` makes vite fail fast on conflict instead of silently
   // picking another port (which would invalidate `url`). If we collide,
   // bubble up — the runner can be retried.
+  // `detached: true` gives the npm wrapper its own process group so kill()
+  // can signal the WHOLE tree (npm → sh → vite). Signalling only the npm
+  // wrapper leaves an orphaned vite holding the port AND the stdio pipes —
+  // on CI that kept the runner's event loop alive forever (#748).
   const proc = spawn(
     'npm',
     ['run', 'preview', '--', '--port', String(port), '--strictPort'],
     {
       stdio: ['ignore', 'pipe', 'pipe'],
+      detached: true,
     },
   );
 
@@ -116,13 +121,27 @@ export async function startPreview() {
 
   await Promise.race([waitForReady(url), exitPromise]);
 
+  /**
+   * Signal the preview's entire process group (negative pid). ESRCH means
+   * the group is already gone — fine.
+   *
+   * @param {NodeJS.Signals} signal
+   */
+  const signalGroup = (signal) => {
+    try {
+      process.kill(-proc.pid, signal);
+    } catch (err) {
+      if (err?.code !== 'ESRCH') throw err;
+    }
+  };
+
   const kill = async () => {
     if (exited) return;
-    proc.kill('SIGTERM');
-    // Give vite a moment to release the port; if it's still alive
-    // after 2s, hard-kill so we don't leak processes.
+    signalGroup('SIGTERM');
+    // Give vite a moment to release the port; if the tree is still alive
+    // after 2s, hard-kill the group so we don't leak processes (#748).
     await Promise.race([once(proc, 'exit'), sleep(2_000)]);
-    if (!exited) proc.kill('SIGKILL');
+    if (!exited) signalGroup('SIGKILL');
   };
 
   // Clean up on process exit signals (Ctrl-C, kill, uncaught throw).

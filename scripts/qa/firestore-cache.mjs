@@ -13,6 +13,18 @@
  * **`QA_TEST_EMAIL` / `QA_TEST_PASSWORD`** via the splash `/?login=true`
  * modal before SPA-navigating to `/user/:uid`.
  *
+ * **Pass criterion (#748):** the old assertion compared CDP
+ * `encodedDataLength` byte totals per phase, but WebChannel byte deltas
+ * sit in a ±2 kB noise floor with off-season data volume — four
+ * consecutive staging runs measured `saved` between -2 kB and +168 B.
+ * The deterministic replacement inspects Firestore **forward-channel POST
+ * bodies**: the season-stats pipeline reads `users/{uid}` (materialized,
+ * #244) or `picks/{date}_{uid}` (live fallback), and those document paths
+ * appear verbatim in the `addTarget` messages the SDK POSTs. First visit
+ * MUST reference the profile's paths; a warm React Query cache return
+ * must reference them strictly fewer times. Data-volume independent.
+ * Byte totals are still logged, informationally.
+ *
  * Failure messages cite recipes.md §B so a failing run is actionable
  * without context-switching.
  */
@@ -23,15 +35,6 @@ import { signInViaSplashEmailPassword } from './_lib/qaAuthSplash.mjs';
 import { enableFirebaseAppCheckDebug } from './_lib/qaBrowserInit.mjs';
 import { PUBLIC_PROFILE_UID } from './fixtures.js';
 import { startPreview } from './_lib/preview.mjs';
-
-// Baseline must show real Firestore traffic (not a broken / empty session).
-// Materialized `users/{uid}` season stats are often **small** WebChannel payloads;
-// the old 5 kB floor assumed a live-compute fan-out — too strict for real accounts.
-const BASELINE_MIN_BYTES = 512;
-// Bytes **saved** on SPA return (baseline − post-nav). CDP `encodedDataLength`
-// on multiplexed WebChannel is noisy for small payloads — real passes have
-// landed ~280–600 B; 350 B was still flaky on some accounts; 1 KiB was too strict.
-const SAVED_MIN_BYTES = 250;
 
 /** Soft-nav away target — marketing route (no Firestore season-stats hook). */
 const BOUNCE_PATH = '/how-it-works';
@@ -93,6 +96,10 @@ function fmtBytes(bytes) {
  * `response.body()` is unreliable for Firestore's streaming WebChannel (often
  * ~100 B); CDP `Network.loadingFinished.encodedDataLength` matches DevTools.
  *
+ * Informational only as of #748 — byte deltas on the multiplexed WebChannel
+ * are inside the noise floor with off-season data, so the PASS/FAIL verdict
+ * comes from `attachFirestoreMarkerCounter` instead.
+ *
  * @param {import('playwright').CDPSession} session
  * @param {() => 'idle'|'baseline'|'postNav'} getPhase
  * @param {{ baseline: number, postNav: number }} phaseBytes
@@ -113,6 +120,54 @@ function attachFirestoreCdpByteCounter(session, getPhase, phaseBytes) {
     if (phase !== 'baseline' && phase !== 'postNav') return;
     const n = e.encodedDataLength ?? 0;
     phaseBytes[phase] += n;
+  });
+}
+
+/**
+ * Count references to the profile's season-stats document paths inside
+ * Firestore **forward-channel POST bodies**, per phase (#748).
+ *
+ * `computeUserSeasonStats` reads `users/{uid}` (materialized #244 path)
+ * and/or `picks/{showDate}_{uid}` (live fallback). The SDK's `addTarget`
+ * messages carry those full document paths in the URL-encoded WebChannel
+ * POST body, so counting path occurrences per phase is independent of
+ * payload size, data volume, and ambient listener chatter:
+ *
+ *   - baseline (first `/user/:uid` visit) MUST reference them ≥ 1 time;
+ *   - postNav (SPA return, warm React Query cache) must reference them
+ *     STRICTLY FEWER times — the cached query never re-issues its reads.
+ *
+ * @param {import('playwright').CDPSession} session
+ * @param {() => 'idle'|'baseline'|'postNav'} getPhase
+ * @param {{ baseline: number, postNav: number }} phaseMarkerHits
+ * @param {string} profileUid
+ */
+function attachFirestoreMarkerCounter(
+  session,
+  getPhase,
+  phaseMarkerHits,
+  profileUid,
+) {
+  const markerRe = new RegExp(
+    `documents/(?:users/${profileUid}(?=["'\\\\/,}]|$)|picks/[0-9]{4}-[0-9]{2}-[0-9]{2}_${profileUid}(?=["'\\\\/,}]|$))`,
+    'g',
+  );
+
+  session.on('Network.requestWillBeSent', (e) => {
+    if (!e.request?.url?.includes('firestore.googleapis.com')) return;
+    if (e.request.method !== 'POST') return;
+    const phase = getPhase();
+    if (phase !== 'baseline' && phase !== 'postNav') return;
+    const raw = e.request.postData;
+    if (!raw) return;
+    let decoded = raw;
+    try {
+      decoded = decodeURIComponent(raw);
+    } catch {
+      // Malformed escape in a body we don't care about — scan it raw.
+    }
+    const hits = decoded.match(markerRe);
+    if (hits) phaseMarkerHits[phase] += hits.length;
   });
 }
 
@@ -148,6 +203,9 @@ function requireCacheEnv() {
   return { appCheckToken, email, password };
 }
 
+/**
+ * @returns {Promise<number>} process exit code
+ */
 async function run() {
   const { email, password } = requireCacheEnv();
 
@@ -156,7 +214,6 @@ async function run() {
   console.log(`[qa:cache] preview ready at ${preview.url}`);
 
   const browser = await chromium.launch({ headless: true });
-  let exitCode = 1;
 
   try {
     const ctx = await browser.newContext();
@@ -165,10 +222,17 @@ async function run() {
 
     let phase = /** @type {'idle'|'baseline'|'postNav'} */ ('idle');
     const phaseBytes = { baseline: 0, postNav: 0 };
+    const phaseMarkerHits = { baseline: 0, postNav: 0 };
 
     const cdp = await ctx.newCDPSession(page);
     await cdp.send('Network.enable');
     attachFirestoreCdpByteCounter(cdp, () => phase, phaseBytes);
+    attachFirestoreMarkerCounter(
+      cdp,
+      () => phase,
+      phaseMarkerHits,
+      PUBLIC_PROFILE_UID,
+    );
 
     await signInViaSplashEmailPassword(page, preview.url, email, password);
 
@@ -176,16 +240,16 @@ async function run() {
     await spaNavigate(page, `/user/${PUBLIC_PROFILE_UID}`);
     await waitForProfileSettled(page);
 
-    if (phaseBytes.baseline < BASELINE_MIN_BYTES) {
+    if (phaseMarkerHits.baseline < 1) {
       console.error(
-        `[qa:cache] FAIL: baseline payload was ${fmtBytes(phaseBytes.baseline)}, ` +
-          `expected >= ${fmtBytes(BASELINE_MIN_BYTES)}.`,
+        '[qa:cache] FAIL: baseline visit issued ZERO Firestore requests referencing ' +
+          `users/${PUBLIC_PROFILE_UID} or picks/*_${PUBLIC_PROFILE_UID}.`,
       );
       console.error(
-        '[qa:cache]   Baseline Firestore bytes are near zero — check App Check, auth, ' +
-          'or WebChannel measurement. See scripts/qa/README.md.',
+        '[qa:cache]   The season-stats read was not observed — check App Check, auth, ' +
+          'QA_PUBLIC_PROFILE_UID, or WebChannel measurement. See scripts/qa/README.md.',
       );
-      return;
+      return 1;
     }
 
     phase = 'idle';
@@ -196,39 +260,44 @@ async function run() {
     await spaNavigate(page, `/user/${PUBLIC_PROFILE_UID}`);
     await waitForProfileSettled(page);
 
-    const saved = phaseBytes.baseline - phaseBytes.postNav;
-    const verdict = saved >= SAVED_MIN_BYTES ? 'PASS' : 'FAIL';
+    const verdict =
+      phaseMarkerHits.postNav < phaseMarkerHits.baseline ? 'PASS' : 'FAIL';
+    const savedBytes = phaseBytes.baseline - phaseBytes.postNav;
 
     console.log(
-      `[qa:cache] baseline=${fmtBytes(phaseBytes.baseline)}  ` +
-        `post-nav=${fmtBytes(phaseBytes.postNav)}  ` +
-        `saved=${fmtBytes(saved)}  ` +
-        `threshold=${fmtBytes(SAVED_MIN_BYTES)}  ` +
-        verdict,
+      `[qa:cache] stats-doc refs: baseline=${phaseMarkerHits.baseline}  ` +
+        `post-nav=${phaseMarkerHits.postNav}  ${verdict}`,
+    );
+    console.log(
+      `[qa:cache] bytes (informational): baseline=${fmtBytes(phaseBytes.baseline)}  ` +
+        `post-nav=${fmtBytes(phaseBytes.postNav)}  saved=${fmtBytes(savedBytes)}`,
     );
 
     if (verdict !== 'PASS') {
       console.error(
-        `[qa:cache] FAIL: saved ${fmtBytes(saved)} is below ${fmtBytes(SAVED_MIN_BYTES)} ` +
-          `(baseline ${fmtBytes(phaseBytes.baseline)}, post-nav ${fmtBytes(phaseBytes.postNav)}). ` +
-          'Likely React Query cache miss on season stats, or threshold needs tuning — see recipes §B.',
+        `[qa:cache] FAIL: SPA return re-referenced the profile's stats docs ` +
+          `${phaseMarkerHits.postNav}x (baseline ${phaseMarkerHits.baseline}x) — ` +
+          'the React Query cache did not absorb the season-stats read. See recipes §B.',
       );
       console.error(
         '[qa:cache]   See `.cursor/skills/pr-qa/recipes.md` §B for context.',
       );
-      return;
+      return 1;
     }
 
-    exitCode = 0;
+    return 0;
   } finally {
     await browser.close().catch(() => {});
     await preview.kill();
   }
-
-  process.exit(exitCode);
 }
 
-run().catch((err) => {
-  console.error('[qa:cache] runner crashed:', err);
-  process.exit(1);
-});
+// Always exit explicitly (#748): a leaked child/pipe handle must never keep
+// the event loop — and a CI runner — alive after the verdict is known.
+run().then(
+  (code) => process.exit(code),
+  (err) => {
+    console.error('[qa:cache] runner crashed:', err);
+    process.exit(1);
+  },
+);

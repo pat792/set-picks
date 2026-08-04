@@ -206,6 +206,10 @@ jobs:
   # Requires secrets; skip fork PRs (#349 auth).
   qa-runners:
     runs-on: ubuntu-latest
+    # #748: a hung Playwright runner used to burn the full 6h workflow limit
+    # (nightly matrix cancelled every night since 07-19). Warm-cache runs
+    # finish in ~10 min; 20 min is generous headroom incl. Chromium download.
+    timeout-minutes: 20
     needs: [verify, changes]
     if: >
       (github.event_name == 'schedule' ||
@@ -276,6 +280,31 @@ jobs:
           QA_GOOGLE_TEST_EMAIL: ${{ secrets.QA_GOOGLE_TEST_EMAIL }}
           QA_GOOGLE_TEST_PASSWORD: ${{ secrets.QA_GOOGLE_TEST_PASSWORD }}
         run: npm run qa:google-signup
+
+  # Issue #662 — nightly prod check: SERP favicon endpoints must stay 200 +
+  # image/* at stable URLs (Google's favicon crawler fetches the homepage-linked
+  # square PNG and root /favicon.ico via the vercel.json rewrite).
+  favicon-prod:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: curl favicon endpoints (200 + image/*)
+        run: |
+          fail=0
+          for url in \
+            "https://www.setlistpickem.com/favicon.ico" \
+            "https://www.setlistpickem.com/favicon/favicon-96x96.png" \
+            "https://setlistpickem.com/favicon.ico"; do
+            out=$(curl -sIL -o /dev/null -w "%{http_code} %{content_type}" "$url")
+            code=${out%% *}
+            ctype=${out#* }
+            echo "$url -> $code $ctype"
+            if [ "$code" != "200" ] || [ "${ctype#image/}" = "$ctype" ]; then
+              echo "::error::$url returned '$code $ctype' — expected 200 + image/* (#662)"
+              fail=1
+            fi
+          done
+          exit $fail
 
   # Issue #348 — §C headers on deployed preview. Optional: set repo Variable QA_PREVIEW_BASE_URL.
   qa-preview-headers:
