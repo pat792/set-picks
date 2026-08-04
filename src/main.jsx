@@ -8,7 +8,7 @@ import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import ScrollToTop from './app/ScrollToTop.jsx'
 import { AuthProvider } from './features/auth/provider'
 import {
-  isPublicColdOpenPath,
+  shouldDeferMessagingServiceWorker,
   shouldPrefetchDashboardOnBoot,
   shouldWarmAppCheckOnBoot,
 } from './shared/lib/appBootPath'
@@ -43,11 +43,13 @@ if (
 }
 
 /**
- * FCM SW: immediate on app surfaces; idle-defer on public cold-open (#732).
+ * FCM SW: immediate on dashboard/setup; idle-defer on all other hard opens
+ * (marketing, legal, invite, splash) so gstatic compat importScripts does not
+ * contend with entry JS / route chunks on cold private visits.
  * `getMessagingClient` still registers on demand for push opt-in.
  */
 function scheduleMessagingServiceWorker(pathname) {
-  if (isPublicColdOpenPath(pathname)) {
+  if (shouldDeferMessagingServiceWorker(pathname)) {
     const start = () => {
       void registerMessagingServiceWorker()
     }

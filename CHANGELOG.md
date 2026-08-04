@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.46.5] — 2026-08-04
+
+### Fixed
+- **Cold-open load regression after 1.44.x / 1.46.4 promote** — marketing SEO shells paint a branded inline Loading overlay over crawler copy so plain h1/p no longer flash before React mounts; Inter (~344KB) is no longer high-priority preloaded (keeps `@font-face` + `font-display: swap`); `/privacy`, `/terms`, `/user/*`, bare `/join`, and related hard opens use `dist/spa-boot/index.html` (branded skeleton **without** `DashboardRoute` modulepreload); FCM service-worker registration is idle-deferred on all non-dashboard/setup hard opens; `/fonts/*` gets long-cache headers.
+
+---
+
 ## [1.46.4] — 2026-08-03
 
 ### Changed

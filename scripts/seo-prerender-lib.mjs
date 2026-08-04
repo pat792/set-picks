@@ -9,6 +9,7 @@ import {
 } from '../src/shared/config/seoRoutes.js';
 import {
   APP_BOOT_SHELL_REL_PATH,
+  LIGHT_SPA_BOOT_SHELL_REL_PATH,
   stripPrerenderBodyFromSpaShell,
 } from './seo-strip-body.mjs';
 import {
@@ -16,6 +17,10 @@ import {
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
 } from './dashboard-boot-shell.mjs';
+import {
+  MARKETING_BOOT_SHELL_MARKER,
+  buildMarketingBootShellMarkup,
+} from './marketing-boot-shell.mjs';
 import {
   DASHBOARD_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
@@ -27,12 +32,15 @@ export {
   PRERENDER_ROUTES,
   SEO_FAVICON_VERSION,
   APP_BOOT_SHELL_REL_PATH,
+  LIGHT_SPA_BOOT_SHELL_REL_PATH,
   stripPrerenderBodyFromSpaShell,
   DASHBOARD_BOOT_SHELL_MARKER,
+  MARKETING_BOOT_SHELL_MARKER,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
+  buildMarketingBootShellMarkup,
   injectDashboardBootModulepreloads,
   injectSplashBootModulepreloads,
 };
@@ -126,7 +134,10 @@ function buildCrawlerBody(route) {
   const paras = route.paragraphs
     .map((p) => `    <p>${escapeHtml(p)}</p>`)
     .join('\n');
-  return `<!--seo-prerender:${escapeHtml(route.path)}-->
+  // Boot overlay paints immediately for browsers; crawler main stays in DOM
+  // for non-JS consumers. createRoot replaces the whole #root.
+  return `${buildMarketingBootShellMarkup()}
+<!--seo-prerender:${escapeHtml(route.path)}-->
   <main data-seo-prerender="true">
     <h1>${escapeHtml(route.h1)}</h1>
 ${paras}

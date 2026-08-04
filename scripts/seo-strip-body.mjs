@@ -19,6 +19,12 @@ export function stripPrerenderBodyFromSpaShell(spaHtml) {
 
 /**
  * Dist-relative SPA shell for authenticated / app hard loads
- * (#743 empty root → #773 branded skeleton).
+ * (#743 empty root → #773 branded skeleton + DashboardRoute modulepreload).
  */
 export const APP_BOOT_SHELL_REL_PATH = 'dashboard/index.html';
+
+/**
+ * Branded skeleton without a fat route modulepreload — for legal / public
+ * profile / bare-join hard opens that must not download DashboardRoute.
+ */
+export const LIGHT_SPA_BOOT_SHELL_REL_PATH = 'spa-boot/index.html';

@@ -50,27 +50,27 @@
     },
     {
       "source": "/user/(.*)",
-      "destination": "/dashboard/index.html"
+      "destination": "/spa-boot/index.html"
     },
     {
       "source": "/password-reset-complete",
-      "destination": "/dashboard/index.html"
+      "destination": "/spa-boot/index.html"
     },
     {
       "source": "/comms-preview",
-      "destination": "/dashboard/index.html"
+      "destination": "/spa-boot/index.html"
     },
     {
       "source": "/privacy",
-      "destination": "/dashboard/index.html"
+      "destination": "/spa-boot/index.html"
     },
     {
       "source": "/terms",
-      "destination": "/dashboard/index.html"
+      "destination": "/spa-boot/index.html"
     },
     {
       "source": "/join",
-      "destination": "/dashboard/index.html"
+      "destination": "/spa-boot/index.html"
     },
     {
       "source": "/(.*)",
@@ -127,6 +127,15 @@
     },
     {
       "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
