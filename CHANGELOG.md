@@ -26,6 +26,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Added
 - **Tour stats pagination (#709)** — "Most played", "Bustouts", and "High gaps (non-bustout)" now surface **every** song in their category, paginated at 15 rows/page with back/forward arrows and a `16–30 of 87` range indicator. Rank numbers in Most played continue across pages. Applies to both the dashboard Tour stats tab and the public `/tour-stats` pages.
+- **"Last" (last played) column on Bustouts / High gaps (#709)** — rows render the date the song was last played *before* that tour night when the server-enriched `public_tour_stats` payload carries it (`lastPlayed`, written by `refreshPublicTourStats` from phish.net song history — see the 1.46.0 entry). The dashboard joins the dates from the world-readable public doc (`mergePublicLastPlayed`); the column self-hides while no row has a date, so nothing changes until the enriched refresh lands.
 
 ### Changed
 - `aggregateTourSetlistStats` (client + functions mirror) no longer truncates `topSongs` / `gapHighlights` to top-15; `refreshPublicTourStats` writes full ranked lists to `public_tour_stats/{tourSlug}` (public page shows capped lists until the function is deployed and the nightly refresh reruns). The "In most played" self-overlay tile stays pinned to the top 15 and its tooltip now says so.
