@@ -11,6 +11,9 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  resolveModulepreloadClosure,
+} from './boot-modulepreload.mjs';
+import {
   APP_BOOT_SHELL_REL_PATH,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   DASHBOARD_BOOT_SHELL_MARKER,
@@ -115,11 +118,16 @@ assert(
 );
 assert(!fixtureBoot.includes('<h1>leak</h1>'), 'boot shell must strip prior #root body');
 
-// Fixture: each shell modulepreloads its own route chunk and nothing else (#731).
-// Both chunks exist in the fake assets dir, so a cross-shell leak would show up.
+// Fixture: each shell modulepreloads its own route chunk + static closure (#731).
+// Both route leaves exist; HomeRoute pulls a fake auth dep so closure is covered.
 const fakeDist = mkdtempSync(join(tmpdir(), 'seo-prerender-'));
 mkdirSync(join(fakeDist, 'assets'), { recursive: true });
-writeFileSync(join(fakeDist, 'assets', 'HomeRoute-a1b2c3d4.js'), '', 'utf8');
+writeFileSync(
+  join(fakeDist, 'assets', 'HomeRoute-a1b2c3d4.js'),
+  'import { x } from "./auth-deadbeef.js";\nexport default x;\n',
+  'utf8',
+);
+writeFileSync(join(fakeDist, 'assets', 'auth-deadbeef.js'), 'export const x = 1;\n', 'utf8');
 writeFileSync(join(fakeDist, 'assets', 'DashboardRoute-e5f6a7b8.js'), '', 'utf8');
 
 const fixtureSplashPreload = injectSplashBootModulepreloads(
@@ -132,6 +140,10 @@ assert(
   'splash must modulepreload the HomeRoute chunk',
 );
 assert(
+  fixtureSplashPreload.includes('/assets/auth-deadbeef.js'),
+  'splash must modulepreload HomeRoute static deps (auth closure)',
+);
+assert(
   !fixtureSplashPreload.includes('DashboardRoute-'),
   'splash must not modulepreload the DashboardRoute chunk',
 );
@@ -139,6 +151,12 @@ assert(
   injectSplashBootModulepreloads(fixtureSplashPreload, fakeDist) ===
     fixtureSplashPreload,
   'splash modulepreload injection must be idempotent',
+);
+assert(
+  resolveModulepreloadClosure(join(fakeDist, 'assets'), [
+    '/assets/HomeRoute-a1b2c3d4.js',
+  ]).includes('/assets/auth-deadbeef.js'),
+  'closure walker must follow static from "./chunk.js" edges',
 );
 
 const fixtureDashboardPreload = injectDashboardBootModulepreloads(
@@ -207,6 +225,16 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     homeHtml.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`) &&
       homeHtml.includes('HomeRoute-'),
     'home dist/index.html must modulepreload the lazy HomeRoute chunk (#731)',
+  );
+  // Leaf-only preload left a waterfall on Landing's auth/shared graph.
+  assert(
+    (homeHtml.match(new RegExp(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`, 'g')) || [])
+      .length >= 2,
+    'home splash modulepreload must cover HomeRoute static closure, not only the leaf',
+  );
+  assert(
+    /auth-[^"]+\.js/.test(homeHtml) && homeHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
+    'home splash modulepreload closure should include the auth chunk',
   );
   assert(
     homeHtml.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),

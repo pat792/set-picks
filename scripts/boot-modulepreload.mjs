@@ -4,14 +4,16 @@
  *
  * Every top-level route is `lazy()` in `src/app/App.jsx`, so the chunk a given
  * entry HTML is certain to need would otherwise start downloading only after
- * the entry bundle parses. Each shell preloads its own route and nothing else —
- * splash must not pull the dashboard graph, and the app boot shell must not
- * pull Landing.
+ * the entry bundle parses. Each shell preloads its own route **and that route's
+ * static import closure** — preloading only the leaf `HomeRoute-*.js` (~2KB)
+ * left a waterfall on `auth-*.js` + `shared-*.js` (~360KB) before Landing could
+ * paint. Splash must not pull the dashboard graph, and the app boot shell must
+ * not pull Landing.
  *
  * Pure Node — no `src/` imports, safe for build scripts.
  */
 
-import { readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** Chunk filename prefixes to modulepreload on the dashboard boot shell (#773). */
@@ -49,6 +51,47 @@ export function resolveBootModulepreloadHrefs(assetsDir, prefixes) {
 }
 
 /**
+ * Walk static `from "./chunk.js"` edges from entry hrefs so modulepreload
+ * covers the full paint-critical graph (not just the lazy leaf).
+ *
+ * @param {string} assetsDir
+ * @param {string[]} entryHrefs `/assets/….js`
+ * @returns {string[]}
+ */
+export function resolveModulepreloadClosure(assetsDir, entryHrefs) {
+  const seen = new Set();
+  const ordered = [];
+  const queue = [...entryHrefs];
+
+  while (queue.length) {
+    const href = queue.shift();
+    if (typeof href !== 'string' || !href || seen.has(href)) continue;
+    seen.add(href);
+    ordered.push(href);
+
+    const fileName = href.replace(/^\/assets\//, '');
+    if (!fileName || fileName.includes('..') || fileName.includes('/')) continue;
+    const filePath = join(assetsDir, fileName);
+    if (!existsSync(filePath)) continue;
+
+    let src = '';
+    try {
+      src = readFileSync(filePath, 'utf8');
+    } catch {
+      continue;
+    }
+
+    for (const match of src.matchAll(/from\s*["']\.\/([^"']+\.js)["']/g)) {
+      const dep = match[1];
+      if (!dep || dep.includes('..') || dep.includes('/')) continue;
+      queue.push(`/assets/${dep}`);
+    }
+  }
+
+  return ordered;
+}
+
+/**
  * Append `<link rel="modulepreload">` tags into `<head>`.
  * Idempotent; skips hrefs already present.
  *
@@ -59,11 +102,21 @@ export function resolveBootModulepreloadHrefs(assetsDir, prefixes) {
  */
 export function injectBootModulepreloads(html, distDir, { prefixes, marker }) {
   if (typeof html !== 'string' || !html) return html;
-  const hrefs = resolveBootModulepreloadHrefs(join(distDir, 'assets'), prefixes);
+  const assetsDir = join(distDir, 'assets');
+  const entryHrefs = resolveBootModulepreloadHrefs(assetsDir, prefixes);
+  if (!entryHrefs.length) return html;
+
+  const hrefs = resolveModulepreloadClosure(assetsDir, entryHrefs);
   if (!hrefs.length) return html;
 
   const tags = hrefs
-    .filter((href) => !html.includes(`href="${href}"`))
+    // Skip assets already present as modulepreload *or* as the entry
+    // `<script type="module" src>` (DashboardRoute can circularly import the
+    // entry chunk; re-preloading it is noise).
+    .filter(
+      (href) =>
+        !html.includes(`href="${href}"`) && !html.includes(`src="${href}"`),
+    )
     .map(
       (href) =>
         `  <link rel="modulepreload" crossorigin href="${href}" ${marker}="true" />`,

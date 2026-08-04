@@ -17,7 +17,6 @@ import {
   ensureAppCheckNow,
   initializeAppCheckDeferred,
 } from './shared/lib/firebaseAppCheck'
-import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
 import { hasPersistedSessionHint } from './shared/lib/persistedSessionHint'
 import { prefetchRouteChunk } from './shared/lib/routeChunkPrefetch'
 import { initWebVitals } from './shared/lib/webVitals'
@@ -43,16 +42,18 @@ if (
 }
 
 /**
- * FCM SW: immediate on dashboard/setup; idle-defer on all other hard opens
- * (marketing, legal, invite, splash) so gstatic compat importScripts does not
- * contend with entry JS / route chunks on cold private visits.
- * `getMessagingClient` still registers on demand for push opt-in.
+ * FCM SW: dynamic-import the messaging module so it stays off the entry static
+ * graph (no modulepreload of firebaseMessaging on splash). Immediate register
+ * on dashboard/setup; idle-defer elsewhere. `getMessagingClient` still
+ * registers on demand for push opt-in.
  */
 function scheduleMessagingServiceWorker(pathname) {
+  const start = () => {
+    void import('./shared/lib/firebaseMessaging').then((m) => {
+      void m.registerMessagingServiceWorker()
+    })
+  }
   if (shouldDeferMessagingServiceWorker(pathname)) {
-    const start = () => {
-      void registerMessagingServiceWorker()
-    }
     if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(start, { timeout: 5000 })
     } else {
@@ -60,7 +61,7 @@ function scheduleMessagingServiceWorker(pathname) {
     }
     return
   }
-  void registerMessagingServiceWorker()
+  start()
 }
 
 // Shared client for React Query caches (#243 profile/tour standings, #507

@@ -16,6 +16,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Fixed
 - **Cold-open load regression after 1.44.x / 1.46.4 promote** — marketing SEO shells paint a branded inline Loading overlay over crawler copy so plain h1/p no longer flash before React mounts; Inter (~344KB) is no longer high-priority preloaded (keeps `@font-face` + `font-display: swap`); `/privacy`, `/terms`, `/user/*`, bare `/join`, and related hard opens use `dist/spa-boot/index.html` (branded skeleton **without** `DashboardRoute` modulepreload); FCM service-worker registration is idle-deferred on all non-dashboard/setup hard opens; `/fonts/*` gets long-cache headers.
+- **Lazy `HomeRoute` dependency waterfall (#731)** — splash `modulepreload` now includes the route's **static import closure** (e.g. `auth-*` + `shared-*`, ~360KB) instead of only the 2KB `HomeRoute` leaf, so Landing no longer waits a serial round-trip after the entry bundle parses. Dashboard boot shell uses the same closure walker. FCM messaging is dynamic-imported from `main.jsx` so it leaves the entry static graph.
 
 ---
 
