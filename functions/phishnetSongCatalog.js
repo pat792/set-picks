@@ -264,6 +264,7 @@ async function syncPhishnetSongCatalogToStorage(apiKey, opts = {}) {
 
 module.exports = {
   syncPhishnetSongCatalogToStorage,
+  fetchPhishnetSongsNormalized,
   normalizePhishnetSongRow,
   normalizeDebutField,
   isPhishNetPayloadOk,

@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.46.3] — 2026-08-03
+
+### Fixed
+- **Public tour stats enrichment export (#666)** — `fetchPhishnetSongsNormalized` was used by `refreshPublicTourStats` but not exported from `phishnetSongCatalog.js`, so every refresh logged "is not a function" and wrote unenriched docs (no `lifetimePlays` / `debutYear` / `lastPlayed`). Export added; redeploy + refresh required for live data.
+
+---
+
 ## [1.46.2] — 2026-08-03
 
 ### Changed
