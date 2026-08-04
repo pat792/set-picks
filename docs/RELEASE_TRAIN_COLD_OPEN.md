@@ -16,6 +16,8 @@
 | **B — Outbound** | #830 | Email / push / invite link inventory; retarget `/?login=true` → `/login`. Depends on A. | Merged → staging (PR #842, v1.47.3) |
 | **C — Auth UX** | #834 | Inline full-page `/login` (replace modal-on-route hybrid). Invite VIP keeps modals. | Merged → staging (PR #843, v1.48.0) |
 | **C follow** | epic #835 | App-shell splash → `/login`; hard-nav Home; auth CTA polish; remove Get Started chooser. | v1.48.1–1.48.2 |
+| **C paint** | epic #835 | Content-first marketing boot (no full-screen “Loading…”); lazy sibling marketing routes; idle GA. | **v1.48.3** (this PR) |
+| **C login boot** | epic #835 | Anon `/login`: paint form first; Firebase/App Check on auth CTA (not preload). | **v1.48.3** (this PR) |
 | **D — Invite parity** | #844 | Inline auth on `/invite` + `/join` VIP (same panel chrome as `/login`). | **Held** — not in this promote |
 
 **Promote rule:** Ship A–C (+ C follow) `staging` → `main` when AC soak passes. Phase D (#844) stays open and ships later.
@@ -34,8 +36,11 @@
 
 ```bash
 npm run build && npm run preview
-# Private window: /, /how-it-works — Network must not request firebase-core until /login
-# /login — inline forms (no role=dialog)
+# Gate on Slow 3G / Fast 3G + private mobile against preview or prod — not staging SSO browse.
+# Private window: / — HTML shows H1/copy immediately under a thin top bar (not full-screen Loading…)
+# Network: no firebase-core on /; no HowItWorks/Scoring/Phish page chunks until those routes
+# /login — form visible quickly; Network: no firebase-core until Google / Continue with email
+# /login — inline forms (no role=dialog); session hint / Google redirect still complete
 # From /login → Home — full load of marketing /; Sign in again → /login (not modal)
 # /join/:code and /invite/:handle — still modal auth until #844
 ```

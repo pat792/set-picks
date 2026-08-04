@@ -18,6 +18,8 @@ import {
   DASHBOARD_BOOT_PRELOAD_MARKER,
   DASHBOARD_BOOT_SHELL_MARKER,
   LIGHT_SPA_BOOT_SHELL_REL_PATH,
+  LOGIN_BOOT_PRELOAD_MARKER,
+  LOGIN_BOOT_SHELL_REL_PATH,
   MARKETING_BOOT_SHELL_MARKER,
   PRERENDER_ROUTES,
   SPLASH_BOOT_PRELOAD_MARKER,
@@ -25,6 +27,7 @@ import {
   buildDashboardBootShellHtml,
   buildFixtureShellHtml,
   injectDashboardBootModulepreloads,
+  injectLoginBootModulepreloads,
   injectPrerenderHtml,
   injectSplashBootModulepreloads,
   injectTourStatsBootModulepreloads,
@@ -350,6 +353,40 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   assert(
     !lightBootHtml.includes('data-seo-prerender'),
     'light spa boot must not include SEO prerender body',
+  );
+
+  const loginBootPath = join(root, 'dist', LOGIN_BOOT_SHELL_REL_PATH);
+  assert(
+    existsSync(loginBootPath),
+    `dist missing ${LOGIN_BOOT_SHELL_REL_PATH} — run npm run build`,
+  );
+  const loginBootHtml = readFileSync(loginBootPath, 'utf8');
+  assert(
+    loginBootHtml.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`),
+    'login boot shell must include branded skeleton marker',
+  );
+  assert(
+    loginBootHtml.includes(`${LOGIN_BOOT_PRELOAD_MARKER}="true"`) &&
+      loginBootHtml.includes('LoginPage-'),
+    'login boot shell must modulepreload LoginPage chunk (#835)',
+  );
+  assert(
+    !/\/assets\/firebase-core-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must not modulepreload firebase-core (#835)',
+  );
+  assert(
+    !loginBootHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER) &&
+      !loginBootHtml.includes('DashboardRoute-'),
+    'login boot shell must not pull DashboardRoute',
+  );
+  assert(
+    !loginBootHtml.includes('data-seo-prerender'),
+    'login boot shell must not include SEO prerender body',
+  );
+  assert(
+    injectLoginBootModulepreloads(loginBootHtml, join(root, 'dist')) ===
+      loginBootHtml,
+    'login modulepreload injection must be idempotent',
   );
 
   console.log('verify:seo-prerender: dist/ checked');

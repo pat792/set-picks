@@ -1,15 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { ensureAuthReady } from '../../../shared/lib/ensureFirebase';
 import { isLikelyInAppBrowser } from '../../../shared/lib/inAppBrowser';
-import { auth } from '../../../shared/lib/firebase';
-import { recordTermsPrivacyConsent } from '../api/legalConsentApi';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
-import {
-  deleteAuthUserIfPresent,
-  registerWithEmail,
-  signInWithGoogle,
-  startGoogleSignInRedirect,
-} from '../api/splashAuthApi';
 import {
   clearSplashGoogleModalInflight,
   setSplashGoogleModalInflight,
@@ -21,7 +14,6 @@ import {
   trackAuthRollbackFailed,
   trackAuthSignUp,
 } from './authAnalytics';
-import { completeGoogleSplashAuth } from './completeGoogleSplashAuth';
 
 export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
@@ -75,6 +67,12 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
     setBusy(true);
     setSplashGoogleModalInflight();
     try {
+      const { auth } = await ensureAuthReady();
+      const [{ signInWithGoogle, startGoogleSignInRedirect }, { completeGoogleSplashAuth }] =
+        await Promise.all([
+          import('../api/splashAuthApi'),
+          import('./completeGoogleSplashAuth'),
+        ]);
       if (inAppBrowser) {
         stashGoogleRedirectIntent('signup');
         await startGoogleSignInRedirect(auth);
@@ -127,6 +125,12 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
       }
       setBusy(true);
       try {
+        const { auth } = await ensureAuthReady();
+        const [{ registerWithEmail, deleteAuthUserIfPresent }, { recordTermsPrivacyConsent }] =
+          await Promise.all([
+            import('../api/splashAuthApi'),
+            import('../api/legalConsentApi'),
+          ]);
         const cred = await registerWithEmail(auth, email, password);
         try {
           await recordTermsPrivacyConsent(cred.user.uid);

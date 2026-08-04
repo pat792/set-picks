@@ -50,7 +50,7 @@
     },
     {
       "source": "/login",
-      "destination": "/app.html"
+      "destination": "/login/index.html"
     },
     {
       "source": "/user/(.*)",

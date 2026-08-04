@@ -1,18 +1,22 @@
 import { useEffect, useRef } from 'react';
 
-import { auth } from '../../../shared/lib/firebase';
-import { consumeGoogleRedirectResult } from '../api/splashAuthApi';
+import { ensureAuthReady } from '../../../shared/lib/ensureFirebase';
 import {
   clearSplashGoogleModalInflight,
   setSplashGoogleModalInflight,
 } from '../utils/splashGoogleModalInflight';
-import { consumeGoogleRedirectIntent } from '../utils/googleRedirectIntent';
+import {
+  consumeGoogleRedirectIntent,
+  peekGoogleRedirectIntent,
+} from '../utils/googleRedirectIntent';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import { trackAuthError } from './authAnalytics';
-import { completeGoogleSplashAuth } from './completeGoogleSplashAuth';
 
 /**
  * Completes a pending Google `signInWithRedirect` on splash / invite landings.
+ *
+ * Skips Firebase load when there is no stashed redirect intent so anon `/login`
+ * paint stays firebase-free (#835).
  *
  * @param {{
  *   onOpenSignIn?: () => void,
@@ -31,12 +35,44 @@ export function useGoogleRedirectCompletion({
     if (ranRef.current) return;
     ranRef.current = true;
 
+    // No intent → do not pull firebase-core just to call getRedirectResult.
+    if (!peekGoogleRedirectIntent()) return;
+
     let cancelled = false;
 
     (async () => {
       let result;
       try {
+        const { auth } = await ensureAuthReady();
+        const [{ consumeGoogleRedirectResult }, { completeGoogleSplashAuth }] =
+          await Promise.all([
+            import('../api/splashAuthApi'),
+            import('./completeGoogleSplashAuth'),
+          ]);
         result = await consumeGoogleRedirectResult(auth);
+        if (cancelled) return;
+        if (!result) {
+          consumeGoogleRedirectIntent();
+          return;
+        }
+
+        const intent = consumeGoogleRedirectIntent() || 'signin';
+        setSplashGoogleModalInflight();
+        try {
+          const outcome = await completeGoogleSplashAuth({
+            intent,
+            isNewUser: result.isNewUser,
+            flow: 'redirect',
+          });
+          if (cancelled) return;
+          if (outcome.kind === 'error') {
+            onError?.(outcome.message, intent);
+            if (intent === 'signup') onOpenSignUp?.();
+            else onOpenSignIn?.();
+          }
+        } finally {
+          clearSplashGoogleModalInflight();
+        }
       } catch (err) {
         console.error('Google redirect result:', err);
         const intent = consumeGoogleRedirectIntent();
@@ -49,32 +85,6 @@ export function useGoogleRedirectCompletion({
         onError?.(getFirebaseAuthErrorMessage(err?.code), intent);
         if (intent === 'signup') onOpenSignUp?.();
         else if (intent === 'signin') onOpenSignIn?.();
-        return;
-      }
-
-      if (cancelled || !result) {
-        // Clear a stale intent if Firebase returned nothing (user cancelled).
-        if (!result) consumeGoogleRedirectIntent();
-        return;
-      }
-
-      const intent = consumeGoogleRedirectIntent() || 'signin';
-      setSplashGoogleModalInflight();
-      try {
-        const outcome = await completeGoogleSplashAuth({
-          intent,
-          isNewUser: result.isNewUser,
-          flow: 'redirect',
-        });
-        if (cancelled) return;
-        if (outcome.kind === 'error') {
-          onError?.(outcome.message, intent);
-          if (intent === 'signup') onOpenSignUp?.();
-          else onOpenSignIn?.();
-        }
-        // success: AuthContext + HomeRoute Navigate handle post-login routing
-      } finally {
-        clearSplashGoogleModalInflight();
       }
     })();
 
