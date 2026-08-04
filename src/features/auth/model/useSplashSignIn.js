@@ -1,21 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { ensureAuthReady } from '../../../shared/lib/ensureFirebase';
 import { isLikelyInAppBrowser } from '../../../shared/lib/inAppBrowser';
-import { auth } from '../../../shared/lib/firebase';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
-import {
-  sendResetEmail,
-  signInWithEmail,
-  signInWithGoogle,
-  startGoogleSignInRedirect,
-} from '../api/splashAuthApi';
 import {
   clearSplashGoogleModalInflight,
   setSplashGoogleModalInflight,
 } from '../utils/splashGoogleModalInflight';
 import { stashGoogleRedirectIntent } from '../utils/googleRedirectIntent';
 import { trackAuthError, trackAuthLogin } from './authAnalytics';
-import { completeGoogleSplashAuth } from './completeGoogleSplashAuth';
 
 export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
@@ -63,6 +56,12 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
     setBusy(true);
     setSplashGoogleModalInflight();
     try {
+      const { auth } = await ensureAuthReady();
+      const [{ signInWithGoogle, startGoogleSignInRedirect }, { completeGoogleSplashAuth }] =
+        await Promise.all([
+          import('../api/splashAuthApi'),
+          import('./completeGoogleSplashAuth'),
+        ]);
       if (inAppBrowser) {
         stashGoogleRedirectIntent('signin');
         await startGoogleSignInRedirect(auth);
@@ -104,6 +103,8 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
       setError('');
       setBusy(true);
       try {
+        const { auth } = await ensureAuthReady();
+        const { signInWithEmail } = await import('../api/splashAuthApi');
         await signInWithEmail(auth, email, password);
         trackAuthLogin('email', { surface: 'sign_in' });
         closeModal();
@@ -133,6 +134,8 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
     setError('');
     setResetLinkNotice({ text: '', type: '' });
     try {
+      const { auth } = await ensureAuthReady();
+      const { sendResetEmail } = await import('../api/splashAuthApi');
       await sendResetEmail(auth, em);
       setResetLinkNotice({
         text: `Check your inbox at ${em} for a password reset link. Then return here to sign in.`,

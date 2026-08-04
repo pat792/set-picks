@@ -11,7 +11,7 @@ import {
   consumeSplashResumeAuthModal,
   useAuth,
   useGoogleRedirectCompletion,
-} from '../../features/auth';
+} from '../../features/auth/login';
 import { MarketingPageShell } from '../../features/landing';
 import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';

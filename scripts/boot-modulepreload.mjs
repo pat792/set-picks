@@ -25,10 +25,17 @@ export const SPLASH_BOOT_MODULEPRELOAD_PREFIXES = ['HomeRoute-'];
 /** Chunk filename prefixes for prerendered public `/tour-stats*` (#827). */
 export const TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES = ['PublicTourStatsPage-'];
 
+/** Chunk filename prefixes for `/login` boot shell (#835) — UI only. */
+export const LOGIN_BOOT_MODULEPRELOAD_PREFIXES = ['LoginPage-'];
+
 /** Attribute markers asserted by `verify:seo-prerender`. */
 export const DASHBOARD_BOOT_PRELOAD_MARKER = 'data-dashboard-boot-preload';
 export const SPLASH_BOOT_PRELOAD_MARKER = 'data-splash-boot-preload';
 export const TOUR_STATS_BOOT_PRELOAD_MARKER = 'data-tour-stats-boot-preload';
+export const LOGIN_BOOT_PRELOAD_MARKER = 'data-login-boot-preload';
+
+/** Never modulepreload Firebase (or App Check) on anon `/login` (#835). */
+const LOGIN_BOOT_PRELOAD_BLOCKLIST = /\/assets\/firebase/;
 
 /**
  * Resolve hashed asset filenames under `dist/assets` for the given prefixes.
@@ -171,4 +178,57 @@ export function injectTourStatsBootModulepreloads(html, distDir) {
     prefixes: TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES,
     marker: TOUR_STATS_BOOT_PRELOAD_MARKER,
   });
+}
+
+/**
+ * Drop any Vite-inherited firebase* modulepreloads from a shell (login must
+ * not warm Auth/App Check before the form paints — #835).
+ *
+ * @param {string} html
+ * @returns {string}
+ */
+export function stripFirebaseModulepreloads(html) {
+  if (typeof html !== 'string' || !html) return html;
+  return html.replace(
+    /\s*<link[^>]*rel="modulepreload"[^>]*href="\/assets\/firebase[^"]*"[^>]*\/?>/gi,
+    '',
+  );
+}
+
+/**
+ * Login form UI chunks for `dist/login/index.html`. Strips firebase-* hrefs
+ * from the closure so Auth stays interaction-gated (#835).
+ *
+ * @param {string} html
+ * @param {string} distDir
+ * @returns {string}
+ */
+export function injectLoginBootModulepreloads(html, distDir) {
+  if (typeof html !== 'string' || !html) return html;
+  let next = stripFirebaseModulepreloads(html);
+  const assetsDir = join(distDir, 'assets');
+  const entryHrefs = resolveBootModulepreloadHrefs(
+    assetsDir,
+    LOGIN_BOOT_MODULEPRELOAD_PREFIXES,
+  );
+  if (!entryHrefs.length) return next;
+
+  const hrefs = resolveModulepreloadClosure(assetsDir, entryHrefs).filter(
+    (href) => !LOGIN_BOOT_PRELOAD_BLOCKLIST.test(href),
+  );
+  if (!hrefs.length) return next;
+
+  const marker = LOGIN_BOOT_PRELOAD_MARKER;
+  const tags = hrefs
+    .filter(
+      (href) =>
+        !next.includes(`href="${href}"`) && !next.includes(`src="${href}"`),
+    )
+    .map(
+      (href) =>
+        `  <link rel="modulepreload" crossorigin href="${href}" ${marker}="true" />`,
+    );
+  if (!tags.length) return next;
+  if (!/<\/head>/i.test(next)) return next;
+  return next.replace(/<\/head>/i, `${tags.join('\n')}\n</head>`);
 }

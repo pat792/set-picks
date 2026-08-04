@@ -28,3 +28,9 @@ export const APP_BOOT_SHELL_REL_PATH = 'dashboard/index.html';
  * profile / bare-join hard opens that must not download DashboardRoute.
  */
 export const LIGHT_SPA_BOOT_SHELL_REL_PATH = 'spa-boot/index.html';
+
+/**
+ * Branded skeleton + LoginPage UI modulepreload for `/login` (#835).
+ * Must not preload firebase-core — Auth loads on interaction.
+ */
+export const LOGIN_BOOT_SHELL_REL_PATH = 'login/index.html';

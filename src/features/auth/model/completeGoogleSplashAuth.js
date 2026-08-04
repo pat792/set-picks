@@ -1,4 +1,4 @@
-import { auth } from '../../../shared/lib/firebase';
+import { ensureFirebase } from '../../../shared/lib/ensureFirebase';
 import { signOutUser } from '../api/authApi';
 import { recordTermsPrivacyConsent } from '../api/legalConsentApi';
 import { deleteAuthUserIfPresent } from '../api/splashAuthApi';
@@ -30,6 +30,7 @@ export async function completeGoogleSplashAuth({
   flow = 'popup',
 }) {
   const flowOpts = { auth_flow: flow };
+  const { auth } = await ensureFirebase();
 
   if (intent === 'signin') {
     const action = decideSignInModalGoogleAction(isNewUser);

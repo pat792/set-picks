@@ -10,6 +10,7 @@ import {
 import {
   APP_BOOT_SHELL_REL_PATH,
   LIGHT_SPA_BOOT_SHELL_REL_PATH,
+  LOGIN_BOOT_SHELL_REL_PATH,
   stripPrerenderBodyFromSpaShell,
 } from './seo-strip-body.mjs';
 import {
@@ -23,9 +24,11 @@ import {
 } from './marketing-boot-shell.mjs';
 import {
   DASHBOARD_BOOT_PRELOAD_MARKER,
+  LOGIN_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
   TOUR_STATS_BOOT_PRELOAD_MARKER,
   injectDashboardBootModulepreloads,
+  injectLoginBootModulepreloads,
   injectSplashBootModulepreloads,
   injectTourStatsBootModulepreloads,
 } from './boot-modulepreload.mjs';
@@ -35,16 +38,19 @@ export {
   SEO_FAVICON_VERSION,
   APP_BOOT_SHELL_REL_PATH,
   LIGHT_SPA_BOOT_SHELL_REL_PATH,
+  LOGIN_BOOT_SHELL_REL_PATH,
   stripPrerenderBodyFromSpaShell,
   DASHBOARD_BOOT_SHELL_MARKER,
   MARKETING_BOOT_SHELL_MARKER,
   DASHBOARD_BOOT_PRELOAD_MARKER,
+  LOGIN_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
   TOUR_STATS_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
   buildMarketingBootShellMarkup,
   injectDashboardBootModulepreloads,
+  injectLoginBootModulepreloads,
   injectSplashBootModulepreloads,
   injectTourStatsBootModulepreloads,
 };

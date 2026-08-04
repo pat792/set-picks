@@ -16,6 +16,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Fixed
 - **Marketing cold-open paint (epic #835)** — `/` no longer full-screen-blocks on a “Loading…” overlay while JS downloads; prerender copy stays visible under a thin top progress bar. Non-home marketing routes are lazy so home does not download sibling page chunks. GA4 / web-vitals init wait until idle after first paint.
+- **Login interaction auth boot (epic #835)** — anon `/login` paints the form without downloading `firebase-core`; Auth + App Check load on Google / Continue with email (session hint and Google redirect return still eager). `/login` uses a branded boot shell that modulepreloads `LoginPage` UI only.
 
 ---
 
