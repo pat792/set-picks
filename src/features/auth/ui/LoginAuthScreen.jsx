@@ -23,17 +23,14 @@ export default function LoginAuthScreen({
 }) {
   const isSignup = mode === 'signup';
 
+  // Chrome (sticky header + marketing nav + footer) comes from MarketingPageShell
+  // composed in LoginPage — same top-level surface as /how-it-works, etc. (#834).
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-transparent px-4 py-10 text-white">
+    <div className="relative mx-auto flex w-full max-w-md flex-col items-center px-4 py-10 text-white sm:px-6 lg:px-8">
       <OpenInBrowserBanner />
-      <div className="relative z-10 mb-6 text-center">
-        <p className="mb-2 font-display text-lg font-bold tracking-tight text-white">
-          Setlist Pick&nbsp;&apos;Em
-        </p>
-        <p className="text-sm font-medium text-slate-400">
-          {isSignup ? 'Create your free account' : 'Sign in to make picks'}
-        </p>
-      </div>
+      <p className="mb-6 text-center text-sm font-medium text-slate-400">
+        {isSignup ? 'Create your free account' : 'Sign in to make picks'}
+      </p>
       {isSignup ? (
         <LoginSignUpPanel
           onClose={onClose}
@@ -49,16 +46,6 @@ export default function LoginAuthScreen({
           seedError={seedError}
         />
       )}
-      <p className="relative z-10 mt-6 text-center text-sm font-semibold text-slate-500">
-        <Button
-          variant="link"
-          type="button"
-          onClick={onClose}
-          className="inline px-0 py-0 text-sm text-slate-400 hover:text-white"
-        >
-          Back to home
-        </Button>
-      </p>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   useAuth,
   useGoogleRedirectCompletion,
 } from '../../features/auth';
+import { MarketingPageShell } from '../../features/landing';
 import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
@@ -77,13 +78,15 @@ export default function LoginPage() {
   }
 
   return (
-    <LoginAuthScreen
-      mode={mode}
-      onSwitchToSignIn={openSignIn}
-      onSwitchToSignUp={openSignUp}
-      onClose={goHome}
-      poolInvitePending={poolInvitePending}
-      seedError={redirectAuthError}
-    />
+    <MarketingPageShell>
+      <LoginAuthScreen
+        mode={mode}
+        onSwitchToSignIn={openSignIn}
+        onSwitchToSignUp={openSignUp}
+        onClose={goHome}
+        poolInvitePending={poolInvitePending}
+        seedError={redirectAuthError}
+      />
+    </MarketingPageShell>
   );
 }
