@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   APP_BOOT_SHELL_REL_PATH,
+  LIGHT_SPA_BOOT_SHELL_REL_PATH,
   PRERENDER_ROUTES,
   buildDashboardBootShellHtml,
   injectDashboardBootModulepreloads,
@@ -42,13 +43,11 @@ for (const route of PRERENDER_ROUTES) {
   console.log(`prerender-seo: wrote dist/${rel} (${Buffer.byteLength(html, 'utf8')} bytes)`);
 }
 
-// Branded boot shell for /dashboard/* (and other app paths via vercel.json).
+// Branded boot shell for /dashboard/* + /setup (via vercel.json).
 // Use the pre-prerender Vite shell so we never copy home SEO body into it.
-// Phase 2: modulepreload DashboardRoute on this shell only (not splash).
-const appBootHtml = injectDashboardBootModulepreloads(
-  buildDashboardBootShellHtml(shell),
-  distDir,
-);
+// Phase 2: modulepreload DashboardRoute on this shell only (not splash / light spa).
+const brandedShell = buildDashboardBootShellHtml(shell);
+const appBootHtml = injectDashboardBootModulepreloads(brandedShell, distDir);
 const appBootPath = join(distDir, APP_BOOT_SHELL_REL_PATH);
 mkdirSync(dirname(appBootPath), { recursive: true });
 writeFileSync(appBootPath, appBootHtml, 'utf8');
@@ -56,4 +55,15 @@ console.log(
   `prerender-seo: wrote dist/${APP_BOOT_SHELL_REL_PATH} (branded #root boot shell + modulepreload)`,
 );
 
-console.log(`prerender-seo: OK (${PRERENDER_ROUTES.length} routes + app boot shell)`);
+// Light spa boot: same branded skeleton, no DashboardRoute preload — legal,
+// public profile, bare /join, etc. must not contend for the dashboard graph.
+const lightBootPath = join(distDir, LIGHT_SPA_BOOT_SHELL_REL_PATH);
+mkdirSync(dirname(lightBootPath), { recursive: true });
+writeFileSync(lightBootPath, brandedShell, 'utf8');
+console.log(
+  `prerender-seo: wrote dist/${LIGHT_SPA_BOOT_SHELL_REL_PATH} (branded shell, no route modulepreload)`,
+);
+
+console.log(
+  `prerender-seo: OK (${PRERENDER_ROUTES.length} routes + app boot shell + light spa boot)`,
+);

@@ -8,7 +8,7 @@ import Ga4RouteListener from './app/Ga4RouteListener.jsx'
 import ScrollToTop from './app/ScrollToTop.jsx'
 import { AuthProvider } from './features/auth/provider'
 import {
-  isPublicColdOpenPath,
+  shouldDeferMessagingServiceWorker,
   shouldPrefetchDashboardOnBoot,
   shouldWarmAppCheckOnBoot,
 } from './shared/lib/appBootPath'
@@ -17,7 +17,6 @@ import {
   ensureAppCheckNow,
   initializeAppCheckDeferred,
 } from './shared/lib/firebaseAppCheck'
-import { registerMessagingServiceWorker } from './shared/lib/firebaseMessaging'
 import { hasPersistedSessionHint } from './shared/lib/persistedSessionHint'
 import { prefetchRouteChunk } from './shared/lib/routeChunkPrefetch'
 import { initWebVitals } from './shared/lib/webVitals'
@@ -43,14 +42,18 @@ if (
 }
 
 /**
- * FCM SW: immediate on app surfaces; idle-defer on public cold-open (#732).
- * `getMessagingClient` still registers on demand for push opt-in.
+ * FCM SW: dynamic-import the messaging module so it stays off the entry static
+ * graph (no modulepreload of firebaseMessaging on splash). Immediate register
+ * on dashboard/setup; idle-defer elsewhere. `getMessagingClient` still
+ * registers on demand for push opt-in.
  */
 function scheduleMessagingServiceWorker(pathname) {
-  if (isPublicColdOpenPath(pathname)) {
-    const start = () => {
-      void registerMessagingServiceWorker()
-    }
+  const start = () => {
+    void import('./shared/lib/firebaseMessaging').then((m) => {
+      void m.registerMessagingServiceWorker()
+    })
+  }
+  if (shouldDeferMessagingServiceWorker(pathname)) {
     if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(start, { timeout: 5000 })
     } else {
@@ -58,7 +61,7 @@ function scheduleMessagingServiceWorker(pathname) {
     }
     return
   }
-  void registerMessagingServiceWorker()
+  start()
 }
 
 // Shared client for React Query caches (#243 profile/tour standings, #507
