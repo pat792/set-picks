@@ -243,7 +243,10 @@ export default function TourStatsView({
                   <span className="tabular-nums text-brand-primary/80">
                     {absoluteIdx + 1}
                   </span>
-                  <span className="min-w-0 truncate">{row.title}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{row.title}</span>
+                    <SongEnrichmentLine row={row} />
+                  </span>
                   <span className="justify-self-end tabular-nums text-brand-primary">
                     {row.timesPlayed}
                   </span>
@@ -300,6 +303,28 @@ export default function TourStatsView({
 }
 
 /**
+ * Lifetime context from phish.net enrichment (#666) — present only on
+ * `public_tour_stats` rows written by an enriched refresh. Dashboard rows
+ * (client-side aggregation) never carry these fields, so the private
+ * explorer renders unchanged.
+ *
+ * @param {{ row: { debutYear?: number | null, lifetimePlays?: number | null } }} props
+ */
+function SongEnrichmentLine({ row }) {
+  const bits = [];
+  if (typeof row.debutYear === 'number') bits.push(`Debut ${row.debutYear}`);
+  if (typeof row.lifetimePlays === 'number') {
+    bits.push(`${row.lifetimePlays.toLocaleString()} plays all-time`);
+  }
+  if (bits.length === 0) return null;
+  return (
+    <span className="block truncate text-[10px] font-medium leading-snug text-content-secondary">
+      {bits.join(' · ')}
+    </span>
+  );
+}
+
+/**
  * Bustouts / High-gaps list body: Song | Date | Gap rows, plus a "Last"
  * (last played before that night) column when any row carries a
  * `lastPlayed` date — server-enriched payloads only (#666), so the column
@@ -335,7 +360,10 @@ function GapPagedRows({ rows, label, gapClassName }) {
       }
       renderRow={(row) => (
         <li key={`${row.showDate}-${row.title}`} className={grid}>
-          <span className="min-w-0 truncate">{row.title}</span>
+          <span className="min-w-0">
+            <span className="block truncate">{row.title}</span>
+            <SongEnrichmentLine row={row} />
+          </span>
           {hasLastPlayed ? (
             <span
               className="justify-self-end tabular-nums text-content-secondary"

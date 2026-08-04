@@ -6,6 +6,8 @@ const assert = require("node:assert/strict");
 const {
   aggregateTourSetlistStats,
   toPublicTourStatsPayload,
+  buildSongEnrichmentByTitle,
+  lastPlayedBeforeFromHistory,
   tourLabelToSlug,
 } = require("./aggregateTourSetlistStats.cjs");
 
@@ -39,6 +41,92 @@ describe("aggregateTourSetlistStats", () => {
     const pub = toPublicTourStatsPayload(stats);
     assert.equal(pub.topSongs.length, 40);
     assert.equal(pub.gapHighlights.length, 40);
+  });
+});
+
+describe("buildSongEnrichmentByTitle (#666)", () => {
+  it("normalizes titles and parses total/debut/slug from catalog rows", () => {
+    const map = buildSongEnrichmentByTitle([
+      { name: "Ghost", total: "623", debut: "1997-06-13", slug: "ghost" },
+      { name: "Tweezer", total: "512", debut: "1990" },
+      { name: "No Data", total: "—", debut: "" },
+      { name: "Weird Year", total: "3", debut: "0999-01-01" },
+      { name: "  ", total: "5", debut: "2000" },
+    ]);
+    assert.deepEqual(map.get("ghost"), {
+      lifetimePlays: 623,
+      debutYear: 1997,
+      slug: "ghost",
+    });
+    assert.deepEqual(map.get("tweezer"), {
+      lifetimePlays: 512,
+      debutYear: 1990,
+      slug: null,
+    });
+    assert.equal(map.has("no data"), false);
+    assert.deepEqual(map.get("weird year"), {
+      lifetimePlays: 3,
+      debutYear: null,
+      slug: null,
+    });
+    assert.equal(map.has(""), false);
+  });
+});
+
+describe("lastPlayedBeforeFromHistory (#709 follow-up)", () => {
+  it("returns the latest date strictly before the show date", () => {
+    assert.equal(
+      lastPlayedBeforeFromHistory(
+        ["2019-06-16", "2021-08-01", "2024-12-31", "2026-07-22"],
+        "2026-07-22"
+      ),
+      "2024-12-31"
+    );
+  });
+
+  it("returns null when no prior date or inputs are invalid", () => {
+    assert.equal(lastPlayedBeforeFromHistory(["2026-07-22"], "2026-07-22"), null);
+    assert.equal(lastPlayedBeforeFromHistory([], "2026-07-22"), null);
+    assert.equal(lastPlayedBeforeFromHistory(["2020-01-01"], "not-a-date"), null);
+    assert.equal(lastPlayedBeforeFromHistory(null, "2026-07-22"), null);
+  });
+});
+
+describe("toPublicTourStatsPayload enrichment (#666)", () => {
+  const stats = aggregateTourSetlistStats(
+    [
+      {
+        showDate: "2026-04-16",
+        setlist: {
+          officialSetlist: ["Ghost", "Obscure Original"],
+          bustouts: ["Ghost"],
+          songGaps: { ghost: 47, "obscure original": 12 },
+        },
+      },
+    ],
+    { tourShowCount: 1 }
+  );
+
+  it("attaches lifetimePlays/debutYear per row, null for unknown songs", () => {
+    const map = buildSongEnrichmentByTitle([
+      { name: "GHOST", total: "623", debut: "1997-06-13" },
+    ]);
+    const pub = toPublicTourStatsPayload(stats, map);
+    const ghost = pub.topSongs.find((r) => r.title === "Ghost");
+    assert.equal(ghost.lifetimePlays, 623);
+    assert.equal(ghost.debutYear, 1997);
+    const obscure = pub.topSongs.find((r) => r.title === "Obscure Original");
+    assert.equal(obscure.lifetimePlays, null);
+    assert.equal(obscure.debutYear, null);
+    assert.equal(pub.bustouts[0].lifetimePlays, 623);
+    assert.equal(pub.gapHighlights[0].title, "Obscure Original");
+    assert.equal(pub.gapHighlights[0].debutYear, null);
+  });
+
+  it("omits enrichment fields entirely when no map is provided", () => {
+    const pub = toPublicTourStatsPayload(stats);
+    assert.ok(pub.topSongs.every((r) => !("lifetimePlays" in r)));
+    assert.ok(pub.bustouts.every((r) => !("debutYear" in r)));
   });
 });
 

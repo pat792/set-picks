@@ -15,6 +15,7 @@ test("normalizePhishnetSongRow maps v5 row", () => {
   const row = {
     songid: 1,
     song: "Tweezer",
+    slug: "tweezer",
     times_played: 414,
     gap: 5,
     last_played: "2025-12-31",
@@ -26,7 +27,13 @@ test("normalizePhishnetSongRow maps v5 row", () => {
     gap: "5",
     last: "2025-12-31",
     debut: "1990-09-28",
+    slug: "tweezer",
   });
+});
+
+test("normalizePhishnetSongRow maps missing slug to empty string", () => {
+  const out = normalizePhishnetSongRow({ song: "Wilson", times_played: 100 });
+  assert.equal(out.slug, "");
 });
 
 test("normalizePhishnetSongRow maps missing debut to empty string", () => {
