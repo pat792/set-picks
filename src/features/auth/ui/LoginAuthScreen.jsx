@@ -215,7 +215,7 @@ function LoginSignUpPanel({
   } = useSplashSignUp(true, onClose, { seedError });
 
   const consentBlock = (
-    <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border-subtle bg-surface-field/80 p-4 text-left text-sm font-semibold leading-snug text-slate-200">
+    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-subtle/60 bg-surface-inset/60 p-3.5 text-left text-sm font-semibold leading-snug text-slate-200">
       <input
         type="checkbox"
         checked={legalAccepted}

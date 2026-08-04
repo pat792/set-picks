@@ -1,10 +1,18 @@
 import React from 'react';
 
 import Button from '../../../shared/ui/Button';
+import {
+  DASHBOARD_CARD_PAD,
+  DASHBOARD_CARD_RADIUS,
+} from '../../../shared/ui/dashboardCardClasses';
 
 /**
  * Shared auth credentials chrome (#834) — Google CTA, divider, and form slot.
  * Modal shell wraps this in a dialog; `/login` uses it as a page panel.
+ *
+ * Geometry matches dashboard L1 promo/sponsor cards (`rounded-xl`, quiet
+ * border + panel fill) so `/login` reads as a primary surface, not a
+ * floating glass widget.
  */
 export default function SplashAuthPanel({
   title,
@@ -21,9 +29,11 @@ export default function SplashAuthPanel({
     typeof googleDisabled === 'boolean' ? googleDisabled : busy;
 
   return (
-    <div className="w-full max-w-md rounded-[2rem] border border-border-subtle bg-surface-panel-strong p-8 shadow-inset-glass ring-1 ring-border-glass/20">
-      <div className="mb-6 flex items-start justify-between">
-        <h1 className="font-display text-display-md font-bold text-white md:text-display-md-lg">
+    <div
+      className={`w-full max-w-md ${DASHBOARD_CARD_RADIUS} border border-border-subtle/60 bg-surface-panel/40 ${DASHBOARD_CARD_PAD} md:!p-6`}
+    >
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-white md:text-[1.75rem]">
           {title}
         </h1>
         {showClose && typeof onClose === 'function' ? (
@@ -39,29 +49,31 @@ export default function SplashAuthPanel({
         ) : null}
       </div>
 
-      {prependContent ? <div className="mb-6">{prependContent}</div> : null}
+      {prependContent ? <div className="mb-5">{prependContent}</div> : null}
 
       <Button
         variant="text"
         type="button"
         onClick={handleGoogle}
         disabled={isGoogleDisabled}
-        className="w-full gap-3 rounded-xl bg-white py-3.5 text-slate-900 shadow-[0_8px_24px_-12px_rgba(255,255,255,0.35)] ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-[0_12px_28px_-12px_rgba(255,255,255,0.45)]"
+        className="w-full gap-3 rounded-xl bg-white py-3 text-slate-900 ring-1 ring-white/15 transition-colors hover:bg-slate-50 disabled:opacity-50"
       >
         <img src="https://www.google.com/favicon.ico" alt="" className="h-5 w-5" />
         Continue with Google
       </Button>
 
       {googleFootnote ? (
-        <p className="mt-3 text-center text-xs font-semibold leading-relaxed text-slate-300">
+        <p className="mt-2.5 text-center text-xs font-medium leading-relaxed text-slate-400">
           {googleFootnote}
         </p>
       ) : null}
 
-      <div className="mb-6 mt-8 flex items-center gap-3">
-        <div className="h-px flex-1 bg-border-muted" />
-        <span className="text-xs font-bold uppercase text-slate-500">or</span>
-        <div className="h-px flex-1 bg-border-muted" />
+      <div className="mb-5 mt-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border-subtle/60" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          or
+        </span>
+        <div className="h-px flex-1 bg-border-subtle/60" />
       </div>
 
       {children}

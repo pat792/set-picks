@@ -19,6 +19,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Changed
 - Marketing / legacy hops emit `/login?mode=signup` instead of `signup=1`.
+- Auth panel chrome (`SplashAuthPanel`) uses dashboard L1 / sponsor geometry — `rounded-xl`, quiet `border-border-subtle/60` + `bg-surface-panel/40`, flatter Google CTA — so `/login` reads as a primary surface instead of a floating glass widget.
 
 ---
 
