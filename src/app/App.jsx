@@ -1,14 +1,32 @@
 import React, { lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-import RootAppShell from './layout/RootAppShell';
-import HomeRoute from './routes/HomeRoute';
+import { registerRouteChunkLoaders } from '../shared/lib/routeChunkPrefetch';
 
-// Keep `HomeRoute` eager: it's the public splash / SEO-facing surface, so it
-// must paint before any dynamic import resolves. Every other top-level route
-// is lazy-loaded so direct hits on e.g. `/dashboard/profile` don't pay the
-// full dashboard+admin+pools download on first paint. The shared Suspense
-// boundary lives in `RootAppShell` (one place → consistent fallback).
+import RootAppShell from './layout/RootAppShell';
+
+// Every top-level route is lazy-loaded so direct hits on e.g.
+// `/dashboard/profile` don't pay the full dashboard+admin+pools download on
+// first paint. The shared Suspense boundary lives in `RootAppShell` (one
+// place → consistent fallback).
+//
+// `HomeRoute` joined them in #731: `/join`, `/invite/:handle` and every
+// dashboard hard open were downloading the Landing graph they never render.
+// The splash keeps its first-paint budget because `prerender-seo.mjs`
+// modulepreloads the HomeRoute chunk into `dist/index.html`.
+const loadHomeRoute = () => import('./routes/HomeRoute');
+const loadSetupRoute = () => import('./routes/SetupRoute');
+const loadDashboardRoute = () => import('./routes/DashboardRoute');
+
+// Feature surfaces (auth modals, invite CTAs) prefetch these by key so they
+// never have to import app-layer route modules (#805).
+registerRouteChunkLoaders({
+  home: loadHomeRoute,
+  setup: loadSetupRoute,
+  dashboard: loadDashboardRoute,
+});
+
+const HomeRoute = lazy(loadHomeRoute);
 const PasswordResetCompletePage = lazy(() =>
   import('../pages/auth/PasswordResetCompletePage')
 );
@@ -26,8 +44,8 @@ const PhishSetlistPredictionGamePage = lazy(
 );
 const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
-const SetupRoute = lazy(() => import('./routes/SetupRoute'));
-const DashboardRoute = lazy(() => import('./routes/DashboardRoute'));
+const SetupRoute = lazy(loadSetupRoute);
+const DashboardRoute = lazy(loadDashboardRoute);
 // Dev-only comms template gallery (redirects home in production builds).
 const CommsPreviewPage = lazy(() => import('../pages/dev/CommsPreviewPage'));
 

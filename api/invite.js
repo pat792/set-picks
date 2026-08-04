@@ -31,8 +31,6 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
 
 import {
   SITE_URL,
@@ -46,10 +44,30 @@ import {
 } from './inviteOgHelpers.mjs';
 
 // ---------------------------------------------------------------------------
-// Firebase Admin — lazy singleton
+// Firebase Admin — dynamic import on crawler/OG path only (#732)
+// Browsers hit skip-firestore + SPA shell and must not pay admin cold import.
 // ---------------------------------------------------------------------------
 
-function initAdmin() {
+/** @type {Promise<{ getApps: Function, initializeApp: Function, cert: Function, getFirestore: Function }> | null} */
+let adminModsPromise = null;
+
+function loadAdminMods() {
+  if (!adminModsPromise) {
+    adminModsPromise = Promise.all([
+      import('firebase-admin/app'),
+      import('firebase-admin/firestore'),
+    ]).then(([appMod, fsMod]) => ({
+      getApps: appMod.getApps,
+      initializeApp: appMod.initializeApp,
+      cert: appMod.cert,
+      getFirestore: fsMod.getFirestore,
+    }));
+  }
+  return adminModsPromise;
+}
+
+async function initAdmin() {
+  const { getApps, initializeApp, cert } = await loadAdminMods();
   if (getApps().length > 0) return;
   const sa = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (sa) {
@@ -64,7 +82,8 @@ function initAdmin() {
  * @returns {Promise<{ name: string } | null>}
  */
 async function fetchPoolByCode(code) {
-  initAdmin();
+  await initAdmin();
+  const { getFirestore } = await loadAdminMods();
   const db = getFirestore();
   const snap = await db
     .collection('pools')
@@ -83,7 +102,8 @@ async function fetchPoolByCode(code) {
 async function fetchPublicProfileByHandle(handle) {
   const h = normalizeInviteHandle(handle);
   if (!h) return null;
-  initAdmin();
+  await initAdmin();
+  const { getFirestore } = await loadAdminMods();
   const db = getFirestore();
   const snap = await db
     .collection('users')

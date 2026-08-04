@@ -389,6 +389,8 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary
 
 **Picks — Prediction Lab (**v1.38.0 / #651**):** opt-in collapsed panel on `/dashboard/picks` consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete unchanged when Lab unused/unavailable. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
 
+**Field RUM — web-vitals (**v1.44.0 / #801**):** production hostnames only. Client emits GA4 `web_vital` for LCP, INP, CLS, TTFB, FCP after idle. Params: `{ metric_name, value, metric_id, metric_rating, route_group, navigation_type }` where `route_group` is `splash` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` and `navigation_type` is `navigate` \| `reload` \| `back_forward` \| `prerender`. Ops: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
+
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 
 Service comms email bodies expose **one** tracked CTA link (the teal button). The header wordmark is decorative (CSS background, not a link).
@@ -423,6 +425,8 @@ Social crawlers (Meta, X, Slack, …) do not execute JavaScript. Invite URLs are
 | `/invite/:handle` | `/api/invite?handle=:handle` | — | Resolves `users.handle` via Admin SDK; generic OG if missing | SPA shell + static OG from URL handle |
 
 Copy mirrors `src/shared/lib/inviteKit.js` (`buildSiteInviteShareTitle`, `buildPoolInviteShareTitleFromInviter`) and legacy pool OG (`Join my Setlist Pick 'Em pool: {name}`) when `from` is absent. Constants mirror `src/shared/config/seo.js` in `api/inviteOgHelpers.mjs` (no `src/` imports in serverless).
+
+**v1.44.2 / #732:** `firebase-admin` is dynamic-imported only on the crawler/Firestore branch so browser requests do not pay Admin module cold-start. Client FCM service-worker registration is idle-deferred on `/`, `/join/*`, and `/invite/*` (still on-demand via messaging helpers).
 
 **Vercel env:** `FIREBASE_SERVICE_ACCOUNT` (JSON) enables Firestore Admin lookups for crawlers.
 

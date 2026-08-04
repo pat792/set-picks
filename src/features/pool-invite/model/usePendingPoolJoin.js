@@ -8,8 +8,8 @@ import {
 } from '../../../shared/lib/local-storage';
 import { showErrorToast, showSuccessToast } from '../../../shared/ui/toast';
 import { invalidateUserPools } from '../../pools';
-import { joinPoolByInviteCode } from '../api/joinPool';
 import { POOL_INVITE_STORAGE_KEY } from '../config';
+import { clearPendingPoolJoinRun, runPendingPoolJoin } from './pendingPoolJoinRunner';
 import {
   resetPendingPoolJoinStatus,
   setPendingPoolJoinStatus,
@@ -27,6 +27,7 @@ export const PENDING_POOL_JOIN_TIMEOUT_MS = 15_000;
  */
 export function clearPendingPoolJoinInFlight() {
   pendingJoinKeyInFlight = null;
+  clearPendingPoolJoinRun();
 }
 
 /**
@@ -105,7 +106,9 @@ export function usePendingPoolJoin(showDates = []) {
 
     (async () => {
       try {
-        const result = await joinPoolByInviteCode({
+        // Adopts the request `useEarlyPoolInviteJoin` may already have started
+        // on `/join/:code` while this chunk was still downloading (#731).
+        const result = await runPendingPoolJoin({
           userId,
           inviteCode: code,
           showDates: showDatesRef.current,

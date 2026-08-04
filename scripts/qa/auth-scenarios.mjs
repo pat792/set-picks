@@ -439,6 +439,12 @@ async function main() {
       async () => {
         await dismissSplashChrome(page, dev.url);
         try {
+          // UR-B1 leaves a synthetic YEM42 breadcrumb — clear it so #731 early
+          // join does not race pool create on a nonexistent invite code.
+          await page.evaluate(() => {
+            localStorage.removeItem('phish_pool_pending_invite');
+          });
+
           // Ensure signed in as QA returning user.
           if (!page.url().includes('/dashboard')) {
             await signInEmail(page, dev.url, email, password);
