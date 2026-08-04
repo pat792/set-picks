@@ -10,6 +10,12 @@ const {
   lastPlayedBeforeFromHistory,
   tourLabelToSlug,
 } = require("./aggregateTourSetlistStats.cjs");
+const {
+  lastPlayedRowKey,
+  buildPriorLastPlayedMap,
+  seedLastPlayedFromPrior,
+  stampLastPlayedDates,
+} = require("./publicTourStats");
 
 describe("tourLabelToSlug", () => {
   it("kebab-cases 2026 Sphere", () => {
@@ -172,5 +178,97 @@ describe("toPublicTourStatsPayload", () => {
     assert.ok(pub.topSongs.some((r) => r.title === "Ghost" && r.timesPlayed === 2));
     assert.ok(Array.isArray(pub.bustouts));
     assert.ok(Array.isArray(pub.gapHighlights));
+  });
+});
+/**
+ * Unit tests for public tour-stats lastPlayed preserve helpers (#840).
+ */
+describe("lastPlayedRowKey (#840)", () => {
+  it("normalizes title + showDate", () => {
+    assert.equal(
+      lastPlayedRowKey("  HARPUA ", "2026-07-22"),
+      "harpua|2026-07-22"
+    );
+  });
+
+  it("rejects incomplete inputs", () => {
+    assert.equal(lastPlayedRowKey("", "2026-07-22"), "");
+    assert.equal(lastPlayedRowKey("Fee", "07-22"), "");
+    assert.equal(lastPlayedRowKey(null, null), "");
+  });
+});
+
+describe("buildPriorLastPlayedMap (#840)", () => {
+  it("indexes bustouts + gapHighlights with valid lastPlayed", () => {
+    const map = buildPriorLastPlayedMap({
+      bustouts: [
+        { title: "Harpua", showDate: "2026-07-22", lastPlayed: "2019-06-16" },
+        { title: "No Date", showDate: "2026-07-22", lastPlayed: "" },
+      ],
+      gapHighlights: [
+        { title: "Fee", showDate: "2026-07-23", lastPlayed: "2025-08-01" },
+      ],
+    });
+    assert.equal(map.get("harpua|2026-07-22"), "2019-06-16");
+    assert.equal(map.get("fee|2026-07-23"), "2025-08-01");
+    assert.equal(map.has("no date|2026-07-22"), false);
+  });
+
+  it("tolerates null / malformed docs", () => {
+    assert.equal(buildPriorLastPlayedMap(null).size, 0);
+    assert.equal(buildPriorLastPlayedMap({ bustouts: "nope" }).size, 0);
+  });
+});
+
+describe("seedLastPlayedFromPrior (#840)", () => {
+  it("seeds blank rows and leaves existing stamps untouched", () => {
+    const prior = buildPriorLastPlayedMap({
+      bustouts: [
+        { title: "Harpua", showDate: "2026-07-22", lastPlayed: "2019-06-16" },
+      ],
+      gapHighlights: [
+        { title: "Fee", showDate: "2026-07-23", lastPlayed: "2025-08-01" },
+        { title: "Ghost", showDate: "2026-07-24", lastPlayed: "2024-01-01" },
+      ],
+    });
+    const gaps = [
+      { title: "Fee", showDate: "2026-07-23", gap: 14 },
+      { title: "Ghost", showDate: "2026-07-24", gap: 12, lastPlayed: "2020-01-01" },
+      { title: "New Song", showDate: "2026-07-25", gap: 11 },
+    ];
+    const seeded = seedLastPlayedFromPrior(gaps, prior);
+    assert.equal(seeded, 1);
+    assert.equal(gaps[0].lastPlayed, "2025-08-01");
+    assert.equal(gaps[1].lastPlayed, "2020-01-01");
+    assert.equal(gaps[2].lastPlayed, undefined);
+  });
+
+  it("keeps prior stamps so stampLastPlayedDates skips history for them", async () => {
+    const enrichmentByTitle = new Map([
+      [
+        "fee",
+        {
+          slug: "fee",
+          lastPlayedCatalog: "2026-07-23", // ≥ night → would need history without seed
+        },
+      ],
+    ]);
+    const payload = {
+      bustouts: [],
+      gapHighlights: [{ title: "Fee", showDate: "2026-07-23", gap: 14 }],
+    };
+    seedLastPlayedFromPrior(
+      payload.gapHighlights,
+      new Map([["fee|2026-07-23", "2025-08-01"]])
+    );
+    const result = await stampLastPlayedDates([payload], {
+      enrichmentByTitle,
+      apiKey: "test-key",
+      logger: { info() {}, warn() {} },
+    });
+    assert.equal(payload.gapHighlights[0].lastPlayed, "2025-08-01");
+    assert.equal(result.lookups, 0);
+    assert.equal(result.fromCatalog, 0);
+    assert.equal(result.fromHistory, 0);
   });
 });

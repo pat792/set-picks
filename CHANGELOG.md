@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.47.2] — 2026-08-04
+
+### Fixed
+- **Public tour-stats High gaps Last blanks (#840)** — `refreshPublicTourStats` now seeds bustout/gap `lastPlayed` from the previous Firestore write before re-stamping. A partial/429 history pass no longer wipes dates a prior run already filled (High gaps were wiped first because they are queued after bustouts). After deploy, re-run the admin refresh so remaining blank rows can use the history budget.
+
+---
+
 ## [1.47.1] — 2026-08-04
 
 ### Fixed
