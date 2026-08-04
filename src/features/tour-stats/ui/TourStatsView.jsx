@@ -21,30 +21,91 @@ import {
 
 const { BUSTOUT_MIN_GAP } = SCORING_RULES;
 
-/** Invisible 3-col grid: # | Song | Plays — fixed tracks keep columns aligned. */
+/**
+ * Fixed meta tracks (not `auto`) so the header grid and each data row share
+ * the same column widths — independent `auto` grids were shifting Date/Gap/Last
+ * headers left of their cells. `whitespace-nowrap` keeps mm-dd / mm-dd-yy on
+ * one line at 11px.
+ */
 const TOP_SONGS_ROW_GRID =
-  'grid grid-cols-[1.5rem_minmax(0,1fr)_3.5rem] items-center gap-x-2 min-h-[1.75rem]';
-
-/** Invisible 3-col grid: Song | Date | Gap. */
-const GAP_ROW_GRID =
-  'grid grid-cols-[minmax(0,1fr)_6.5rem_3rem] items-center gap-x-2 min-h-[1.75rem]';
+  'grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_2.5rem] items-center gap-x-2 min-h-[1.75rem]';
 
 /**
- * 4-col variant when rows carry `lastPlayed` (#709 follow-up): Song | Last |
- * Date | Gap. Only used when at least one visible row has the date, so the
- * un-enriched dashboard/public state keeps the roomier 3-col layout.
+ * Bustouts / High gaps: Song | Date (mm-dd) | Gap | Last (mm-dd-yy).
+ * Always shown (— when missing) so the column is discoverable even before
+ * enrichment lands or when some history lookups 429.
  */
-const GAP_ROW_GRID_WITH_LAST =
-  'grid grid-cols-[minmax(0,1fr)_5.75rem_5.75rem_2.5rem] items-center gap-x-1.5 min-h-[1.75rem]';
+const GAP_ROW_GRID =
+  'grid grid-cols-[minmax(0,1fr)_2.75rem_2.25rem_4.75rem] items-center gap-x-2 min-h-[1.75rem]';
 
-const LAST_PLAYED_TITLE =
+/** Right-rail numeric cells — nowrap + slightly smaller type on narrow widths. */
+const META_CELL =
+  'justify-self-end whitespace-nowrap tabular-nums text-[11px] leading-none tracking-tight';
+
+const LAST_PLAYED_BEFORE_NIGHT_TITLE =
   'Last played before that night (phish.net song history)';
+
+const LAST_PLAYED_THIS_TOUR_TITLE =
+  'Most recent date this song was played on the selected tour';
+
+/**
+ * Parse `YYYY-MM-DD` → parts, or null.
+ * @param {unknown} iso
+ * @returns {{ y: string, m: string, d: string } | null}
+ */
+function parseIsoDateParts(iso) {
+  const raw = typeof iso === 'string' ? iso.trim() : '';
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  return { y: match[1], m: match[2], d: match[3] };
+}
+
+/**
+ * Tour-scoped show date: `YYYY-MM-DD` → `MM-DD` (year implied by tour).
+ * @param {unknown} iso
+ * @returns {string}
+ */
+function formatTourShowMd(iso) {
+  const parts = parseIsoDateParts(iso);
+  if (!parts) return typeof iso === 'string' ? iso.trim() : '';
+  return `${parts.m}-${parts.d}`;
+}
+
+/**
+ * Prior-play Last column: `YYYY-MM-DD` → `MM-DD-YY` (keeps decade signal
+ * for bustouts without a full 4-digit year on mobile).
+ * @param {unknown} iso
+ * @returns {string}
+ */
+function formatLastPlayedMdyy(iso) {
+  const parts = parseIsoDateParts(iso);
+  if (!parts) return typeof iso === 'string' ? iso.trim() : '';
+  return `${parts.m}-${parts.d}-${parts.y.slice(2)}`;
+}
+
+/**
+ * Latest YYYY-MM-DD from a song's tour play dates (Tour Frequency "Last" col).
+ * @param {{ showDates?: unknown, lastPlayed?: unknown }} row
+ * @returns {string}
+ */
+function lastPlayedDisplayForTopSong(row) {
+  if (typeof row?.lastPlayed === 'string' && row.lastPlayed.trim()) {
+    return row.lastPlayed.trim();
+  }
+  const dates = Array.isArray(row?.showDates)
+    ? row.showDates
+        .map((d) => String(d ?? '').trim())
+        .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+    : [];
+  if (dates.length === 0) return '';
+  return dates.reduce((a, b) => (a > b ? a : b));
+}
 
 const COL_HEADER =
   'mb-0.5 border-b border-brand-primary/20 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-300';
 
-const MOST_PLAYED_DEF =
-  'Ranked by frequency; songs with the same number of plays this tour are sorted by total # of times played all-time.';
+const TOUR_FREQUENCY_DEF =
+  'All songs this tour, ranked by number of times played. Ties break by total # of times played all-time.';
 
 const HIGH_GAPS_DEF = `Gap = shows since last played before that night. Listed when gap ≥ ${TOUR_STATS_GAP_HIGHLIGHT_MIN} and below the bustout threshold.`;
 
@@ -223,35 +284,57 @@ export default function TourStatsView({
           </TourStatsSectionCard>
         ) : null}
 
-        <TourStatsSectionCard title="Most played" definition={MOST_PLAYED_DEF}>
+        <TourStatsSectionCard
+          title="Tour Frequency"
+          definition={TOUR_FREQUENCY_DEF}
+        >
           {stats.topSongs.length === 0 ? (
             <p className="text-sm text-content-secondary">No setlist songs yet.</p>
           ) : (
             <PagedRows
               rows={stats.topSongs}
-              label="most played"
+              label="tour frequency"
               listAs="ol"
               header={
                 <div className={`${TOP_SONGS_ROW_GRID} ${COL_HEADER}`} aria-hidden>
                   <span className="tabular-nums">#</span>
                   <span>Song</span>
-                  <span className="justify-self-end">Plays</span>
+                  <span
+                    className={META_CELL}
+                    title={LAST_PLAYED_THIS_TOUR_TITLE}
+                  >
+                    Last
+                  </span>
+                  <span className={META_CELL}>Plays</span>
                 </div>
               }
-              renderRow={(row, absoluteIdx) => (
-                <li key={row.title} className={TOP_SONGS_ROW_GRID}>
-                  <span className="tabular-nums text-brand-primary/80">
-                    {absoluteIdx + 1}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate">{row.title}</span>
-                    <SongEnrichmentLine row={row} />
-                  </span>
-                  <span className="justify-self-end tabular-nums text-brand-primary">
-                    {row.timesPlayed}
-                  </span>
-                </li>
-              )}
+              renderRow={(row, absoluteIdx) => {
+                const lastIso = lastPlayedDisplayForTopSong(row);
+                return (
+                  <li key={row.title} className={TOP_SONGS_ROW_GRID}>
+                    <span className="tabular-nums text-brand-primary/80">
+                      {absoluteIdx + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate">{row.title}</span>
+                      <SongEnrichmentLine row={row} />
+                    </span>
+                    <span
+                      className={`${META_CELL} text-content-secondary`}
+                      title={
+                        lastIso
+                          ? `${LAST_PLAYED_THIS_TOUR_TITLE}: ${lastIso}`
+                          : LAST_PLAYED_THIS_TOUR_TITLE
+                      }
+                    >
+                      {lastIso ? formatTourShowMd(lastIso) : '—'}
+                    </span>
+                    <span className={`${META_CELL} text-brand-primary`}>
+                      {row.timesPlayed}
+                    </span>
+                  </li>
+                );
+              }}
             />
           )}
         </TourStatsSectionCard>
@@ -263,7 +346,7 @@ export default function TourStatsView({
             <GapPagedRows
               rows={stats.bustouts}
               label="bustouts"
-              gapClassName="justify-self-end tabular-nums font-bold text-amber-200"
+              gapClassName={`${META_CELL} font-bold text-amber-200`}
             />
           )}
           <p className="mt-3 border-t border-border-subtle/40 pt-3 text-[11px] font-semibold leading-relaxed text-content-secondary">
@@ -293,7 +376,7 @@ export default function TourStatsView({
             <GapPagedRows
               rows={stats.gapHighlights}
               label="high gaps"
-              gapClassName="justify-self-end tabular-nums text-slate-300"
+              gapClassName={`${META_CELL} text-slate-300`}
             />
           </TourStatsSectionCard>
         ) : null}
@@ -314,7 +397,7 @@ function SongEnrichmentLine({ row }) {
   const bits = [];
   if (typeof row.debutYear === 'number') bits.push(`Debut ${row.debutYear}`);
   if (typeof row.lifetimePlays === 'number') {
-    bits.push(`${row.lifetimePlays.toLocaleString()} plays all-time`);
+    bits.push(`All Time - ${row.lifetimePlays.toLocaleString()}`);
   }
   if (bits.length === 0) return null;
   return (
@@ -325,10 +408,8 @@ function SongEnrichmentLine({ row }) {
 }
 
 /**
- * Bustouts / High-gaps list body: Song | Date | Gap rows, plus a "Last"
- * (last played before that night) column when any row carries a
- * `lastPlayed` date — server-enriched payloads only (#666), so the column
- * self-hides on un-enriched data instead of rendering an empty track.
+ * Bustouts / High-gaps list body: Song | Date (mm-dd) | Gap | Last (mm-dd-yy).
+ * Full ISO dates stay on `title` for hover / assistive context.
  *
  * @param {{
  *   rows: Array<{ title: string, showDate: string, gap: number | null, lastPlayed?: string }>,
@@ -337,56 +418,64 @@ function SongEnrichmentLine({ row }) {
  * }} props
  */
 function GapPagedRows({ rows, label, gapClassName }) {
-  const hasLastPlayed = rows.some(
-    (row) => typeof row.lastPlayed === 'string' && row.lastPlayed,
-  );
-  const grid = hasLastPlayed ? GAP_ROW_GRID_WITH_LAST : GAP_ROW_GRID;
-
   return (
     <PagedRows
       rows={rows}
       label={label}
       header={
-        <div className={`${grid} ${COL_HEADER}`} aria-hidden>
+        <div className={`${GAP_ROW_GRID} ${COL_HEADER}`} aria-hidden>
           <span>Song</span>
-          {hasLastPlayed ? (
-            <span className="justify-self-end" title={LAST_PLAYED_TITLE}>
-              Last
-            </span>
-          ) : null}
-          <span className="justify-self-end">Date</span>
-          <span className="justify-self-end">Gap</span>
+          <span className={META_CELL}>Date</span>
+          <span className={META_CELL}>Gap</span>
+          <span className={META_CELL} title={LAST_PLAYED_BEFORE_NIGHT_TITLE}>
+            Last
+          </span>
         </div>
       }
-      renderRow={(row) => (
-        <li key={`${row.showDate}-${row.title}`} className={grid}>
-          <span className="min-w-0">
-            <span className="block truncate">{row.title}</span>
-            <SongEnrichmentLine row={row} />
-          </span>
-          {hasLastPlayed ? (
-            <span
-              className="justify-self-end tabular-nums text-content-secondary"
-              title={LAST_PLAYED_TITLE}
-            >
-              {row.lastPlayed || '—'}
+      renderRow={(row) => {
+        const lastIso =
+          typeof row.lastPlayed === 'string' && row.lastPlayed.trim()
+            ? row.lastPlayed.trim()
+            : '';
+        return (
+          <li key={`${row.showDate}-${row.title}`} className={GAP_ROW_GRID}>
+            <span className="min-w-0">
+              <span className="block truncate">{row.title}</span>
+              <SongEnrichmentLine row={row} />
             </span>
-          ) : null}
-          <span className="justify-self-end tabular-nums text-content-secondary">
-            {row.showDate}
-          </span>
-          <span
-            className={gapClassName}
-            title={
-              row.gap != null
-                ? `${row.gap} shows since last played (pre-show gap)`
-                : undefined
-            }
-          >
-            {row.gap != null ? row.gap : '—'}
-          </span>
-        </li>
-      )}
+            <span
+              className={`${META_CELL} text-content-secondary`}
+              title={
+                typeof row.showDate === 'string' && row.showDate
+                  ? row.showDate
+                  : undefined
+              }
+            >
+              {formatTourShowMd(row.showDate) || '—'}
+            </span>
+            <span
+              className={gapClassName}
+              title={
+                row.gap != null
+                  ? `${row.gap} shows since last played (pre-show gap)`
+                  : undefined
+              }
+            >
+              {row.gap != null ? row.gap : '—'}
+            </span>
+            <span
+              className={`${META_CELL} text-content-secondary`}
+              title={
+                lastIso
+                  ? `${LAST_PLAYED_BEFORE_NIGHT_TITLE}: ${lastIso}`
+                  : LAST_PLAYED_BEFORE_NIGHT_TITLE
+              }
+            >
+              {lastIso ? formatLastPlayedMdyy(lastIso) : '—'}
+            </span>
+          </li>
+        );
+      }}
     />
   );
 }

@@ -167,7 +167,7 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 | `tourShowCount` | number | Dates in scope |
 | `showsWithSetlist` | number | Dates with an `official_setlists` doc |
 | `uniqueSongs` / `totalSongPlays` | number | Aggregate counts |
-| `topSongs` | `{ title, timesPlayed, lifetimePlays?, debutYear? }[]` | Most played, **full ranked list** as of v1.45.0 (#709; top-15 before) — **no** per-song `showDates` lists |
+| `topSongs` | `{ title, timesPlayed, lastPlayed?, lifetimePlays?, debutYear? }[]` | Tour Frequency (UI label; formerly "Most played"), **full ranked list** as of v1.45.0 (#709; top-15 before) — **no** per-song `showDates` lists. `lastPlayed` = latest tour show date the song appeared (`YYYY-MM-DD`, v1.46.4) |
 | `bustouts` / `gapHighlights` | `{ title, gap, showDate?, lifetimePlays?, debutYear?, lastPlayed? }[]` | Single event date OK; never a full night setlist. `gapHighlights` uncapped as of v1.45.0 (#709). `lastPlayed` = `YYYY-MM-DD` last Phish play *before* that tour night (v1.46.0 / #709 follow-up) |
 | `enrichment` | `{ source, enrichedAt } \| null` | **v1.46.0 (#666)** — non-null when rows carry phish.net lifetime fields; `null` when the refresh ran without phish.net (missing key / upstream failure) |
 | `writtenAt` | string | ISO timestamp |
@@ -175,7 +175,9 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 
 **Row enrichment (v1.46.0 / #666, Phase 1 of the gated-external-sources plan):** every refresh fetches phish.net `v5/songs` **server-side** (secret `PHISHNET_API_KEY`; never sent to browsers) and stamps `lifetimePlays` (all-time times played) + `debutYear` onto each row — `null` when phish.net has no data for the title, **absent** when the whole refresh ran unenriched. setlist.fm / phish.com remain behind the explicit legal/product gate (issue #666 phase 3).
 
-**`lastPlayed` on bustout / high-gap rows (v1.46.0 / #709 follow-up):** after lifetime enrichment, the refresh looks up each unique bustout/high-gap song's phish.net play history (`/v5/setlists/slug/{slug}.json`, capped at 80 lookups/run, cached across tours) and stamps the latest Phish show date strictly before that row's `showDate`. Best-effort — failed lookups leave the field absent; UI hides the "Last" column when no row has one. Dashboard Tour stats joins the same dates from the world-readable public doc.
+**`lastPlayed` on bustout / high-gap rows (v1.46.0 / #709 follow-up; hardened v1.46.4):** after lifetime enrichment, the refresh prefers songs-catalog `last_played` when it is strictly before the row's `showDate` (zero HTTP). Remaining rows look up phish.net play history (`/v5/setlists/slug/{slug}.json`, capped at 120 lookups/run, ~1.5s pacing, 429 backoff + abort-after-3, bustouts before high gaps, shared across tours) and stamp the latest Phish show date strictly before that night. Best-effort — failed lookups leave the field absent; UI always shows the Last column (`—` when missing). Dashboard Tour stats joins the same dates from the world-readable public doc.
+
+**`lastPlayed` on `topSongs` (v1.46.4):** latest eligible tour show date the song was played (`YYYY-MM-DD`). UI displays tour-scoped `mm-dd`.
 
 `_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`.
 

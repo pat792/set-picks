@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.46.4] — 2026-08-03
+
+### Changed
+- **Tour stats list chrome (#709)** — "Most played" renamed to **Tour Frequency** (tooltip: all songs this tour, ranked by times played). Bustouts / High gaps column order is Song | Date | Gap | Last. Tour night dates render as `mm-dd`; prior-play Last as `mm-dd-yy` (full ISO on hover). Enrichment sub-line uses `All Time - N`. Mobile meta columns use fixed tracks + nowrap so headers stay aligned.
+
+### Fixed
+- **Public tour stats Last column blank on Summer (#709)** — Tour Frequency rows carry tour-local `lastPlayed` (latest show date on that tour). Bustout/high-gap Last prefers phish.net songs-catalog `last_played` when it is before that night (no HTTP), then paced history lookups (~1.5s gap, 10s 429 backoff, abort after three consecutive 429s, bustouts queued before high gaps) across all tours before writing.
+
+---
+
 ## [1.46.3] — 2026-08-03
 
 ### Fixed

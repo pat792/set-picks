@@ -34,7 +34,7 @@ function aggregateTourSetlistStats(docs, options = {}) {
         ? docs.length
         : 0;
 
-  /** @type {Map<string, { title: string, timesPlayed: number }>} */
+  /** @type {Map<string, { title: string, timesPlayed: number, lastTourDate: string | null }>} */
   const bySong = new Map();
   /** @type {Array<{ title: string, showDate: string, gap: number | null }>} */
   const bustouts = [];
@@ -63,8 +63,21 @@ function aggregateTourSetlistStats(docs, options = {}) {
       playedThisShow.add(key);
       totalSongPlays += 1;
       const existing = bySong.get(key);
-      if (existing) existing.timesPlayed += 1;
-      else bySong.set(key, { title, timesPlayed: 1 });
+      if (existing) {
+        existing.timesPlayed += 1;
+        if (
+          showDate &&
+          (!existing.lastTourDate || showDate > existing.lastTourDate)
+        ) {
+          existing.lastTourDate = showDate;
+        }
+      } else {
+        bySong.set(key, {
+          title,
+          timesPlayed: 1,
+          lastTourDate: showDate || null,
+        });
+      }
     }
 
     const songGaps =
@@ -112,12 +125,19 @@ function aggregateTourSetlistStats(docs, options = {}) {
   }
 
   // #709: full ranked list — no top-N cap (mirrors the client model).
+  // `lastPlayed` here = most recent *tour* date the song was played (Most
+  // played "Last" column). Bustout/gap rows get a different lastPlayed
+  // (before that night) stamped later from phish.net history.
   const topSongs = [...bySong.values()]
     .sort((a, b) => {
       if (b.timesPlayed !== a.timesPlayed) return b.timesPlayed - a.timesPlayed;
       return a.title.localeCompare(b.title);
     })
-    .map((row) => ({ title: row.title, timesPlayed: row.timesPlayed }));
+    .map((row) => ({
+      title: row.title,
+      timesPlayed: row.timesPlayed,
+      lastPlayed: row.lastTourDate || null,
+    }));
 
   bustouts.sort((a, b) => {
     const ga = a.gap ?? -1;
@@ -147,15 +167,17 @@ function aggregateTourSetlistStats(docs, options = {}) {
  * Input rows come from `fetchPhishnetSongsNormalized` (`phishnetSongCatalog.js`):
  * `{ name, total, gap, last, debut, slug }` with string fields ("—" when unknown).
  *
- * Output: normalized title → `{ lifetimePlays, debutYear, slug }`. Lifetime
- * data lives only on phish.net (game-local `official_setlists` cover scored
- * tour dates), so this is the unique crawlable content layer for the public
- * `/tour-stats` pages. `slug` keys the per-song play-history lookup used to
- * stamp `lastPlayed` on bustout/high-gap rows (#709 follow-up) and is never
- * written into payload rows itself.
+ * Output: normalized title → `{ lifetimePlays, debutYear, slug, lastPlayedCatalog }`.
+ * Lifetime data lives only on phish.net (game-local `official_setlists` cover
+ * scored tour dates), so this is the unique crawlable content layer for the
+ * public `/tour-stats` pages. `slug` keys the per-song play-history lookup;
+ * `lastPlayedCatalog` is phish.net's current `last_played` and can fill
+ * bustout/gap `lastPlayed` when it is strictly before that tour night (no
+ * history HTTP call needed). Neither `slug` nor `lastPlayedCatalog` is written
+ * into payload rows as-is.
  *
- * @param {Array<{ name: string, total?: string, debut?: string, slug?: string }>} songs
- * @returns {Map<string, { lifetimePlays: number | null, debutYear: number | null, slug: string | null }>}
+ * @param {Array<{ name: string, total?: string, debut?: string, slug?: string, last?: string }>} songs
+ * @returns {Map<string, { lifetimePlays: number | null, debutYear: number | null, slug: string | null, lastPlayedCatalog: string | null }>}
  */
 function buildSongEnrichmentByTitle(songs) {
   const map = new Map();
@@ -177,8 +199,20 @@ function buildSongEnrichmentByTitle(songs) {
     const slugRaw = String(song?.slug ?? "").trim();
     const slug = slugRaw || null;
 
-    if (lifetimePlays === null && debutYear === null && slug === null) continue;
-    map.set(key, { lifetimePlays, debutYear, slug });
+    const lastRaw = String(song?.last ?? "").trim();
+    const lastPlayedCatalog = /^\d{4}-\d{2}-\d{2}$/.test(lastRaw)
+      ? lastRaw
+      : null;
+
+    if (
+      lifetimePlays === null &&
+      debutYear === null &&
+      slug === null &&
+      lastPlayedCatalog === null
+    ) {
+      continue;
+    }
+    map.set(key, { lifetimePlays, debutYear, slug, lastPlayedCatalog });
   }
   return map;
 }
@@ -248,7 +282,12 @@ function toPublicTourStatsPayload(stats, enrichmentByTitle = null) {
     uniqueSongs: stats.uniqueSongs,
     totalSongPlays: stats.totalSongPlays,
     topSongs: (stats.topSongs || []).map((r) =>
-      withEnrichment(r, { title: r.title, timesPlayed: r.timesPlayed })
+      withEnrichment(r, {
+        title: r.title,
+        timesPlayed: r.timesPlayed,
+        // Tour-local last play (not phish.net lifetime last).
+        lastPlayed: r.lastPlayed || null,
+      })
     ),
     bustouts: (stats.bustouts || []).map((r) =>
       withEnrichment(r, {
