@@ -8,6 +8,7 @@
 export function resolveRouteGroup(pathname) {
   if (typeof pathname !== 'string' || !pathname) return 'other';
   if (pathname === '/') return 'splash';
+  if (pathname === '/login' || pathname.startsWith('/login/')) return 'other';
   if (pathname === '/setup' || pathname.startsWith('/setup/')) return 'setup';
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
     return 'dashboard';

@@ -62,10 +62,11 @@ export default function Splash() {
     if (flag !== 'true') return;
 
     didHandleLoginFlagRef.current = true;
-    openSignInModal();
-    // Clear the flag so refresh doesn't re-open the modal.
-    navigate('/', { replace: true });
-  }, [navigate, openSignInModal, searchParams]);
+    // #832: auth lives on `/login` (app document). Keep `?login=true` as a
+    // compatibility hop until outbound links are retargeted (#830).
+    const signup = searchParams.get('signup') === '1';
+    navigate(signup ? '/login?signup=1' : '/login', { replace: true });
+  }, [navigate, searchParams]);
 
   useEffect(() => {
     if (splashResumeAndInviteRef.current) return;

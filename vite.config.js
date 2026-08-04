@@ -5,6 +5,49 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/** Paths that must boot the authenticated SPA document (`app.html`) in dev (#832). */
+const APP_DOCUMENT_PATH_PREFIXES = [
+  '/login',
+  '/dashboard',
+  '/setup',
+  '/tour-stats',
+  '/user/',
+  '/password-reset-complete',
+  '/privacy',
+  '/terms',
+  '/join',
+  '/invite/',
+  '/comms-preview',
+];
+
+function isAppDocumentPath(pathname) {
+  if (!pathname || pathname === '/') return false;
+  return APP_DOCUMENT_PATH_PREFIXES.some((prefix) => {
+    if (prefix.endsWith('/')) return pathname.startsWith(prefix);
+    return pathname === prefix || pathname.startsWith(`${prefix}/`);
+  });
+}
+
+function appDocumentDevMiddleware() {
+  return {
+    name: 'app-document-dev-middleware',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const raw = req.url || '';
+        const pathname = raw.split('?')[0];
+        if (pathname === '/app.html' || pathname.startsWith('/src/') || pathname.startsWith('/@') || pathname.startsWith('/node_modules') || pathname.startsWith('/assets') || pathname.startsWith('/branding') || pathname.startsWith('/fonts') || pathname.startsWith('/favicon')) {
+          next();
+          return;
+        }
+        if (isAppDocumentPath(pathname)) {
+          req.url = `/app.html${raw.includes('?') ? `?${raw.split('?')[1]}` : ''}`;
+        }
+        next();
+      });
+    },
+  };
+}
+
 // Group third-party modules into stable, cacheable chunks. Returning `undefined`
 // for anything outside `node_modules` preserves Vite's automatic per-route
 // splitting introduced in #240 — do NOT bundle app code here.
@@ -51,7 +94,7 @@ function manualChunks(id) {
 
 export default defineConfig({
   base: '/',
-  plugins: [react()],
+  plugins: [react(), appDocumentDevMiddleware()],
   test: {
     environment: 'node',
     include: ['src/**/*.test.js', 'api/**/*.test.js'],
@@ -67,6 +110,11 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      input: {
+        // Named `marketing` so built HTML references `/assets/marketing-*.js` (#832).
+        marketing: path.resolve(__dirname, 'index.html'),
+        app: path.resolve(__dirname, 'app.html'),
+      },
       output: {
         manualChunks,
       },

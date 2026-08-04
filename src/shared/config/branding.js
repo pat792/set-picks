@@ -19,8 +19,9 @@ export const BRAND_HERO_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
  * asset as an `<img>` inside `SplashHeroWordmark` with these frame classes; cropping mirrors
  * former `object-cover` + `object-top`.
  */
+/** #837: wider sm+ aspect crops more empty SVG band so copy isn’t squeezed under the hero. */
 export const brandHeroWordmarkAspectFrameClassNames =
-  'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[71/20] sm:w-full sm:max-w-[min(96vw,70rem)] md:max-w-[min(94vw,78rem)] lg:max-w-[min(92vw,86rem)] xl:max-w-[min(90vw,94rem)]';
+  'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[4/1] sm:w-full sm:max-w-[min(96vw,70rem)] md:max-w-[min(94vw,78rem)] lg:max-w-[min(92vw,86rem)] xl:max-w-[min(90vw,94rem)]';
 
 /** Hero `<img>` classes used by `SplashHeroWordmark.jsx`. */
 export const brandHeroWordmarkImgClassNames =

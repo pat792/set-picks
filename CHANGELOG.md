@@ -12,6 +12,20 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.47.0] — 2026-08-04
+
+### Added
+- **Marketing cold-open document (#832)** — public splash / educational pages boot from a second Vite entry (`index.html` → `marketingMain`) with no `AuthProvider` / `firebase-core` on the critical path. Authenticated SPA lives at `app.html`; new public route **`/login`** hosts splash auth modals. Invite OG shell prefers `dist/app.html`.
+- **Release train doc** — `docs/RELEASE_TRAIN_COLD_OPEN.md` tracks #832 → #837 → #827 → #830.
+
+### Changed
+- **Splash laptop spacing (#837)** — on `sm+`, hero no longer forces `min-h-screen`; wordmark pulls closer under the fixed header and crops more empty SVG band so kicker/copy are not squeezed.
+
+### Fixed
+- Password-reset success CTA now links to `/login` instead of `/?login=true`.
+
+---
+
 ## [1.46.5] — 2026-08-04
 
 ### Fixed
