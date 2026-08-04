@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.48.3] — 2026-08-04
+
+### Fixed
+- **Marketing cold-open paint (epic #835)** — `/` no longer full-screen-blocks on a “Loading…” overlay while JS downloads; prerender copy stays visible under a thin top progress bar. Non-home marketing routes are lazy so home does not download sibling page chunks. GA4 / web-vitals init wait until idle after first paint.
+
+---
+
 ## [1.48.2] — 2026-08-04
 
 ### Changed

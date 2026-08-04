@@ -5,8 +5,6 @@ import { BrowserRouter } from 'react-router-dom'
 
 import MarketingApp from './app/MarketingApp.jsx'
 import { PERSISTED_SESSION_HINT_STORAGE_KEY } from './shared/lib/persistedSessionHint'
-import { initGa4 } from './shared/lib/ga4'
-import { initWebVitals } from './shared/lib/webVitals'
 import './index.css'
 
 /**
@@ -14,9 +12,6 @@ import './index.css'
  * Real splash/marketing React UI — no AuthProvider / firebase on this graph.
  * Authenticated SPA boots from `app.html` → `main.jsx`.
  */
-
-initGa4()
-initWebVitals()
 
 try {
   if (
@@ -45,3 +40,19 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>,
 )
+
+// Analytics after first paint — dynamic import so GA/web-vitals stay off the
+// marketing modulepreload graph (#835).
+const scheduleIdle =
+  typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function'
+    ? (fn) => window.requestIdleCallback(fn, { timeout: 2500 })
+    : (fn) => setTimeout(fn, 1)
+scheduleIdle(() => {
+  void Promise.all([
+    import('./shared/lib/ga4'),
+    import('./shared/lib/webVitals'),
+  ]).then(([{ initGa4 }, { initWebVitals }]) => {
+    initGa4()
+    initWebVitals()
+  })
+})

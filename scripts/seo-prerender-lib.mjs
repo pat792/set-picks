@@ -138,8 +138,8 @@ function buildCrawlerBody(route) {
   const paras = route.paragraphs
     .map((p) => `    <p>${escapeHtml(p)}</p>`)
     .join('\n');
-  // Boot overlay paints immediately for browsers; crawler main stays in DOM
-  // for non-JS consumers. createRoot replaces the whole #root.
+  // Thin top progress bar + crawler main: content visible while JS loads.
+  // createRoot replaces the whole #root once React mounts.
   return `${buildMarketingBootShellMarkup()}
 <!--seo-prerender:${escapeHtml(route.path)}-->
   <main data-seo-prerender="true">
