@@ -89,7 +89,7 @@ export default function SplashAboutSection({
 
         <nav
           className="mt-16 flex flex-wrap items-center justify-start gap-x-2 gap-y-2 border-t border-slate-800 pt-8 text-center text-sm lg:justify-end"
-          aria-label="Jump to How it works or Get started"
+          aria-label="Jump to How it works, tour stats, or create an account"
         >
           <Link to="/how-it-works" className={LINK_ON_DARK}>
             How it works

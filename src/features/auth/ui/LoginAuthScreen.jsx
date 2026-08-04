@@ -5,6 +5,10 @@ import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
 import { StatusBanner } from '../../../shared';
 import OpenInBrowserBanner from './OpenInBrowserBanner';
+import PasswordRevealToggle, {
+  shouldShowPasswordReveal,
+} from './PasswordRevealToggle';
+import { AUTH_EMAIL_CTA } from './authCtaClasses';
 import SplashAuthPanel from './SplashAuthPanel';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 import { useSplashSignUp } from '../model/useSplashSignUp';
@@ -71,6 +75,8 @@ function LoginSignInPanel({
     inAppBrowser,
   } = useSplashSignIn(true, onClose, { seedError });
 
+  const revealVisible = shouldShowPasswordReveal(email, password);
+
   const prependContent =
     poolInvitePending || error ? (
       <div className="space-y-3">
@@ -134,23 +140,19 @@ function LoginSignInPanel({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full pr-12 font-medium text-white"
+              className={`w-full font-medium text-white ${revealVisible ? 'pr-10' : ''}`}
             />
-            <Button
-              variant="text"
-              type="button"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              aria-pressed={showPassword}
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-white/10 px-1.5 py-1 text-slate-300 hover:bg-white/15 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-            >
-              {showPassword ? 'Hide' : 'Show'}
-            </Button>
+            <PasswordRevealToggle
+              visible={revealVisible}
+              showPassword={showPassword}
+              onToggle={() => setShowPassword((v) => !v)}
+            />
           </div>
         </div>
         <div className="flex flex-col gap-2">
           <Button
             variant="link"
+            size="none"
             type="button"
             onClick={handleSendPasswordResetEmail}
             disabled={busy}
@@ -165,20 +167,16 @@ function LoginSignInPanel({
             />
           ) : null}
         </div>
-        <Button
-          variant="secondary"
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-xl py-3.5 uppercase tracking-widest"
-        >
-          {busy ? 'Signing in…' : 'Sign in'}
-        </Button>
+        <button type="submit" disabled={busy} className={AUTH_EMAIL_CTA}>
+          {busy ? 'Signing in…' : 'Continue with email'}
+        </button>
       </form>
       {typeof onSwitchToSignUp === 'function' ? (
         <p className="mt-6 text-center text-sm font-semibold text-slate-400">
           New here?{' '}
           <Button
             variant="link"
+            size="none"
             type="button"
             onClick={onSwitchToSignUp}
             disabled={busy}
@@ -198,6 +196,7 @@ function LoginSignUpPanel({
   poolInvitePending,
   seedError,
 }) {
+  const [showPassword, setShowPassword] = useState(false);
   const {
     email,
     setEmail,
@@ -213,6 +212,12 @@ function LoginSignUpPanel({
     handleEmailSignUp,
     inAppBrowser,
   } = useSplashSignUp(true, onClose, { seedError });
+
+  const revealVisible = shouldShowPasswordReveal(
+    email,
+    password,
+    confirmPassword,
+  );
 
   const consentBlock = (
     <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-subtle/60 bg-surface-inset/60 p-3.5 text-left text-sm font-semibold leading-snug text-slate-200">
@@ -303,17 +308,24 @@ function LoginSignUpPanel({
           >
             Password
           </label>
-          <Input
-            id="su-pass"
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="mt-1 font-medium text-white"
-          />
+          <div className="relative mt-1">
+            <Input
+              id="su-pass"
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className={`w-full font-medium text-white ${revealVisible ? 'pr-10' : ''}`}
+            />
+            <PasswordRevealToggle
+              visible={revealVisible}
+              showPassword={showPassword}
+              onToggle={() => setShowPassword((v) => !v)}
+            />
+          </div>
         </div>
         <div>
           <label
@@ -322,32 +334,39 @@ function LoginSignUpPanel({
           >
             Confirm password
           </label>
-          <Input
-            id="su-confirm"
-            type="password"
-            name="confirm-password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            className="mt-1 font-medium text-white"
-          />
+          <div className="relative mt-1">
+            <Input
+              id="su-confirm"
+              type={showPassword ? 'text' : 'password'}
+              name="confirm-password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className={`w-full font-medium text-white ${revealVisible ? 'pr-10' : ''}`}
+            />
+            <PasswordRevealToggle
+              visible={revealVisible}
+              showPassword={showPassword}
+              onToggle={() => setShowPassword((v) => !v)}
+            />
+          </div>
         </div>
         {error ? <StatusBanner type="error" message={error} /> : null}
-        <Button
-          variant="secondary"
+        <button
           type="submit"
           disabled={busy || !legalAccepted}
-          className="w-full rounded-xl py-3.5 uppercase tracking-widest"
+          className={AUTH_EMAIL_CTA}
         >
-          {busy ? 'Creating…' : 'Create account'}
-        </Button>
+          {busy ? 'Creating…' : 'Continue with email'}
+        </button>
       </form>
       {typeof onSwitchToSignIn === 'function' ? (
         <p className="mt-6 text-center text-sm font-semibold text-slate-400">
           Already have an account?{' '}
           <Button
             variant="link"
+            size="none"
             type="button"
             onClick={onSwitchToSignIn}
             disabled={busy}

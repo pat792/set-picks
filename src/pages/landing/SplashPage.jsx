@@ -16,8 +16,7 @@ let lastDeferredPoolInvitePromptAt = 0;
 
 /**
  * App-document splash (#832 follow-up). Auth CTAs always go to `/login` —
- * same as marketing `MarketingHomePage` — so soft-nav Home from `/login`
- * cannot reopen legacy splash modals. Invite VIP keeps modals (#844).
+ * same as marketing `MarketingHomePage`. Invite VIP keeps modals (#844).
  */
 export default function Splash() {
   const navigate = useNavigate();
@@ -65,14 +64,9 @@ export default function Splash() {
   const {
     howItWorksSectionRef,
     howItWorksHeadingRef,
-    getStartedSectionRef,
-    getStartedHeadingRef,
     aboutSectionRef,
     aboutHeadingRef,
-    handleScrollToGetStarted,
-    handleScrollToAbout,
-    handleCreateAccountFromHowItWorks,
-  } = useScrollToSectionFocus({ onCreateAccountRequest: openSignUp });
+  } = useScrollToSectionFocus();
 
   useEffect(() => {
     if (didHandleLoginFlagRef.current) return;
@@ -112,14 +106,10 @@ export default function Splash() {
       <SplashPageShell
         howItWorksSectionRef={howItWorksSectionRef}
         howItWorksHeadingRef={howItWorksHeadingRef}
-        getStartedSectionRef={getStartedSectionRef}
-        getStartedHeadingRef={getStartedHeadingRef}
         aboutSectionRef={aboutSectionRef}
         aboutHeadingRef={aboutHeadingRef}
-        onScrollToGetStarted={handleScrollToGetStarted}
-        onCreateAccountFromHowItWorks={handleCreateAccountFromHowItWorks}
-        onOpenSignUpModal={openSignUp}
-        onOpenSignInModal={openSignIn}
+        onOpenSignUp={openSignUp}
+        onOpenSignIn={openSignIn}
       />
     </ScoringRulesModalProvider>
   );

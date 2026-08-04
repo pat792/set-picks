@@ -101,8 +101,8 @@ export default function PublicTourStatsPanel({
           first.
         </p>
         <Link
-          to="/"
-          className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-teal-400 to-teal-500 px-8 py-4 text-base font-black text-slate-900 shadow-[0_0_40px_-10px_rgba(45,212,191,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_60px_-15px_rgba(45,212,191,0.7)] sm:text-lg"
+          to="/login?mode=signup"
+          className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 px-8 py-3.5 text-base font-black text-slate-900 shadow-[0_0_40px_-10px_rgba(45,212,191,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_60px_-15px_rgba(45,212,191,0.7)]"
         >
           Make picks for this tour
         </Link>
