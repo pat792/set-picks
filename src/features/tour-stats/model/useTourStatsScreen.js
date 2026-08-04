@@ -3,12 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '../../auth';
 import { useSongCatalog } from '../../song-catalog';
+import { tourLabelToSlug } from '../../../shared/lib/tourSlug';
 import { computeTourStatsSelfOverlay } from '../api/computeTourStatsSelfOverlay';
+import { fetchPublicTourStatsDoc } from '../api/fetchPublicTourStats';
 import { fetchTourOfficialSetlists } from '../api/fetchTourOfficialSetlists';
 import {
   aggregateTourSetlistStats,
   TOUR_STATS_TOP_N,
 } from './aggregateTourSetlistStats';
+import { mergeLastPlayedIntoStats } from './mergePublicLastPlayed';
 import { trackTourStatsView } from './tourStatsAnalytics';
 
 /**
@@ -72,13 +75,26 @@ export function useTourStatsScreen(options = {}) {
     queryFn: () => fetchTourOfficialSetlists(showDates),
   });
 
+  // "Last played" dates for bustout/high-gap rows come from phish.net song
+  // history and only exist in the server-written public payload (#666). The
+  // dashboard borrows them from the world-readable public doc; if the doc is
+  // missing or not yet enriched, the column simply doesn't render.
+  const publicDocQuery = useQuery({
+    queryKey: ['tour-stats-public-doc', tourLabelToSlug(tourName)],
+    enabled: Boolean(tourName),
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    queryFn: () => fetchPublicTourStatsDoc(tourLabelToSlug(tourName)),
+  });
+
   const stats = useMemo(() => {
     const docs = setlistQuery.data?.docs || [];
-    return aggregateTourSetlistStats(docs, {
+    const aggregated = aggregateTourSetlistStats(docs, {
       tourShowCount: showDates.length,
       lifetimePlaysByKey,
     });
-  }, [setlistQuery.data, showDates.length, lifetimePlaysByKey]);
+    return mergeLastPlayedIntoStats(aggregated, publicDocQuery.data ?? null);
+  }, [setlistQuery.data, showDates.length, lifetimePlaysByKey, publicDocQuery.data]);
 
   // #709: `stats.topSongs` is now the FULL ranked list. The "In most played"
   // overlay tile must stay pinned to the top 15 — otherwise it degrades into

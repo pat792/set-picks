@@ -29,6 +29,17 @@ const TOP_SONGS_ROW_GRID =
 const GAP_ROW_GRID =
   'grid grid-cols-[minmax(0,1fr)_6.5rem_3rem] items-center gap-x-2 min-h-[1.75rem]';
 
+/**
+ * 4-col variant when rows carry `lastPlayed` (#709 follow-up): Song | Last |
+ * Date | Gap. Only used when at least one visible row has the date, so the
+ * un-enriched dashboard/public state keeps the roomier 3-col layout.
+ */
+const GAP_ROW_GRID_WITH_LAST =
+  'grid grid-cols-[minmax(0,1fr)_5.75rem_5.75rem_2.5rem] items-center gap-x-1.5 min-h-[1.75rem]';
+
+const LAST_PLAYED_TITLE =
+  'Last played before that night (phish.net song history)';
+
 const COL_HEADER =
   'mb-0.5 border-b border-brand-primary/20 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-300';
 
@@ -246,37 +257,10 @@ export default function TourStatsView({
           {stats.bustouts.length === 0 ? (
             <p className="text-sm text-content-secondary">No bustouts frozen yet.</p>
           ) : (
-            <PagedRows
+            <GapPagedRows
               rows={stats.bustouts}
               label="bustouts"
-              header={
-                <div className={`${GAP_ROW_GRID} ${COL_HEADER}`} aria-hidden>
-                  <span>Song</span>
-                  <span className="justify-self-end">Date</span>
-                  <span className="justify-self-end">Gap</span>
-                </div>
-              }
-              renderRow={(row) => (
-                <li
-                  key={`${row.showDate}-${row.title}`}
-                  className={GAP_ROW_GRID}
-                >
-                  <span className="min-w-0 truncate">{row.title}</span>
-                  <span className="justify-self-end tabular-nums text-content-secondary">
-                    {row.showDate}
-                  </span>
-                  <span
-                    className="justify-self-end tabular-nums font-bold text-amber-200"
-                    title={
-                      row.gap != null
-                        ? `${row.gap} shows since last played (pre-show gap)`
-                        : undefined
-                    }
-                  >
-                    {row.gap != null ? row.gap : '—'}
-                  </span>
-                </li>
-              )}
+              gapClassName="justify-self-end tabular-nums font-bold text-amber-200"
             />
           )}
           <p className="mt-3 border-t border-border-subtle/40 pt-3 text-[11px] font-semibold leading-relaxed text-content-secondary">
@@ -303,38 +287,79 @@ export default function TourStatsView({
             definition={HIGH_GAPS_DEF}
             headerTone="muted"
           >
-            <PagedRows
+            <GapPagedRows
               rows={stats.gapHighlights}
               label="high gaps"
-              header={
-                <div className={`${GAP_ROW_GRID} ${COL_HEADER}`} aria-hidden>
-                  <span>Song</span>
-                  <span className="justify-self-end">Date</span>
-                  <span className="justify-self-end">Gap</span>
-                </div>
-              }
-              renderRow={(row) => (
-                <li
-                  key={`${row.showDate}-${row.title}`}
-                  className={GAP_ROW_GRID}
-                >
-                  <span className="min-w-0 truncate">{row.title}</span>
-                  <span className="justify-self-end tabular-nums text-content-secondary">
-                    {row.showDate}
-                  </span>
-                  <span
-                    className="justify-self-end tabular-nums text-slate-300"
-                    title={`${row.gap} shows since last played (pre-show gap)`}
-                  >
-                    {row.gap}
-                  </span>
-                </li>
-              )}
+              gapClassName="justify-self-end tabular-nums text-slate-300"
             />
           </TourStatsSectionCard>
         ) : null}
       </div>
     </InfoTooltipProvider>
+  );
+}
+
+/**
+ * Bustouts / High-gaps list body: Song | Date | Gap rows, plus a "Last"
+ * (last played before that night) column when any row carries a
+ * `lastPlayed` date — server-enriched payloads only (#666), so the column
+ * self-hides on un-enriched data instead of rendering an empty track.
+ *
+ * @param {{
+ *   rows: Array<{ title: string, showDate: string, gap: number | null, lastPlayed?: string }>,
+ *   label: string,
+ *   gapClassName: string,
+ * }} props
+ */
+function GapPagedRows({ rows, label, gapClassName }) {
+  const hasLastPlayed = rows.some(
+    (row) => typeof row.lastPlayed === 'string' && row.lastPlayed,
+  );
+  const grid = hasLastPlayed ? GAP_ROW_GRID_WITH_LAST : GAP_ROW_GRID;
+
+  return (
+    <PagedRows
+      rows={rows}
+      label={label}
+      header={
+        <div className={`${grid} ${COL_HEADER}`} aria-hidden>
+          <span>Song</span>
+          {hasLastPlayed ? (
+            <span className="justify-self-end" title={LAST_PLAYED_TITLE}>
+              Last
+            </span>
+          ) : null}
+          <span className="justify-self-end">Date</span>
+          <span className="justify-self-end">Gap</span>
+        </div>
+      }
+      renderRow={(row) => (
+        <li key={`${row.showDate}-${row.title}`} className={grid}>
+          <span className="min-w-0 truncate">{row.title}</span>
+          {hasLastPlayed ? (
+            <span
+              className="justify-self-end tabular-nums text-content-secondary"
+              title={LAST_PLAYED_TITLE}
+            >
+              {row.lastPlayed || '—'}
+            </span>
+          ) : null}
+          <span className="justify-self-end tabular-nums text-content-secondary">
+            {row.showDate}
+          </span>
+          <span
+            className={gapClassName}
+            title={
+              row.gap != null
+                ? `${row.gap} shows since last played (pre-show gap)`
+                : undefined
+            }
+          >
+            {row.gap != null ? row.gap : '—'}
+          </span>
+        </li>
+      )}
+    />
   );
 }
 
