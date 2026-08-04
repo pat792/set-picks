@@ -13,7 +13,8 @@
 | **A — Marketing entry** | #832 | Real React splash/marketing UI via a **second Vite entry** with no `firebase-core` / `AuthProvider` on the critical path. Auth CTAs → `/login` (app shell). | Merged → staging (PR #838, v1.47.0) |
 | **A UI pickup** | #837 | Splash laptop spacing: tighten header → hero wordmark → copy (**ships in the #832 PR**). | Shipped in #838 |
 | **A follow** | #827 | Public `/tour-stats` long spinner (App Check / data gate) — keep interactive UI. | Merged → staging (PR #839, v1.47.1) |
-| **B — Outbound** | #830 | Email / push / invite link inventory; retarget `/?login=true` → `/login`. Depends on A. | In flight (see `docs/OUTBOUND_AUTH_HANDOFF.md`) |
+| **B — Outbound** | #830 | Email / push / invite link inventory; retarget `/?login=true` → `/login`. Depends on A. | Merged → staging (PR #842, v1.47.3) |
+| **C — Auth UX** | #834 | Inline full-page `/login` (replace modal-on-route hybrid). Invite VIP keeps modals. | In flight |
 
 ---
 

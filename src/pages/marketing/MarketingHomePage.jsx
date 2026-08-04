@@ -7,7 +7,7 @@ import {
 } from '../../features/landing';
 
 function goLogin({ signup = false } = {}) {
-  window.location.assign(signup ? '/login?signup=1' : '/login');
+  window.location.assign(signup ? '/login?mode=signup' : '/login');
 }
 
 /**

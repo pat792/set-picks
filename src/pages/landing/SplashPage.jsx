@@ -62,7 +62,7 @@ export default function Splash() {
     // #832: auth lives on `/login` (app document). Keep `?login=true` as a
     // compatibility hop until outbound links are retargeted (#830).
     const signup = searchParams.get('signup') === '1';
-    navigate(signup ? '/login?signup=1' : '/login', { replace: true });
+    navigate(signup ? '/login?mode=signup' : '/login', { replace: true });
   }, [navigate, searchParams]);
 
   useEffect(() => {

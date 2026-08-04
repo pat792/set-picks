@@ -1,5 +1,5 @@
 /**
- * Email/password sign-in via the `/login` auth entry (#349 / #830).
+ * Email/password sign-in via the `/login` auth entry (#349 / #830 / #834).
  * Firestore rules require `signedIn()` for profile reads; headless `qa:cache`
  * must establish a session before visiting `/user/:uid`.
  *
@@ -17,15 +17,12 @@ export async function signInViaSplashEmailPassword(page, origin, email, password
     timeout: 90_000,
   });
 
-  const dialog = page.getByRole('dialog', { name: /^sign in$/i });
-
-  await dialog.locator('#si-email').waitFor({ state: 'visible', timeout: 30_000 });
-  await dialog.locator('#si-email').fill(email);
-  await dialog.locator('#si-pass').fill(password);
-
-  // Splash also exposes several “Sign in” controls outside this modal; submit
-  // inside the dialog only (`SplashSignInModal` title="Sign in").
-  await dialog.locator('button[type="submit"]').click();
+  // #834: `/login` is a full-page form (no dialog). Invite VIP still uses modals.
+  const emailField = page.locator('#si-email');
+  await emailField.waitFor({ state: 'visible', timeout: 30_000 });
+  await emailField.fill(email);
+  await page.locator('#si-pass').fill(password);
+  await page.locator('form button[type="submit"]').click();
 
   await page.waitForURL(/\/dashboard/, { timeout: 60_000 });
   // Concrete post-auth chrome — not networkidle (WebChannel stays open).
