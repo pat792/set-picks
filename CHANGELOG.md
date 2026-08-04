@@ -19,7 +19,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 - **Release train doc** — `docs/RELEASE_TRAIN_COLD_OPEN.md` tracks #832 → #837 → #827 → #830.
 
 ### Changed
-- **Splash laptop spacing (#837)** — on `sm+` only (mobile unchanged): hero no longer forces `min-h-screen`; wordmark frame is shorter, SVG crop skips transparent headroom above the letterforms, and kicker/copy/CTA sit closer under the brand.
+- **Splash laptop spacing (#837)** — on `sm+` only (mobile unchanged): wordmark crops SVG headroom and sits closer under the header; hero fills the viewport with leftover dark space *below* the CTA so the next section doesn’t peek above the fold; copy / primary CTA / secondary links get more vertical breathing room.
 
 ### Fixed
 - Password-reset success CTA now links to `/login` instead of `/?login=true`.
