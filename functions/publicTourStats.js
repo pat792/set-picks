@@ -48,16 +48,28 @@ async function fetchSongEnrichment(apiKey, logger) {
 }
 
 /**
- * Safety cap on per-song history lookups per refresh run. Bustout + high-gap
- * songs across all tours are typically well under this; the cap only guards
- * against a pathological calendar from turning the refresh into a phish.net
- * crawl.
+ * Safety cap on per-song history lookups per refresh run. Prefer the songs
+ * catalog `last_played` when it is strictly before the tour night — that
+ * fills most bustout/gap rows with zero HTTP. History fetches are only for
+ * songs whose catalog last is missing or ≥ the night (replayed later).
+ *
+ * Cloudflare rate-limits phish.net aggressively (HTTP 429 / 1015). Pace
+ * lookups ~1.5s apart, back off hard on 429, and abort the history pass after
+ * a short streak of 429s so one bad window doesn't burn the whole budget.
  */
-const MAX_LAST_PLAYED_LOOKUPS = 80;
+const MAX_LAST_PLAYED_LOOKUPS = 120;
+const HISTORY_FETCH_GAP_MS = 1500;
+const HISTORY_429_RETRY_MS = 10000;
+const HISTORY_429_ABORT_AFTER = 3;
 
 /** @param {unknown} title */
 function normalizeTitleKey(title) {
   return String(title ?? "").trim().toLowerCase();
+}
+
+/** @param {number} ms */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -99,78 +111,223 @@ async function fetchPhishnetSongHistoryDates(apiKey, slug) {
 }
 
 /**
- * #709 follow-up: stamp `lastPlayed` (date the song was last played *before*
- * that tour night) onto bustout / high-gap payload rows. Mutates `payload`
- * in place. Best-effort per song: a failed history lookup just leaves those
- * rows date-less (the UI hides the column when no row has one).
- *
- * `historyCache` (slug → string[] | null) is shared across tours within one
- * refresh run so a song appearing in multiple tour docs costs one lookup.
- *
- * @param {{ bustouts?: Array<object>, gapHighlights?: Array<object> }} payload
- * @param {{
- *   enrichmentByTitle: Map<string, { slug?: string | null }> | null,
- *   apiKey: string,
- *   historyCache: Map<string, string[] | null>,
- *   logger: Console,
- *   state: { lookups: number },
- * }} opts
- * @returns {Promise<number>} rows stamped
+ * @param {string} apiKey
+ * @param {string} slug
+ * @param {Console} logger
+ * @returns {Promise<string[] | null>}
  */
-async function stampLastPlayedDates(payload, opts) {
-  const { enrichmentByTitle, apiKey, historyCache, logger, state } = opts;
-  if (!(enrichmentByTitle instanceof Map) || !apiKey) return 0;
+/**
+ * @param {string} apiKey
+ * @param {string} slug
+ * @param {Console} logger
+ * @returns {Promise<{ dates: string[] | null, rateLimited: boolean }>}
+ */
+async function fetchPhishnetSongHistoryDatesWithRetry(apiKey, slug, logger) {
+  try {
+    return {
+      dates: await fetchPhishnetSongHistoryDates(apiKey, slug),
+      rateLimited: false,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const is429 = msg.includes("HTTP 429");
+    if (!is429) {
+      logger.warn("refreshPublicTourStats: song history lookup failed", {
+        slug,
+        error: msg,
+      });
+      return { dates: null, rateLimited: false };
+    }
+    await sleep(HISTORY_429_RETRY_MS);
+    try {
+      return {
+        dates: await fetchPhishnetSongHistoryDates(apiKey, slug),
+        rateLimited: false,
+      };
+    } catch (err2) {
+      const msg2 = err2 instanceof Error ? err2.message : String(err2);
+      logger.warn("refreshPublicTourStats: song history lookup failed", {
+        slug,
+        error: msg2,
+        retried: true,
+      });
+      return { dates: null, rateLimited: msg2.includes("HTTP 429") };
+    }
+  }
+}
 
-  /** @type {Map<string, Array<{ title?: string, showDate?: string | null }>>} */
-  const rowsBySlug = new Map();
-  for (const row of [
-    ...(payload.bustouts || []),
-    ...(payload.gapHighlights || []),
-  ]) {
+/**
+ * Queue history lookups with bustouts ahead of high-gap rows so a rate-limit
+ * window still fills the higher-signal column first.
+ *
+ * @param {Map<string, Array<object>>} into
+ * @param {object[]} rows
+ * @param {Map<string, { slug?: string | null, lastPlayedCatalog?: string | null }>} enrichmentByTitle
+ * @param {string} apiKey
+ * @returns {number} catalog stamps applied
+ */
+function collectLastPlayedWork(into, rows, enrichmentByTitle, apiKey) {
+  let fromCatalog = 0;
+  for (const row of rows) {
     if (!row || typeof row !== "object" || !row.showDate) continue;
-    const slug = enrichmentByTitle.get(normalizeTitleKey(row.title))?.slug;
-    if (!slug) continue;
-    const bucket = rowsBySlug.get(slug);
+    // Already stamped (e.g. prior refresh / local backfill) — keep it.
+    if (
+      typeof row.lastPlayed === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(row.lastPlayed.trim())
+    ) {
+      continue;
+    }
+    const showDate = String(row.showDate).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(showDate)) continue;
+
+    const enrich = enrichmentByTitle.get(normalizeTitleKey(row.title));
+    const catalogLast =
+      typeof enrich?.lastPlayedCatalog === "string"
+        ? enrich.lastPlayedCatalog.trim()
+        : "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(catalogLast) && catalogLast < showDate) {
+      row.lastPlayed = catalogLast;
+      fromCatalog += 1;
+      continue;
+    }
+
+    const slug = enrich?.slug;
+    if (!slug || !apiKey) continue;
+    const bucket = into.get(slug);
     if (bucket) bucket.push(row);
-    else rowsBySlug.set(slug, [row]);
+    else into.set(slug, [row]);
+  }
+  return fromCatalog;
+}
+
+/**
+ * #709 follow-up: stamp `lastPlayed` (date last played *before* that tour
+ * night) onto bustout / high-gap rows across every tour payload.
+ *
+ * 1. Prefer songs-catalog `last_played` when it is strictly before the night
+ *    (zero HTTP).
+ * 2. Otherwise fetch phish.net history once per slug (shared cache, paced +
+ *    429 backoff) up to MAX_LAST_PLAYED_LOOKUPS. Bustout slugs are queued
+ *    before high-gap slugs.
+ *
+ * @param {Array<{ bustouts?: Array<object>, gapHighlights?: Array<object> }>} payloads
+ * @param {{
+ *   enrichmentByTitle: Map<string, { slug?: string | null, lastPlayedCatalog?: string | null }> | null,
+ *   apiKey: string,
+ *   logger: Console,
+ * }} opts
+ * @returns {Promise<{ stamped: number, fromCatalog: number, fromHistory: number, failed: number, lookups: number, aborted429: boolean }>}
+ */
+async function stampLastPlayedDates(payloads, opts) {
+  const { enrichmentByTitle, apiKey, logger } = opts;
+  const empty = {
+    stamped: 0,
+    fromCatalog: 0,
+    fromHistory: 0,
+    failed: 0,
+    lookups: 0,
+    aborted429: false,
+  };
+  if (!(enrichmentByTitle instanceof Map)) return empty;
+
+  /** @type {Map<string, Array<{ title?: string, showDate?: string | null, lastPlayed?: string }>>} */
+  const bustoutHistoryBySlug = new Map();
+  /** @type {Map<string, Array<{ title?: string, showDate?: string | null, lastPlayed?: string }>>} */
+  const gapHistoryBySlug = new Map();
+  let fromCatalog = 0;
+
+  for (const payload of payloads) {
+    fromCatalog += collectLastPlayedWork(
+      bustoutHistoryBySlug,
+      payload.bustouts || [],
+      enrichmentByTitle,
+      apiKey
+    );
+    fromCatalog += collectLastPlayedWork(
+      gapHistoryBySlug,
+      payload.gapHighlights || [],
+      enrichmentByTitle,
+      apiKey
+    );
   }
 
-  let stamped = 0;
+  // Bustouts first; then high-gap slugs not already queued for a bustout row.
+  /** @type {Array<[string, Array<object>]>} */
+  const historyQueue = [...bustoutHistoryBySlug.entries()];
+  for (const [slug, rows] of gapHistoryBySlug) {
+    const existing = bustoutHistoryBySlug.get(slug);
+    if (existing) existing.push(...rows);
+    else historyQueue.push([slug, rows]);
+  }
+
+  let lookups = 0;
   let failed = 0;
-  for (const [slug, rows] of rowsBySlug) {
-    if (!historyCache.has(slug)) {
-      if (state.lookups >= MAX_LAST_PLAYED_LOOKUPS) break;
-      state.lookups += 1;
-      try {
-        historyCache.set(slug, await fetchPhishnetSongHistoryDates(apiKey, slug));
-      } catch (err) {
-        historyCache.set(slug, null);
-        failed += 1;
-        logger.warn("refreshPublicTourStats: song history lookup failed", {
-          slug,
-          error: err instanceof Error ? err.message : String(err),
-        });
+  let fromHistory = 0;
+  let consecutive429 = 0;
+  let aborted429 = false;
+
+  for (const [slug, rows] of historyQueue) {
+    if (lookups >= MAX_LAST_PLAYED_LOOKUPS) break;
+    lookups += 1;
+    if (lookups > 1) await sleep(HISTORY_FETCH_GAP_MS);
+    const { dates, rateLimited } = await fetchPhishnetSongHistoryDatesWithRetry(
+      apiKey,
+      slug,
+      logger
+    );
+    if (!dates) {
+      failed += 1;
+      if (rateLimited) {
+        consecutive429 += 1;
+        if (consecutive429 >= HISTORY_429_ABORT_AFTER) {
+          aborted429 = true;
+          logger.warn(
+            "refreshPublicTourStats: aborting history lookups after repeated 429s",
+            {
+              consecutive429,
+              lookups,
+              remaining: historyQueue.length - lookups,
+            }
+          );
+          break;
+        }
+        // Extra cool-down before the next attempt in the same run.
+        await sleep(HISTORY_429_RETRY_MS);
+      } else {
+        consecutive429 = 0;
       }
+      continue;
     }
-    const dates = historyCache.get(slug);
-    if (!dates) continue;
+    consecutive429 = 0;
     for (const row of rows) {
       const lastPlayed = lastPlayedBeforeFromHistory(dates, row.showDate);
       if (lastPlayed) {
         row.lastPlayed = lastPlayed;
-        stamped += 1;
+        fromHistory += 1;
       }
     }
   }
 
-  if (stamped > 0 || failed > 0) {
+  const stamped = fromCatalog + fromHistory;
+  if (stamped > 0 || failed > 0 || aborted429) {
     logger.info("refreshPublicTourStats: lastPlayed dates stamped", {
       stamped,
+      fromCatalog,
+      fromHistory,
       failed,
-      lookupsSoFar: state.lookups,
+      lookups,
+      aborted429,
+      pendingSlugs: Math.max(0, historyQueue.length - lookups),
     });
   }
-  return stamped;
+  return {
+    stamped,
+    fromCatalog,
+    fromHistory,
+    failed,
+    lookups,
+    aborted429,
+  };
 }
 
 /**
@@ -221,9 +378,8 @@ async function refreshPublicTourStats(db, opts = {}) {
     logger
   );
 
-  // #709 follow-up: per-song history lookups (lastPlayed) shared across tours.
-  const historyCache = new Map();
-  const lookupState = { lookups: 0 };
+  /** @type {Array<{ tourSlug: string, tourLabel: string, showDates: string[], payload: object }>} */
+  const pendingWrites = [];
 
   for (const group of selectable) {
     const tourLabel = group.tour;
@@ -257,14 +413,21 @@ async function refreshPublicTourStats(db, opts = {}) {
       tourShowCount: showDates.length,
     });
     const payload = toPublicTourStatsPayload(stats, enrichmentByTitle);
-    await stampLastPlayedDates(payload, {
+    pendingWrites.push({ tourSlug, tourLabel, showDates, payload });
+  }
+
+  // Stamp bustout/gap lastPlayed across every tour before writing so the
+  // history budget is shared fairly (catalog last_played fills most rows).
+  await stampLastPlayedDates(
+    pendingWrites.map((w) => w.payload),
+    {
       enrichmentByTitle,
       apiKey: String(opts.phishnetApiKey || "").trim(),
-      historyCache,
       logger,
-      state: lookupState,
-    });
+    }
+  );
 
+  for (const { tourSlug, tourLabel, showDates, payload } of pendingWrites) {
     await db
       .collection("public_tour_stats")
       .doc(tourSlug)

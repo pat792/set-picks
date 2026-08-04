@@ -57,19 +57,31 @@ describe("buildSongEnrichmentByTitle (#666)", () => {
       lifetimePlays: 623,
       debutYear: 1997,
       slug: "ghost",
+      lastPlayedCatalog: null,
     });
     assert.deepEqual(map.get("tweezer"), {
       lifetimePlays: 512,
       debutYear: 1990,
       slug: null,
+      lastPlayedCatalog: null,
     });
     assert.equal(map.has("no data"), false);
     assert.deepEqual(map.get("weird year"), {
       lifetimePlays: 3,
       debutYear: null,
       slug: null,
+      lastPlayedCatalog: null,
     });
     assert.equal(map.has(""), false);
+  });
+
+  it("keeps catalog last_played when it is a YYYY-MM-DD date", () => {
+    const map = buildSongEnrichmentByTitle([
+      { name: "Ghost", total: "1", debut: "1997", last: "2024-12-31", slug: "ghost" },
+      { name: "Bad Last", total: "1", debut: "1990", last: "—" },
+    ]);
+    assert.equal(map.get("ghost").lastPlayedCatalog, "2024-12-31");
+    assert.equal(map.get("bad last").lastPlayedCatalog, null);
   });
 });
 
