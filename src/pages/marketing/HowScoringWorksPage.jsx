@@ -6,7 +6,7 @@ import { MarketingPageShell } from '../../features/landing';
 import { ScoringRulesContent } from '../../features/scoring/marketing';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
-import { LINK_ON_LIGHT } from '../../shared/ui/surfaceLinkStyles';
+import { LINK_ON_DARK } from '../../shared/ui/surfaceLinkStyles';
 
 const route = getPrerenderRoute('/how-scoring-works');
 
@@ -38,15 +38,15 @@ export default function HowScoringWorksPage() {
           <ScoringRulesContent />
           <p className="mt-10 text-center text-sm leading-relaxed text-slate-500">
             Next:{' '}
-            <Link to="/how-it-works" className={LINK_ON_LIGHT}>
+            <Link to="/how-it-works" className={LINK_ON_DARK}>
               how it works
             </Link>
             , browse{' '}
-            <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+            <Link to="/tour-stats" className={LINK_ON_DARK}>
               tour stats
             </Link>
             , or{' '}
-            <Link to="/" className={LINK_ON_LIGHT}>
+            <Link to="/login?mode=signup" className={LINK_ON_DARK}>
               start playing
             </Link>
             .

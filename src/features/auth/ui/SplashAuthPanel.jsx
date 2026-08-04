@@ -5,6 +5,7 @@ import {
   DASHBOARD_CARD_PAD,
   DASHBOARD_CARD_RADIUS,
 } from '../../../shared/ui/dashboardCardClasses';
+import { AUTH_GOOGLE_CTA } from './authCtaClasses';
 
 /**
  * Shared auth credentials chrome (#834) — Google CTA, divider, and form slot.
@@ -51,16 +52,16 @@ export default function SplashAuthPanel({
 
       {prependContent ? <div className="mb-5">{prependContent}</div> : null}
 
-      <Button
-        variant="text"
+      {/* Native <button>: shared Button `text` uses hover:text-white (blanks white CTA). */}
+      <button
         type="button"
         onClick={handleGoogle}
         disabled={isGoogleDisabled}
-        className="w-full gap-3 rounded-xl bg-white py-3 text-slate-900 ring-1 ring-white/15 transition-colors hover:bg-slate-50 disabled:opacity-50"
+        className={AUTH_GOOGLE_CTA}
       >
         <img src="https://www.google.com/favicon.ico" alt="" className="h-5 w-5" />
         Continue with Google
-      </Button>
+      </button>
 
       {googleFootnote ? (
         <p className="mt-2.5 text-center text-xs font-medium leading-relaxed text-slate-400">

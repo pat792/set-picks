@@ -15,8 +15,10 @@
 | **A follow** | #827 | Public `/tour-stats` long spinner (App Check / data gate) — keep interactive UI. | Merged → staging (PR #839, v1.47.1) |
 | **B — Outbound** | #830 | Email / push / invite link inventory; retarget `/?login=true` → `/login`. Depends on A. | Merged → staging (PR #842, v1.47.3) |
 | **C — Auth UX** | #834 | Inline full-page `/login` (replace modal-on-route hybrid). Invite VIP keeps modals. | Merged → staging (PR #843, v1.48.0) |
-| **C follow** | epic #835 | App-shell splash auth CTAs → `/login`; `MarketingPageShell` Home hard-nav to marketing `/` (no soft-nav modal trap). | Patch on staging |
-| **D — Invite parity** | #844 | Inline auth on `/invite` + `/join` VIP (same panel chrome as `/login`). | Open |
+| **C follow** | epic #835 | App-shell splash → `/login`; hard-nav Home; auth CTA polish; remove Get Started chooser. | v1.48.1–1.48.2 |
+| **D — Invite parity** | #844 | Inline auth on `/invite` + `/join` VIP (same panel chrome as `/login`). | **Held** — not in this promote |
+
+**Promote rule:** Ship A–C (+ C follow) `staging` → `main` when AC soak passes. Phase D (#844) stays open and ships later.
 
 ---
 

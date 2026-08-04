@@ -13,7 +13,7 @@ export function getFirebaseAuthErrorMessage(code) {
       return [
         'Sign-in failed: either the password is wrong, or there is no account for this email',
         '(Firebase uses one message for both so addresses cannot be guessed).',
-        'New here? Use Create account on the splash page—this form is for returning users.',
+        'New here? Use Create account on the sign-in page—this form is for returning users.',
         'If you do have an account and recently changed your password, autofill may still use an old one—try typing it manually or use Google.',
       ].join(' ');
     case 'auth/too-many-requests':

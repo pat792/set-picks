@@ -6,7 +6,7 @@ import SplashHeroWordmark from './SplashHeroWordmark';
 import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
 /**
- * Splash hero — primary CTA stays auth/get-started; secondary links are real
+ * Splash hero — primary CTA → `/login?mode=signup`; secondary links are real
  * marketing routes for crawlable internal linking (#663).
  *
  * #837 spacing:
@@ -60,7 +60,7 @@ export default function SplashHeroSection({ onPlayNowClick }) {
             variant="primary"
             type="button"
             onClick={onPlayNowClick}
-            aria-label="Play now: go to sign in or create an account"
+            aria-label="Make picks now: create an account"
             className="w-full min-w-[12rem] sm:w-auto"
           >
             Make picks now

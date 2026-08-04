@@ -12,7 +12,7 @@ function goLogin({ signup = false } = {}) {
 
 /**
  * Marketing-document splash (#832). Same shell/UI as the app Landing splash,
- * but auth CTAs hard-navigate to `/login` instead of opening Firebase modals.
+ * but auth CTAs hard-navigate to `/login` instead of a mid-page chooser.
  */
 export default function MarketingHomePage() {
   const openSignUp = useCallback(() => goLogin({ signup: true }), []);
@@ -21,13 +21,9 @@ export default function MarketingHomePage() {
   const {
     howItWorksSectionRef,
     howItWorksHeadingRef,
-    getStartedSectionRef,
-    getStartedHeadingRef,
     aboutSectionRef,
     aboutHeadingRef,
-    handleScrollToGetStarted,
-    handleCreateAccountFromHowItWorks,
-  } = useScrollToSectionFocus({ onCreateAccountRequest: openSignUp });
+  } = useScrollToSectionFocus();
 
   return (
     <>
@@ -35,14 +31,10 @@ export default function MarketingHomePage() {
       <SplashPageShell
         howItWorksSectionRef={howItWorksSectionRef}
         howItWorksHeadingRef={howItWorksHeadingRef}
-        getStartedSectionRef={getStartedSectionRef}
-        getStartedHeadingRef={getStartedHeadingRef}
         aboutSectionRef={aboutSectionRef}
         aboutHeadingRef={aboutHeadingRef}
-        onScrollToGetStarted={handleScrollToGetStarted}
-        onCreateAccountFromHowItWorks={handleCreateAccountFromHowItWorks}
-        onOpenSignUpModal={openSignUp}
-        onOpenSignInModal={openSignIn}
+        onOpenSignUp={openSignUp}
+        onOpenSignIn={openSignIn}
       />
     </>
   );

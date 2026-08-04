@@ -12,6 +12,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.48.2] — 2026-08-04
+
+### Changed
+- **Auth CTA polish (epic #835)** — Google/email CTAs share size; Google stays bold white with brighter hover; email submit is “Continue with email”; password reveal is a compact eye icon when fields have content.
+- **Marketing CTAs → `/login`** — removed mid-page Get Started chooser; hero/header/section and marketing-page “play” CTAs go to `/login` or `/login?mode=signup`. Invite VIP modals unchanged (#844).
+
+### Fixed
+- Scoring page footer links use dark-surface teal (`LINK_ON_DARK`) instead of light-page emerald.
+- Public tour-stats “Make picks for this tour” stays one-line and targets create-account.
+
+---
+
 ## [1.48.1] — 2026-08-04
 
 ### Fixed
