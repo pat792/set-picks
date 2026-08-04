@@ -15,6 +15,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.46.1] — 2026-08-03
+
+### Changed
+- **Lazy splash/invite auth modals (#733)** — `SplashSignInModal` / `SplashSignUpModal` moved to a `features/auth/modals` secondary barrel and now load behind a `React.lazy` boundary in `SplashAuthModals`, warmed at idle after mount so click-open has no visible fetch gap. Defers ~12 kB (≈4 kB gzip) of modal-only code off the anonymous splash and invite first paint and keeps future modal-stack growth off the cold-open path. No behavior change; modals mount only while open (they rendered `null` closed).
+
+---
+
 ## [1.46.0] — 2026-08-03
 
 ### Added
