@@ -12,6 +12,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.47.3] — 2026-08-04
+
+### Added
+- **Outbound auth handoff inventory (#830)** — `docs/OUTBOUND_AUTH_HANDOFF.md` classifies email/push/inbox/invite/marketing links after the dual-document cold open (`app-ok` / `retarget-auth` / `public-static` / `invite-shell`).
+
+### Changed
+- Unauthenticated `/dashboard/*` and `/setup` hard opens bounce to **`/login`** (not marketing `/`), keeping `persistDashboardPath` restore.
+- QA runners and docs sign in via `/login`; email click allowlist accepts `/login`, `/invite`, `/setup`.
+
+---
+
 ## [1.47.2] — 2026-08-04
 
 ### Fixed
