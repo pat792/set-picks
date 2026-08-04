@@ -10,6 +10,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+### Fixed
+- **`qa:cache` CI hang + flaky threshold (#748)** — QA tooling only, no app surface. Runner now exits explicitly on every path, `vite preview` is killed by process group (orphaned vite kept CI runners alive for the full 6 h workflow limit), `qa-runners` gained `timeout-minutes: 20`, and the noisy byte-savings assertion was replaced with a deterministic count of season-stats document references in Firestore WebChannel POST bodies.
+
 ---
 
 ## [1.44.3] — 2026-08-03

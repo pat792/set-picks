@@ -206,6 +206,10 @@ jobs:
   # Requires secrets; skip fork PRs (#349 auth).
   qa-runners:
     runs-on: ubuntu-latest
+    # #748: a hung Playwright runner used to burn the full 6h workflow limit
+    # (nightly matrix cancelled every night since 07-19). Warm-cache runs
+    # finish in ~10 min; 20 min is generous headroom incl. Chromium download.
+    timeout-minutes: 20
     needs: [verify, changes]
     if: >
       (github.event_name == 'schedule' ||
