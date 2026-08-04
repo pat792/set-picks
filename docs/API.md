@@ -167,10 +167,13 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 | `tourShowCount` | number | Dates in scope |
 | `showsWithSetlist` | number | Dates with an `official_setlists` doc |
 | `uniqueSongs` / `totalSongPlays` | number | Aggregate counts |
-| `topSongs` | `{ title, timesPlayed }[]` | Most played, **full ranked list** as of v1.45.0 (#709; top-15 before) — **no** per-song `showDates` lists |
-| `bustouts` / `gapHighlights` | `{ title, gap, showDate? }[]` | Single event date OK; never a full night setlist. `gapHighlights` uncapped as of v1.45.0 (#709) |
+| `topSongs` | `{ title, timesPlayed, lifetimePlays?, debutYear? }[]` | Most played, **full ranked list** as of v1.45.0 (#709; top-15 before) — **no** per-song `showDates` lists |
+| `bustouts` / `gapHighlights` | `{ title, gap, showDate?, lifetimePlays?, debutYear? }[]` | Single event date OK; never a full night setlist. `gapHighlights` uncapped as of v1.45.0 (#709) |
+| `enrichment` | `{ source, enrichedAt } \| null` | **v1.46.0 (#666)** — non-null when rows carry phish.net lifetime fields; `null` when the refresh ran without phish.net (missing key / upstream failure) |
 | `writtenAt` | string | ISO timestamp |
-| `schemaVersion` | number | `1` |
+| `schemaVersion` | number | `2` (**v1.46.0 #666**; `1` before) |
+
+**Row enrichment (v1.46.0 / #666, Phase 1 of the gated-external-sources plan):** every refresh fetches phish.net `v5/songs` **server-side** (secret `PHISHNET_API_KEY`; never sent to browsers) and stamps `lifetimePlays` (all-time times played) + `debutYear` onto each row — `null` when phish.net has no data for the title, **absent** when the whole refresh ran unenriched. setlist.fm / phish.com remain behind the explicit legal/product gate (issue #666 phase 3).
 
 `_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`.
 

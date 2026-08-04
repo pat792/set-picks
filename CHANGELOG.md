@@ -15,6 +15,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.46.0] — 2026-08-03
+
+### Added
+- **Public tour stats phish.net enrichment (#666, Phase 1)** — `refreshPublicTourStats` fetches phish.net `v5/songs` server-side (secret stays in Cloud Functions) and stamps `lifetimePlays` + `debutYear` onto every `public_tour_stats` row; public `/tour-stats` rows render a "Debut 1997 · 623 plays all-time" context line. Best-effort: refresh still writes unenriched docs (with `enrichment: null`) if phish.net is unavailable. `schemaVersion` → `2`. Dashboard Tour stats (client aggregation) unchanged.
+
+### Changed
+- `scheduledPublicTourStatsRefresh` and the admin `refreshPublicTourStats` callable now bind the `PHISHNET_API_KEY` secret.
+
+---
+
 ## [1.45.1] — 2026-08-03
 
 ### Fixed

@@ -1686,7 +1686,10 @@ exports.scheduledPhishnetShowCalendar = onSchedule(
       logger,
     });
     try {
-      await refreshPublicTourStats(db, { logger });
+      await refreshPublicTourStats(db, {
+        logger,
+        phishnetApiKey: String(key).trim(),
+      });
     } catch (err) {
       logger.error("scheduledPhishnetShowCalendar: public tour stats refresh failed", err);
     }
@@ -1723,7 +1726,10 @@ exports.refreshPhishnetShowCalendar = onCall(
       );
       let publicTourStats = null;
       try {
-        publicTourStats = await refreshPublicTourStats(db, { logger });
+        publicTourStats = await refreshPublicTourStats(db, {
+          logger,
+          phishnetApiKey: String(key).trim(),
+        });
       } catch (err) {
         logger.error("refreshPhishnetShowCalendar: public tour stats refresh failed", err);
       }
@@ -1754,9 +1760,15 @@ exports.scheduledPublicTourStatsRefresh = onSchedule(
     schedule: "30 7 * * *",
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
+    // #666: lifetime enrichment; refresh still succeeds unenriched if the
+    // key is missing or phish.net is down.
+    secrets: [phishnetApiKey],
   },
   async () => {
-    await refreshPublicTourStats(db, { logger });
+    await refreshPublicTourStats(db, {
+      logger,
+      phishnetApiKey: String(phishnetApiKey.value() || "").trim(),
+    });
     return null;
   }
 );
@@ -1769,11 +1781,16 @@ exports.refreshPublicTourStats = onCall(
     region: PHISHNET_FUNCTIONS_REGION,
     invoker: "public",
     enforceAppCheck: false,
+    // #666: lifetime enrichment (best-effort inside the refresh).
+    secrets: [phishnetApiKey],
   },
   async (request) => {
     try {
       assertAdminClaim(request);
-      const result = await refreshPublicTourStats(db, { logger });
+      const result = await refreshPublicTourStats(db, {
+        logger,
+        phishnetApiKey: String(phishnetApiKey.value() || "").trim(),
+      });
       return { ok: true, ...result };
     } catch (e) {
       if (e instanceof HttpsError) throw e;

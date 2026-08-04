@@ -5,15 +5,47 @@
 const {
   aggregateTourSetlistStats,
   toPublicTourStatsPayload,
+  buildSongEnrichmentByTitle,
   tourLabelToSlug,
 } = require("./aggregateTourSetlistStats.cjs");
+const { fetchPhishnetSongsNormalized } = require("./phishnetSongCatalog");
 
 /** Game launch floor — keep aligned with `src/shared/config/gameLaunch.js`. */
 const GAME_LAUNCH_SHOW_DATE = "2026-04-16";
 
 /**
+ * #666 Phase 1: per-song lifetime enrichment from phish.net (server-side
+ * fetch only — the API key never reaches clients). Best-effort: any upstream
+ * failure logs and returns null so the public stats refresh itself never
+ * depends on phish.net being up.
+ *
+ * @param {string} apiKey
+ * @param {Console} logger
+ * @returns {Promise<Map<string, { lifetimePlays: number | null, debutYear: number | null }> | null>}
+ */
+async function fetchSongEnrichment(apiKey, logger) {
+  const key = String(apiKey ?? "").trim();
+  if (!key) return null;
+  try {
+    const songs = await fetchPhishnetSongsNormalized(key);
+    const map = buildSongEnrichmentByTitle(songs);
+    logger.info("refreshPublicTourStats: phish.net enrichment loaded", {
+      songs: songs.length,
+      enriched: map.size,
+    });
+    return map;
+  } catch (err) {
+    logger.warn(
+      "refreshPublicTourStats: phish.net enrichment unavailable — writing unenriched docs",
+      err instanceof Error ? err.message : err
+    );
+    return null;
+  }
+}
+
+/**
  * @param {FirebaseFirestore.Firestore} db
- * @param {{ logger?: Console, today?: string }} [opts]
+ * @param {{ logger?: Console, today?: string, phishnetApiKey?: string }} [opts]
  */
 async function refreshPublicTourStats(db, opts = {}) {
   const logger = opts.logger || console;
@@ -53,6 +85,12 @@ async function refreshPublicTourStats(db, opts = {}) {
   let toursWritten = 0;
   const writtenAt = new Date().toISOString();
 
+  // #666: one phish.net fetch per refresh, shared across every tour doc.
+  const enrichmentByTitle = await fetchSongEnrichment(
+    opts.phishnetApiKey || "",
+    logger
+  );
+
   for (const group of selectable) {
     const tourLabel = group.tour;
     const tourSlug = tourLabelToSlug(tourLabel);
@@ -84,7 +122,7 @@ async function refreshPublicTourStats(db, opts = {}) {
     const stats = aggregateTourSetlistStats(docs, {
       tourShowCount: showDates.length,
     });
-    const payload = toPublicTourStatsPayload(stats);
+    const payload = toPublicTourStatsPayload(stats, enrichmentByTitle);
 
     await db
       .collection("public_tour_stats")
@@ -97,8 +135,13 @@ async function refreshPublicTourStats(db, opts = {}) {
           firstShowDate: showDates[0] || null,
           lastShowDate: showDates[showDates.length - 1] || null,
           ...payload,
+          // #666: null when the refresh ran without phish.net (missing key /
+          // upstream failure) — rows then omit lifetimePlays/debutYear.
+          enrichment: enrichmentByTitle
+            ? { source: "phish.net/v5/songs", enrichedAt: writtenAt }
+            : null,
           writtenAt,
-          schemaVersion: 1,
+          schemaVersion: 2,
         },
         { merge: false }
       );

@@ -143,29 +143,100 @@ function aggregateTourSetlistStats(docs, options = {}) {
 }
 
 /**
+ * Phish.net songs list → per-title enrichment map (#666 Phase 1).
+ * Input rows come from `fetchPhishnetSongsNormalized` (`phishnetSongCatalog.js`):
+ * `{ name, total, gap, last, debut }` with string fields ("—" when unknown).
+ *
+ * Output: normalized title → `{ lifetimePlays: number|null, debutYear: number|null }`.
+ * Lifetime data lives only on phish.net (game-local `official_setlists` cover
+ * scored tour dates), so this is the unique crawlable content layer for the
+ * public `/tour-stats` pages.
+ *
+ * @param {Array<{ name: string, total?: string, debut?: string }>} songs
+ * @returns {Map<string, { lifetimePlays: number | null, debutYear: number | null }>}
+ */
+function buildSongEnrichmentByTitle(songs) {
+  const map = new Map();
+  const list = Array.isArray(songs) ? songs : [];
+  for (const song of list) {
+    const key = normalizeTitle(song?.name);
+    if (!key || map.has(key)) continue;
+
+    const totalNum = Number(song?.total);
+    const lifetimePlays =
+      Number.isFinite(totalNum) && totalNum >= 0 ? Math.trunc(totalNum) : null;
+
+    // `debut` is either `YYYY-MM-DD` or a bare year string.
+    const debutRaw = String(song?.debut ?? "").trim();
+    const yearMatch = debutRaw.match(/^(\d{4})/);
+    const year = yearMatch ? Number(yearMatch[1]) : NaN;
+    const debutYear = year >= 1900 && year <= 2100 ? year : null;
+
+    if (lifetimePlays === null && debutYear === null) continue;
+    map.set(key, { lifetimePlays, debutYear });
+  }
+  return map;
+}
+
+/**
+ * @param {Map<string, { lifetimePlays: number | null, debutYear: number | null }> | null | undefined} enrichmentByTitle
+ * @param {string} title
+ */
+function enrichmentFor(enrichmentByTitle, title) {
+  if (!(enrichmentByTitle instanceof Map)) return null;
+  return enrichmentByTitle.get(normalizeTitle(title)) || null;
+}
+
+/**
  * Public payload — aggregates only (no officialSetlist arrays, no per-song showDates lists).
  * Bustout/gap rows may include a single showDate (song event), never a full night setlist.
+ *
+ * When `enrichmentByTitle` (#666) is provided, every row also carries
+ * `lifetimePlays` + `debutYear` (null when phish.net has no data for the
+ * title). Omitted entirely when enrichment is unavailable so consumers can
+ * distinguish "not enriched" from "unknown song".
+ *
+ * @param {ReturnType<typeof aggregateTourSetlistStats>} stats
+ * @param {Map<string, { lifetimePlays: number | null, debutYear: number | null }> | null} [enrichmentByTitle]
  */
-function toPublicTourStatsPayload(stats) {
+function toPublicTourStatsPayload(stats, enrichmentByTitle = null) {
+  const enriched = enrichmentByTitle instanceof Map;
+  /**
+   * @param {{ title: string }} row
+   * @param {Record<string, unknown>} base
+   */
+  const withEnrichment = (row, base) => {
+    if (!enriched) return base;
+    const e = enrichmentFor(enrichmentByTitle, row.title);
+    return {
+      ...base,
+      lifetimePlays: e ? e.lifetimePlays : null,
+      debutYear: e ? e.debutYear : null,
+    };
+  };
+
   return {
     tourShowCount: stats.tourShowCount,
     showsWithSetlist: stats.showsWithSetlist,
     uniqueSongs: stats.uniqueSongs,
     totalSongPlays: stats.totalSongPlays,
-    topSongs: (stats.topSongs || []).map((r) => ({
-      title: r.title,
-      timesPlayed: r.timesPlayed,
-    })),
-    bustouts: (stats.bustouts || []).map((r) => ({
-      title: r.title,
-      gap: r.gap,
-      showDate: r.showDate || null,
-    })),
-    gapHighlights: (stats.gapHighlights || []).map((r) => ({
-      title: r.title,
-      gap: r.gap,
-      showDate: r.showDate || null,
-    })),
+    topSongs: (stats.topSongs || []).map((r) =>
+      withEnrichment(r, { title: r.title, timesPlayed: r.timesPlayed })
+    ),
+    bustouts: (stats.bustouts || []).map((r) =>
+      withEnrichment(r, {
+        title: r.title,
+        gap: r.gap,
+        showDate: r.showDate || null,
+      })
+    ),
+    gapHighlights: (stats.gapHighlights || []).map((r) =>
+      withEnrichment(r, {
+        title: r.title,
+        gap: r.gap,
+        showDate: r.showDate || null,
+      })
+    ),
   };
 }
 
@@ -183,6 +254,7 @@ function tourLabelToSlug(tourLabel) {
 module.exports = {
   aggregateTourSetlistStats,
   toPublicTourStatsPayload,
+  buildSongEnrichmentByTitle,
   tourLabelToSlug,
   TOUR_STATS_TOP_N,
   TOUR_STATS_GAP_HIGHLIGHT_MIN,
