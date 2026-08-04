@@ -14,18 +14,19 @@ export const BRAND_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
 export const BRAND_HERO_WORDMARK_SRC = BRAND_GRADIENT_WORDMARK_SRC;
 
 /**
- * Hero frame: the SVG’s painted gradient is taller than the letterforms, leaving a band of empty
- * space below the artwork. A wider aspect + overflow clips that band. The splash hero renders this
- * asset as an `<img>` inside `SplashHeroWordmark` with these frame classes; cropping mirrors
- * former `object-cover` + `object-top`.
+ * Hero frame: the SVG’s painted gradient is taller than the letterforms, leaving empty bands in
+ * the artwork. Wider sm+ aspect + overflow clips height; mobile keeps the taller 16/5 frame.
+ * #837: laptop/desktop uses a shorter frame + tighter max-width so header→copy isn’t crushed.
  */
-/** #837: wider sm+ aspect crops more empty SVG band so copy isn’t squeezed under the hero. */
 export const brandHeroWordmarkAspectFrameClassNames =
-  'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[4/1] sm:w-full sm:max-w-[min(96vw,70rem)] md:max-w-[min(94vw,78rem)] lg:max-w-[min(92vw,86rem)] xl:max-w-[min(90vw,94rem)]';
+  'mx-auto block aspect-[16/5] w-[100vw] max-w-none overflow-hidden sm:aspect-[5/1] sm:w-full sm:max-w-[min(92vw,42rem)] md:max-w-[min(90vw,48rem)] lg:aspect-[4.5/1] lg:max-w-[min(88vw,56rem)] xl:max-w-[min(86vw,64rem)]';
 
-/** Hero `<img>` classes used by `SplashHeroWordmark.jsx`. */
+/**
+ * Hero `<img>` classes. Mobile: `object-top`. sm+: shift crop down so transparent SVG headroom
+ * above the letterforms doesn’t read as a gap under the fixed header (#837).
+ */
 export const brandHeroWordmarkImgClassNames =
-  'block h-full w-full min-h-0 object-cover object-top';
+  'block h-full w-full min-h-0 object-cover object-top sm:object-[center_48%]';
 
 /**
  * Mobile “1.2×” via **layout width** (`120vw` + `-ml-[10vw]`) so the graphic scales as vector paint,
