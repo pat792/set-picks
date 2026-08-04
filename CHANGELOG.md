@@ -15,6 +15,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.45.1] — 2026-08-03
+
+### Fixed
+- **SERP favicon hardening (#662)** — removed the 854 KB embedded-raster `favicon.svg` and its `<link>` from the SPA shell, OG crawler HTML, and SEO prerender shells; the 96×96 PNG + ICO are now primary (square ≥48 px at stable URLs, per Google SERP favicon requirements). `verify:seo-prerender` asserts the PNG link is present and `favicon.svg` never resurfaces; nightly CI curls prod `/favicon.ico` + linked PNG for `200` + `image/*`.
+
+---
+
 ## [1.45.0] — 2026-08-03
 
 ### Added
