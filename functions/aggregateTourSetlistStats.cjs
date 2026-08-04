@@ -4,6 +4,9 @@
  * Keep in sync when changing private explorer math.
  */
 
+// Page size on the UI (#709) — lists themselves are unbounded since #709;
+// `refreshPublicTourStats` writes the FULL ranked lists to
+// `public_tour_stats/{tourSlug}` (~hundreds of small rows, well under doc limits).
 const TOUR_STATS_TOP_N = 15;
 const TOUR_STATS_GAP_HIGHLIGHT_MIN = 10;
 const BUSTOUT_MIN_GAP = 30;
@@ -21,13 +24,9 @@ function toGap(raw) {
 
 /**
  * @param {Array<{ showDate: string, setlist: object | null }>} docs
- * @param {{ tourShowCount?: number, topN?: number }} [options]
+ * @param {{ tourShowCount?: number }} [options]
  */
 function aggregateTourSetlistStats(docs, options = {}) {
-  const topN =
-    typeof options.topN === "number" && options.topN > 0
-      ? Math.trunc(options.topN)
-      : TOUR_STATS_TOP_N;
   const tourShowCount =
     typeof options.tourShowCount === "number" && options.tourShowCount >= 0
       ? Math.trunc(options.tourShowCount)
@@ -112,12 +111,12 @@ function aggregateTourSetlistStats(docs, options = {}) {
     }
   }
 
+  // #709: full ranked list — no top-N cap (mirrors the client model).
   const topSongs = [...bySong.values()]
     .sort((a, b) => {
       if (b.timesPlayed !== a.timesPlayed) return b.timesPlayed - a.timesPlayed;
       return a.title.localeCompare(b.title);
     })
-    .slice(0, topN)
     .map((row) => ({ title: row.title, timesPlayed: row.timesPlayed }));
 
   bustouts.sort((a, b) => {
@@ -139,7 +138,7 @@ function aggregateTourSetlistStats(docs, options = {}) {
     totalSongPlays,
     topSongs,
     bustouts,
-    gapHighlights: gapHighlights.slice(0, topN),
+    gapHighlights,
   };
 }
 

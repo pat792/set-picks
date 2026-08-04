@@ -1,5 +1,5 @@
-import React from 'react';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 import Card from '../../../shared/ui/Card';
 import InfoTooltip, {
@@ -14,7 +14,10 @@ import {
   DASHBOARD_CARD_EYEBROW as STANDINGS_BOX_EYEBROW,
   DASHBOARD_CARD_SHELL as STANDINGS_CARD_SHELL,
 } from '../../../shared/ui/dashboardCardClasses';
-import { TOUR_STATS_GAP_HIGHLIGHT_MIN } from '../model/aggregateTourSetlistStats';
+import {
+  TOUR_STATS_GAP_HIGHLIGHT_MIN,
+  TOUR_STATS_TOP_N,
+} from '../model/aggregateTourSetlistStats';
 
 const { BUSTOUT_MIN_GAP } = SCORING_RULES;
 
@@ -25,6 +28,17 @@ const TOP_SONGS_ROW_GRID =
 /** Invisible 3-col grid: Song | Date | Gap. */
 const GAP_ROW_GRID =
   'grid grid-cols-[minmax(0,1fr)_6.5rem_3rem] items-center gap-x-2 min-h-[1.75rem]';
+
+/**
+ * 4-col variant when rows carry `lastPlayed` (#709 follow-up): Song | Last |
+ * Date | Gap. Only used when at least one visible row has the date, so the
+ * un-enriched dashboard/public state keeps the roomier 3-col layout.
+ */
+const GAP_ROW_GRID_WITH_LAST =
+  'grid grid-cols-[minmax(0,1fr)_5.75rem_5.75rem_2.5rem] items-center gap-x-1.5 min-h-[1.75rem]';
+
+const LAST_PLAYED_TITLE =
+  'Last played before that night (phish.net song history)';
 
 const COL_HEADER =
   'mb-0.5 border-b border-brand-primary/20 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-300';
@@ -203,7 +217,7 @@ export default function TourStatsView({
                 label="In most played"
                 value={overlay.topSongOverlap}
                 accent="personal"
-                definition="How many of this tour's most-played songs you've picked."
+                definition={`How many of this tour's top ${TOUR_STATS_TOP_N} most-played songs you've picked.`}
               />
             </div>
           </TourStatsSectionCard>
@@ -213,24 +227,29 @@ export default function TourStatsView({
           {stats.topSongs.length === 0 ? (
             <p className="text-sm text-content-secondary">No setlist songs yet.</p>
           ) : (
-            <div>
-              <div className={`${TOP_SONGS_ROW_GRID} ${COL_HEADER}`} aria-hidden>
-                <span className="tabular-nums">#</span>
-                <span>Song</span>
-                <span className="justify-self-end">Plays</span>
-              </div>
-              <ol className="space-y-0.5 text-sm font-semibold text-slate-100">
-                {stats.topSongs.map((row, idx) => (
-                  <li key={row.title} className={TOP_SONGS_ROW_GRID}>
-                    <span className="tabular-nums text-brand-primary/80">{idx + 1}</span>
-                    <span className="min-w-0 truncate">{row.title}</span>
-                    <span className="justify-self-end tabular-nums text-brand-primary">
-                      {row.timesPlayed}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
+            <PagedRows
+              rows={stats.topSongs}
+              label="most played"
+              listAs="ol"
+              header={
+                <div className={`${TOP_SONGS_ROW_GRID} ${COL_HEADER}`} aria-hidden>
+                  <span className="tabular-nums">#</span>
+                  <span>Song</span>
+                  <span className="justify-self-end">Plays</span>
+                </div>
+              }
+              renderRow={(row, absoluteIdx) => (
+                <li key={row.title} className={TOP_SONGS_ROW_GRID}>
+                  <span className="tabular-nums text-brand-primary/80">
+                    {absoluteIdx + 1}
+                  </span>
+                  <span className="min-w-0 truncate">{row.title}</span>
+                  <span className="justify-self-end tabular-nums text-brand-primary">
+                    {row.timesPlayed}
+                  </span>
+                </li>
+              )}
+            />
           )}
         </TourStatsSectionCard>
 
@@ -238,36 +257,11 @@ export default function TourStatsView({
           {stats.bustouts.length === 0 ? (
             <p className="text-sm text-content-secondary">No bustouts frozen yet.</p>
           ) : (
-            <div>
-              <div className={`${GAP_ROW_GRID} ${COL_HEADER}`} aria-hidden>
-                <span>Song</span>
-                <span className="justify-self-end">Date</span>
-                <span className="justify-self-end">Gap</span>
-              </div>
-              <ul className="space-y-0.5 text-sm font-semibold text-slate-100">
-                {stats.bustouts.map((row) => (
-                  <li
-                    key={`${row.showDate}-${row.title}`}
-                    className={GAP_ROW_GRID}
-                  >
-                    <span className="min-w-0 truncate">{row.title}</span>
-                    <span className="justify-self-end tabular-nums text-content-secondary">
-                      {row.showDate}
-                    </span>
-                    <span
-                      className="justify-self-end tabular-nums font-bold text-amber-200"
-                      title={
-                        row.gap != null
-                          ? `${row.gap} shows since last played (pre-show gap)`
-                          : undefined
-                      }
-                    >
-                      {row.gap != null ? row.gap : '—'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <GapPagedRows
+              rows={stats.bustouts}
+              label="bustouts"
+              gapClassName="justify-self-end tabular-nums font-bold text-amber-200"
+            />
           )}
           <p className="mt-3 border-t border-border-subtle/40 pt-3 text-[11px] font-semibold leading-relaxed text-content-secondary">
             Gap = shows since last played before that night. Bustout = gap ≥{' '}
@@ -293,36 +287,141 @@ export default function TourStatsView({
             definition={HIGH_GAPS_DEF}
             headerTone="muted"
           >
-            <div>
-              <div className={`${GAP_ROW_GRID} ${COL_HEADER}`} aria-hidden>
-                <span>Song</span>
-                <span className="justify-self-end">Date</span>
-                <span className="justify-self-end">Gap</span>
-              </div>
-              <ul className="space-y-0.5 text-sm font-semibold text-slate-100">
-                {stats.gapHighlights.map((row) => (
-                  <li
-                    key={`${row.showDate}-${row.title}`}
-                    className={GAP_ROW_GRID}
-                  >
-                    <span className="min-w-0 truncate">{row.title}</span>
-                    <span className="justify-self-end tabular-nums text-content-secondary">
-                      {row.showDate}
-                    </span>
-                    <span
-                      className="justify-self-end tabular-nums text-slate-300"
-                      title={`${row.gap} shows since last played (pre-show gap)`}
-                    >
-                      {row.gap}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <GapPagedRows
+              rows={stats.gapHighlights}
+              label="high gaps"
+              gapClassName="justify-self-end tabular-nums text-slate-300"
+            />
           </TourStatsSectionCard>
         ) : null}
       </div>
     </InfoTooltipProvider>
+  );
+}
+
+/**
+ * Bustouts / High-gaps list body: Song | Date | Gap rows, plus a "Last"
+ * (last played before that night) column when any row carries a
+ * `lastPlayed` date — server-enriched payloads only (#666), so the column
+ * self-hides on un-enriched data instead of rendering an empty track.
+ *
+ * @param {{
+ *   rows: Array<{ title: string, showDate: string, gap: number | null, lastPlayed?: string }>,
+ *   label: string,
+ *   gapClassName: string,
+ * }} props
+ */
+function GapPagedRows({ rows, label, gapClassName }) {
+  const hasLastPlayed = rows.some(
+    (row) => typeof row.lastPlayed === 'string' && row.lastPlayed,
+  );
+  const grid = hasLastPlayed ? GAP_ROW_GRID_WITH_LAST : GAP_ROW_GRID;
+
+  return (
+    <PagedRows
+      rows={rows}
+      label={label}
+      header={
+        <div className={`${grid} ${COL_HEADER}`} aria-hidden>
+          <span>Song</span>
+          {hasLastPlayed ? (
+            <span className="justify-self-end" title={LAST_PLAYED_TITLE}>
+              Last
+            </span>
+          ) : null}
+          <span className="justify-self-end">Date</span>
+          <span className="justify-self-end">Gap</span>
+        </div>
+      }
+      renderRow={(row) => (
+        <li key={`${row.showDate}-${row.title}`} className={grid}>
+          <span className="min-w-0 truncate">{row.title}</span>
+          {hasLastPlayed ? (
+            <span
+              className="justify-self-end tabular-nums text-content-secondary"
+              title={LAST_PLAYED_TITLE}
+            >
+              {row.lastPlayed || '—'}
+            </span>
+          ) : null}
+          <span className="justify-self-end tabular-nums text-content-secondary">
+            {row.showDate}
+          </span>
+          <span
+            className={gapClassName}
+            title={
+              row.gap != null
+                ? `${row.gap} shows since last played (pre-show gap)`
+                : undefined
+            }
+          >
+            {row.gap != null ? row.gap : '—'}
+          </span>
+        </li>
+      )}
+    />
+  );
+}
+
+const PAGER_BUTTON =
+  'inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border-subtle/50 text-slate-200 transition-colors hover:border-brand-primary/50 hover:text-brand-primary disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-border-subtle/50 disabled:hover:text-slate-200';
+
+/**
+ * Client-side pager for the tour-stats list cards (#709). Lists are
+ * unbounded; this renders TOUR_STATS_TOP_N rows per page with back/forward
+ * arrows and a `16–30 of 87` range indicator. Controls are hidden entirely
+ * when the list fits on one page, and the current page self-clamps when the
+ * data shrinks (e.g. tour filter change) so a stale index never renders an
+ * empty page.
+ *
+ * @param {{
+ *   rows: Array<object>,
+ *   label: string,
+ *   header: React.ReactNode,
+ *   renderRow: (row: object, absoluteIdx: number) => React.ReactNode,
+ *   listAs?: 'ul' | 'ol',
+ * }} props
+ */
+function PagedRows({ rows, label, header, renderRow, listAs: ListTag = 'ul' }) {
+  const [page, setPage] = useState(0);
+  const total = rows.length;
+  const maxPage = Math.max(0, Math.ceil(total / TOUR_STATS_TOP_N) - 1);
+  const current = Math.min(page, maxPage);
+  const start = current * TOUR_STATS_TOP_N;
+  const end = Math.min(start + TOUR_STATS_TOP_N, total);
+
+  return (
+    <div>
+      {header}
+      <ListTag className="space-y-0.5 text-sm font-semibold text-slate-100">
+        {rows.slice(start, end).map((row, i) => renderRow(row, start + i))}
+      </ListTag>
+      {total > TOUR_STATS_TOP_N ? (
+        <div className="mt-2 flex items-center justify-end gap-1.5 border-t border-border-subtle/40 pt-2">
+          <button
+            type="button"
+            onClick={() => setPage(Math.max(0, current - 1))}
+            disabled={current === 0}
+            aria-label={`Previous ${label} page`}
+            className={PAGER_BUTTON}
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden />
+          </button>
+          <span className="min-w-[6.5rem] text-center text-[11px] font-semibold tabular-nums text-content-secondary">
+            {start + 1}–{end} of {total}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage(Math.min(maxPage, current + 1))}
+            disabled={current === maxPage}
+            aria-label={`Next ${label} page`}
+            className={PAGER_BUTTON}
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

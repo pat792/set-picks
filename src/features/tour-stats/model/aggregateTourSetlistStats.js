@@ -66,6 +66,11 @@ function lifetimePlaysFor(lifetime, key) {
  * }} TourSetlistStats
  */
 
+/**
+ * Page size for the tour-stats list cards (#709) and the "In most played"
+ * self-overlay pin. Lists themselves are unbounded — every song appears,
+ * paginated at this many rows per page.
+ */
 export const TOUR_STATS_TOP_N = 15;
 /** Surface high-gap non-bustout songs in the explorer (≥ this gap, below bustout). */
 export const TOUR_STATS_GAP_HIGHLIGHT_MIN = 10;
@@ -77,7 +82,6 @@ export const TOUR_STATS_GAP_HIGHLIGHT_MIN = 10;
  * }>} docs
  * @param {{
  *   tourShowCount?: number,
- *   topN?: number,
  *   gapHighlightMin?: number,
  *   bustoutMinGap?: number,
  *   lifetimePlaysByKey?: Map<string, number> | Record<string, number> | null,
@@ -85,10 +89,6 @@ export const TOUR_STATS_GAP_HIGHLIGHT_MIN = 10;
  * @returns {TourSetlistStats}
  */
 export function aggregateTourSetlistStats(docs, options = {}) {
-  const topN =
-    typeof options.topN === 'number' && options.topN > 0
-      ? Math.trunc(options.topN)
-      : TOUR_STATS_TOP_N;
   const gapHighlightMin =
     typeof options.gapHighlightMin === 'number' && options.gapHighlightMin >= 0
       ? Math.trunc(options.gapHighlightMin)
@@ -194,6 +194,8 @@ export function aggregateTourSetlistStats(docs, options = {}) {
     }
   }
 
+  // #709: full ranked list — no top-N cap. The UI paginates at
+  // TOUR_STATS_TOP_N rows/page instead of truncating.
   const topSongs = [...bySong.entries()]
     .sort(([keyA, a], [keyB, b]) => {
       if (b.timesPlayed !== a.timesPlayed) return b.timesPlayed - a.timesPlayed;
@@ -202,7 +204,6 @@ export function aggregateTourSetlistStats(docs, options = {}) {
       if (lifetimeB !== lifetimeA) return lifetimeB - lifetimeA;
       return a.title.localeCompare(b.title);
     })
-    .slice(0, topN)
     .map(([, row]) => ({
       title: row.title,
       timesPlayed: row.timesPlayed,
@@ -228,6 +229,6 @@ export function aggregateTourSetlistStats(docs, options = {}) {
     totalSongPlays,
     topSongs,
     bustouts,
-    gapHighlights: gapHighlights.slice(0, topN),
+    gapHighlights,
   };
 }

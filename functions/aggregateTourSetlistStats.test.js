@@ -18,6 +18,30 @@ describe("tourLabelToSlug", () => {
   });
 });
 
+describe("aggregateTourSetlistStats", () => {
+  it("returns ALL songs and gap highlights — no top-N truncation (#709)", () => {
+    const titles = Array.from({ length: 40 }, (_, i) => `Song ${String(i).padStart(2, "0")}`);
+    const songGaps = Object.fromEntries(
+      titles.map((t, i) => [t.toLowerCase(), 10 + (i % 15)])
+    );
+    const stats = aggregateTourSetlistStats(
+      [
+        {
+          showDate: "2026-07-25",
+          setlist: { officialSetlist: titles, bustouts: [], songGaps },
+        },
+      ],
+      { tourShowCount: 1 }
+    );
+    assert.equal(stats.topSongs.length, 40);
+    assert.equal(stats.uniqueSongs, 40);
+    assert.equal(stats.gapHighlights.length, 40);
+    const pub = toPublicTourStatsPayload(stats);
+    assert.equal(pub.topSongs.length, 40);
+    assert.equal(pub.gapHighlights.length, 40);
+  });
+});
+
 describe("toPublicTourStatsPayload", () => {
   it("strips topSongs.showDates and keeps aggregate fields", () => {
     const stats = aggregateTourSetlistStats(

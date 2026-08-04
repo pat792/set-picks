@@ -35,7 +35,7 @@ describe('aggregateTourSetlistStats (#555)', () => {
           },
         },
       ],
-      { tourShowCount: 4, topN: 10, gapHighlightMin: 10 },
+      { tourShowCount: 4, gapHighlightMin: 10 },
     );
 
     expect(stats.showsWithSetlist).toBe(2);
@@ -115,6 +115,26 @@ describe('aggregateTourSetlistStats (#555)', () => {
       { title: 'Peaches en Regalia', showDate: '2026-07-21', gap: 248 },
     ]);
     expect(stats.gapHighlights).toEqual([]);
+  });
+
+  it('returns ALL songs and gap highlights — no top-N truncation (#709)', () => {
+    const titles = Array.from({ length: 40 }, (_, i) => `Song ${String(i).padStart(2, '0')}`);
+    const songGaps = Object.fromEntries(
+      titles.map((t, i) => [t.toLowerCase(), 10 + (i % 15)]),
+    );
+    const stats = aggregateTourSetlistStats(
+      [
+        {
+          showDate: '2026-07-25',
+          setlist: { officialSetlist: titles, bustouts: [], songGaps },
+        },
+      ],
+      { bustoutMinGap: 30, gapHighlightMin: 10 },
+    );
+    expect(stats.topSongs).toHaveLength(40);
+    expect(stats.uniqueSongs).toBe(40);
+    // every gap in the fixture is ≥ 10 and < 30 → all 40 are highlights
+    expect(stats.gapHighlights).toHaveLength(40);
   });
 
   it('breaks Most played ties by lifetime plays from the catalog', () => {
