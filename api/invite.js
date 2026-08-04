@@ -12,10 +12,11 @@
  * Social crawlers don't execute JavaScript, so they can't read OG tags injected
  * by React. This function intercepts invite requests and:
  *
- *   • Prefer the built SPA shell (`dist/index.html`) with static OG injection for
- *     **both** browsers and crawlers (crawlers read meta; browsers boot React).
- *   • If the shell is missing from the function bundle, fetch the live site `/`
- *     HTML as a fallback (same hashed asset URLs on the CDN).
+ *   • Prefer the authenticated SPA shell (`dist/app.html`, #832) with static OG
+ *     injection for **both** browsers and crawlers (crawlers read meta; browsers
+ *     boot React + AuthProvider).
+ *   • If the shell is missing from the function bundle, fetch the live site
+ *     `/app.html` as a fallback (same hashed asset URLs on the CDN).
  *   • Only when the SPA shell is unavailable: crawlers get minimal OG HTML;
  *     browsers get a non-blank 503 (never empty `<body></body>`).
  *
@@ -132,7 +133,11 @@ function looksLikeSpaShell(html) {
 }
 
 function loadSpaTemplateFromDisk() {
+  // Prefer the authenticated SPA document (#832). Marketing `index.html` has no AuthProvider.
   const candidates = [
+    join(process.cwd(), 'dist', 'app.html'),
+    join(__dirname, '..', 'dist', 'app.html'),
+    join(__dirname, 'dist', 'app.html'),
     join(process.cwd(), 'dist', 'index.html'),
     join(__dirname, '..', 'dist', 'index.html'),
     join(__dirname, 'dist', 'index.html'),
@@ -141,7 +146,14 @@ function loadSpaTemplateFromDisk() {
   for (const p of candidates) {
     try {
       const html = readFileSync(p, 'utf8');
-      if (looksLikeSpaShell(html)) return html;
+      if (!looksLikeSpaShell(html)) continue;
+      // Accept authenticated SPA only (#832) — reject marketing cold-open document.
+      if (
+        html.includes('/assets/app-') ||
+        html.includes('/src/main.jsx')
+      ) {
+        return html;
+      }
     } catch {
       // try next candidate
     }
@@ -150,9 +162,9 @@ function loadSpaTemplateFromDisk() {
 }
 
 /**
- * Resolve SPA index HTML. Prefer the Vercel-bundled `dist/index.html`; if the
- * function package omitted it, fetch production `/` (static) so browsers never
- * receive the empty crawler stub.
+ * Resolve authenticated SPA HTML. Prefer bundled `dist/app.html` (#832); if the
+ * function package omitted it, fetch production `/app.html` so browsers never
+ * receive the marketing document (no AuthProvider).
  *
  * @returns {Promise<string | null>}
  */
@@ -166,7 +178,7 @@ async function loadSpaTemplate() {
   }
 
   try {
-    const res = await fetch(`${SITE_URL}/`, {
+    const res = await fetch(`${SITE_URL}/app.html`, {
       headers: {
         Accept: 'text/html',
         'User-Agent': 'set-picks-invite-og/1.0',
@@ -175,7 +187,10 @@ async function loadSpaTemplate() {
     });
     if (res.ok) {
       const html = await res.text();
-      if (looksLikeSpaShell(html)) {
+      if (
+        looksLikeSpaShell(html) &&
+        (html.includes('/assets/app-') || html.includes('/src/main.jsx'))
+      ) {
         _spaTemplate = html;
         return _spaTemplate;
       }

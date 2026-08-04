@@ -375,12 +375,13 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 | Path | Auth | Description |
 |------|------|-------------|
-| `/` | None | Public splash / landing page. **v1.32.0+ (#659):** build-time prerender injects crawler-visible H1/body + JSON-LD into `dist/index.html` (SPA still boots for browsers). Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
-| `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. |
-| `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. |
-| `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. |
+| `/` | None | Public splash / landing page. **v1.32.0+ (#659):** build-time prerender injects crawler-visible H1/body + JSON-LD into `dist/index.html`. **v1.47.0 (#832):** `/` boots the **marketing** Vite entry (real splash UI, no `AuthProvider` / `firebase-core` on cold open). Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
+| `/login` | None | **v1.47.0 (#832):** authenticated-SPA auth entry (`app.html`). Hosts splash sign-in / create-account modals. Marketing CTAs hard-navigate here. Compatibility: `/?login=true` on the app document redirects here. |
+| `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. **v1.47.0:** marketing document. |
+| `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. **v1.47.0:** marketing document. |
+| `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. **v1.47.0:** remains on the **app** document (Firestore) until #827. |
 | `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `2026-sphere`). Default Sphere slug is also prerendered. |
-| `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. |
+| `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. **v1.47.0:** marketing document. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile — **`noindex,follow`** (#661); not a sitemap target |

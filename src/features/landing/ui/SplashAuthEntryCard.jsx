@@ -1,6 +1,10 @@
 import React from 'react';
 import Button from '../../../shared/ui/Button';
 
+/**
+ * Presentational get-started CTA card (marketing-safe — no Firebase).
+ * Owned by landing so the marketing cold-open graph stays AuthProvider-free (#832).
+ */
 export default function SplashAuthEntryCard({ onOpenSignUp, onOpenSignIn, headingRef = null }) {
   return (
     <div className="z-10 w-full max-w-lg">

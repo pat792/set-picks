@@ -221,20 +221,23 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     !homeHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER),
     'home dist/index.html must not gain dashboard boot modulepreloads',
   );
+  // #832: home is the marketing entry — splash UI is static in that graph.
+  // Do not modulepreload lazy HomeRoute / auth (those belong on app.html).
   assert(
-    homeHtml.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`) &&
-      homeHtml.includes('HomeRoute-'),
-    'home dist/index.html must modulepreload the lazy HomeRoute chunk (#731)',
-  );
-  // Leaf-only preload left a waterfall on Landing's auth/shared graph.
-  assert(
-    (homeHtml.match(new RegExp(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`, 'g')) || [])
-      .length >= 2,
-    'home splash modulepreload must cover HomeRoute static closure, not only the leaf',
+    !homeHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
+    'home marketing document must not inject HomeRoute splash modulepreloads',
   );
   assert(
-    /auth-[^"]+\.js/.test(homeHtml) && homeHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
-    'home splash modulepreload closure should include the auth chunk',
+    !homeHtml.includes('HomeRoute-'),
+    'home marketing document must not reference HomeRoute chunk',
+  );
+  assert(
+    /\/assets\/marketing-[^"]+\.js/.test(homeHtml),
+    'home dist/index.html must boot the marketing entry chunk',
+  );
+  assert(
+    !/\/assets\/firebase-core-[^"]+\.js/.test(homeHtml),
+    'home marketing document must not load firebase-core on cold open',
   );
   assert(
     homeHtml.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),
@@ -244,6 +247,27 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     !homeHtml.includes('href="/fonts/inter/InterVariable.woff2"'),
     'home dist/index.html must not preload Inter (~344KB)',
   );
+
+  const distApp = join(root, 'dist', 'app.html');
+  assert(existsSync(distApp), 'dist missing app.html — authenticated SPA entry (#832)');
+  const appHtml = readFileSync(distApp, 'utf8');
+  assert(
+    /\/assets\/app-[^"]+\.js/.test(appHtml),
+    'dist/app.html must boot the authenticated SPA entry chunk',
+  );
+
+  const distTourStats = join(root, 'dist', 'tour-stats', 'index.html');
+  if (existsSync(distTourStats)) {
+    const tourHtml = readFileSync(distTourStats, 'utf8');
+    assert(
+      /\/assets\/app-[^"]+\.js/.test(tourHtml),
+      'prerendered /tour-stats must use the app document (live Firestore UI)',
+    );
+    assert(
+      !/\/assets\/marketing-[^"]+\.js/.test(tourHtml),
+      'prerendered /tour-stats must not boot the marketing entry',
+    );
+  }
   const howItWorksHtml = readFileSync(distHowItWorks, 'utf8');
   assert(
     !howItWorksHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),

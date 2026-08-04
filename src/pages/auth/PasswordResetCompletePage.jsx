@@ -41,13 +41,13 @@ export default function PasswordResetComplete() {
             and sign in with your email and new password.
           </p>
           <Link
-            to="/?login=true"
+            to="/login"
             className="inline-flex w-full items-center justify-center rounded-2xl bg-brand-primary px-8 py-4 font-black text-brand-bg-deep shadow-glow-brand transition-opacity hover:bg-brand-primary-strong hover:opacity-95 sm:w-auto"
           >
             Go to sign in
           </Link>
           <p className="text-xs text-slate-500 font-semibold">
-            Opens the home page — use <span className="text-slate-400">Sign in</span> and your email / password.
+            Opens the sign-in screen — use your email and new password.
           </p>
         </div>
       </div>
