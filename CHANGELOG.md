@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.47.1] — 2026-08-04
+
+### Fixed
+- **Public `/tour-stats` cold open (#827)** — warm App Check on boot (not after page mount); skeleton chrome while stats load instead of a blank spinner; prerendered shells `modulepreload` `PublicTourStatsPage` + its static closure so the lazy route is not a serial waterfall after `app` entry parse.
+
+---
+
 ## [1.47.0] — 2026-08-04
 
 ### Added

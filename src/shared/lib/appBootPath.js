@@ -40,15 +40,31 @@ export function shouldDeferMessagingServiceWorker(pathname) {
 }
 
 /**
+ * Public Firestore-backed tour stats surfaces (#827).
+ * @param {string} [pathname]
+ * @returns {boolean}
+ */
+export function isPublicTourStatsPath(pathname) {
+  if (typeof pathname !== 'string' || !pathname) return false;
+  return pathname === '/tour-stats' || pathname.startsWith('/tour-stats/');
+}
+
+/**
  * Surfaces that need Firestore ASAP on hard open (skip App Check idle deferral).
  * Invite/join anonymous paths are intentionally excluded (#803) — warm on
  * persisted session or auth modal open instead.
+ * Public `/tour-stats*` warms immediately (#827) — every fetch gates on
+ * `whenFirebaseReady()` and page-mount warming is too late for cold opens.
  * @param {string} [pathname]
  * @returns {boolean}
  */
 export function shouldWarmAppCheckOnBoot(pathname) {
   if (typeof pathname !== 'string' || !pathname) return false;
-  return isDashboardEntryPath(pathname) || pathname === '/setup';
+  return (
+    isDashboardEntryPath(pathname) ||
+    pathname === '/setup' ||
+    isPublicTourStatsPath(pathname)
+  );
 }
 
 /**

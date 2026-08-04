@@ -17,6 +17,7 @@ import {
   buildDashboardBootShellHtml,
   injectDashboardBootModulepreloads,
   injectPrerenderHtml,
+  injectTourStatsBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 
@@ -43,9 +44,13 @@ function isAppBackedPrerenderRoute(path) {
 
 for (const route of PRERENDER_ROUTES) {
   const shell = isAppBackedPrerenderRoute(route.path) ? appShell : marketingShell;
-  const html = injectPrerenderHtml(shell, route);
+  let html = injectPrerenderHtml(shell, route);
   // Marketing home statically imports splash UI via marketingMain — no lazy
   // HomeRoute waterfall, so no splash modulepreload injection (#832).
+  // App-backed /tour-stats* preloads PublicTourStatsPage + closure (#827).
+  if (isAppBackedPrerenderRoute(route.path)) {
+    html = injectTourStatsBootModulepreloads(html, distDir);
+  }
   const rel = prerenderOutputRelPath(route.path);
   const outPath = join(distDir, rel);
   mkdirSync(dirname(outPath), { recursive: true });

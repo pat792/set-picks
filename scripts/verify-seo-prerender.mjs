@@ -21,11 +21,13 @@ import {
   MARKETING_BOOT_SHELL_MARKER,
   PRERENDER_ROUTES,
   SPLASH_BOOT_PRELOAD_MARKER,
+  TOUR_STATS_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildFixtureShellHtml,
   injectDashboardBootModulepreloads,
   injectPrerenderHtml,
   injectSplashBootModulepreloads,
+  injectTourStatsBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 
@@ -129,6 +131,16 @@ writeFileSync(
 );
 writeFileSync(join(fakeDist, 'assets', 'auth-deadbeef.js'), 'export const x = 1;\n', 'utf8');
 writeFileSync(join(fakeDist, 'assets', 'DashboardRoute-e5f6a7b8.js'), '', 'utf8');
+writeFileSync(
+  join(fakeDist, 'assets', 'PublicTourStatsPage-c0ffee01.js'),
+  'import { y } from "./tour-stats-deadbeef.js";\nexport default y;\n',
+  'utf8',
+);
+writeFileSync(
+  join(fakeDist, 'assets', 'tour-stats-deadbeef.js'),
+  'export const y = 1;\n',
+  'utf8',
+);
 
 const fixtureSplashPreload = injectSplashBootModulepreloads(
   buildFixtureShellHtml(),
@@ -171,6 +183,30 @@ assert(
 assert(
   !fixtureDashboardPreload.includes('HomeRoute-'),
   'app boot shell must not modulepreload the HomeRoute chunk',
+);
+
+const fixtureTourStatsPreload = injectTourStatsBootModulepreloads(
+  buildFixtureShellHtml(),
+  fakeDist,
+);
+assert(
+  fixtureTourStatsPreload.includes(`${TOUR_STATS_BOOT_PRELOAD_MARKER}="true"`) &&
+    fixtureTourStatsPreload.includes('/assets/PublicTourStatsPage-c0ffee01.js'),
+  'tour-stats shell must modulepreload the PublicTourStatsPage chunk',
+);
+assert(
+  fixtureTourStatsPreload.includes('/assets/tour-stats-deadbeef.js'),
+  'tour-stats shell must modulepreload PublicTourStatsPage static deps',
+);
+assert(
+  !fixtureTourStatsPreload.includes('DashboardRoute-') &&
+    !fixtureTourStatsPreload.includes('HomeRoute-'),
+  'tour-stats shell must not modulepreload dashboard or splash route chunks',
+);
+assert(
+  injectTourStatsBootModulepreloads(fixtureTourStatsPreload, fakeDist) ===
+    fixtureTourStatsPreload,
+  'tour-stats modulepreload injection must be idempotent',
 );
 
 const distIndex = join(root, 'dist', 'index.html');
@@ -266,6 +302,20 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     assert(
       !/\/assets\/marketing-[^"]+\.js/.test(tourHtml),
       'prerendered /tour-stats must not boot the marketing entry',
+    );
+    assert(
+      tourHtml.includes(TOUR_STATS_BOOT_PRELOAD_MARKER) &&
+        tourHtml.includes('PublicTourStatsPage-'),
+      'prerendered /tour-stats must modulepreload PublicTourStatsPage (#827)',
+    );
+    assert(
+      !tourHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER) &&
+        !tourHtml.includes('DashboardRoute-'),
+      'prerendered /tour-stats must not pull DashboardRoute modulepreload',
+    );
+    assert(
+      !tourHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
+      'prerendered /tour-stats must not gain splash modulepreloads',
     );
   }
   const howItWorksHtml = readFileSync(distHowItWorks, 'utf8');

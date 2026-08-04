@@ -159,10 +159,29 @@ export default function TourStatsView({
   overlayLoading,
   onOpenScoringRules,
 }) {
+  // #827: keep interactive chrome structure (tiles / sections) instead of a
+  // blank centered spinner — marketing header already painted above this.
   if (calendarLoading || setlistLoading) {
     return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" aria-label="Loading tour stats" />
+      <div className="space-y-4" aria-busy="true" aria-live="polite">
+        <div className="h-10 animate-pulse rounded-xl border border-border-subtle/40 bg-surface-panel-strong/50" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-[4.5rem] animate-pulse rounded-xl border border-border-subtle/40 bg-surface-panel-strong/50"
+            />
+          ))}
+        </div>
+        <div className="flex items-center justify-center gap-2 py-4 text-sm font-medium text-content-secondary">
+          <Loader2
+            className="h-5 w-5 animate-spin text-brand-primary"
+            aria-hidden
+          />
+          <span>Loading tour stats…</span>
+        </div>
+        <div className="h-36 animate-pulse rounded-xl border border-border-subtle/40 bg-surface-panel-strong/50" />
+        <div className="h-36 animate-pulse rounded-xl border border-border-subtle/40 bg-surface-panel-strong/50" />
       </div>
     );
   }
