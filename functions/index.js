@@ -1761,7 +1761,9 @@ exports.scheduledPublicTourStatsRefresh = onSchedule(
     timeZone: "America/New_York",
     region: PHISHNET_FUNCTIONS_REGION,
     // #666: lifetime enrichment; refresh still succeeds unenriched if the
-    // key is missing or phish.net is down.
+    // key is missing or phish.net is down. #709: per-song lastPlayed history
+    // lookups (≤80 sequential phish.net calls) need more than the 60s default.
+    timeoutSeconds: 300,
     secrets: [phishnetApiKey],
   },
   async () => {
@@ -1782,6 +1784,8 @@ exports.refreshPublicTourStats = onCall(
     invoker: "public",
     enforceAppCheck: false,
     // #666: lifetime enrichment (best-effort inside the refresh).
+    // #709: lastPlayed history lookups need more than the 60s default.
+    timeoutSeconds: 300,
     secrets: [phishnetApiKey],
   },
   async (request) => {

@@ -7,6 +7,7 @@ const {
   aggregateTourSetlistStats,
   toPublicTourStatsPayload,
   buildSongEnrichmentByTitle,
+  lastPlayedBeforeFromHistory,
   tourLabelToSlug,
 } = require("./aggregateTourSetlistStats.cjs");
 
@@ -44,19 +45,50 @@ describe("aggregateTourSetlistStats", () => {
 });
 
 describe("buildSongEnrichmentByTitle (#666)", () => {
-  it("normalizes titles and parses total/debut from catalog rows", () => {
+  it("normalizes titles and parses total/debut/slug from catalog rows", () => {
     const map = buildSongEnrichmentByTitle([
-      { name: "Ghost", total: "623", debut: "1997-06-13" },
+      { name: "Ghost", total: "623", debut: "1997-06-13", slug: "ghost" },
       { name: "Tweezer", total: "512", debut: "1990" },
       { name: "No Data", total: "—", debut: "" },
       { name: "Weird Year", total: "3", debut: "0999-01-01" },
       { name: "  ", total: "5", debut: "2000" },
     ]);
-    assert.deepEqual(map.get("ghost"), { lifetimePlays: 623, debutYear: 1997 });
-    assert.deepEqual(map.get("tweezer"), { lifetimePlays: 512, debutYear: 1990 });
+    assert.deepEqual(map.get("ghost"), {
+      lifetimePlays: 623,
+      debutYear: 1997,
+      slug: "ghost",
+    });
+    assert.deepEqual(map.get("tweezer"), {
+      lifetimePlays: 512,
+      debutYear: 1990,
+      slug: null,
+    });
     assert.equal(map.has("no data"), false);
-    assert.deepEqual(map.get("weird year"), { lifetimePlays: 3, debutYear: null });
+    assert.deepEqual(map.get("weird year"), {
+      lifetimePlays: 3,
+      debutYear: null,
+      slug: null,
+    });
     assert.equal(map.has(""), false);
+  });
+});
+
+describe("lastPlayedBeforeFromHistory (#709 follow-up)", () => {
+  it("returns the latest date strictly before the show date", () => {
+    assert.equal(
+      lastPlayedBeforeFromHistory(
+        ["2019-06-16", "2021-08-01", "2024-12-31", "2026-07-22"],
+        "2026-07-22"
+      ),
+      "2024-12-31"
+    );
+  });
+
+  it("returns null when no prior date or inputs are invalid", () => {
+    assert.equal(lastPlayedBeforeFromHistory(["2026-07-22"], "2026-07-22"), null);
+    assert.equal(lastPlayedBeforeFromHistory([], "2026-07-22"), null);
+    assert.equal(lastPlayedBeforeFromHistory(["2020-01-01"], "not-a-date"), null);
+    assert.equal(lastPlayedBeforeFromHistory(null, "2026-07-22"), null);
   });
 });
 

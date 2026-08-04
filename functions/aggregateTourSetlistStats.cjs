@@ -145,15 +145,17 @@ function aggregateTourSetlistStats(docs, options = {}) {
 /**
  * Phish.net songs list → per-title enrichment map (#666 Phase 1).
  * Input rows come from `fetchPhishnetSongsNormalized` (`phishnetSongCatalog.js`):
- * `{ name, total, gap, last, debut }` with string fields ("—" when unknown).
+ * `{ name, total, gap, last, debut, slug }` with string fields ("—" when unknown).
  *
- * Output: normalized title → `{ lifetimePlays: number|null, debutYear: number|null }`.
- * Lifetime data lives only on phish.net (game-local `official_setlists` cover
- * scored tour dates), so this is the unique crawlable content layer for the
- * public `/tour-stats` pages.
+ * Output: normalized title → `{ lifetimePlays, debutYear, slug }`. Lifetime
+ * data lives only on phish.net (game-local `official_setlists` cover scored
+ * tour dates), so this is the unique crawlable content layer for the public
+ * `/tour-stats` pages. `slug` keys the per-song play-history lookup used to
+ * stamp `lastPlayed` on bustout/high-gap rows (#709 follow-up) and is never
+ * written into payload rows itself.
  *
- * @param {Array<{ name: string, total?: string, debut?: string }>} songs
- * @returns {Map<string, { lifetimePlays: number | null, debutYear: number | null }>}
+ * @param {Array<{ name: string, total?: string, debut?: string, slug?: string }>} songs
+ * @returns {Map<string, { lifetimePlays: number | null, debutYear: number | null, slug: string | null }>}
  */
 function buildSongEnrichmentByTitle(songs) {
   const map = new Map();
@@ -172,10 +174,35 @@ function buildSongEnrichmentByTitle(songs) {
     const year = yearMatch ? Number(yearMatch[1]) : NaN;
     const debutYear = year >= 1900 && year <= 2100 ? year : null;
 
-    if (lifetimePlays === null && debutYear === null) continue;
-    map.set(key, { lifetimePlays, debutYear });
+    const slugRaw = String(song?.slug ?? "").trim();
+    const slug = slugRaw || null;
+
+    if (lifetimePlays === null && debutYear === null && slug === null) continue;
+    map.set(key, { lifetimePlays, debutYear, slug });
   }
   return map;
+}
+
+/**
+ * Latest play date strictly before `beforeDate`, from a song's full play
+ * history (#709 follow-up: the "Last" column on Bustouts / High gaps).
+ * Dates are `YYYY-MM-DD` strings, so lexicographic compare is chronological.
+ *
+ * @param {unknown} dates
+ * @param {unknown} beforeDate
+ * @returns {string | null}
+ */
+function lastPlayedBeforeFromHistory(dates, beforeDate) {
+  const before = String(beforeDate ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(before)) return null;
+  let best = null;
+  for (const raw of Array.isArray(dates) ? dates : []) {
+    const d = String(raw ?? "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+    if (d >= before) continue;
+    if (!best || d > best) best = d;
+  }
+  return best;
 }
 
 /**
@@ -255,6 +282,7 @@ module.exports = {
   aggregateTourSetlistStats,
   toPublicTourStatsPayload,
   buildSongEnrichmentByTitle,
+  lastPlayedBeforeFromHistory,
   tourLabelToSlug,
   TOUR_STATS_TOP_N,
   TOUR_STATS_GAP_HIGHLIGHT_MIN,
