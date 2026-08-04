@@ -8,7 +8,7 @@ import InfoTooltip, {
 import {
   formatAvgCorrectPicksPerShow,
   PROFILE_SLOTS_PER_SHOW,
-} from '../../profile';
+} from '../../../shared/lib/pickAverages';
 import { SCORING_RULES } from '../../../shared/utils/scoring';
 import {
   DASHBOARD_CARD_EYEBROW as STANDINGS_BOX_EYEBROW,

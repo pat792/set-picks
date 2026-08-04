@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import {
   MarketingPageShell,
   PhishSetlistPredictionGamePageContent,
-} from '../../features/landing';
+} from '../../features/landing/marketing';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
 

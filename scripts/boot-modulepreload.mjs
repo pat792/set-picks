@@ -19,8 +19,12 @@ import { join } from 'node:path';
 /** Chunk filename prefixes to modulepreload on the dashboard boot shell (#773). */
 export const DASHBOARD_BOOT_MODULEPRELOAD_PREFIXES = ['DashboardRoute-'];
 
-/** Chunk filename prefixes to modulepreload on prerendered `dist/index.html` (#731). */
-export const SPLASH_BOOT_MODULEPRELOAD_PREFIXES = ['HomeRoute-'];
+/** Chunk filename prefixes to modulepreload on prerendered `dist/index.html` (#832). */
+export const SPLASH_BOOT_MODULEPRELOAD_PREFIXES = ['MarketingLandingPage-'];
+
+/** Public tour-stats route chunk for prerendered `/tour-stats*` shells (#827 / #832). */
+export const TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES = ['PublicTourStatsPage-'];
+export const TOUR_STATS_BOOT_PRELOAD_MARKER = 'data-tour-stats-boot-preload';
 
 /** Attribute markers asserted by `verify:seo-prerender`. */
 export const DASHBOARD_BOOT_PRELOAD_MARKER = 'data-dashboard-boot-preload';
@@ -151,5 +155,19 @@ export function injectSplashBootModulepreloads(html, distDir) {
   return injectBootModulepreloads(html, distDir, {
     prefixes: SPLASH_BOOT_MODULEPRELOAD_PREFIXES,
     marker: SPLASH_BOOT_PRELOAD_MARKER,
+  });
+}
+
+/**
+ * Tour-stats route chunk for prerendered `/tour-stats*` marketing shells.
+ *
+ * @param {string} html
+ * @param {string} distDir
+ * @returns {string}
+ */
+export function injectTourStatsBootModulepreloads(html, distDir) {
+  return injectBootModulepreloads(html, distDir, {
+    prefixes: TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES,
+    marker: TOUR_STATS_BOOT_PRELOAD_MARKER,
   });
 }

@@ -1,22 +1,16 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 
-import { MarketingPageShell } from '../../features/landing';
+import { MarketingPageShell } from '../../features/landing/marketing';
 import {
   PublicTourStatsPanel,
   trackPublicTourStatsView,
   usePublicTourStatsScreen,
-} from '../../features/tour-stats';
+} from '../../features/tour-stats/public';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
-import { ensureAppCheckNow } from '../../shared/lib/firebaseAppCheck';
 
 export default function PublicTourStatsPage() {
-  // Public Firestore reads need App Check before first getDoc (#665 localhost race).
-  useEffect(() => {
-    ensureAppCheckNow();
-  }, []);
-
   const screen = usePublicTourStatsScreen();
   const route = screen.routeHasSlug
     ? getPrerenderRoute(`/tour-stats/${screen.activeSlug}`) ||

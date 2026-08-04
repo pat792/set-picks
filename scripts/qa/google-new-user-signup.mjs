@@ -73,7 +73,7 @@ async function openCreateAccountModal(page, origin) {
  */
 async function openSignInModal(page, origin) {
   const base = origin.replace(/\/$/, '');
-  await page.goto(`${base}/?login=true`, { waitUntil: 'domcontentloaded', timeout: 90_000 });
+  await page.goto(`${base}/login?mode=signin`, { waitUntil: 'domcontentloaded', timeout: 90_000 });
   const dialog = page.getByRole('dialog', { name: /^sign in$/i });
   await dialog.waitFor({ state: 'visible', timeout: 30_000 });
   return dialog;

@@ -10,7 +10,7 @@
  *
  * **Auth:** `firestore.rules` require `signedIn()` for `users/{uid}`,
  * `pools`, `show_calendar`, etc. The runner signs in with
- * **`QA_TEST_EMAIL` / `QA_TEST_PASSWORD`** via the splash `/?login=true`
+ * **`QA_TEST_EMAIL` / `QA_TEST_PASSWORD`** via `/login?mode=signin`
  * modal before SPA-navigating to `/user/:uid`.
  *
  * **Pass criterion (#748):** the old assertion compared CDP

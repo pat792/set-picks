@@ -134,7 +134,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 
 - Last screen was **Profile** (typical sign-out path): Profile is **not** persisted, so restore uses the **previous** eligible tab or **`/dashboard`**.
 - Cleared site data / new browser: no storage → **`/dashboard`**.
-- Deep link **`/?login=true`**: splash opens **Sign in** (password reset, QA, returning users) — not Create account.
+- Deep link **`/login?mode=signin`** (or legacy **`/?login=true`**, which redirects): app-entry Sign in (#832). Marketing splash CTAs hard-navigate here so public pages stay Firebase-free.
 
 ### F. Other entry points
 

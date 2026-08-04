@@ -1,14 +1,23 @@
-export { default as HowItWorksPageContent } from './ui/HowItWorksPageContent';
-export { default as LandingSeo } from './ui/LandingSeo';
-export { default as MarketingPageShell } from './ui/MarketingPageShell';
-export { MarketingFooterNav, MarketingHeaderNav } from './ui/MarketingSiteNav';
-export { MARKETING_LEGAL_NAV, MARKETING_PRIMARY_NAV } from './model/marketingNav';
-export { default as PhishSetlistPredictionGamePageContent } from './ui/PhishSetlistPredictionGamePageContent';
-export { default as SplashAboutSection } from './ui/SplashAboutSection';
-export { default as SplashAuthModals } from './ui/SplashAuthModals';
-export { default as SplashGetStartedSection } from './ui/SplashGetStartedSection';
-export { default as SplashHeader } from './ui/SplashHeader';
-export { default as SplashHeroSection } from './ui/SplashHeroSection';
-export { default as SplashHowItWorksSection } from './ui/SplashHowItWorksSection';
-export { default as SplashPageShell } from './ui/SplashPageShell';
-export { default as useScrollToSectionFocus } from './model/useScrollToSectionFocus';
+/**
+ * Landing feature public API.
+ * Prefer `./marketing` for Firebase-free surfaces (#832) and `./authModals`
+ * for splash/invite auth modals on the app entry.
+ */
+export {
+  HowItWorksPageContent,
+  LandingSeo,
+  MarketingPageShell,
+  MarketingFooterNav,
+  MarketingHeaderNav,
+  MARKETING_LEGAL_NAV,
+  MARKETING_PRIMARY_NAV,
+  PhishSetlistPredictionGamePageContent,
+  SplashAboutSection,
+  SplashGetStartedSection,
+  SplashHeader,
+  SplashHeroSection,
+  SplashHowItWorksSection,
+  SplashPageShell,
+  useScrollToSectionFocus,
+} from './marketing.js';
+export { SplashAuthModals } from './authModals.js';

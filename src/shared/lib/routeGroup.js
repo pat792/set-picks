@@ -3,11 +3,12 @@
  * Keep values stable — they are Exploration dimensions.
  *
  * @param {string} [pathname]
- * @returns {'splash' | 'invite_join' | 'invite_site' | 'dashboard' | 'setup' | 'other'}
+ * @returns {'splash' | 'login' | 'invite_join' | 'invite_site' | 'dashboard' | 'setup' | 'other'}
  */
 export function resolveRouteGroup(pathname) {
   if (typeof pathname !== 'string' || !pathname) return 'other';
   if (pathname === '/') return 'splash';
+  if (pathname === '/login' || pathname.startsWith('/login/')) return 'login';
   if (pathname === '/setup' || pathname.startsWith('/setup/')) return 'setup';
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
     return 'dashboard';

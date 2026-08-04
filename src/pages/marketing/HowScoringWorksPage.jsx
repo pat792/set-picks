@@ -2,8 +2,8 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 
-import { ScoringRulesContent } from '../../features/scoring';
-import { MarketingPageShell } from '../../features/landing';
+import { MarketingPageShell } from '../../features/landing/marketing';
+import { ScoringRulesContent } from '../../features/scoring/rules';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
 import { LINK_ON_LIGHT } from '../../shared/ui/surfaceLinkStyles';

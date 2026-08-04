@@ -98,9 +98,12 @@ export default [
         {
           patterns: [
             {
-              group: ["**/features/*/*"],
+              // Allow feature root + secondary barrels (provider, modals,
+              // marketing, public, …). Block ui/model/api/components leaves.
+              regex:
+                ".*/features/[^/]+/(ui|model|api|components)(?:/|$)",
               message:
-                "Import features via their public API only (features/<domain>/index.js).",
+                "Import features via their public API only (features/<domain>/index.js or a secondary barrel).",
             },
           ],
         },
@@ -121,10 +124,12 @@ export default [
                 "Do not import another feature's internals; use a feature public entry point.",
             },
             {
+              // Allow secondary barrels (modals, provider, marketing, public,
+              // splashEntry, authModals, rules) — block ui/model/api leaves.
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|tour-stats)/(ui|model|api|components)(?:/|$)",
               message:
-                "Cross-feature imports must target feature root only (e.g. ../otherFeature), not deep internals.",
+                "Cross-feature imports must target a feature public entry (index or secondary barrel), not ui/model/api.",
             },
           ],
         },
@@ -176,10 +181,12 @@ export default [
                 "Do not import another feature's internals; use a feature public entry point.",
             },
             {
+              // Allow secondary barrels (modals, provider, marketing, public,
+              // splashEntry, authModals, rules) — block ui/model/api leaves.
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|tour-stats)/(ui|model|api|components)(?:/|$)",
               message:
-                "Cross-feature imports must target feature root only (e.g. ../otherFeature), not deep internals.",
+                "Cross-feature imports must target a feature public entry (index or secondary barrel), not ui/model/api.",
             },
           ],
         },

@@ -1,5 +1,5 @@
 /**
- * Email/password sign-in via the splash `/?login=true` modal (#349).
+ * Email/password sign-in via the `/login` app-entry modal (#349 / #832).
  * Firestore rules require `signedIn()` for profile reads; headless `qa:cache`
  * must establish a session before visiting `/user/:uid`.
  *
@@ -12,7 +12,7 @@ export async function signInViaSplashEmailPassword(page, origin, email, password
   const base = origin.replace(/\/$/, '');
   // Avoid `networkidle` — after Auth, Firestore keeps a long-lived WebChannel
   // open so idle never settles (AGENTS.md / pr-qa traps).
-  await page.goto(`${base}/?login=true`, {
+  await page.goto(`${base}/login?mode=signin`, {
     waitUntil: 'domcontentloaded',
     timeout: 90_000,
   });

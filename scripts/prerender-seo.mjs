@@ -1,6 +1,7 @@
 /**
  * Post-build: write crawler-visible HTML for public marketing routes (#659).
  * Also writes a branded SPA boot shell for dashboard / app hard loads (#743 / #773).
+ * Dual entry (#832): marketing shells from `dist/index.html`; app shells from `dist/app.html`.
  * Run after `vite build`. Safe to re-run.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -15,26 +16,35 @@ import {
   injectDashboardBootModulepreloads,
   injectPrerenderHtml,
   injectSplashBootModulepreloads,
+  injectTourStatsBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const distDir = join(root, 'dist');
 const distIndex = join(distDir, 'index.html');
+const distApp = join(distDir, 'app.html');
 
 if (!existsSync(distIndex)) {
   console.error('prerender-seo: missing dist/index.html — run vite build first');
   process.exit(1);
 }
+if (!existsSync(distApp)) {
+  console.error('prerender-seo: missing dist/app.html — dual-entry vite build required (#832)');
+  process.exit(1);
+}
 
-const shell = readFileSync(distIndex, 'utf8');
+const marketingShell = readFileSync(distIndex, 'utf8');
+const appShell = readFileSync(distApp, 'utf8');
 
 for (const route of PRERENDER_ROUTES) {
-  let html = injectPrerenderHtml(shell, route);
-  // Splash only: `HomeRoute` is lazy since #731, so preload its chunk here or
-  // the landing paint waits a round trip on the entry bundle.
+  let html = injectPrerenderHtml(marketingShell, route);
+  // Splash only: preload MarketingLandingPage + its (Firebase-free) closure.
   if (route.path === '/') {
     html = injectSplashBootModulepreloads(html, distDir);
+  }
+  if (route.path === '/tour-stats' || route.path.startsWith('/tour-stats/')) {
+    html = injectTourStatsBootModulepreloads(html, distDir);
   }
   const rel = prerenderOutputRelPath(route.path);
   const outPath = join(distDir, rel);
@@ -43,10 +53,8 @@ for (const route of PRERENDER_ROUTES) {
   console.log(`prerender-seo: wrote dist/${rel} (${Buffer.byteLength(html, 'utf8')} bytes)`);
 }
 
-// Branded boot shell for /dashboard/* + /setup (via vercel.json).
-// Use the pre-prerender Vite shell so we never copy home SEO body into it.
-// Phase 2: modulepreload DashboardRoute on this shell only (not splash / light spa).
-const brandedShell = buildDashboardBootShellHtml(shell);
+// Branded boot shell for /dashboard/* + /setup (via vercel.json) — app entry.
+const brandedShell = buildDashboardBootShellHtml(appShell);
 const appBootHtml = injectDashboardBootModulepreloads(brandedShell, distDir);
 const appBootPath = join(distDir, APP_BOOT_SHELL_REL_PATH);
 mkdirSync(dirname(appBootPath), { recursive: true });
@@ -55,8 +63,7 @@ console.log(
   `prerender-seo: wrote dist/${APP_BOOT_SHELL_REL_PATH} (branded #root boot shell + modulepreload)`,
 );
 
-// Light spa boot: same branded skeleton, no DashboardRoute preload — legal,
-// public profile, bare /join, etc. must not contend for the dashboard graph.
+// Light spa boot: app entry, no DashboardRoute preload — /login, invite shells, etc.
 const lightBootPath = join(distDir, LIGHT_SPA_BOOT_SHELL_REL_PATH);
 mkdirSync(dirname(lightBootPath), { recursive: true });
 writeFileSync(lightBootPath, brandedShell, 'utf8');

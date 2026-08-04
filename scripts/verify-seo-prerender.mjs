@@ -118,17 +118,18 @@ assert(
 );
 assert(!fixtureBoot.includes('<h1>leak</h1>'), 'boot shell must strip prior #root body');
 
-// Fixture: each shell modulepreloads its own route chunk + static closure (#731).
-// Both route leaves exist; HomeRoute pulls a fake auth dep so closure is covered.
+// Fixture: each shell modulepreloads its own route chunk + static closure (#832).
+// MarketingLandingPage pulls a fake shared dep (must NOT be firebase/auth).
 const fakeDist = mkdtempSync(join(tmpdir(), 'seo-prerender-'));
 mkdirSync(join(fakeDist, 'assets'), { recursive: true });
 writeFileSync(
-  join(fakeDist, 'assets', 'HomeRoute-a1b2c3d4.js'),
-  'import { x } from "./auth-deadbeef.js";\nexport default x;\n',
+  join(fakeDist, 'assets', 'MarketingLandingPage-a1b2c3d4.js'),
+  'import { x } from "./shared-deadbeef.js";\nexport default x;\n',
   'utf8',
 );
-writeFileSync(join(fakeDist, 'assets', 'auth-deadbeef.js'), 'export const x = 1;\n', 'utf8');
+writeFileSync(join(fakeDist, 'assets', 'shared-deadbeef.js'), 'export const x = 1;\n', 'utf8');
 writeFileSync(join(fakeDist, 'assets', 'DashboardRoute-e5f6a7b8.js'), '', 'utf8');
+writeFileSync(join(fakeDist, 'assets', 'firebase-core-deadbeef.js'), '', 'utf8');
 
 const fixtureSplashPreload = injectSplashBootModulepreloads(
   buildFixtureShellHtml(),
@@ -136,16 +137,20 @@ const fixtureSplashPreload = injectSplashBootModulepreloads(
 );
 assert(
   fixtureSplashPreload.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`) &&
-    fixtureSplashPreload.includes('/assets/HomeRoute-a1b2c3d4.js'),
-  'splash must modulepreload the HomeRoute chunk',
+    fixtureSplashPreload.includes('/assets/MarketingLandingPage-a1b2c3d4.js'),
+  'splash must modulepreload the MarketingLandingPage chunk',
 );
 assert(
-  fixtureSplashPreload.includes('/assets/auth-deadbeef.js'),
-  'splash must modulepreload HomeRoute static deps (auth closure)',
+  fixtureSplashPreload.includes('/assets/shared-deadbeef.js'),
+  'splash must modulepreload MarketingLandingPage static deps (closure)',
 );
 assert(
   !fixtureSplashPreload.includes('DashboardRoute-'),
   'splash must not modulepreload the DashboardRoute chunk',
+);
+assert(
+  !fixtureSplashPreload.includes('firebase-core-'),
+  'splash must not modulepreload firebase-core',
 );
 assert(
   injectSplashBootModulepreloads(fixtureSplashPreload, fakeDist) ===
@@ -154,8 +159,8 @@ assert(
 );
 assert(
   resolveModulepreloadClosure(join(fakeDist, 'assets'), [
-    '/assets/HomeRoute-a1b2c3d4.js',
-  ]).includes('/assets/auth-deadbeef.js'),
+    '/assets/MarketingLandingPage-a1b2c3d4.js',
+  ]).includes('/assets/shared-deadbeef.js'),
   'closure walker must follow static from "./chunk.js" edges',
 );
 
@@ -169,8 +174,8 @@ assert(
   'app boot shell must modulepreload the DashboardRoute chunk',
 );
 assert(
-  !fixtureDashboardPreload.includes('HomeRoute-'),
-  'app boot shell must not modulepreload the HomeRoute chunk',
+  !fixtureDashboardPreload.includes('MarketingLandingPage-'),
+  'app boot shell must not modulepreload the MarketingLandingPage chunk',
 );
 
 const distIndex = join(root, 'dist', 'index.html');
@@ -222,19 +227,21 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'home dist/index.html must not gain dashboard boot modulepreloads',
   );
   assert(
+    /\/assets\/main-[^"]+\.js/.test(homeHtml) || homeHtml.includes('marketing-main'),
+    'home dist/index.html must boot the marketing entry (#832)',
+  );
+  assert(
+    !/\/assets\/app-[^"]+\.js/.test(homeHtml),
+    'home dist/index.html must not boot the Firebase app entry',
+  );
+  assert(
+    !homeHtml.includes('firebase-core-'),
+    'home dist/index.html must not reference firebase-core on cold open (#832)',
+  );
+  assert(
     homeHtml.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`) &&
-      homeHtml.includes('HomeRoute-'),
-    'home dist/index.html must modulepreload the lazy HomeRoute chunk (#731)',
-  );
-  // Leaf-only preload left a waterfall on Landing's auth/shared graph.
-  assert(
-    (homeHtml.match(new RegExp(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`, 'g')) || [])
-      .length >= 2,
-    'home splash modulepreload must cover HomeRoute static closure, not only the leaf',
-  );
-  assert(
-    /auth-[^"]+\.js/.test(homeHtml) && homeHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
-    'home splash modulepreload closure should include the auth chunk',
+      homeHtml.includes('MarketingLandingPage-'),
+    'home dist/index.html must modulepreload MarketingLandingPage (#832)',
   );
   assert(
     homeHtml.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),
@@ -243,6 +250,18 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   assert(
     !homeHtml.includes('href="/fonts/inter/InterVariable.woff2"'),
     'home dist/index.html must not preload Inter (~344KB)',
+  );
+
+  const distAppHtmlPath = join(root, 'dist', 'app.html');
+  assert(existsSync(distAppHtmlPath), 'dist missing app.html — dual-entry build (#832)');
+  const appEntryHtml = readFileSync(distAppHtmlPath, 'utf8');
+  assert(
+    /\/assets\/app-[^"]+\.js/.test(appEntryHtml) || appEntryHtml.includes('/src/main.jsx'),
+    'dist/app.html must boot the Firebase app entry',
+  );
+  assert(
+    appBootHtml.includes('/assets/app-') || /type="module"/.test(appBootHtml),
+    'dashboard boot shell must keep the app entry module script',
   );
   const howItWorksHtml = readFileSync(distHowItWorks, 'utf8');
   assert(

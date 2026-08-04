@@ -1,5 +1,5 @@
 import React from 'react';
-import { SplashAuthEntryCard } from '../../auth';
+import { SplashAuthEntryCard } from '../../auth/splashEntry';
 
 export default function SplashGetStartedSection({
   sectionRef,

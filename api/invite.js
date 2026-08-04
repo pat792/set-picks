@@ -12,8 +12,9 @@
  * Social crawlers don't execute JavaScript, so they can't read OG tags injected
  * by React. This function intercepts invite requests and:
  *
- *   • Prefer the built SPA shell (`dist/index.html`) with static OG injection for
- *     **both** browsers and crawlers (crawlers read meta; browsers boot React).
+ *   • Prefer the Firebase **app** shell (`dist/spa-boot/index.html` or
+ *     `dist/app.html`) with static OG injection — never the marketing entry
+ *     (`dist/index.html`, #832) which has no AuthProvider.
  *   • If the shell is missing from the function bundle, fetch the live site `/`
  *     HTML as a fallback (same hashed asset URLs on the CDN).
  *   • Only when the SPA shell is unavailable: crawlers get minimal OG HTML;
@@ -132,16 +133,20 @@ function looksLikeSpaShell(html) {
 }
 
 function loadSpaTemplateFromDisk() {
+  // #832: invite landings need the Firebase app entry, not marketing index.html.
   const candidates = [
-    join(process.cwd(), 'dist', 'index.html'),
-    join(__dirname, '..', 'dist', 'index.html'),
-    join(__dirname, 'dist', 'index.html'),
+    join(process.cwd(), 'dist', 'spa-boot', 'index.html'),
+    join(process.cwd(), 'dist', 'app.html'),
+    join(__dirname, '..', 'dist', 'spa-boot', 'index.html'),
+    join(__dirname, '..', 'dist', 'app.html'),
+    join(__dirname, 'dist', 'spa-boot', 'index.html'),
+    join(__dirname, 'dist', 'app.html'),
   ];
 
   for (const p of candidates) {
     try {
       const html = readFileSync(p, 'utf8');
-      if (looksLikeSpaShell(html)) return html;
+      if (looksLikeSpaShell(html) && !html.includes('marketing-main')) return html;
     } catch {
       // try next candidate
     }
@@ -150,9 +155,9 @@ function loadSpaTemplateFromDisk() {
 }
 
 /**
- * Resolve SPA index HTML. Prefer the Vercel-bundled `dist/index.html`; if the
- * function package omitted it, fetch production `/` (static) so browsers never
- * receive the empty crawler stub.
+ * Resolve SPA index HTML. Prefer the Vercel-bundled app boot shell; if the
+ * function package omitted it, fetch production `/app.html` so browsers never
+ * receive the marketing entry (no Firebase) or an empty crawler stub.
  *
  * @returns {Promise<string | null>}
  */
@@ -166,7 +171,7 @@ async function loadSpaTemplate() {
   }
 
   try {
-    const res = await fetch(`${SITE_URL}/`, {
+    const res = await fetch(`${SITE_URL}/app.html`, {
       headers: {
         Accept: 'text/html',
         'User-Agent': 'set-picks-invite-og/1.0',

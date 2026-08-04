@@ -37,7 +37,7 @@ Set `QA_DEV_ORIGIN=http://localhost:5173` to reuse a running `npm run dev` sessi
 |----------|-------------|---------|
 | `QA_PUBLIC_PROFILE_UID` | `qa:chunks`, `qa:cache` | Firebase uid for `/user/<uid>` navigation. |
 | `QA_APPCHECK_DEBUG_TOKEN` | `qa:cache` (strongly recommended `qa:chunks`) | Registered App Check **debug UUID** (Firebase Console → App Check → Manage debug tokens). |
-| `QA_TEST_EMAIL` / `QA_TEST_PASSWORD` | `qa:cache` only | Dedicated test account; **`qa:cache` signs in** via splash `/?login=true` because Firestore rules require `signedIn()` for profile reads ([#349](https://github.com/pat792/set-picks/issues/349)). |
+| `QA_TEST_EMAIL` / `QA_TEST_PASSWORD` | `qa:cache` only | Dedicated test account; **`qa:cache` signs in** via `/login?mode=signin` because Firestore rules require `signedIn()` for profile reads ([#349](https://github.com/pat792/set-picks/issues/349) / #832). |
 | `QA_PREVIEW_BASE_URL` | `qa:preview-headers` | Deployed origin, e.g. `https://….vercel.app` (no trailing slash). If unset, that runner **exits 0 SKIP**. |
 | `QA_VERCEL_PROTECTION_BYPASS` | `qa:preview-headers` (when previews are protected) | Vercel automation bypass; sent as `x-vercel-protection-bypass`. |
 | `QA_GOOGLE_TEST_EMAIL` / `QA_GOOGLE_TEST_PASSWORD` | `qa:google-signup` OAuth phase only | Dedicated Google account **not** registered in Firebase. Gating phase runs without these. |
@@ -89,7 +89,7 @@ Two phases:
 **Not covered:** new users who tap Google on the **Sign in** modal — that path is
 intentionally blocked (PR #406) with copy directing them to Create account. Pool
 invite (`/join/:code`) opens **Create account** so new Google joiners see the
-legal checkbox (#577). `/?login=true` still opens **Sign in** (password reset /
+legal checkbox (#577). `/login?mode=signin` (and legacy `/?login=true` redirect) opens **Sign in** (password reset /
 QA / returning deep links).
 
 GA4 funnel readout: `npm run ga4:auth-funnel` (needs `GA4_ACCESS_TOKEN` or

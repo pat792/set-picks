@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
-  fetchPublicTourStatsDoc,
-  fetchPublicTourStatsIndex,
-} from '../api/fetchPublicTourStats';
+  fetchPublicTourStatsDocHttp,
+  fetchPublicTourStatsIndexHttp,
+} from '../api/fetchPublicTourStatsHttp';
 
 /**
- * Public tour-stats screen (#665) — aggregate docs only; no self overlay.
- * Default tour = `_index.defaultTourSlug` (current / most recent), not a
- * hardcoded Sphere or Summer preference.
+ * Public tour-stats screen (#665 / #832) — aggregate docs via CDN JSON API
+ * (no browser App Check / Firestore client).
+ * Default tour = `_index.defaultTourSlug` (current / most recent).
  */
 export function usePublicTourStatsScreen() {
   const { tourSlug: routeSlug } = useParams();
@@ -31,7 +31,7 @@ export function usePublicTourStatsScreen() {
     (async () => {
       setIndexLoading(true);
       try {
-        const idx = await fetchPublicTourStatsIndex();
+        const idx = await fetchPublicTourStatsIndexHttp();
         if (cancelled) return;
         const list = Array.isArray(idx.tours) ? idx.tours : [];
         setTours(list);
@@ -62,7 +62,7 @@ export function usePublicTourStatsScreen() {
       setStatsLoading(true);
       setError(null);
       try {
-        const data = await fetchPublicTourStatsDoc(activeSlug);
+        const data = await fetchPublicTourStatsDocHttp(activeSlug);
         if (cancelled) return;
         setDoc(data);
       } catch (err) {

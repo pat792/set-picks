@@ -23,7 +23,7 @@ Metrics: **LCP**, **INP**, **CLS**, **TTFB**, **FCP**.
 | `value` | LCP/INP/TTFB/FCP: ms rounded; CLS: 3 decimals |
 | `metric_id` | web-vitals id (keeps CLS updates distinct from GA dedupe) |
 | `metric_rating` | `good` \| `needs-improvement` \| `poor` |
-| `route_group` | `splash` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` |
+| `route_group` | `splash` \| `login` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` |
 | `navigation_type` | `navigate` \| `reload` \| `back_forward` \| `prerender` |
 
 Declared in [`docs/API.md`](API.md) §3.

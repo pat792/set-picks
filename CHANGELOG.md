@@ -12,6 +12,22 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.47.0] — 2026-08-04
+
+Cold-open / acquisition load train — epic [#835](https://github.com/pat792/set-picks/issues/835); train doc `docs/RELEASE_TRAIN_COLD_OPEN.md`.
+
+### Added
+- **Marketing Vite entry without Firebase (#832)** — public hard opens (`/`, `/how-it-works`, `/how-scoring-works`, `/tour-stats*`, keyword page, `/privacy`, `/terms`) boot `marketing-main.jsx` (no `AuthProvider`, no `firebase-core` on the critical path). Firebase app entry lives in `app.html` / `spa-boot` for `/login`, `/dashboard/*`, `/setup`, invites.
+- **`/login` auth handoff** — Sign in / Create account from marketing CTAs hard-navigate to `/login` (app shell). Legacy `/?login=true` redirects there.
+- **Public tour-stats JSON API (#827)** — `GET /api/public-tour-stats?slug=` serves CDN-cached aggregate docs via Admin SDK so `/tour-stats` no longer waits on App Check + client Firestore.
+- **Outbound auth handoff inventory (#830)** — `docs/OUTBOUND_AUTH_HANDOFF.md` classifies email/push/invite/marketing CTAs after dual entry.
+
+### Changed
+- Invite OG/browser shell prefers `dist/spa-boot` / `dist/app.html` (not marketing `index.html`).
+- Field RUM `route_group` adds `login`.
+
+---
+
 ## [1.46.5] — 2026-08-04
 
 ### Fixed

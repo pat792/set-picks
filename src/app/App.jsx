@@ -27,6 +27,7 @@ registerRouteChunkLoaders({
 });
 
 const HomeRoute = lazy(loadHomeRoute);
+const LoginRoute = lazy(() => import('./routes/LoginRoute'));
 const PasswordResetCompletePage = lazy(() =>
   import('../pages/auth/PasswordResetCompletePage')
 );
@@ -73,8 +74,11 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsOfServicePage />} />
 
-        {/* Public splash — no auth loading gate (WRS / SEO friendly) */}
+        {/* Public splash — app-entry soft-nav fallback; hard opens use marketing entry (#832) */}
         <Route path="/" element={<HomeRoute />} />
+
+        {/* Auth handoff from marketing CTAs (#832) — Firebase allowed */}
+        <Route path="/login" element={<LoginRoute />} />
 
         {/* Pool invite: no code — drop stale breadcrumb */}
         <Route path="/join" element={<PoolInviteMissingCodePage />} />

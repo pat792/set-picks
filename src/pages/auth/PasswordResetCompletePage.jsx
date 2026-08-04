@@ -41,7 +41,7 @@ export default function PasswordResetComplete() {
             and sign in with your email and new password.
           </p>
           <Link
-            to="/?login=true"
+            to="/login?mode=signin"
             className="inline-flex w-full items-center justify-center rounded-2xl bg-brand-primary px-8 py-4 font-black text-brand-bg-deep shadow-glow-brand transition-opacity hover:bg-brand-primary-strong hover:opacity-95 sm:w-auto"
           >
             Go to sign in

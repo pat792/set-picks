@@ -49,9 +49,49 @@ function manualChunks(id) {
   return undefined;
 }
 
+/** Dev-server: serve Firebase app.html for app-only hard opens (#832). */
+function appEntryHtmlPlugin() {
+  const appPaths = (urlPath) => {
+    if (!urlPath) return false;
+    const pathOnly = urlPath.split('?')[0];
+    return (
+      pathOnly === '/login' ||
+      pathOnly === '/app.html' ||
+      pathOnly === '/setup' ||
+      pathOnly === '/password-reset-complete' ||
+      pathOnly === '/comms-preview' ||
+      pathOnly === '/join' ||
+      pathOnly.startsWith('/dashboard') ||
+      pathOnly.startsWith('/join/') ||
+      pathOnly.startsWith('/invite/') ||
+      pathOnly.startsWith('/user/')
+    );
+  };
+
+  return {
+    name: 'app-entry-html',
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (appPaths(req.url)) {
+          req.url = '/app.html';
+        }
+        next();
+      });
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (appPaths(req.url)) {
+          req.url = '/app.html';
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base: '/',
-  plugins: [react()],
+  plugins: [react(), appEntryHtmlPlugin()],
   test: {
     environment: 'node',
     include: ['src/**/*.test.js', 'api/**/*.test.js'],
@@ -67,9 +107,15 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      // Dual entry (#832): marketing (no Firebase) + app (AuthProvider).
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        app: path.resolve(__dirname, 'app.html'),
+      },
       output: {
         manualChunks,
       },
     },
   },
 });
+

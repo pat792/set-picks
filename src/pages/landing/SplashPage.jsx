@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import {
   OpenInBrowserBanner,
   consumeSplashResumeAuthModal,
   useGoogleRedirectCompletion,
 } from '../../features/auth';
+import { SplashAuthModals } from '../../features/landing/authModals';
 import {
-  SplashAuthModals,
   SplashPageShell,
   useScrollToSectionFocus,
-} from '../../features/landing';
+} from '../../features/landing/marketing';
 import { ScoringRulesModalProvider } from '../../features/scoring';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
@@ -39,7 +39,6 @@ export default function Splash() {
     () => Boolean(getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()),
   );
 
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const didHandleLoginFlagRef = useRef(false);
   /** One-shot bootstrap for resume-from-legal + pool-invite (Strict Mode safe). */
@@ -62,10 +61,9 @@ export default function Splash() {
     if (flag !== 'true') return;
 
     didHandleLoginFlagRef.current = true;
-    openSignInModal();
-    // Clear the flag so refresh doesn't re-open the modal.
-    navigate('/', { replace: true });
-  }, [navigate, openSignInModal, searchParams]);
+    // #832 / #830: auth handoff lives on /login (app entry).
+    window.location.replace('/login?mode=signin');
+  }, [searchParams]);
 
   useEffect(() => {
     if (splashResumeAndInviteRef.current) return;

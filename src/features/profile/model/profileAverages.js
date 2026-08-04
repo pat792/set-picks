@@ -6,9 +6,12 @@
  * once titles + catalog are already loaded).
  */
 
-import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+import {
+  formatAvgCorrectPicksPerShow,
+  PROFILE_SLOTS_PER_SHOW,
+} from '../../../shared/lib/pickAverages';
 
-export const PROFILE_SLOTS_PER_SHOW = FORM_FIELDS.length;
+export { formatAvgCorrectPicksPerShow, PROFILE_SLOTS_PER_SHOW };
 
 /**
  * @param {{ totalPoints?: unknown, shows?: unknown } | null | undefined} stats
@@ -62,20 +65,6 @@ export function computeAvgCorrectPicksPerShow(stats) {
       : null;
   if (correct == null || shows == null || shows <= 0) return null;
   return correct / (shows * PROFILE_SLOTS_PER_SHOW);
-}
-
-/**
- * Displayed batting-average style (".167", "1.000") — the bare ratio
- * ("0.17") read like a count of correct picks (#554 follow-up).
- *
- * @param {number | null | undefined} avg — slot-hit ratio in [0, 1]
- * @returns {string}
- */
-export function formatAvgCorrectPicksPerShow(avg) {
-  if (typeof avg !== 'number' || !Number.isFinite(avg)) return '—';
-  const fixed = avg.toFixed(3);
-  // Batting-average convention: drop the leading zero (.167), keep 1.000.
-  return fixed.startsWith('0.') ? fixed.slice(1) : fixed;
 }
 
 /**

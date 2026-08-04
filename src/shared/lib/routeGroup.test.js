@@ -10,6 +10,7 @@ describe('resolveRouteGroup', () => {
     expect(resolveRouteGroup('/dashboard')).toBe('dashboard');
     expect(resolveRouteGroup('/dashboard/picks')).toBe('dashboard');
     expect(resolveRouteGroup('/setup')).toBe('setup');
+    expect(resolveRouteGroup('/login')).toBe('login');
   });
 
   it('maps marketing / unknown to other', () => {

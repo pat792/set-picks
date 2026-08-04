@@ -375,17 +375,18 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 | Path | Auth | Description |
 |------|------|-------------|
-| `/` | None | Public splash / landing page. **v1.32.0+ (#659):** build-time prerender injects crawler-visible H1/body + JSON-LD into `dist/index.html` (SPA still boots for browsers). Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
-| `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. |
-| `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. |
-| `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. |
+| `/` | None | Public splash / landing page. **v1.32.0+ (#659):** build-time prerender injects crawler-visible H1/body + JSON-LD into `dist/index.html`. **v1.47.0 (#832):** browsers boot the **marketing** Vite entry (no Firebase / AuthProvider on cold open); Sign in / Create account hard-navigate to `/login`. Social scrapers on `/` may still receive the empty-body OG shell (`middleware.js`). |
+| `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. Marketing entry (#832). |
+| `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. Marketing entry (#832). |
+| `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default current tour). Prerendered shell; live data from `public_tour_stats` via **`GET /api/public-tour-stats`** (**v1.47.0 / #832**) — no browser App Check. Never full nightly setlists. |
 | `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `2026-sphere`). Default Sphere slug is also prerendered. |
 | `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. |
-| `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
-| `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
+| `/login` | None | **v1.47.0 (#832):** Firebase app-entry auth handoff (`mode=signin\|signup`). `noindex`. Replaces splash-modal deep links for marketing CTAs; legacy `/?login=true` redirects here. |
+| `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582). Served from **app** shell (Firebase). |
+| `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582). App shell. |
 | `/user/:userId` | None | Public player profile — **`noindex,follow`** (#661); not a sitemap target |
-| `/privacy` | None | Privacy policy |
-| `/terms` | None | Terms of service |
+| `/privacy` | None | Privacy policy (marketing entry) |
+| `/terms` | None | Terms of service (marketing entry) |
 | `/password-reset-complete` | None | Firebase Auth continue URL |
 | `/setup` | Auth | Profile setup (new users) |
 | `/dashboard/*` | Auth | Full game dashboard |
@@ -396,7 +397,16 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary
 
 **Picks — Prediction Lab (**v1.38.0 / #651**):** opt-in collapsed panel on `/dashboard/picks` consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete unchanged when Lab unused/unavailable. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
 
-**Field RUM — web-vitals (**v1.44.0 / #801**):** production hostnames only. Client emits GA4 `web_vital` for LCP, INP, CLS, TTFB, FCP after idle. Params: `{ metric_name, value, metric_id, metric_rating, route_group, navigation_type }` where `route_group` is `splash` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` and `navigation_type` is `navigate` \| `reload` \| `back_forward` \| `prerender`. Ops: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
+**Field RUM — web-vitals (**v1.44.0 / #801**):** production hostnames only. Client emits GA4 `web_vital` for LCP, INP, CLS, TTFB, FCP after idle. Params: `{ metric_name, value, metric_id, metric_rating, route_group, navigation_type }` where `route_group` is `splash` \| `login` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` (**`login` added v1.47.0**) and `navigation_type` is `navigate` \| `reload` \| `back_forward` \| `prerender`. Ops: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
+
+### 3.0a Public tour-stats JSON (`/api/public-tour-stats`) — **v1.47.0 / #832**
+
+| Method | Auth | Description |
+|--------|------|-------------|
+| `GET /api/public-tour-stats?slug=_index` | None | Returns `public_tour_stats/_index` JSON (tour list + `defaultTourSlug`). `Cache-Control: public, s-maxage=300, stale-while-revalidate=3600`. |
+| `GET /api/public-tour-stats?slug={tourSlug}` | None | Returns one aggregate tour doc. Invalid slug → 400; missing → 404 `{ notFound: true }`. |
+
+Browser marketing `/tour-stats` uses this API (no Firebase client / App Check). Requires Vercel `FIREBASE_SERVICE_ACCOUNT` (same as invite OG).
 
 ### 3.1 Email CTA click-through host (`click.setlistpickem.com`)
 

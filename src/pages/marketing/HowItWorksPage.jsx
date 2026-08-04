@@ -1,7 +1,10 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-import { HowItWorksPageContent, MarketingPageShell } from '../../features/landing';
+import {
+  HowItWorksPageContent,
+  MarketingPageShell,
+} from '../../features/landing/marketing';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
 
