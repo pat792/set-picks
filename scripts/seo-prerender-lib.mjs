@@ -24,8 +24,10 @@ import {
 import {
   DASHBOARD_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
+  TOUR_STATS_BOOT_PRELOAD_MARKER,
   injectDashboardBootModulepreloads,
   injectSplashBootModulepreloads,
+  injectTourStatsBootModulepreloads,
 } from './boot-modulepreload.mjs';
 
 export {
@@ -38,11 +40,13 @@ export {
   MARKETING_BOOT_SHELL_MARKER,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
+  TOUR_STATS_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
   buildMarketingBootShellMarkup,
   injectDashboardBootModulepreloads,
   injectSplashBootModulepreloads,
+  injectTourStatsBootModulepreloads,
 };
 
 function escapeHtml(str) {

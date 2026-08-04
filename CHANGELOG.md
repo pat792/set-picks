@@ -12,6 +12,75 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.48.2] — 2026-08-04
+
+### Changed
+- **Auth CTA polish (epic #835)** — Google/email CTAs share size; Google stays bold white with brighter hover; email submit is “Continue with email”; password reveal is a compact eye icon when fields have content.
+- **Marketing CTAs → `/login`** — removed mid-page Get Started chooser; hero/header/section and marketing-page “play” CTAs go to `/login` or `/login?mode=signup`. Invite VIP modals unchanged (#844).
+
+### Fixed
+- Scoring page footer links use dark-surface teal (`LINK_ON_DARK`) instead of light-page emerald.
+- Public tour-stats “Make picks for this tour” stays one-line and targets create-account.
+
+---
+
+## [1.48.1] — 2026-08-04
+
+### Fixed
+- **App-shell splash auth modal trap (epic #835)** — after visiting `/login`, soft-nav Home no longer leaves users on app-document splash with Sign in/Create account opening modals. App `SplashPage` CTAs (and legal/pool-invite handoffs) navigate to `/login`; `MarketingPageShell` Home uses a hard `<a href="/">` so marketing `index.html` reloads. Invite VIP modals unchanged (#844).
+
+---
+
+## [1.48.0] — 2026-08-04
+
+### Added
+- **Inline full-page `/login` (#834)** — sign-in and create-account render as page forms (shared panel chrome with splash modals). Query `mode=signup|signin` preferred; `signup=1` still accepted. Invite VIP (`/join`, `/invite`) keeps modal auth.
+
+### Changed
+- Marketing / legacy hops emit `/login?mode=signup` instead of `signup=1`.
+- Auth panel chrome (`SplashAuthPanel`) uses dashboard L1 / sponsor geometry — `rounded-xl`, quiet `border-border-subtle/60` + `bg-surface-panel/40`, flatter Google CTA — so `/login` reads as a primary surface instead of a floating glass widget.
+
+---
+
+## [1.47.3] — 2026-08-04
+
+### Added
+- **Outbound auth handoff inventory (#830)** — `docs/OUTBOUND_AUTH_HANDOFF.md` classifies email/push/inbox/invite/marketing links after the dual-document cold open (`app-ok` / `retarget-auth` / `public-static` / `invite-shell`).
+
+### Changed
+- Unauthenticated `/dashboard/*` and `/setup` hard opens bounce to **`/login`** (not marketing `/`), keeping `persistDashboardPath` restore.
+- QA runners and docs sign in via `/login`; email click allowlist accepts `/login`, `/invite`, `/setup`.
+
+---
+
+## [1.47.2] — 2026-08-04
+
+### Fixed
+- **Public tour-stats High gaps Last blanks (#840)** — `refreshPublicTourStats` now seeds bustout/gap `lastPlayed` from the previous Firestore write before re-stamping. A partial/429 history pass no longer wipes dates a prior run already filled (High gaps were wiped first because they are queued after bustouts). After deploy, re-run the admin refresh so remaining blank rows can use the history budget.
+
+---
+
+## [1.47.1] — 2026-08-04
+
+### Fixed
+- **Public `/tour-stats` cold open (#827)** — warm App Check on boot (not after page mount); skeleton chrome while stats load instead of a blank spinner; prerendered shells `modulepreload` `PublicTourStatsPage` + its static closure so the lazy route is not a serial waterfall after `app` entry parse.
+
+---
+
+## [1.47.0] — 2026-08-04
+
+### Added
+- **Marketing cold-open document (#832)** — public splash / educational pages boot from a second Vite entry (`index.html` → `marketingMain`) with no `AuthProvider` / `firebase-core` on the critical path. Authenticated SPA lives at `app.html`; new public route **`/login`** hosts splash auth modals. Invite OG shell prefers `dist/app.html`.
+- **Release train doc** — `docs/RELEASE_TRAIN_COLD_OPEN.md` tracks #832 → #837 → #827 → #830.
+
+### Changed
+- **Splash laptop spacing (#837)** — on `sm+` only (mobile unchanged): wordmark crops SVG headroom and sits closer under the header; hero fills the viewport with leftover dark space *below* the CTA so the next section doesn’t peek above the fold; copy / primary CTA / secondary links get more vertical breathing room.
+
+### Fixed
+- Password-reset success CTA now links to `/login` instead of `/?login=true`.
+
+---
+
 ## [1.46.5] — 2026-08-04
 
 ### Fixed

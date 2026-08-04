@@ -22,9 +22,13 @@ export const DASHBOARD_BOOT_MODULEPRELOAD_PREFIXES = ['DashboardRoute-'];
 /** Chunk filename prefixes to modulepreload on prerendered `dist/index.html` (#731). */
 export const SPLASH_BOOT_MODULEPRELOAD_PREFIXES = ['HomeRoute-'];
 
+/** Chunk filename prefixes for prerendered public `/tour-stats*` (#827). */
+export const TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES = ['PublicTourStatsPage-'];
+
 /** Attribute markers asserted by `verify:seo-prerender`. */
 export const DASHBOARD_BOOT_PRELOAD_MARKER = 'data-dashboard-boot-preload';
 export const SPLASH_BOOT_PRELOAD_MARKER = 'data-splash-boot-preload';
+export const TOUR_STATS_BOOT_PRELOAD_MARKER = 'data-tour-stats-boot-preload';
 
 /**
  * Resolve hashed asset filenames under `dist/assets` for the given prefixes.
@@ -151,5 +155,20 @@ export function injectSplashBootModulepreloads(html, distDir) {
   return injectBootModulepreloads(html, distDir, {
     prefixes: SPLASH_BOOT_MODULEPRELOAD_PREFIXES,
     marker: SPLASH_BOOT_PRELOAD_MARKER,
+  });
+}
+
+/**
+ * Public tour-stats route chunk + static closure for prerendered
+ * `dist/tour-stats/**` shells (#827). Keeps DashboardRoute / HomeRoute out.
+ *
+ * @param {string} html
+ * @param {string} distDir
+ * @returns {string}
+ */
+export function injectTourStatsBootModulepreloads(html, distDir) {
+  return injectBootModulepreloads(html, distDir, {
+    prefixes: TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES,
+    marker: TOUR_STATS_BOOT_PRELOAD_MARKER,
   });
 }

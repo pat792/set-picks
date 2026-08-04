@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isDashboardEntryPath,
   isPublicColdOpenPath,
+  isPublicTourStatsPath,
   shouldDeferMessagingServiceWorker,
   shouldPrefetchDashboardOnBoot,
   shouldWarmAppCheckOnBoot,
@@ -38,10 +39,25 @@ describe('isPublicColdOpenPath', () => {
   });
 });
 
+describe('isPublicTourStatsPath', () => {
+  it('matches public tour-stats routes', () => {
+    expect(isPublicTourStatsPath('/tour-stats')).toBe(true);
+    expect(isPublicTourStatsPath('/tour-stats/2026-sphere')).toBe(true);
+  });
+
+  it('rejects other paths', () => {
+    expect(isPublicTourStatsPath('/')).toBe(false);
+    expect(isPublicTourStatsPath('/dashboard/tour-stats')).toBe(false);
+    expect(isPublicTourStatsPath('/how-it-works')).toBe(false);
+  });
+});
+
 describe('shouldWarmAppCheckOnBoot', () => {
-  it('warms dashboard and setup only (#803)', () => {
+  it('warms dashboard, setup, and public tour stats (#803 / #827)', () => {
     expect(shouldWarmAppCheckOnBoot('/dashboard/standings')).toBe(true);
     expect(shouldWarmAppCheckOnBoot('/setup')).toBe(true);
+    expect(shouldWarmAppCheckOnBoot('/tour-stats')).toBe(true);
+    expect(shouldWarmAppCheckOnBoot('/tour-stats/2026-sphere')).toBe(true);
   });
 
   it('does not warm anonymous cold-open or marketing', () => {

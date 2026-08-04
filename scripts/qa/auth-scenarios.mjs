@@ -142,10 +142,11 @@ async function openCreateAccountModal(page, origin) {
  */
 async function openSignInModal(page, origin) {
   const base = origin.replace(/\/$/, '');
-  await page.goto(`${base}/?login=true`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-  const dialog = page.getByRole('dialog', { name: /^sign in$/i });
-  await dialog.waitFor({ state: 'visible', timeout: 30_000 });
-  return dialog;
+  await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  // #834: full-page sign-in (no dialog). Scope to the credentials panel.
+  const email = page.locator('#si-email');
+  await email.waitFor({ state: 'visible', timeout: 30_000 });
+  return page.locator('div.max-w-md').filter({ has: email });
 }
 
 /**
@@ -583,10 +584,10 @@ async function main() {
       results,
     );
 
-    // ── ROUTING E partial: ?login=true ─────────────────────────────────────
+    // ── ROUTING E partial: /login ──────────────────────────────────────────
     await runScenario(
       'UR-E1',
-      '?login=true opens sign-in modal',
+      '/login opens sign-in modal',
       async () => {
         await openSignInModal(page, dev.url);
         await page.keyboard.press('Escape');

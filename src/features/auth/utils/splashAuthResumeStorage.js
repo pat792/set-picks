@@ -1,8 +1,9 @@
 const STORAGE_KEY = 'splashResumeAuthModal';
 
 /**
- * Call before navigating away from the splash auth modal to Terms/Privacy so
- * browser Back can reopen the same modal (session-only).
+ * Call before navigating away from splash/login auth to Terms/Privacy so
+ * browser Back can restore signup/signin on `/login` (or splash handoff).
+ * Session-only.
  * @param {'signup' | 'signin'} kind
  */
 export function stashSplashResumeAuthModal(kind) {

@@ -21,11 +21,13 @@ import {
   MARKETING_BOOT_SHELL_MARKER,
   PRERENDER_ROUTES,
   SPLASH_BOOT_PRELOAD_MARKER,
+  TOUR_STATS_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildFixtureShellHtml,
   injectDashboardBootModulepreloads,
   injectPrerenderHtml,
   injectSplashBootModulepreloads,
+  injectTourStatsBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 
@@ -129,6 +131,16 @@ writeFileSync(
 );
 writeFileSync(join(fakeDist, 'assets', 'auth-deadbeef.js'), 'export const x = 1;\n', 'utf8');
 writeFileSync(join(fakeDist, 'assets', 'DashboardRoute-e5f6a7b8.js'), '', 'utf8');
+writeFileSync(
+  join(fakeDist, 'assets', 'PublicTourStatsPage-c0ffee01.js'),
+  'import { y } from "./tour-stats-deadbeef.js";\nexport default y;\n',
+  'utf8',
+);
+writeFileSync(
+  join(fakeDist, 'assets', 'tour-stats-deadbeef.js'),
+  'export const y = 1;\n',
+  'utf8',
+);
 
 const fixtureSplashPreload = injectSplashBootModulepreloads(
   buildFixtureShellHtml(),
@@ -171,6 +183,30 @@ assert(
 assert(
   !fixtureDashboardPreload.includes('HomeRoute-'),
   'app boot shell must not modulepreload the HomeRoute chunk',
+);
+
+const fixtureTourStatsPreload = injectTourStatsBootModulepreloads(
+  buildFixtureShellHtml(),
+  fakeDist,
+);
+assert(
+  fixtureTourStatsPreload.includes(`${TOUR_STATS_BOOT_PRELOAD_MARKER}="true"`) &&
+    fixtureTourStatsPreload.includes('/assets/PublicTourStatsPage-c0ffee01.js'),
+  'tour-stats shell must modulepreload the PublicTourStatsPage chunk',
+);
+assert(
+  fixtureTourStatsPreload.includes('/assets/tour-stats-deadbeef.js'),
+  'tour-stats shell must modulepreload PublicTourStatsPage static deps',
+);
+assert(
+  !fixtureTourStatsPreload.includes('DashboardRoute-') &&
+    !fixtureTourStatsPreload.includes('HomeRoute-'),
+  'tour-stats shell must not modulepreload dashboard or splash route chunks',
+);
+assert(
+  injectTourStatsBootModulepreloads(fixtureTourStatsPreload, fakeDist) ===
+    fixtureTourStatsPreload,
+  'tour-stats modulepreload injection must be idempotent',
 );
 
 const distIndex = join(root, 'dist', 'index.html');
@@ -221,20 +257,23 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     !homeHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER),
     'home dist/index.html must not gain dashboard boot modulepreloads',
   );
+  // #832: home is the marketing entry — splash UI is static in that graph.
+  // Do not modulepreload lazy HomeRoute / auth (those belong on app.html).
   assert(
-    homeHtml.includes(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`) &&
-      homeHtml.includes('HomeRoute-'),
-    'home dist/index.html must modulepreload the lazy HomeRoute chunk (#731)',
-  );
-  // Leaf-only preload left a waterfall on Landing's auth/shared graph.
-  assert(
-    (homeHtml.match(new RegExp(`${SPLASH_BOOT_PRELOAD_MARKER}="true"`, 'g')) || [])
-      .length >= 2,
-    'home splash modulepreload must cover HomeRoute static closure, not only the leaf',
+    !homeHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
+    'home marketing document must not inject HomeRoute splash modulepreloads',
   );
   assert(
-    /auth-[^"]+\.js/.test(homeHtml) && homeHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
-    'home splash modulepreload closure should include the auth chunk',
+    !homeHtml.includes('HomeRoute-'),
+    'home marketing document must not reference HomeRoute chunk',
+  );
+  assert(
+    /\/assets\/marketing-[^"]+\.js/.test(homeHtml),
+    'home dist/index.html must boot the marketing entry chunk',
+  );
+  assert(
+    !/\/assets\/firebase-core-[^"]+\.js/.test(homeHtml),
+    'home marketing document must not load firebase-core on cold open',
   );
   assert(
     homeHtml.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),
@@ -244,6 +283,41 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     !homeHtml.includes('href="/fonts/inter/InterVariable.woff2"'),
     'home dist/index.html must not preload Inter (~344KB)',
   );
+
+  const distApp = join(root, 'dist', 'app.html');
+  assert(existsSync(distApp), 'dist missing app.html — authenticated SPA entry (#832)');
+  const appHtml = readFileSync(distApp, 'utf8');
+  assert(
+    /\/assets\/app-[^"]+\.js/.test(appHtml),
+    'dist/app.html must boot the authenticated SPA entry chunk',
+  );
+
+  const distTourStats = join(root, 'dist', 'tour-stats', 'index.html');
+  if (existsSync(distTourStats)) {
+    const tourHtml = readFileSync(distTourStats, 'utf8');
+    assert(
+      /\/assets\/app-[^"]+\.js/.test(tourHtml),
+      'prerendered /tour-stats must use the app document (live Firestore UI)',
+    );
+    assert(
+      !/\/assets\/marketing-[^"]+\.js/.test(tourHtml),
+      'prerendered /tour-stats must not boot the marketing entry',
+    );
+    assert(
+      tourHtml.includes(TOUR_STATS_BOOT_PRELOAD_MARKER) &&
+        tourHtml.includes('PublicTourStatsPage-'),
+      'prerendered /tour-stats must modulepreload PublicTourStatsPage (#827)',
+    );
+    assert(
+      !tourHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER) &&
+        !tourHtml.includes('DashboardRoute-'),
+      'prerendered /tour-stats must not pull DashboardRoute modulepreload',
+    );
+    assert(
+      !tourHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
+      'prerendered /tour-stats must not gain splash modulepreloads',
+    );
+  }
   const howItWorksHtml = readFileSync(distHowItWorks, 'utf8');
   assert(
     !howItWorksHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),

@@ -60,11 +60,15 @@ function requireAppCheckForOAuth() {
  */
 async function openCreateAccountModal(page, origin) {
   const base = origin.replace(/\/$/, '');
-  await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 90_000 });
-  await page.getByRole('button', { name: /^create account$/i }).first().click();
-  const dialog = page.getByRole('dialog', { name: /^create account$/i });
-  await dialog.waitFor({ state: 'visible', timeout: 30_000 });
-  return dialog;
+  // #834: create-account is inline on `/login?mode=signup` (no splash modal).
+  await page.goto(`${base}/login?mode=signup`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 90_000,
+  });
+  const email = page.locator('#su-email');
+  await email.waitFor({ state: 'visible', timeout: 30_000 });
+  // Panel root (legal checkbox sits above the <form>).
+  return page.locator('div.max-w-md').filter({ has: email });
 }
 
 /**
@@ -73,10 +77,10 @@ async function openCreateAccountModal(page, origin) {
  */
 async function openSignInModal(page, origin) {
   const base = origin.replace(/\/$/, '');
-  await page.goto(`${base}/?login=true`, { waitUntil: 'domcontentloaded', timeout: 90_000 });
-  const dialog = page.getByRole('dialog', { name: /^sign in$/i });
-  await dialog.waitFor({ state: 'visible', timeout: 30_000 });
-  return dialog;
+  await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded', timeout: 90_000 });
+  const email = page.locator('#si-email');
+  await email.waitFor({ state: 'visible', timeout: 30_000 });
+  return page.locator('div.max-w-md').filter({ has: email });
 }
 
 /**

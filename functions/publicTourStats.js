@@ -157,6 +157,72 @@ async function fetchPhishnetSongHistoryDatesWithRetry(apiKey, slug, logger) {
 }
 
 /**
+ * Stable key for bustout / high-gap row identity across refreshes (#840).
+ * @param {unknown} title
+ * @param {unknown} showDate
+ * @returns {string}
+ */
+function lastPlayedRowKey(title, showDate) {
+  const t = normalizeTitleKey(title);
+  const d = String(showDate ?? "").trim();
+  if (!t || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return "";
+  return `${t}|${d}`;
+}
+
+/**
+ * Index prior `lastPlayed` stamps from an existing public tour-stats doc.
+ * @param {{ bustouts?: unknown, gapHighlights?: unknown } | null | undefined} priorDoc
+ * @returns {Map<string, string>}
+ */
+function buildPriorLastPlayedMap(priorDoc) {
+  /** @type {Map<string, string>} */
+  const map = new Map();
+  if (!priorDoc || typeof priorDoc !== "object") return map;
+  for (const list of [priorDoc.bustouts, priorDoc.gapHighlights]) {
+    if (!Array.isArray(list)) continue;
+    for (const row of list) {
+      if (!row || typeof row !== "object") continue;
+      const key = lastPlayedRowKey(row.title, row.showDate);
+      const lastPlayed =
+        typeof row.lastPlayed === "string" ? row.lastPlayed.trim() : "";
+      if (!key || !/^\d{4}-\d{2}-\d{2}$/.test(lastPlayed)) continue;
+      map.set(key, lastPlayed);
+    }
+  }
+  return map;
+}
+
+/**
+ * Seed freshly aggregated rows with stamps from the previous Firestore write
+ * so a partial/429 history pass cannot wipe High gaps Last (#840).
+ *
+ * @param {object[]} rows
+ * @param {Map<string, string>} priorByKey
+ * @returns {number} rows seeded
+ */
+function seedLastPlayedFromPrior(rows, priorByKey) {
+  if (!(priorByKey instanceof Map) || priorByKey.size === 0) return 0;
+  if (!Array.isArray(rows)) return 0;
+  let seeded = 0;
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+    if (
+      typeof row.lastPlayed === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(row.lastPlayed.trim())
+    ) {
+      continue;
+    }
+    const key = lastPlayedRowKey(row.title, row.showDate);
+    if (!key) continue;
+    const prior = priorByKey.get(key);
+    if (!prior) continue;
+    row.lastPlayed = prior;
+    seeded += 1;
+  }
+  return seeded;
+}
+
+/**
  * Queue history lookups with bustouts ahead of high-gap rows so a rate-limit
  * window still fills the higher-signal column first.
  *
@@ -170,7 +236,7 @@ function collectLastPlayedWork(into, rows, enrichmentByTitle, apiKey) {
   let fromCatalog = 0;
   for (const row of rows) {
     if (!row || typeof row !== "object" || !row.showDate) continue;
-    // Already stamped (e.g. prior refresh / local backfill) — keep it.
+    // Already stamped (prior Firestore seed / catalog / local backfill) — keep.
     if (
       typeof row.lastPlayed === "string" &&
       /^\d{4}-\d{2}-\d{2}$/.test(row.lastPlayed.trim())
@@ -416,8 +482,37 @@ async function refreshPublicTourStats(db, opts = {}) {
     pendingWrites.push({ tourSlug, tourLabel, showDates, payload });
   }
 
+  // #840: re-apply lastPlayed from the previous write before history stamping.
+  // Fresh aggregates have no stamps; { merge: false } would otherwise wipe any
+  // High gaps Last dates a prior run filled when this pass hits 429/abort.
+  let fromPrior = 0;
+  if (pendingWrites.length > 0) {
+    const priorRefs = pendingWrites.map((w) =>
+      db.collection("public_tour_stats").doc(w.tourSlug)
+    );
+    const priorSnaps = await db.getAll(...priorRefs);
+    for (let i = 0; i < pendingWrites.length; i += 1) {
+      const priorSnap = priorSnaps[i];
+      if (!priorSnap?.exists) continue;
+      const priorMap = buildPriorLastPlayedMap(priorSnap.data());
+      const { payload } = pendingWrites[i];
+      fromPrior += seedLastPlayedFromPrior(payload.bustouts || [], priorMap);
+      fromPrior += seedLastPlayedFromPrior(
+        payload.gapHighlights || [],
+        priorMap
+      );
+    }
+    if (fromPrior > 0) {
+      logger.info("refreshPublicTourStats: seeded lastPlayed from prior docs", {
+        fromPrior,
+        tours: pendingWrites.length,
+      });
+    }
+  }
+
   // Stamp bustout/gap lastPlayed across every tour before writing so the
   // history budget is shared fairly (catalog last_played fills most rows).
+  // Rows already seeded from prior docs are skipped (no re-fetch).
   await stampLastPlayedDates(
     pendingWrites.map((w) => w.payload),
     {
@@ -504,5 +599,8 @@ module.exports = {
   refreshPublicTourStats,
   pickDefaultPublicTourSlug,
   stampLastPlayedDates,
+  lastPlayedRowKey,
+  buildPriorLastPlayedMap,
+  seedLastPlayedFromPrior,
   GAME_LAUNCH_SHOW_DATE,
 };

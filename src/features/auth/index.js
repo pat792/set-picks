@@ -1,7 +1,8 @@
 export { default as AuthLoadingScreen } from './ui/AuthLoadingScreen';
 export { default as OpenInBrowserBanner } from './ui/OpenInBrowserBanner';
-export { default as SplashAuthEntryCard } from './ui/SplashAuthEntryCard';
 export { default as SplashAuthModalShell } from './ui/SplashAuthModalShell';
+export { default as SplashAuthPanel } from './ui/SplashAuthPanel';
+export { default as LoginAuthScreen } from './ui/LoginAuthScreen';
 // SplashSignInModal / SplashSignUpModal intentionally do NOT re-export here:
 // they live in the `./modals` secondary barrel, whose only consumer is the
 // lazy boundary in features/landing SplashAuthModals (#733). Re-exporting

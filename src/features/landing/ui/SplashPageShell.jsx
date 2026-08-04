@@ -3,22 +3,21 @@ import React from 'react';
 import useSplashDocumentScrollPadding from '../model/useSplashDocumentScrollPadding';
 import { MarketingFooterNav } from './MarketingSiteNav';
 import SplashAboutSection from './SplashAboutSection';
-import SplashGetStartedSection from './SplashGetStartedSection';
 import SplashHeader from './SplashHeader';
 import SplashHeroSection from './SplashHeroSection';
 import SplashHowItWorksSection from './SplashHowItWorksSection';
 
+/**
+ * Marketing / app splash composition. Auth CTAs go to `/login` (signup or sign-in);
+ * the old mid-page Get Started chooser card is removed (#835).
+ */
 export default function SplashPageShell({
   howItWorksSectionRef,
   howItWorksHeadingRef,
-  getStartedSectionRef,
-  getStartedHeadingRef,
   aboutSectionRef,
   aboutHeadingRef,
-  onScrollToGetStarted,
-  onCreateAccountFromHowItWorks,
-  onOpenSignUpModal,
-  onOpenSignInModal,
+  onOpenSignUp,
+  onOpenSignIn,
   children,
 }) {
   useSplashDocumentScrollPadding();
@@ -26,26 +25,20 @@ export default function SplashPageShell({
   return (
     <>
       {/* Fixed + flex parent breaks iOS Safari; header must sit outside the flex wrapper. */}
-      <SplashHeader onPlayNowClick={onScrollToGetStarted} onSignInClick={onOpenSignInModal} />
+      <SplashHeader onPlayNowClick={onOpenSignUp} onSignInClick={onOpenSignIn} />
 
       <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
         <main className="relative w-full flex-1 overflow-x-hidden">
-          <SplashHeroSection onPlayNowClick={onScrollToGetStarted} />
+          <SplashHeroSection onPlayNowClick={onOpenSignUp} />
           <SplashHowItWorksSection
             sectionRef={howItWorksSectionRef}
             headingRef={howItWorksHeadingRef}
-            onCreateAccountClick={onCreateAccountFromHowItWorks}
-          />
-          <SplashGetStartedSection
-            sectionRef={getStartedSectionRef}
-            headingRef={getStartedHeadingRef}
-            onOpenSignUp={onOpenSignUpModal}
-            onOpenSignIn={onOpenSignInModal}
+            onCreateAccountClick={onOpenSignUp}
           />
           <SplashAboutSection
             sectionRef={aboutSectionRef}
             headingRef={aboutHeadingRef}
-            onGetStartedClick={onScrollToGetStarted}
+            onGetStartedClick={onOpenSignUp}
           />
         </main>
 

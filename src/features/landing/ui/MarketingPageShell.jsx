@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 
 import {
@@ -11,14 +10,18 @@ import { MarketingFooterNav, MarketingHeaderNav } from './MarketingSiteNav';
 /**
  * Shell for standalone marketing / educational pages.
  * Sticky header: home + primary marketing nav (#663); footer shares the same links.
+ *
+ * Home uses a real `<a href="/">` (not React Router `<Link>`) so returning from
+ * app-document surfaces (`/login`, invite VIP, tour-stats) always reloads the
+ * marketing entry (`index.html`) instead of soft-navigating to app-shell splash.
  */
 export default function MarketingPageShell({ children }) {
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
       <header className="sticky top-0 z-50 flex h-[5.35rem] items-center border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg sm:h-[5.25rem]">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Link
-            to="/"
+          <a
+            href="/"
             aria-label="Setlist Pick 'Em — back to home"
             className="flex shrink-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
           >
@@ -33,17 +36,17 @@ export default function MarketingPageShell({ children }) {
             <span className="hidden font-display text-base font-bold tracking-tight text-white sm:block">
               Setlist Pick&nbsp;&apos;Em
             </span>
-          </Link>
+          </a>
 
           <MarketingHeaderNav className="hidden md:flex" />
 
-          <Link
-            to="/"
+          <a
+            href="/"
             className="inline-flex shrink-0 items-center gap-1 rounded-sm text-sm font-semibold text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
             <span className="hidden sm:inline">Home</span>
-          </Link>
+          </a>
         </div>
       </header>
       <main className="w-full flex-1">{children}</main>

@@ -38,11 +38,12 @@ export default function DashboardRoute() {
     });
   }, [partialProfile, hasConsent, user?.uid]);
 
-  // #535: remember intended path before bounce to splash so post-login lands
-  // on /dashboard/picks (etc.), not generic /dashboard.
+  // #535 / #830: remember intended path before bounce to `/login` so post-auth
+  // lands on /dashboard/picks (etc.), not generic /dashboard. Do not send
+  // unauthenticated visitors to marketing `/` (no AuthProvider there).
   if (decision.kind === 'redirect-home') {
     persistDashboardPath(location.pathname, location.search);
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Keep branded chrome while session/profile resolve (#773) — no bare "Loading…".

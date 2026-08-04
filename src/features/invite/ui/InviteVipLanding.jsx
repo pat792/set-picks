@@ -3,7 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
 import { OpenInBrowserBanner } from '../../auth';
-import { MarketingPageShell, SplashAuthModals } from '../../landing';
+import { MarketingPageShell } from '../../landing';
+import { SplashAuthModals } from '../../landing/auth-modals';
 import { SEO_CONFIG } from '../../../shared/config/seo';
 import Button from '../../../shared/ui/Button';
 

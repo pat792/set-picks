@@ -134,7 +134,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 
 - Last screen was **Profile** (typical sign-out path): Profile is **not** persisted, so restore uses the **previous** eligible tab or **`/dashboard`**.
 - Cleared site data / new browser: no storage → **`/dashboard`**.
-- Deep link **`/?login=true`**: splash opens **Sign in** (password reset, QA, returning users) — not Create account.
+- Deep link **`/login`**: app auth entry opens **Sign in** (password reset, QA, returning users) — not Create account. Legacy **`/?login=true`** redirects here. Unauthenticated `/dashboard/*` / `/setup` also bounce to `/login` (#830).
 
 ### F. Other entry points
 

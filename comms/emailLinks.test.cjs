@@ -41,4 +41,11 @@ describe('emailLinks', () => {
     assert.equal(normalizeDestinationPath('https://evil.example/phish'), null);
     assert.equal(normalizeDestinationPath('/dashboard/picks'), '/dashboard/picks');
   });
+
+  it('normalizeDestinationPath allows /login /invite /setup (#830)', () => {
+    assert.equal(normalizeDestinationPath('/login'), '/login');
+    assert.equal(normalizeDestinationPath('/login?signup=1'), '/login?signup=1');
+    assert.equal(normalizeDestinationPath('/invite/pat'), '/invite/pat');
+    assert.equal(normalizeDestinationPath('/setup'), '/setup');
+  });
 });

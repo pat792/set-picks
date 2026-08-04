@@ -5,8 +5,8 @@ export { MarketingFooterNav, MarketingHeaderNav } from './ui/MarketingSiteNav';
 export { MARKETING_LEGAL_NAV, MARKETING_PRIMARY_NAV } from './model/marketingNav';
 export { default as PhishSetlistPredictionGamePageContent } from './ui/PhishSetlistPredictionGamePageContent';
 export { default as SplashAboutSection } from './ui/SplashAboutSection';
-export { default as SplashAuthModals } from './ui/SplashAuthModals';
-export { default as SplashGetStartedSection } from './ui/SplashGetStartedSection';
+// SplashAuthModals: app-document only — import from `features/landing/auth-modals` (#832).
+// SplashAuthEntryCard / SplashGetStartedSection removed — auth CTAs go to `/login` (#835).
 export { default as SplashHeader } from './ui/SplashHeader';
 export { default as SplashHeroSection } from './ui/SplashHeroSection';
 export { default as SplashHowItWorksSection } from './ui/SplashHowItWorksSection';
