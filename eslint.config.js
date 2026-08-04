@@ -98,9 +98,16 @@ export default [
         {
           patterns: [
             {
-              group: ["**/features/*/*"],
+              // Block feature internals; allow index.js + intentional secondary
+              // barrels (marketing / auth-modals / splash-entry) per .cursorrules §4.
+              group: [
+                "**/features/*/api/**",
+                "**/features/*/model/**",
+                "**/features/*/ui/**",
+                "**/features/*/components/**",
+              ],
               message:
-                "Import features via their public API only (features/<domain>/index.js).",
+                "Import features via their public API (features/<domain>/index.js or a documented secondary barrel).",
             },
           ],
         },
@@ -122,9 +129,9 @@ export default [
             },
             {
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$).+",
               message:
-                "Cross-feature imports must target feature root only (e.g. ../otherFeature), not deep internals.",
+                "Cross-feature imports must target feature root or a documented secondary barrel, not deep internals.",
             },
           ],
         },
@@ -177,9 +184,9 @@ export default [
             },
             {
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$).+",
               message:
-                "Cross-feature imports must target feature root only (e.g. ../otherFeature), not deep internals.",
+                "Cross-feature imports must target feature root or a documented secondary barrel, not deep internals.",
             },
           ],
         },

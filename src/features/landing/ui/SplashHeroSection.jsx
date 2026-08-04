@@ -10,8 +10,8 @@ import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
  * marketing routes for crawlable internal linking (#663).
  */
 export default function SplashHeroSection({ onPlayNowClick }) {
+  // #837: on sm+ drop min-h-screen so header→wordmark→copy isn’t viewport-crushed
   return (
-    {/* #837: on sm+ drop min-h-screen so header→wordmark→copy isn’t viewport-crushed */}
     <section className="relative flex min-h-[100svh] w-full flex-col bg-transparent pt-[5.35rem] pb-6 sm:min-h-0 sm:pt-[5.25rem] sm:pb-10">
       <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 pt-1 text-center sm:px-6 sm:pt-0 lg:px-8">
         <h1

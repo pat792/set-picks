@@ -6,11 +6,8 @@ import {
   consumeSplashResumeAuthModal,
   useGoogleRedirectCompletion,
 } from '../../features/auth';
-import {
-  SplashAuthModals,
-  SplashPageShell,
-  useScrollToSectionFocus,
-} from '../../features/landing';
+import { SplashPageShell, useScrollToSectionFocus } from '../../features/landing';
+import { SplashAuthModals } from '../../features/landing/auth-modals';
 import { ScoringRulesModalProvider } from '../../features/scoring';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';

@@ -6,7 +6,7 @@ import {
   useAuth,
   useGoogleRedirectCompletion,
 } from '../../features/auth';
-import { SplashAuthModals } from '../../features/landing';
+import { SplashAuthModals } from '../../features/landing/auth-modals';
 import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
