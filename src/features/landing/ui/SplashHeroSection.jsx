@@ -16,7 +16,7 @@ import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
  */
 export default function SplashHeroSection({ onPlayNowClick }) {
   return (
-    <section className="relative flex min-h-[100svh] w-full flex-col bg-transparent pt-[5.35rem] pb-6 sm:min-h-[100svh] sm:pt-[4.5rem] sm:pb-10 lg:pt-[5rem] lg:pb-12">
+    <section className="relative flex min-h-[100svh] w-full flex-col bg-transparent pt-[5.35rem] pb-6 sm:min-h-[calc(100svh+2px)] sm:pt-[4.5rem] sm:pb-10 lg:pt-[5rem] lg:pb-12">
       <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 pt-1 text-center sm:px-6 sm:pt-0 lg:px-8">
         <h1
           className="relative left-1/2 w-screen max-w-[100vw] shrink-0 -translate-x-1/2 overflow-visible leading-none sm:left-0 sm:w-full sm:max-w-none sm:translate-x-0"
