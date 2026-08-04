@@ -126,7 +126,7 @@ async function spaNavigateAndWaitForChunk(
   );
 
   await chunkResponse;
-  await page.waitForLoadState('networkidle');
+  // Do not wait for networkidle — authenticated SPA keeps Firestore WebChannel open.
 }
 
 async function run() {
@@ -157,13 +157,19 @@ async function run() {
       loadedChunks.add(name);
     });
 
-    // Initial paint: hard-load splash. Anything Vite emits
-    // <link rel="modulepreload"> for ends up in `initialChunks` and
-    // is correctly excluded from later deltas.
-    await page.goto(`${preview.url}/`, { waitUntil: 'networkidle' });
+    // Initial paint: hard-load an **app-document** public route (#832).
+    // Marketing `/` is a separate Vite entry — SPA pushState from there
+    // full-reloads into `app.html`, so chunk deltas are not meaningful.
+    // `/login` boots the authenticated SPA without requiring a session.
+    await page.goto(`${preview.url}/login`, { waitUntil: 'domcontentloaded' });
+    // Avoid networkidle — Firestore WebChannel never settles after app boot.
+    await page.waitForFunction(
+      () => document.querySelector('#root')?.childElementCount > 0,
+      { timeout: NAV_TIMEOUT_MS },
+    );
     const initialChunks = new Set(loadedChunks);
 
-    // Scenario 1: / -> /user/<UID> expects PublicProfilePage chunk.
+    // Scenario 1: /login -> /user/<UID> expects PublicProfilePage chunk.
     await spaNavigateAndWaitForChunk(
       page,
       preview.url,
@@ -191,7 +197,7 @@ async function run() {
 
     const scenarios = [
       {
-        from: '/',
+        from: '/login',
         to: '/user/<uid>',
         expected: 'PublicProfilePage',
         delta: userDelta,

@@ -28,22 +28,40 @@ function isAppDocumentPath(pathname) {
   });
 }
 
+function rewriteAppDocumentRequest(req, _res, next) {
+  const raw = req.url || '';
+  const pathname = raw.split('?')[0];
+  if (
+    pathname === '/app.html' ||
+    pathname.startsWith('/src/') ||
+    pathname.startsWith('/@') ||
+    pathname.startsWith('/node_modules') ||
+    pathname.startsWith('/assets') ||
+    pathname.startsWith('/branding') ||
+    pathname.startsWith('/fonts') ||
+    pathname.startsWith('/favicon')
+  ) {
+    next();
+    return;
+  }
+  // Prefer prerendered app-backed HTML when present (e.g. /tour-stats/).
+  // Otherwise serve `app.html` so /login and /user/* don't fall through to
+  // the marketing document (which would location.replace-loop) (#832).
+  if (isAppDocumentPath(pathname)) {
+    req.url = `/app.html${raw.includes('?') ? `?${raw.split('?')[1]}` : ''}`;
+  }
+  next();
+}
+
 function appDocumentDevMiddleware() {
   return {
     name: 'app-document-dev-middleware',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const raw = req.url || '';
-        const pathname = raw.split('?')[0];
-        if (pathname === '/app.html' || pathname.startsWith('/src/') || pathname.startsWith('/@') || pathname.startsWith('/node_modules') || pathname.startsWith('/assets') || pathname.startsWith('/branding') || pathname.startsWith('/fonts') || pathname.startsWith('/favicon')) {
-          next();
-          return;
-        }
-        if (isAppDocumentPath(pathname)) {
-          req.url = `/app.html${raw.includes('?') ? `?${raw.split('?')[1]}` : ''}`;
-        }
-        next();
-      });
+      server.middlewares.use(rewriteAppDocumentRequest);
+    },
+    // qa:chunks / `vite preview` need the same rewrites as `npm run dev`.
+    configurePreviewServer(server) {
+      server.middlewares.use(rewriteAppDocumentRequest);
     },
   };
 }
