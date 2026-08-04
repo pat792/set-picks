@@ -10,8 +10,12 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
-### Fixed
-- **`qa:cache` CI hang + flaky threshold (#748)** — QA tooling only, no app surface. Runner now exits explicitly on every path, `vite preview` is killed by process group (orphaned vite kept CI runners alive for the full 6 h workflow limit), `qa-runners` gained `timeout-minutes: 20`, and the noisy byte-savings assertion was replaced with a deterministic count of season-stats document references in Firestore WebChannel POST bodies.
+---
+
+## [1.46.2] — 2026-08-03
+
+### Changed
+- **Inbox sender badge DNS audit documented (#498)** — `docs/comms-triggers/EMAIL_INBOX_BADGE.md` now carries the 2026-08-03 live DNS audit: DMARC `p=quarantine` already meets the BIMI prerequisite, Resend DKIM is aligned, but `send.setlistpickem.com` is missing the SPF TXT half of Resend's record pair (DMARC passes on DKIM alone), `default._bimi` is unpublished, and DMARC `rua` reports go to the registrar's unmonitored default. Prioritized human DNS/registrar action list included (SPF fix, VMC-vs-CMC decision, BIMI SVG prep, optional Gmail avatar fallback).
 
 ---
 
@@ -49,12 +53,8 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ### Changed
 - `aggregateTourSetlistStats` (client + functions mirror) no longer truncates `topSongs` / `gapHighlights` to top-15; `refreshPublicTourStats` writes full ranked lists to `public_tour_stats/{tourSlug}` (public page shows capped lists until the function is deployed and the nightly refresh reruns). The "In most played" self-overlay tile stays pinned to the top 15 and its tooltip now says so.
 
----
-
-## [1.46.2] — 2026-08-03
-
-### Changed
-- **Inbox sender badge DNS audit documented (#498)** — `docs/comms-triggers/EMAIL_INBOX_BADGE.md` now carries the 2026-08-03 live DNS audit: DMARC `p=quarantine` already meets the BIMI prerequisite, Resend DKIM is aligned, but `send.setlistpickem.com` is missing the SPF TXT half of Resend's record pair (DMARC passes on DKIM alone), `default._bimi` is unpublished, and DMARC `rua` reports go to the registrar's unmonitored default. Prioritized human DNS/registrar action list included (SPF fix, VMC-vs-CMC decision, BIMI SVG prep, optional Gmail avatar fallback).
+### Fixed
+- **`qa:cache` CI hang + flaky threshold (#748)** — QA tooling only, no app surface. Runner now exits explicitly on every path, `vite preview` is killed by process group (orphaned vite kept CI runners alive for the full 6 h workflow limit), `qa-runners` gained `timeout-minutes: 20`, and the noisy byte-savings assertion was replaced with a deterministic count of season-stats document references in Firestore WebChannel POST bodies.
 
 ---
 
