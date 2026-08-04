@@ -54,7 +54,6 @@ export function buildFixtureShellHtml() {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png?v=${v}" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg?v=${v}" />
   <link rel="shortcut icon" href="/favicon/favicon.ico?v=${v}" />
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png?v=${v}" />
   <link rel="manifest" href="/favicon/site.webmanifest?v=${v}" />
@@ -105,7 +104,6 @@ function ensureFavicons(html) {
   if (/rel="icon"/i.test(html) && /favicon\.ico/i.test(html)) return html;
   const v = SEO_FAVICON_VERSION;
   const block = `  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png?v=${v}" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg?v=${v}" />
   <link rel="shortcut icon" href="/favicon/favicon.ico?v=${v}" />
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png?v=${v}" />
   <link rel="manifest" href="/favicon/site.webmanifest?v=${v}" />
