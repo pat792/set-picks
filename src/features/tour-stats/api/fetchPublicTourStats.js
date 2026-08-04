@@ -53,7 +53,13 @@ export async function fetchPublicTourStatsDoc(tourSlug) {
  */
 export async function listPublicTourStatsDocs() {
   await whenFirebaseReady();
-  const q = query(collection(db, 'public_tour_stats'), where('schemaVersion', '==', 1));
+  // Accept both payload schema generations: 1 (pre-enrichment) and 2
+  // (#666 phish.net enrichment). A hard `== 1` here silently emptied the
+  // fallback once the refresh started writing schemaVersion 2.
+  const q = query(
+    collection(db, 'public_tour_stats'),
+    where('schemaVersion', 'in', [1, 2]),
+  );
   const snap = await getDocs(q);
   return snap.docs
     .filter((d) => d.id !== '_index')

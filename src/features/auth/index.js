@@ -2,8 +2,12 @@ export { default as AuthLoadingScreen } from './ui/AuthLoadingScreen';
 export { default as OpenInBrowserBanner } from './ui/OpenInBrowserBanner';
 export { default as SplashAuthEntryCard } from './ui/SplashAuthEntryCard';
 export { default as SplashAuthModalShell } from './ui/SplashAuthModalShell';
-export { default as SplashSignInModal } from './ui/SplashSignInModal';
-export { default as SplashSignUpModal } from './ui/SplashSignUpModal';
+// SplashSignInModal / SplashSignUpModal intentionally do NOT re-export here:
+// they live in the `./modals` secondary barrel, whose only consumer is the
+// lazy boundary in features/landing SplashAuthModals (#733). Re-exporting
+// them from this root barrel adds a static edge from every auth consumer to
+// the modals chunk (dynamic-import entries are not tree-shaken), which drags
+// the whole auth-modal stack back onto the splash/invite first paint.
 export { default as PasswordResetForm } from './ui/PasswordResetForm';
 export { default as ProfileSetupForm } from './ui/ProfileSetupForm';
 export { AuthProvider, useAuth } from './provider.js';

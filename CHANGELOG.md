@@ -12,6 +12,52 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.46.2] — 2026-08-03
+
+### Changed
+- **Inbox sender badge DNS audit documented (#498)** — `docs/comms-triggers/EMAIL_INBOX_BADGE.md` now carries the 2026-08-03 live DNS audit: DMARC `p=quarantine` already meets the BIMI prerequisite, Resend DKIM is aligned, but `send.setlistpickem.com` is missing the SPF TXT half of Resend's record pair (DMARC passes on DKIM alone), `default._bimi` is unpublished, and DMARC `rua` reports go to the registrar's unmonitored default. Prioritized human DNS/registrar action list included (SPF fix, VMC-vs-CMC decision, BIMI SVG prep, optional Gmail avatar fallback).
+
+---
+
+## [1.46.1] — 2026-08-03
+
+### Changed
+- **Lazy splash/invite auth modals (#733)** — `SplashSignInModal` / `SplashSignUpModal` moved to a `features/auth/modals` secondary barrel and now load behind a `React.lazy` boundary in `SplashAuthModals`, warmed at idle after mount so click-open has no visible fetch gap. Defers ~12 kB (≈4 kB gzip) of modal-only code off the anonymous splash and invite first paint and keeps future modal-stack growth off the cold-open path. No behavior change; modals mount only while open (they rendered `null` closed).
+
+---
+
+## [1.46.0] — 2026-08-03
+
+### Added
+- **Public tour stats phish.net enrichment (#666, Phase 1)** — `refreshPublicTourStats` fetches phish.net `v5/songs` server-side (secret stays in Cloud Functions) and stamps `lifetimePlays` + `debutYear` onto every `public_tour_stats` row; public `/tour-stats` rows render a "Debut 1997 · 623 plays all-time" context line. Best-effort: refresh still writes unenriched docs (with `enrichment: null`) if phish.net is unavailable. `schemaVersion` → `2`. Dashboard Tour stats (client aggregation) unchanged.
+- **`lastPlayed` on bustout / high-gap public rows (#709 follow-up)** — same refresh looks up each unique bustout/high-gap song's phish.net play history (≤80 lookups/run, cached across tours) and stamps the date last played *before* that tour night. Powers the "Last" column shipped in 1.45.0; schedule/callable timeouts raised to 300s to fit the extra lookups.
+
+### Changed
+- `scheduledPublicTourStatsRefresh` and the admin `refreshPublicTourStats` callable now bind the `PHISHNET_API_KEY` secret.
+
+---
+
+## [1.45.1] — 2026-08-03
+
+### Fixed
+- **SERP favicon hardening (#662)** — removed the 854 KB embedded-raster `favicon.svg` and its `<link>` from the SPA shell, OG crawler HTML, and SEO prerender shells; the 96×96 PNG + ICO are now primary (square ≥48 px at stable URLs, per Google SERP favicon requirements). `verify:seo-prerender` asserts the PNG link is present and `favicon.svg` never resurfaces; nightly CI curls prod `/favicon.ico` + linked PNG for `200` + `image/*`.
+
+---
+
+## [1.45.0] — 2026-08-03
+
+### Added
+- **Tour stats pagination (#709)** — "Most played", "Bustouts", and "High gaps (non-bustout)" now surface **every** song in their category, paginated at 15 rows/page with back/forward arrows and a `16–30 of 87` range indicator. Rank numbers in Most played continue across pages. Applies to both the dashboard Tour stats tab and the public `/tour-stats` pages.
+- **"Last" (last played) column on Bustouts / High gaps (#709)** — rows render the date the song was last played *before* that tour night when the server-enriched `public_tour_stats` payload carries it (`lastPlayed`, written by `refreshPublicTourStats` from phish.net song history — see the 1.46.0 entry). The dashboard joins the dates from the world-readable public doc (`mergePublicLastPlayed`); the column self-hides while no row has a date, so nothing changes until the enriched refresh lands.
+
+### Changed
+- `aggregateTourSetlistStats` (client + functions mirror) no longer truncates `topSongs` / `gapHighlights` to top-15; `refreshPublicTourStats` writes full ranked lists to `public_tour_stats/{tourSlug}` (public page shows capped lists until the function is deployed and the nightly refresh reruns). The "In most played" self-overlay tile stays pinned to the top 15 and its tooltip now says so.
+
+### Fixed
+- **`qa:cache` CI hang + flaky threshold (#748)** — QA tooling only, no app surface. Runner now exits explicitly on every path, `vite preview` is killed by process group (orphaned vite kept CI runners alive for the full 6 h workflow limit), `qa-runners` gained `timeout-minutes: 20`, and the noisy byte-savings assertion was replaced with a deterministic count of season-stats document references in Firestore WebChannel POST bodies.
+
+---
+
 ## [1.44.3] — 2026-08-03
 
 ### Added

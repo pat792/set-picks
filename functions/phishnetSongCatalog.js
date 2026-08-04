@@ -68,13 +68,17 @@ function normalizeDebutField(raw) {
 
 /**
  * @param {unknown} row
- * @returns {{ name: string, total: string, gap: string, last: string, debut: string } | null}
+ * @returns {{ name: string, total: string, gap: string, last: string, debut: string, slug: string } | null}
  */
 function normalizePhishnetSongRow(row) {
   if (!row || typeof row !== "object") return null;
   const rec = /** @type {Record<string, unknown>} */ (row);
   const name = typeof rec.song === "string" ? rec.song.trim() : "";
   if (!name) return null;
+
+  // phish.net's canonical song slug — needed to query per-song play history
+  // (`/v5/setlists/slug/{slug}.json`) for last-played dates (#666/#709).
+  const slug = typeof rec.slug === "string" ? rec.slug.trim() : "";
 
   const times = rec.times_played;
   const total =
@@ -96,7 +100,7 @@ function normalizePhishnetSongRow(row) {
 
   const debut = normalizeDebutField(rec.debut);
 
-  return { name, total, gap, last, debut };
+  return { name, total, gap, last, debut, slug };
 }
 
 /**

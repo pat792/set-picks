@@ -66,7 +66,6 @@ export function buildHomeOgHtml({
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
   <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png?v=20260715" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg?v=20260715" />
   <link rel="shortcut icon" href="/favicon/favicon.ico?v=20260715" />
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png?v=20260715" />
   <link rel="manifest" href="/favicon/site.webmanifest?v=20260715" />
