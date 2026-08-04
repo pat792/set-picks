@@ -5,7 +5,10 @@ import { useAuth } from '../../auth';
 import { useSongCatalog } from '../../song-catalog';
 import { computeTourStatsSelfOverlay } from '../api/computeTourStatsSelfOverlay';
 import { fetchTourOfficialSetlists } from '../api/fetchTourOfficialSetlists';
-import { aggregateTourSetlistStats } from './aggregateTourSetlistStats';
+import {
+  aggregateTourSetlistStats,
+  TOUR_STATS_TOP_N,
+} from './aggregateTourSetlistStats';
 import { trackTourStatsView } from './tourStatsAnalytics';
 
 /**
@@ -77,13 +80,21 @@ export function useTourStatsScreen(options = {}) {
     });
   }, [setlistQuery.data, showDates.length, lifetimePlaysByKey]);
 
+  // #709: `stats.topSongs` is now the FULL ranked list. The "In most played"
+  // overlay tile must stay pinned to the top 15 — otherwise it degrades into
+  // "overlap with every played song".
+  const overlayTopSongTitles = useMemo(
+    () => stats.topSongs.slice(0, TOUR_STATS_TOP_N).map((r) => r.title),
+    [stats.topSongs],
+  );
+
   const overlayQuery = useQuery({
     queryKey: [
       'tour-stats-self-overlay',
       uid,
       tourName,
       showDates.join(','),
-      stats.topSongs.map((r) => r.title).join('|'),
+      overlayTopSongTitles.join('|'),
     ],
     enabled:
       Boolean(uid) &&
@@ -92,7 +103,7 @@ export function useTourStatsScreen(options = {}) {
     staleTime: 5 * 60 * 1000,
     queryFn: () =>
       computeTourStatsSelfOverlay(uid, setlistQuery.data.docs, {
-        topSongTitles: stats.topSongs.map((r) => r.title),
+        topSongTitles: overlayTopSongTitles,
       }),
   });
 

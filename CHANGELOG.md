@@ -15,6 +15,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.45.0] — 2026-08-03
+
+### Added
+- **Tour stats pagination (#709)** — "Most played", "Bustouts", and "High gaps (non-bustout)" now surface **every** song in their category, paginated at 15 rows/page with back/forward arrows and a `16–30 of 87` range indicator. Rank numbers in Most played continue across pages. Applies to both the dashboard Tour stats tab and the public `/tour-stats` pages.
+
+### Changed
+- `aggregateTourSetlistStats` (client + functions mirror) no longer truncates `topSongs` / `gapHighlights` to top-15; `refreshPublicTourStats` writes full ranked lists to `public_tour_stats/{tourSlug}` (public page shows capped lists until the function is deployed and the nightly refresh reruns). The "In most played" self-overlay tile stays pinned to the top 15 and its tooltip now says so.
+
+---
+
 ## [1.44.3] — 2026-08-03
 
 ### Added

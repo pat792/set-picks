@@ -167,8 +167,8 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 | `tourShowCount` | number | Dates in scope |
 | `showsWithSetlist` | number | Dates with an `official_setlists` doc |
 | `uniqueSongs` / `totalSongPlays` | number | Aggregate counts |
-| `topSongs` | `{ title, timesPlayed }[]` | Most played — **no** per-song `showDates` lists |
-| `bustouts` / `gapHighlights` | `{ title, gap, showDate? }[]` | Single event date OK; never a full night setlist |
+| `topSongs` | `{ title, timesPlayed }[]` | Most played, **full ranked list** as of v1.45.0 (#709; top-15 before) — **no** per-song `showDates` lists |
+| `bustouts` / `gapHighlights` | `{ title, gap, showDate? }[]` | Single event date OK; never a full night setlist. `gapHighlights` uncapped as of v1.45.0 (#709) |
 | `writtenAt` | string | ISO timestamp |
 | `schemaVersion` | number | `1` |
 
