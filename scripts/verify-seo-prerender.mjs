@@ -41,6 +41,17 @@ function assertRouteHtml(html, route, label) {
   assert(html.includes('data-seo-prerender="true"'), `${label}: missing prerender markers`);
   assert(html.includes('rel="icon"'), `${label}: missing favicon link`);
   assert(html.includes('/favicon/favicon.ico'), `${label}: missing favicon.ico link`);
+  // #662: Google SERP favicons need a linked square icon >= 48px at a stable
+  // URL; PNG/ICO are primary. The old favicon.svg (854 KB embedded raster)
+  // must not come back.
+  assert(
+    html.includes('/favicon/favicon-96x96.png'),
+    `${label}: missing 96x96 PNG icon link (SERP needs square >=48px, #662)`,
+  );
+  assert(
+    !html.includes('favicon.svg'),
+    `${label}: favicon.svg link resurfaced — PNG/ICO are primary (#662)`,
+  );
   assert(html.includes(route.canonicalUrl), `${label}: missing canonical`);
   for (const p of route.paragraphs) {
     assert(html.includes(p.slice(0, Math.min(40, p.length))), `${label}: missing body excerpt`);

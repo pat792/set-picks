@@ -32,7 +32,7 @@ Gmail shows a verified brand mark in the inbox list only when **BIMI** is fully 
 
 1. **DMARC** on `setlistpickem.com` at `p=quarantine` or `p=reject`, with SPF/DKIM alignment for `updates@setlistpickem.com` (Resend verified domain).
 2. **BIMI DNS** — publish `default._bimi.setlistpickem.com` TXT referencing an **SVG** logo URL + **VMC** (Verified Mark Certificate from an approved CA).
-3. **Logo asset** — simple square SVG (BIMI spec limits complexity; not the 854 KB `favicon.svg`).
+3. **Logo asset** — simple square SVG (BIMI spec limits complexity; a dedicated asset — the old 854 KB embedded-raster `favicon.svg` was removed in #662).
 4. **Enrollment** — register with mailbox providers; propagation can take days.
 
 This is **DNS + certificate ops**, not an app deploy. Track on #498.
