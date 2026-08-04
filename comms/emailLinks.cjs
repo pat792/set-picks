@@ -7,6 +7,9 @@ const EMAIL_CLICK_HOST = 'https://click.setlistpickem.com';
 const ALLOWED_PATH_PREFIXES = [
   '/dashboard',
   '/join',
+  '/invite',
+  '/login',
+  '/setup',
   '/how-it-works',
   '/how-scoring-works',
   '/',

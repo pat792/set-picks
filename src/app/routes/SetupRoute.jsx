@@ -12,7 +12,8 @@ export default function SetupRoute() {
   const decision = decideSetupRoute({ loading, user, userProfile });
 
   if (decision.kind === 'loading') return <AuthLoadingScreen />;
-  if (decision.kind === 'redirect-home') return <Navigate to="/" replace />;
+  // #830: unauth setup hard-opens need the app auth entry, not marketing `/`.
+  if (decision.kind === 'redirect-home') return <Navigate to="/login" replace />;
   if (decision.kind === 'redirect-dashboard') {
     return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;
   }

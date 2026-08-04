@@ -68,7 +68,7 @@ project. For testing:
 
 Cloud agents **cannot** complete Google OAuth popups or interact with
 the Firebase Console. For headless sign-in during QA, the Playwright
-runners in `scripts/qa/` sign in via the splash `/?login=true` modal
+runners in `scripts/qa/` sign in via the `/login` auth entry
 using `QA_TEST_EMAIL` / `QA_TEST_PASSWORD`.
 
 ### Feature flags / config switches
