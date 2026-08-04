@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.48.1] — 2026-08-04
+
+### Fixed
+- **App-shell splash auth modal trap (epic #835)** — after visiting `/login`, soft-nav Home no longer leaves users on app-document splash with Sign in/Create account opening modals. App `SplashPage` CTAs (and legal/pool-invite handoffs) navigate to `/login`; `MarketingPageShell` Home uses a hard `<a href="/">` so marketing `index.html` reloads. Invite VIP modals unchanged (#844).
+
+---
+
 ## [1.48.0] — 2026-08-04
 
 ### Added

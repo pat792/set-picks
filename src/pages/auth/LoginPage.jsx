@@ -1,8 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Navigate,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 
 import {
   LoginAuthScreen,
+  consumeSplashResumeAuthModal,
   useAuth,
   useGoogleRedirectCompletion,
 } from '../../features/auth';
@@ -31,14 +37,19 @@ export function resolveLoginMode(searchParams) {
 export default function LoginPage() {
   const { user, isAdmin: isAdminUser, loading } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const initialMode = resolveLoginMode(searchParams);
   const [mode, setMode] = useState(initialMode);
-  const [redirectAuthError, setRedirectAuthError] = useState('');
+  const [redirectAuthError, setRedirectAuthError] = useState(() => {
+    const seeded = location.state?.seedError;
+    return typeof seeded === 'string' ? seeded : '';
+  });
   const [poolInvitePending] = useState(
     () => Boolean(getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()),
   );
   const didStripQueryRef = useRef(false);
+  const didResumeRef = useRef(false);
 
   const goHome = useCallback(() => {
     window.location.assign('/');
@@ -63,15 +74,25 @@ export default function LoginPage() {
     onError: onRedirectError,
   });
 
+  // Terms/Privacy back-stack resume (session stash from LoginAuthScreen / modals).
+  useEffect(() => {
+    if (didResumeRef.current) return;
+    didResumeRef.current = true;
+    const resume = consumeSplashResumeAuthModal();
+    if (resume === 'signup' || resume === 'signin') setMode(resume);
+  }, []);
+
   // Strip mode/signup query after first paint so refresh stays clean.
+  // Clear router state so seedError is not replayed on later navigations.
   useEffect(() => {
     if (didStripQueryRef.current) return;
     const hasMode = Boolean(searchParams.get('mode'));
     const hasSignup = searchParams.get('signup') === '1';
-    if (!hasMode && !hasSignup) return;
+    const hasSeedState = Boolean(location.state?.seedError);
+    if (!hasMode && !hasSignup && !hasSeedState) return;
     didStripQueryRef.current = true;
-    navigate('/login', { replace: true });
-  }, [navigate, searchParams]);
+    navigate('/login', { replace: true, state: {} });
+  }, [location.state, navigate, searchParams]);
 
   if (!loading && user) {
     return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;
