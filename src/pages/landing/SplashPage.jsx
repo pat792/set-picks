@@ -7,40 +7,61 @@ import {
   useGoogleRedirectCompletion,
 } from '../../features/auth';
 import { SplashPageShell, useScrollToSectionFocus } from '../../features/landing';
-import { SplashAuthModals } from '../../features/landing/auth-modals';
 import { ScoringRulesModalProvider } from '../../features/scoring';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
 
-/** Dedupes Strict Mode double-invoke / rapid re-renders for the deferred-invite prompt. */
+/** Dedupes Strict Mode double-invoke / rapid re-renders for the deferred-invite handoff. */
 let lastDeferredPoolInvitePromptAt = 0;
 
+/**
+ * App-document splash (#832 follow-up). Auth CTAs always go to `/login` —
+ * same as marketing `MarketingHomePage` — so soft-nav Home from `/login`
+ * cannot reopen legacy splash modals. Invite VIP keeps modals (#844).
+ */
 export default function Splash() {
-  const [authModal, setAuthModal] = useState(null);
-  const [redirectAuthError, setRedirectAuthError] = useState('');
-  const closeModal = useCallback(() => setAuthModal(null), []);
-  const openSignUpModal = useCallback(() => setAuthModal('signup'), []);
-  const openSignInModal = useCallback(() => setAuthModal('signin'), []);
-  const onRedirectError = useCallback((message, intent) => {
-    setRedirectAuthError(message || '');
-    if (intent === 'signup') setAuthModal('signup');
-    else setAuthModal('signin');
-  }, []);
-  useGoogleRedirectCompletion({
-    onOpenSignIn: openSignInModal,
-    onOpenSignUp: openSignUpModal,
-    onError: onRedirectError,
-  });
-  /** Invite is stored before splash mounts; seed once for modal join-context copy. */
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const pendingRedirectErrorRef = useRef('');
+  const didHandleLoginFlagRef = useRef(false);
+  /** One-shot bootstrap for resume-from-legal + pool-invite (Strict Mode safe). */
+  const splashResumeAndInviteRef = useRef(false);
+
+  /** Invite is stored before splash mounts; seed once for /login join-context copy. */
   const [poolInvitePending] = useState(
     () => Boolean(getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()),
   );
 
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const didHandleLoginFlagRef = useRef(false);
-  /** One-shot bootstrap for resume-from-legal + pool-invite (Strict Mode safe). */
-  const splashResumeAndInviteRef = useRef(false);
+  const goLogin = useCallback(
+    (mode = 'signin', { replace = false, seedError = '' } = {}) => {
+      const path = mode === 'signup' ? '/login?mode=signup' : '/login';
+      navigate(path, {
+        replace,
+        state: seedError ? { seedError } : {},
+      });
+    },
+    [navigate],
+  );
+
+  const openSignUp = useCallback(() => goLogin('signup'), [goLogin]);
+  const openSignIn = useCallback(() => goLogin('signin'), [goLogin]);
+
+  useGoogleRedirectCompletion({
+    onOpenSignIn: () => {
+      const seedError = pendingRedirectErrorRef.current;
+      pendingRedirectErrorRef.current = '';
+      goLogin('signin', { replace: true, seedError });
+    },
+    onOpenSignUp: () => {
+      const seedError = pendingRedirectErrorRef.current;
+      pendingRedirectErrorRef.current = '';
+      goLogin('signup', { replace: true, seedError });
+    },
+    onError: (message) => {
+      pendingRedirectErrorRef.current = message || '';
+    },
+  });
+
   const {
     howItWorksSectionRef,
     howItWorksHeadingRef,
@@ -51,7 +72,7 @@ export default function Splash() {
     handleScrollToGetStarted,
     handleScrollToAbout,
     handleCreateAccountFromHowItWorks,
-  } = useScrollToSectionFocus({ onCreateAccountRequest: openSignUpModal });
+  } = useScrollToSectionFocus({ onCreateAccountRequest: openSignUp });
 
   useEffect(() => {
     if (didHandleLoginFlagRef.current) return;
@@ -59,19 +80,18 @@ export default function Splash() {
     if (flag !== 'true') return;
 
     didHandleLoginFlagRef.current = true;
-    // #832: auth lives on `/login` (app document). Keep `?login=true` as a
-    // compatibility hop until outbound links are retargeted (#830).
+    // Compat hop: legacy `/?login=true` → `/login` (#830 / #832).
     const signup = searchParams.get('signup') === '1';
-    navigate(signup ? '/login?mode=signup' : '/login', { replace: true });
-  }, [navigate, searchParams]);
+    goLogin(signup ? 'signup' : 'signin', { replace: true });
+  }, [goLogin, searchParams]);
 
   useEffect(() => {
     if (splashResumeAndInviteRef.current) return;
     splashResumeAndInviteRef.current = true;
 
     const resume = consumeSplashResumeAuthModal();
-    if (resume) {
-      setAuthModal(resume);
+    if (resume === 'signup' || resume === 'signin') {
+      goLogin(resume, { replace: true });
       return;
     }
 
@@ -83,8 +103,8 @@ export default function Splash() {
     if (now - lastDeferredPoolInvitePromptAt < 600) return;
     lastDeferredPoolInvitePromptAt = now;
     // Create account first so new Google joiners get the legal checkbox (#577 / #406).
-    openSignUpModal();
-  }, [openSignUpModal, poolInvitePending, searchParams]);
+    goLogin('signup', { replace: true });
+  }, [goLogin, poolInvitePending, searchParams]);
 
   return (
     <ScoringRulesModalProvider>
@@ -98,17 +118,8 @@ export default function Splash() {
         aboutHeadingRef={aboutHeadingRef}
         onScrollToGetStarted={handleScrollToGetStarted}
         onCreateAccountFromHowItWorks={handleCreateAccountFromHowItWorks}
-        onOpenSignUpModal={openSignUpModal}
-        onOpenSignInModal={openSignInModal}
-      />
-      <SplashAuthModals
-        authModal={authModal}
-        closeModal={closeModal}
-        onSwitchToSignIn={openSignInModal}
-        onSwitchToSignUp={openSignUpModal}
-        poolInvitePending={poolInvitePending}
-        redirectAuthError={redirectAuthError}
-        onClearRedirectAuthError={() => setRedirectAuthError('')}
+        onOpenSignUpModal={openSignUp}
+        onOpenSignInModal={openSignIn}
       />
     </ScoringRulesModalProvider>
   );
