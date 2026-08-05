@@ -4,7 +4,8 @@
 
 **Do not revive:** issue #831 hand-built HTML stub (lost branding, scoring graphics, live tour stats).
 
-**Auth / App Check sequencing (standing):** `docs/AUTH_BOOT_PRACTICES.md` — idle-warm Auth after paint; never await App Check before `signInWithPopup` (#850).
+**Auth / App Check sequencing (standing):** `docs/AUTH_BOOT_PRACTICES.md` — idle-warm Auth after paint; never await App Check before `signInWithPopup` (#850).  
+**Top-tier auth feel / residual first-tap race:** `docs/AUTH_SEAMLESS_PATH.md` · delivery epic [#856](https://github.com/pat792/set-picks/issues/856) (T0a–T3: #857–#861).
 
 ---
 

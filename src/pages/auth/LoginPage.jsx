@@ -9,6 +9,7 @@ import {
 import {
   LoginAuthScreen,
   consumeSplashResumeAuthModal,
+  markLoginAuthPaint,
   useAuth,
   useGoogleRedirectCompletion,
   warmLoginAuthSurface,
@@ -77,8 +78,12 @@ export default function LoginPage() {
 
   // After form paint: warm Auth (+ parallel App Check) so Safari Google popup
   // stays inside the user gesture (#850). Marketing `/` stays Firebase-free.
+  // #857: mark paint for auth_surface_timing (paint_to_ready).
   useEffect(() => {
-    const start = () => warmLoginAuthSurface();
+    markLoginAuthPaint();
+    const start = () => {
+      void warmLoginAuthSurface({ warmPath: 'idle' });
+    };
     if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(start, { timeout: 800 });
       return () => {

@@ -1,11 +1,72 @@
 import { ga4Event } from '../../../shared/lib/ga4';
 
 /** @typedef {'sign_in' | 'create_account'} AuthModalSurface */
+/** @typedef {'immediate' | 'idle' | 'intent'} AuthWarmPath */
+/** @typedef {'popup' | 'redirect'} AuthFlow */
+/** @typedef {'success' | 'error'} AuthTimingOutcome */
+
+/** Drop absurd outliers (tab backgrounded, etc.) — AUTH_SEAMLESS_PATH §7.2 */
+export const AUTH_TIMING_MAX_MS = 60_000;
 
 function mirrorAuthTelemetry(event, params) {
   if (import.meta.env.DEV) {
     console.info(`[telemetry] ${event}`, params);
   }
+}
+
+/**
+ * Round and cap timing ms for GA4. Returns null when the sample should be omitted.
+ * @param {number} ms
+ * @returns {number | null}
+ */
+export function clampAuthTimingMs(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const rounded = Math.round(ms);
+  if (rounded > AUTH_TIMING_MAX_MS) return null;
+  return rounded;
+}
+
+/**
+ * @param {{
+ *   valueMs: number,
+ *   warmPath?: AuthWarmPath,
+ *   navigationType?: string,
+ * }} input
+ * @returns {Record<string, string | number> | null}
+ */
+export function buildAuthSurfaceTimingParams(input) {
+  const value = clampAuthTimingMs(input.valueMs);
+  if (value == null) return null;
+  return {
+    phase: 'paint_to_ready',
+    value,
+    route_group: 'login',
+    warm_path: input.warmPath || 'idle',
+    navigation_type: input.navigationType || 'navigate',
+  };
+}
+
+/**
+ * @param {{
+ *   phase: 'click_to_popup' | 'credential_to_nav',
+ *   valueMs: number,
+ *   authFlow?: AuthFlow,
+ *   outcome: AuthTimingOutcome,
+ *   errorCode?: string,
+ * }} input
+ * @returns {Record<string, string | number> | null}
+ */
+export function buildAuthGoogleTimingParams(input) {
+  const value = clampAuthTimingMs(input.valueMs);
+  if (value == null) return null;
+  return {
+    phase: input.phase,
+    value,
+    method: 'google',
+    auth_flow: input.authFlow || 'popup',
+    outcome: input.outcome,
+    ...(input.errorCode ? { error_code: input.errorCode } : {}),
+  };
 }
 
 /**
@@ -107,4 +168,36 @@ export function trackAuthRollbackFailed(payload) {
   };
   mirrorAuthTelemetry('auth_rollback_failed', params);
   ga4Event('auth_rollback_failed', params);
+}
+
+/**
+ * `/login` Auth surface ready (paint → warm complete). Once per visit (#857).
+ * @param {{
+ *   valueMs: number,
+ *   warmPath?: AuthWarmPath,
+ *   navigationType?: string,
+ * }} payload
+ */
+export function trackAuthSurfaceTiming(payload) {
+  const params = buildAuthSurfaceTimingParams(payload);
+  if (!params) return;
+  mirrorAuthTelemetry('auth_surface_timing', params);
+  ga4Event('auth_surface_timing', params);
+}
+
+/**
+ * Google OAuth interaction timing on `/login` (#857).
+ * @param {{
+ *   phase: 'click_to_popup' | 'credential_to_nav',
+ *   valueMs: number,
+ *   authFlow?: AuthFlow,
+ *   outcome: AuthTimingOutcome,
+ *   errorCode?: string,
+ * }} payload
+ */
+export function trackAuthGoogleTiming(payload) {
+  const params = buildAuthGoogleTimingParams(payload);
+  if (!params) return;
+  mirrorAuthTelemetry('auth_google_timing', params);
+  ga4Event('auth_google_timing', params);
 }

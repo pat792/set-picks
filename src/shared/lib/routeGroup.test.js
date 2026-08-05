@@ -12,8 +12,17 @@ describe('resolveRouteGroup', () => {
     expect(resolveRouteGroup('/setup')).toBe('setup');
   });
 
-  it('maps marketing / unknown to other', () => {
-    expect(resolveRouteGroup('/how-it-works')).toBe('other');
+  it('maps login, marketing, and public tour-stats (#857)', () => {
+    expect(resolveRouteGroup('/login')).toBe('login');
+    expect(resolveRouteGroup('/login/')).toBe('login');
+    expect(resolveRouteGroup('/how-it-works')).toBe('marketing');
+    expect(resolveRouteGroup('/how-scoring-works')).toBe('marketing');
+    expect(resolveRouteGroup('/phish-setlist-prediction-game')).toBe('marketing');
+    expect(resolveRouteGroup('/tour-stats')).toBe('tour_stats');
+    expect(resolveRouteGroup('/tour-stats/song/foo')).toBe('tour_stats');
+  });
+
+  it('maps unknown paths to other', () => {
     expect(resolveRouteGroup('/privacy')).toBe('other');
     expect(resolveRouteGroup('')).toBe('other');
     expect(resolveRouteGroup(undefined)).toBe('other');
