@@ -54,13 +54,13 @@ Never introduce a MAJOR bump silently. If your diff contains a breaking change:
 - Dependency bumps with no API impact (treat as PATCH)
 - Changes to `src/` implementation details with no change to public routes, callables, or Firestore schema
 
-## Git tag (human step only)
+## Git tag after every promote (required)
 
-After `staging → main` merges, publish with:
+After every `staging → main` promote merge, agents **MUST** publish on `main` in the same turn:
 
 ```bash
-npm run release:gate:full
+git checkout main && git pull origin main
 npm run release:publish -- --confirm
 ```
 
-(`release:publish` creates the tag, pushes it, and opens the GitHub Release.) Agents MUST NOT run `release:publish` unless the user explicitly requests a tag/release.
+(`release:publish` = release-gate → annotated tag → push → `gh release create`.) Do not wait for a separate ask. Do not tag mid-train or on feature branches. See `.cursor/rules/promote-release.mdc`.
