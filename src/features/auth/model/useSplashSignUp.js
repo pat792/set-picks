@@ -15,7 +15,7 @@ import {
 import { markGoogleAuthClick } from './authLoginTiming';
 import { shouldPreferGoogleRedirectAuth } from './preferGoogleRedirectAuth';
 import { runGoogleSplashAuth } from './runGoogleSplashAuth';
-
+import { SIGNUP_LEGAL_REQUIRED_ERROR } from './signupLegalCopy';
 export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,7 +66,7 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
   const handleGoogle = useCallback(async () => {
     setError('');
     if (!legalAccepted) {
-      setError('Confirm you agree to the Terms of Service and Privacy Policy to continue.');
+      setError(SIGNUP_LEGAL_REQUIRED_ERROR);
       return;
     }
     setBusy(true);
@@ -124,7 +124,7 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
       e.preventDefault();
       setError('');
       if (!legalAccepted) {
-        setError('Confirm you agree to the Terms of Service and Privacy Policy to continue.');
+        setError(SIGNUP_LEGAL_REQUIRED_ERROR);
         return;
       }
       if (password !== confirmPassword) {

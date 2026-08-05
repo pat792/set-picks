@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.52.1] — 2026-08-05
+
+### Fixed
+- **Create account Terms gate** — Email/password fields stay disabled until Terms & Privacy are accepted (matching Google CTA). Hint copy + locked CTA label (“Accept terms to continue”) make the requirement obvious.
+
+---
+
 ## [1.52.0] — 2026-08-05
 
 ### Added
