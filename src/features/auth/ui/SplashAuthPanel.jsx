@@ -6,6 +6,7 @@ import {
   DASHBOARD_CARD_RADIUS,
 } from '../../../shared/ui/dashboardCardClasses';
 import { AUTH_GOOGLE_CTA } from './authCtaClasses';
+import { GOOGLE_CTA_DEFAULT } from './googleCtaLabel';
 
 /**
  * Shared auth credentials chrome (#834) — Google CTA, divider, and form slot.
@@ -33,7 +34,8 @@ export default function SplashAuthPanel({
   const ctaLabel =
     typeof googleLabel === 'string' && googleLabel.trim()
       ? googleLabel
-      : 'Continue with Google';
+      : GOOGLE_CTA_DEFAULT;
+  const googlePending = isGoogleDisabled && ctaLabel !== GOOGLE_CTA_DEFAULT;
   // Desktop intent warm (#850) — `/login` also immediate-warms after paint (#858).
   const intentProps =
     typeof onGoogleIntent === 'function'
@@ -71,11 +73,22 @@ export default function SplashAuthPanel({
         type="button"
         onClick={handleGoogle}
         disabled={isGoogleDisabled}
-        aria-busy={isGoogleDisabled && ctaLabel !== 'Continue with Google'}
+        aria-busy={googlePending}
         className={AUTH_GOOGLE_CTA}
         {...intentProps}
       >
-        <img src="https://www.google.com/favicon.ico" alt="" className="h-5 w-5" />
+        {googlePending ? (
+          <span
+            className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-slate-400 border-t-slate-900"
+            aria-hidden
+          />
+        ) : (
+          <img
+            src="https://www.google.com/favicon.ico"
+            alt=""
+            className="h-5 w-5"
+          />
+        )}
         {ctaLabel}
       </button>
 

@@ -11,6 +11,12 @@ export {
   LandingSeo,
   SplashPageShell,
   useScrollToSectionFocus,
+  useMarketingAuthLeave,
+  MarketingAuthLeaveOverlay,
+  AppDocumentAuthLink,
+  loginPath,
+  LOGIN_PATH,
+  LOGIN_SIGNUP_PATH,
 } from './splash';
 export { default as SplashHeader } from './ui/SplashHeader';
 export { default as SplashHeroSection } from './ui/SplashHeroSection';

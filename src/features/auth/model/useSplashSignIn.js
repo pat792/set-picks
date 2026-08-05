@@ -15,6 +15,8 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  /** Google-only pending — keeps email busy from showing “Opening Google…”. */
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [error, setError] = useState('');
   const [resetLinkNotice, setResetLinkNotice] = useState({ text: '', type: '' });
   const preferGoogleRedirect = shouldPreferGoogleRedirectAuth();
@@ -34,6 +36,7 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
     onClose?.();
     resetForm();
     setBusy(false);
+    setGoogleBusy(false);
   }, [onClose, resetForm]);
 
   useEffect(() => {
@@ -49,12 +52,14 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
     if (!isOpen) {
       resetForm();
       setBusy(false);
+      setGoogleBusy(false);
     }
   }, [isOpen, resetForm]);
 
   const handleGoogle = useCallback(async () => {
     setError('');
     setBusy(true);
+    setGoogleBusy(true);
     setSplashGoogleModalInflight();
     markGoogleAuthClick();
     let authFlow = preferGoogleRedirect ? 'redirect' : 'popup';
@@ -99,6 +104,7 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
       if (!leftViaRedirect) {
         clearSplashGoogleModalInflight();
         setBusy(false);
+        setGoogleBusy(false);
       }
     }
   }, [closeModal, preferGoogleRedirect]);
@@ -166,6 +172,7 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
     password,
     setPassword,
     busy,
+    googleBusy,
     error,
     resetLinkNotice,
     closeModal,
