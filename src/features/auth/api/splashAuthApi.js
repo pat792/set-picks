@@ -14,6 +14,7 @@ import { getPasswordResetActionCodeSettings } from '../utils/passwordResetAction
 
 // Construct lazily on first Google sign-in attempt so the shared Firebase
 // boot module doesn't allocate it on splash load (issue #242).
+// `/login` warm (#858) may construct early via {@link warmGoogleProvider}.
 let googleProvider = null;
 
 function getGoogleProvider() {
@@ -21,6 +22,11 @@ function getGoogleProvider() {
     googleProvider = new GoogleAuthProvider();
   }
   return googleProvider;
+}
+
+/** Prefetch GoogleAuthProvider during `/login` Auth-surface warm (#858). */
+export function warmGoogleProvider() {
+  getGoogleProvider();
 }
 
 /**

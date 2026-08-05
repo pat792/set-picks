@@ -23,13 +23,18 @@ export default function SplashAuthPanel({
   onGoogleIntent,
   busy,
   googleDisabled,
+  googleLabel,
   prependContent,
   googleFootnote,
   children,
 }) {
   const isGoogleDisabled =
     typeof googleDisabled === 'boolean' ? googleDisabled : busy;
-  // Desktop intent warm (#850) — mobile relies on /login idle warm after paint.
+  const ctaLabel =
+    typeof googleLabel === 'string' && googleLabel.trim()
+      ? googleLabel
+      : 'Continue with Google';
+  // Desktop intent warm (#850) — `/login` also immediate-warms after paint (#858).
   const intentProps =
     typeof onGoogleIntent === 'function'
       ? {
@@ -66,11 +71,12 @@ export default function SplashAuthPanel({
         type="button"
         onClick={handleGoogle}
         disabled={isGoogleDisabled}
+        aria-busy={isGoogleDisabled && ctaLabel !== 'Continue with Google'}
         className={AUTH_GOOGLE_CTA}
         {...intentProps}
       >
         <img src="https://www.google.com/favicon.ico" alt="" className="h-5 w-5" />
-        Continue with Google
+        {ctaLabel}
       </button>
 
       {googleFootnote ? (

@@ -4,8 +4,8 @@
 
 **Do not revive:** issue #831 hand-built HTML stub (lost branding, scoring graphics, live tour stats).
 
-**Auth / App Check sequencing (standing):** `docs/AUTH_BOOT_PRACTICES.md` — idle-warm Auth after paint; never await App Check before `signInWithPopup` (#850).  
-**Top-tier auth feel / residual first-tap race:** `docs/AUTH_SEAMLESS_PATH.md` · delivery epic [#856](https://github.com/pat792/set-picks/issues/856) (T0a–T3: #857–#861).
+**Auth / App Check sequencing (standing):** `docs/AUTH_BOOT_PRACTICES.md` — immediate warm + hard-ready Google CTA (#858); never await App Check before `signInWithPopup` (#850).  
+**Top-tier auth feel:** `docs/AUTH_SEAMLESS_PATH.md` · delivery epic [#856](https://github.com/pat792/set-picks/issues/856) (T0a–T3: #857–#861; T0b #858 hard-ready Google).
 
 ---
 
@@ -48,8 +48,9 @@ npm run build && npm run preview
 # or **prod** — not Vercel preview/staging SSO (auth wall ≠ anon cold open).
 # Private window: / — HTML shows H1/copy immediately under a thin top bar (not full-screen Loading…)
 # Network: no firebase-core on /; no HowItWorks/Scoring/Phish page chunks until those routes
-# /login — form visible quickly; firebase-core may idle-warm after paint (not before)
-# /login — Continue with Google must not wait on App Check; first Safari tap opens picker
+# /login — form visible quickly; firebase-core warms immediately after paint (not before)
+# /login — Google disabled until Auth ready (“Preparing…”); first enabled Safari tap opens picker
+# /login — Continue with Google must not wait on App Check
 # /login — inline forms (no role=dialog); session hint / Google redirect still complete
 # From /login → Home — full load of marketing /; Sign in again → /login (not modal)
 # /join/:code and /invite/:handle — still modal auth until #844
