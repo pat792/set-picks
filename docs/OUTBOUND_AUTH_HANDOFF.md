@@ -34,7 +34,8 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | Marketing shell Home | `MarketingPageShell` | `public-static` | **Done (1.48.1):** `<a href="/">` hard-nav so app-doc surfaces reload marketing `index.html` |
 | Password-reset success | `PasswordResetCompletePage` | `retarget-auth` | **Done (#881 / #890):** hard `<a href="/login">` |
 | `/?login=true` (+ optional `signup=1`) | Legacy deep links, older QA | `retarget-auth` | Compat hops: `marketingMain` + `SplashPage` → `/login` |
-| Unauth hard-open `/dashboard/*` or `/setup` | `DashboardRoute` / `SetupRoute` | `retarget-auth` | **#830 / #881:** hard-nav to `/login` thin entry (keeps `persistDashboardPath`) |
+| Unauth hard-open `/dashboard/*` or `/setup` | `DashboardRoute` / `SetupRoute` | `retarget-auth` | **#830 / #881 / #890:** hard-nav to `/login` (app.html boot; keeps `persistDashboardPath`) |
+| Account Log Out / delete → home | `useSignOut` | `public-static` | **#899 (v1.53.2):** mark post-sign-out → hard-nav marketing `/` (must not race unauth bounce to `/login`) |
 | Firebase Auth `%LINK%` → `/password-reset-complete` | Console email templates | `app-ok` | spa-boot / app path |
 
 ### Production emitters — no URL rewrites required

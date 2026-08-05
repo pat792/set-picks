@@ -1,26 +1,31 @@
 # Seamless auth & no-lag entry — path to top-tier feel
 
-**Status:** Decision / roadmap doc — **recalibrated 2026-08-05**.  
-**Delivery epic:** [#889](https://github.com/pat792/set-picks/issues/889) — HTML-first auth door (three-surface).  
+**Status:** Decision / roadmap doc — **field stop 2026-08-05** (after v1.53.2).  
+**Delivery epic (parked):** [#889](https://github.com/pat792/set-picks/issues/889) — HTML-first auth door (three-surface).  
 **Predecessor (CSR hop / Google reliability train):** [#856](https://github.com/pat792/set-picks/issues/856) — historical; remaining hop work superseded by #889.
 
-### Authoritative next step (read this first)
+### Field stop (2026-08-05) — read this first
 
-**Do not start another CSR hop tier** (more prefetch / thinner Vite entry / speculative warm as the strategy).
+**Stop shipping further auth-door / cold-open / CSR-hop work until explicitly resumed.** Prod is at **v1.53.2**.
 
-T0–T2.5 optimized the **approach path** to a client-rendered `/login`. That closed Google first-tap reliability and improved download warm, but it did **not** produce a best-in-class marketing → auth door. Phase B (#881) thin CSR login entry shipped in v1.53.0 and **regressed** Safari private to an indefinite login loading hang — fail-closed boot, not a latency miss.
+| Shipped | Notes |
+|--------|--------|
+| **v1.53.1 (#890)** | Phase 0 reliability: retire #881 thin `login.html`; `/login` boots `app.html` + branded shell again |
+| **v1.53.2 (#899)** | Log Out hang: post-sign-out → marketing `/` (not race HardRedirect → `/login`) |
 
-**Target architecture:** three surfaces —
+**Do not start another CSR hop tier.** Do not re-thin `/login`. Do not “fix feel” with more prefetch experiments in this train.
+
+Parked (not cancelled): HTML-first auth door (#889 / #892), tour-stats CDN JSON (#869), email CTA flow matrix (#893). Resume only with an explicit human go — not as agent default.
+
+Standing rules still in force: `docs/AUTH_BOOT_PRACTICES.md` (Google gesture / App Check / Safari redirect).
+
+**Target architecture (when resumed):** three surfaces —
 
 | Surface | Job | Construction |
 |--------|-----|----------------|
 | **Marketing** | SEO/GEO, demand gen | Light document; Firebase-**execute**-free on first paint |
 | **Auth door** | Sign in / sign up only | **HTML-first form** + auth-only JS hydrate (keep Firebase) |
 | **App** | Live game | Existing dashboard SPA |
-
-**Immediate:** Phase 0 — restore a login boot that always paints a working form on WebKit private (rollback/hotfix #881 hang). Freeze hop experiments until that passes.  
-**Then:** Phase 1–2 — contract + HTML-first `/login` auth door (see §5).  
-**Standing rules (gesture / App Check / redirect):** `docs/AUTH_BOOT_PRACTICES.md` (still in force; rule 2 target updates with the auth door).
 
 **Related:** `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/RELEASE_TRAIN_COLD_OPEN.md` · `docs/API.md` (`/login`) · children T0–T2.5 below (historical).
 
@@ -169,9 +174,10 @@ DEFER          → GIS / hosted IdP only if product still wants more after Phase
 
 ### Phase 0 — Stop the bleeding
 
-1. Roll back or hotfix so Safari private marketing → Sign in shows an **interactive form** (no indefinite skeleton/hang). **Vehicle:** [#890](https://github.com/pat792/set-picks/issues/890) → **v1.53.1** — retire thin `login.html` entry; `/login` boots `app.html` + branded shell again.
-2. Freeze hop/preload experiments until Phase 0 passes.
+1. Roll back or hotfix so Safari private marketing → Sign in shows an **interactive form** (no indefinite skeleton/hang). **Shipped:** [#890](https://github.com/pat792/set-picks/issues/890) → **v1.53.1** — retire thin `login.html` entry; `/login` boots `app.html` + branded shell again.
+2. Freeze hop/preload experiments until Phase 0 passes. **Field stop 2026-08-05:** freeze remains in force after **v1.53.2** (#899 Log Out fix); do not auto-continue Phase 1–2.
 3. **Gate:** WebKit private (closest available) — form every time; Google first enabled tap works.
+4. **Collateral (#899 / v1.53.2):** intentional Log Out must hard-nav marketing `/`, not race dashboard unauth → `/login`.
 
 ### Phase 1 — Architecture contract
 

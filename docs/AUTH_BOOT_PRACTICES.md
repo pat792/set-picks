@@ -3,7 +3,7 @@
 Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Learned from Safari hotfix (#850), hard-ready Google (#858), redirect (#859), hop train (#860 / #880 / #881), and the 2026-08-05 recalibration: **HTML-first auth door** is the target — not another CSR hop tier.
 
 **Roadmap / architecture:** `docs/AUTH_SEAMLESS_PATH.md` (**§5 authoritative path** — Phase 0 reliability → Phase 2 HTML-first `/login`).  
-**Related:** `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`) · code today: `ensureFirebase.js`, `warmLoginAuthSurface.js`, `prefetchLoginIntent.js` (HTML-first door in epic #889 Phase 2).
+**Related:** `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`) · `docs/AUTH_SEAMLESS_PATH.md` (**field stop 2026-08-05** at v1.53.2 — do not resume hop/HTML-first work without a human go). Code today: `ensureFirebase.js`, `warmLoginAuthSurface.js`, `prefetchLoginIntent.js`.
 
 ---
 
