@@ -20,6 +20,7 @@ export default function SplashAuthPanel({
   onClose,
   showClose = false,
   handleGoogle,
+  onGoogleIntent,
   busy,
   googleDisabled,
   prependContent,
@@ -28,6 +29,14 @@ export default function SplashAuthPanel({
 }) {
   const isGoogleDisabled =
     typeof googleDisabled === 'boolean' ? googleDisabled : busy;
+  // Desktop intent warm (#850) — mobile relies on /login idle warm after paint.
+  const intentProps =
+    typeof onGoogleIntent === 'function'
+      ? {
+          onPointerEnter: onGoogleIntent,
+          onFocus: onGoogleIntent,
+        }
+      : undefined;
 
   return (
     <div
@@ -58,6 +67,7 @@ export default function SplashAuthPanel({
         onClick={handleGoogle}
         disabled={isGoogleDisabled}
         className={AUTH_GOOGLE_CTA}
+        {...intentProps}
       >
         <img src="https://www.google.com/favicon.ico" alt="" className="h-5 w-5" />
         Continue with Google
