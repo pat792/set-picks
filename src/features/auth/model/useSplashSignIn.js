@@ -15,6 +15,7 @@ import {
   trackGoogleClickToOauthTiming,
   trackGoogleCredentialToNavTiming,
 } from './authLoginTiming';
+import { getLoginAuthSurface } from './warmLoginAuthSurface';
 
 export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
@@ -65,12 +66,30 @@ export function useSplashSignIn(isOpen, onClose, { seedError = '' } = {}) {
     const authFlow = inAppBrowser ? 'redirect' : 'popup';
     let oauthMarked = false;
     try {
-      const { auth } = await ensureAuthReady();
-      const [{ signInWithGoogle, startGoogleSignInRedirect }, { completeGoogleSplashAuth }] =
-        await Promise.all([
+      // #858: prefer warm surface — no await ensureAuthReady / dynamic-import
+      // between gesture and signInWithPopup when `/login` already gated ready.
+      const warmed = getLoginAuthSurface();
+      let auth;
+      let signInWithGoogle;
+      let startGoogleSignInRedirect;
+      let completeGoogleSplashAuth;
+      if (warmed?.auth && warmed.signInWithGoogle) {
+        ({
+          auth,
+          signInWithGoogle,
+          startGoogleSignInRedirect,
+          completeGoogleSplashAuth,
+        } = warmed);
+      } else {
+        ({ auth } = await ensureAuthReady());
+        const [api, completeMod] = await Promise.all([
           import('../api/splashAuthApi'),
           import('./completeGoogleSplashAuth'),
         ]);
+        signInWithGoogle = api.signInWithGoogle;
+        startGoogleSignInRedirect = api.startGoogleSignInRedirect;
+        completeGoogleSplashAuth = completeMod.completeGoogleSplashAuth;
+      }
       if (inAppBrowser) {
         stashGoogleRedirectIntent('signin');
         markGoogleOauthStart();

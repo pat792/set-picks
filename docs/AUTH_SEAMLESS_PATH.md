@@ -2,8 +2,9 @@
 
 **Status:** Decision / roadmap doc (2026-08-04). Delivery epic [#856](https://github.com/pat792/set-picks/issues/856).  
 **T0a:** [#857](https://github.com/pat792/set-picks/issues/857) — `route_group` + auth timing emitters (shipped in train; register GA4 dims per runbook).  
+**T0b:** [#858](https://github.com/pat792/set-picks/issues/858) — hard-ready Google CTA (immediate warm + gate + sync click path).  
 
-**Standing rules today:** `docs/AUTH_BOOT_PRACTICES.md` (#850).  
+**Standing rules today:** `docs/AUTH_BOOT_PRACTICES.md` (#850 + rule **2b** from #858).  
 **Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · predecessor [#835](https://github.com/pat792/set-picks/issues/835) · children: T0a [#857](https://github.com/pat792/set-picks/issues/857) · T0b [#858](https://github.com/pat792/set-picks/issues/858) · T1 [#859](https://github.com/pat792/set-picks/issues/859) · T2 [#860](https://github.com/pat792/set-picks/issues/860) · T3 [#861](https://github.com/pat792/set-picks/issues/861).
 
 This answers: how top-tier platforms feel instant; what we can close in this repo; what needs reconfiguration; and a staged path that starts by killing the **new** first-tap Google errors (absent on the old modal path).
@@ -27,8 +28,8 @@ They do **not** magically make a cold 300KB+ Auth SDK + popup feel free. They ar
 
 | Pattern | What top-tier does | What we do |
 |--------|--------------------|------------|
-| **A. Auth SDK ready before CTA is live** | Auth route loads Firebase Auth (or GIS) as part of becoming interactive; button disabled or hidden until ready | **Gap** — soft idle-warm after `/login` paint (#850); Google CTA stays enabled. Fast Safari tap can race Auth download → first-tap error. Tier 0. |
-| **B. Click handler is sync into OAuth** | No `await` download/init between tap and `signInWithPopup` / redirect / GIS | **Gap** — click still `await ensureAuthReady()` + dynamic-import `splashAuthApi` / `completeGoogleSplashAuth` before popup. Tier 0. |
+| **A. Auth SDK ready before CTA is live** | Auth route loads Firebase Auth (or GIS) as part of becoming interactive; button disabled or hidden until ready | **Have (#858)** — immediate `warmLoginAuthSurface` after paint; Google disabled until Auth + click modules ready (“Preparing sign-in…”). |
+| **B. Click handler is sync into OAuth** | No `await` download/init between tap and `signInWithPopup` / redirect / GIS | **Have (#858)** — warm holds Auth + modules; ready click path skips `ensureAuthReady` / dynamic-import (fallback remains for modals / warm failure). |
 | **C. App Check / backend off OAuth path** | reCAPTCHA / attestation after credential or parallel; never in front of account picker | **Have** — `#850`: `ensureAuthReady` does not await App Check; Check only before Firestore (`AUTH_BOOT_PRACTICES`). Must not regress. |
 | **D. Mobile prefers redirect (or popup→redirect fallback)** | Firebase docs: redirect preferred on mobile; many apps try popup then fall back on `popup-blocked` | **Partial** — `signInWithRedirect` only for in-app browsers; real Safari uses popup. Custom `authDomain` + `/__/auth` proxy ready. Tier 1. |
 | **E. Dedicated auth surface / host** | `accounts.*` or dedicated auth app with Auth always in the graph | **Partial** — full-page `/login` on app document (#834); not a separate auth host. Enough for Tier 0–1; Tier 3 only if needed. |
@@ -64,9 +65,9 @@ So the regression is not “popup stopped working.” It is **we removed the mod
 
 | Gap | Symptom | Close with | Gets us to top-tier? |
 |-----|---------|------------|----------------------|
-| Soft idle-warm race | First Google tap error; second works | **Hard gate:** disable Google until Auth + sign-in modules ready | **Yes (required)** — restores modal-era first-tap reliability; table stakes, not polish |
-| Click still dynamic-imports | Extra await before popup | Prefetch `splashAuthApi` + `completeGoogleSplashAuth`; click path sync into `signInWithPopup` | **Yes (required)** — same gesture invariant as top-tier; pairs with hard gate |
-| Idle delayed up to 800ms | Warm starts late | Start Auth warm **immediately after paint** on `/login` (keep marketing Firebase-free) | **Yes (partial)** — shrinks “Preparing…” window; gate still needed |
+| Soft idle-warm race | First Google tap error; second works | **Hard gate:** disable Google until Auth + sign-in modules ready | **Closed (#858)** — restores modal-era first-tap reliability |
+| Click still dynamic-imports | Extra await before popup | Prefetch `splashAuthApi` + `completeGoogleSplashAuth`; click path sync into `signInWithPopup` | **Closed (#858)** — pairs with hard gate |
+| Idle delayed up to 800ms | Warm starts late | Start Auth warm **immediately after paint** on `/login` (keep marketing Firebase-free) | **Closed (#858)** — `warmPath: immediate` |
 | Mobile no hover warm | `pointerenter` useless on touch | Gate + immediate warm; optional `pointerdown` kick | **Yes (partial)** — touch parity with desktop intent; gate covers the rest |
 | App Check in front of OAuth | Fixed in #850; must not regress | Keep `AUTH_BOOT_PRACTICES` rule 4 | **Yes (already)** — hold the line; regressing drops us below tier |
 
@@ -157,7 +158,7 @@ LATER (Tier 3)   → GIS / deeper host split only if product still wants more
 
 ### Revise standing rule?
 
-`AUTH_BOOT_PRACTICES` rule 2 (“paint before firebase-core”) stays for **first paint**. Add a sibling rule after Tier 0 ships:
+`AUTH_BOOT_PRACTICES` rule 2 (“paint before firebase-core”) stays for **first paint**. Rule **2b** shipped with #858:
 
 > **2b. Google CTA must not be enabled until Auth surface is ready.** Soft idle-warm alone is insufficient on Safari.
 
@@ -243,9 +244,10 @@ Wire from `LoginPage` / `warmLoginAuthSurface` / `useSplashSignIn|Up.handleGoogl
 
 ### 7.5 Implementation order with tiers
 
-1. **With Tier 0 PR:** `route_group` splits (§7.1) + `auth_surface_timing` + `auth_google_timing` `click_to_popup` (§7.2). Update `AUTH_TELEMETRY_RUNBOOK.md` + `WEB_VITALS_RUM.md` + register GA4 dims/metrics.  
-2. **With Tier 1:** ensure `auth_flow` on all google success/error; Exploration by flow.  
-3. **With Tier 2:** optional `warm_path=intent` on `auth_surface_timing` when marketing prefetch shortens `paint_to_ready`.
+1. **T0a (#857):** `route_group` splits (§7.1) + `auth_surface_timing` + `auth_google_timing` `click_to_popup` (§7.2). Update `AUTH_TELEMETRY_RUNBOOK.md` + `WEB_VITALS_RUM.md` + register GA4 dims/metrics.  
+2. **T0b (#858):** hard-ready Google CTA; expect `warm_path=immediate` and near-0 `click_to_popup` p75 after soak.  
+3. **With Tier 1:** ensure `auth_flow` on all google success/error; Exploration by flow.  
+4. **With Tier 2:** optional `warm_path=intent` on `auth_surface_timing` when marketing prefetch shortens `paint_to_ready`.
 
 ### 7.6 Soak dashboard (manual GA4 recipe)
 

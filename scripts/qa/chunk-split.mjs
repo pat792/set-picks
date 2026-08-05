@@ -167,6 +167,33 @@ async function run() {
       () => document.querySelector('#root')?.childElementCount > 0,
       { timeout: NAV_TIMEOUT_MS },
     );
+    // #858: `/login` immediate-warms Auth and prefetches dashboard/setup for
+    // post-auth nav. Wait until that intentional work lands in the snapshot
+    // so those chunks are not mis-attributed as leaks on the first SPA nav.
+    await page.waitForFunction(
+      () => {
+        const buttons = [...document.querySelectorAll('button')];
+        const google = buttons.find((b) =>
+          /Continue with Google|Preparing sign-in/i.test(b.textContent || ''),
+        );
+        return Boolean(
+          google &&
+            /Continue with Google/i.test(google.textContent || '') &&
+            !google.disabled,
+        );
+      },
+      { timeout: NAV_TIMEOUT_MS },
+    );
+    const warmDeadline = Date.now() + NAV_TIMEOUT_MS;
+    while (Date.now() < warmDeadline) {
+      if (
+        loadedChunks.has('DashboardRoute') &&
+        loadedChunks.has('SetupRoute')
+      ) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+    }
     const initialChunks = new Set(loadedChunks);
 
     // Scenario 1: /login -> /user/<UID> expects PublicProfilePage chunk.
