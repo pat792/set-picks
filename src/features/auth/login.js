@@ -14,6 +14,7 @@ export {
 } from './model/warmLoginAuthSurface';
 export { useLoginAuthSurfaceReady } from './model/useLoginAuthSurfaceReady';
 export { markLoginAuthPaint } from './model/authLoginTiming';
+export { trackAuthHopTiming } from './model/authAnalytics';
 export {
   stashSplashResumeAuthModal,
   consumeSplashResumeAuthModal,

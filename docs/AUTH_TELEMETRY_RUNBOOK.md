@@ -26,8 +26,9 @@ on `setlistpickem.com` (prod) — preview/staging/localhost stay silent.
 | `auth_partial_profile` | `DashboardRoute` | `has_consent` (`true`/`false`), `surface` (`dashboard_route`) | **ANOMALY** — `users/{uid}` exists but `handle` missing |
 | `auth_rollback` | `useSplashSignUp` | `method`, `stage` (`consent_write`) | Post-signup Firestore write failed; Auth account deletion initiated |
 | `auth_rollback_failed` | `useSplashSignUp` | `method`, `error_code` | The `deleteUser` rollback itself failed — phantom Auth account exists |
-| `auth_surface_timing` | `warmLoginAuthSurface` / `authLoginTiming` (**v1.49.1 / #857**; hard-ready **#858**; intent **#860**) | `phase` (`paint_to_ready`), `value` (ms), `route_group` (`login`), `warm_path` (`immediate` \| `idle` \| `intent`), `navigation_type` | Once per `/login` visit when Auth + click-path modules finish warming. Cold `/login` → `immediate`; marketing CTA prefetch → `intent` (#860). Expect `intent` share to rise after T2 soak. |
+| `auth_surface_timing` | `warmLoginAuthSurface` / `authLoginTiming` (**v1.49.1 / #857**; hard-ready **#858**; intent **#860**; speculative **#880**) | `phase` (`paint_to_ready`), `value` (ms), `route_group` (`login`), `warm_path` (`immediate` \| `idle` \| `intent` \| `speculative`), `navigation_type` | Once per `/login` visit when Auth + click-path modules finish warming. Cold `/login` → `immediate`; marketing CTA prefetch → `intent` (#860); marketing idle warm only → `speculative` (#880). |
 | `auth_google_timing` | `useSplashSignIn` / `useSplashSignUp` (**v1.49.1 / #857**) | `phase` (`click_to_popup` \| `credential_to_nav`), `value` (ms), `method` (`google`), `auth_flow`, `outcome` (`success` \| `error`), `error_code?` | Click→OAuth invoke latency; optional post-credential leave-login latency |
+| `auth_hop_timing` | `LoginPage` via marketing CTA stamp (**v1.52.0 / #880**) | `phase` (`cta_to_form`), `value` (ms), `intent` (`signin` \| `signup`), `warm_path`, `route_group` (`login`) | Marketing Sign in / Create account click → `/login` form paint. Prefer p75 when `warm_path=speculative`. |
 
 ### 1.1 Auth / content soak (epic #856)
 
@@ -38,6 +39,7 @@ Plan: [`docs/AUTH_SEAMLESS_PATH.md`](AUTH_SEAMLESS_PATH.md) §7. Field RUM group
 3. **Auth ready:** `auth_surface_timing` / `paint_to_ready` p75.
 4. **Auth click:** `auth_google_timing` / `click_to_popup` p75 (Tier 0 target after T0b: ~0–50ms).
 5. **Auth errors:** `auth_error` count / google attempts — expect drop vs week before Tier 0.
+6. **Hop (after #880):** `auth_hop_timing` / `cta_to_form` p75 by `intent` + `warm_path=speculative`.
 
 Outliers `value` > 60s are omitted client-side.
 
@@ -61,7 +63,8 @@ custom dimensions. Same for the params on the new events.
 | `auth_partial_has_consent` | Event | `has_consent` | Whether the partial doc has `termsPrivacyAcceptedAt` |
 | `auth_partial_surface` | Event | `surface` | Auth UI/route context — `sign_in`, `create_account`, or `dashboard_route` (partial-profile anomaly) |
 | `auth_timing_phase` | Event | `phase` | Timing phase — `paint_to_ready`, `click_to_popup`, `credential_to_nav` (#857) |
-| `auth_warm_path` | Event | `warm_path` | How `/login` Auth warm started — `immediate`, `idle`, `intent` (#857) |
+| `auth_warm_path` | Event | `warm_path` | How `/login` Auth warm started — `immediate`, `idle`, `intent`, `speculative` (#857 / #880) |
+| `auth_hop_intent` | Event | `intent` | Marketing hop CTA — `signin` or `signup` (`auth_hop_timing`, #880) |
 | `auth_flow` | Event | `auth_flow` | Google OAuth transport — `popup` or `redirect` |
 | `auth_timing_outcome` | Event | `outcome` | Timing sample outcome — `success` or `error` (#857) |
 

@@ -1,13 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  consumeLoginHopCta,
   consumeLoginWarmIntent,
+  consumeLoginWarmPath,
+  consumeLoginWarmSpeculative,
   extractLoginUiAssetHrefs,
   injectLoginIntentPrefetchLink,
+  markLoginHopCta,
   markLoginWarmIntent,
+  markLoginWarmSpeculative,
   peekLoginWarmIntent,
+  peekLoginWarmSpeculative,
   prefetchLoginIntent,
+  prefetchLoginSpeculative,
   resetPrefetchLoginIntentForTests,
+  scheduleSpeculativeLoginWarm,
+  shouldPrefetchLoginAssetHref,
+  shouldSkipSpeculativeLoginWarm,
 } from './prefetchLoginIntent.js';
 
 function createMemoryStorage() {
@@ -61,6 +71,13 @@ function createFakeDocument() {
   };
 }
 
+const SAMPLE_LOGIN_HTML = `
+  <link rel="modulepreload" crossorigin href="/assets/LoginPage-abc.js" data-login-boot-preload="true" />
+  <link rel="modulepreload" crossorigin href="/assets/firebase-core-xyz.js" data-login-boot-preload="true" />
+  <link rel="modulepreload" crossorigin href="/assets/firebase-appcheck-xyz.js" />
+  <script type="module" crossorigin src="/assets/app-entry-123.js"></script>
+`;
+
 describe('prefetchLoginIntent', () => {
   /** @type {ReturnType<typeof createFakeDocument>} */
   let doc;
@@ -70,6 +87,7 @@ describe('prefetchLoginIntent', () => {
     doc = createFakeDocument();
     vi.stubGlobal('sessionStorage', createMemoryStorage());
     vi.stubGlobal('document', doc);
+    vi.stubGlobal('navigator', {});
   });
 
   afterEach(() => {
@@ -86,17 +104,51 @@ describe('prefetchLoginIntent', () => {
     expect(peekLoginWarmIntent()).toBe(false);
   });
 
-  it('extracts LoginPage modulepreloads and drops firebase assets', () => {
-    const html = `
-      <link rel="modulepreload" crossorigin href="/assets/LoginPage-abc.js" data-login-boot-preload="true" />
-      <link rel="modulepreload" crossorigin href="/assets/firebase-core-xyz.js" data-login-boot-preload="true" />
-      <link rel="modulepreload" crossorigin href="/assets/firebase-appcheck-xyz.js" />
-      <script type="module" crossorigin src="/assets/app-entry-123.js"></script>
-    `;
-    expect(extractLoginUiAssetHrefs(html)).toEqual([
+  it('marks and consumes speculative warm once', () => {
+    expect(peekLoginWarmSpeculative()).toBe(false);
+    markLoginWarmSpeculative();
+    expect(peekLoginWarmSpeculative()).toBe(true);
+    expect(consumeLoginWarmSpeculative()).toBe(true);
+    expect(consumeLoginWarmSpeculative()).toBe(false);
+  });
+
+  it('consumeLoginWarmPath prefers intent over speculative', () => {
+    markLoginWarmSpeculative();
+    markLoginWarmIntent();
+    expect(consumeLoginWarmPath()).toBe('intent');
+    expect(consumeLoginWarmPath()).toBe('immediate');
+  });
+
+  it('consumeLoginWarmPath returns speculative when only idle ran', () => {
+    markLoginWarmSpeculative();
+    expect(consumeLoginWarmPath()).toBe('speculative');
+  });
+
+  it('extracts LoginPage modulepreloads and drops firebase assets by default', () => {
+    expect(extractLoginUiAssetHrefs(SAMPLE_LOGIN_HTML)).toEqual([
       '/assets/LoginPage-abc.js',
       '/assets/app-entry-123.js',
     ]);
+  });
+
+  it('includes firebase-core only in speculative mode', () => {
+    expect(
+      extractLoginUiAssetHrefs(SAMPLE_LOGIN_HTML, { includeFirebaseCore: true }),
+    ).toEqual([
+      '/assets/LoginPage-abc.js',
+      '/assets/firebase-core-xyz.js',
+      '/assets/app-entry-123.js',
+    ]);
+    expect(
+      shouldPrefetchLoginAssetHref('/assets/firebase-appcheck-xyz.js', {
+        includeFirebaseCore: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldPrefetchLoginAssetHref('/assets/firebase-core-xyz.js', {
+        includeFirebaseCore: true,
+      }),
+    ).toBe(true);
   });
 
   it('injects idempotent prefetch links', () => {
@@ -108,13 +160,9 @@ describe('prefetchLoginIntent', () => {
   });
 
   it('prefetches /login document and non-firebase assets without executing modules', async () => {
-    const html = `
-      <link rel="modulepreload" href="/assets/LoginPage-abc.js" />
-      <link rel="modulepreload" href="/assets/firebase-core-xyz.js" />
-    `;
     const fetchMock = vi.fn(async () => ({
       ok: true,
-      text: async () => html,
+      text: async () => SAMPLE_LOGIN_HTML,
     }));
     vi.stubGlobal('fetch', fetchMock);
 
@@ -138,5 +186,77 @@ describe('prefetchLoginIntent', () => {
       false,
     );
     expect(doc.links.some((l) => l.href === '/login')).toBe(true);
+  });
+
+  it('speculative warm includes firebase-core and reuses the login HTML fetch', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      text: async () => SAMPLE_LOGIN_HTML,
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect(prefetchLoginSpeculative()).toBe(true);
+    expect(peekLoginWarmSpeculative()).toBe(true);
+
+    await vi.waitFor(() => {
+      expect(doc.links.some((l) => l.href === '/assets/firebase-core-xyz.js')).toBe(
+        true,
+      );
+    });
+
+    expect(doc.links.some((l) => l.href === '/assets/firebase-appcheck-xyz.js')).toBe(
+      false,
+    );
+
+    // Intent after speculative reuses fetch; still no App Check.
+    prefetchLoginIntent();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(peekLoginWarmIntent()).toBe(true);
+  });
+
+  it('skips speculative warm when Save-Data is enabled', () => {
+    vi.stubGlobal('navigator', { connection: { saveData: true } });
+    expect(shouldSkipSpeculativeLoginWarm()).toBe(true);
+    expect(prefetchLoginSpeculative()).toBe(false);
+    expect(peekLoginWarmSpeculative()).toBe(false);
+  });
+
+  it('scheduleSpeculativeLoginWarm is idempotent and runs via idle callback', () => {
+    const idleCbs = [];
+    const ric = vi.fn((cb) => {
+      idleCbs.push(cb);
+      return 1;
+    });
+    const cancelRic = vi.fn();
+    vi.stubGlobal('window', {
+      requestIdleCallback: ric,
+      cancelIdleCallback: cancelRic,
+    });
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      text: async () => SAMPLE_LOGIN_HTML,
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const cancelA = scheduleSpeculativeLoginWarm({ timeoutMs: 1000 });
+    const cancelB = scheduleSpeculativeLoginWarm({ timeoutMs: 1000 });
+    expect(ric).toHaveBeenCalledTimes(1);
+    expect(idleCbs).toHaveLength(1);
+
+    idleCbs[0]();
+    expect(peekLoginWarmSpeculative()).toBe(true);
+
+    cancelA();
+    expect(cancelRic).toHaveBeenCalled();
+    cancelB();
+  });
+
+  it('marks and consumes hop CTA timestamps', () => {
+    const before = Date.now();
+    markLoginHopCta({ intent: 'signup' });
+    const hop = consumeLoginHopCta();
+    expect(hop?.intent).toBe('signup');
+    expect(hop?.t).toBeGreaterThanOrEqual(before);
+    expect(consumeLoginHopCta()).toBeNull();
   });
 });

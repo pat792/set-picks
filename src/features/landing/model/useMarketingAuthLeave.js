@@ -3,7 +3,10 @@ import { flushSync } from 'react-dom';
 
 import { loginPath } from './appAuthPaths';
 import { resolveMarketingAuthLeaveMessage } from './marketingAuthLeaveCopy';
-import { prefetchLoginIntent } from './prefetchLoginIntent';
+import {
+  markLoginHopCta,
+  prefetchLoginIntent,
+} from './prefetchLoginIntent';
 
 /**
  * Hard-nav to app `/login` with leave chrome + intent prefetch (#872 / #860).
@@ -26,6 +29,7 @@ export default function useMarketingAuthLeave() {
       const message = resolveMarketingAuthLeaveMessage({ signup });
       // Start cache warm before/during leave paint (#860).
       prefetchLoginIntent();
+      markLoginHopCta({ intent: signup ? 'signup' : 'signin' });
       // Commit overlay to the DOM before starting the document navigation.
       flushSync(() => {
         setLeaveMessage(message);

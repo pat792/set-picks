@@ -3,7 +3,10 @@ import { flushSync } from 'react-dom';
 
 import { loginPath } from '../model/appAuthPaths';
 import { resolveMarketingAuthLeaveMessage } from '../model/marketingAuthLeaveCopy';
-import { prefetchLoginIntent } from '../model/prefetchLoginIntent';
+import {
+  markLoginHopCta,
+  prefetchLoginIntent,
+} from '../model/prefetchLoginIntent';
 import MarketingAuthLeaveOverlay from './MarketingAuthLeaveOverlay';
 
 /**
@@ -64,6 +67,7 @@ export default function AppDocumentAuthLink({
             return;
           }
           prefetchLoginIntent();
+          markLoginHopCta({ intent: signup ? 'signup' : 'signin' });
           // Paint leave chrome; allow default hard navigation (do not preventDefault).
           flushSync(() => {
             setLeaving(true);
