@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import {
   MarketingAuthLeaveOverlay,
   resolveMarketingAuthLeaveMessage,
+  useSpeculativeLoginWarm,
 } from '../features/landing/splash';
 import MarketingHomePage from '../pages/marketing/MarketingHomePage';
 
@@ -84,6 +85,9 @@ function MarketingRouteFallback() {
  * does not download/score their chunks (#835 paint fix).
  */
 export default function MarketingApp() {
+  // After first paint: download-only warm of /login + firebase-core (#880).
+  useSpeculativeLoginWarm();
+
   return (
     <Routes>
       <Route path="/" element={<MarketingHomePage />} />

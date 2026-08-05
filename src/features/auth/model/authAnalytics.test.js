@@ -8,9 +8,11 @@ import { ga4Event } from '../../../shared/lib/ga4';
 import {
   AUTH_TIMING_MAX_MS,
   buildAuthGoogleTimingParams,
+  buildAuthHopTimingParams,
   buildAuthSurfaceTimingParams,
   clampAuthTimingMs,
   trackAuthGoogleTiming,
+  trackAuthHopTiming,
   trackAuthSurfaceTiming,
 } from './authAnalytics.js';
 
@@ -85,6 +87,24 @@ describe('buildAuthGoogleTimingParams', () => {
   });
 });
 
+describe('buildAuthHopTimingParams', () => {
+  it('builds cta_to_form params', () => {
+    expect(
+      buildAuthHopTimingParams({
+        valueMs: 2400.4,
+        intent: 'signup',
+        warmPath: 'speculative',
+      }),
+    ).toEqual({
+      phase: 'cta_to_form',
+      value: 2400,
+      intent: 'signup',
+      warm_path: 'speculative',
+      route_group: 'login',
+    });
+  });
+});
+
 describe('trackAuth*Timing', () => {
   beforeEach(() => {
     ga4Event.mockClear();
@@ -116,6 +136,21 @@ describe('trackAuth*Timing', () => {
       method: 'google',
       auth_flow: 'popup',
       outcome: 'success',
+    });
+  });
+
+  it('emits auth_hop_timing for speculative warm', () => {
+    trackAuthHopTiming({
+      valueMs: 1800,
+      intent: 'signin',
+      warmPath: 'speculative',
+    });
+    expect(ga4Event).toHaveBeenCalledWith('auth_hop_timing', {
+      phase: 'cta_to_form',
+      value: 1800,
+      intent: 'signin',
+      warm_path: 'speculative',
+      route_group: 'login',
     });
   });
 

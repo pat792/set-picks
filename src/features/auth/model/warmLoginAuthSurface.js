@@ -19,7 +19,7 @@ import { prefetchRouteChunk } from '../../../shared/lib/routeChunkPrefetch';
 import { reportLoginAuthSurfaceReady } from './authLoginTiming';
 
 let warmed = false;
-/** @type {'immediate' | 'idle' | 'intent'} */
+/** @type {'immediate' | 'idle' | 'intent' | 'speculative'} */
 let warmPathUsed = 'immediate';
 /** @type {Promise<void> | null} */
 let readyPromise = null;
@@ -83,7 +83,7 @@ export function subscribeLoginAuthSurfaceReady(cb) {
 
 /**
  * Idempotent warm after `/login` form paint (or Google button intent).
- * @param {{ warmPath?: 'immediate' | 'idle' | 'intent' }} [opts]
+ * @param {{ warmPath?: 'immediate' | 'idle' | 'intent' | 'speculative' }} [opts]
  * @returns {Promise<void>}
  */
 export function warmLoginAuthSurface(opts = {}) {
