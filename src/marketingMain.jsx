@@ -10,8 +10,7 @@ import './index.css'
 /**
  * Marketing cold-open entry (#832) — loaded from `index.html`.
  * Real splash/marketing React UI — no AuthProvider / firebase on this graph.
- * Authenticated SPA boots from `app.html` → `main.jsx`.
- * Thin login boots from `login.html` → `loginMain.jsx` (#881).
+ * Authenticated SPA boots from `app.html` → `main.jsx` (includes `/login` until #889 Phase 2).
  */
 
 try {

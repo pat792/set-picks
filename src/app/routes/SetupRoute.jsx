@@ -13,7 +13,7 @@ export default function SetupRoute() {
   const decision = decideSetupRoute({ loading, user, userProfile });
 
   if (decision.kind === 'loading') return <AuthLoadingScreen />;
-  // #830 / #881: unauth setup → thin login document (hard-nav).
+  // #830 / #881: unauth setup → `/login` hard-nav (#890: app.html boot).
   if (decision.kind === 'redirect-home') return <HardRedirect to="/login" />;
   if (decision.kind === 'redirect-dashboard') {
     return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;

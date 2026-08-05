@@ -9,6 +9,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** Paths that must boot the authenticated SPA document (`app.html`) in dev (#832). */
 const APP_DOCUMENT_PATH_PREFIXES = [
+  // #890: `/login` back on app.html after #881 thin-entry Safari hang.
+  // HTML-first auth door returns in epic #889 Phase 2 — not another CSR entry.
+  '/login',
   '/dashboard',
   '/setup',
   '/user/',
@@ -28,17 +31,13 @@ function isAppDocumentPath(pathname) {
   });
 }
 
-function isLoginDocumentPath(pathname) {
-  return pathname === '/login' || pathname.startsWith('/login/');
-}
-
 function rewriteAppDocumentRequest(req, _res, next) {
   const raw = req.url || '';
   const pathname = raw.split('?')[0];
   if (
     pathname === '/app.html' ||
-    pathname === '/login.html' ||
-    // Prerendered shells (e.g. /login/index.html) must not be rewritten again.
+    // Prerendered shells (e.g. /login/index.html) must not be rewritten again —
+    // `startsWith('/login/')` would otherwise stomp them with bare app.html.
     pathname.endsWith('.html') ||
     pathname.startsWith('/src/') ||
     pathname.startsWith('/@') ||
@@ -51,18 +50,11 @@ function rewriteAppDocumentRequest(req, _res, next) {
     next();
     return;
   }
-  const query = raw.includes('?') ? `?${raw.split('?')[1]}` : '';
-  // Thin login entry (#881) — not the dashboard SPA graph.
-  if (isLoginDocumentPath(pathname)) {
-    req.url = `/login.html${query}`;
-    next();
-    return;
-  }
-  // Serve `app.html` for dashboard/legal hard opens so they don't fall
+  // Serve `app.html` for auth/dashboard/legal hard opens so they don't fall
   // through to the marketing document (which would location.replace-loop) (#832).
   // Public `/tour-stats*` is marketing (#853).
   if (isAppDocumentPath(pathname)) {
-    req.url = `/app.html${query}`;
+    req.url = `/app.html${raw.includes('?') ? `?${raw.split('?')[1]}` : ''}`;
   }
   next();
 }
@@ -180,8 +172,6 @@ export default defineConfig({
         // Named `marketing` so built HTML references `/assets/marketing-*.js` (#832).
         marketing: path.resolve(__dirname, 'index.html'),
         app: path.resolve(__dirname, 'app.html'),
-        // Thin login entry (#881) — `/assets/login-*.js`, not the dashboard SPA.
-        login: path.resolve(__dirname, 'login.html'),
       },
       output: {
         manualChunks,
