@@ -6,11 +6,9 @@ import {
   stashGoogleRedirectIntent,
 } from './googleRedirectIntent.js';
 
-const store = new Map();
-
-beforeEach(() => {
-  store.clear();
-  vi.stubGlobal('sessionStorage', {
+function createMemoryStorage() {
+  const store = new Map();
+  return {
     getItem: (k) => (store.has(k) ? store.get(k) : null),
     setItem: (k, v) => {
       store.set(k, String(v));
@@ -19,7 +17,12 @@ beforeEach(() => {
       store.delete(k);
     },
     clear: () => store.clear(),
-  });
+  };
+}
+
+beforeEach(() => {
+  vi.stubGlobal('sessionStorage', createMemoryStorage());
+  vi.stubGlobal('localStorage', createMemoryStorage());
 });
 
 afterEach(() => {
@@ -32,6 +35,16 @@ describe('googleRedirectIntent', () => {
     expect(peekGoogleRedirectIntent()).toBe('signin');
     expect(consumeGoogleRedirectIntent()).toBe('signin');
     expect(consumeGoogleRedirectIntent()).toBe(null);
+  });
+
+  it('falls back to localStorage when sessionStorage is empty (#893)', () => {
+    stashGoogleRedirectIntent('signup');
+    sessionStorage.removeItem('setpicks_google_redirect_intent_v1');
+    expect(peekGoogleRedirectIntent()).toBe('signup');
+    expect(consumeGoogleRedirectIntent()).toBe('signup');
+    expect(localStorage.getItem('setpicks_google_redirect_intent_v1')).toBe(
+      null,
+    );
   });
 
   it('ignores invalid intents', () => {

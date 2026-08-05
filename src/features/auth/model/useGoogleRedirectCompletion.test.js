@@ -40,6 +40,7 @@ describe('completePendingGoogleRedirect', () => {
     vi.clearAllMocks();
     peekGoogleRedirectIntent.mockReturnValue(null);
     consumeGoogleRedirectResult.mockResolvedValue(null);
+    consumeGoogleRedirectIntent.mockReturnValue(null);
   });
 
   afterEach(async () => {
@@ -49,14 +50,40 @@ describe('completePendingGoogleRedirect', () => {
     resetGoogleRedirectCompletionForTests();
   });
 
-  it('no-ops when no redirect intent is stashed', async () => {
+  it('still calls getRedirectResult when no intent is stashed (#893)', async () => {
     const { completePendingGoogleRedirectForTests } = await import(
       './useGoogleRedirectCompletion.js'
     );
     await expect(completePendingGoogleRedirectForTests()).resolves.toEqual({
-      type: 'none',
+      type: 'empty',
+      hadIntent: false,
+      intent: null,
     });
-    expect(ensureAuthReady).not.toHaveBeenCalled();
+    expect(ensureAuthReady).toHaveBeenCalledTimes(1);
+    expect(consumeGoogleRedirectResult).toHaveBeenCalledTimes(1);
+    expect(consumeGoogleRedirectIntent).not.toHaveBeenCalled();
+  });
+
+  it('completes redirect when intent was dropped but credential exists', async () => {
+    peekGoogleRedirectIntent.mockReturnValue(null);
+    consumeGoogleRedirectResult.mockResolvedValue({ isNewUser: false });
+    completeGoogleSplashAuth.mockResolvedValue({ kind: 'success' });
+
+    const { completePendingGoogleRedirectForTests } = await import(
+      './useGoogleRedirectCompletion.js'
+    );
+
+    await expect(completePendingGoogleRedirectForTests()).resolves.toEqual({
+      type: 'done',
+      intent: 'signin',
+      outcome: { kind: 'success' },
+      hadIntent: true,
+    });
+    expect(completeGoogleSplashAuth).toHaveBeenCalledWith({
+      intent: 'signin',
+      isNewUser: false,
+      flow: 'redirect',
+    });
   });
 
   it('shares one in-flight getRedirectResult across concurrent callers', async () => {
@@ -72,8 +99,8 @@ describe('completePendingGoogleRedirect', () => {
       completePendingGoogleRedirectForTests(),
     ]);
 
-    expect(a).toEqual({ type: 'empty' });
-    expect(b).toEqual({ type: 'empty' });
+    expect(a).toEqual({ type: 'empty', hadIntent: true, intent: 'signup' });
+    expect(b).toEqual({ type: 'empty', hadIntent: true, intent: 'signup' });
     expect(ensureAuthReady).toHaveBeenCalledTimes(1);
     expect(consumeGoogleRedirectResult).toHaveBeenCalledTimes(1);
   });
