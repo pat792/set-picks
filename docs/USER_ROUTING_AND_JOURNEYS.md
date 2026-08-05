@@ -34,7 +34,7 @@ Cold document loads for `/dashboard/*` and `/setup` are rewritten by Vercel to `
 
 **Phase 2 (TTI):** on `/dashboard/*` (and related warm paths), `main.jsx` calls `ensureAppCheckNow()` and kicks a dynamic `import()` of `DashboardRoute` before first paint; the boot shell also `modulepreload`s the `DashboardRoute` chunk. Auth seeds `auth.currentUser`, paints profile via `getDoc` then `onSnapshot`, and dashboard loading uses `DashboardBootSkeleton` instead of bare “Loading…”. Splash stays lazy + deferred App Check.
 
-**Phase 2b (signed-out / WebView):** email in-app browsers get an “Open in browser” banner plus Google **redirect** auth (`signInWithRedirect` / `getRedirectResult`) instead of popup. Intended dashboard path is still preserved via `persistDashboardPath` (#535) before the home bounce. Normal browsers keep popup Google sign-in.
+**Phase 2b / Tier 1 (#859):** Safari, iOS, and in-app browsers use Google **redirect** auth (`signInWithRedirect` / `getRedirectResult`); desktop Chromium/Firefox keep popup (with `auth/popup-blocked` → redirect fallback). In-app browsers still get an “Open in browser” banner. Intended dashboard path is preserved via `persistDashboardPath` (#535) before the home bounce.
 
 **Phase 3 (push SPA handoff):** when a push notification is tapped and a same-origin tab already exists, `firebase-messaging-sw.js` `postMessage`s `{ type: 'NAVIGATE', path }` and focuses that tab (React Router soft-nav via `usePushNavigationBridge`). No existing tab → `clients.openWindow` hard open as before.
 

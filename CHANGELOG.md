@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.50.0] — 2026-08-04
+
+### Changed
+- **Safari / iOS Google sign-in via redirect (#859 / epic #856)** — `shouldPreferGoogleRedirectAuth` routes Safari, iOS, and in-app browsers to `signInWithRedirect` (existing stash + completion). Desktop Chromium/Firefox keep popup; `auth/popup-blocked` falls back to redirect once. Android Chrome stays popup unless WebView. Standing rule 6 in `docs/AUTH_BOOT_PRACTICES.md`.
+
+---
+
 ## [1.49.3] — 2026-08-04
 
 ### Fixed

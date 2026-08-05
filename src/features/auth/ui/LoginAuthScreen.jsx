@@ -75,7 +75,7 @@ function LoginSignInPanel({
     handleGoogle,
     handleEmailSignIn,
     handleSendPasswordResetEmail,
-    inAppBrowser,
+    preferGoogleRedirect,
   } = useSplashSignIn(true, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(email, password);
@@ -109,7 +109,7 @@ function LoginSignInPanel({
       googleLabel={googlePreparing ? 'Preparing sign-in…' : undefined}
       prependContent={prependContent}
       googleFootnote={
-        inAppBrowser
+        preferGoogleRedirect
           ? 'Continues with a full-page Google sign-in (more reliable in this browser).'
           : undefined
       }
@@ -220,7 +220,7 @@ function LoginSignUpPanel({
     error,
     handleGoogle,
     handleEmailSignUp,
-    inAppBrowser,
+    preferGoogleRedirect,
   } = useSplashSignUp(true, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(
@@ -292,7 +292,7 @@ function LoginSignUpPanel({
       googleLabel={googlePreparing ? 'Preparing sign-in…' : undefined}
       prependContent={prependContent}
       googleFootnote={
-        inAppBrowser
+        preferGoogleRedirect
           ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
           : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
       }

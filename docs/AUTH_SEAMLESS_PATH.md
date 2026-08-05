@@ -3,6 +3,7 @@
 **Status:** Decision / roadmap doc (2026-08-04). Delivery epic [#856](https://github.com/pat792/set-picks/issues/856).  
 **T0a:** [#857](https://github.com/pat792/set-picks/issues/857) — `route_group` + auth timing emitters (shipped in train; register GA4 dims per runbook).  
 **T0b:** [#858](https://github.com/pat792/set-picks/issues/858) — hard-ready Google CTA (immediate warm + gate + sync click path).  
+**T1:** [#859](https://github.com/pat792/set-picks/issues/859) — Safari/iOS → `signInWithRedirect` (+ popup→redirect on `popup-blocked`). Parallel: [#867](https://github.com/pat792/set-picks/issues/867) Safari Private “Reduce Protections” banner triage.  
 
 **Standing rules today:** `docs/AUTH_BOOT_PRACTICES.md` (#850 + rule **2b** from #858).  
 **Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · predecessor [#835](https://github.com/pat792/set-picks/issues/835) · children: T0a [#857](https://github.com/pat792/set-picks/issues/857) · T0b [#858](https://github.com/pat792/set-picks/issues/858) · T1 [#859](https://github.com/pat792/set-picks/issues/859) · T2 [#860](https://github.com/pat792/set-picks/issues/860) · T3 [#861](https://github.com/pat792/set-picks/issues/861).
@@ -31,7 +32,7 @@ They do **not** magically make a cold 300KB+ Auth SDK + popup feel free. They ar
 | **A. Auth SDK ready before CTA is live** | Auth route loads Firebase Auth (or GIS) as part of becoming interactive; button disabled or hidden until ready | **Have (#858)** — immediate `warmLoginAuthSurface` after paint; Google disabled until Auth + click modules ready (“Preparing sign-in…”). |
 | **B. Click handler is sync into OAuth** | No `await` download/init between tap and `signInWithPopup` / redirect / GIS | **Have (#858)** — warm holds Auth + modules; ready click path skips `ensureAuthReady` / dynamic-import (fallback remains for modals / warm failure). |
 | **C. App Check / backend off OAuth path** | reCAPTCHA / attestation after credential or parallel; never in front of account picker | **Have** — `#850`: `ensureAuthReady` does not await App Check; Check only before Firestore (`AUTH_BOOT_PRACTICES`). Must not regress. |
-| **D. Mobile prefers redirect (or popup→redirect fallback)** | Firebase docs: redirect preferred on mobile; many apps try popup then fall back on `popup-blocked` | **Partial** — `signInWithRedirect` only for in-app browsers; real Safari uses popup. Custom `authDomain` + `/__/auth` proxy ready. Tier 1. |
+| **D. Mobile prefers redirect (or popup→redirect fallback)** | Firebase docs: redirect preferred on mobile; many apps try popup then fall back on `popup-blocked` | **Have (#859)** — Safari / iOS / in-app → redirect; desktop Chromium/Firefox popup; `auth/popup-blocked` → one-shot redirect. Custom `authDomain` + `/__/auth` proxy unchanged. |
 | **E. Dedicated auth surface / host** | `accounts.*` or dedicated auth app with Auth always in the graph | **Partial** — full-page `/login` on app document (#834); not a separate auth host. Enough for Tier 0–1; Tier 3 only if needed. |
 | **F. Google Identity Services (GIS) button** | Google-owned button/iframe owns the gesture | **Gap** — Firebase `GoogleAuthProvider` + popup/redirect only. Tier 3 optional. |
 | **G. Returning session invisible** | Silent restore; auth UI only for signed-out | **Have** — session hint + AuthProvider restore on dashboard/email (#773); signed-in `/login` → dashboard. |
@@ -75,7 +76,7 @@ So the regression is not “popup stopped working.” It is **we removed the mod
 
 | Gap | Why we can’t fully match top-tier today | Reconfiguration | Gets us to top-tier? |
 |-----|------------------------------------------|-----------------|----------------------|
-| Safari popup residual flakiness | Even with perfect sequencing, Safari/ITP/popup blockers remain; Firebase prefers redirect on mobile | **Safari/touch → `signInWithRedirect`** (or popup then fallback). We already have redirect plumbing for WebViews + custom `authDomain` / `/__/auth` proxy | **Yes (mobile floor)** — without this, Safari can still flake after Tier 0 |
+| Safari popup residual flakiness | Even with perfect sequencing, Safari/ITP/popup blockers remain; Firebase prefers redirect on mobile | **Safari/iOS → `signInWithRedirect`** (+ popup→redirect on `popup-blocked`). Redirect plumbing + custom `authDomain` / `/__/auth` proxy | **Closed (#859)** — mobile reliability floor |
 | Auth page still “feels heavy” after OAuth | Post-auth: AuthProvider wake, profile/`whenFirebaseReady`, dashboard chunk | Keep dashboard/setup prefetch; consider eager AuthProvider on `/login` once warm starts; measure profile path | **Yes (partial)** — post-login snappiness; not the first-tap error |
 | Marketing→login still a full document swap | Dual-entry hard-nav is correct for cold marketing, but Auth starts at zero on arrival | Optional: `<link rel="modulepreload">` / prefetch Auth **from marketing Sign-in CTA** (intent prefetch) without booting Auth on `/` | **Yes (partial)** — virtually no lag into ready CTA; marketing stays Firebase-free |
 | GIS / federated button | Not integrated | Later: Google Identity Services → `signInWithCredential` if we want Google-rendered CTA | **No (optional)** — native-Google chrome; not required once A–D are solid |
@@ -103,15 +104,15 @@ So the regression is not “popup stopped working.” It is **we removed the mod
 
 SemVer: likely **PATCH**. Risk: low if gate is correct; no marketing regression.
 
-### Tier 1 — Match Firebase mobile guidance
+### Tier 1 — Match Firebase mobile guidance (**#859**)
 
 **Goal:** Reliability floor of top-tier mobile web auth.
 
-1. Real Safari / iOS / touch (or `matchMedia` coarse pointer): prefer **`signInWithRedirect`** (reuse existing stash + `useGoogleRedirectCompletion`).
-2. Desktop: keep popup.
-3. Optional: popup first, on `auth/popup-blocked` / cancelled-as-blocked → one-shot redirect fallback (common industry pattern).
+1. Safari / iOS / in-app: prefer **`signInWithRedirect`** via `shouldPreferGoogleRedirectAuth` (stash + `useGoogleRedirectCompletion`). Android Chrome stays popup unless WebView.
+2. Desktop Chromium/Firefox: keep popup.
+3. On `auth/popup-blocked` → one-shot redirect fallback.
 
-SemVer: **MINOR** if behavior/API docs change for auth flow. Needs Safari human QA + Chromium smoke.
+SemVer: **MINOR**. Needs Safari human QA + Chromium smoke.
 
 ### Tier 2 — Intent prefetch (marketing → login)
 
