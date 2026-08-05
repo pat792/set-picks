@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.54.2] — 2026-08-05
+
+### Fixed
+- **Google redirect return form flash (#893 follow-up)** — Keep the “Logging you in…” continue overlay through successful `getRedirectResult` + profile load until hard-nav leaves `/login`. Previously intent consume / `onSettled` cleared the overlay and briefly showed Continue with Google before dashboard.
+
+---
+
 ## [1.54.1] — 2026-08-05
 
 ### Fixed

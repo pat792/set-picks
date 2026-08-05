@@ -38,6 +38,13 @@ export function resolveLoginMode(searchParams) {
   return 'signin';
 }
 
+function isRedirectSuccess(result) {
+  return (
+    result?.type === 'done' &&
+    result?.outcome?.kind !== 'error'
+  );
+}
+
 /**
  * Authenticated-SPA login surface (#832 / #834).
  * Full-page inline forms — invite VIP landings keep modal chrome separately.
@@ -59,9 +66,11 @@ export default function LoginPage() {
   const [googleReturnBusy, setGoogleReturnBusy] = useState(
     () => Boolean(peekGoogleRedirectIntent()),
   );
-  const [googleReturnIntent] = useState(
+  const [googleReturnIntent, setGoogleReturnIntent] = useState(
     () => peekGoogleRedirectIntent() || 'signin',
   );
+  /** Keep continue chrome after successful redirect until hard-nav leaves. */
+  const [redirectNavPending, setRedirectNavPending] = useState(false);
   const didStripQueryRef = useRef(false);
   const didResumeRef = useRef(false);
 
@@ -78,10 +87,20 @@ export default function LoginPage() {
   }, []);
   const onRedirectError = useCallback((message, intent) => {
     setRedirectAuthError(message || '');
+    setRedirectNavPending(false);
     if (intent === 'signup') setMode('signup');
     else setMode('signin');
   }, []);
-  const onRedirectSettled = useCallback(() => {
+  const onRedirectSettled = useCallback((result) => {
+    if (isRedirectSuccess(result)) {
+      if (result.intent === 'signup' || result.intent === 'signin') {
+        setGoogleReturnIntent(result.intent);
+      }
+      setRedirectNavPending(true);
+      // Keep googleReturnBusy — do not flash the form before hard-nav.
+      return;
+    }
+    setRedirectNavPending(false);
     setGoogleReturnBusy(false);
   }, []);
 
@@ -91,14 +110,6 @@ export default function LoginPage() {
     onError: onRedirectError,
     onSettled: onRedirectSettled,
   });
-
-  // Dev StrictMode can cancel redirect completion while leaving this busy flag
-  // set — clear the overlay once the stash is gone (#885 follow-up).
-  useEffect(() => {
-    if (!googleReturnBusy) return;
-    if (peekGoogleRedirectIntent()) return;
-    setGoogleReturnBusy(false);
-  }, [googleReturnBusy]);
 
   // After form paint: warm Auth. Marketing idle/CTA warm → speculative|intent (#880/#860);
   // otherwise immediate (#858). App Check stays parallel (#850).
@@ -136,30 +147,31 @@ export default function LoginPage() {
     navigate('/login', { replace: true, state: {} });
   }, [location.state, navigate, searchParams]);
 
-  // Thin login document (#881): leave to app SPA via full navigation so
-  // hosting serves dashboard/setup shells (soft <Navigate> stays on login.js).
+  // Post-auth: hard-nav to app SPA (login document must not soft-route).
   useEffect(() => {
     if (loading || !user) return;
     window.location.replace(getDashboardEntryHref({ isAdminUser }));
   }, [loading, user, isAdminUser]);
 
-  if (!loading && user) {
-    return null;
-  }
+  // Cover redirect return + profile load + hard-nav gap (no form flash).
+  const showGoogleContinue =
+    googleReturnBusy || redirectNavPending || Boolean(user);
 
   return (
     <MarketingPageShell>
-      {googleReturnBusy ? (
+      {showGoogleContinue ? (
         <GoogleAuthContinueOverlay intent={googleReturnIntent} />
       ) : null}
-      <LoginAuthScreen
-        mode={mode}
-        onSwitchToSignIn={openSignIn}
-        onSwitchToSignUp={openSignUp}
-        onClose={goHome}
-        poolInvitePending={poolInvitePending}
-        seedError={redirectAuthError}
-      />
+      {!user ? (
+        <LoginAuthScreen
+          mode={mode}
+          onSwitchToSignIn={openSignIn}
+          onSwitchToSignUp={openSignUp}
+          onClose={goHome}
+          poolInvitePending={poolInvitePending}
+          seedError={redirectAuthError}
+        />
+      ) : null}
     </MarketingPageShell>
   );
 }
