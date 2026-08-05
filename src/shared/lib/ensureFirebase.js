@@ -1,9 +1,9 @@
 /**
- * Lazy Firebase singleton for app boot (#835 login interaction auth).
+ * Lazy Firebase singleton for app boot (#835 / #850).
  *
  * Keeps `firebase.js` / firebase-core off the `main.jsx` static graph so anon
- * `/login` can paint the form before Auth/App Check download. Call
- * {@link ensureAuthReady} from Google / email CTAs (and redirect completion).
+ * `/login` can paint the form first. Warm Auth after paint on `/login`; never
+ * await App Check before `signInWithPopup` (Safari user-gesture — #850).
  */
 
 /** @type {Promise<{ app: import('firebase/app').FirebaseApp, auth: import('firebase/auth').Auth, db: import('firebase/firestore').Firestore }> | null} */
@@ -56,15 +56,29 @@ export function waitForAuthBootRequest() {
 }
 
 /**
- * Load Firebase + warm App Check and wake AuthProvider.
- * Call at the start of Google / email sign-in/up (and Google redirect return).
+ * Kick App Check without blocking the caller (#850).
+ * Firestore paths still await via {@link whenFirebaseReady}.
+ */
+export function kickAppCheckWarm() {
+  void import('./firebaseAppCheck.js')
+    .then((m) => m.ensureAppCheckNow())
+    .catch(() => {
+      // Best-effort warm; auth CTAs must not fail if Check lags.
+    });
+}
+
+/**
+ * Load Firebase Auth and wake AuthProvider.
+ * Does **not** await App Check — required so Safari can open Google popup
+ * inside the user gesture (#850). Call {@link kickAppCheckWarm} in parallel;
+ * await Check only before Firestore writes/reads.
+ *
  * @returns {Promise<{ app: import('firebase/app').FirebaseApp, auth: import('firebase/auth').Auth, db: import('firebase/firestore').Firestore }>}
  */
 export async function ensureAuthReady() {
   requestAuthBoot();
   const fb = await ensureFirebase();
-  const { ensureAppCheckNow } = await import('./firebaseAppCheck.js');
-  await ensureAppCheckNow();
+  kickAppCheckWarm();
   return fb;
 }
 

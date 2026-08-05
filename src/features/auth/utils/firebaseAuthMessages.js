@@ -20,6 +20,10 @@ export function getFirebaseAuthErrorMessage(code) {
       return 'Too many attempts. Wait a moment and try again.';
     case 'auth/popup-closed-by-user':
       return 'Sign-in was cancelled.';
+    case 'auth/popup-blocked':
+      return 'Google sign-in was blocked. Try again — if it keeps happening, allow popups for this site or use email sign-in.';
+    case 'auth/cancelled-popup-request':
+      return 'Sign-in was interrupted. Please try again.';
     case 'auth/operation-not-allowed':
       return 'Email/password is not enabled for this app yet. Enable it in Firebase Console → Authentication → Sign-in method, or use Google.';
     default:
