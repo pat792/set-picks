@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.54.1] — 2026-08-05
+
+### Fixed
+- **Safari Google redirect return on `/login` (#893)** — Always call `getRedirectResult` after Auth is ready; do not gate completion on sessionStorage intent (Safari can drop the stash after account picker). Dual-write redirect intent to `localStorage` as a return hint. Empty result after a stashed intent shows a retry error instead of a silent form reset.
+
+---
+
 ## [1.54.0] — 2026-08-05
 
 ### Added

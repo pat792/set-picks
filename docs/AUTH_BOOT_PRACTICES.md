@@ -25,7 +25,7 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 
 5. **Await App Check only before Firestore.** Profile/consent/`public_tour_stats` go through `whenFirebaseReady` / `ensureAppCheckNow`.
 
-6. **Safari / iOS / in-app prefer redirect (#859).** Desktop Chromium/Firefox keep popup; `auth/popup-blocked` → one-shot redirect.
+6. **Safari / iOS / in-app prefer redirect (#859).** Desktop Chromium/Firefox keep popup; `auth/popup-blocked` → one-shot redirect. On return, **always** call `getRedirectResult` after Auth is ready — do not require sessionStorage intent (Safari may drop the stash; #893).
 
 7. **WebKit private is the auth-door merge gate.** `scripts/qa/*` is Chromium-only. Auth-door / gesture / boot changes need a human WebKit private check on marketing → `/login` (or closest available WebKit private). Do not claim Safari verified from `qa:*` alone.
 
