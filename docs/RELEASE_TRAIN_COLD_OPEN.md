@@ -48,7 +48,8 @@ npm run build && npm run preview
 # or **prod** — not Vercel preview/staging SSO (auth wall ≠ anon cold open).
 # Private window: / — HTML shows H1/copy immediately under a thin top bar (not full-screen Loading…)
 # Network: no firebase-core on /; no HowItWorks/Scoring/Phish page chunks until those routes
-# /login — form visible quickly; firebase-core warms immediately after paint (not before)
+# /login — auth-card boot shell (not dashboard tabs); form visible quickly after SPA mount
+# /login — firebase-core warms immediately after paint (not before)
 # /login — Google disabled until Auth ready (“Preparing…”); first enabled Safari tap opens picker
 # /login — Continue with Google must not wait on App Check
 # /login — inline forms (no role=dialog); session hint / Google redirect still complete

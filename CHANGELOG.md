@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.49.3] — 2026-08-04
+
+### Fixed
+- **`/login` boot shell no longer looks like the dashboard** — marketing CTAs (“Jump on Tour” / “Make picks now”) hard-nav to `/login`, but `login/index.html` was reusing the dashboard tab skeleton, so mobile Safari showed app chrome for several seconds before the auth form. Login now paints a header + auth-card skeleton instead.
+
+---
+
 ## [1.49.2] — 2026-08-04
 
 ### Fixed

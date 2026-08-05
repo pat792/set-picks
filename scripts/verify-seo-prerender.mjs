@@ -19,6 +19,7 @@ import {
   DASHBOARD_BOOT_SHELL_MARKER,
   LIGHT_SPA_BOOT_SHELL_REL_PATH,
   LOGIN_BOOT_PRELOAD_MARKER,
+  LOGIN_BOOT_SHELL_MARKER,
   LOGIN_BOOT_SHELL_REL_PATH,
   MARKETING_BOOT_SHELL_MARKER,
   PRERENDER_ROUTES,
@@ -26,6 +27,7 @@ import {
   TOUR_STATS_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildFixtureShellHtml,
+  buildLoginBootShellHtml,
   injectDashboardBootModulepreloads,
   injectLoginBootModulepreloads,
   injectPrerenderHtml,
@@ -122,6 +124,22 @@ assert(
   'boot shell fixture must not include SEO prerender body',
 );
 assert(!fixtureBoot.includes('<h1>leak</h1>'), 'boot shell must strip prior #root body');
+
+const fixtureLoginBoot = buildLoginBootShellHtml(dirtyShell);
+assert(
+  fixtureLoginBoot.includes(`${LOGIN_BOOT_SHELL_MARKER}="true"`),
+  'login boot fixture must include login auth-card marker',
+);
+assert(
+  !fixtureLoginBoot.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`) &&
+    !fixtureLoginBoot.includes('dbs-tabs'),
+  'login boot fixture must not reuse dashboard tab chrome',
+);
+assert(
+  fixtureLoginBoot.includes('/branding/splash-vinyl-mark.webp'),
+  'login boot fixture must include vinyl brand mark',
+);
+assert(!fixtureLoginBoot.includes('<h1>leak</h1>'), 'login boot must strip prior #root body');
 
 // Fixture: each shell modulepreloads its own route chunk + static closure (#731).
 // Both route leaves exist; HomeRoute pulls a fake auth dep so closure is covered.
@@ -371,8 +389,14 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   );
   const loginBootHtml = readFileSync(loginBootPath, 'utf8');
   assert(
-    loginBootHtml.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`),
-    'login boot shell must include branded skeleton marker',
+    loginBootHtml.includes(`${LOGIN_BOOT_SHELL_MARKER}="true"`),
+    'login boot shell must include login auth-card skeleton marker',
+  );
+  assert(
+    !loginBootHtml.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`) &&
+      !loginBootHtml.includes('dbs-tabs') &&
+      !loginBootHtml.includes('data-dashboard-boot-shell'),
+    'login boot shell must not reuse dashboard tab chrome',
   );
   assert(
     loginBootHtml.includes(`${LOGIN_BOOT_PRELOAD_MARKER}="true"`) &&
