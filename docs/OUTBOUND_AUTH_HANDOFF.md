@@ -13,7 +13,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | Class | Meaning |
 |-------|---------|
 | `app-ok` | Hard-open on authenticated SPA (`app.html` / dashboard boot / spa-boot). No change needed for dual-doc. |
-| `retarget-auth` | Was splash-modal (`/?login=true`) or unauth bounce to `/`. Emit or redirect to `/login` (thin login document — #881). |
+| `retarget-auth` | Was splash-modal (`/?login=true`) or unauth bounce to `/`. Emit or redirect to `/login` (app-document auth entry today — #890; HTML-first door in epic [#889](https://github.com/pat792/set-picks/issues/889)). |
 | `public-static` | Marketing document (`index.html` → `marketingMain`). No Firebase on cold open. |
 | `invite-shell` | `/join/*` / `/invite/*` via OG API → prefer `dist/app.html`. Auth modals stay on app shell. |
 
@@ -32,7 +32,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | Marketing splash CTAs | `MarketingHomePage` | `retarget-auth` | **Done (#832 / #834 / #835 / #872 / #860):** hard-nav `/login` / `/login?mode=signup` with leave chrome + intent prefetch of login UI (no Firebase on marketing). Mid-page Get Started chooser removed — hero/header/section CTAs go straight to auth. |
 | App-shell splash CTAs | `SplashPage` (after soft-nav / sign-out) | `retarget-auth` | **Done (1.48.1):** navigate to `/login` (no splash modals). Invite VIP still modal (#844). |
 | Marketing shell Home | `MarketingPageShell` | `public-static` | **Done (1.48.1):** `<a href="/">` hard-nav so app-doc surfaces reload marketing `index.html` |
-| Password-reset success | `PasswordResetCompletePage` | `retarget-auth` | **Done (#881):** hard `<a href="/login">` → thin login entry |
+| Password-reset success | `PasswordResetCompletePage` | `retarget-auth` | **Done (#881 / #890):** hard `<a href="/login">` |
 | `/?login=true` (+ optional `signup=1`) | Legacy deep links, older QA | `retarget-auth` | Compat hops: `marketingMain` + `SplashPage` → `/login` |
 | Unauth hard-open `/dashboard/*` or `/setup` | `DashboardRoute` / `SetupRoute` | `retarget-auth` | **#830 / #881:** hard-nav to `/login` thin entry (keeps `persistDashboardPath`) |
 | Firebase Auth `%LINK%` → `/password-reset-complete` | Console email templates | `app-ok` | spa-boot / app path |

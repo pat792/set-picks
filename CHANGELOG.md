@@ -12,10 +12,20 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.53.1] — 2026-08-05
+
+### Fixed
+- **`/login` boot restore (#890 / epic #889 Phase 0)** — Retire the #881 thin `login.html` Vite entry after Safari private indefinite loading hang. `/login` again boots `app.html` + branded login shell (pre-#881 path that paints the form). Hard-nav helpers for unauth dashboard/setup and signed-in leave stay. Next construction: HTML-first auth door (#892), not another CSR hop tier.
+
+### Changed
+- **`AUTH_SEAMLESS_PATH` / `AUTH_BOOT_PRACTICES`:** recalibrated to HTML-first auth-door strategy (epic #889); T0–T2.5 CSR hop train is historical.
+
+---
+
 ## [1.53.0] — 2026-08-05
 
 ### Added
-- **Thin login Vite entry (#881 / epic #856 T2.5 Phase B)** — `/login` boots `login.html` → `loginMain.jsx` (login + AuthProvider only), not the dashboard SPA graph from `app.html`. Prerendered `login/index.html` inherits the thin entry; marketing speculative/intent warm targets the smaller asset set. Post-auth and unauth dashboard/setup bounces hard-navigate across documents.
+- **Thin login Vite entry (#881 / epic #856 T2.5 Phase B)** — `/login` boots `login.html` → `loginMain.jsx` (login + AuthProvider only), not the dashboard SPA graph from `app.html`. **Superseded in v1.53.1 (#890)** after Safari private hang.
 
 ### Changed
 - **`AUTH_SEAMLESS_PATH` / `AUTH_BOOT_PRACTICES` / `OUTBOUND_AUTH_HANDOFF`:** Phase B shipped; `/login` is a dedicated login document.

@@ -30,7 +30,7 @@ export const APP_BOOT_SHELL_REL_PATH = 'dashboard/index.html';
 export const LIGHT_SPA_BOOT_SHELL_REL_PATH = 'spa-boot/index.html';
 
 /**
- * Branded skeleton + thin login entry for `/login` (#835 / #881).
- * Built from `dist/login.html`; modulepreloads LoginPage UI + firebase-core (#860).
+ * Branded skeleton + LoginPage UI modulepreload for `/login` (#835 / #860).
+ * Built from `dist/app.html` (#890 restore). Epic #889 Phase 2 will replace with HTML-first form.
  */
 export const LOGIN_BOOT_SHELL_REL_PATH = 'login/index.html';

@@ -42,7 +42,7 @@ export default function DashboardRoute() {
   // #535 / #830: remember intended path before bounce to `/login` so post-auth
   // lands on /dashboard/picks (etc.), not generic /dashboard. Do not send
   // unauthenticated visitors to marketing `/` (no AuthProvider there).
-  // #881: hard-nav so hosting serves the thin login entry (not soft SPA stay).
+  // #830 / #881: hard-nav to `/login` (not soft SPA stay); #890 boots app.html again.
   if (decision.kind === 'redirect-home') {
     persistDashboardPath(location.pathname, location.search);
     return <HardRedirect to="/login" />;
