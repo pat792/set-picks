@@ -10,7 +10,6 @@ const APP_DOCUMENT_PATH_PREFIXES = [
   '/login',
   '/dashboard',
   '/setup',
-  '/tour-stats',
   '/user/',
   '/password-reset-complete',
   '/privacy',
@@ -44,9 +43,9 @@ function rewriteAppDocumentRequest(req, _res, next) {
     next();
     return;
   }
-  // Prefer prerendered app-backed HTML when present (e.g. /tour-stats/).
-  // Otherwise serve `app.html` so /login and /user/* don't fall through to
-  // the marketing document (which would location.replace-loop) (#832).
+  // Serve `app.html` for auth/dashboard/legal hard opens so they don't fall
+  // through to the marketing document (which would location.replace-loop) (#832).
+  // Public `/tour-stats*` is marketing (#853).
   if (isAppDocumentPath(pathname)) {
     req.url = `/app.html${raw.includes('?') ? `?${raw.split('?')[1]}` : ''}`;
   }

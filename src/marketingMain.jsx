@@ -14,16 +14,23 @@ import './index.css'
  */
 
 try {
-  if (
-    typeof window !== 'undefined' &&
-    window.localStorage?.getItem(PERSISTED_SESSION_HINT_STORAGE_KEY) === '1'
-  ) {
-    window.location.replace('/dashboard')
-  } else if (typeof window !== 'undefined') {
-    const q = new URLSearchParams(window.location.search)
-    if (q.get('login') === 'true') {
-      const signup = q.get('signup') === '1'
-      window.location.replace(signup ? '/login?mode=signup' : '/login')
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname || ''
+    // Public tour-stats is marketing (#853) but must stay reachable for
+    // returning sessions — do not bounce them to /dashboard.
+    const isPublicTourStats =
+      path === '/tour-stats' || path.startsWith('/tour-stats/')
+    if (
+      !isPublicTourStats &&
+      window.localStorage?.getItem(PERSISTED_SESSION_HINT_STORAGE_KEY) === '1'
+    ) {
+      window.location.replace('/dashboard')
+    } else {
+      const q = new URLSearchParams(window.location.search)
+      if (q.get('login') === 'true') {
+        const signup = q.get('signup') === '1'
+        window.location.replace(signup ? '/login?mode=signup' : '/login')
+      }
     }
   }
 } catch {

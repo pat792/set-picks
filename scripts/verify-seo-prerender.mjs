@@ -299,17 +299,26 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   if (existsSync(distTourStats)) {
     const tourHtml = readFileSync(distTourStats, 'utf8');
     assert(
-      /\/assets\/app-[^"]+\.js/.test(tourHtml),
-      'prerendered /tour-stats must use the app document (live Firestore UI)',
+      /\/assets\/marketing-[^"]+\.js/.test(tourHtml),
+      'prerendered /tour-stats must boot the marketing entry (#853)',
     );
     assert(
-      !/\/assets\/marketing-[^"]+\.js/.test(tourHtml),
-      'prerendered /tour-stats must not boot the marketing entry',
+      !/\/assets\/app-[^"]+\.js/.test(tourHtml),
+      'prerendered /tour-stats must not boot the authenticated SPA entry',
     );
     assert(
       tourHtml.includes(TOUR_STATS_BOOT_PRELOAD_MARKER) &&
         tourHtml.includes('PublicTourStatsPage-'),
-      'prerendered /tour-stats must modulepreload PublicTourStatsPage (#827)',
+      'prerendered /tour-stats must modulepreload PublicTourStatsPage (#827/#853)',
+    );
+    assert(
+      !/\/assets\/firebase[^"]*\.js/.test(tourHtml),
+      'prerendered /tour-stats must not modulepreload firebase-core (fetch-time only)',
+    );
+    assert(
+      !/\/assets\/auth-[^"]+\.js/.test(tourHtml) &&
+        !tourHtml.includes('ensureFirebase-'),
+      'prerendered /tour-stats must not modulepreload auth / ensureFirebase (#853)',
     );
     assert(
       !tourHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER) &&

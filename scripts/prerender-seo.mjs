@@ -4,7 +4,8 @@
  * Run after `vite build`. Safe to re-run.
  *
  * #832: marketing routes prerender from `dist/index.html` (marketing entry).
- * App-backed public routes (`/tour-stats*`) and boot shells use `dist/app.html`.
+ * #853: `/tour-stats*` also uses the marketing shell (+ PublicTourStatsPage preload).
+ * Boot shells (`dashboard`, `spa-boot`, `login`) use `dist/app.html`.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -40,17 +41,18 @@ if (!existsSync(distApp)) {
 const marketingShell = readFileSync(distIndex, 'utf8');
 const appShell = readFileSync(distApp, 'utf8');
 
-function isAppBackedPrerenderRoute(path) {
+function isTourStatsPrerenderRoute(path) {
   return typeof path === 'string' && path.startsWith('/tour-stats');
 }
 
 for (const route of PRERENDER_ROUTES) {
-  const shell = isAppBackedPrerenderRoute(route.path) ? appShell : marketingShell;
+  const shell = marketingShell;
   let html = injectPrerenderHtml(shell, route);
   // Marketing home statically imports splash UI via marketingMain — no lazy
   // HomeRoute waterfall, so no splash modulepreload injection (#832).
-  // App-backed /tour-stats* preloads PublicTourStatsPage + closure (#827).
-  if (isAppBackedPrerenderRoute(route.path)) {
+  // /tour-stats* preloads PublicTourStatsPage UI closure; firebase stays off
+  // preload (#853 — fetch-time ensureFirebase after #835 login defer regression).
+  if (isTourStatsPrerenderRoute(route.path)) {
     html = injectTourStatsBootModulepreloads(html, distDir);
   }
   const rel = prerenderOutputRelPath(route.path);

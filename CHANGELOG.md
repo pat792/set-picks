@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.49.0] — 2026-08-04
+
+### Changed
+- **Public `/tour-stats*` → marketing document (#853)** — restores cold-open feel after #835 login firebase-deferral regressed the app-shell path. Chrome paints without `AuthProvider`; App Check + Firestore load only when fetching `public_tour_stats`. Prerender shells boot `marketing` + `PublicTourStatsPage` UI preload (no firebase-core modulepreload). Standing auth/App Check rules in `docs/AUTH_BOOT_PRACTICES.md`.
+
+---
+
 ## [1.48.4] — 2026-08-04
 
 ### Fixed

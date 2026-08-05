@@ -99,7 +99,8 @@ export default [
           patterns: [
             {
               // Block feature internals; allow index.js + intentional secondary
-              // barrels (marketing / auth-modals / splash-entry) per .cursorrules §4.
+              // barrels (marketing / auth-modals / splash-entry / login / splash /
+              // public / averages) per .cursorrules §4.
               group: [
                 "**/features/*/api/**",
                 "**/features/*/model/**",
@@ -129,7 +130,7 @@ export default [
             },
             {
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|tour-stats)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$|login(?:\\.[^/]+)?$|splash(?:\\.[^/]+)?$|public(?:\\.[^/]+)?$|averages(?:\\.[^/]+)?$).+",
               message:
                 "Cross-feature imports must target feature root or a documented secondary barrel, not deep internals.",
             },
@@ -184,7 +185,7 @@ export default [
             },
             {
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|tour-stats)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$|login(?:\\.[^/]+)?$|splash(?:\\.[^/]+)?$|public(?:\\.[^/]+)?$|averages(?:\\.[^/]+)?$).+",
               message:
                 "Cross-feature imports must target feature root or a documented secondary barrel, not deep internals.",
             },
