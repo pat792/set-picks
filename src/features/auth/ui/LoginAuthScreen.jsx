@@ -10,6 +10,7 @@ import PasswordRevealToggle, {
 } from './PasswordRevealToggle';
 import { AUTH_EMAIL_CTA } from './authCtaClasses';
 import SplashAuthPanel from './SplashAuthPanel';
+import { useLoginAuthSurfaceReady } from '../model/useLoginAuthSurfaceReady';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 import { useSplashSignUp } from '../model/useSplashSignUp';
 import { warmLoginAuthSurface } from '../model/warmLoginAuthSurface';
@@ -62,6 +63,7 @@ function LoginSignInPanel({
   seedError,
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const authSurfaceReady = useLoginAuthSurfaceReady();
   const {
     email,
     setEmail,
@@ -77,6 +79,7 @@ function LoginSignInPanel({
   } = useSplashSignIn(true, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(email, password);
+  const googlePreparing = !authSurfaceReady;
 
   const prependContent =
     poolInvitePending || error ? (
@@ -98,8 +101,12 @@ function LoginSignInPanel({
     <SplashAuthPanel
       title="Sign in"
       handleGoogle={handleGoogle}
-      onGoogleIntent={warmLoginAuthSurface}
+      onGoogleIntent={() => {
+        void warmLoginAuthSurface({ warmPath: 'intent' });
+      }}
       busy={busy}
+      googleDisabled={busy || googlePreparing}
+      googleLabel={googlePreparing ? 'Preparing sign-in…' : undefined}
       prependContent={prependContent}
       googleFootnote={
         inAppBrowser
@@ -199,6 +206,7 @@ function LoginSignUpPanel({
   seedError,
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const authSurfaceReady = useLoginAuthSurfaceReady();
   const {
     email,
     setEmail,
@@ -220,6 +228,7 @@ function LoginSignUpPanel({
     password,
     confirmPassword,
   );
+  const googlePreparing = !authSurfaceReady;
 
   const consentBlock = (
     <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-subtle/60 bg-surface-inset/60 p-3.5 text-left text-sm font-semibold leading-snug text-slate-200">
@@ -275,9 +284,12 @@ function LoginSignUpPanel({
     <SplashAuthPanel
       title="Create account"
       handleGoogle={handleGoogle}
-      onGoogleIntent={warmLoginAuthSurface}
+      onGoogleIntent={() => {
+        void warmLoginAuthSurface({ warmPath: 'intent' });
+      }}
       busy={busy}
-      googleDisabled={busy || !legalAccepted}
+      googleDisabled={busy || !legalAccepted || googlePreparing}
+      googleLabel={googlePreparing ? 'Preparing sign-in…' : undefined}
       prependContent={prependContent}
       googleFootnote={
         inAppBrowser

@@ -26,6 +26,20 @@ on `setlistpickem.com` (prod) — preview/staging/localhost stay silent.
 | `auth_partial_profile` | `DashboardRoute` | `has_consent` (`true`/`false`), `surface` (`dashboard_route`) | **ANOMALY** — `users/{uid}` exists but `handle` missing |
 | `auth_rollback` | `useSplashSignUp` | `method`, `stage` (`consent_write`) | Post-signup Firestore write failed; Auth account deletion initiated |
 | `auth_rollback_failed` | `useSplashSignUp` | `method`, `error_code` | The `deleteUser` rollback itself failed — phantom Auth account exists |
+| `auth_surface_timing` | `warmLoginAuthSurface` / `authLoginTiming` (**v1.49.1 / #857**; hard-ready **#858**) | `phase` (`paint_to_ready`), `value` (ms), `route_group` (`login`), `warm_path` (`immediate` \| `idle` \| `intent`), `navigation_type` | Once per `/login` visit when Auth + click-path modules finish warming. After #858 expect mostly `warm_path=immediate`. |
+| `auth_google_timing` | `useSplashSignIn` / `useSplashSignUp` (**v1.49.1 / #857**) | `phase` (`click_to_popup` \| `credential_to_nav`), `value` (ms), `method` (`google`), `auth_flow`, `outcome` (`success` \| `error`), `error_code?` | Click→OAuth invoke latency; optional post-credential leave-login latency |
+
+### 1.1 Auth / content soak (epic #856)
+
+Plan: [`docs/AUTH_SEAMLESS_PATH.md`](AUTH_SEAMLESS_PATH.md) §7. Field RUM groups: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
+
+1. Explore → Free form, last 7 days, device mobile, browser Safari (when sample allows).
+2. **Content:** `web_vital` / LCP p75 by `route_group` ∈ {`splash`,`marketing`,`tour_stats`}.
+3. **Auth ready:** `auth_surface_timing` / `paint_to_ready` p75.
+4. **Auth click:** `auth_google_timing` / `click_to_popup` p75 (Tier 0 target after T0b: ~0–50ms).
+5. **Auth errors:** `auth_error` count / google attempts — expect drop vs week before Tier 0.
+
+Outliers `value` > 60s are omitted client-side.
 
 ## 2. Required GA4 console configuration
 
@@ -46,6 +60,18 @@ custom dimensions. Same for the params on the new events.
 | `auth_rollback_stage` | Event | `stage` | Which post-signup write failed (`consent_write`) |
 | `auth_partial_has_consent` | Event | `has_consent` | Whether the partial doc has `termsPrivacyAcceptedAt` |
 | `auth_partial_surface` | Event | `surface` | Auth UI/route context — `sign_in`, `create_account`, or `dashboard_route` (partial-profile anomaly) |
+| `auth_timing_phase` | Event | `phase` | Timing phase — `paint_to_ready`, `click_to_popup`, `credential_to_nav` (#857) |
+| `auth_warm_path` | Event | `warm_path` | How `/login` Auth warm started — `immediate`, `idle`, `intent` (#857) |
+| `auth_flow` | Event | `auth_flow` | Google OAuth transport — `popup` or `redirect` |
+| `auth_timing_outcome` | Event | `outcome` | Timing sample outcome — `success` or `error` (#857) |
+
+**Custom metrics (Event scope)** — register once if Explorations need p75 of `value` on timing events:
+
+| Metric name (UI) | Event parameter | Unit |
+|---|---|---|
+| `auth_timing_ms` | `value` | Milliseconds |
+
+(`web_vital` already uses `value` / `route_group` / `navigation_type` — reuse those definitions; add `login` / `marketing` / `tour_stats` to any enum filters.)
 
 Historical data is **not backfilled**. New events landing after
 registration become queryable via `run_report` with

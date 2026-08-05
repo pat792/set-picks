@@ -1,8 +1,8 @@
-# Auth / Firebase boot practices (#850)
+# Auth / Firebase boot practices (#850 / #858)
 
-Standing rules for app-document auth and any surface that opens Google/`signInWithPopup` or touches Firestore under App Check. Learned from the v1.48.4 Safari hotfix (#850); apply on Phase E work (`/tour-stats`, invite/join, further `/login` feel) without re-deriving.
+Standing rules for app-document auth and any surface that opens Google/`signInWithPopup` or touches Firestore under App Check. Learned from the v1.48.4 Safari hotfix (#850) and Tier 0 hard-ready Google CTA (#858); apply on invite/join and further `/login` feel work without re-deriving.
 
-**Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`) · code: `src/shared/lib/ensureFirebase.js`, `src/features/auth/model/warmLoginAuthSurface.js`
+**Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`) · **roadmap / top-tier gap close:** `docs/AUTH_SEAMLESS_PATH.md` · code: `src/shared/lib/ensureFirebase.js`, `src/features/auth/model/warmLoginAuthSurface.js`
 
 ---
 
@@ -14,9 +14,11 @@ Standing rules for app-document auth and any surface that opens Google/`signInWi
 
 2. **Paint auth UI before firebase-core when the user is anonymous on `/login`.** Branded `login/index.html` + deferred `ensureFirebase`. Session hint and Google redirect return remain eager (user already mid-flow).
 
-3. **After auth chrome paints: idle-warm Auth.** On `/login`, call `warmLoginAuthSurface()` (or equivalent) so Auth SDK + `requestAuthBoot` run before Continue with Google. Prefetch post-auth chunks (`dashboard` / `setup`) and `splashAuthApi` in the same warm.
+2b. **Google CTA must not be enabled until Auth surface is ready (#858).** Soft idle-warm alone is insufficient on Safari. On `/login`, disable Continue with Google (brief “Preparing sign-in…” OK) until `warmLoginAuthSurface` has Auth + click-path modules (`splashAuthApi`, `completeGoogleSplashAuth`, Google provider). When ready, the click path must call `signInWithPopup` / redirect with **no** `await ensureAuthReady()` or dynamic-import on the hot path.
 
-4. **Never await App Check before `signInWithPopup` / email Auth CTAs.** Safari drops the user gesture if the click awaits reCAPTCHA Enterprise / App Check. Use `ensureAuthReady()` (Auth only + fire-and-forget `kickAppCheckWarm`). First tap must open the account picker.
+3. **After auth chrome paints: warm Auth immediately.** On `/login`, call `warmLoginAuthSurface({ warmPath: 'immediate' })` right after form paint (not only `requestIdleCallback`) so Auth SDK + `requestAuthBoot` + click modules run before the CTA enables. Prefetch post-auth chunks (`dashboard` / `setup`) in the same warm.
+
+4. **Never await App Check before `signInWithPopup` / email Auth CTAs.** Safari drops the user gesture if the click awaits reCAPTCHA Enterprise / App Check. Use `ensureAuthReady()` (Auth only + fire-and-forget `kickAppCheckWarm`) on fallback paths; warm path already kicked Check in parallel. First enabled tap must open the account picker.
 
 5. **Await App Check only before Firestore.** Profile/consent/`public_tour_stats` reads and writes go through `whenFirebaseReady` / `ensureAppCheckNow` paths. Kick Check early in parallel; do not serialize it in front of OAuth.
 
@@ -31,6 +33,7 @@ Standing rules for app-document auth and any surface that opens Google/`signInWi
 | Do not | Why |
 |--------|-----|
 | `await ensureAppCheckNow()` (or `whenFirebaseReady`) inside the Google button handler before `signInWithPopup` | Breaks Safari first-tap (#850) |
+| Enable Google while Auth/click modules are still downloading | First-tap race (#858); soft idle-warm alone loses to fast Safari taps |
 | Defer Auth until CTA with **no** post-paint warm | Cold Auth download steals the gesture / feels stuck |
 | Warm App Check by blocking first paint of marketing `/` | Undoes dual-entry win (#832) |
 | Claim “verified on Safari” from `qa:cache` / `qa:chunks` alone | Harness cannot run WebKit |
@@ -40,8 +43,8 @@ Standing rules for app-document auth and any surface that opens Google/`signInWi
 ## Quick verify
 
 ```bash
-# /login — form visible quickly; firebase-core may idle-warm after paint
+# /login — form visible quickly; Google shows Preparing… then enables
 # Network: App Check must not gate the Google popup request
-# Private Safari: first Continue with Google opens account picker (no prior failed click)
+# Private Safari: first enabled Continue with Google opens account picker (no prior failed click)
 # Marketing / — still no firebase-core on cold open
 ```

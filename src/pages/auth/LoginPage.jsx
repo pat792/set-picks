@@ -9,6 +9,7 @@ import {
 import {
   LoginAuthScreen,
   consumeSplashResumeAuthModal,
+  markLoginAuthPaint,
   useAuth,
   useGoogleRedirectCompletion,
   warmLoginAuthSurface,
@@ -75,20 +76,12 @@ export default function LoginPage() {
     onError: onRedirectError,
   });
 
-  // After form paint: warm Auth (+ parallel App Check) so Safari Google popup
-  // stays inside the user gesture (#850). Marketing `/` stays Firebase-free.
+  // After form paint: warm Auth immediately (#858) so Google CTA can hard-gate
+  // until signInWithPopup needs no chunk awaits. App Check stays parallel (#850).
+  // Marketing `/` stays Firebase-free. #857: paint mark for auth_surface_timing.
   useEffect(() => {
-    const start = () => warmLoginAuthSurface();
-    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(start, { timeout: 800 });
-      return () => {
-        if (typeof window.cancelIdleCallback === 'function') {
-          window.cancelIdleCallback(id);
-        }
-      };
-    }
-    const t = window.setTimeout(start, 0);
-    return () => window.clearTimeout(t);
+    markLoginAuthPaint();
+    void warmLoginAuthSurface({ warmPath: 'immediate' });
   }, []);
 
   // Terms/Privacy back-stack resume (session stash from LoginAuthScreen / modals).

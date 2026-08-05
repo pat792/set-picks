@@ -12,6 +12,20 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.49.2] — 2026-08-04
+
+### Fixed
+- **Hard-ready Google CTA on `/login` (#858 / epic #856)** — warm Auth + click-path modules immediately after form paint; disable Continue with Google until ready (“Preparing sign-in…”); ready click path calls `signInWithPopup` with no chunk awaits (kills first-tap Safari race after #850 soft idle-warm). Standing rule **2b** in `docs/AUTH_BOOT_PRACTICES.md`. Marketing `/` still Firebase-free.
+
+---
+
+## [1.49.1] — 2026-08-04
+
+### Added
+- **Auth/content RUM (#857 / epic #856)** — `route_group` splits for `/login` (`login`), educational marketing pages (`marketing`), and `/tour-stats*` (`tour_stats`). GA4 `auth_surface_timing` (paint→Auth warm ready) and `auth_google_timing` (click→OAuth invoke / credential→nav). Ops: `docs/AUTH_TELEMETRY_RUNBOOK.md`, `docs/WEB_VITALS_RUM.md`, `docs/AUTH_SEAMLESS_PATH.md`.
+
+---
+
 ## [1.49.0] — 2026-08-04
 
 ### Changed
