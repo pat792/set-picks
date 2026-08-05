@@ -404,8 +404,17 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'login boot shell must modulepreload LoginPage chunk (#835)',
   );
   assert(
-    !/\/assets\/firebase-core-[^"]+\.js/.test(loginBootHtml),
-    'login boot shell must not modulepreload firebase-core (#835)',
+    /\/assets\/firebase-core-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must modulepreload firebase-core (#860)',
+  );
+  assert(
+    !/\/assets\/firebaseAppCheck-[^"]+\.js/.test(loginBootHtml) &&
+      !/\/assets\/firebase-appcheck-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must not modulepreload App Check',
+  );
+  assert(
+    !/\/assets\/firebase-storage-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must not modulepreload firebase-storage',
   );
   assert(
     !loginBootHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER) &&

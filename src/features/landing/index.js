@@ -17,6 +17,9 @@ export {
   loginPath,
   LOGIN_PATH,
   LOGIN_SIGNUP_PATH,
+  prefetchLoginIntent,
+  consumeLoginWarmIntent,
+  markLoginWarmIntent,
 } from './splash';
 export { default as SplashHeader } from './ui/SplashHeader';
 export { default as SplashHeroSection } from './ui/SplashHeroSection';

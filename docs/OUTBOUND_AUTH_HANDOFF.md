@@ -29,7 +29,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | `/`, `/how-it-works`, `/how-scoring-works`, `/phish-setlist-prediction-game` | Marketing entry; some email allowlist paths | `public-static` | No Firebase until CTA → `/login` |
 | `/tour-stats*` | Public Firestore UI | `public-static` | **#853:** marketing document; Firebase only at aggregate fetch (not AuthProvider) |
 | `/join/:code`, `/invite/:handle` | Invite kits, OG `api/invite` | `invite-shell` | Prefers `dist/app.html` |
-| Marketing splash CTAs | `MarketingHomePage` | `retarget-auth` | **Done (#832 / #834 / #835):** hard-nav `/login` / `/login?mode=signup` (full-page forms). Mid-page Get Started chooser removed — hero/header/section CTAs go straight to auth. |
+| Marketing splash CTAs | `MarketingHomePage` | `retarget-auth` | **Done (#832 / #834 / #835 / #872 / #860):** hard-nav `/login` / `/login?mode=signup` with leave chrome + intent prefetch of login UI (no Firebase on marketing). Mid-page Get Started chooser removed — hero/header/section CTAs go straight to auth. |
 | App-shell splash CTAs | `SplashPage` (after soft-nav / sign-out) | `retarget-auth` | **Done (1.48.1):** navigate to `/login` (no splash modals). Invite VIP still modal (#844). |
 | Marketing shell Home | `MarketingPageShell` | `public-static` | **Done (1.48.1):** `<a href="/">` hard-nav so app-doc surfaces reload marketing `index.html` |
 | Password-reset success | `PasswordResetCompletePage` | `retarget-auth` | **Done:** `to="/login"` |

@@ -9,6 +9,7 @@ import PasswordRevealToggle, {
   shouldShowPasswordReveal,
 } from './PasswordRevealToggle';
 import { AUTH_EMAIL_CTA } from './authCtaClasses';
+import GoogleAuthContinueOverlay from './GoogleAuthContinueOverlay';
 import { resolveGoogleCtaLabel } from './googleCtaLabel';
 import SplashAuthPanel from './SplashAuthPanel';
 import { useLoginAuthSurfaceReady } from '../model/useLoginAuthSurfaceReady';
@@ -100,25 +101,27 @@ function LoginSignInPanel({
     ) : null;
 
   return (
-    <SplashAuthPanel
-      title="Sign in"
-      handleGoogle={handleGoogle}
-      onGoogleIntent={() => {
-        void warmLoginAuthSurface({ warmPath: 'intent' });
-      }}
-      busy={busy}
-      googleDisabled={busy || googlePreparing}
-      googleLabel={resolveGoogleCtaLabel({
-        preparing: googlePreparing,
-        googleBusy,
-      })}
-      prependContent={prependContent}
-      googleFootnote={
-        preferGoogleRedirect
-          ? 'Continues with a full-page Google sign-in (more reliable in this browser).'
-          : undefined
-      }
-    >
+    <>
+      {googleBusy ? <GoogleAuthContinueOverlay intent="signin" /> : null}
+      <SplashAuthPanel
+        title="Sign in"
+        handleGoogle={handleGoogle}
+        onGoogleIntent={() => {
+          void warmLoginAuthSurface({ warmPath: 'intent' });
+        }}
+        busy={busy}
+        googleDisabled={busy || googlePreparing}
+        googleLabel={resolveGoogleCtaLabel({
+          preparing: googlePreparing,
+          googleBusy,
+        })}
+        prependContent={prependContent}
+        googleFootnote={
+          preferGoogleRedirect
+            ? 'Continues with a full-page Google sign-in (more reliable in this browser).'
+            : undefined
+        }
+      >
       <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">
         <div>
           <label
@@ -201,6 +204,7 @@ function LoginSignInPanel({
         </p>
       ) : null}
     </SplashAuthPanel>
+    </>
   );
 }
 
@@ -287,25 +291,27 @@ function LoginSignUpPanel({
   );
 
   return (
-    <SplashAuthPanel
-      title="Create account"
-      handleGoogle={handleGoogle}
-      onGoogleIntent={() => {
-        void warmLoginAuthSurface({ warmPath: 'intent' });
-      }}
-      busy={busy}
-      googleDisabled={busy || !legalAccepted || googlePreparing}
-      googleLabel={resolveGoogleCtaLabel({
-        preparing: googlePreparing,
-        googleBusy,
-      })}
-      prependContent={prependContent}
-      googleFootnote={
-        preferGoogleRedirect
-          ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
-          : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
-      }
-    >
+    <>
+      {googleBusy ? <GoogleAuthContinueOverlay intent="signup" /> : null}
+      <SplashAuthPanel
+        title="Create account"
+        handleGoogle={handleGoogle}
+        onGoogleIntent={() => {
+          void warmLoginAuthSurface({ warmPath: 'intent' });
+        }}
+        busy={busy}
+        googleDisabled={busy || !legalAccepted || googlePreparing}
+        googleLabel={resolveGoogleCtaLabel({
+          preparing: googlePreparing,
+          googleBusy,
+        })}
+        prependContent={prependContent}
+        googleFootnote={
+          preferGoogleRedirect
+            ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
+            : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
+        }
+      >
       <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">
         <div>
           <label
@@ -401,5 +407,6 @@ function LoginSignUpPanel({
         </p>
       ) : null}
     </SplashAuthPanel>
+    </>
   );
 }

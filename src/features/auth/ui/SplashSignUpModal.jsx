@@ -5,6 +5,7 @@ import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
 import { StatusBanner } from '../../../shared';
 import { AUTH_EMAIL_CTA } from './authCtaClasses';
+import GoogleAuthContinueOverlay from './GoogleAuthContinueOverlay';
 import { resolveGoogleCtaLabel } from './googleCtaLabel';
 import PasswordRevealToggle, {
   shouldShowPasswordReveal,
@@ -96,22 +97,26 @@ export default function SplashSignUpModal({
   );
 
   return (
-    <SplashAuthModalShell
-      isOpen={isOpen}
-      onClose={closeModal}
-      title="Create account"
-      handleGoogle={handleGoogle}
-      busy={busy}
-      googleDisabled={busy || !legalAccepted}
-      googleLabel={resolveGoogleCtaLabel({ googleBusy })}
-      prependContent={prependContent}
-      googleFootnote={
-        preferGoogleRedirect
-          ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
-          : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
-      }
-      closeOnBackdropClick={false}
-    >
+    <>
+      {isOpen && googleBusy ? (
+        <GoogleAuthContinueOverlay intent="signup" />
+      ) : null}
+      <SplashAuthModalShell
+        isOpen={isOpen}
+        onClose={closeModal}
+        title="Create account"
+        handleGoogle={handleGoogle}
+        busy={busy}
+        googleDisabled={busy || !legalAccepted}
+        googleLabel={resolveGoogleCtaLabel({ googleBusy })}
+        prependContent={prependContent}
+        googleFootnote={
+          preferGoogleRedirect
+            ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
+            : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
+        }
+        closeOnBackdropClick={false}
+      >
       <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">
         <div>
           <label
@@ -207,5 +212,6 @@ export default function SplashSignUpModal({
         </p>
       ) : null}
     </SplashAuthModalShell>
+    </>
   );
 }

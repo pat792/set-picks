@@ -4,6 +4,7 @@
  * (sign-out, password-reset, profile setup, etc.) — those keep static Firebase edges.
  */
 export { default as LoginAuthScreen } from './ui/LoginAuthScreen';
+export { default as GoogleAuthContinueOverlay } from './ui/GoogleAuthContinueOverlay';
 export { AuthProvider, useAuth } from './provider.js';
 export { useGoogleRedirectCompletion } from './model/useGoogleRedirectCompletion';
 export {
@@ -17,3 +18,4 @@ export {
   stashSplashResumeAuthModal,
   consumeSplashResumeAuthModal,
 } from './utils/splashAuthResumeStorage';
+export { peekGoogleRedirectIntent } from './utils/googleRedirectIntent';

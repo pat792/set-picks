@@ -2,18 +2,25 @@ import { useCallback, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import { loginPath } from './appAuthPaths';
+import { prefetchLoginIntent } from './prefetchLoginIntent';
 
 /**
- * Hard-nav to app `/login` with a paint of leave chrome first (#872).
+ * Hard-nav to app `/login` with leave chrome + intent prefetch (#872 / #860).
  * Use on marketing home button CTAs (Jump on Tour, Make picks now, …).
  */
 export default function useMarketingAuthLeave() {
   const [leaving, setLeaving] = useState(false);
 
+  const onAuthCtaIntent = useCallback(() => {
+    prefetchLoginIntent();
+  }, []);
+
   const leaveToLogin = useCallback(
     ({ signup = false } = {}) => {
       if (leaving) return;
       const href = loginPath({ signup });
+      // Start cache warm before/during leave paint (#860).
+      prefetchLoginIntent();
       // Commit overlay to the DOM before starting the document navigation.
       flushSync(() => {
         setLeaving(true);
@@ -28,6 +35,7 @@ export default function useMarketingAuthLeave() {
 
   return {
     leaving,
+    onAuthCtaIntent,
     openSignUp: useCallback(() => leaveToLogin({ signup: true }), [leaveToLogin]),
     openSignIn: useCallback(() => leaveToLogin({ signup: false }), [leaveToLogin]),
   };

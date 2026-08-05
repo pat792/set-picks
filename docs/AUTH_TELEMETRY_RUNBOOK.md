@@ -26,7 +26,7 @@ on `setlistpickem.com` (prod) — preview/staging/localhost stay silent.
 | `auth_partial_profile` | `DashboardRoute` | `has_consent` (`true`/`false`), `surface` (`dashboard_route`) | **ANOMALY** — `users/{uid}` exists but `handle` missing |
 | `auth_rollback` | `useSplashSignUp` | `method`, `stage` (`consent_write`) | Post-signup Firestore write failed; Auth account deletion initiated |
 | `auth_rollback_failed` | `useSplashSignUp` | `method`, `error_code` | The `deleteUser` rollback itself failed — phantom Auth account exists |
-| `auth_surface_timing` | `warmLoginAuthSurface` / `authLoginTiming` (**v1.49.1 / #857**; hard-ready **#858**) | `phase` (`paint_to_ready`), `value` (ms), `route_group` (`login`), `warm_path` (`immediate` \| `idle` \| `intent`), `navigation_type` | Once per `/login` visit when Auth + click-path modules finish warming. After #858 expect mostly `warm_path=immediate`. |
+| `auth_surface_timing` | `warmLoginAuthSurface` / `authLoginTiming` (**v1.49.1 / #857**; hard-ready **#858**; intent **#860**) | `phase` (`paint_to_ready`), `value` (ms), `route_group` (`login`), `warm_path` (`immediate` \| `idle` \| `intent`), `navigation_type` | Once per `/login` visit when Auth + click-path modules finish warming. Cold `/login` → `immediate`; marketing CTA prefetch → `intent` (#860). Expect `intent` share to rise after T2 soak. |
 | `auth_google_timing` | `useSplashSignIn` / `useSplashSignUp` (**v1.49.1 / #857**) | `phase` (`click_to_popup` \| `credential_to_nav`), `value` (ms), `method` (`google`), `auth_flow`, `outcome` (`success` \| `error`), `error_code?` | Click→OAuth invoke latency; optional post-credential leave-login latency |
 
 ### 1.1 Auth / content soak (epic #856)
