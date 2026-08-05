@@ -30,7 +30,7 @@ export const APP_BOOT_SHELL_REL_PATH = 'dashboard/index.html';
 export const LIGHT_SPA_BOOT_SHELL_REL_PATH = 'spa-boot/index.html';
 
 /**
- * Branded skeleton + LoginPage UI modulepreload for `/login` (#835).
- * Must not preload firebase-core — Auth loads on interaction.
+ * Branded skeleton + thin login entry for `/login` (#835 / #881).
+ * Built from `dist/login.html`; modulepreloads LoginPage UI + firebase-core (#860).
  */
 export const LOGIN_BOOT_SHELL_REL_PATH = 'login/index.html';

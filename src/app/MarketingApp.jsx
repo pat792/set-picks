@@ -21,7 +21,10 @@ const PublicTourStatsPage = lazy(
   () => import('../pages/marketing/PublicTourStatsPage'),
 );
 
-/** Paths that still boot the authenticated SPA document (`app.html`) (#832). */
+/**
+ * Paths that leave the marketing document (#832 / #881).
+ * `/login` → thin login entry; others → authenticated SPA (`app.html`).
+ */
 function isAppDocumentPath(pathname) {
   if (typeof pathname !== 'string' || !pathname) return false;
   const prefixes = [
@@ -41,8 +44,8 @@ function isAppDocumentPath(pathname) {
 }
 
 /**
- * Full navigation into the authenticated SPA document.
- * Used when a marketing-shell Link targets a Firebase-backed route.
+ * Full navigation out of the marketing document.
+ * Used when a marketing-shell Link targets login / Firebase-backed routes.
  */
 function LoadAppDocument() {
   useEffect(() => {

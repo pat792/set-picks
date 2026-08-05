@@ -313,6 +313,21 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'dist/app.html must boot the authenticated SPA entry chunk',
   );
 
+  const distLoginEntry = join(root, 'dist', 'login.html');
+  assert(
+    existsSync(distLoginEntry),
+    'dist missing login.html — thin login Vite entry (#881)',
+  );
+  const loginEntryHtml = readFileSync(distLoginEntry, 'utf8');
+  assert(
+    /\/assets\/login-[^"]+\.js/.test(loginEntryHtml),
+    'dist/login.html must boot the thin login entry chunk (#881)',
+  );
+  assert(
+    !/\/assets\/app-[^"]+\.js/.test(loginEntryHtml),
+    'dist/login.html must not boot the dashboard SPA entry',
+  );
+
   const distTourStats = join(root, 'dist', 'tour-stats', 'index.html');
   if (existsSync(distTourStats)) {
     const tourHtml = readFileSync(distTourStats, 'utf8');
@@ -399,6 +414,14 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'login boot shell must not reuse dashboard tab chrome',
   );
   assert(
+    /\/assets\/login-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must boot thin login entry (#881)',
+  );
+  assert(
+    !/\/assets\/app-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must not boot dashboard SPA entry (#881)',
+  );
+  assert(
     loginBootHtml.includes(`${LOGIN_BOOT_PRELOAD_MARKER}="true"`) &&
       loginBootHtml.includes('LoginPage-'),
     'login boot shell must modulepreload LoginPage chunk (#835)',
@@ -418,8 +441,9 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   );
   assert(
     !loginBootHtml.includes(DASHBOARD_BOOT_PRELOAD_MARKER) &&
-      !loginBootHtml.includes('DashboardRoute-'),
-    'login boot shell must not pull DashboardRoute',
+      !loginBootHtml.includes('DashboardRoute-') &&
+      !/\/assets\/vendor-react-query-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must not pull DashboardRoute or react-query (#881)',
   );
   assert(
     !loginBootHtml.includes('data-seo-prerender'),
