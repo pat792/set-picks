@@ -96,7 +96,12 @@ const EMPTY_REDIRECT_MESSAGE =
  *   onOpenSignIn?: () => void,
  *   onOpenSignUp?: () => void,
  *   onError?: (message: string, intent: 'signin' | 'signup' | null) => void,
- *   onSettled?: () => void,
+ *   onSettled?: (result: {
+ *     type: 'none' | 'empty' | 'done' | 'error',
+ *     intent?: 'signin' | 'signup' | null,
+ *     outcome?: { kind: string, message?: string },
+ *     hadIntent?: boolean,
+ *   }) => void,
  * }} [opts]
  */
 export function useGoogleRedirectCompletion({
@@ -143,9 +148,9 @@ export function useGoogleRedirectCompletion({
           else cbs.onOpenSignIn?.();
         }
       }
-      // Always settle — including after StrictMode cancelled the first subscriber —
-      // so LoginPage `googleReturnBusy` cannot stick forever on `:5173`.
-      cbs.onSettled?.();
+      // Always settle (incl. StrictMode cancelled first subscriber). Pass result
+      // so LoginPage can keep the continue overlay through post-auth hard-nav.
+      cbs.onSettled?.(result);
     });
 
     return () => {
