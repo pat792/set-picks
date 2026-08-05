@@ -25,7 +25,7 @@ export const SPLASH_BOOT_MODULEPRELOAD_PREFIXES = ['HomeRoute-'];
 /** Chunk filename prefixes for prerendered public `/tour-stats*` (#827). */
 export const TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES = ['PublicTourStatsPage-'];
 
-/** Chunk filename prefixes for `/login` boot shell (#835) — UI only. */
+/** Chunk filename prefixes for `/login` boot shell (#835 / #892) — form UI hydrate. */
 export const LOGIN_BOOT_MODULEPRELOAD_PREFIXES = ['LoginPage-'];
 
 /** Attribute markers asserted by `verify:seo-prerender`. */
@@ -218,10 +218,11 @@ export function stripFirebaseModulepreloads(html) {
 }
 
 /**
- * Login form UI + firebase-core for `dist/login/index.html` (#835 / #860).
+ * Login form UI + firebase-core for `dist/login/index.html` (#835 / #860 / #892).
  * Strips Vite-inherited firebase modulepreloads, then re-injects the LoginPage
- * UI closure plus an explicit `firebase-core` href (Auth is dynamic-import, so
- * it is not in the static LoginPage closure). App Check / Storage stay out.
+ * UI closure (when present) plus an explicit `firebase-core` href (Auth is
+ * dynamic-import). Always injects firebase-core even if LoginPage-* is absent
+ * (eager graph may fold into `login-*.js`). App Check / Storage stay out.
  *
  * @param {string} html
  * @param {string} distDir
@@ -236,11 +237,12 @@ export function injectLoginBootModulepreloads(html, distDir) {
     assetsDir,
     LOGIN_BOOT_MODULEPRELOAD_PREFIXES,
   );
-  if (!entryHrefs.length) return next;
 
-  const uiHrefs = resolveModulepreloadClosure(assetsDir, entryHrefs).filter(
-    isAllowedLoginBootPreloadHref,
-  );
+  const uiHrefs = entryHrefs.length
+    ? resolveModulepreloadClosure(assetsDir, entryHrefs).filter(
+        isAllowedLoginBootPreloadHref,
+      )
+    : [];
   // Auth boots via dynamic `import('./firebase.js')` — not in LoginPage closure.
   const firebaseCoreHrefs = resolveBootModulepreloadHrefs(assetsDir, [
     'firebase-core-',

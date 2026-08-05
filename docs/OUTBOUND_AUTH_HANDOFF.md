@@ -13,7 +13,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | Class | Meaning |
 |-------|---------|
 | `app-ok` | Hard-open on authenticated SPA (`app.html` / dashboard boot / spa-boot). No change needed for dual-doc. |
-| `retarget-auth` | Was splash-modal (`/?login=true`) or unauth bounce to `/`. Emit or redirect to `/login` (app-document auth entry today — #890; HTML-first door in epic [#889](https://github.com/pat792/set-picks/issues/889)). |
+| `retarget-auth` | Was splash-modal (`/?login=true`) or unauth bounce to `/`. Emit or redirect to `/login` (HTML-first auth door — #892 / epic [#889](https://github.com/pat792/set-picks/issues/889)). |
 | `public-static` | Marketing document (`index.html` → `marketingMain`). No Firebase on cold open. |
 | `invite-shell` | `/join/*` / `/invite/*` via OG API → prefer `dist/app.html`. Auth modals stay on app shell. |
 
@@ -34,7 +34,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | Marketing shell Home | `MarketingPageShell` | `public-static` | **Done (1.48.1):** `<a href="/">` hard-nav so app-doc surfaces reload marketing `index.html` |
 | Password-reset success | `PasswordResetCompletePage` | `retarget-auth` | **Done (#881 / #890):** hard `<a href="/login">` |
 | `/?login=true` (+ optional `signup=1`) | Legacy deep links, older QA | `retarget-auth` | Compat hops: `marketingMain` + `SplashPage` → `/login` |
-| Unauth hard-open `/dashboard/*` or `/setup` | `DashboardRoute` / `SetupRoute` | `retarget-auth` | **#830 / #881 / #890:** hard-nav to `/login` (app.html boot; keeps `persistDashboardPath`) |
+| Unauth hard-open `/dashboard/*` or `/setup` | `DashboardRoute` / `SetupRoute` | `retarget-auth` | **#830 / #892:** hard-nav to `/login` (HTML-first `login.html` door; keeps `persistDashboardPath`) |
 | Account Log Out / delete → home | `useSignOut` | `public-static` | **#899 (v1.53.2):** mark post-sign-out → hard-nav marketing `/` (must not race unauth bounce to `/login`) |
 | Firebase Auth `%LINK%` → `/password-reset-complete` | Console email templates | `app-ok` | spa-boot / app path |
 
@@ -69,8 +69,9 @@ Remove only after QA/docs stop emitting the query form.
 npm run build && npm run preview
 # Private window: / — Network must not request firebase-core until /login
 
-# Auth entry
-# /login → inline full-page forms (no role=dialog)
+# Auth entry (HTML-first #892)
+# curl -sS …/login | grep si-email   # form in first HTML
+# /login → boots login-*.js (not app-*.js); inline forms (no role=dialog)
 # From /login → Home → marketing /; Sign in again → /login (not splash modal)
 # /dashboard (signed out) → /login, then post-auth restores persisted path
 # /join/:code and /invite/:handle still open app shell + auth modals (#844)

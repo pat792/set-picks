@@ -22,17 +22,24 @@ import { trackAuthError } from './authAnalytics';
  *   intent?: 'signin' | 'signup' | null,
  *   outcome?: { kind: string, message?: string },
  *   err?: unknown,
+ *   hadIntent?: boolean,
  * }> | null}
  */
 let inFlightCompletion = null;
 
+/**
+ * Always call `getRedirectResult` after Auth is ready (#893 / Safari return).
+ *
+ * Do **not** gate on sessionStorage intent: Safari private / ITP / storage
+ * quota can drop the stash after Google returns, and skipping
+ * `getRedirectResult` leaves the user on `/login` with no session (HTML-first
+ * door soak). Intent is only used for mode/overlay + empty-result error copy.
+ */
 async function completePendingGoogleRedirect() {
-  if (!peekGoogleRedirectIntent()) {
-    return { type: 'none' };
-  }
   if (inFlightCompletion) return inFlightCompletion;
 
   inFlightCompletion = (async () => {
+    const hadIntent = Boolean(peekGoogleRedirectIntent());
     try {
       const { auth } = await ensureAuthReady();
       const [{ consumeGoogleRedirectResult }, { completeGoogleSplashAuth }] =
@@ -42,8 +49,8 @@ async function completePendingGoogleRedirect() {
         ]);
       const result = await consumeGoogleRedirectResult(auth);
       if (!result) {
-        consumeGoogleRedirectIntent();
-        return { type: 'empty' };
+        const stashed = hadIntent ? consumeGoogleRedirectIntent() : null;
+        return { type: 'empty', hadIntent, intent: stashed };
       }
 
       const intent = consumeGoogleRedirectIntent() || 'signin';
@@ -54,7 +61,7 @@ async function completePendingGoogleRedirect() {
           isNewUser: result.isNewUser,
           flow: 'redirect',
         });
-        return { type: 'done', intent, outcome };
+        return { type: 'done', intent, outcome, hadIntent: true };
       } finally {
         clearSplashGoogleModalInflight();
       }
@@ -67,7 +74,7 @@ async function completePendingGoogleRedirect() {
         surface: intent === 'signup' ? 'create_account' : 'sign_in',
         auth_flow: 'redirect',
       });
-      return { type: 'error', intent, err };
+      return { type: 'error', intent, err, hadIntent };
     } finally {
       inFlightCompletion = null;
     }
@@ -76,11 +83,14 @@ async function completePendingGoogleRedirect() {
   return inFlightCompletion;
 }
 
+const EMPTY_REDIRECT_MESSAGE =
+  'Google sign-in did not finish. Please try Continue with Google again.';
+
 /**
- * Completes a pending Google `signInWithRedirect` on splash / invite landings.
+ * Completes a pending Google `signInWithRedirect` on `/login`, splash, invite.
  *
- * Skips Firebase load when there is no stashed redirect intent so anon `/login`
- * paint stays firebase-free (#835) unless the user is mid-redirect return.
+ * Always loads Auth + `getRedirectResult` once (safe when no pending redirect).
+ * SessionStorage intent is optional UX context, not a gate (#893).
  *
  * @param {{
  *   onOpenSignIn?: () => void,
@@ -109,13 +119,6 @@ export function useGoogleRedirectCompletion({
   };
 
   useEffect(() => {
-    const hasIntent = Boolean(peekGoogleRedirectIntent());
-    if (!hasIntent && !inFlightCompletion) {
-      // Clear a stranded overlay after StrictMode consumed intent on a prior mount.
-      cbsRef.current.onSettled?.();
-      return undefined;
-    }
-
     let active = true;
 
     void completePendingGoogleRedirect().then((result) => {
@@ -132,6 +135,12 @@ export function useGoogleRedirectCompletion({
           );
           if (result.intent === 'signup') cbs.onOpenSignUp?.();
           else if (result.intent === 'signin') cbs.onOpenSignIn?.();
+        } else if (result.type === 'empty' && result.hadIntent) {
+          // Stash said we were mid-redirect, but Firebase returned no credential.
+          const intent = result.intent === 'signup' ? 'signup' : 'signin';
+          cbs.onError?.(EMPTY_REDIRECT_MESSAGE, intent);
+          if (intent === 'signup') cbs.onOpenSignUp?.();
+          else cbs.onOpenSignIn?.();
         }
       }
       // Always settle — including after StrictMode cancelled the first subscriber —
@@ -153,4 +162,9 @@ export function resetGoogleRedirectCompletionForTests() {
 /** @visibleForTesting */
 export function completePendingGoogleRedirectForTests() {
   return completePendingGoogleRedirect();
+}
+
+/** @visibleForTesting */
+export function emptyGoogleRedirectMessageForTests() {
+  return EMPTY_REDIRECT_MESSAGE;
 }

@@ -21,6 +21,7 @@ import {
   LOGIN_BOOT_PRELOAD_MARKER,
   LOGIN_BOOT_SHELL_MARKER,
   LOGIN_BOOT_SHELL_REL_PATH,
+  LOGIN_FORM_SHELL_MARKER,
   MARKETING_BOOT_SHELL_MARKER,
   PRERENDER_ROUTES,
   SPLASH_BOOT_PRELOAD_MARKER,
@@ -129,6 +130,14 @@ const fixtureLoginBoot = buildLoginBootShellHtml(dirtyShell);
 assert(
   fixtureLoginBoot.includes(`${LOGIN_BOOT_SHELL_MARKER}="true"`),
   'login boot fixture must include login auth-card marker',
+);
+assert(
+  fixtureLoginBoot.includes(`${LOGIN_FORM_SHELL_MARKER}="true"`),
+  'login boot fixture must include HTML-first form marker (#892)',
+);
+assert(
+  /id="si-email"/.test(fixtureLoginBoot) && /<input\b/i.test(fixtureLoginBoot),
+  'login boot fixture must include real form controls in first HTML (#892)',
 );
 assert(
   !fixtureLoginBoot.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`) &&
@@ -313,6 +322,25 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'dist/app.html must boot the authenticated SPA entry chunk',
   );
 
+  const distLoginEntry = join(root, 'dist', 'login.html');
+  assert(
+    existsSync(distLoginEntry),
+    'dist missing login.html — HTML-first login Vite entry (#892)',
+  );
+  const loginEntryHtml = readFileSync(distLoginEntry, 'utf8');
+  assert(
+    /\/assets\/login-[^"]+\.js/.test(loginEntryHtml),
+    'dist/login.html must boot the auth-door login entry chunk (#892)',
+  );
+  assert(
+    !/\/assets\/app-[^"]+\.js/.test(loginEntryHtml),
+    'dist/login.html must not boot the dashboard SPA entry',
+  );
+  assert(
+    /id="si-email"/.test(loginEntryHtml) && /<input\b/i.test(loginEntryHtml),
+    'dist/login.html must include form controls in first HTML (#892)',
+  );
+
   const distTourStats = join(root, 'dist', 'tour-stats', 'index.html');
   if (existsSync(distTourStats)) {
     const tourHtml = readFileSync(distTourStats, 'utf8');
@@ -390,7 +418,17 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   const loginBootHtml = readFileSync(loginBootPath, 'utf8');
   assert(
     loginBootHtml.includes(`${LOGIN_BOOT_SHELL_MARKER}="true"`),
-    'login boot shell must include login auth-card skeleton marker',
+    'login boot shell must include login auth-card marker',
+  );
+  assert(
+    loginBootHtml.includes(`${LOGIN_FORM_SHELL_MARKER}="true"`),
+    'login boot shell must include HTML-first form marker (#892)',
+  );
+  assert(
+    /id="si-email"/.test(loginBootHtml) &&
+      /id="su-email"/.test(loginBootHtml) &&
+      /<input\b/i.test(loginBootHtml),
+    'login boot shell must include real form controls in first HTML (#892)',
   );
   assert(
     !loginBootHtml.includes(`${DASHBOARD_BOOT_SHELL_MARKER}="true"`) &&
@@ -399,22 +437,25 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'login boot shell must not reuse dashboard tab chrome',
   );
   assert(
-    /\/assets\/app-[^"]+\.js/.test(loginBootHtml),
-    'login boot shell must boot app SPA entry (#890 restore after #881 hang)',
+    /\/assets\/login-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must boot auth-door login entry (#892)',
   );
   assert(
-    !/\/assets\/login-[^"]+\.js/.test(loginBootHtml),
-    'login boot shell must not boot retired thin login entry (#890)',
+    !/\/assets\/app-[^"]+\.js/.test(loginBootHtml),
+    'login boot shell must not boot dashboard SPA entry (#892)',
+  );
+  assert(
+    !loginBootHtml.includes('vendor-react-query') &&
+      !loginBootHtml.includes('QueryClientProvider'),
+    'login boot shell must not pull react-query on the auth door',
   );
   assert(
     loginBootHtml.includes(`${LOGIN_BOOT_PRELOAD_MARKER}="true"`) &&
-      loginBootHtml.includes('LoginPage-'),
-    'login boot shell must modulepreload LoginPage chunk (#835)',
-  );
-  assert(
-    /\/assets\/firebase-core-[^"]+\.js/.test(loginBootHtml),
+      (/\/assets\/firebase-core-[^"]+\.js/.test(loginBootHtml)),
     'login boot shell must modulepreload firebase-core (#860)',
   );
+  // LoginPage-* preload is preferred when the chunk exists (lazy leaf); not required
+  // if the hydrate graph folds into login-*.js.
   assert(
     !/\/assets\/firebaseAppCheck-[^"]+\.js/.test(loginBootHtml) &&
       !/\/assets\/firebase-appcheck-[^"]+\.js/.test(loginBootHtml),

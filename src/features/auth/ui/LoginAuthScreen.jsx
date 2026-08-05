@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
@@ -254,8 +253,8 @@ function LoginSignUpPanel({
         />
         <span id="signup-legal-hint">
           I agree to the{' '}
-          <Link
-            to="/terms"
+          <a
+            href="/terms"
             className="text-teal-300 underline decoration-teal-500/60 underline-offset-2 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
@@ -263,10 +262,10 @@ function LoginSignUpPanel({
             }}
           >
             Terms of Service
-          </Link>{' '}
+          </a>{' '}
           and{' '}
-          <Link
-            to="/privacy"
+          <a
+            href="/privacy"
             className="text-teal-300 underline decoration-teal-500/60 underline-offset-2 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
@@ -274,7 +273,7 @@ function LoginSignUpPanel({
             }}
           >
             Privacy Policy
-          </Link>
+          </a>
           .
         </span>
       </label>

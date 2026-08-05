@@ -12,6 +12,23 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.54.1] — 2026-08-05
+
+### Fixed
+- **Safari Google redirect return on `/login` (#893)** — Always call `getRedirectResult` after Auth is ready; do not gate completion on sessionStorage intent (Safari can drop the stash after account picker). Dual-write redirect intent to `localStorage` as a return hint. Empty result after a stashed intent shows a retry error instead of a silent form reset.
+
+---
+
+## [1.54.0] — 2026-08-05
+
+### Added
+- **HTML-first `/login` auth door (#892 / #894 / epic #889 Phase 2)** — `/login` boots dedicated `login.html` → `loginMain.jsx` with **real form chrome in first HTML** (sign-in / create-account fields + Google CTA markup). Auth-only hydrate wires Firebase; Suspense fallback keeps form chrome (anti-#881 blank hang). Prerender/verify assert form controls, `login-*.js` (not `app-*.js`), and `firebase-core` preload. Marketing warm retargets auth-door assets. Soft `/login` route remains on the app SPA for in-app compat.
+
+### Changed
+- **`AUTH_SEAMLESS_PATH` / `AUTH_BOOT_PRACTICES` / `OUTBOUND_AUTH_HANDOFF` / `API.md`:** Phase 2 door construction is the shipped `/login` surface; field stop lifted for this train.
+
+---
+
 ## [1.53.2] — 2026-08-05
 
 ### Fixed

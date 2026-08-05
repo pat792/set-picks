@@ -1,29 +1,67 @@
 const STORAGE_KEY = 'setpicks_google_redirect_intent_v1';
 
 /**
- * Stash which splash modal started a Google redirect (#773 Phase 2b).
- * @param {'signin' | 'signup'} intent
+ * @param {Storage | undefined} store
+ * @param {string} key
+ * @param {string} value
  */
-export function stashGoogleRedirectIntent(intent) {
-  if (intent !== 'signin' && intent !== 'signup') return;
+function safeSet(store, key, value) {
   try {
-    sessionStorage.setItem(STORAGE_KEY, intent);
+    store?.setItem(key, value);
   } catch {
     // ignore quota / private mode
   }
 }
 
 /**
- * @returns {'signin' | 'signup' | null}
+ * @param {Storage | undefined} store
+ * @param {string} key
+ * @returns {string | null}
  */
-export function consumeGoogleRedirectIntent() {
+function safeGet(store, key) {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
-    if (raw === 'signin' || raw === 'signup') return raw;
+    return store?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * @param {Storage | undefined} store
+ * @param {string} key
+ */
+function safeRemove(store, key) {
+  try {
+    store?.removeItem(key);
   } catch {
     // ignore
   }
+}
+
+/**
+ * Stash which splash modal started a Google redirect (#773 Phase 2b).
+ * Dual-write session + local so Safari private / ITP drops of sessionStorage
+ * still leave a return hint for overlay / error copy (#893). Credential
+ * completion must not depend on this stash — see useGoogleRedirectCompletion.
+ * @param {'signin' | 'signup'} intent
+ */
+export function stashGoogleRedirectIntent(intent) {
+  if (intent !== 'signin' && intent !== 'signup') return;
+  // Prefer globals (vitest stubs) — `window` may be absent in node tests.
+  safeSet(globalThis.sessionStorage, STORAGE_KEY, intent);
+  safeSet(globalThis.localStorage, STORAGE_KEY, intent);
+}
+
+/**
+ * @returns {'signin' | 'signup' | null}
+ */
+export function consumeGoogleRedirectIntent() {
+  const raw =
+    safeGet(globalThis.sessionStorage, STORAGE_KEY) ||
+    safeGet(globalThis.localStorage, STORAGE_KEY);
+  safeRemove(globalThis.sessionStorage, STORAGE_KEY);
+  safeRemove(globalThis.localStorage, STORAGE_KEY);
+  if (raw === 'signin' || raw === 'signup') return raw;
   return null;
 }
 
@@ -31,11 +69,9 @@ export function consumeGoogleRedirectIntent() {
  * @returns {'signin' | 'signup' | null}
  */
 export function peekGoogleRedirectIntent() {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (raw === 'signin' || raw === 'signup') return raw;
-  } catch {
-    // ignore
-  }
+  const raw =
+    safeGet(globalThis.sessionStorage, STORAGE_KEY) ||
+    safeGet(globalThis.localStorage, STORAGE_KEY);
+  if (raw === 'signin' || raw === 'signup') return raw;
   return null;
 }
