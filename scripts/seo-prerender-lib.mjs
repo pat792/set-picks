@@ -20,6 +20,7 @@ import {
 } from './dashboard-boot-shell.mjs';
 import {
   LOGIN_BOOT_SHELL_MARKER,
+  LOGIN_FORM_SHELL_MARKER,
   buildLoginBootShellHtml,
   buildLoginBootShellMarkup,
 } from './login-boot-shell.mjs';
@@ -47,6 +48,7 @@ export {
   stripPrerenderBodyFromSpaShell,
   DASHBOARD_BOOT_SHELL_MARKER,
   LOGIN_BOOT_SHELL_MARKER,
+  LOGIN_FORM_SHELL_MARKER,
   MARKETING_BOOT_SHELL_MARKER,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   LOGIN_BOOT_PRELOAD_MARKER,

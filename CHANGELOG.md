@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.54.0] — 2026-08-05
+
+### Added
+- **HTML-first `/login` auth door (#892 / #894 / epic #889 Phase 2)** — `/login` boots dedicated `login.html` → `loginMain.jsx` with **real form chrome in first HTML** (sign-in / create-account fields + Google CTA markup). Auth-only hydrate wires Firebase; Suspense fallback keeps form chrome (anti-#881 blank hang). Prerender/verify assert form controls, `login-*.js` (not `app-*.js`), and `firebase-core` preload. Marketing warm retargets auth-door assets. Soft `/login` route remains on the app SPA for in-app compat.
+
+### Changed
+- **`AUTH_SEAMLESS_PATH` / `AUTH_BOOT_PRACTICES` / `OUTBOUND_AUTH_HANDOFF` / `API.md`:** Phase 2 door construction is the shipped `/login` surface; field stop lifted for this train.
+
+---
+
 ## [1.53.2] — 2026-08-05
 
 ### Fixed

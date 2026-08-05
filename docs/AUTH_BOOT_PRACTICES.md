@@ -2,8 +2,8 @@
 
 Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Learned from Safari hotfix (#850), hard-ready Google (#858), redirect (#859), hop train (#860 / #880 / #881), and the 2026-08-05 recalibration: **HTML-first auth door** is the target — not another CSR hop tier.
 
-**Roadmap / architecture:** `docs/AUTH_SEAMLESS_PATH.md` (**§5 authoritative path** — Phase 0 reliability → Phase 2 HTML-first `/login`).  
-**Related:** `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`) · `docs/AUTH_SEAMLESS_PATH.md` (**field stop 2026-08-05** at v1.53.2 — do not resume hop/HTML-first work without a human go). Code today: `ensureFirebase.js`, `warmLoginAuthSurface.js`, `prefetchLoginIntent.js`.
+**Roadmap / architecture:** `docs/AUTH_SEAMLESS_PATH.md` (**§5 authoritative path** — Phase 2 HTML-first `/login` shipped in v1.54.0).  
+**Related:** `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`). Code today: `login.html` / `loginMain.jsx`, `ensureFirebase.js`, `warmLoginAuthSurface.js`, `prefetchLoginIntent.js`.
 
 ---
 
@@ -13,10 +13,9 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 
 1b. **Public `/tour-stats*` is marketing too (#853).** Paint chrome from the marketing entry; load App Check + Firestore only inside `fetchPublicTourStats*` (and a parallel page kick). Do not put tour-stats on `app.html` / `AuthProvider`.
 
-2. **Auth door `/login`: form before Auth init; target is HTML-first (Phase 2).**  
-   - **Today (#890):** `/login` boots `app.html` + branded login shell + deferred Firebase (thin CSR `login.html` entry from #881 **retired** after Safari private hang). Session hint and Google redirect return stay eager.  
-   - **Target (Phase 2 / #892):** first HTML includes the **real form chrome** (fields + CTAs), not skeleton-only; JS is an **auth-only hydrate**. Success → hard-navigate to `/setup` or `/dashboard`.  
-   - Do **not** reintroduce a CSR-only thin entry as the prod strategy.
+2. **Auth door `/login`: form in first HTML; auth-only hydrate (Phase 2 / #892).**  
+   - **Today (v1.54.0):** `/login` boots `login.html` with **real form controls** in the first document; `loginMain.jsx` hydrates Auth + form wiring (not `app-*.js` / react-query). Suspense fallback keeps form chrome (anti-#881 blank hang). Session hint and Google redirect return stay eager. Success → hard-navigate to `/setup` or `/dashboard`.  
+   - Do **not** reintroduce a skeleton-only / empty-`#root` CSR door as the prod strategy.
 
 2b. **Google CTA must not be enabled until Auth surface is ready (#858).** Disable Continue with Google (brief “Preparing sign-in…” OK) until Auth + click-path modules are ready. Ready click path: `signInWithPopup` / redirect with **no** `await ensureAuthReady()` or dynamic-import on the hot path.
 

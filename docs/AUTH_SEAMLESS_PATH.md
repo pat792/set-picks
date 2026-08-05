@@ -1,21 +1,20 @@
 # Seamless auth & no-lag entry — path to top-tier feel
 
-**Status:** Decision / roadmap doc — **field stop 2026-08-05** (after v1.53.2).  
-**Delivery epic (parked):** [#889](https://github.com/pat792/set-picks/issues/889) — HTML-first auth door (three-surface).  
+**Status:** Decision / roadmap doc — **Phase 2 resumed 2026-08-05** (explicit human go after v1.53.2 field stop).  
+**Delivery epic:** [#889](https://github.com/pat792/set-picks/issues/889) — HTML-first auth door (three-surface).  
 **Predecessor (CSR hop / Google reliability train):** [#856](https://github.com/pat792/set-picks/issues/856) — historical; remaining hop work superseded by #889.
 
-### Field stop (2026-08-05) — read this first
+### Resume note (2026-08-05)
 
-**Stop shipping further auth-door / cold-open / CSR-hop work until explicitly resumed.** Prod is at **v1.53.2**.
+Field stop after **v1.53.2** lifted with explicit human go. Phase 2 (#892 / #894) ships HTML-first `/login` as **v1.54.0**. WebKit private remains the merge gate for auth-door behavior (#893).
 
 | Shipped | Notes |
 |--------|--------|
-| **v1.53.1 (#890)** | Phase 0 reliability: retire #881 thin `login.html`; `/login` boots `app.html` + branded shell again |
-| **v1.53.2 (#899)** | Log Out hang: post-sign-out → marketing `/` (not race HardRedirect → `/login`) |
+| **v1.53.1 (#890)** | Phase 0 reliability: retire #881 thin CSR entry hang |
+| **v1.53.2 (#899)** | Log Out hang: post-sign-out → marketing `/` |
+| **v1.54.0 (#892 / #894)** | Phase 2: form-in-first-HTML + auth-only hydrate |
 
-**Do not start another CSR hop tier.** Do not re-thin `/login`. Do not “fix feel” with more prefetch experiments in this train.
-
-Parked (not cancelled): HTML-first auth door (#889 / #892), tour-stats CDN JSON (#869), email CTA flow matrix (#893). Resume only with an explicit human go — not as agent default.
+**Do not start another CSR hop tier.** Phase 3 warm polish (#895) stays gated on WebKit green.
 
 Standing rules still in force: `docs/AUTH_BOOT_PRACTICES.md` (Google gesture / App Check / Safari redirect).
 
@@ -55,7 +54,7 @@ They do **not** magically make a cold 300KB+ Auth SDK + popup feel free. They sp
 | Surface | Norm | What we have |
 |--------|------|----------------|
 | **Marketing** | SSR/SSG or thin static; no Auth on cold LCP | **Have** — dual-entry marketing (#832); `/tour-stats*` marketing (#853) |
-| **Auth door** | Dedicated page: form in first HTML (or hosted IdP); auth-only JS | **Gap** — `/login` is a CSR app mount (skeleton → React → form). Thin entry (#881) was still CSR; regressed Safari private |
+| **Auth door** | Dedicated page: form in first HTML (or hosted IdP); auth-only JS | **Have (v1.54.0 / #892)** — form chrome in first HTML + auth-only hydrate |
 | **App** | SPA / heavy client after session | **Have** — `app.html` dashboard SPA |
 
 
@@ -65,7 +64,7 @@ They do **not** magically make a cold 300KB+ Auth SDK + popup feel free. They sp
 | Pattern | What it buys | Our status |
 |--------|----------------|------------|
 | **Thin marketing document** | Instant content; no Auth on SERP/GEO cold opens | **Have** (#832 / #853) |
-| **HTML-first auth door** | Form visible without waiting on app graph | **Gap → Phase 2** (authoritative). Current branded shell is skeleton-only, not the form |
+| **HTML-first auth door** | Form visible without waiting on app graph | **Have (v1.54.0 / #892)** — form in first HTML; auth-only hydrate |
 | **Session-aware boot** | Returning users skip auth chrome | **Have** (#773 / #804) |
 | **Prefetch / speculative warm** | Hop bytes warm before tap | **Have** (#860 / #880) — polish only after auth door is correct; not the strategy |
 | **Thin CSR auth entry** | Smaller parse than dashboard SPA | **Tried (#881)** — necessary direction, wrong completeness (still CSR mount; prod WebKit hang) |
@@ -164,10 +163,11 @@ Lesson: hop polish on a CSR login document can improve download and still leave 
 ## 5) Recommended path (order) — authoritative
 
 ```text
-NOW  (Phase 0)  → Restore login reliability on WebKit private (hotfix/rollback #881 hang)
-NOW  (Phase 1)  → Lock three-surface contract in docs/issues (this section)
-NEXT (Phase 2)  → HTML-first /login + auth-only Firebase hydrate (keep Firebase)
-LATER(Phase 3)  → Re-attach download-only warm / leave chrome polish if still useful
+DONE (Phase 0)  → Restore login reliability on WebKit private (#890 / v1.53.1)
+DONE (Phase 1)  → Lock three-surface contract in docs/issues
+DONE (Phase 2)  → HTML-first /login + auth-only Firebase hydrate (#892 / v1.54.0)
+NEXT (Phase 2b) → Flow matrix QA (#893) — WebKit private human gate
+LATER(Phase 3)  → Re-attach download-only warm / leave chrome polish if still useful (#895)
 KEEP (Phase 4)  → Dashboard stays the SPA; don’t pull app graph into the auth door
 DEFER          → GIS / hosted IdP only if product still wants more after Phase 2
 ```
@@ -196,13 +196,13 @@ Treat as law (update issues/PRs against this, not against “finish hop bands”
 
 **Acceptance:**
 
-- [ ] First document for `/login` includes form fields (not empty `#root` + skeleton-only).
-- [ ] Safari private: form usable; no indefinite hang.
-- [ ] Google first enabled tap → picker or redirect.
-- [ ] Email sign-in / sign-up + terms gate preserved.
-- [ ] Marketing cold open unchanged.
-- [ ] Signed-in `/login` hard-sends to dashboard/setup.
-- [ ] Hop ms is a soak metric after reliability; not the design center.
+- [x] First document for `/login` includes form fields (not empty `#root` + skeleton-only). *(v1.54.0 verify:seo-prerender)*
+- [ ] Safari private: form usable; no indefinite hang. *(#893 human gate)*
+- [ ] Google first enabled tap → picker or redirect. *(#893)*
+- [x] Email sign-in / sign-up + terms gate preserved. *(hydrate reuses existing hooks)*
+- [x] Marketing cold open unchanged.
+- [x] Signed-in `/login` hard-sends to dashboard/setup.
+- [x] Hop ms is a soak metric after reliability; not the design center.
 
 ### Phase 3 — Demand-gen polish (optional)
 
@@ -242,9 +242,10 @@ Leave the live game as the SPA. Do not mount dashboard/react-query on the auth d
 - [x] Human / WebKit private is the release gate for auth-door work.
 - [x] T2–T2.5 CSR hop train: useful learnings; **not** the remaining strategy (§8).
 - [x] **2026-08-05:** Adopt HTML-first auth door (§5) as authoritative next solution.
-- [x] Phase 0: prod Safari private login hang resolved (v1.53.1 #890); Log Out race fixed (v1.53.2 #899). **Field stop.**
-- [ ] Phase 1: contract reflected in boot practices + delivery issue(s).
-- [ ] Phase 2: HTML-first `/login` shipped + WebKit private AC.
+- [x] Phase 0: prod Safari private login hang resolved (v1.53.1 #890); Log Out race fixed (v1.53.2 #899).
+- [x] Phase 1: contract reflected in boot practices + delivery issue(s).
+- [x] Phase 2: HTML-first `/login` shipped (v1.54.0 #892 / #894).
+- [ ] Phase 2b: WebKit private AC + flow matrix (#893).
 
 ---
 

@@ -22,8 +22,8 @@ const PublicTourStatsPage = lazy(
 );
 
 /**
- * Paths that leave the marketing document (#832 / #881).
- * `/login` and app routes → authenticated SPA (`app.html`); HTML-first login is #889.
+ * Paths that leave the marketing document (#832 / #892).
+ * `/login` → HTML-first auth door (`login.html`); other app routes → `app.html`.
  */
 function isAppDocumentPath(pathname) {
   if (typeof pathname !== 'string' || !pathname) return false;
