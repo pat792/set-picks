@@ -20,6 +20,9 @@ export {
   prefetchLoginIntent,
   consumeLoginWarmIntent,
   markLoginWarmIntent,
+  resolveMarketingAuthLeaveMessage,
+  MARKETING_LEAVE_SIGN_IN,
+  MARKETING_LEAVE_SIGN_UP,
 } from './splash';
 export { default as SplashHeader } from './ui/SplashHeader';
 export { default as SplashHeroSection } from './ui/SplashHeroSection';

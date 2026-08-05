@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import { loginPath } from './appAuthPaths';
+import { resolveMarketingAuthLeaveMessage } from './marketingAuthLeaveCopy';
 import { prefetchLoginIntent } from './prefetchLoginIntent';
 
 /**
@@ -10,6 +11,9 @@ import { prefetchLoginIntent } from './prefetchLoginIntent';
  */
 export default function useMarketingAuthLeave() {
   const [leaving, setLeaving] = useState(false);
+  const [leaveMessage, setLeaveMessage] = useState(
+    resolveMarketingAuthLeaveMessage({ signup: false }),
+  );
 
   const onAuthCtaIntent = useCallback(() => {
     prefetchLoginIntent();
@@ -19,10 +23,12 @@ export default function useMarketingAuthLeave() {
     ({ signup = false } = {}) => {
       if (leaving) return;
       const href = loginPath({ signup });
+      const message = resolveMarketingAuthLeaveMessage({ signup });
       // Start cache warm before/during leave paint (#860).
       prefetchLoginIntent();
       // Commit overlay to the DOM before starting the document navigation.
       flushSync(() => {
+        setLeaveMessage(message);
         setLeaving(true);
       });
       // Yield so Safari can paint the overlay, then hard-nav (skip MarketingApp hop).
@@ -35,6 +41,7 @@ export default function useMarketingAuthLeave() {
 
   return {
     leaving,
+    leaveMessage,
     onAuthCtaIntent,
     openSignUp: useCallback(() => leaveToLogin({ signup: true }), [leaveToLogin]),
     openSignIn: useCallback(() => leaveToLogin({ signup: false }), [leaveToLogin]),
