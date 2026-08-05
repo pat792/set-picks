@@ -15,9 +15,17 @@ export {
   MARKETING_LEAVE_SIGN_IN,
   MARKETING_LEAVE_SIGN_UP,
 } from './model/marketingAuthLeaveCopy';
-/** Intent prefetch + warm_path=intent flag (#860). */
+/** Intent / speculative prefetch + warm_path flags (#860 / #880). */
 export {
   prefetchLoginIntent,
+  prefetchLoginSpeculative,
+  scheduleSpeculativeLoginWarm,
   consumeLoginWarmIntent,
+  consumeLoginWarmSpeculative,
+  consumeLoginWarmPath,
+  consumeLoginHopCta,
   markLoginWarmIntent,
+  markLoginWarmSpeculative,
+  markLoginHopCta,
 } from './model/prefetchLoginIntent';
+export { default as useSpeculativeLoginWarm } from './model/useSpeculativeLoginWarm';

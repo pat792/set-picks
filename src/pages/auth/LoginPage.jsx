@@ -12,13 +12,15 @@ import {
   consumeSplashResumeAuthModal,
   markLoginAuthPaint,
   peekGoogleRedirectIntent,
+  trackAuthHopTiming,
   useAuth,
   useGoogleRedirectCompletion,
   warmLoginAuthSurface,
 } from '../../features/auth/login';
 import {
   MarketingPageShell,
-  consumeLoginWarmIntent,
+  consumeLoginHopCta,
+  consumeLoginWarmPath,
 } from '../../features/landing';
 import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
@@ -91,12 +93,20 @@ export default function LoginPage() {
     onSettled: onRedirectSettled,
   });
 
-  // After form paint: warm Auth. Marketing intent prefetch → warm_path=intent (#860);
+  // After form paint: warm Auth. Marketing idle/CTA warm → speculative|intent (#880/#860);
   // otherwise immediate (#858). App Check stays parallel (#850).
   useEffect(() => {
     markLoginAuthPaint();
-    const warmPath = consumeLoginWarmIntent() ? 'intent' : 'immediate';
+    const warmPath = consumeLoginWarmPath();
     void warmLoginAuthSurface({ warmPath });
+    const hop = consumeLoginHopCta();
+    if (hop) {
+      trackAuthHopTiming({
+        valueMs: Date.now() - hop.t,
+        intent: hop.intent,
+        warmPath,
+      });
+    }
   }, []);
 
   // Terms/Privacy back-stack resume (session stash from LoginAuthScreen / modals).

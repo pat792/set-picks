@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.52.0] — 2026-08-05
+
+### Added
+- **Marketing idle speculative login warm (#880 / epic #856 T2.5 Phase A)** — After marketing paints, once-per-load idle download of `/login` + login UI + `firebase-core` (no `initializeApp` on marketing). `auth_surface_timing.warm_path=speculative` when idle warm contributed; optional `auth_hop_timing` `cta_to_form` for Sign in / Create account hops. Intent CTA path still uses `warm_path=intent` and excludes App Check / Storage from marketing prefetch.
+
+### Changed
+- **`AUTH_BOOT_PRACTICES`:** first paint stays Firebase-free; idle download-only of `firebase-core` is allowed (#880).
+
+---
+
 ## [1.51.1] — 2026-08-04
 
 ### Fixed

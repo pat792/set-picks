@@ -47,7 +47,7 @@ export function markLoginAuthPaint() {
 
 /**
  * Emit `auth_surface_timing` once when Auth warm completes.
- * @param {{ warmPath?: 'immediate' | 'idle' | 'intent' }} [opts]
+ * @param {{ warmPath?: 'immediate' | 'idle' | 'intent' | 'speculative' }} [opts]
  */
 export function reportLoginAuthSurfaceReady(opts = {}) {
   if (surfaceTimingSent) return;

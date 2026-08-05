@@ -1,7 +1,8 @@
 import { ga4Event } from '../../../shared/lib/ga4';
 
 /** @typedef {'sign_in' | 'create_account'} AuthModalSurface */
-/** @typedef {'immediate' | 'idle' | 'intent'} AuthWarmPath */
+/** @typedef {'immediate' | 'idle' | 'intent' | 'speculative'} AuthWarmPath */
+/** @typedef {'signin' | 'signup'} AuthHopIntent */
 /** @typedef {'popup' | 'redirect'} AuthFlow */
 /** @typedef {'success' | 'error'} AuthTimingOutcome */
 
@@ -43,6 +44,27 @@ export function buildAuthSurfaceTimingParams(input) {
     route_group: 'login',
     warm_path: input.warmPath || 'idle',
     navigation_type: input.navigationType || 'navigate',
+  };
+}
+
+/**
+ * Marketing CTA click → `/login` form paint (#880 / T2.5).
+ * @param {{
+ *   valueMs: number,
+ *   intent?: AuthHopIntent,
+ *   warmPath?: AuthWarmPath,
+ * }} input
+ * @returns {Record<string, string | number> | null}
+ */
+export function buildAuthHopTimingParams(input) {
+  const value = clampAuthTimingMs(input.valueMs);
+  if (value == null) return null;
+  return {
+    phase: 'cta_to_form',
+    value,
+    intent: input.intent === 'signup' ? 'signup' : 'signin',
+    warm_path: input.warmPath || 'immediate',
+    route_group: 'login',
   };
 }
 
@@ -200,4 +222,19 @@ export function trackAuthGoogleTiming(payload) {
   if (!params) return;
   mirrorAuthTelemetry('auth_google_timing', params);
   ga4Event('auth_google_timing', params);
+}
+
+/**
+ * Marketing → `/login` hop latency (#880). Once per CTA leave that stamped sessionStorage.
+ * @param {{
+ *   valueMs: number,
+ *   intent?: AuthHopIntent,
+ *   warmPath?: AuthWarmPath,
+ * }} payload
+ */
+export function trackAuthHopTiming(payload) {
+  const params = buildAuthHopTimingParams(payload);
+  if (!params) return;
+  mirrorAuthTelemetry('auth_hop_timing', params);
+  ga4Event('auth_hop_timing', params);
 }
