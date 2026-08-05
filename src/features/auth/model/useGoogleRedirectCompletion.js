@@ -16,18 +16,20 @@ import { trackAuthError } from './authAnalytics';
  * Completes a pending Google `signInWithRedirect` on splash / invite landings.
  *
  * Skips Firebase load when there is no stashed redirect intent so anon `/login`
- * paint stays firebase-free (#835).
+ * paint stays firebase-free (#835) unless the user is mid-redirect return.
  *
  * @param {{
  *   onOpenSignIn?: () => void,
  *   onOpenSignUp?: () => void,
  *   onError?: (message: string, intent: 'signin' | 'signup' | null) => void,
+ *   onSettled?: () => void,
  * }} [opts]
  */
 export function useGoogleRedirectCompletion({
   onOpenSignIn,
   onOpenSignUp,
   onError,
+  onSettled,
 } = {}) {
   const ranRef = useRef(false);
 
@@ -85,11 +87,13 @@ export function useGoogleRedirectCompletion({
         onError?.(getFirebaseAuthErrorMessage(err?.code), intent);
         if (intent === 'signup') onOpenSignUp?.();
         else if (intent === 'signin') onOpenSignIn?.();
+      } finally {
+        if (!cancelled) onSettled?.();
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [onError, onOpenSignIn, onOpenSignUp]);
+  }, [onError, onOpenSignIn, onOpenSignUp, onSettled]);
 }

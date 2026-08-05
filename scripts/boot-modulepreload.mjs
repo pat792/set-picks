@@ -34,8 +34,20 @@ export const SPLASH_BOOT_PRELOAD_MARKER = 'data-splash-boot-preload';
 export const TOUR_STATS_BOOT_PRELOAD_MARKER = 'data-tour-stats-boot-preload';
 export const LOGIN_BOOT_PRELOAD_MARKER = 'data-login-boot-preload';
 
-/** Never modulepreload Firebase (or App Check) on anon `/login` (#835). */
-const LOGIN_BOOT_PRELOAD_BLOCKLIST = /\/assets\/firebase/;
+/**
+ * Login shell may modulepreload `firebase-core` only (#860 / Tier 2).
+ * Block camelCase `firebaseAppCheck-*`, `firebase-appcheck-*`, storage, etc.
+ * Marketing `index.html` remains fully stripped of firebase assets.
+ *
+ * @param {string} href
+ * @returns {boolean}
+ */
+function isAllowedLoginBootPreloadHref(href) {
+  if (typeof href !== 'string' || !href) return false;
+  if (/\/assets\/firebase-core-[^/]+\.js$/.test(href)) return true;
+  if (/\/assets\/firebase/i.test(href)) return false;
+  return true;
+}
 
 /**
  * Resolve hashed asset filenames under `dist/assets` for the given prefixes.
@@ -206,8 +218,10 @@ export function stripFirebaseModulepreloads(html) {
 }
 
 /**
- * Login form UI chunks for `dist/login/index.html`. Strips firebase-* hrefs
- * from the closure so Auth stays interaction-gated (#835).
+ * Login form UI + firebase-core for `dist/login/index.html` (#835 / #860).
+ * Strips Vite-inherited firebase modulepreloads, then re-injects the LoginPage
+ * UI closure plus an explicit `firebase-core` href (Auth is dynamic-import, so
+ * it is not in the static LoginPage closure). App Check / Storage stay out.
  *
  * @param {string} html
  * @param {string} distDir
@@ -215,6 +229,7 @@ export function stripFirebaseModulepreloads(html) {
  */
 export function injectLoginBootModulepreloads(html, distDir) {
   if (typeof html !== 'string' || !html) return html;
+  // Strip all firebase-* first so we don't keep app-check/storage; re-add core.
   let next = stripFirebaseModulepreloads(html);
   const assetsDir = join(distDir, 'assets');
   const entryHrefs = resolveBootModulepreloadHrefs(
@@ -223,8 +238,15 @@ export function injectLoginBootModulepreloads(html, distDir) {
   );
   if (!entryHrefs.length) return next;
 
-  const hrefs = resolveModulepreloadClosure(assetsDir, entryHrefs).filter(
-    (href) => !LOGIN_BOOT_PRELOAD_BLOCKLIST.test(href),
+  const uiHrefs = resolveModulepreloadClosure(assetsDir, entryHrefs).filter(
+    isAllowedLoginBootPreloadHref,
+  );
+  // Auth boots via dynamic `import('./firebase.js')` — not in LoginPage closure.
+  const firebaseCoreHrefs = resolveBootModulepreloadHrefs(assetsDir, [
+    'firebase-core-',
+  ]);
+  const hrefs = [...new Set([...uiHrefs, ...firebaseCoreHrefs])].filter(
+    isAllowedLoginBootPreloadHref,
   );
   if (!hrefs.length) return next;
 

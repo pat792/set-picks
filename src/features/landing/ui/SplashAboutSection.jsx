@@ -8,6 +8,7 @@ export default function SplashAboutSection({
   sectionRef,
   headingRef,
   onGetStartedClick,
+  onAuthCtaIntent,
 }) {
   return (
     <section
@@ -107,6 +108,9 @@ export default function SplashAboutSection({
             variant="link"
             type="button"
             onClick={onGetStartedClick}
+            onPointerEnter={onAuthCtaIntent}
+            onFocus={onAuthCtaIntent}
+            onPointerDown={onAuthCtaIntent}
             className={LINK_ON_DARK}
           >
             Get started

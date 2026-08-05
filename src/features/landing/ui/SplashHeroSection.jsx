@@ -14,7 +14,7 @@ import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
  * - sm+: fill the viewport so the next section doesn’t peek above the fold;
  *   leftover height sits *below* the CTA (dark band), not between header and brand.
  */
-export default function SplashHeroSection({ onPlayNowClick }) {
+export default function SplashHeroSection({ onPlayNowClick, onAuthCtaIntent }) {
   return (
     <section className="relative flex min-h-[100svh] w-full flex-col bg-transparent pt-[5.35rem] pb-6 sm:min-h-[calc(100svh+2px)] sm:pt-[4.5rem] sm:pb-10 lg:pt-[5rem] lg:pb-12">
       <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 pt-1 text-center sm:px-6 sm:pt-0 lg:px-8">
@@ -60,6 +60,9 @@ export default function SplashHeroSection({ onPlayNowClick }) {
             variant="primary"
             type="button"
             onClick={onPlayNowClick}
+            onPointerEnter={onAuthCtaIntent}
+            onFocus={onAuthCtaIntent}
+            onPointerDown={onAuthCtaIntent}
             aria-label="Make picks now: create an account"
             className="w-full min-w-[12rem] sm:w-auto"
           >

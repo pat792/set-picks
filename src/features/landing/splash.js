@@ -10,3 +10,9 @@ export { default as useMarketingAuthLeave } from './model/useMarketingAuthLeave'
 export { default as MarketingAuthLeaveOverlay } from './ui/MarketingAuthLeaveOverlay';
 export { default as AppDocumentAuthLink } from './ui/AppDocumentAuthLink';
 export { loginPath, LOGIN_PATH, LOGIN_SIGNUP_PATH } from './model/appAuthPaths';
+/** Intent prefetch + warm_path=intent flag (#860). */
+export {
+  prefetchLoginIntent,
+  consumeLoginWarmIntent,
+  markLoginWarmIntent,
+} from './model/prefetchLoginIntent';

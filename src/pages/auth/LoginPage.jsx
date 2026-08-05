@@ -7,14 +7,19 @@ import {
 } from 'react-router-dom';
 
 import {
+  GoogleAuthContinueOverlay,
   LoginAuthScreen,
   consumeSplashResumeAuthModal,
   markLoginAuthPaint,
+  peekGoogleRedirectIntent,
   useAuth,
   useGoogleRedirectCompletion,
   warmLoginAuthSurface,
 } from '../../features/auth/login';
-import { MarketingPageShell } from '../../features/landing';
+import {
+  MarketingPageShell,
+  consumeLoginWarmIntent,
+} from '../../features/landing';
 import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
 import { POOL_INVITE_STORAGE_KEY } from '../../shared/config/poolInvite';
 import { getLocalStorageItem } from '../../shared/lib/local-storage';
@@ -50,6 +55,12 @@ export default function LoginPage() {
   const [poolInvitePending] = useState(
     () => Boolean(getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()),
   );
+  const [googleReturnBusy, setGoogleReturnBusy] = useState(
+    () => Boolean(peekGoogleRedirectIntent()),
+  );
+  const [googleReturnIntent] = useState(
+    () => peekGoogleRedirectIntent() || 'signin',
+  );
   const didStripQueryRef = useRef(false);
   const didResumeRef = useRef(false);
 
@@ -69,19 +80,23 @@ export default function LoginPage() {
     if (intent === 'signup') setMode('signup');
     else setMode('signin');
   }, []);
+  const onRedirectSettled = useCallback(() => {
+    setGoogleReturnBusy(false);
+  }, []);
 
   useGoogleRedirectCompletion({
     onOpenSignIn: openSignIn,
     onOpenSignUp: openSignUp,
     onError: onRedirectError,
+    onSettled: onRedirectSettled,
   });
 
-  // After form paint: warm Auth immediately (#858) so Google CTA can hard-gate
-  // until signInWithPopup needs no chunk awaits. App Check stays parallel (#850).
-  // Marketing `/` stays Firebase-free. #857: paint mark for auth_surface_timing.
+  // After form paint: warm Auth. Marketing intent prefetch → warm_path=intent (#860);
+  // otherwise immediate (#858). App Check stays parallel (#850).
   useEffect(() => {
     markLoginAuthPaint();
-    void warmLoginAuthSurface({ warmPath: 'immediate' });
+    const warmPath = consumeLoginWarmIntent() ? 'intent' : 'immediate';
+    void warmLoginAuthSurface({ warmPath });
   }, []);
 
   // Terms/Privacy back-stack resume (session stash from LoginAuthScreen / modals).
@@ -110,6 +125,9 @@ export default function LoginPage() {
 
   return (
     <MarketingPageShell>
+      {googleReturnBusy ? (
+        <GoogleAuthContinueOverlay intent={googleReturnIntent} />
+      ) : null}
       <LoginAuthScreen
         mode={mode}
         onSwitchToSignIn={openSignIn}

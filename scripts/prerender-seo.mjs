@@ -83,14 +83,14 @@ console.log(
   `prerender-seo: wrote dist/${LIGHT_SPA_BOOT_SHELL_REL_PATH} (branded shell, no route modulepreload)`,
 );
 
-// `/login`: auth-card skeleton (not dashboard tabs) + LoginPage preload — no firebase-core (#835).
+// `/login`: auth-card skeleton + LoginPage + firebase-core preload (#835 / #860).
 const loginShell = buildLoginBootShellHtml(appShell);
 const loginBootHtml = injectLoginBootModulepreloads(loginShell, distDir);
 const loginBootPath = join(distDir, LOGIN_BOOT_SHELL_REL_PATH);
 mkdirSync(dirname(loginBootPath), { recursive: true });
 writeFileSync(loginBootPath, loginBootHtml, 'utf8');
 console.log(
-  `prerender-seo: wrote dist/${LOGIN_BOOT_SHELL_REL_PATH} (login auth-card shell + LoginPage preload, no firebase)`,
+  `prerender-seo: wrote dist/${LOGIN_BOOT_SHELL_REL_PATH} (login auth-card shell + LoginPage + firebase-core preload)`,
 );
 
 console.log(

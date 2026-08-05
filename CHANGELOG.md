@@ -12,6 +12,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.51.0] — 2026-08-04
+
+### Added
+- **Marketing → `/login` intent prefetch (#860 / epic #856)** — Sign In / Jump on Tour / Make picks now / Play for Free (and sibling auth CTAs) prefetch the login document + LoginPage UI assets on pointer/focus/leave without booting Auth on marketing `/`. Login shell modulepreloads `firebase-core` (not App Check). `auth_surface_timing.warm_path=intent` when prefetch contributed.
+- **Google continue chrome on `/login`** — fullscreen “Logging you in…” (sign-in) / “Loading Google account sign-in options…” (create account) while redirect/popup is in flight and on redirect return, so the blank gap after the full-page Google note is honest.
+
+### Changed
+- Path doc Tier 2 marked shipped; `AUTH_BOOT_PRACTICES` allows login-shell `firebase-core` modulepreload (download only; Auth init still deferred).
+
+---
+
 ## [1.50.1] — 2026-08-04
 
 ### Fixed

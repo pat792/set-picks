@@ -12,6 +12,7 @@ import { MarketingHeaderNav } from './MarketingSiteNav';
 export default function SplashHeader({
   onPlayNowClick,
   onSignInClick,
+  onAuthCtaIntent,
 }) {
   // If `h-[5.35rem]` / `sm:h-[5.25rem]` change, update `splashScrollPadding.js` (html scroll-padding).
   return (
@@ -39,6 +40,9 @@ export default function SplashHeader({
             variant="text"
             size="none"
             onClick={onSignInClick}
+            onPointerEnter={onAuthCtaIntent}
+            onFocus={onAuthCtaIntent}
+            onPointerDown={onAuthCtaIntent}
             className="whitespace-nowrap text-sm sm:text-sm"
           >
             Sign In
@@ -48,6 +52,9 @@ export default function SplashHeader({
             variant="primary"
             size="sm"
             onClick={onPlayNowClick}
+            onPointerEnter={onAuthCtaIntent}
+            onFocus={onAuthCtaIntent}
+            onPointerDown={onAuthCtaIntent}
             className="py-2.5"
           >
             Jump on Tour
