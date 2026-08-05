@@ -1,10 +1,8 @@
 /**
- * Branded `/login` boot shell (#835 follow-up).
+ * HTML-first `/login` auth-door shell (#892 / epic #889 Phase 2).
  *
- * Must NOT reuse the dashboard skeleton (bottom tabs / sidebar) — marketing CTAs
- * hard-nav here, and a 5–10s dashboard chrome flash on mobile Safari reads as a
- * broken redirect. Paint a marketing-like header + centered auth-card skeleton
- * until LoginPage replaces `#root`.
+ * First document must include real form controls (not skeleton-only). Auth JS
+ * hydrates on top. Must NOT reuse dashboard chrome (tabs / sidebar).
  *
  * Pure HTML/CSS — no src/ imports (safe for build scripts).
  */
@@ -14,7 +12,12 @@ import { stripPrerenderBodyFromSpaShell } from './seo-strip-body.mjs';
 /** Attribute marker asserted by `verify:seo-prerender`. */
 export const LOGIN_BOOT_SHELL_MARKER = 'data-login-boot-shell';
 
+/** Marks real form chrome in first HTML (#892 acceptance). */
+export const LOGIN_FORM_SHELL_MARKER = 'data-login-form-shell';
+
 const VINYL_MARK_SRC = '/branding/splash-vinyl-mark.webp';
+const GOOGLE_ICON_SRC =
+  'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg';
 
 function loginBootShellCriticalCss() {
   return `
@@ -96,6 +99,10 @@ html, body {
   background: rgb(30 27 75 / 0.8);
   backdrop-filter: blur(12px);
 }
+.lbs-header-link {
+  display: block;
+  line-height: 0;
+}
 .lbs-header-mark {
   display: block;
   width: 3.25rem;
@@ -111,6 +118,20 @@ html, body {
   justify-content: center;
   padding: 2.5rem 1rem 2rem;
 }
+.lbs-stack {
+  width: 100%;
+  max-width: 28rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lbs-eyebrow {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(148 163 184);
+}
 .lbs-panel {
   width: 100%;
   max-width: 28rem;
@@ -118,51 +139,136 @@ html, body {
   border: 1px solid rgb(51 65 85 / 0.6);
   background: rgb(32 40 62 / 0.4);
   padding: 1.5rem;
+  box-sizing: border-box;
 }
 .lbs-title {
-  height: 1.75rem;
-  width: 42%;
-  margin-bottom: 1.25rem;
-  border-radius: 0.5rem;
-  background: rgb(148 163 184 / 0.22);
+  margin: 0 0 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
 }
 .lbs-google {
-  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
   width: 100%;
-  margin-bottom: 1.25rem;
+  min-height: 3rem;
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 0;
   border-radius: 0.75rem;
-  background: rgb(248 250 252 / 0.92);
+  background: rgb(248 250 252 / 0.96);
+  color: rgb(15 23 42);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: not-allowed;
+  opacity: 0.85;
+  box-sizing: border-box;
+}
+.lbs-google-icon {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 .lbs-divider {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
+  color: rgb(148 163 184);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .lbs-divider-line {
   flex: 1;
   height: 1px;
   background: rgb(51 65 85 / 0.6);
 }
+.lbs-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+}
 .lbs-field {
-  height: 2.75rem;
+  display: block;
   width: 100%;
-  margin-bottom: 0.85rem;
-  border-radius: 0.5rem;
-  background: rgb(26 32 52 / 0.9);
-  animation: lbs-pulse 1.4s ease-in-out infinite;
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid rgb(51 65 85 / 0.85);
+  border-radius: 0.75rem;
+  background: rgb(26 32 52 / 0.95);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+.lbs-field:focus {
+  outline: 2px solid rgb(45 212 191 / 0.65);
+  outline-offset: 1px;
+  border-color: rgb(45 212 191 / 0.55);
 }
 .lbs-submit {
-  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  margin-top: 0.5rem;
+  min-height: 3rem;
+  margin-top: 0.35rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(45 212 191 / 0.45);
   border-radius: 0.75rem;
-  background: rgb(45 212 191 / 0.28);
-  box-shadow: inset 0 0 0 1px rgb(45 212 191 / 0.25);
+  background: rgb(45 212 191 / 0.18);
+  color: rgb(204 251 241);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-sizing: border-box;
 }
-@keyframes lbs-pulse {
-  0%, 100% { opacity: 0.72; }
-  50% { opacity: 1; }
+.lbs-switch {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(148 163 184);
+}
+.lbs-switch a {
+  color: rgb(94 234 212);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgb(20 184 166 / 0.6);
+}
+.lbs-panel[hidden] {
+  display: none !important;
+}
+.lbs-legal {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgb(51 65 85 / 0.6);
+  border-radius: 0.75rem;
+  background: rgb(15 23 42 / 0.35);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgb(226 232 240);
+}
+.lbs-legal input {
+  margin-top: 0.2rem;
+}
+.lbs-legal a {
+  color: rgb(94 234 212);
 }
 @media (prefers-reduced-motion: reduce) {
   .lbs-progress::after {
@@ -170,38 +276,106 @@ html, body {
     width: 100%;
     opacity: 0.55;
   }
-  .lbs-field { animation: none; }
 }
 `.trim();
 }
 
-/** Static skeleton markup placed inside `#root`. */
+/**
+ * Tiny inline boot: flip signin/signup panels from `?mode=` / `signup=1`
+ * before hydrate JS arrives.
+ */
+function loginModeBootScript() {
+  return `<script>
+(function () {
+  try {
+    var q = new URLSearchParams(window.location.search);
+    var mode = (q.get('mode') || '').toLowerCase();
+    var signup = mode === 'signup' || q.get('signup') === '1';
+    var signin = document.getElementById('lbs-signin');
+    var signupEl = document.getElementById('lbs-signup');
+    var eyebrow = document.getElementById('lbs-eyebrow');
+    if (!signin || !signupEl) return;
+    if (signup) {
+      signin.hidden = true;
+      signupEl.hidden = false;
+      if (eyebrow) eyebrow.textContent = 'Create your free account';
+    } else {
+      signin.hidden = false;
+      signupEl.hidden = true;
+      if (eyebrow) eyebrow.textContent = 'Sign in to make picks';
+    }
+  } catch (e) {}
+})();
+</script>`;
+}
+
+/** Static HTML-first form chrome placed inside `#root`. */
 export function buildLoginBootShellMarkup() {
   return [
     `<style id="login-boot-shell-css">${loginBootShellCriticalCss()}</style>`,
-    `<div ${LOGIN_BOOT_SHELL_MARKER}="true" class="lbs-shell" role="status" aria-busy="true" aria-label="Loading sign-in">`,
+    `<div ${LOGIN_BOOT_SHELL_MARKER}="true" ${LOGIN_FORM_SHELL_MARKER}="true" class="lbs-shell">`,
     `<div class="lbs-ambient" aria-hidden="true"></div>`,
     `<div class="lbs-progress" aria-hidden="true"></div>`,
-    `<header class="lbs-header" aria-hidden="true">`,
+    `<header class="lbs-header">`,
+    `<a class="lbs-header-link" href="/" aria-label="Setlist Pick'em home">`,
     `<img class="lbs-header-mark" src="${VINYL_MARK_SRC}" alt="" width="64" height="64" decoding="async" fetchpriority="high" />`,
+    `</a>`,
     `</header>`,
     `<main class="lbs-main">`,
-    `<div class="lbs-panel" aria-hidden="true">`,
-    `<div class="lbs-title"></div>`,
-    `<div class="lbs-google"></div>`,
-    `<div class="lbs-divider"><div class="lbs-divider-line"></div><div class="lbs-divider-line"></div></div>`,
-    `<div class="lbs-field"></div>`,
-    `<div class="lbs-field"></div>`,
-    `<div class="lbs-submit"></div>`,
+    `<div class="lbs-stack">`,
+    `<p id="lbs-eyebrow" class="lbs-eyebrow">Sign in to make picks</p>`,
+
+    // Sign-in panel (default)
+    `<section id="lbs-signin" class="lbs-panel" aria-label="Sign in">`,
+    `<h1 class="lbs-title">Sign in</h1>`,
+    `<button type="button" class="lbs-google" disabled aria-disabled="true">`,
+    `<img class="lbs-google-icon" src="${GOOGLE_ICON_SRC}" alt="" width="18" height="18" />`,
+    `<span>Preparing sign-in…</span>`,
+    `</button>`,
+    `<div class="lbs-divider"><div class="lbs-divider-line"></div><span>or</span><div class="lbs-divider-line"></div></div>`,
+    `<form action="/login" method="get" autocomplete="on">`,
+    `<label class="lbs-label" for="si-email">Email</label>`,
+    `<input class="lbs-field" id="si-email" name="email" type="email" autocomplete="username" required />`,
+    `<label class="lbs-label" for="si-pass">Password</label>`,
+    `<input class="lbs-field" id="si-pass" name="password" type="password" autocomplete="current-password" required />`,
+    `<button class="lbs-submit" type="submit">Continue with email</button>`,
+    `</form>`,
+    `<p class="lbs-switch">New here? <a href="/login?mode=signup">Create account</a></p>`,
+    `</section>`,
+
+    // Sign-up panel (shown via query / hydrate)
+    `<section id="lbs-signup" class="lbs-panel" aria-label="Create account" hidden>`,
+    `<h1 class="lbs-title">Create account</h1>`,
+    `<label class="lbs-legal">`,
+    `<input type="checkbox" name="legal" value="1" disabled />`,
+    `<span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</span>`,
+    `</label>`,
+    `<button type="button" class="lbs-google" disabled aria-disabled="true">`,
+    `<img class="lbs-google-icon" src="${GOOGLE_ICON_SRC}" alt="" width="18" height="18" />`,
+    `<span>Preparing sign-in…</span>`,
+    `</button>`,
+    `<div class="lbs-divider"><div class="lbs-divider-line"></div><span>or</span><div class="lbs-divider-line"></div></div>`,
+    `<form action="/login" method="get" autocomplete="on">`,
+    `<label class="lbs-label" for="su-email">Email</label>`,
+    `<input class="lbs-field" id="su-email" name="email" type="email" autocomplete="email" required />`,
+    `<label class="lbs-label" for="su-pass">Password</label>`,
+    `<input class="lbs-field" id="su-pass" name="password" type="password" autocomplete="new-password" required minlength="6" />`,
+    `<label class="lbs-label" for="su-confirm">Confirm password</label>`,
+    `<input class="lbs-field" id="su-confirm" name="confirm-password" type="password" autocomplete="new-password" required />`,
+    `<button class="lbs-submit" type="submit">Accept terms to continue</button>`,
+    `</form>`,
+    `<p class="lbs-switch">Already have an account? <a href="/login?mode=signin">Sign in</a></p>`,
+    `</section>`,
+
     `</div>`,
     `</main>`,
     `</div>`,
+    loginModeBootScript(),
   ].join('');
 }
 
 /**
- * Build the `/login` boot shell from the Vite app SPA shell (`app.html`).
- * #890: thin `login.html` entry retired after Safari hang; epic #889 Phase 2 is HTML-first.
+ * Build the `/login` boot shell from the Vite login entry (`login.html`).
  * @param {string} spaHtml
  * @returns {string}
  */

@@ -75,7 +75,8 @@ const SAMPLE_LOGIN_HTML = `
   <link rel="modulepreload" crossorigin href="/assets/LoginPage-abc.js" data-login-boot-preload="true" />
   <link rel="modulepreload" crossorigin href="/assets/firebase-core-xyz.js" data-login-boot-preload="true" />
   <link rel="modulepreload" crossorigin href="/assets/firebase-appcheck-xyz.js" />
-  <script type="module" crossorigin src="/assets/app-entry-123.js"></script>
+  <script type="module" crossorigin src="/assets/login-entry-123.js"></script>
+  <input id="si-email" type="email" />
 `;
 
 describe('prefetchLoginIntent', () => {
@@ -127,7 +128,7 @@ describe('prefetchLoginIntent', () => {
   it('extracts LoginPage modulepreloads and drops firebase assets by default', () => {
     expect(extractLoginUiAssetHrefs(SAMPLE_LOGIN_HTML)).toEqual([
       '/assets/LoginPage-abc.js',
-      '/assets/app-entry-123.js',
+      '/assets/login-entry-123.js',
     ]);
   });
 
@@ -137,7 +138,7 @@ describe('prefetchLoginIntent', () => {
     ).toEqual([
       '/assets/LoginPage-abc.js',
       '/assets/firebase-core-xyz.js',
-      '/assets/app-entry-123.js',
+      '/assets/login-entry-123.js',
     ]);
     expect(
       shouldPrefetchLoginAssetHref('/assets/firebase-appcheck-xyz.js', {

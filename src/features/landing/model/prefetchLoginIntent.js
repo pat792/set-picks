@@ -1,8 +1,9 @@
 /**
  * Marketing → `/login` download warm (#860 intent / #880 speculative).
  *
- * Warms the login document + LoginPage UI modulepreload URLs into the browser
- * cache without calling `initializeApp` / mounting AuthProvider on marketing `/`.
+ * Warms the login document + auth-door hydrate / LoginPage modulepreload URLs
+ * into the browser cache without calling `initializeApp` / mounting AuthProvider
+ * on marketing `/`.
  *
  * - **Intent (#860):** CTA pointer/focus/leave — UI assets only (all `firebase-*` dropped).
  * - **Speculative (#880):** post-paint idle — UI assets + `firebase-core` only

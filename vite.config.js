@@ -5,13 +5,13 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import { buildLoginBootShellMarkup } from './scripts/login-boot-shell.mjs';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** Paths that must boot the authenticated SPA document (`app.html`) in dev (#832). */
 const APP_DOCUMENT_PATH_PREFIXES = [
-  // #890: `/login` back on app.html after #881 thin-entry Safari hang.
-  // HTML-first auth door returns in epic #889 Phase 2 — not another CSR entry.
-  '/login',
+  // `/login` is its own HTML-first document (#892) — see isLoginDocumentPath.
   '/dashboard',
   '/setup',
   '/user/',
@@ -31,13 +31,18 @@ function isAppDocumentPath(pathname) {
   });
 }
 
+function isLoginDocumentPath(pathname) {
+  return pathname === '/login' || pathname.startsWith('/login/');
+}
+
 function rewriteAppDocumentRequest(req, _res, next) {
   const raw = req.url || '';
   const pathname = raw.split('?')[0];
+  const query = raw.includes('?') ? `?${raw.split('?')[1]}` : '';
   if (
     pathname === '/app.html' ||
-    // Prerendered shells (e.g. /login/index.html) must not be rewritten again —
-    // `startsWith('/login/')` would otherwise stomp them with bare app.html.
+    pathname === '/login.html' ||
+    // Prerendered shells (e.g. /login/index.html) must not be rewritten again.
     pathname.endsWith('.html') ||
     pathname.startsWith('/src/') ||
     pathname.startsWith('/@') ||
@@ -50,11 +55,17 @@ function rewriteAppDocumentRequest(req, _res, next) {
     next();
     return;
   }
-  // Serve `app.html` for auth/dashboard/legal hard opens so they don't fall
+  // HTML-first auth door (#892) — not the dashboard SPA graph.
+  if (isLoginDocumentPath(pathname)) {
+    req.url = `/login.html${query}`;
+    next();
+    return;
+  }
+  // Serve `app.html` for dashboard/legal hard opens so they don't fall
   // through to the marketing document (which would location.replace-loop) (#832).
   // Public `/tour-stats*` is marketing (#853).
   if (isAppDocumentPath(pathname)) {
-    req.url = `/app.html${raw.includes('?') ? `?${raw.split('?')[1]}` : ''}`;
+    req.url = `/app.html${query}`;
   }
   next();
 }
@@ -88,6 +99,30 @@ function rewritePrerenderedMarketingHtml(distDir) {
   };
 }
 
+/**
+ * Inject HTML-first form chrome into `login.html` for `vite` / `vite build`
+ * so first paint has `<input>` before hydrate (#892). Prerender re-applies the
+ * same markup into `dist/login/index.html`.
+ */
+function loginFormShellHtmlPlugin() {
+  return {
+    name: 'login-form-shell-html',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        const id = ctx.filename || ctx.path || '';
+        if (!id.endsWith('login.html')) return html;
+        if (html.includes('data-login-form-shell')) return html;
+        const markup = buildLoginBootShellMarkup();
+        return html.replace(
+          /<div id="root">\s*<\/div>/i,
+          `<div id="root">${markup}</div>`,
+        );
+      },
+    },
+  };
+}
+
 function appDocumentDevMiddleware() {
   return {
     name: 'app-document-dev-middleware',
@@ -99,7 +134,8 @@ function appDocumentDevMiddleware() {
       const distDir = server.config.build?.outDir
         ? path.resolve(server.config.root || process.cwd(), server.config.build.outDir)
         : path.join(__dirname, 'dist');
-      // Prerender HTML before app-doc rewrite so /tour-stats stays marketing (#853).
+      // Prerender HTML before app-doc rewrite so /tour-stats stays marketing (#853)
+      // and /login serves dist/login/index.html (#892).
       server.middlewares.use(rewritePrerenderedMarketingHtml(distDir));
       server.middlewares.use(rewriteAppDocumentRequest);
     },
@@ -152,7 +188,7 @@ function manualChunks(id) {
 
 export default defineConfig({
   base: '/',
-  plugins: [react(), appDocumentDevMiddleware()],
+  plugins: [react(), loginFormShellHtmlPlugin(), appDocumentDevMiddleware()],
   test: {
     environment: 'node',
     include: ['src/**/*.test.js', 'api/**/*.test.js'],
@@ -172,6 +208,8 @@ export default defineConfig({
         // Named `marketing` so built HTML references `/assets/marketing-*.js` (#832).
         marketing: path.resolve(__dirname, 'index.html'),
         app: path.resolve(__dirname, 'app.html'),
+        // HTML-first auth door (#892) — `/assets/login-*.js`, not the dashboard SPA.
+        login: path.resolve(__dirname, 'login.html'),
       },
       output: {
         manualChunks,
