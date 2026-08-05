@@ -11,5 +11,14 @@ export default function HardRedirect({ to }) {
     if (typeof to !== 'string' || !to) return;
     window.location.replace(to);
   }, [to]);
-  return null;
+  // Avoid a blank frame while replace runs (#899 logout race).
+  return (
+    <div
+      className="flex min-h-[40vh] items-center justify-center px-4 text-sm text-content-secondary"
+      role="status"
+      aria-live="polite"
+    >
+      Taking you there…
+    </div>
+  );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 
 import { useSignOut } from '../../features/auth';
 import { AccountSecurity, DeleteAccountSection } from '../../features/account';
@@ -12,7 +12,6 @@ import Button from '../../shared/ui/Button';
 export default function AccountPage({ user: userProp }) {
   const outlet = useOutletContext();
   const user = userProp ?? outlet?.user;
-  const navigate = useNavigate();
   const signOut = useSignOut();
 
   const providerIds =
@@ -25,8 +24,8 @@ export default function AccountPage({ user: userProp }) {
 
   const handleLogout = async () => {
     try {
+      // useSignOut hard-navs to marketing `/` (#899); do not soft-nav under dashboard.
       await signOut();
-      navigate('/');
     } catch (error) {
       console.error('Error logging out: ', error);
     }

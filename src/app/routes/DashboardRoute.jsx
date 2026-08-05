@@ -2,9 +2,11 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import {
+  consumePostSignOutHome,
   trackAuthPartialProfile,
   useAuth,
 } from '../../features/auth';
+
 
 import { ShowCalendarProvider } from '../../features/show-calendar';
 import { ensureAppCheckNow } from '../../shared/lib/firebaseAppCheck';
@@ -43,7 +45,11 @@ export default function DashboardRoute() {
   // lands on /dashboard/picks (etc.), not generic /dashboard. Do not send
   // unauthenticated visitors to marketing `/` (no AuthProvider there).
   // #830 / #881: hard-nav to `/login` (not soft SPA stay); #890 boots app.html again.
+  // #899: intentional Log Out marks post-sign-out → marketing `/` (not /login race).
   if (decision.kind === 'redirect-home') {
+    if (consumePostSignOutHome()) {
+      return <HardRedirect to="/" />;
+    }
     persistDashboardPath(location.pathname, location.search);
     return <HardRedirect to="/login" />;
   }

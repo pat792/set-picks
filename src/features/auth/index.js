@@ -24,6 +24,11 @@ export { usePasswordReset } from './model/usePasswordReset';
 export { usePasswordResetCompleteState } from './model/usePasswordResetCompleteState';
 export { useProfileSetup } from './model/useProfileSetup';
 export { useSignOut } from './model/useSignOut';
+export {
+  consumePostSignOutHome,
+  markPostSignOutHome,
+} from './model/postSignOutHome';
+
 export { getFirebaseAuthErrorMessage } from './utils/firebaseAuthMessages';
 export { getPasswordResetActionCodeSettings } from './utils/passwordResetActionSettings';
 export {
