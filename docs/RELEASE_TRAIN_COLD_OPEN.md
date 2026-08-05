@@ -43,7 +43,8 @@
 
 ```bash
 npm run build && npm run preview
-# Gate on Slow 3G / Fast 3G + private mobile against preview or prod — not staging SSO browse.
+# Gate on Slow 3G / Fast 3G + private mobile against **local** `vite preview`
+# or **prod** — not Vercel preview/staging SSO (auth wall ≠ anon cold open).
 # Private window: / — HTML shows H1/copy immediately under a thin top bar (not full-screen Loading…)
 # Network: no firebase-core on /; no HowItWorks/Scoring/Phish page chunks until those routes
 # /login — form visible quickly; firebase-core may idle-warm after paint (not before)
