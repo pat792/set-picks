@@ -8,7 +8,12 @@ import {
   LINK_ON_LIGHT,
 } from '../../../shared/ui/surfaceLinkStyles';
 
-export default function SplashHowItWorksSection({ sectionRef, headingRef, onCreateAccountClick }) {
+export default function SplashHowItWorksSection({
+  sectionRef,
+  headingRef,
+  onCreateAccountClick,
+  onAuthCtaIntent,
+}) {
   return (
     <section
       ref={sectionRef}
@@ -75,6 +80,9 @@ export default function SplashHowItWorksSection({ sectionRef, headingRef, onCrea
             variant="primary"
             type="button"
             onClick={onCreateAccountClick}
+            onPointerEnter={onAuthCtaIntent}
+            onFocus={onAuthCtaIntent}
+            onPointerDown={onAuthCtaIntent}
             className="w-full sm:w-auto px-10 shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] hover:shadow-[0_15px_30px_-15px_rgba(16,185,129,0.6)]"
           >
             Create Account

@@ -18,6 +18,7 @@ export default function SplashPageShell({
   aboutHeadingRef,
   onOpenSignUp,
   onOpenSignIn,
+  onAuthCtaIntent,
   children,
 }) {
   useSplashDocumentScrollPadding();
@@ -25,20 +26,29 @@ export default function SplashPageShell({
   return (
     <>
       {/* Fixed + flex parent breaks iOS Safari; header must sit outside the flex wrapper. */}
-      <SplashHeader onPlayNowClick={onOpenSignUp} onSignInClick={onOpenSignIn} />
+      <SplashHeader
+        onPlayNowClick={onOpenSignUp}
+        onSignInClick={onOpenSignIn}
+        onAuthCtaIntent={onAuthCtaIntent}
+      />
 
       <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
         <main className="relative w-full flex-1 overflow-x-hidden">
-          <SplashHeroSection onPlayNowClick={onOpenSignUp} />
+          <SplashHeroSection
+            onPlayNowClick={onOpenSignUp}
+            onAuthCtaIntent={onAuthCtaIntent}
+          />
           <SplashHowItWorksSection
             sectionRef={howItWorksSectionRef}
             headingRef={howItWorksHeadingRef}
             onCreateAccountClick={onOpenSignUp}
+            onAuthCtaIntent={onAuthCtaIntent}
           />
           <SplashAboutSection
             sectionRef={aboutSectionRef}
             headingRef={aboutHeadingRef}
             onGetStartedClick={onOpenSignUp}
+            onAuthCtaIntent={onAuthCtaIntent}
           />
         </main>
 

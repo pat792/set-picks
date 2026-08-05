@@ -4,8 +4,9 @@
 **T0a:** [#857](https://github.com/pat792/set-picks/issues/857) — `route_group` + auth timing emitters (shipped in train; register GA4 dims per runbook).  
 **T0b:** [#858](https://github.com/pat792/set-picks/issues/858) — hard-ready Google CTA (immediate warm + gate + sync click path).  
 **T1:** [#859](https://github.com/pat792/set-picks/issues/859) — Safari/iOS → `signInWithRedirect` (+ popup→redirect on `popup-blocked`). Parallel: [#867](https://github.com/pat792/set-picks/issues/867) Safari Private “Reduce Protections” banner triage.  
+**T2:** [#860](https://github.com/pat792/set-picks/issues/860) — marketing → `/login` intent prefetch + login-shell `firebase-core` modulepreload + Google continue chrome.
 
-**Standing rules today:** `docs/AUTH_BOOT_PRACTICES.md` (#850 + rule **2b** from #858).  
+**Standing rules today:** `docs/AUTH_BOOT_PRACTICES.md` (#850 + rule **2b** from #858 + #860 login-shell preload nuance).  
 **Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · predecessor [#835](https://github.com/pat792/set-picks/issues/835) · children: T0a [#857](https://github.com/pat792/set-picks/issues/857) · T0b [#858](https://github.com/pat792/set-picks/issues/858) · T1 [#859](https://github.com/pat792/set-picks/issues/859) · T2 [#860](https://github.com/pat792/set-picks/issues/860) · T3 [#861](https://github.com/pat792/set-picks/issues/861).
 
 This answers: how top-tier platforms feel instant; what we can close in this repo; what needs reconfiguration; and a staged path that starts by killing the **new** first-tap Google errors (absent on the old modal path).
@@ -23,7 +24,7 @@ They do **not** magically make a cold 300KB+ Auth SDK + popup feel free. They ar
 | **Thin document + deferred app** | Marketing site / docs / landing separate from the authenticated app | Instant HTML/CSS; no Auth on SERP/GenAI cold opens | **Have** — dual-entry marketing (#832); `/tour-stats*` on marketing too (#853). Auth CTAs hard-nav to `/login`. |
 | **SSR / edge HTML shell** | Next/Remix/Firebase Hosting SSR, prerender | First paint without waiting on client graph | **Partial** — branded `login/index.html` + SEO prerender shells; not full SSR of React. Enough for marketing/login chrome; not the auth-lag gap. |
 | **Session-aware boot** | Cookie / IndexedDB hint → skip marketing, go dashboard | Returning users never see auth chrome | **Have** — persisted session hint + dashboard/email boot (#773 / #804). Anon visitors still see marketing/`/login`. |
-| **Prefetch on intent** | Hover/focus “Log in” preloads auth route + Auth SDK | Hard-nav to `/login` already warm | **Gap** — marketing Sign in is a cold hard-nav; Auth warm starts only after `/login` paints (soft idle today). Tier 2. |
+| **Prefetch on intent** | Hover/focus “Log in” preloads auth route + Auth SDK | Hard-nav to `/login` already warm | **Have (#860)** — marketing CTA pointer/focus/leave prefetches `/login` doc + LoginPage UI assets (no Firebase execute); login shell modulepreloads `firebase-core`; `warm_path=intent` when prefetch contributed. |
 
 ### Auth (seamless Google / email)
 
@@ -78,7 +79,7 @@ So the regression is not “popup stopped working.” It is **we removed the mod
 |-----|------------------------------------------|-----------------|----------------------|
 | Safari popup residual flakiness | Even with perfect sequencing, Safari/ITP/popup blockers remain; Firebase prefers redirect on mobile | **Safari/iOS → `signInWithRedirect`** (+ popup→redirect on `popup-blocked`). Redirect plumbing + custom `authDomain` / `/__/auth` proxy | **Closed (#859)** — mobile reliability floor |
 | Auth page still “feels heavy” after OAuth | Post-auth: AuthProvider wake, profile/`whenFirebaseReady`, dashboard chunk | Keep dashboard/setup prefetch; consider eager AuthProvider on `/login` once warm starts; measure profile path | **Yes (partial)** — post-login snappiness; not the first-tap error |
-| Marketing→login still a full document swap | Dual-entry hard-nav is correct for cold marketing, but Auth starts at zero on arrival | Optional: `<link rel="modulepreload">` / prefetch Auth **from marketing Sign-in CTA** (intent prefetch) without booting Auth on `/` | **Yes (partial)** — virtually no lag into ready CTA; marketing stays Firebase-free |
+| Marketing→login still a full document swap | Dual-entry hard-nav is correct for cold marketing, but Auth starts at zero on arrival | Optional: `<link rel="modulepreload">` / prefetch Auth **from marketing Sign-in CTA** (intent prefetch) without booting Auth on `/` | **Closed (#860)** — UI prefetch from marketing + `firebase-core` modulepreload on login shell only |
 | GIS / federated button | Not integrated | Later: Google Identity Services → `signInWithCredential` if we want Google-rendered CTA | **No (optional)** — native-Google chrome; not required once A–D are solid |
 | True SSR auth shell | Vite SPA + branded `login/index.html` shell | Only if paint of login chrome itself is still the complaint after Tier 1 | **No (optional)** — only if login *paint* (not OAuth) is still the issue |
 
@@ -114,12 +115,14 @@ SemVer: likely **PATCH**. Risk: low if gate is correct; no marketing regression.
 
 SemVer: **MINOR**. Needs Safari human QA + Chromium smoke.
 
-### Tier 2 — Intent prefetch (marketing → login)
+### Tier 2 — Intent prefetch (marketing → login) — **shipped (#860)**
 
 **Goal:** Virtually no lag between “Sign in” on marketing and ready Google CTA.
 
-1. Marketing Sign in / Create account links: `rel` prefetch / dynamic `import()` of login warm chunk **without** initializing Auth on marketing document (or only prefetch JS URLs).
-2. Optionally add `firebase-core` modulepreload **only** on `dist/login/index.html` (lift `LOGIN_BOOT_PRELOAD_BLOCKLIST` for login shell only).
+1. Marketing Sign in / Create account CTAs: on pointer/focus/leave, `prefetchLoginIntent()` injects `<link rel="prefetch">` for `/login` + LoginPage UI modulepreload URLs **without** initializing Auth on marketing document (firebase-* hrefs filtered out of marketing prefetch).
+2. `firebase-core` modulepreload **only** on `dist/login/index.html` (explicit inject; App Check / Storage stay blocked). Marketing strip unchanged.
+3. Session flag → `warmLoginAuthSurface({ warmPath: 'intent' })` when prefetch contributed.
+4. Google continue fullscreen chrome (“Logging you in…” / “Loading Google account sign-in options…”) covers redirect leave + return blank gap.
 
 Tradeoff: login document slightly heavier; marketing cold open unchanged.
 
