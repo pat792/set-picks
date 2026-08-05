@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.53.2] — 2026-08-05
+
+### Fixed
+- **Log Out hang (#899)** — After #881 unauth dashboard → `/login` hard-nav, Account Log Out raced a blank `HardRedirect` to `/login` instead of marketing home. Intentional sign-out now marks post-sign-out, guards to `/`, hard-navs marketing `index.html`, and caps FCM cleanup so revoke cannot block forever. Email CTA unauth `/dashboard/*` → `/login` unchanged.
+
+---
+
 ## [1.53.1] — 2026-08-05
 
 ### Fixed
