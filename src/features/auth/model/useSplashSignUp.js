@@ -1,26 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { ensureAuthReady } from '../../../shared/lib/ensureFirebase';
-import { isLikelyInAppBrowser } from '../../../shared/lib/inAppBrowser';
 import { getFirebaseAuthErrorMessage } from '../utils/firebaseAuthMessages';
 import {
   clearSplashGoogleModalInflight,
   setSplashGoogleModalInflight,
 } from '../utils/splashGoogleModalInflight';
-import { stashGoogleRedirectIntent } from '../utils/googleRedirectIntent';
 import {
   trackAuthError,
   trackAuthRollback,
   trackAuthRollbackFailed,
   trackAuthSignUp,
 } from './authAnalytics';
-import {
-  markGoogleAuthClick,
-  markGoogleOauthStart,
-  trackGoogleClickToOauthTiming,
-  trackGoogleCredentialToNavTiming,
-} from './authLoginTiming';
-import { getLoginAuthSurface } from './warmLoginAuthSurface';
+import { markGoogleAuthClick } from './authLoginTiming';
+import { shouldPreferGoogleRedirectAuth } from './preferGoogleRedirectAuth';
+import { runGoogleSplashAuth } from './runGoogleSplashAuth';
 
 export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
   const [email, setEmail] = useState('');
@@ -29,7 +23,7 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const inAppBrowser = isLikelyInAppBrowser();
+  const preferGoogleRedirect = shouldPreferGoogleRedirectAuth();
 
   useEffect(() => {
     if (isOpen && seedError) setError(seedError);
@@ -74,76 +68,36 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
     setBusy(true);
     setSplashGoogleModalInflight();
     markGoogleAuthClick();
-    const authFlow = inAppBrowser ? 'redirect' : 'popup';
-    let oauthMarked = false;
+    let authFlow = preferGoogleRedirect ? 'redirect' : 'popup';
+    let leftViaRedirect = false;
     try {
-      // #858: prefer warm surface — no chunk awaits before OAuth when ready.
-      const warmed = getLoginAuthSurface();
-      let auth;
-      let signInWithGoogle;
-      let startGoogleSignInRedirect;
-      let completeGoogleSplashAuth;
-      if (warmed?.auth && warmed.signInWithGoogle) {
-        ({
-          auth,
-          signInWithGoogle,
-          startGoogleSignInRedirect,
-          completeGoogleSplashAuth,
-        } = warmed);
-      } else {
-        ({ auth } = await ensureAuthReady());
-        const [api, completeMod] = await Promise.all([
-          import('../api/splashAuthApi'),
-          import('./completeGoogleSplashAuth'),
-        ]);
-        signInWithGoogle = api.signInWithGoogle;
-        startGoogleSignInRedirect = api.startGoogleSignInRedirect;
-        completeGoogleSplashAuth = completeMod.completeGoogleSplashAuth;
-      }
-      if (inAppBrowser) {
-        stashGoogleRedirectIntent('signup');
-        markGoogleOauthStart();
-        oauthMarked = true;
-        trackGoogleClickToOauthTiming({
-          authFlow: 'redirect',
-          outcome: 'success',
-        });
-        await startGoogleSignInRedirect(auth);
-        return;
-      }
-
-      markGoogleOauthStart();
-      oauthMarked = true;
-      const { isNewUser } = await signInWithGoogle(auth);
-      const outcome = await completeGoogleSplashAuth({
+      const result = await runGoogleSplashAuth({
         intent: 'signup',
-        isNewUser,
-        flow: 'popup',
+        preferRedirect: preferGoogleRedirect,
       });
-      if (outcome.kind === 'error') {
-        trackGoogleClickToOauthTiming({
-          authFlow: 'popup',
-          outcome: 'error',
-          errorCode: 'complete_error',
-        });
-        setError(outcome.message);
+      authFlow = result.authFlow;
+      if (result.kind === 'redirecting') {
+        leftViaRedirect = true;
         return;
       }
-      trackGoogleClickToOauthTiming({
-        authFlow: 'popup',
-        outcome: 'success',
-      });
-      trackGoogleCredentialToNavTiming({ authFlow: 'popup' });
+      if (result.kind === 'error') {
+        if (result.err) {
+          console.error('Google sign-in:', result.err);
+          trackAuthError({
+            method: 'google',
+            error_code: result.errorCode,
+            surface: 'create_account',
+            auth_flow: result.authFlow,
+          });
+          setError(getFirebaseAuthErrorMessage(result.errorCode));
+        } else {
+          setError(result.message);
+        }
+        return;
+      }
       closeModal();
     } catch (err) {
       console.error('Google sign-in:', err);
-      if (oauthMarked) {
-        trackGoogleClickToOauthTiming({
-          authFlow,
-          outcome: 'error',
-          errorCode: err.code || 'unknown',
-        });
-      }
       trackAuthError({
         method: 'google',
         error_code: err.code,
@@ -152,12 +106,12 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
       });
       setError(getFirebaseAuthErrorMessage(err.code));
     } finally {
-      if (!inAppBrowser) {
+      if (!leftViaRedirect) {
         clearSplashGoogleModalInflight();
         setBusy(false);
       }
     }
-  }, [closeModal, inAppBrowser, legalAccepted]);
+  }, [closeModal, legalAccepted, preferGoogleRedirect]);
 
   const handleEmailSignUp = useCallback(
     async (e) => {
@@ -234,6 +188,8 @@ export function useSplashSignUp(isOpen, onClose, { seedError = '' } = {}) {
     closeModal,
     handleGoogle,
     handleEmailSignUp,
-    inAppBrowser,
+    /** @deprecated use preferGoogleRedirect — kept for modal footnote callers */
+    inAppBrowser: preferGoogleRedirect,
+    preferGoogleRedirect,
   };
 }

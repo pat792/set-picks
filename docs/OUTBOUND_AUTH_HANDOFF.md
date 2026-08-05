@@ -2,7 +2,7 @@
 
 **Release train:** `docs/RELEASE_TRAIN_COLD_OPEN.md` Phase B  
 **Depends on:** Bucket A (#832 / v1.47.0) — marketing document without Firebase; app auth entry at `/login`.  
-**Auth boot rules (once on `/login` / invite auth):** `docs/AUTH_BOOT_PRACTICES.md` (#850) — warm Auth after paint; never await App Check before Google popup.
+**Auth boot rules (once on `/login` / invite auth):** `docs/AUTH_BOOT_PRACTICES.md` (#850 / #858 / #859) — warm Auth after paint; never await App Check before Google OAuth; Safari/iOS prefer `signInWithRedirect`.
 
 After marketing cold opens stop booting `AuthProvider`, every outbound link must still land on the correct document: marketing shell, app shell, invite OG shell, or `/login`.
 

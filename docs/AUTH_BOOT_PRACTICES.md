@@ -22,7 +22,7 @@ Standing rules for app-document auth and any surface that opens Google/`signInWi
 
 5. **Await App Check only before Firestore.** Profile/consent/`public_tour_stats` reads and writes go through `whenFirebaseReady` / `ensureAppCheckNow` paths. Kick Check early in parallel; do not serialize it in front of OAuth.
 
-6. **In-app browsers may still use redirect.** `isLikelyInAppBrowser` → redirect flow; popup remains default elsewhere. Map `auth/popup-blocked` to clear copy.
+6. **Safari / iOS / in-app browsers prefer redirect (#859).** `shouldPreferGoogleRedirectAuth` → `signInWithRedirect` (reuses stash + `useGoogleRedirectCompletion`). Desktop Chromium/Firefox keep popup; Android Chrome keeps popup unless in-app WebView. On `auth/popup-blocked`, one-shot redirect fallback. Map `auth/popup-blocked` to clear copy when popup path remains.
 
 7. **Cloud Playwright ≠ Safari.** `scripts/qa/*` is Chromium-only. Ship any gesture/App Check sequencing change with a **human Safari** private-window check plus Chromium smoke.
 
@@ -44,7 +44,8 @@ Standing rules for app-document auth and any surface that opens Google/`signInWi
 
 ```bash
 # /login — form visible quickly; Google shows Preparing… then enables
-# Network: App Check must not gate the Google popup request
-# Private Safari: first enabled Continue with Google opens account picker (no prior failed click)
+# Network: App Check must not gate the Google OAuth request
+# Private Safari: first enabled Continue with Google starts redirect (no prior failed click)
+# Desktop Chromium: popup path unchanged for happy path
 # Marketing / — still no firebase-core on cold open
 ```

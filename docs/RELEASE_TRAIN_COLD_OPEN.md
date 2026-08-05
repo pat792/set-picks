@@ -23,10 +23,11 @@
 | **C login boot** | epic #835 | Anon `/login`: paint form first; Firebase off critical path. | **v1.48.3** |
 | **C login Safari hotfix** | #850 | Idle-warm Auth on `/login`; never await App Check before Google popup. | **v1.48.4** |
 | **D — Invite parity** | #844 | Inline auth on `/invite` + `/join` VIP (same panel chrome as `/login`). | **Held** — not in this promote |
-| **E1 — Public tour-stats** | #853 | Regression after #835 login firebase defer: move `/tour-stats*` to marketing entry; Firebase only at fetch. Bundle `AUTH_BOOT_PRACTICES.md`. | **In flight** |
+| **E1 — Public tour-stats** | #853 | Regression after #835 login firebase defer: move `/tour-stats*` to marketing entry; Firebase only at fetch. Bundle `AUTH_BOOT_PRACTICES.md`. | **Shipped** (v1.49.0) |
+| **E1b — Safari data gate** | #869 | Post-#853: chrome paints; Safari still extremely slow on `public_tour_stats` / App Check (Chrome mobile OK). | **Open** |
 | **E2 — Auth residual** | #844 (+ feel) | Invite/join inline auth; further `/login` feel. | **Held** |
 
-**Field verdict (2026-08-04):** Marketing dual-entry worked. Public `/tour-stats` regressed after auth-surface firebase defer (#835) while still on `app.html` — E1 restores it. Auth residual is E2.
+**Field verdict (2026-08-04):** Marketing dual-entry worked. E1 (#853) restored marketing chrome on `/tour-stats*`. **Safari data load still slow** → [#869](https://github.com/pat792/set-picks/issues/869). Auth residual is E2 / epic #856.
 
 **Promote rule:** Ship A–C (+ C follow) `staging` → `main` when marketing soak is enough. Phase D (#844) and Phase E (#853 + auth residual) stay open and ship later.
 
@@ -50,8 +51,9 @@ npm run build && npm run preview
 # Network: no firebase-core on /; no HowItWorks/Scoring/Phish page chunks until those routes
 # /login — auth-card boot shell (not dashboard tabs); form visible quickly after SPA mount
 # /login — firebase-core warms immediately after paint (not before)
-# /login — Google disabled until Auth ready (“Preparing…”); first enabled Safari tap opens picker
+# /login — Google disabled until Auth ready (“Preparing…”); first enabled Safari tap starts redirect (or picker on desktop)
 # /login — Continue with Google must not wait on App Check
+# Parallel triage: Safari Private “Reduce Protections” banner on hard reload → #867 (not T1)
 # /login — inline forms (no role=dialog); session hint / Google redirect still complete
 # From /login → Home — full load of marketing /; Sign in again → /login (not modal)
 # /join/:code and /invite/:handle — still modal auth until #844
