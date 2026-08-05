@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.49.1] — 2026-08-04
+
+### Added
+- **Auth/content RUM (#857 / epic #856)** — `route_group` splits for `/login` (`login`), educational marketing pages (`marketing`), and `/tour-stats*` (`tour_stats`). GA4 `auth_surface_timing` (paint→Auth warm ready) and `auth_google_timing` (click→OAuth invoke / credential→nav). Ops: `docs/AUTH_TELEMETRY_RUNBOOK.md`, `docs/WEB_VITALS_RUM.md`, `docs/AUTH_SEAMLESS_PATH.md`.
+
+---
+
 ## [1.49.0] — 2026-08-04
 
 ### Changed

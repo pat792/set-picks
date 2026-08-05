@@ -7,6 +7,7 @@ export { default as LoginAuthScreen } from './ui/LoginAuthScreen';
 export { AuthProvider, useAuth } from './provider.js';
 export { useGoogleRedirectCompletion } from './model/useGoogleRedirectCompletion';
 export { warmLoginAuthSurface } from './model/warmLoginAuthSurface';
+export { markLoginAuthPaint } from './model/authLoginTiming';
 export {
   stashSplashResumeAuthModal,
   consumeSplashResumeAuthModal,

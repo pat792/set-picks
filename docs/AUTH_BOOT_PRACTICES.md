@@ -2,7 +2,7 @@
 
 Standing rules for app-document auth and any surface that opens Google/`signInWithPopup` or touches Firestore under App Check. Learned from the v1.48.4 Safari hotfix (#850); apply on Phase E work (`/tour-stats`, invite/join, further `/login` feel) without re-deriving.
 
-**Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`) · code: `src/shared/lib/ensureFirebase.js`, `src/features/auth/model/warmLoginAuthSurface.js`
+**Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · `docs/OUTBOUND_AUTH_HANDOFF.md` · `docs/API.md` (`/login`) · **roadmap / top-tier gap close:** `docs/AUTH_SEAMLESS_PATH.md` · code: `src/shared/lib/ensureFirebase.js`, `src/features/auth/model/warmLoginAuthSurface.js`
 
 ---
 

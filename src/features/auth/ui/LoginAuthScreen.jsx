@@ -98,7 +98,9 @@ function LoginSignInPanel({
     <SplashAuthPanel
       title="Sign in"
       handleGoogle={handleGoogle}
-      onGoogleIntent={warmLoginAuthSurface}
+      onGoogleIntent={() => {
+        void warmLoginAuthSurface({ warmPath: 'intent' });
+      }}
       busy={busy}
       prependContent={prependContent}
       googleFootnote={
@@ -275,7 +277,9 @@ function LoginSignUpPanel({
     <SplashAuthPanel
       title="Create account"
       handleGoogle={handleGoogle}
-      onGoogleIntent={warmLoginAuthSurface}
+      onGoogleIntent={() => {
+        void warmLoginAuthSurface({ warmPath: 'intent' });
+      }}
       busy={busy}
       googleDisabled={busy || !legalAccepted}
       prependContent={prependContent}
