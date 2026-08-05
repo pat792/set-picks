@@ -5,11 +5,21 @@
 **Do not revive:** issue #831 hand-built HTML stub (lost branding, scoring graphics, live tour stats).
 
 **Auth / App Check sequencing (standing):** `docs/AUTH_BOOT_PRACTICES.md` — immediate warm + hard-ready Google CTA (#858); never await App Check before `signInWithPopup` (#850).  
-**Top-tier auth feel:** `docs/AUTH_SEAMLESS_PATH.md` · delivery epic [#856](https://github.com/pat792/set-picks/issues/856) (T0a–T3: #857–#861; T0b #858 hard-ready Google).
+**Top-tier auth feel:** `docs/AUTH_SEAMLESS_PATH.md` · epic [#889](https://github.com/pat792/set-picks/issues/889) (parked) · predecessor [#856](https://github.com/pat792/set-picks/issues/856).
+
+### Field stop (2026-08-05)
+
+**This train is paused in production at v1.53.2.** No further cold-open / auth-hop / thin-entry PRs until a human explicitly resumes.
+
+- **v1.53.1 (#890):** restore `/login` on `app.html` after #881 Safari hang  
+- **v1.53.2 (#899):** Log Out → marketing `/` (fix HardRedirect race to `/login`)  
+- **Open but not in this stop:** [#869](https://github.com/pat792/set-picks/issues/869) tour-stats data plane (CDN JSON), [#889](https://github.com/pat792/set-picks/issues/889) HTML-first auth door  
+
+Agents: do **not** continue Phase E / epic #856 hop work / epic #889 Phase 1–2 by default.
 
 ---
 
-## Train phases
+## Train phases (historical)
 
 | Phase | Issue | Scope | Status |
 |-------|-------|--------|--------|
@@ -24,12 +34,12 @@
 | **C login Safari hotfix** | #850 | Idle-warm Auth on `/login`; never await App Check before Google popup. | **v1.48.4** |
 | **D — Invite parity** | #844 | Inline auth on `/invite` + `/join` VIP (same panel chrome as `/login`). | **Held** — not in this promote |
 | **E1 — Public tour-stats** | #853 | Regression after #835 login firebase defer: move `/tour-stats*` to marketing entry; Firebase only at fetch. Bundle `AUTH_BOOT_PRACTICES.md`. | **Shipped** (v1.49.0) |
-| **E1b — Safari data gate** | #869 | Post-#853: chrome paints; Safari still extremely slow on `public_tour_stats` / App Check (Chrome mobile OK). | **Open** |
+| **E1b — Safari data gate** | #869 | Post-#853: chrome paints; Safari still extremely slow on `public_tour_stats` / App Check (Chrome mobile OK). | **Open — parked** (CDN JSON when resumed) |
 | **E2 — Auth residual** | #844 (+ feel) | Invite/join inline auth; further `/login` feel. | **Held** |
+| **E0 hotfix** | #890 | Restore `/login` app.html boot after #881 hang. | **v1.53.1** |
+| **E0 follow** | #899 | Log Out HardRedirect race → `/login`. | **v1.53.2** |
 
-**Field verdict (2026-08-04):** Marketing dual-entry worked. E1 (#853) restored marketing chrome on `/tour-stats*`. **Safari data load still slow** → [#869](https://github.com/pat792/set-picks/issues/869). Auth residual is E2 / epic #856.
-
-**Promote rule:** Ship A–C (+ C follow) `staging` → `main` when marketing soak is enough. Phase D (#844) and Phase E (#853 + auth residual) stay open and ship later.
+**Field verdict (2026-08-05):** Train **stopped** after v1.53.2. Dual-entry marketing stays. Do not resume hop tiers. Next construction (when resumed): HTML-first `/login` (#889) + tour-stats JSON (#869) — not another CSR entry.
 
 ---
 
