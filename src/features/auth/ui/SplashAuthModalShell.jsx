@@ -10,6 +10,8 @@ export default function SplashAuthModalShell({
   busy,
   /** When set, overrides default Google disabled state (`busy` only). */
   googleDisabled,
+  /** Pending / preparing label override (e.g. “Opening Google…”). */
+  googleLabel,
   /** Rendered after the title row and before “Continue with Google” (e.g. sign-up legal consent). */
   prependContent,
   googleFootnote,
@@ -45,6 +47,7 @@ export default function SplashAuthModalShell({
           handleGoogle={handleGoogle}
           busy={busy}
           googleDisabled={googleDisabled}
+          googleLabel={googleLabel}
           prependContent={prependContent}
           googleFootnote={googleFootnote}
         >

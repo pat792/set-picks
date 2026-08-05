@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { MarketingAuthLeaveOverlay } from '../features/landing/splash';
 import MarketingHomePage from '../pages/marketing/MarketingHomePage';
 
 // Sibling marketing routes stay off the `/` cold-open graph (#835).
@@ -50,14 +51,8 @@ function LoadAppDocument() {
     return <Navigate to="/" replace />;
   }
 
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center bg-brand-bg text-sm font-medium text-slate-400"
-      aria-busy="true"
-    >
-      Loading…
-    </div>
-  );
+  // Residual soft-nav safety net (#872) — primary CTAs hard-link past this hop.
+  return <MarketingAuthLeaveOverlay />;
 }
 
 function MarketingRouteFallback() {

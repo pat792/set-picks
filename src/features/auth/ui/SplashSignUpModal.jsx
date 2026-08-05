@@ -5,6 +5,7 @@ import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
 import { StatusBanner } from '../../../shared';
 import { AUTH_EMAIL_CTA } from './authCtaClasses';
+import { resolveGoogleCtaLabel } from './googleCtaLabel';
 import PasswordRevealToggle, {
   shouldShowPasswordReveal,
 } from './PasswordRevealToggle';
@@ -30,6 +31,7 @@ export default function SplashSignUpModal({
     legalAccepted,
     setLegalAccepted,
     busy,
+    googleBusy,
     error,
     closeModal,
     handleGoogle,
@@ -101,6 +103,7 @@ export default function SplashSignUpModal({
       handleGoogle={handleGoogle}
       busy={busy}
       googleDisabled={busy || !legalAccepted}
+      googleLabel={resolveGoogleCtaLabel({ googleBusy })}
       prependContent={prependContent}
       googleFootnote={
         preferGoogleRedirect

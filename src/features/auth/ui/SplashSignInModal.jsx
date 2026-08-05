@@ -4,6 +4,7 @@ import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
 import { StatusBanner } from '../../../shared';
 import { AUTH_EMAIL_CTA } from './authCtaClasses';
+import { resolveGoogleCtaLabel } from './googleCtaLabel';
 import PasswordRevealToggle, {
   shouldShowPasswordReveal,
 } from './PasswordRevealToggle';
@@ -25,6 +26,7 @@ export default function SplashSignInModal({
     password,
     setPassword,
     busy,
+    googleBusy,
     error,
     resetLinkNotice,
     closeModal,
@@ -59,6 +61,7 @@ export default function SplashSignInModal({
       title="Sign in"
       handleGoogle={handleGoogle}
       busy={busy}
+      googleLabel={resolveGoogleCtaLabel({ googleBusy })}
       prependContent={prependContent}
       googleFootnote={
         preferGoogleRedirect

@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.50.1] — 2026-08-04
+
+### Fixed
+- **Marketing auth CTAs no longer feel dead before `/login` (#872)** — Jump on Tour / Make picks now / Play for Free / Make picks for this tour (and siblings) paint immediate leave chrome + button press nudge, then hard-nav to app `/login` (skips MarketingApp soft-nav → “Loading…” hop). Bonus: Google CTA on `/login` shows “Opening Google…” while redirect/popup starts.
+
+---
+
 ## [1.50.0] — 2026-08-04
 
 ### Changed

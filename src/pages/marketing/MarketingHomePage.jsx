@@ -1,22 +1,19 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import {
   LandingSeo,
+  MarketingAuthLeaveOverlay,
   SplashPageShell,
+  useMarketingAuthLeave,
   useScrollToSectionFocus,
 } from '../../features/landing/splash';
-
-function goLogin({ signup = false } = {}) {
-  window.location.assign(signup ? '/login?mode=signup' : '/login');
-}
 
 /**
  * Marketing-document splash (#832). Same shell/UI as the app Landing splash,
  * but auth CTAs hard-navigate to `/login` instead of a mid-page chooser.
  */
 export default function MarketingHomePage() {
-  const openSignUp = useCallback(() => goLogin({ signup: true }), []);
-  const openSignIn = useCallback(() => goLogin(), []);
+  const { leaving, openSignUp, openSignIn } = useMarketingAuthLeave();
 
   const {
     howItWorksSectionRef,
@@ -36,6 +33,7 @@ export default function MarketingHomePage() {
         onOpenSignUp={openSignUp}
         onOpenSignIn={openSignIn}
       />
+      {leaving ? <MarketingAuthLeaveOverlay /> : null}
     </>
   );
 }
