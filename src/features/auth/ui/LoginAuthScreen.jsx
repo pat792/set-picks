@@ -12,6 +12,7 @@ import { AUTH_EMAIL_CTA } from './authCtaClasses';
 import SplashAuthPanel from './SplashAuthPanel';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 import { useSplashSignUp } from '../model/useSplashSignUp';
+import { warmLoginAuthSurface } from '../model/warmLoginAuthSurface';
 import { stashSplashResumeAuthModal } from '../utils/splashAuthResumeStorage';
 
 /**
@@ -97,6 +98,7 @@ function LoginSignInPanel({
     <SplashAuthPanel
       title="Sign in"
       handleGoogle={handleGoogle}
+      onGoogleIntent={warmLoginAuthSurface}
       busy={busy}
       prependContent={prependContent}
       googleFootnote={
@@ -273,6 +275,7 @@ function LoginSignUpPanel({
     <SplashAuthPanel
       title="Create account"
       handleGoogle={handleGoogle}
+      onGoogleIntent={warmLoginAuthSurface}
       busy={busy}
       googleDisabled={busy || !legalAccepted}
       prependContent={prependContent}

@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.48.4] — 2026-08-04
+
+### Fixed
+- **Safari Google sign-in on `/login` (#850)** — warm Firebase Auth after form paint; do not await App Check before `signInWithPopup` (preserves user gesture). Prefetch dashboard/setup chunks; clearer `auth/popup-blocked` copy. Marketing `/` still Firebase-free on cold open.
+
+---
+
 ## [1.48.3] — 2026-08-04
 
 ### Fixed

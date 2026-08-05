@@ -11,6 +11,7 @@ import {
   consumeSplashResumeAuthModal,
   useAuth,
   useGoogleRedirectCompletion,
+  warmLoginAuthSurface,
 } from '../../features/auth/login';
 import { MarketingPageShell } from '../../features/landing';
 import { getDashboardEntryHref } from '../../shared/lib/dashboardLastPath';
@@ -73,6 +74,22 @@ export default function LoginPage() {
     onOpenSignUp: openSignUp,
     onError: onRedirectError,
   });
+
+  // After form paint: warm Auth (+ parallel App Check) so Safari Google popup
+  // stays inside the user gesture (#850). Marketing `/` stays Firebase-free.
+  useEffect(() => {
+    const start = () => warmLoginAuthSurface();
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(start, { timeout: 800 });
+      return () => {
+        if (typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(id);
+        }
+      };
+    }
+    const t = window.setTimeout(start, 0);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // Terms/Privacy back-stack resume (session stash from LoginAuthScreen / modals).
   useEffect(() => {
