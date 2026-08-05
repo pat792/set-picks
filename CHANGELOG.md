@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.51.1] — 2026-08-04
+
+### Fixed
+- **Marketing leave chrome matches CTA destination** — Jump on Tour / Make picks now / Play for Free show “Taking you to sign up…”; Sign In shows “Taking you to sign in…” (was one generic “sign-in” string for both).
+
+---
+
 ## [1.51.0] — 2026-08-04
 
 ### Added

@@ -13,7 +13,7 @@ import {
  * but auth CTAs hard-navigate to `/login` instead of a mid-page chooser.
  */
 export default function MarketingHomePage() {
-  const { leaving, openSignUp, openSignIn, onAuthCtaIntent } =
+  const { leaving, leaveMessage, openSignUp, openSignIn, onAuthCtaIntent } =
     useMarketingAuthLeave();
 
   const {
@@ -35,7 +35,7 @@ export default function MarketingHomePage() {
         onOpenSignIn={openSignIn}
         onAuthCtaIntent={onAuthCtaIntent}
       />
-      {leaving ? <MarketingAuthLeaveOverlay /> : null}
+      {leaving ? <MarketingAuthLeaveOverlay message={leaveMessage} /> : null}
     </>
   );
 }

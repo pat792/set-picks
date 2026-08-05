@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import { loginPath } from '../model/appAuthPaths';
+import { resolveMarketingAuthLeaveMessage } from '../model/marketingAuthLeaveCopy';
 import { prefetchLoginIntent } from '../model/prefetchLoginIntent';
 import MarketingAuthLeaveOverlay from './MarketingAuthLeaveOverlay';
 
@@ -24,11 +25,13 @@ export default function AppDocumentAuthLink({
 }) {
   const [leaving, setLeaving] = useState(false);
   const resolvedHref = href || loginPath({ signup });
+  const resolvedLeaveMessage =
+    leaveMessage || resolveMarketingAuthLeaveMessage({ signup });
 
   return (
     <>
       {leaving ? (
-        <MarketingAuthLeaveOverlay message={leaveMessage} />
+        <MarketingAuthLeaveOverlay message={resolvedLeaveMessage} />
       ) : null}
       <a
         href={resolvedHref}
