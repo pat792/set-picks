@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { useDeleteAccount } from '../model/useDeleteAccount';
 import { DELETE_ACCOUNT_CONFIRMATION_PHRASE } from '../api/deleteAccountCallable';
@@ -9,14 +9,13 @@ import Button from '../../../shared/ui/Button';
  * Last-resort account deletion: collapsed by default; checkbox + exact phrase + confirm.
  */
 export default function DeleteAccountSection() {
-  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [ack, setAck] = useState(false);
   const [phrase, setPhrase] = useState('');
 
-  const { isDeleting, error, clearError, requestDelete } = useDeleteAccount({
-    onAfterDelete: () => navigate('/'),
-  });
+  // useSignOut (via delete) hard-navs marketing `/` (#899).
+  const { isDeleting, error, clearError, requestDelete } = useDeleteAccount({});
+
 
   const phraseOk = phrase.trim() === DELETE_ACCOUNT_CONFIRMATION_PHRASE;
   const canSubmit = ack && phraseOk && !isDeleting;
