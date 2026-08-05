@@ -50,8 +50,9 @@ npm run build && npm run preview
 # Network: no firebase-core on /; no HowItWorks/Scoring/Phish page chunks until those routes
 # /login — auth-card boot shell (not dashboard tabs); form visible quickly after SPA mount
 # /login — firebase-core warms immediately after paint (not before)
-# /login — Google disabled until Auth ready (“Preparing…”); first enabled Safari tap opens picker
+# /login — Google disabled until Auth ready (“Preparing…”); first enabled Safari tap starts redirect (or picker on desktop)
 # /login — Continue with Google must not wait on App Check
+# Parallel triage: Safari Private “Reduce Protections” banner on hard reload → #867 (not T1)
 # /login — inline forms (no role=dialog); session hint / Google redirect still complete
 # From /login → Home — full load of marketing /; Sign in again → /login (not modal)
 # /join/:code and /invite/:handle — still modal auth until #844

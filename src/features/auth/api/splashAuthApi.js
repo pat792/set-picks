@@ -46,8 +46,8 @@ export async function signInWithGoogle(auth) {
 }
 
 /**
- * Full-page Google redirect — preferred in email / in-app WebViews where
- * popups are blocked or flaky (#773 Phase 2b / #576 / #412).
+ * Full-page Google redirect — preferred on Safari / iOS / in-app WebViews
+ * where popups are blocked or flaky (#859 / #773 Phase 2b / #576 / #412).
  *
  * Does not resolve with a credential; the page navigates away. Call
  * {@link consumeGoogleRedirectResult} on the next load.

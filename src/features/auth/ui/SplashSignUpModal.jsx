@@ -34,7 +34,7 @@ export default function SplashSignUpModal({
     closeModal,
     handleGoogle,
     handleEmailSignUp,
-    inAppBrowser,
+    preferGoogleRedirect,
   } = useSplashSignUp(isOpen, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(
@@ -103,7 +103,7 @@ export default function SplashSignUpModal({
       googleDisabled={busy || !legalAccepted}
       prependContent={prependContent}
       googleFootnote={
-        inAppBrowser
+        preferGoogleRedirect
           ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
           : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
       }
