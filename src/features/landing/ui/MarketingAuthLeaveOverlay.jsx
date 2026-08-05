@@ -1,11 +1,14 @@
 import React from 'react';
 
+import { MARKETING_LEAVE_SIGN_IN } from '../model/marketingAuthLeaveCopy';
+
 /**
  * Immediate leave chrome while marketing hard-navs to `/login` (#872).
  * Paints before document swap so Jump on Tour / Make picks now never feel dead.
+ * Pass destination-aware copy via `message` (sign up vs sign in).
  */
 export default function MarketingAuthLeaveOverlay({
-  message = 'Taking you to sign-in…',
+  message = MARKETING_LEAVE_SIGN_IN,
 }) {
   return (
     <div
