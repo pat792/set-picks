@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.53.0] — 2026-08-05
+
+### Added
+- **Thin login Vite entry (#881 / epic #856 T2.5 Phase B)** — `/login` boots `login.html` → `loginMain.jsx` (login + AuthProvider only), not the dashboard SPA graph from `app.html`. Prerendered `login/index.html` inherits the thin entry; marketing speculative/intent warm targets the smaller asset set. Post-auth and unauth dashboard/setup bounces hard-navigate across documents.
+
+### Changed
+- **`AUTH_SEAMLESS_PATH` / `AUTH_BOOT_PRACTICES` / `OUTBOUND_AUTH_HANDOFF`:** Phase B shipped; `/login` is a dedicated login document.
+
+---
+
 ## [1.52.1] — 2026-08-05
 
 ### Fixed

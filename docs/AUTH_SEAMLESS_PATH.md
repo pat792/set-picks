@@ -5,8 +5,8 @@
 **T0b:** [#858](https://github.com/pat792/set-picks/issues/858) — hard-ready Google CTA (immediate warm + gate + sync click path).  
 **T1:** [#859](https://github.com/pat792/set-picks/issues/859) — Safari/iOS → `signInWithRedirect` (+ popup→redirect on `popup-blocked`). Parallel: [#867](https://github.com/pat792/set-picks/issues/867) Safari Private “Reduce Protections” banner triage.  
 **T2:** [#860](https://github.com/pat792/set-picks/issues/860) — marketing → `/login` CTA intent prefetch + login-shell `firebase-core` modulepreload + leave/continue chrome (**shipped; hop lag not closed — see §8**).  
-**T2.5 Phase A:** [#880](https://github.com/pat792/set-picks/issues/880) — idle speculative download-warm (**shipped; soak for hop bands**).  
-**T2.5 Phase B (placeholder):** [#881](https://github.com/pat792/set-picks/issues/881) — thin login Vite entry; **gated** on #880 soak (do not start until unblocked).
+**T2.5 Phase A:** [#880](https://github.com/pat792/set-picks/issues/880) — idle speculative download-warm (**shipped; soak 2026-08-05 — short of Safari band**).  
+**T2.5 Phase B:** [#881](https://github.com/pat792/set-picks/issues/881) — thin login Vite entry (**shipped; human Safari hop AC pending**).
 
 **Standing rules today:** `docs/AUTH_BOOT_PRACTICES.md` (#850 + rule **2b** from #858 + #860 login-shell preload nuance).  
 **Related:** `docs/RELEASE_TRAIN_COLD_OPEN.md` · predecessor [#835](https://github.com/pat792/set-picks/issues/835) · children: T0a [#857](https://github.com/pat792/set-picks/issues/857) · T0b [#858](https://github.com/pat792/set-picks/issues/858) · T1 [#859](https://github.com/pat792/set-picks/issues/859) · T2 [#860](https://github.com/pat792/set-picks/issues/860) · **T2.5A [#880](https://github.com/pat792/set-picks/issues/880)** · **T2.5B [#881](https://github.com/pat792/set-picks/issues/881)** · T3 [#861](https://github.com/pat792/set-picks/issues/861).
@@ -29,7 +29,7 @@ They do **not** magically make a cold 300KB+ Auth SDK + popup feel free. They ar
 | **Session-aware boot**           | Cookie / IndexedDB hint → skip marketing, go dashboard                   | Returning users never see auth chrome                                  | **Have** — persisted session hint + dashboard/email boot (#773 / #804). Anon visitors still see marketing/`/login`.                                       |
 | **Prefetch on intent**           | Hover/focus “Log in” preloads auth route + Auth SDK                      | Hard-nav to `/login` already warm                                      | **Partial (#860)** — desktop hover/focus can warm UI bytes; **mobile tap starts prefetch too late**. Does **not** close cold private Safari hop (see §8). |
 | **Speculative idle warm**        | After landing paints, download auth shell + Auth SDK bytes in background | By the time the user taps Sign in / Create account, HTTP cache is warm | **Have (#880)** — post-paint idle download of `/login` + UI + `firebase-core`; no `initializeApp` on marketing.                                           |
-| **Thin auth entry**              | Dedicated auth micro-bundle (not full app graph)                         | Hop parses far fewer bytes than dashboard SPA                          | **Gap → T2.5 Phase B (#881)** if Phase A still short (placeholder; gated).                                                                                 |
+| **Thin auth entry**              | Dedicated auth micro-bundle (not full app graph)                         | Hop parses far fewer bytes than dashboard SPA                          | **Have (#881)** — `login.html` → `loginMain.jsx` (login + Auth only). Soak hop bands after ship.                                                           |
 
 
 ### Auth (seamless Google / email)
@@ -91,7 +91,7 @@ So the Google first-tap regression was **not** “popup stopped working.” It w
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | Safari popup residual flakiness            | Even with perfect sequencing, Safari/ITP/popup blockers remain; Firebase prefers redirect on mobile                                                                | **Safari/iOS → `signInWithRedirect`** (+ popup→redirect on `popup-blocked`). Redirect plumbing + custom `authDomain` / `/__/auth` proxy | **Closed (#859)** — mobile reliability floor                       |
 | Auth page still “feels heavy” after OAuth  | Post-auth: AuthProvider wake, profile/`whenFirebaseReady`, dashboard chunk                                                                                         | Keep dashboard/setup prefetch; consider eager AuthProvider on `/login` once warm starts; measure profile path                           | **Yes (partial)** — post-login snappiness; not the first-tap error |
-| Marketing→login still a full document swap | Dual-entry hard-nav is correct for cold marketing; touch has no hover; private Safari is cold cache; login boots app graph (~440KB `firebase-core` + React + auth) | **T2.5:** Phase A [#880] idle speculative download-warm (**shipped**) → Phase B [#881] thin login entry if soak still short             | **Phase A shipped — soak hop bands** (§4 Tier 2.5, §8)             |
+| Marketing→login still a full document swap | Dual-entry hard-nav is correct for cold marketing; touch has no hover; private Safari is cold cache; login boots app graph (~440KB `firebase-core` + React + auth) | **T2.5:** Phase A [#880] idle speculative download-warm (**shipped**) → Phase B [#881] thin login entry (**shipped**)                   | **Phase A+B shipped — human Safari hop AC** (§4 Tier 2.5, §8)      |
 | GIS / federated button                     | Not integrated                                                                                                                                                     | Later: Google Identity Services → `signInWithCredential` if we want Google-rendered CTA                                                 | **No for hop lag** — optional chrome after T2.5                    |
 | True SSR auth shell                        | Vite SPA + branded `login/index.html` shell                                                                                                                        | Only if paint of login chrome itself is still the complaint after T2.5                                                                  | **Optional** — only if login *paint* (not hop download) remains    |
 
@@ -138,7 +138,7 @@ What shipped:
 
 **What it did not buy:** mobile cold tap→form parity. On touch, prefetch and navigation start together; marketing unloads before warm finishes. Field: ~**5–6s** Sign in / Create account → interactive form on Safari private (§8).
 
-### Tier 2.5 — Authoritative hop ceiling — Phase A **[#880](https://github.com/pat792/set-picks/issues/880)** shipped; Phase B **[#881](https://github.com/pat792/set-picks/issues/881)** placeholder
+### Tier 2.5 — Authoritative hop ceiling — Phase A **[#880](https://github.com/pat792/set-picks/issues/880)** shipped; Phase B **[#881](https://github.com/pat792/set-picks/issues/881)** shipped
 
 **Problem statement:** Sign in and Create account share one hard-nav to `/login?…`. The user-visible wait is **document tear-down + cold fetch/parse of the app login graph**, not OAuth and not GIS. Leave chrome narrates that wait; it does not shrink it.
 
@@ -175,9 +175,9 @@ On CTA leave, navigation hits warm cache → parse/execute on `/login` only → 
 - Network panel on `/` may show `firebase-core` **after** idle — AC must shift from “never until leave” to “never on first paint / never execute until `/login`”.
 - Instant tap right after first paint (before idle warm finishes) still pays most of the cold hop — acceptable residual; Phase B addresses structural weight.
 
-#### Phase B — Thin login entry — **[#881](https://github.com/pat792/set-picks/issues/881)** (placeholder; only if Phase A still short after soak)
+#### Phase B — Thin login entry — **[#881](https://github.com/pat792/set-picks/issues/881)** (shipped)
 
-Dedicated Vite entry (e.g. `loginMain`) that mounts login + auth only — **not** the full dashboard app graph pulled today via `app.html` / shared boot. **Do not start** until #880 soaks and product unblocks #881.
+Dedicated Vite entry (`login.html` → `loginMain.jsx`) mounts login + AuthProvider only — **not** the dashboard SPA graph from `app.html` / `main.jsx`. Phase A soak missed Safari ~1.5–3s band (~4.5s measured) → shipped.
 
 **Benefits:**
 
@@ -223,8 +223,8 @@ Desktop with hover (T2) already better than mobile; Phase A mainly lifts **touch
 DONE (Tier 0)    → Kill first-tap errors; hard-ready CTA
 DONE (Tier 1)    → Safari/touch redirect (or popup→redirect)
 DONE (Tier 2)    → Leave chrome + desktop intent prefetch + login-shell firebase-core preload
-DONE (Tier 2.5A) → #880 idle speculative warm → soak hop bands
-MAYBE (Tier 2.5B)→ #881 thin login entry only if #880 still short (placeholder)
+DONE (Tier 2.5A) → #880 idle speculative warm (helped; Safari still short of ~1.5–3s)
+DONE (Tier 2.5B) → #881 thin login entry (shipped; human Safari hop AC ~0.8–2s)
 LATER (Tier 3)   → GIS / host split only if product still wants more chrome (not for hop lag)
 ```
 
@@ -263,7 +263,7 @@ LATER (Tier 3)   → GIS / host split only if product still wants more chrome (n
 - [x] §7 telemetry shipped with Tier 0.
 - [x] T2 soak: hop lag still open on mobile private (~5–6s) — T2 recalibrated (§8).
 - [x] **Approve Tier 2.5 Phase A (#880)** as the authoritative hop fix (ship first).
-- [ ] Human Safari private AC for tap→form after Phase A; unblock or close Phase B placeholder (#881) from numbers.
+- [x] Human Safari private AC after Phase A (2026-08-05): Chrome private ~**3s**, Safari private ~**4.5s** — improved vs ~5–6s baseline, **Safari still above ~1.5–3s** → **unblock Phase B (#881)**.
 
 ---
 
@@ -366,46 +366,31 @@ Wire from `LoginPage` / `warmLoginAuthSurface` / `useSplashSignIn|Up.handleGoogl
 
 ---
 
-## 8) Soak verdict (2026-08-04) — T2 recalibration + next decision
+## 8) Soak verdicts
 
-### What T0–T2 actually closed
-
+### 8a) T2 recalibration (2026-08-04)
 
 | Tier  | Outcome                                                                                                                            |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | T0–T1 | **Google first-tap / reliability** on `/login` (original epic pain)                                                                |
 | T2    | Honest leave chrome + desktop hover warm + login-shell `firebase-core` preload after arrival — **not** top-tier marketing→auth hop |
 
+Cold **mobile Safari private** (pre–Phase A): marketing Sign in / Create account → interactive form ≈ **5–6s**. Leave chrome narrates; does not shrink work. Dual-entry + no hover + private cold cache + heavy app login graph.
 
-### Field finding
+### 8b) Phase A (#880) soak (2026-08-05) — **miss Safari band → unblock Phase B**
 
-Cold **mobile Safari private**: marketing **Sign in** and **Create account** → interactive auth form still ≈ **5–6 seconds**. Hero wordmark flash was intermittent and not reproduced; not the auth-path blocker.
+Human private-window timings after idle speculative warm (wait on marketing, then Sign in / Create account):
 
-### Why the hop is expensive (architecture, not unfinished T2 polish)
+| Browser (private) | Tap → interactive form | vs Phase A target (~1.5–3s) |
+| ----------------- | ---------------------- | --------------------------- |
+| Chrome            | ~**3s**                | Top of band (acceptable)    |
+| Safari            | ~**4.5s**              | **Still short** vs target   |
 
-1. Dual-entry hard-nav: leave marketing document → fetch `/login` → boot app entry + React (~~176KB) + auth graph + `firebase-core` (~~440KB).
-2. Touch has no hover — T2 prefetch starts with the tap and loses the race to unload.
-3. Private Safari ≈ cold cache every session.
-4. Leave chrome covers perception of a dead page; it does not reduce work.
+**Read:** Phase A helped vs ~5–6s baseline (download warm works), but Safari residual is still dominated by **parse/execute of the full app login graph** — exactly the Phase B thesis. **[#881](https://github.com/pat792/set-picks/issues/881)** thin login Vite entry **shipped** (v1.53.0). Human Safari private hop AC (~0.8–2s after idle warm) remains the release gate.
 
-Earlier drafts underweighted this and marked the document-swap gap “Closed (#860)” with a “virtually no lag” goal. That claim is **withdrawn**. The hop was knowable from dual-entry; the miss was declaring SPA parity before mobile private soak.
-
-### Authoritative next solution
-
-**Tier 2.5** — see §4:
-
-1. **Phase A [#880]:** post-paint idle speculative **download** of `/login` + critical modules + `firebase-core` (no execute on marketing).  
-2. **Phase B [#881] (placeholder, if needed):** thin login Vite entry so the hop is not the full app graph.  
-3. **Not GIS-first** — GIS changes Google button ownership, not hop latency.
-
-### Resulting improvements (target)
-
-
-| Path                                    | Before (soak)                  | After Phase A (idle warm done)                | After Phase A+B      |
-| --------------------------------------- | ------------------------------ | --------------------------------------------- | -------------------- |
-| Sign in → form                          | ~5–6s                          | ~1.5–3s                                       | ~0.8–2s              |
-| Create account → form                   | ~5–6s                          | ~1.5–3s                                       | ~0.8–2s              |
-| Continue with Google (once on `/login`) | Already gated/reliable (T0–T1) | Faster `paint_to_ready` when bytes prefetched | Same + thinner parse |
-
+| Path                  | Pre–Phase A | After Phase A (measured)      | After Phase A+B (target) |
+| --------------------- | ----------- | ----------------------------- | ------------------------ |
+| Sign in → form        | ~5–6s       | Safari ~4.5s / Chrome ~3s     | **~0.8–2s**              |
+| Create account → form | ~5–6s       | same hop                      | **~0.8–2s**              |
 
 Human Safari private remains the release gate. Agents cannot verify WebKit hop timing.

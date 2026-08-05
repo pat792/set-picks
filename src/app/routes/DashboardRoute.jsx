@@ -9,6 +9,7 @@ import {
 import { ShowCalendarProvider } from '../../features/show-calendar';
 import { ensureAppCheckNow } from '../../shared/lib/firebaseAppCheck';
 import { persistDashboardPath } from '../../shared/lib/dashboardLastPath';
+import HardRedirect from '../../shared/ui/HardRedirect';
 import DashboardLayout from '../layout/DashboardLayout';
 import DashboardBootSkeleton from '../layout/ui/DashboardBootSkeleton';
 import { decideDashboardRoute } from './profileGuardDecision';
@@ -41,9 +42,10 @@ export default function DashboardRoute() {
   // #535 / #830: remember intended path before bounce to `/login` so post-auth
   // lands on /dashboard/picks (etc.), not generic /dashboard. Do not send
   // unauthenticated visitors to marketing `/` (no AuthProvider there).
+  // #881: hard-nav so hosting serves the thin login entry (not soft SPA stay).
   if (decision.kind === 'redirect-home') {
     persistDashboardPath(location.pathname, location.search);
-    return <Navigate to="/login" replace />;
+    return <HardRedirect to="/login" />;
   }
 
   // Keep branded chrome while session/profile resolve (#773) — no bare "Loading…".

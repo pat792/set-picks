@@ -54,7 +54,8 @@ function App() {
   return (
     <Routes>
       <Route element={<RootAppShell />}>
-        {/* Auth entry for marketing CTAs (#832) — Firebase boots on this document only */}
+        {/* Secondary `/login` on app document (SplashPage soft-nav). Primary hard
+            opens use thin `login.html` (#881); keep this for in-SPA handoffs. */}
         <Route path="/login" element={<LoginPage />} />
 
         {/* After email password reset — Firebase continueUrl (must stay public) */}

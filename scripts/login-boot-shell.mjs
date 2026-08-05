@@ -200,7 +200,7 @@ export function buildLoginBootShellMarkup() {
 }
 
 /**
- * Build the `/login` boot shell from the Vite app SPA shell.
+ * Build the `/login` boot shell from the thin login Vite entry (`login.html` / #881).
  * @param {string} spaHtml
  * @returns {string}
  */
