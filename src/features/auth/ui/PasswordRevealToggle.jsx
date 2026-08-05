@@ -11,6 +11,7 @@ export default function PasswordRevealToggle({
   visible,
   showPassword,
   onToggle,
+  disabled = false,
 }) {
   if (!visible) return null;
 
@@ -19,10 +20,11 @@ export default function PasswordRevealToggle({
       variant="text"
       size="none"
       type="button"
+      disabled={disabled}
       aria-label={showPassword ? 'Hide password' : 'Show password'}
       aria-pressed={showPassword}
       onClick={onToggle}
-      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:pointer-events-none disabled:opacity-40"
     >
       {showPassword ? (
         <EyeOff className="h-4 w-4" aria-hidden />

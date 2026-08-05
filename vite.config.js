@@ -34,6 +34,9 @@ function rewriteAppDocumentRequest(req, _res, next) {
   const pathname = raw.split('?')[0];
   if (
     pathname === '/app.html' ||
+    // Prerendered shells (e.g. /login/index.html) must not be rewritten again —
+    // `startsWith('/login/')` would otherwise stomp them with bare app.html.
+    pathname.endsWith('.html') ||
     pathname.startsWith('/src/') ||
     pathname.startsWith('/@') ||
     pathname.startsWith('/node_modules') ||

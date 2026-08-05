@@ -93,6 +93,14 @@ export default function LoginPage() {
     onSettled: onRedirectSettled,
   });
 
+  // Dev StrictMode can cancel redirect completion while leaving this busy flag
+  // set — clear the overlay once the stash is gone (#885 follow-up).
+  useEffect(() => {
+    if (!googleReturnBusy) return;
+    if (peekGoogleRedirectIntent()) return;
+    setGoogleReturnBusy(false);
+  }, [googleReturnBusy]);
+
   // After form paint: warm Auth. Marketing idle/CTA warm → speculative|intent (#880/#860);
   // otherwise immediate (#858). App Check stays parallel (#850).
   useEffect(() => {
