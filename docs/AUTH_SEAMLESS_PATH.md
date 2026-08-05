@@ -242,7 +242,7 @@ Leave the live game as the SPA. Do not mount dashboard/react-query on the auth d
 - [x] Human / WebKit private is the release gate for auth-door work.
 - [x] T2–T2.5 CSR hop train: useful learnings; **not** the remaining strategy (§8).
 - [x] **2026-08-05:** Adopt HTML-first auth door (§5) as authoritative next solution.
-- [ ] Phase 0: prod Safari private login hang resolved.
+- [x] Phase 0: prod Safari private login hang resolved (v1.53.1 #890); Log Out race fixed (v1.53.2 #899). **Field stop.**
 - [ ] Phase 1: contract reflected in boot practices + delivery issue(s).
 - [ ] Phase 2: HTML-first `/login` shipped + WebKit private AC.
 
