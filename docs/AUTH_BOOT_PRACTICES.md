@@ -12,7 +12,7 @@ Standing rules for app-document auth and any surface that opens Google/`signInWi
 
 1b. **Public `/tour-stats*` is marketing too (#853).** Paint chrome from the marketing entry; load App Check + Firestore only inside `fetchPublicTourStats*` (and a parallel page kick). Do not put tour-stats back on `app.html` / `AuthProvider` — #835 login firebase-deferral regressed that path after #827.
 
-2. **Paint auth UI before firebase-core when the user is anonymous on `/login`.** Branded `login/index.html` + deferred `ensureFirebase`. Session hint and Google redirect return remain eager (user already mid-flow).
+2. **Paint auth UI before firebase-core when the user is anonymous on `/login`.** Branded `login/index.html` + deferred `ensureFirebase`. The static boot shell must be **login chrome** (header + auth-card skeleton) — never the dashboard bottom-tab skeleton (marketing CTAs hard-nav here; a dashboard flash reads as a broken hop). Session hint and Google redirect return remain eager (user already mid-flow).
 
 2b. **Google CTA must not be enabled until Auth surface is ready (#858).** Soft idle-warm alone is insufficient on Safari. On `/login`, disable Continue with Google (brief “Preparing sign-in…” OK) until `warmLoginAuthSurface` has Auth + click-path modules (`splashAuthApi`, `completeGoogleSplashAuth`, Google provider). When ready, the click path must call `signInWithPopup` / redirect with **no** `await ensureAuthReady()` or dynamic-import on the hot path.
 
