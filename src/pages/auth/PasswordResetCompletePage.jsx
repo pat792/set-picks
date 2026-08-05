@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import {
   PasswordResetForm,
@@ -40,12 +40,12 @@ export default function PasswordResetComplete() {
             </span>{' '}
             and sign in with your email and new password.
           </p>
-          <Link
-            to="/login"
+          <a
+            href="/login"
             className="inline-flex w-full items-center justify-center rounded-2xl bg-brand-primary px-8 py-4 font-black text-brand-bg-deep shadow-glow-brand transition-opacity hover:bg-brand-primary-strong hover:opacity-95 sm:w-auto"
           >
             Go to sign in
-          </Link>
+          </a>
           <p className="text-xs text-slate-500 font-semibold">
             Opens the sign-in screen — use your email and new password.
           </p>

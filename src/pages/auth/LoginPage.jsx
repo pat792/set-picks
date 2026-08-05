@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Navigate,
   useLocation,
   useNavigate,
   useSearchParams,
@@ -137,8 +136,15 @@ export default function LoginPage() {
     navigate('/login', { replace: true, state: {} });
   }, [location.state, navigate, searchParams]);
 
+  // Thin login document (#881): leave to app SPA via full navigation so
+  // hosting serves dashboard/setup shells (soft <Navigate> stays on login.js).
+  useEffect(() => {
+    if (loading || !user) return;
+    window.location.replace(getDashboardEntryHref({ isAdminUser }));
+  }, [loading, user, isAdminUser]);
+
   if (!loading && user) {
-    return <Navigate to={getDashboardEntryHref({ isAdminUser })} replace />;
+    return null;
   }
 
   return (
