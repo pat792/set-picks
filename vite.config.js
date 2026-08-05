@@ -1,7 +1,9 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -10,7 +12,6 @@ const APP_DOCUMENT_PATH_PREFIXES = [
   '/login',
   '/dashboard',
   '/setup',
-  '/tour-stats',
   '/user/',
   '/password-reset-complete',
   '/privacy',
@@ -44,13 +45,42 @@ function rewriteAppDocumentRequest(req, _res, next) {
     next();
     return;
   }
-  // Prefer prerendered app-backed HTML when present (e.g. /tour-stats/).
-  // Otherwise serve `app.html` so /login and /user/* don't fall through to
-  // the marketing document (which would location.replace-loop) (#832).
+  // Serve `app.html` for auth/dashboard/legal hard opens so they don't fall
+  // through to the marketing document (which would location.replace-loop) (#832).
+  // Public `/tour-stats*` is marketing (#853).
   if (isAppDocumentPath(pathname)) {
     req.url = `/app.html${raw.includes('?') ? `?${raw.split('?')[1]}` : ''}`;
   }
   next();
+}
+
+/**
+ * `vite preview` SPA-fallback serves `/` for bare `/tour-stats` (no trailing
+ * slash) even when `dist/tour-stats/index.html` exists. Rewrite to the
+ * prerendered file so local cold-open QA matches Vercel static hosting (#853).
+ */
+function rewritePrerenderedMarketingHtml(distDir) {
+  return function rewritePrerenderedMarketingHtmlMiddleware(req, _res, next) {
+    const raw = req.url || '';
+    const qIndex = raw.indexOf('?');
+    const pathname = qIndex === -1 ? raw : raw.slice(0, qIndex);
+    const search = qIndex === -1 ? '' : raw.slice(qIndex);
+    if (
+      !pathname ||
+      pathname === '/' ||
+      pathname.endsWith('/') ||
+      pathname.includes('.') ||
+      pathname.startsWith('/assets')
+    ) {
+      next();
+      return;
+    }
+    const indexHtml = path.join(distDir, pathname.slice(1), 'index.html');
+    if (existsSync(indexHtml)) {
+      req.url = `${pathname}/index.html${search}`;
+    }
+    next();
+  };
 }
 
 function appDocumentDevMiddleware() {
@@ -61,6 +91,11 @@ function appDocumentDevMiddleware() {
     },
     // qa:chunks / `vite preview` need the same rewrites as `npm run dev`.
     configurePreviewServer(server) {
+      const distDir = server.config.build?.outDir
+        ? path.resolve(server.config.root || process.cwd(), server.config.build.outDir)
+        : path.join(__dirname, 'dist');
+      // Prerender HTML before app-doc rewrite so /tour-stats stays marketing (#853).
+      server.middlewares.use(rewritePrerenderedMarketingHtml(distDir));
       server.middlewares.use(rewriteAppDocumentRequest);
     },
   };

@@ -12,8 +12,9 @@ import { MarketingFooterNav, MarketingHeaderNav } from './MarketingSiteNav';
  * Sticky header: home + primary marketing nav (#663); footer shares the same links.
  *
  * Home uses a real `<a href="/">` (not React Router `<Link>`) so returning from
- * app-document surfaces (`/login`, invite VIP, tour-stats) always reloads the
- * marketing entry (`index.html`) instead of soft-navigating to app-shell splash.
+ * app-document surfaces (`/login`, invite VIP) always reloads the marketing
+ * entry (`index.html`) instead of soft-navigating to app-shell splash.
+ * Public `/tour-stats*` is marketing (#853) — soft Links are fine there.
  */
 export default function MarketingPageShell({ children }) {
   return (

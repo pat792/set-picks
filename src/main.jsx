@@ -27,9 +27,9 @@ import './index.css'
 initGa4()
 initWebVitals()
 
-// #773 / #803 / #827: dashboard, setup, and public /tour-stats* warm App Check
-// on boot; splash/join/invite stay deferred for anonymous visitors (session +
-// auth modal warm instead).
+// #773 / #803: dashboard + setup warm App Check on boot; splash/join/invite
+// stay deferred for anonymous visitors (session + auth modal warm instead).
+// #853: public `/tour-stats*` hard-opens on the marketing document (not here).
 // #835: anon `/login` skips idle App Check entirely — first auth CTA calls
 // ensureAuthReady() so firebase-core is not downloaded to paint the form.
 const bootPath =

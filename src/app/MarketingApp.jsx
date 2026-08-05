@@ -12,6 +12,9 @@ const HowScoringWorksPage = lazy(
 const PhishSetlistPredictionGamePage = lazy(
   () => import('../pages/marketing/PhishSetlistPredictionGamePage'),
 );
+const PublicTourStatsPage = lazy(
+  () => import('../pages/marketing/PublicTourStatsPage'),
+);
 
 /** Paths that still boot the authenticated SPA document (`app.html`) (#832). */
 function isAppDocumentPath(pathname) {
@@ -20,7 +23,6 @@ function isAppDocumentPath(pathname) {
     '/login',
     '/dashboard',
     '/setup',
-    '/tour-stats',
     '/password-reset-complete',
     '/privacy',
     '/terms',
@@ -99,6 +101,23 @@ export default function MarketingApp() {
         element={
           <Suspense fallback={<MarketingRouteFallback />}>
             <PhishSetlistPredictionGamePage />
+          </Suspense>
+        }
+      />
+      {/* Public tour-stats: marketing document + deferred Firestore (#853). */}
+      <Route
+        path="/tour-stats"
+        element={
+          <Suspense fallback={<MarketingRouteFallback />}>
+            <PublicTourStatsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/tour-stats/:tourSlug"
+        element={
+          <Suspense fallback={<MarketingRouteFallback />}>
+            <PublicTourStatsPage />
           </Suspense>
         }
       />

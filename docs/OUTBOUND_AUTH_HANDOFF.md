@@ -1,7 +1,8 @@
 # Outbound auth handoff (#830)
 
 **Release train:** `docs/RELEASE_TRAIN_COLD_OPEN.md` Phase B  
-**Depends on:** Bucket A (#832 / v1.47.0) — marketing document without Firebase; app auth entry at `/login`.
+**Depends on:** Bucket A (#832 / v1.47.0) — marketing document without Firebase; app auth entry at `/login`.  
+**Auth boot rules (once on `/login` / invite auth):** `docs/AUTH_BOOT_PRACTICES.md` (#850) — warm Auth after paint; never await App Check before Google popup.
 
 After marketing cold opens stop booting `AuthProvider`, every outbound link must still land on the correct document: marketing shell, app shell, invite OG shell, or `/login`.
 
@@ -26,7 +27,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | `/setup` | New-user profile gate | `app-ok` | Dashboard boot shell |
 | Push → `/dashboard/profile/notifications` | `fcmMessagingCore`, messaging SW | `app-ok` | |
 | `/`, `/how-it-works`, `/how-scoring-works`, `/phish-setlist-prediction-game` | Marketing entry; some email allowlist paths | `public-static` | No Firebase until CTA → `/login` |
-| `/tour-stats*` | Public Firestore UI | `app-ok` | App document (not marketing) |
+| `/tour-stats*` | Public Firestore UI | `public-static` | **#853:** marketing document; Firebase only at aggregate fetch (not AuthProvider) |
 | `/join/:code`, `/invite/:handle` | Invite kits, OG `api/invite` | `invite-shell` | Prefers `dist/app.html` |
 | Marketing splash CTAs | `MarketingHomePage` | `retarget-auth` | **Done (#832 / #834 / #835):** hard-nav `/login` / `/login?mode=signup` (full-page forms). Mid-page Get Started chooser removed — hero/header/section CTAs go straight to auth. |
 | App-shell splash CTAs | `SplashPage` (after soft-nav / sign-out) | `retarget-auth` | **Done (1.48.1):** navigate to `/login` (no splash modals). Invite VIP still modal (#844). |

@@ -53,18 +53,14 @@ export function isPublicTourStatsPath(pathname) {
  * Surfaces that need Firestore ASAP on hard open (skip App Check idle deferral).
  * Invite/join anonymous paths are intentionally excluded (#803) — warm on
  * persisted session or auth modal open instead.
- * Public `/tour-stats*` warms immediately (#827) — every fetch gates on
- * `whenFirebaseReady()` and page-mount warming is too late for cold opens.
+ * Public `/tour-stats*` hard-opens on the marketing document (#853) and warms
+ * App Check from the page/fetch path — not `main.jsx`.
  * @param {string} [pathname]
  * @returns {boolean}
  */
 export function shouldWarmAppCheckOnBoot(pathname) {
   if (typeof pathname !== 'string' || !pathname) return false;
-  return (
-    isDashboardEntryPath(pathname) ||
-    pathname === '/setup' ||
-    isPublicTourStatsPath(pathname)
-  );
+  return isDashboardEntryPath(pathname) || pathname === '/setup';
 }
 
 /**
