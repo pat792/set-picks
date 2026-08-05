@@ -108,16 +108,22 @@ export function resolveModulepreloadClosure(assetsDir, entryHrefs) {
  *
  * @param {string} html
  * @param {string} distDir absolute path to `dist/`
- * @param {{ prefixes: string[], marker: string }} options
+ * @param {{ prefixes: string[], marker: string, hrefFilter?: (href: string) => boolean }} options
  * @returns {string}
  */
-export function injectBootModulepreloads(html, distDir, { prefixes, marker }) {
+export function injectBootModulepreloads(
+  html,
+  distDir,
+  { prefixes, marker, hrefFilter },
+) {
   if (typeof html !== 'string' || !html) return html;
   const assetsDir = join(distDir, 'assets');
   const entryHrefs = resolveBootModulepreloadHrefs(assetsDir, prefixes);
   if (!entryHrefs.length) return html;
 
-  const hrefs = resolveModulepreloadClosure(assetsDir, entryHrefs);
+  const hrefs = resolveModulepreloadClosure(assetsDir, entryHrefs).filter(
+    (href) => (typeof hrefFilter === 'function' ? hrefFilter(href) : true),
+  );
   if (!hrefs.length) return html;
 
   const tags = hrefs
@@ -167,16 +173,20 @@ export function injectSplashBootModulepreloads(html, distDir) {
 
 /**
  * Public tour-stats route chunk + static closure for prerendered
- * `dist/tour-stats/**` shells (#827). Keeps DashboardRoute / HomeRoute out.
+ * `dist/tour-stats/**` shells (#827 / #853). Keeps DashboardRoute / firebase out.
  *
  * @param {string} html
  * @param {string} distDir
  * @returns {string}
  */
 export function injectTourStatsBootModulepreloads(html, distDir) {
-  return injectBootModulepreloads(html, distDir, {
+  // Strip any firebase* tags inherited from the shell or a stale closure so
+  // hard-open `/tour-stats` paints UI before Auth/App Check download (#853).
+  const base = stripFirebaseModulepreloads(html);
+  return injectBootModulepreloads(base, distDir, {
     prefixes: TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES,
     marker: TOUR_STATS_BOOT_PRELOAD_MARKER,
+    hrefFilter: (href) => !/\/assets\/firebase/.test(href),
   });
 }
 

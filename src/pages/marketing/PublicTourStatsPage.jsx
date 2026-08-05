@@ -6,15 +6,25 @@ import {
   PublicTourStatsPanel,
   trackPublicTourStatsView,
   usePublicTourStatsScreen,
-} from '../../features/tour-stats';
+} from '../../features/tour-stats/public';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
-import { ensureAppCheckNow } from '../../shared/lib/firebaseAppCheck';
 
+/**
+ * Public `/tour-stats*` — marketing document (#853).
+ * Chrome paints without AuthProvider; Firestore + App Check load inside
+ * `fetchPublicTourStats*` only (restores post-#827 feel after #835 login defer
+ * regressed the app-document path).
+ */
 export default function PublicTourStatsPage() {
-  // Public Firestore reads need App Check before first getDoc (#665 localhost race).
+  // Kick App Check in parallel with first paint (dynamic — keeps firebase off
+  // this module's static graph / modulepreload closure).
   useEffect(() => {
-    ensureAppCheckNow();
+    void import('../../shared/lib/firebaseAppCheck.js')
+      .then((m) => m.ensureAppCheckNow())
+      .catch(() => {
+        // Fetch path awaits Check; best-effort warm only.
+      });
   }, []);
 
   const screen = usePublicTourStatsScreen();

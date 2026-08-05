@@ -4,6 +4,8 @@
 
 **Do not revive:** issue #831 hand-built HTML stub (lost branding, scoring graphics, live tour stats).
 
+**Auth / App Check sequencing (standing):** `docs/AUTH_BOOT_PRACTICES.md` — idle-warm Auth after paint; never await App Check before `signInWithPopup` (#850).
+
 ---
 
 ## Train phases
@@ -20,8 +22,12 @@
 | **C login boot** | epic #835 | Anon `/login`: paint form first; Firebase off critical path. | **v1.48.3** |
 | **C login Safari hotfix** | #850 | Idle-warm Auth on `/login`; never await App Check before Google popup. | **v1.48.4** |
 | **D — Invite parity** | #844 | Inline auth on `/invite` + `/join` VIP (same panel chrome as `/login`). | **Held** — not in this promote |
+| **E1 — Public tour-stats** | #853 | Regression after #835 login firebase defer: move `/tour-stats*` to marketing entry; Firebase only at fetch. Bundle `AUTH_BOOT_PRACTICES.md`. | **In flight** |
+| **E2 — Auth residual** | #844 (+ feel) | Invite/join inline auth; further `/login` feel. | **Held** |
 
-**Promote rule:** Ship A–C (+ C follow) `staging` → `main` when AC soak passes. Phase D (#844) stays open and ships later.
+**Field verdict (2026-08-04):** Marketing dual-entry worked. Public `/tour-stats` regressed after auth-surface firebase defer (#835) while still on `app.html` — E1 restores it. Auth residual is E2.
+
+**Promote rule:** Ship A–C (+ C follow) `staging` → `main` when marketing soak is enough. Phase D (#844) and Phase E (#853 + auth residual) stay open and ship later.
 
 ---
 
@@ -37,7 +43,8 @@
 
 ```bash
 npm run build && npm run preview
-# Gate on Slow 3G / Fast 3G + private mobile against preview or prod — not staging SSO browse.
+# Gate on Slow 3G / Fast 3G + private mobile against **local** `vite preview`
+# or **prod** — not Vercel preview/staging SSO (auth wall ≠ anon cold open).
 # Private window: / — HTML shows H1/copy immediately under a thin top bar (not full-screen Loading…)
 # Network: no firebase-core on /; no HowItWorks/Scoring/Phish page chunks until those routes
 # /login — form visible quickly; firebase-core may idle-warm after paint (not before)
@@ -45,4 +52,6 @@ npm run build && npm run preview
 # /login — inline forms (no role=dialog); session hint / Google redirect still complete
 # From /login → Home — full load of marketing /; Sign in again → /login (not modal)
 # /join/:code and /invite/:handle — still modal auth until #844
+# /tour-stats — marketing entry (no AuthProvider); skeleton chrome; firebase after fetch
+# Network: no firebase-core modulepreload on /tour-stats shell; Auth CTA → /login
 ```

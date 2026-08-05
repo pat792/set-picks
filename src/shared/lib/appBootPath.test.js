@@ -53,14 +53,14 @@ describe('isPublicTourStatsPath', () => {
 });
 
 describe('shouldWarmAppCheckOnBoot', () => {
-  it('warms dashboard, setup, and public tour stats (#803 / #827)', () => {
+  it('warms dashboard and setup (#803)', () => {
     expect(shouldWarmAppCheckOnBoot('/dashboard/standings')).toBe(true);
     expect(shouldWarmAppCheckOnBoot('/setup')).toBe(true);
-    expect(shouldWarmAppCheckOnBoot('/tour-stats')).toBe(true);
-    expect(shouldWarmAppCheckOnBoot('/tour-stats/2026-sphere')).toBe(true);
   });
 
-  it('does not warm anonymous cold-open or marketing', () => {
+  it('does not warm marketing tour-stats or anonymous cold-open (#853)', () => {
+    expect(shouldWarmAppCheckOnBoot('/tour-stats')).toBe(false);
+    expect(shouldWarmAppCheckOnBoot('/tour-stats/2026-sphere')).toBe(false);
     expect(shouldWarmAppCheckOnBoot('/')).toBe(false);
     expect(shouldWarmAppCheckOnBoot('/join/ABC')).toBe(false);
     expect(shouldWarmAppCheckOnBoot('/invite/pat')).toBe(false);
