@@ -6,6 +6,7 @@ import {
   CARD_LINK_ON_LIGHT,
   LINK_ON_LIGHT,
 } from '../../../shared/ui/surfaceLinkStyles';
+import AppDocumentAuthLink from './AppDocumentAuthLink';
 
 /**
  * Standalone "How It Works" content for the `/how-it-works` public page.
@@ -71,12 +72,12 @@ export default function HowItWorksPageContent() {
           anytime—then play to unlock the personal side of the story.
         </p>
         <div className="mt-10 flex justify-center">
-          <Link
-            to="/login?mode=signup"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-10 py-3.5 text-base font-bold text-white shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] transition-all hover:bg-brand-primary-hover hover:shadow-[0_15px_30px_-15px_rgba(16,185,129,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
+          <AppDocumentAuthLink
+            signup
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-10 py-3.5 text-base font-bold text-white shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] transition-all hover:bg-brand-primary-hover hover:shadow-[0_15px_30px_-15px_rgba(16,185,129,0.6)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
           >
             Play for Free
-          </Link>
+          </AppDocumentAuthLink>
         </div>
       </div>
     </section>

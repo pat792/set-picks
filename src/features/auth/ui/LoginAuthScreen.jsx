@@ -9,6 +9,7 @@ import PasswordRevealToggle, {
   shouldShowPasswordReveal,
 } from './PasswordRevealToggle';
 import { AUTH_EMAIL_CTA } from './authCtaClasses';
+import { resolveGoogleCtaLabel } from './googleCtaLabel';
 import SplashAuthPanel from './SplashAuthPanel';
 import { useLoginAuthSurfaceReady } from '../model/useLoginAuthSurfaceReady';
 import { useSplashSignIn } from '../model/useSplashSignIn';
@@ -70,6 +71,7 @@ function LoginSignInPanel({
     password,
     setPassword,
     busy,
+    googleBusy,
     error,
     resetLinkNotice,
     handleGoogle,
@@ -106,7 +108,10 @@ function LoginSignInPanel({
       }}
       busy={busy}
       googleDisabled={busy || googlePreparing}
-      googleLabel={googlePreparing ? 'Preparing sign-in…' : undefined}
+      googleLabel={resolveGoogleCtaLabel({
+        preparing: googlePreparing,
+        googleBusy,
+      })}
       prependContent={prependContent}
       googleFootnote={
         preferGoogleRedirect
@@ -217,6 +222,7 @@ function LoginSignUpPanel({
     legalAccepted,
     setLegalAccepted,
     busy,
+    googleBusy,
     error,
     handleGoogle,
     handleEmailSignUp,
@@ -289,7 +295,10 @@ function LoginSignUpPanel({
       }}
       busy={busy}
       googleDisabled={busy || !legalAccepted || googlePreparing}
-      googleLabel={googlePreparing ? 'Preparing sign-in…' : undefined}
+      googleLabel={resolveGoogleCtaLabel({
+        preparing: googlePreparing,
+        googleBusy,
+      })}
       prependContent={prependContent}
       googleFootnote={
         preferGoogleRedirect

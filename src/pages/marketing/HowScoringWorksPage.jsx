@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 
-import { MarketingPageShell } from '../../features/landing';
+import { AppDocumentAuthLink, MarketingPageShell } from '../../features/landing';
 import { ScoringRulesContent } from '../../features/scoring/marketing';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
@@ -46,9 +46,9 @@ export default function HowScoringWorksPage() {
               tour stats
             </Link>
             , or{' '}
-            <Link to="/login?mode=signup" className={LINK_ON_DARK}>
+            <AppDocumentAuthLink signup className={LINK_ON_DARK}>
               start playing
-            </Link>
+            </AppDocumentAuthLink>
             .
           </p>
         </div>
