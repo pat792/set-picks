@@ -4,7 +4,7 @@
 
 /** Shown under the consent checkbox while unchecked. */
 export const SIGNUP_LEGAL_GATE_HINT =
-  'Check the box above to unlock Google and email sign-up.';
+  'Check the box to continue setting up your account profile.';
 
 /** Fallback error if a submit slips through without consent. */
 export const SIGNUP_LEGAL_REQUIRED_ERROR =

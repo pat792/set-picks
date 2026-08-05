@@ -82,7 +82,6 @@ function LoginSignInPanel({
     handleGoogle,
     handleEmailSignIn,
     handleSendPasswordResetEmail,
-    preferGoogleRedirect,
   } = useSplashSignIn(true, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(email, password);
@@ -120,11 +119,6 @@ function LoginSignInPanel({
           googleBusy,
         })}
         prependContent={prependContent}
-        googleFootnote={
-          preferGoogleRedirect
-            ? 'Continues with a full-page Google sign-in (more reliable in this browser).'
-            : undefined
-        }
       >
       <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">
         <div>
@@ -234,7 +228,6 @@ function LoginSignUpPanel({
     error,
     handleGoogle,
     handleEmailSignUp,
-    preferGoogleRedirect,
   } = useSplashSignUp(true, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(
@@ -288,7 +281,7 @@ function LoginSignUpPanel({
       {fieldsLocked ? (
         <p
           id="signup-legal-gate-hint"
-          className="px-0.5 text-xs font-medium leading-snug text-slate-400"
+          className="px-0.5 text-center text-xs font-semibold leading-snug text-brand-primary"
           role="status"
         >
           {SIGNUP_LEGAL_GATE_HINT}
@@ -326,11 +319,7 @@ function LoginSignUpPanel({
           googleBusy,
         })}
         prependContent={prependContent}
-        googleFootnote={
-          preferGoogleRedirect
-            ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
-            : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
-        }
+        googleFootnote="You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
       >
       <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">
         <fieldset

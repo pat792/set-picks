@@ -41,7 +41,6 @@ export default function SplashSignUpModal({
     closeModal,
     handleGoogle,
     handleEmailSignUp,
-    preferGoogleRedirect,
   } = useSplashSignUp(isOpen, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(
@@ -94,7 +93,7 @@ export default function SplashSignUpModal({
       {fieldsLocked ? (
         <p
           id="signup-legal-gate-hint"
-          className="px-0.5 text-xs font-medium leading-snug text-slate-400"
+          className="px-0.5 text-center text-xs font-semibold leading-snug text-brand-primary"
           role="status"
         >
           {SIGNUP_LEGAL_GATE_HINT}
@@ -130,11 +129,7 @@ export default function SplashSignUpModal({
         googleDisabled={busy || !legalAccepted}
         googleLabel={resolveGoogleCtaLabel({ googleBusy })}
         prependContent={prependContent}
-        googleFootnote={
-          preferGoogleRedirect
-            ? "Continues with a full-page Google sign-in. You'll set your username/handle next. Your email is never shared with other users."
-            : "You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
-        }
+        googleFootnote="You'll set your username/handle on the next page. Your email address is never shared or visible to other users."
         closeOnBackdropClick={false}
       >
       <form onSubmit={handleEmailSignUp} className="space-y-4 text-left">

@@ -15,7 +15,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.52.1] — 2026-08-05
 
 ### Fixed
-- **Create account Terms gate** — Email/password fields stay disabled until Terms & Privacy are accepted (matching Google CTA). Hint copy + locked CTA label (“Accept terms to continue”) make the requirement obvious.
+- **Create account Terms gate** — Email/password fields stay disabled until Terms & Privacy are accepted (matching Google CTA). Hint + locked CTA (“Accept terms to continue”) make the requirement obvious; removed confusing “full-page Google sign-in” footnote.
+- **Dev Google continue overlay stuck** — StrictMode remount on `:5173` no longer strands “Loading Google account sign-in options…” after a redirect stash.
+- **`vite preview` `/login` shell** — prerendered `login/index.html` is no longer rewritten to bare `app.html`.
 
 ---
 

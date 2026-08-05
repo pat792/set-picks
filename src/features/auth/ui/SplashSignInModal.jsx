@@ -34,7 +34,6 @@ export default function SplashSignInModal({
     handleGoogle,
     handleEmailSignIn,
     handleSendPasswordResetEmail,
-    preferGoogleRedirect,
   } = useSplashSignIn(isOpen, onClose, { seedError });
 
   const revealVisible = shouldShowPasswordReveal(email, password);
@@ -68,11 +67,6 @@ export default function SplashSignInModal({
         busy={busy}
         googleLabel={resolveGoogleCtaLabel({ googleBusy })}
         prependContent={prependContent}
-        googleFootnote={
-          preferGoogleRedirect
-            ? 'Continues with a full-page Google sign-in (more reliable in this browser).'
-            : undefined
-        }
         closeOnBackdropClick={false}
       >
       <form onSubmit={handleEmailSignIn} className="space-y-4 text-left">
