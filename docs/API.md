@@ -162,24 +162,25 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 |-------|------|-------|
 | `tourSlug` | string | Same as doc id |
 | `tourLabel` | string | Display label from `show_calendar` / Phish.net |
-| `showDates` | string[] | Eligible show dates (metadata; not setlists) |
-| `firstShowDate` / `lastShowDate` | string\|null | `YYYY-MM-DD` |
-| `tourShowCount` | number | Dates in scope |
-| `showsWithSetlist` | number | Dates with an `official_setlists` doc |
+| `showDates` | string[] | Through-today eligible show dates used for aggregates (metadata; not setlists) |
+| `firstShowDate` / `lastShowDate` | string\|null | `YYYY-MM-DD` — through-today range (for current-tour defaulting) |
+| `tourShowCount` | number | Full post-launch tour itinerary length (Y in “X of Y tour dates”); may include upcoming nights |
+| `showsWithSetlist` | number | Through-today dates with an `official_setlists` doc (X in “X of Y tour dates”) |
 | `uniqueSongs` / `totalSongPlays` | number | Aggregate counts |
 | `topSongs` | `{ title, timesPlayed, lastPlayed?, lifetimePlays?, debutYear? }[]` | Tour Frequency (UI label; formerly "Most played"), **full ranked list** as of v1.45.0 (#709; top-15 before) — **no** per-song `showDates` lists. `lastPlayed` = latest tour show date the song appeared (`YYYY-MM-DD`, v1.46.4) |
 | `bustouts` / `gapHighlights` | `{ title, gap, showDate?, lifetimePlays?, debutYear?, lastPlayed? }[]` | Single event date OK; never a full night setlist. `gapHighlights` uncapped as of v1.45.0 (#709). `lastPlayed` = `YYYY-MM-DD` last Phish play *before* that tour night (v1.46.0 / #709 follow-up) |
+| `lastPlayedByRow` | object | **v1.55.2 (#918)** — durable bustout/high-gap Last-date cache (`{ "song|YYYY-MM-DD": "YYYY-MM-DD" }`). Server refresh only; clients may ignore. Survives ranking churn so a song that drops out of `gapHighlights` and later returns keeps its stamp. |
 | `enrichment` | `{ source, enrichedAt } \| null` | **v1.46.0 (#666)** — non-null when rows carry phish.net lifetime fields; `null` when the refresh ran without phish.net (missing key / upstream failure) |
 | `writtenAt` | string | ISO timestamp |
 | `schemaVersion` | number | `2` (**v1.46.0 #666**; `1` before) |
 
 **Row enrichment (v1.46.0 / #666, Phase 1 of the gated-external-sources plan):** every refresh fetches phish.net `v5/songs` **server-side** (secret `PHISHNET_API_KEY`; never sent to browsers) and stamps `lifetimePlays` (all-time times played) + `debutYear` onto each row — `null` when phish.net has no data for the title, **absent** when the whole refresh ran unenriched. setlist.fm / phish.com remain behind the explicit legal/product gate (issue #666 phase 3).
 
-**`lastPlayed` on bustout / high-gap rows (v1.46.0 / #709 follow-up; hardened v1.46.4 / #840):** after lifetime enrichment, the refresh prefers songs-catalog `last_played` when it is strictly before the row's `showDate` (zero HTTP). Remaining rows look up phish.net play history (`/v5/setlists/slug/{slug}.json`, capped at 120 lookups/run, ~1.5s pacing, 429 backoff + abort-after-3, bustouts before high gaps, shared across tours) and stamp the latest Phish show date strictly before that night. **v1.47.2 (#840):** before stamping, the refresh seeds matching rows from the previous `public_tour_stats` write so a partial/429 pass cannot wipe dates already filled (High gaps were wiped first). Best-effort — failed lookups leave the field absent; UI always shows the Last column (`—` when missing). Dashboard Tour stats joins the same dates from the world-readable public doc.
+**`lastPlayed` on bustout / high-gap rows (v1.46.0 / #709 follow-up; hardened v1.47.2 / #840; v1.55.2 / #918):** after lifetime enrichment, the refresh (1) seeds from the prior doc's `lastPlayedByRow` cache + array rows, (2) stamps from game-local `official_setlists` already loaded for every selectable tour (Sphere plays fill Summer High gaps with zero HTTP), (3) prefers songs-catalog `last_played` when it is strictly before the row's `showDate`, then (4) looks up remaining rows via phish.net play history (`/v5/setlists/slug/{slug}.json`, capped at 120 lookups/run, ~1.5s pacing, 429 backoff + abort-after-3, bustouts before high gaps, shared across tours). **v1.47.2 (#840) / v1.55.2 (#918):** partial/429 passes must not wipe dates already filled — seed + durable `lastPlayedByRow` accumulate instead of regressing. Best-effort — failed lookups leave the field absent; UI always shows the Last column (`—` when missing). Dashboard Tour stats joins the same dates from the world-readable public doc.
 
 **`lastPlayed` on `topSongs` (v1.46.4):** latest eligible tour show date the song was played (`YYYY-MM-DD`). UI displays tour-scoped `mm-dd`.
 
-`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`.
+`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`. `showCount` matches doc `tourShowCount` (full post-launch itinerary). `firstShowDate` / `lastShowDate` remain through-today.
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
 
