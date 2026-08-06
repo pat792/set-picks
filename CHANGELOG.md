@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.0] — 2026-08-06
+
+### Changed
+- **`/privacy` + `/terms` on marketing document (#908)** — Hard-nav from HTML-first `/login` no longer cold-boots `app.html` / spa-boot. Legal routes prerender on the marketing entry (no AuthProvider); soft routes remain on the app SPA for Profile/account. Docs: `API.md`, `AUTH_BOOT_PRACTICES` 1c, `OUTBOUND_AUTH_HANDOFF`, `AUTH_SEAMLESS_PATH`.
+
+### Fixed
+- **Auth door email autofocus / Safari Keychain (#909)** — Credential fields start `readOnly` until intentional focus; HTML-first boot shell blurs any autofocused input so Face ID / Keychain does not steal the Google vs email choice on cold open. QA `qa:cache` sign-in focuses fields before fill so Playwright can edit them.
+
+---
+
 ## [1.54.2] — 2026-08-05
 
 ### Fixed

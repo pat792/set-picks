@@ -204,6 +204,8 @@ Treat as law (update issues/PRs against this, not against “finish hop bands”
 - [x] Signed-in `/login` hard-sends to dashboard/setup.
 - [x] Hop ms is a soak metric after reliability; not the design center.
 
+**Collateral (post–Phase 2):** `/privacy` + `/terms` ship on the **marketing** document (#908) — not `app.html` / spa-boot — so signup legal links from the auth door stay snappy.
+
 ### Phase 3 — Demand-gen polish (optional)
 
 Only after Phase 2 is green on WebKit private: leave chrome, download-only warm of auth-door assets from marketing.

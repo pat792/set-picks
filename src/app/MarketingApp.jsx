@@ -20,10 +20,13 @@ const PhishSetlistPredictionGamePage = lazy(
 const PublicTourStatsPage = lazy(
   () => import('../pages/marketing/PublicTourStatsPage'),
 );
+const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
 
 /**
  * Paths that leave the marketing document (#832 / #892).
  * `/login` → HTML-first auth door (`login.html`); other app routes → `app.html`.
+ * `/privacy` + `/terms` stay here (#908) — no Auth/Firebase on legal cold open.
  */
 function isAppDocumentPath(pathname) {
   if (typeof pathname !== 'string' || !pathname) return false;
@@ -32,8 +35,6 @@ function isAppDocumentPath(pathname) {
     '/dashboard',
     '/setup',
     '/password-reset-complete',
-    '/privacy',
-    '/terms',
     '/join',
     '/comms-preview',
   ];
@@ -132,6 +133,23 @@ export default function MarketingApp() {
         element={
           <Suspense fallback={<MarketingRouteFallback />}>
             <PublicTourStatsPage />
+          </Suspense>
+        }
+      />
+      {/* Legal: marketing document, no Auth (#908) — snappy from HTML-first /login. */}
+      <Route
+        path="/privacy"
+        element={
+          <Suspense fallback={<MarketingRouteFallback />}>
+            <PrivacyPolicyPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <Suspense fallback={<MarketingRouteFallback />}>
+            <TermsOfServicePage />
           </Suspense>
         }
       />

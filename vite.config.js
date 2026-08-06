@@ -12,12 +12,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /** Paths that must boot the authenticated SPA document (`app.html`) in dev (#832). */
 const APP_DOCUMENT_PATH_PREFIXES = [
   // `/login` is its own HTML-first document (#892) — see isLoginDocumentPath.
+  // `/privacy` + `/terms` are marketing (#908) — not app-document.
   '/dashboard',
   '/setup',
   '/user/',
   '/password-reset-complete',
-  '/privacy',
-  '/terms',
   '/join',
   '/invite/',
   '/comms-preview',
@@ -61,9 +60,9 @@ function rewriteAppDocumentRequest(req, _res, next) {
     next();
     return;
   }
-  // Serve `app.html` for dashboard/legal hard opens so they don't fall
+  // Serve `app.html` for dashboard/auth hard opens so they don't fall
   // through to the marketing document (which would location.replace-loop) (#832).
-  // Public `/tour-stats*` is marketing (#853).
+  // Public `/tour-stats*` (#853) and `/privacy`+`/terms` (#908) are marketing.
   if (isAppDocumentPath(pathname)) {
     req.url = `/app.html${query}`;
   }

@@ -16,12 +16,15 @@ import './index.css'
 try {
   if (typeof window !== 'undefined') {
     const path = window.location.pathname || ''
-    // Public tour-stats is marketing (#853) but must stay reachable for
-    // returning sessions — do not bounce them to /dashboard.
-    const isPublicTourStats =
-      path === '/tour-stats' || path.startsWith('/tour-stats/')
+    // Public marketing surfaces that must stay reachable for returning
+    // sessions — do not bounce them to /dashboard (#853 tour-stats, #908 legal).
+    const stayOnMarketingDocument =
+      path === '/tour-stats' ||
+      path.startsWith('/tour-stats/') ||
+      path === '/privacy' ||
+      path === '/terms'
     if (
-      !isPublicTourStats &&
+      !stayOnMarketingDocument &&
       window.localStorage?.getItem(PERSISTED_SESSION_HINT_STORAGE_KEY) === '1'
     ) {
       window.location.replace('/dashboard')

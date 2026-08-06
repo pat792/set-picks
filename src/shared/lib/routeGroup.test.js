@@ -23,7 +23,8 @@ describe('resolveRouteGroup', () => {
   });
 
   it('maps unknown paths to other', () => {
-    expect(resolveRouteGroup('/privacy')).toBe('other');
+    expect(resolveRouteGroup('/privacy')).toBe('marketing');
+    expect(resolveRouteGroup('/terms')).toBe('marketing');
     expect(resolveRouteGroup('')).toBe('other');
     expect(resolveRouteGroup(undefined)).toBe('other');
   });
