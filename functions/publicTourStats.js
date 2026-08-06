@@ -171,13 +171,36 @@ function lastPlayedRowKey(title, showDate) {
 
 /**
  * Index prior `lastPlayed` stamps from an existing public tour-stats doc.
- * @param {{ bustouts?: unknown, gapHighlights?: unknown } | null | undefined} priorDoc
+ * Prefers the durable `lastPlayedByRow` cache (#918) so stamps survive when a
+ * song drops out of the current bustout / high-gap ranking and later returns;
+ * still merges array rows for older docs that predate the cache field.
+ *
+ * @param {{
+ *   bustouts?: unknown,
+ *   gapHighlights?: unknown,
+ *   lastPlayedByRow?: unknown,
+ * } | null | undefined} priorDoc
  * @returns {Map<string, string>}
  */
 function buildPriorLastPlayedMap(priorDoc) {
   /** @type {Map<string, string>} */
   const map = new Map();
   if (!priorDoc || typeof priorDoc !== "object") return map;
+
+  const cache = priorDoc.lastPlayedByRow;
+  if (cache && typeof cache === "object" && !Array.isArray(cache)) {
+    for (const [rawKey, rawVal] of Object.entries(cache)) {
+      const key = String(rawKey ?? "").trim();
+      const lastPlayed = typeof rawVal === "string" ? rawVal.trim() : "";
+      if (!key.includes("|") || !/^\d{4}-\d{2}-\d{2}$/.test(lastPlayed)) {
+        continue;
+      }
+      const showDate = key.slice(key.lastIndexOf("|") + 1);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(showDate)) continue;
+      map.set(key, lastPlayed);
+    }
+  }
+
   for (const list of [priorDoc.bustouts, priorDoc.gapHighlights]) {
     if (!Array.isArray(list)) continue;
     for (const row of list) {
@@ -190,6 +213,110 @@ function buildPriorLastPlayedMap(priorDoc) {
     }
   }
   return map;
+}
+
+/**
+ * Merge stamped bustout / high-gap rows into a plain object cache for the next
+ * refresh (#918). Keeps prior keys so ranking churn cannot drop stamps.
+ *
+ * @param {Map<string, string>} priorByKey
+ * @param {object[]} rows
+ * @returns {Record<string, string>}
+ */
+function mergeLastPlayedByRowCache(priorByKey, rows) {
+  /** @type {Record<string, string>} */
+  const out = {};
+  if (priorByKey instanceof Map) {
+    for (const [key, val] of priorByKey) {
+      if (
+        typeof key === "string" &&
+        key &&
+        typeof val === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(val)
+      ) {
+        out[key] = val;
+      }
+    }
+  }
+  if (!Array.isArray(rows)) return out;
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+    const key = lastPlayedRowKey(row.title, row.showDate);
+    const lastPlayed =
+      typeof row.lastPlayed === "string" ? row.lastPlayed.trim() : "";
+    if (!key || !/^\d{4}-\d{2}-\d{2}$/.test(lastPlayed)) continue;
+    out[key] = lastPlayed;
+  }
+  return out;
+}
+
+/**
+ * Record play dates from official setlist docs (normalized title → dates).
+ * Used to stamp High gaps / Bustouts Last without phish.net HTTP (#918).
+ *
+ * @param {Map<string, Set<string>>} into
+ * @param {Array<{ showDate?: string, setlist?: object | null }>} docs
+ */
+function accumulatePlayDatesFromSetlists(into, docs) {
+  if (!(into instanceof Map) || !Array.isArray(docs)) return;
+  for (const entry of docs) {
+    if (!entry || typeof entry !== "object") continue;
+    const showDate =
+      typeof entry.showDate === "string" ? entry.showDate.trim() : "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(showDate)) continue;
+    const setlist = entry.setlist;
+    if (!setlist || typeof setlist !== "object") continue;
+    const titles = Array.isArray(setlist.officialSetlist)
+      ? setlist.officialSetlist
+          .map((t) => String(t ?? "").trim())
+          .filter(Boolean)
+      : [];
+    for (const title of titles) {
+      const key = normalizeTitleKey(title);
+      if (!key) continue;
+      let dates = into.get(key);
+      if (!dates) {
+        dates = new Set();
+        into.set(key, dates);
+      }
+      dates.add(showDate);
+    }
+  }
+}
+
+/**
+ * Stamp `lastPlayed` from game-local official setlists (Sphere + current tour
+ * etc.) before any phish.net history call (#918).
+ *
+ * @param {object[]} rows
+ * @param {Map<string, Set<string>>} playDatesByTitle
+ * @returns {number}
+ */
+function stampLastPlayedFromLocalHistory(rows, playDatesByTitle) {
+  if (!(playDatesByTitle instanceof Map) || playDatesByTitle.size === 0) {
+    return 0;
+  }
+  if (!Array.isArray(rows)) return 0;
+  let stamped = 0;
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+    if (
+      typeof row.lastPlayed === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(row.lastPlayed.trim())
+    ) {
+      continue;
+    }
+    const datesSet = playDatesByTitle.get(normalizeTitleKey(row.title));
+    if (!datesSet || datesSet.size === 0) continue;
+    const lastPlayed = lastPlayedBeforeFromHistory(
+      [...datesSet],
+      row.showDate
+    );
+    if (!lastPlayed) continue;
+    row.lastPlayed = lastPlayed;
+    stamped += 1;
+  }
+  return stamped;
 }
 
 /**
@@ -444,8 +571,10 @@ async function refreshPublicTourStats(db, opts = {}) {
     logger
   );
 
-  /** @type {Array<{ tourSlug: string, tourLabel: string, showDates: string[], payload: object }>} */
+  /** @type {Array<{ tourSlug: string, tourLabel: string, showDates: string[], payload: object, priorLastPlayed: Map<string, string> }>} */
   const pendingWrites = [];
+  /** @type {Map<string, Set<string>>} */
+  const playDatesByTitle = new Map();
 
   for (const group of selectable) {
     const tourLabel = group.tour;
@@ -475,16 +604,26 @@ async function refreshPublicTourStats(db, opts = {}) {
       }
     }
 
+    // #918: cross-tour local history (Sphere plays fill Summer High gaps Last).
+    accumulatePlayDatesFromSetlists(playDatesByTitle, docs);
+
     const stats = aggregateTourSetlistStats(docs, {
       tourShowCount: showDates.length,
     });
     const payload = toPublicTourStatsPayload(stats, enrichmentByTitle);
-    pendingWrites.push({ tourSlug, tourLabel, showDates, payload });
+    pendingWrites.push({
+      tourSlug,
+      tourLabel,
+      showDates,
+      payload,
+      priorLastPlayed: new Map(),
+    });
   }
 
-  // #840: re-apply lastPlayed from the previous write before history stamping.
-  // Fresh aggregates have no stamps; { merge: false } would otherwise wipe any
-  // High gaps Last dates a prior run filled when this pass hits 429/abort.
+  // #840 / #918: re-apply lastPlayed from the previous write (array rows +
+  // durable lastPlayedByRow cache) before history stamping. Fresh aggregates
+  // have no stamps; { merge: false } would otherwise wipe High gaps Last
+  // dates a prior run filled when this pass hits 429/abort.
   let fromPrior = 0;
   if (pendingWrites.length > 0) {
     const priorRefs = pendingWrites.map((w) =>
@@ -495,6 +634,7 @@ async function refreshPublicTourStats(db, opts = {}) {
       const priorSnap = priorSnaps[i];
       if (!priorSnap?.exists) continue;
       const priorMap = buildPriorLastPlayedMap(priorSnap.data());
+      pendingWrites[i].priorLastPlayed = priorMap;
       const { payload } = pendingWrites[i];
       fromPrior += seedLastPlayedFromPrior(payload.bustouts || [], priorMap);
       fromPrior += seedLastPlayedFromPrior(
@@ -510,9 +650,30 @@ async function refreshPublicTourStats(db, opts = {}) {
     }
   }
 
+  // #918: stamp from official_setlists we already loaded (zero HTTP) so High
+  // gaps Last fills from Sphere / earlier tour nights even when phish.net 429s.
+  let fromLocal = 0;
+  for (const { payload } of pendingWrites) {
+    fromLocal += stampLastPlayedFromLocalHistory(
+      payload.bustouts || [],
+      playDatesByTitle
+    );
+    fromLocal += stampLastPlayedFromLocalHistory(
+      payload.gapHighlights || [],
+      playDatesByTitle
+    );
+  }
+  if (fromLocal > 0) {
+    logger.info("refreshPublicTourStats: stamped lastPlayed from local setlists", {
+      fromLocal,
+      titlesWithHistory: playDatesByTitle.size,
+      tours: pendingWrites.length,
+    });
+  }
+
   // Stamp bustout/gap lastPlayed across every tour before writing so the
   // history budget is shared fairly (catalog last_played fills most rows).
-  // Rows already seeded from prior docs are skipped (no re-fetch).
+  // Rows already seeded / locally stamped are skipped (no re-fetch).
   await stampLastPlayedDates(
     pendingWrites.map((w) => w.payload),
     {
@@ -522,7 +683,17 @@ async function refreshPublicTourStats(db, opts = {}) {
     }
   );
 
-  for (const { tourSlug, tourLabel, showDates, payload } of pendingWrites) {
+  for (const {
+    tourSlug,
+    tourLabel,
+    showDates,
+    payload,
+    priorLastPlayed,
+  } of pendingWrites) {
+    const lastPlayedByRow = mergeLastPlayedByRowCache(priorLastPlayed, [
+      ...(payload.bustouts || []),
+      ...(payload.gapHighlights || []),
+    ]);
     await db
       .collection("public_tour_stats")
       .doc(tourSlug)
@@ -534,6 +705,8 @@ async function refreshPublicTourStats(db, opts = {}) {
           firstShowDate: showDates[0] || null,
           lastShowDate: showDates[showDates.length - 1] || null,
           ...payload,
+          // #918: durable stamp cache — survives ranking churn + 429 partials.
+          lastPlayedByRow,
           // #666: null when the refresh ran without phish.net (missing key /
           // upstream failure) — rows then omit lifetimePlays/debutYear.
           enrichment: enrichmentByTitle
@@ -602,5 +775,8 @@ module.exports = {
   lastPlayedRowKey,
   buildPriorLastPlayedMap,
   seedLastPlayedFromPrior,
+  mergeLastPlayedByRowCache,
+  accumulatePlayDatesFromSetlists,
+  stampLastPlayedFromLocalHistory,
   GAME_LAUNCH_SHOW_DATE,
 };
