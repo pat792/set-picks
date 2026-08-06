@@ -18,6 +18,33 @@ const {
 const GAME_LAUNCH_SHOW_DATE = "2026-04-16";
 
 /**
+ * Split a calendar tour into post-launch nights vs nights through `today`.
+ * Stats aggregate from through-today only; `tourShowCount` is the full
+ * post-launch itinerary so UI can show "X of Y tour dates" (played vs total).
+ *
+ * @param {Array<{ date?: string } | null | undefined>} shows
+ * @param {string} today YYYY-MM-DD
+ * @param {string} [launchDate]
+ * @returns {{ throughToday: Array<{ date: string }>, tourShowCount: number }}
+ */
+function resolvePublicTourShowScope(
+  shows,
+  today,
+  launchDate = GAME_LAUNCH_SHOW_DATE
+) {
+  const list = Array.isArray(shows) ? shows : [];
+  const postLaunch = [];
+  const throughToday = [];
+  for (const s of list) {
+    if (!s || typeof s.date !== "string" || !s.date) continue;
+    if (s.date < launchDate) continue;
+    postLaunch.push(s);
+    if (s.date <= today) throughToday.push(s);
+  }
+  return { throughToday, tourShowCount: postLaunch.length };
+}
+
+/**
  * #666 Phase 1: per-song lifetime enrichment from phish.net (server-side
  * fetch only — the API key never reaches clients). Best-effort: any upstream
  * failure logs and returns null so the public stats refresh itself never
@@ -545,21 +572,23 @@ async function refreshPublicTourStats(db, opts = {}) {
     ? data.showDatesByTour
     : [];
 
-  /** @type {Array<{ tour: string, shows: Array<{ date: string }> }>} */
+  /** @type {Array<{ tour: string, shows: Array<{ date: string }>, tourShowCount: number }>} */
   const selectable = [];
   for (const group of showDatesByTour) {
     if (!group || typeof group.tour !== "string" || !Array.isArray(group.shows)) {
       continue;
     }
-    const eligible = group.shows.filter(
-      (s) =>
-        s &&
-        typeof s.date === "string" &&
-        s.date >= GAME_LAUNCH_SHOW_DATE &&
-        s.date <= today
+    const { throughToday, tourShowCount } = resolvePublicTourShowScope(
+      group.shows,
+      today
     );
-    if (eligible.length === 0) continue;
-    selectable.push({ tour: group.tour.trim(), shows: eligible });
+    // Need at least one through-today night to publish a live aggregate.
+    if (throughToday.length === 0) continue;
+    selectable.push({
+      tour: group.tour.trim(),
+      shows: throughToday,
+      tourShowCount,
+    });
   }
 
   let toursWritten = 0;
@@ -608,7 +637,8 @@ async function refreshPublicTourStats(db, opts = {}) {
     accumulatePlayDatesFromSetlists(playDatesByTitle, docs);
 
     const stats = aggregateTourSetlistStats(docs, {
-      tourShowCount: showDates.length,
+      // Full post-launch itinerary (Y); showsWithSetlist stays through-today (X).
+      tourShowCount: group.tourShowCount,
     });
     const payload = toPublicTourStatsPayload(stats, enrichmentByTitle);
     pendingWrites.push({
@@ -728,13 +758,14 @@ async function refreshPublicTourStats(db, opts = {}) {
   // Index doc for public tour picker (no setlist payloads).
   const indexTours = selectable
     .map((g) => {
+      // first/last = through-today (for "current tour" default); showCount = full Y.
       const dates = g.shows.map((s) => s.date).filter(Boolean).sort();
       return {
         tourSlug: tourLabelToSlug(g.tour),
         tourLabel: g.tour,
         lastShowDate: dates[dates.length - 1] || null,
         firstShowDate: dates[0] || null,
-        showCount: dates.length,
+        showCount: g.tourShowCount,
       };
     })
     .sort((a, b) => {
@@ -770,6 +801,7 @@ function pickDefaultPublicTourSlug(indexTours) {
 
 module.exports = {
   refreshPublicTourStats,
+  resolvePublicTourShowScope,
   pickDefaultPublicTourSlug,
   stampLastPlayedDates,
   lastPlayedRowKey,

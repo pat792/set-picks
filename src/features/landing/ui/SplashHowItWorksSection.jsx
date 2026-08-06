@@ -28,7 +28,8 @@ export default function SplashHowItWorksSection({
           Game Format
         </h2>
         <p className="mx-auto mb-12 max-w-2xl text-center text-base leading-relaxed text-slate-600">
-          Three steps—then you&apos;re in. Prefer the full walkthrough? See{' '}
+          Lock picks, live scores, and the board—every night the band is on stage.
+          Prefer the full walkthrough? See{' '}
           <Link to="/how-it-works" className={LINK_ON_LIGHT}>
             how it works
           </Link>

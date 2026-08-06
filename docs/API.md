@@ -162,10 +162,10 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 |-------|------|-------|
 | `tourSlug` | string | Same as doc id |
 | `tourLabel` | string | Display label from `show_calendar` / Phish.net |
-| `showDates` | string[] | Eligible show dates (metadata; not setlists) |
-| `firstShowDate` / `lastShowDate` | string\|null | `YYYY-MM-DD` |
-| `tourShowCount` | number | Dates in scope |
-| `showsWithSetlist` | number | Dates with an `official_setlists` doc |
+| `showDates` | string[] | Through-today eligible show dates used for aggregates (metadata; not setlists) |
+| `firstShowDate` / `lastShowDate` | string\|null | `YYYY-MM-DD` — through-today range (for current-tour defaulting) |
+| `tourShowCount` | number | Full post-launch tour itinerary length (Y in “X of Y tour dates”); may include upcoming nights |
+| `showsWithSetlist` | number | Through-today dates with an `official_setlists` doc (X in “X of Y tour dates”) |
 | `uniqueSongs` / `totalSongPlays` | number | Aggregate counts |
 | `topSongs` | `{ title, timesPlayed, lastPlayed?, lifetimePlays?, debutYear? }[]` | Tour Frequency (UI label; formerly "Most played"), **full ranked list** as of v1.45.0 (#709; top-15 before) — **no** per-song `showDates` lists. `lastPlayed` = latest tour show date the song appeared (`YYYY-MM-DD`, v1.46.4) |
 | `bustouts` / `gapHighlights` | `{ title, gap, showDate?, lifetimePlays?, debutYear?, lastPlayed? }[]` | Single event date OK; never a full night setlist. `gapHighlights` uncapped as of v1.45.0 (#709). `lastPlayed` = `YYYY-MM-DD` last Phish play *before* that tour night (v1.46.0 / #709 follow-up) |
@@ -180,7 +180,7 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 
 **`lastPlayed` on `topSongs` (v1.46.4):** latest eligible tour show date the song was played (`YYYY-MM-DD`). UI displays tour-scoped `mm-dd`.
 
-`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`.
+`_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`. `showCount` matches doc `tourShowCount` (full post-launch itinerary). `firstShowDate` / `lastShowDate` remain through-today.
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
 

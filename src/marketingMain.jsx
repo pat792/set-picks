@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { BrowserRouter } from 'react-router-dom'
 
 import MarketingApp from './app/MarketingApp.jsx'
+import ScrollToTop from './app/ScrollToTop.jsx'
 import { PERSISTED_SESSION_HINT_STORAGE_KEY } from './shared/lib/persistedSessionHint'
 import './index.css'
 
@@ -45,6 +46,7 @@ root.render(
   <React.StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HelmetProvider>
+        <ScrollToTop />
         <MarketingApp />
       </HelmetProvider>
     </BrowserRouter>
