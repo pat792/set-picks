@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-  blurAutofocusedCredentialField,
+  scheduleNeutralLoginFocus,
   useDeferPasswordManagerAutofill,
 } from '../model/deferPasswordManagerAutofill';
 
@@ -21,7 +21,7 @@ export default function LoginFormShellFallback() {
     } catch {
       setSignup(false);
     }
-    blurAutofocusedCredentialField();
+    return scheduleNeutralLoginFocus();
   }, []);
 
   return (

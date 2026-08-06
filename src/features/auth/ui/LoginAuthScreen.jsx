@@ -12,7 +12,7 @@ import GoogleAuthContinueOverlay from './GoogleAuthContinueOverlay';
 import { resolveGoogleCtaLabel } from './googleCtaLabel';
 import SplashAuthPanel from './SplashAuthPanel';
 import {
-  blurAutofocusedCredentialField,
+  scheduleNeutralLoginFocus,
   useDeferPasswordManagerAutofill,
 } from '../model/deferPasswordManagerAutofill';
 import { useLoginAuthSurfaceReady } from '../model/useLoginAuthSurfaceReady';
@@ -38,10 +38,8 @@ export default function LoginAuthScreen({
 }) {
   const isSignup = mode === 'signup';
 
-  // #909: clear any Safari autofocus that survived HTML-first boot blur.
-  useEffect(() => {
-    blurAutofocusedCredentialField();
-  }, []);
+  // #909: Safari private often focuses email after hydrate — retry neutralize.
+  useEffect(() => scheduleNeutralLoginFocus(), []);
 
   // Chrome (sticky header + marketing nav + footer) comes from MarketingPageShell
   // composed in LoginPage — same top-level surface as /how-it-works, etc. (#834).

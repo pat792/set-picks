@@ -304,21 +304,51 @@ function loginModeBootScript() {
       signupEl.hidden = true;
       if (eyebrow) eyebrow.textContent = 'Sign in to make picks';
     }
-    // #909: do not leave Keychain/Face ID owning first focus on cold open.
-    var ae = document.activeElement;
-    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) {
-      ae.blur();
-    }
-    // Unlock credential fields only after intentional focus (pre-hydrate).
-    document.addEventListener(
-      'focusin',
-      function (ev) {
+
+    // #909: neutral focus — reject Safari autofocus until a real gesture.
+    // Listeners are on document so they survive React replacing #root.
+    if (document.documentElement.dataset.loginFocusGuard !== '1') {
+      document.documentElement.dataset.loginFocusGuard = '1';
+      var gestured = false;
+      function markGesture() { gestured = true; }
+      document.addEventListener('pointerdown', markGesture, true);
+      document.addEventListener('touchstart', markGesture, true);
+      document.addEventListener('keydown', markGesture, true);
+      function isCred(el) {
+        if (!el || el.tagName !== 'INPUT') return false;
+        var t = (el.getAttribute('type') || '').toLowerCase();
+        if (t === 'checkbox' || t === 'radio' || t === 'hidden' || t === 'submit') return false;
+        return t === 'email' || t === 'password' || t === 'text' || t === '' ||
+          el.id === 'si-email' || el.id === 'si-pass' ||
+          el.id === 'su-email' || el.id === 'su-pass' || el.id === 'su-confirm';
+      }
+      function parkFocus() {
+        var park = document.getElementById('login-focus-park');
+        if (park && park.focus) park.focus({ preventScroll: true });
+      }
+      function neutralize() {
+        var ae = document.activeElement;
+        if (!isCred(ae)) return;
+        ae.blur();
+        parkFocus();
+      }
+      document.addEventListener('focusin', function (ev) {
         var t = ev.target;
-        if (!t || t.tagName !== 'INPUT') return;
-        if (t.readOnly) t.readOnly = false;
-      },
-      true,
-    );
+        if (!isCred(t)) return;
+        if (gestured) {
+          if (t.readOnly) t.readOnly = false;
+          return;
+        }
+        t.blur();
+        parkFocus();
+      }, true);
+      neutralize();
+      if (window.requestAnimationFrame) requestAnimationFrame(neutralize);
+      setTimeout(neutralize, 0);
+      setTimeout(neutralize, 50);
+      setTimeout(neutralize, 150);
+      setTimeout(neutralize, 400);
+    }
   } catch (e) {}
 })();
 </script>`;
@@ -329,6 +359,8 @@ export function buildLoginBootShellMarkup() {
   return [
     `<style id="login-boot-shell-css">${loginBootShellCriticalCss()}</style>`,
     `<div ${LOGIN_BOOT_SHELL_MARKER}="true" ${LOGIN_FORM_SHELL_MARKER}="true" class="lbs-shell">`,
+    // Non-editable focus park so Safari autofocus has somewhere non-credential to land (#909).
+    `<button type="button" id="login-focus-park" tabindex="-1" aria-hidden="true" style="position:fixed;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;opacity:0;pointer-events:none"></button>`,
     `<div class="lbs-ambient" aria-hidden="true"></div>`,
     `<div class="lbs-progress" aria-hidden="true"></div>`,
     `<header class="lbs-header">`,

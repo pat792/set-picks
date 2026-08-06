@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.1] — 2026-08-06
+
+### Fixed
+- **Auth door neutral focus on Safari private (#909)** — Keychain sheet was already suppressed, but Safari still left a blinking cursor in email. Reject pre-gesture autofocus (document `focusin` guard), park focus on a non-editable target, and retry neutralize after hydrate when private WebKit refocuses late.
+
+---
+
 ## [1.55.0] — 2026-08-06
 
 ### Changed
