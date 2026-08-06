@@ -23,6 +23,7 @@ export { markLoginAuthPaint } from './model/authLoginTiming';
 export { trackAuthHopTiming } from './model/authAnalytics';
 export {
   stashSplashResumeAuthModal,
+  peekSplashResumeAuthModal,
   consumeSplashResumeAuthModal,
 } from './utils/splashAuthResumeStorage';
 export { peekGoogleRedirectIntent } from './utils/googleRedirectIntent';

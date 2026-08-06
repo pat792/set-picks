@@ -41,6 +41,22 @@ export default function LoginAuthScreen({
   // #909: Safari private often focuses email after hydrate — retry neutralize.
   useEffect(() => scheduleNeutralLoginFocus(), []);
 
+  // #908: warm legal documents while the visitor is on signup (hard-nav next).
+  useEffect(() => {
+    if (!isSignup || typeof document === 'undefined') return undefined;
+    const links = ['/terms', '/privacy'].map((href) => {
+      const el = document.createElement('link');
+      el.rel = 'prefetch';
+      el.href = href;
+      el.as = 'document';
+      document.head.appendChild(el);
+      return el;
+    });
+    return () => {
+      for (const el of links) el.remove();
+    };
+  }, [isSignup]);
+
   // Chrome (sticky header + marketing nav + footer) comes from MarketingPageShell
   // composed in LoginPage — same top-level surface as /how-it-works, etc. (#834).
   return (

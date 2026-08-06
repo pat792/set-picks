@@ -396,7 +396,7 @@ export function buildLoginBootShellMarkup() {
     `<h1 class="lbs-title">Create account</h1>`,
     `<label class="lbs-legal">`,
     `<input type="checkbox" name="legal" value="1" disabled />`,
-    `<span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</span>`,
+    `<span>I agree to the <a href="/terms" onclick="try{sessionStorage.setItem('splashResumeAuthModal','signup')}catch(e){}">Terms of Service</a> and <a href="/privacy" onclick="try{sessionStorage.setItem('splashResumeAuthModal','signup')}catch(e){}">Privacy Policy</a>.</span>`,
     `</label>`,
     `<button type="button" class="lbs-google" disabled aria-disabled="true">`,
     `<img class="lbs-google-icon" src="${GOOGLE_ICON_SRC}" alt="" width="18" height="18" />`,

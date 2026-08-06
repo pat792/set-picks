@@ -16,6 +16,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Fixed
 - **Auth door neutral focus on Safari private (#909)** — Keychain sheet was already suppressed, but Safari still left a blinking cursor in email. Reject pre-gesture autofocus (document `focusin` guard), park focus on a non-editable target, and retry neutralize after hydrate when private WebKit refocuses late.
+- **Legal back from signup (#908)** — When Terms/Privacy were opened from create-account, the in-page control said “Back to Setlist Pick 'Em” and sent visitors to marketing `/`. It now reads the auth-door resume stash and hard-navs to `/login?mode=signup` (“Back to create account”). Prefetch legal docs on signup; modulepreload legal page chunks on prerendered shells.
 
 ---
 
