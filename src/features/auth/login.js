@@ -5,7 +5,12 @@
  */
 export { default as LoginAuthScreen } from './ui/LoginAuthScreen';
 export { default as LoginFormShellFallback } from './ui/LoginFormShellFallback';
+export { default as LoginFocusPark } from './ui/LoginFocusPark';
 export { default as GoogleAuthContinueOverlay } from './ui/GoogleAuthContinueOverlay';
+export {
+  ensureNeutralLoginFocusGuards,
+  scheduleNeutralLoginFocus,
+} from './model/deferPasswordManagerAutofill';
 export { AuthProvider, useAuth } from './provider.js';
 export { useGoogleRedirectCompletion } from './model/useGoogleRedirectCompletion';
 export {
@@ -18,6 +23,7 @@ export { markLoginAuthPaint } from './model/authLoginTiming';
 export { trackAuthHopTiming } from './model/authAnalytics';
 export {
   stashSplashResumeAuthModal,
+  peekSplashResumeAuthModal,
   consumeSplashResumeAuthModal,
 } from './utils/splashAuthResumeStorage';
 export { peekGoogleRedirectIntent } from './utils/googleRedirectIntent';

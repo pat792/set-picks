@@ -23,12 +23,19 @@ describe('isCredentialAutofillTarget', () => {
     ).toBe(true);
   });
 
-  it('rejects buttons and null', () => {
+  it('rejects buttons, checkboxes, and null', () => {
     expect(
       isCredentialAutofillTarget({
         tagName: 'BUTTON',
         getAttribute: () => null,
         id: '',
+      }),
+    ).toBe(false);
+    expect(
+      isCredentialAutofillTarget({
+        tagName: 'INPUT',
+        getAttribute: () => 'checkbox',
+        id: 'legal',
       }),
     ).toBe(false);
     expect(isCredentialAutofillTarget(null)).toBe(false);
@@ -40,8 +47,9 @@ describe('blurAutofocusedCredentialField', () => {
     expect(() => blurAutofocusedCredentialField()).not.toThrow();
   });
 
-  it('blurs document.activeElement when it is a credential field', () => {
+  it('blurs credential focus and parks on focus park', () => {
     const blur = vi.fn();
+    const parkFocus = vi.fn();
     const prev = globalThis.document;
     globalThis.document = {
       activeElement: {
@@ -50,10 +58,15 @@ describe('blurAutofocusedCredentialField', () => {
         getAttribute: () => 'email',
         blur,
       },
+      getElementById: (id) =>
+        id === 'login-focus-park'
+          ? { focus: parkFocus }
+          : null,
     };
     try {
-      blurAutofocusedCredentialField();
+      expect(blurAutofocusedCredentialField()).toBe(true);
       expect(blur).toHaveBeenCalled();
+      expect(parkFocus).toHaveBeenCalledWith({ preventScroll: true });
     } finally {
       if (prev === undefined) delete globalThis.document;
       else globalThis.document = prev;

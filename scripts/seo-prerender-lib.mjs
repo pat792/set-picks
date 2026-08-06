@@ -33,10 +33,12 @@ import {
   LOGIN_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
   TOUR_STATS_BOOT_PRELOAD_MARKER,
+  LEGAL_BOOT_PRELOAD_MARKER,
   injectDashboardBootModulepreloads,
   injectLoginBootModulepreloads,
   injectSplashBootModulepreloads,
   injectTourStatsBootModulepreloads,
+  injectLegalBootModulepreloads,
 } from './boot-modulepreload.mjs';
 
 export {
@@ -54,6 +56,7 @@ export {
   LOGIN_BOOT_PRELOAD_MARKER,
   SPLASH_BOOT_PRELOAD_MARKER,
   TOUR_STATS_BOOT_PRELOAD_MARKER,
+  LEGAL_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildDashboardBootShellMarkup,
   buildLoginBootShellHtml,
@@ -63,6 +66,7 @@ export {
   injectLoginBootModulepreloads,
   injectSplashBootModulepreloads,
   injectTourStatsBootModulepreloads,
+  injectLegalBootModulepreloads,
 };
 
 function escapeHtml(str) {

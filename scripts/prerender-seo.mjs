@@ -23,6 +23,7 @@ import {
   injectLoginBootModulepreloads,
   injectPrerenderHtml,
   injectTourStatsBootModulepreloads,
+  injectLegalBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 
@@ -53,6 +54,10 @@ function isTourStatsPrerenderRoute(path) {
   return typeof path === 'string' && path.startsWith('/tour-stats');
 }
 
+function isLegalPrerenderRoute(path) {
+  return path === '/privacy' || path === '/terms';
+}
+
 for (const route of PRERENDER_ROUTES) {
   const shell = marketingShell;
   let html = injectPrerenderHtml(shell, route);
@@ -62,6 +67,10 @@ for (const route of PRERENDER_ROUTES) {
   // preload (#853 — fetch-time ensureFirebase after #835 login defer regression).
   if (isTourStatsPrerenderRoute(route.path)) {
     html = injectTourStatsBootModulepreloads(html, distDir);
+  }
+  // /privacy + /terms: preload legal page + markdown closure (#908 soak).
+  if (isLegalPrerenderRoute(route.path)) {
+    html = injectLegalBootModulepreloads(html, distDir, route.path);
   }
   const rel = prerenderOutputRelPath(route.path);
   const outPath = join(distDir, rel);

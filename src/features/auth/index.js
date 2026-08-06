@@ -7,6 +7,7 @@ export {
   LoginAuthScreen,
   useGoogleRedirectCompletion,
   stashSplashResumeAuthModal,
+  peekSplashResumeAuthModal,
   consumeSplashResumeAuthModal,
 } from './login';
 // SplashSignInModal / SplashSignUpModal intentionally do NOT re-export here:
