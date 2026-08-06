@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
+import {
+  blurAutofocusedCredentialField,
+  useDeferPasswordManagerAutofill,
+} from '../model/deferPasswordManagerAutofill';
+
 /**
  * Suspense / leave-document fallback for the auth door (#892).
  * Keeps real form fields on screen so WebKit never fails closed to a blank
@@ -16,6 +21,7 @@ export default function LoginFormShellFallback() {
     } catch {
       setSignup(false);
     }
+    blurAutofocusedCredentialField();
   }, []);
 
   return (
@@ -55,6 +61,8 @@ export default function LoginFormShellFallback() {
 }
 
 function SigninPanelStatic() {
+  const emailGuard = useDeferPasswordManagerAutofill();
+  const passwordGuard = useDeferPasswordManagerAutofill();
   return (
     <section
       className="w-full max-w-md rounded-xl border border-border-subtle/60 bg-surface-panel/40 p-6"
@@ -89,6 +97,7 @@ function SigninPanelStatic() {
             autoComplete="username"
             required
             className="mt-1 w-full rounded-xl border-2 border-border-subtle bg-surface-field px-4 py-3 font-semibold text-white"
+            {...emailGuard}
           />
         </div>
         <div>
@@ -105,6 +114,7 @@ function SigninPanelStatic() {
             autoComplete="current-password"
             required
             className="mt-1 w-full rounded-xl border-2 border-border-subtle bg-surface-field px-4 py-3 font-semibold text-white"
+            {...passwordGuard}
           />
         </div>
         <button
@@ -128,6 +138,9 @@ function SigninPanelStatic() {
 }
 
 function SignupPanelStatic() {
+  const emailGuard = useDeferPasswordManagerAutofill();
+  const passwordGuard = useDeferPasswordManagerAutofill();
+  const confirmGuard = useDeferPasswordManagerAutofill();
   return (
     <section
       className="w-full max-w-md rounded-xl border border-border-subtle/60 bg-surface-panel/40 p-6"
@@ -176,6 +189,7 @@ function SignupPanelStatic() {
             autoComplete="email"
             required
             className="mt-1 w-full rounded-xl border-2 border-border-subtle bg-surface-field px-4 py-3 font-semibold text-white"
+            {...emailGuard}
           />
         </div>
         <div>
@@ -193,6 +207,7 @@ function SignupPanelStatic() {
             required
             minLength={6}
             className="mt-1 w-full rounded-xl border-2 border-border-subtle bg-surface-field px-4 py-3 font-semibold text-white"
+            {...passwordGuard}
           />
         </div>
         <div>
@@ -209,6 +224,7 @@ function SignupPanelStatic() {
             autoComplete="new-password"
             required
             className="mt-1 w-full rounded-xl border-2 border-border-subtle bg-surface-field px-4 py-3 font-semibold text-white"
+            {...confirmGuard}
           />
         </div>
         <button

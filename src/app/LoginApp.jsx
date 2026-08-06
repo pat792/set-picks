@@ -8,8 +8,9 @@ const LoginPage = lazy(() => import('../pages/auth/LoginPage'))
 
 /**
  * Soft-nav safety net for the auth-door document (#892).
- * Terms/Privacy should hard-nav via `<a href>`; if a soft route still lands
- * here, assign so hosting can serve the correct shell (not a stuck Suspense).
+ * Terms/Privacy hard-nav via `<a href>` to the marketing document (#908);
+ * if a soft route still lands here, assign so hosting can serve the correct
+ * shell (not a stuck Suspense).
  */
 function LeaveLoginDocument() {
   const { pathname, search, hash } = useLocation()

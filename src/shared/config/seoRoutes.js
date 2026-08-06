@@ -262,6 +262,32 @@ const KEYWORD_PAGE_DESCRIPTION =
   "Free Phish setlist prediction game and fantasy setlist picks—lock openers, closers, encore, and a wildcard before showtime, score live, and compete with friends. Built for jam bands; live with Phish today, more soon.";
 const KEYWORD_PAGE_URL = `${SEO_CONFIG.siteUrl}${KEYWORD_PAGE_PATH}`;
 
+const PRIVACY_TITLE = "Privacy Policy | Setlist Pick'Em";
+const PRIVACY_DESCRIPTION =
+  "Privacy Policy for Setlist Pick 'Em — what information we collect, why we collect it, and how you can manage it. Operated by Road2 Media, LLC.";
+const PRIVACY_URL = `${SEO_CONFIG.siteUrl}/privacy`;
+
+const TERMS_TITLE = "Terms of Service | Setlist Pick'Em";
+const TERMS_DESCRIPTION =
+  "Terms of Service for Setlist Pick 'Em — the free Phish setlist prediction game operated by Road2 Media, LLC. Entertainment only; no entry fees or cash prizes.";
+const TERMS_URL = `${SEO_CONFIG.siteUrl}/terms`;
+
+function buildLegalWebPageJsonLd({ url, title, description }) {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': url,
+        url,
+        name: title,
+        description,
+        isPartOf: { '@id': `${SEO_CONFIG.siteUrl}/#website` },
+      },
+    ],
+  };
+}
+
 function buildKeywordIntentPageJsonLd() {
   return {
     '@context': 'https://schema.org',
@@ -485,6 +511,44 @@ export const PRERENDER_ROUTES = [
       'Tour stats refresh every night the band plays live. Playing unlocks personal stats as you accumulate points against other setlist pickers.',
     ],
     buildJsonLd: buildKeywordIntentPageJsonLd,
+  },
+  {
+    path: '/privacy',
+    title: PRIVACY_TITLE,
+    description: PRIVACY_DESCRIPTION,
+    canonicalUrl: PRIVACY_URL,
+    h1: 'Privacy Policy',
+    paragraphs: [
+      // Avoid early double-quotes — prerender HTML-escapes them to &quot; and
+      // verify:seo-prerender checks the first 40 chars as a literal substring.
+      "Setlist Pick 'Em privacy policy: operated by Road2 Media, LLC. This policy explains what information we collect, why we collect it, and how you can manage it.",
+      'When you create an account we store the email address you sign up with (or that your Google account provides) and a display handle you choose.',
+      'We retain your account and gameplay data for as long as your account is active. You can delete your account from your Profile page within the App.',
+    ],
+    buildJsonLd: () =>
+      buildLegalWebPageJsonLd({
+        url: PRIVACY_URL,
+        title: PRIVACY_TITLE,
+        description: PRIVACY_DESCRIPTION,
+      }),
+  },
+  {
+    path: '/terms',
+    title: TERMS_TITLE,
+    description: TERMS_DESCRIPTION,
+    canonicalUrl: TERMS_URL,
+    h1: 'Terms of Service',
+    paragraphs: [
+      "These Terms of Service govern your use of Setlist Pick 'Em, operated by Road2 Media, LLC. By creating an account or using the App you agree to these Terms.",
+      "Setlist Pick 'Em is an entertainment platform where players predict setlists for live Phish concerts. This is strictly an entertainment product. There are no entry fees, no cash prizes, and no wagering or gambling of any kind.",
+      'You must create an account to play. You are responsible for keeping your sign-in credentials secure. Each person may maintain one account.',
+    ],
+    buildJsonLd: () =>
+      buildLegalWebPageJsonLd({
+        url: TERMS_URL,
+        title: TERMS_TITLE,
+        description: TERMS_DESCRIPTION,
+      }),
   },
 ];
 

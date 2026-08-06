@@ -13,9 +13,12 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 
 1b. **Public `/tour-stats*` is marketing too (#853).** Paint chrome from the marketing entry; load App Check + Firestore only inside `fetchPublicTourStats*` (and a parallel page kick). Do not put tour-stats on `app.html` / `AuthProvider`.
 
+1c. **`/privacy` and `/terms` are marketing too (#908).** Serve from the marketing document (prerendered HTML). Do not park legal on `app.html` / spa-boot — signup from HTML-first `/login` hard-navs here and must stay snappy. Soft routes may remain on the app SPA for in-app Profile links.
+
 2. **Auth door `/login`: form in first HTML; auth-only hydrate (Phase 2 / #892).**  
    - **Today (v1.54.0):** `/login` boots `login.html` with **real form controls** in the first document; `loginMain.jsx` hydrates Auth + form wiring (not `app-*.js` / react-query). Suspense fallback keeps form chrome (anti-#881 blank hang). Session hint and Google redirect return stay eager. Success → hard-navigate to `/setup` or `/dashboard`.  
    - Do **not** reintroduce a skeleton-only / empty-`#root` CSR door as the prod strategy.
+   - **Neutral first focus (#909):** do not autofocus email/password on cold open (Safari Keychain / Face ID steals method choice). Credential fields may start `readOnly` until the user focuses them.
 
 2b. **Google CTA must not be enabled until Auth surface is ready (#858).** Disable Continue with Google (brief “Preparing sign-in…” OK) until Auth + click-path modules are ready. Ready click path: `signInWithPopup` / redirect with **no** `await ensureAuthReady()` or dynamic-import on the hot path.
 
