@@ -15,6 +15,9 @@ const {
   buildPriorLastPlayedMap,
   seedLastPlayedFromPrior,
   stampLastPlayedDates,
+  mergeLastPlayedByRowCache,
+  accumulatePlayDatesFromSetlists,
+  stampLastPlayedFromLocalHistory,
 } = require("./publicTourStats");
 
 describe("tourLabelToSlug", () => {
@@ -198,7 +201,7 @@ describe("lastPlayedRowKey (#840)", () => {
   });
 });
 
-describe("buildPriorLastPlayedMap (#840)", () => {
+describe("buildPriorLastPlayedMap (#840 / #918)", () => {
   it("indexes bustouts + gapHighlights with valid lastPlayed", () => {
     const map = buildPriorLastPlayedMap({
       bustouts: [
@@ -214,9 +217,103 @@ describe("buildPriorLastPlayedMap (#840)", () => {
     assert.equal(map.has("no date|2026-07-22"), false);
   });
 
+  it("merges durable lastPlayedByRow cache even when arrays dropped the row (#918)", () => {
+    const map = buildPriorLastPlayedMap({
+      bustouts: [],
+      gapHighlights: [
+        { title: "Fee", showDate: "2026-07-23", lastPlayed: "2025-08-01" },
+      ],
+      lastPlayedByRow: {
+        "foam|2026-07-22": "2025-12-01",
+        "fee|2026-07-23": "2020-01-01", // array row wins on conflict
+        bad: "2025-01-01",
+        "ghost|07-22": "2025-01-01",
+      },
+    });
+    assert.equal(map.get("foam|2026-07-22"), "2025-12-01");
+    assert.equal(map.get("fee|2026-07-23"), "2025-08-01");
+    assert.equal(map.has("bad"), false);
+    assert.equal(map.has("ghost|07-22"), false);
+  });
+
   it("tolerates null / malformed docs", () => {
     assert.equal(buildPriorLastPlayedMap(null).size, 0);
     assert.equal(buildPriorLastPlayedMap({ bustouts: "nope" }).size, 0);
+  });
+});
+
+describe("mergeLastPlayedByRowCache (#918)", () => {
+  it("keeps prior keys and merges newly stamped rows", () => {
+    const prior = new Map([
+      ["foam|2026-07-22", "2025-12-01"],
+      ["old|2026-06-01", "2024-01-01"],
+    ]);
+    const cache = mergeLastPlayedByRowCache(prior, [
+      { title: "Fee", showDate: "2026-07-23", lastPlayed: "2025-08-01" },
+      { title: "Blank", showDate: "2026-07-24" },
+    ]);
+    assert.equal(cache["foam|2026-07-22"], "2025-12-01");
+    assert.equal(cache["old|2026-06-01"], "2024-01-01");
+    assert.equal(cache["fee|2026-07-23"], "2025-08-01");
+    assert.equal(cache["blank|2026-07-24"], undefined);
+  });
+});
+
+describe("stampLastPlayedFromLocalHistory (#918)", () => {
+  it("fills blank high-gap rows from cross-tour official setlists", () => {
+    const playDatesByTitle = new Map();
+    accumulatePlayDatesFromSetlists(playDatesByTitle, [
+      {
+        showDate: "2026-04-18",
+        setlist: { officialSetlist: ["Foam", "Esther"] },
+      },
+      {
+        showDate: "2026-07-10",
+        setlist: { officialSetlist: ["Foam"] },
+      },
+      {
+        showDate: "2026-07-22",
+        setlist: { officialSetlist: ["Foam"] },
+      },
+    ]);
+    const gaps = [
+      { title: "Foam", showDate: "2026-07-22", gap: 19 },
+      { title: "Esther", showDate: "2026-07-29", gap: 20 },
+      {
+        title: "Already",
+        showDate: "2026-07-22",
+        gap: 12,
+        lastPlayed: "2020-01-01",
+      },
+      { title: "Never Seen", showDate: "2026-07-22", gap: 11 },
+    ];
+    const stamped = stampLastPlayedFromLocalHistory(gaps, playDatesByTitle);
+    assert.equal(stamped, 2);
+    assert.equal(gaps[0].lastPlayed, "2026-07-10");
+    assert.equal(gaps[1].lastPlayed, "2026-04-18");
+    assert.equal(gaps[2].lastPlayed, "2020-01-01");
+    assert.equal(gaps[3].lastPlayed, undefined);
+  });
+
+  it("lets local stamps skip phish.net history in stampLastPlayedDates", async () => {
+    const playDatesByTitle = new Map([
+      ["foam", new Set(["2026-04-18", "2026-07-22"])],
+    ]);
+    const payload = {
+      bustouts: [],
+      gapHighlights: [{ title: "Foam", showDate: "2026-07-22", gap: 19 }],
+    };
+    stampLastPlayedFromLocalHistory(payload.gapHighlights, playDatesByTitle);
+    const enrichmentByTitle = new Map([
+      ["foam", { slug: "foam", lastPlayedCatalog: "2026-07-22" }],
+    ]);
+    const result = await stampLastPlayedDates([payload], {
+      enrichmentByTitle,
+      apiKey: "test-key",
+      logger: { info() {}, warn() {} },
+    });
+    assert.equal(payload.gapHighlights[0].lastPlayed, "2026-04-18");
+    assert.equal(result.lookups, 0);
   });
 });
 

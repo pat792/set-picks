@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.2] — 2026-08-06
+
+### Fixed
+- **Public High gaps Last blanks (#918)** — regression of #840: `refreshPublicTourStats` now stamps Bustout/High-gap `lastPlayed` from game-local `official_setlists` across all selectable tours (Sphere → Summer) before phish.net history, and persists a durable `lastPlayedByRow` cache so ranking churn + 429 partials cannot wipe previously filled High gaps Last dates.
+
+---
+
 ## [1.55.1] — 2026-08-06
 
 ### Fixed
