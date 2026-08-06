@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Button from '../../../shared/ui/Button';
 import Input from '../../../shared/ui/Input';
@@ -11,6 +11,10 @@ import { AUTH_EMAIL_CTA } from './authCtaClasses';
 import GoogleAuthContinueOverlay from './GoogleAuthContinueOverlay';
 import { resolveGoogleCtaLabel } from './googleCtaLabel';
 import SplashAuthPanel from './SplashAuthPanel';
+import {
+  blurAutofocusedCredentialField,
+  useDeferPasswordManagerAutofill,
+} from '../model/deferPasswordManagerAutofill';
 import { useLoginAuthSurfaceReady } from '../model/useLoginAuthSurfaceReady';
 import { useSplashSignIn } from '../model/useSplashSignIn';
 import { useSplashSignUp } from '../model/useSplashSignUp';
@@ -33,6 +37,11 @@ export default function LoginAuthScreen({
   seedError = '',
 }) {
   const isSignup = mode === 'signup';
+
+  // #909: clear any Safari autofocus that survived HTML-first boot blur.
+  useEffect(() => {
+    blurAutofocusedCredentialField();
+  }, []);
 
   // Chrome (sticky header + marketing nav + footer) comes from MarketingPageShell
   // composed in LoginPage — same top-level surface as /how-it-works, etc. (#834).
@@ -68,6 +77,8 @@ function LoginSignInPanel({
   seedError,
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const emailGuard = useDeferPasswordManagerAutofill();
+  const passwordGuard = useDeferPasswordManagerAutofill();
   const authSurfaceReady = useLoginAuthSurfaceReady();
   const {
     email,
@@ -136,6 +147,7 @@ function LoginSignInPanel({
             onChange={(e) => setEmail(e.target.value)}
             required
             className="mt-1 font-medium text-white"
+            {...emailGuard}
           />
         </div>
         <div>
@@ -155,6 +167,7 @@ function LoginSignInPanel({
               onChange={(e) => setPassword(e.target.value)}
               required
               className={`w-full font-medium text-white ${revealVisible ? 'pr-10' : ''}`}
+              {...passwordGuard}
             />
             <PasswordRevealToggle
               visible={revealVisible}
@@ -212,6 +225,9 @@ function LoginSignUpPanel({
   seedError,
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const emailGuard = useDeferPasswordManagerAutofill();
+  const passwordGuard = useDeferPasswordManagerAutofill();
+  const confirmGuard = useDeferPasswordManagerAutofill();
   const authSurfaceReady = useLoginAuthSurfaceReady();
   const {
     email,
@@ -341,6 +357,7 @@ function LoginSignUpPanel({
               onChange={(e) => setEmail(e.target.value)}
               required
               className="mt-1 font-medium text-white"
+              {...emailGuard}
             />
           </div>
           <div>
@@ -361,6 +378,7 @@ function LoginSignUpPanel({
                 required
                 minLength={6}
                 className={`w-full font-medium text-white ${revealVisible ? 'pr-10' : ''}`}
+                {...passwordGuard}
               />
               <PasswordRevealToggle
                 visible={revealVisible}
@@ -387,6 +405,7 @@ function LoginSignUpPanel({
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 className={`w-full font-medium text-white ${revealVisible ? 'pr-10' : ''}`}
+                {...confirmGuard}
               />
               <PasswordRevealToggle
                 visible={revealVisible}

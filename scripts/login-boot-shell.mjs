@@ -304,6 +304,21 @@ function loginModeBootScript() {
       signupEl.hidden = true;
       if (eyebrow) eyebrow.textContent = 'Sign in to make picks';
     }
+    // #909: do not leave Keychain/Face ID owning first focus on cold open.
+    var ae = document.activeElement;
+    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) {
+      ae.blur();
+    }
+    // Unlock credential fields only after intentional focus (pre-hydrate).
+    document.addEventListener(
+      'focusin',
+      function (ev) {
+        var t = ev.target;
+        if (!t || t.tagName !== 'INPUT') return;
+        if (t.readOnly) t.readOnly = false;
+      },
+      true,
+    );
   } catch (e) {}
 })();
 </script>`;
@@ -335,9 +350,10 @@ export function buildLoginBootShellMarkup() {
     `<div class="lbs-divider"><div class="lbs-divider-line"></div><span>or</span><div class="lbs-divider-line"></div></div>`,
     `<form action="/login" method="get" autocomplete="on">`,
     `<label class="lbs-label" for="si-email">Email</label>`,
-    `<input class="lbs-field" id="si-email" name="email" type="email" autocomplete="username" required />`,
+    // readonly until intentional focus — suppresses Safari Keychain sheet (#909)
+    `<input class="lbs-field" id="si-email" name="email" type="email" autocomplete="username" required readonly />`,
     `<label class="lbs-label" for="si-pass">Password</label>`,
-    `<input class="lbs-field" id="si-pass" name="password" type="password" autocomplete="current-password" required />`,
+    `<input class="lbs-field" id="si-pass" name="password" type="password" autocomplete="current-password" required readonly />`,
     `<button class="lbs-submit" type="submit">Continue with email</button>`,
     `</form>`,
     `<p class="lbs-switch">New here? <a href="/login?mode=signup">Create account</a></p>`,
@@ -357,11 +373,11 @@ export function buildLoginBootShellMarkup() {
     `<div class="lbs-divider"><div class="lbs-divider-line"></div><span>or</span><div class="lbs-divider-line"></div></div>`,
     `<form action="/login" method="get" autocomplete="on">`,
     `<label class="lbs-label" for="su-email">Email</label>`,
-    `<input class="lbs-field" id="su-email" name="email" type="email" autocomplete="email" required />`,
+    `<input class="lbs-field" id="su-email" name="email" type="email" autocomplete="email" required readonly />`,
     `<label class="lbs-label" for="su-pass">Password</label>`,
-    `<input class="lbs-field" id="su-pass" name="password" type="password" autocomplete="new-password" required minlength="6" />`,
+    `<input class="lbs-field" id="su-pass" name="password" type="password" autocomplete="new-password" required minlength="6" readonly />`,
     `<label class="lbs-label" for="su-confirm">Confirm password</label>`,
-    `<input class="lbs-field" id="su-confirm" name="confirm-password" type="password" autocomplete="new-password" required />`,
+    `<input class="lbs-field" id="su-confirm" name="confirm-password" type="password" autocomplete="new-password" required readonly />`,
     `<button class="lbs-submit" type="submit">Accept terms to continue</button>`,
     `</form>`,
     `<p class="lbs-switch">Already have an account? <a href="/login?mode=signin">Sign in</a></p>`,

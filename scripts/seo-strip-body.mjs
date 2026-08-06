@@ -47,8 +47,9 @@ export function stripPrerenderBodyFromSpaShell(spaHtml) {
 export const APP_BOOT_SHELL_REL_PATH = 'dashboard/index.html';
 
 /**
- * Branded skeleton without a fat route modulepreload — for legal / public
- * profile / bare-join hard opens that must not download DashboardRoute.
+ * Branded skeleton without a fat route modulepreload — for public profile /
+ * bare-join / password-reset hard opens that must not download DashboardRoute.
+ * Legal (`/privacy`, `/terms`) ships on the marketing document (#908).
  */
 export const LIGHT_SPA_BOOT_SHELL_REL_PATH = 'spa-boot/index.html';
 

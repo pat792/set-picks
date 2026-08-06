@@ -79,7 +79,7 @@ function assertRouteHtml(html, route, label) {
   }
 }
 
-assert(PRERENDER_ROUTES.length >= 6, 'expected marketing + tour-stats + keyword-intent routes');
+assert(PRERENDER_ROUTES.length >= 8, 'expected marketing + tour-stats + keyword + legal routes');
 assert(
   PRERENDER_ROUTES.some((r) => r.path === '/tour-stats'),
   'expected /tour-stats prerender entry',
@@ -91,6 +91,14 @@ assert(
 assert(
   PRERENDER_ROUTES.some((r) => r.path === '/phish-setlist-prediction-game'),
   'expected keyword-intent prerender entry',
+);
+assert(
+  PRERENDER_ROUTES.some((r) => r.path === '/privacy'),
+  'expected /privacy prerender entry (#908)',
+);
+assert(
+  PRERENDER_ROUTES.some((r) => r.path === '/terms'),
+  'expected /terms prerender entry (#908)',
 );
 assert(
   PRERENDER_ROUTES.every((r) => !r.path.startsWith('/dashboard')),
@@ -385,6 +393,25 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     howItWorksHtml.includes(`${MARKETING_BOOT_SHELL_MARKER}="true"`),
     'marketing routes must include marketing boot overlay',
   );
+
+  // Legal pages: marketing document, not spa-boot / app SPA (#908).
+  for (const legalPath of ['privacy', 'terms']) {
+    const legalHtmlPath = join(root, 'dist', legalPath, 'index.html');
+    assert(existsSync(legalHtmlPath), `dist missing ${legalPath}/index.html — run npm run build`);
+    const legalHtml = readFileSync(legalHtmlPath, 'utf8');
+    assert(
+      /\/assets\/marketing-[^"]+\.js/.test(legalHtml),
+      `prerendered /${legalPath} must boot the marketing entry (#908)`,
+    );
+    assert(
+      !/\/assets\/app-[^"]+\.js/.test(legalHtml),
+      `prerendered /${legalPath} must not boot the authenticated SPA entry`,
+    );
+    assert(
+      !/\/assets\/firebase[^"]*\.js/.test(legalHtml),
+      `prerendered /${legalPath} must not modulepreload firebase`,
+    );
+  }
 
   const lightBootPath = join(root, 'dist', LIGHT_SPA_BOOT_SHELL_REL_PATH);
   assert(existsSync(lightBootPath), `dist missing ${LIGHT_SPA_BOOT_SHELL_REL_PATH} — run npm run build`);
