@@ -25,6 +25,10 @@ export const SPLASH_BOOT_MODULEPRELOAD_PREFIXES = ['HomeRoute-'];
 /** Chunk filename prefixes for prerendered public `/tour-stats*` (#827). */
 export const TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES = ['PublicTourStatsPage-'];
 
+/** Chunk filename prefixes for prerendered `/privacy` + `/terms` (#908). */
+export const LEGAL_PRIVACY_BOOT_MODULEPRELOAD_PREFIXES = ['PrivacyPolicyPage-'];
+export const LEGAL_TERMS_BOOT_MODULEPRELOAD_PREFIXES = ['TermsOfServicePage-'];
+
 /** Chunk filename prefixes for `/login` boot shell (#835 / #892) — form UI hydrate. */
 export const LOGIN_BOOT_MODULEPRELOAD_PREFIXES = ['LoginPage-'];
 
@@ -32,6 +36,7 @@ export const LOGIN_BOOT_MODULEPRELOAD_PREFIXES = ['LoginPage-'];
 export const DASHBOARD_BOOT_PRELOAD_MARKER = 'data-dashboard-boot-preload';
 export const SPLASH_BOOT_PRELOAD_MARKER = 'data-splash-boot-preload';
 export const TOUR_STATS_BOOT_PRELOAD_MARKER = 'data-tour-stats-boot-preload';
+export const LEGAL_BOOT_PRELOAD_MARKER = 'data-legal-boot-preload';
 export const LOGIN_BOOT_PRELOAD_MARKER = 'data-login-boot-preload';
 
 /**
@@ -198,6 +203,28 @@ export function injectTourStatsBootModulepreloads(html, distDir) {
   return injectBootModulepreloads(base, distDir, {
     prefixes: TOUR_STATS_BOOT_MODULEPRELOAD_PREFIXES,
     marker: TOUR_STATS_BOOT_PRELOAD_MARKER,
+    hrefFilter: (href) => !/\/assets\/firebase/.test(href),
+  });
+}
+
+/**
+ * Legal pages on the marketing document (#908) — preload route + markdown
+ * closure so signup → Terms/Privacy skips the lazy waterfall.
+ *
+ * @param {string} html
+ * @param {string} distDir
+ * @param {'/privacy' | '/terms'} path
+ * @returns {string}
+ */
+export function injectLegalBootModulepreloads(html, distDir, path) {
+  const prefixes =
+    path === '/terms'
+      ? LEGAL_TERMS_BOOT_MODULEPRELOAD_PREFIXES
+      : LEGAL_PRIVACY_BOOT_MODULEPRELOAD_PREFIXES;
+  const base = stripFirebaseModulepreloads(html);
+  return injectBootModulepreloads(base, distDir, {
+    prefixes,
+    marker: LEGAL_BOOT_PRELOAD_MARKER,
     hrefFilter: (href) => !/\/assets\/firebase/.test(href),
   });
 }

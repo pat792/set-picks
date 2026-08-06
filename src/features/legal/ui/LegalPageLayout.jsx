@@ -3,28 +3,47 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 import AppBackground from '../../../shared/ui/AppBackground';
+import { resolveLegalBackNav } from '../model/legalBackNav';
 
 /**
  * Shared layout for /privacy and /terms — full-screen, public, no auth.
  * Owns ambient background so legal works on the marketing document (#908)
  * without RootAppShell, and still looks correct on soft-nav from the app SPA.
  *
- * @param {{ title: string, lastUpdated: string, children: React.ReactNode }} props
+ * @param {{
+ *   title: string,
+ *   lastUpdated: string,
+ *   children: React.ReactNode,
+ *   resumeKind?: 'signup' | 'signin' | null,
+ * }} props
  */
-export default function LegalPageLayout({ title, lastUpdated, children }) {
+export default function LegalPageLayout({
+  title,
+  lastUpdated,
+  children,
+  resumeKind = null,
+}) {
+  const back = resolveLegalBackNav(resumeKind);
+  const backClassName =
+    'inline-flex items-center gap-1.5 text-sm font-bold text-slate-400 transition-colors hover:text-white';
+
   return (
     <>
       <AppBackground />
       <div className="relative z-[1] flex min-h-screen w-full flex-col bg-transparent text-white">
         <div className="mx-auto w-full max-w-2xl flex-1 px-5 py-10 sm:px-8 md:py-16">
           <nav className="mb-8">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-400 transition-colors hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to Setlist Pick &apos;Em
-            </Link>
+            {back.hardNav ? (
+              <a href={back.href} className={backClassName}>
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+                {back.label}
+              </a>
+            ) : (
+              <Link to={back.href} className={backClassName}>
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+                {back.label}
+              </Link>
+            )}
           </nav>
 
           <header className="mb-10">

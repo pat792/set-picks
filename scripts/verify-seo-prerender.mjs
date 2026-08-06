@@ -26,6 +26,7 @@ import {
   PRERENDER_ROUTES,
   SPLASH_BOOT_PRELOAD_MARKER,
   TOUR_STATS_BOOT_PRELOAD_MARKER,
+  LEGAL_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildFixtureShellHtml,
   buildLoginBootShellHtml,
@@ -34,6 +35,7 @@ import {
   injectPrerenderHtml,
   injectSplashBootModulepreloads,
   injectTourStatsBootModulepreloads,
+  injectLegalBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 
@@ -410,6 +412,13 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     assert(
       !/\/assets\/firebase[^"]*\.js/.test(legalHtml),
       `prerendered /${legalPath} must not modulepreload firebase`,
+    );
+    const pageChunk =
+      legalPath === 'terms' ? 'TermsOfServicePage-' : 'PrivacyPolicyPage-';
+    assert(
+      legalHtml.includes(LEGAL_BOOT_PRELOAD_MARKER) &&
+        legalHtml.includes(pageChunk),
+      `prerendered /${legalPath} must modulepreload ${pageChunk} (#908)`,
     );
   }
 

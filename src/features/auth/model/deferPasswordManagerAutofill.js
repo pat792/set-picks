@@ -1,12 +1,17 @@
 import { useState } from 'react';
 
 /**
- * Safari / iOS Keychain + Face ID often auto-focus the first email/password
- * field on cold `/login`, stealing the choice between Google and email (#909).
+ * Safari / iOS often auto-focuses the first email field on cold `/login`
+ * (#909). Keychain may be suppressed by `readOnly`, but a blinking cursor
+ * still steals the Google vs email choice.
  *
- * Start credential fields `readOnly`; unlock on intentional focus. Pair with
- * HTML-first boot shell `readonly` + blur script in `login-boot-shell.mjs`.
+ * Strategy:
+ * - Credential fields start `readOnly` until a real user gesture
+ * - Reject pre-gesture autofocus (blur + park on a non-input)
+ * - Document-level listeners survive React replacing `#root`
  */
+
+export const LOGIN_FOCUS_PARK_ID = 'login-focus-park';
 
 /**
  * Per-field hook — call once per credential input (do not share across fields).
@@ -35,11 +40,24 @@ export function isCredentialAutofillTarget(el) {
       ? el.getAttribute('type') || ''
       : el.type || ''
   ).toLowerCase();
+  // Never treat checkbox / submit / hidden as credential autofill targets.
+  if (
+    type === 'checkbox' ||
+    type === 'radio' ||
+    type === 'button' ||
+    type === 'submit' ||
+    type === 'hidden'
+  ) {
+    return false;
+  }
   if (
     type === 'email' ||
     type === 'password' ||
     type === 'text' ||
-    type === ''
+    type === '' ||
+    type === 'search' ||
+    type === 'tel' ||
+    type === 'url'
   ) {
     return true;
   }
@@ -54,16 +72,83 @@ export function isCredentialAutofillTarget(el) {
 }
 
 /**
- * Blur an autofocused credential field after paint / hydrate.
- * Safe no-op when nothing is focused or focus is already outside inputs.
+ * Move focus off credential fields onto a non-editable park node.
+ * @returns {boolean} true if a credential field was neutralized
  */
 export function blurAutofocusedCredentialField() {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined') return false;
   try {
     const ae = document.activeElement;
-    if (!isCredentialAutofillTarget(ae)) return;
+    if (!isCredentialAutofillTarget(ae)) return false;
     if (typeof ae.blur === 'function') ae.blur();
+    const park = document.getElementById(LOGIN_FOCUS_PARK_ID);
+    if (park && typeof park.focus === 'function') {
+      park.focus({ preventScroll: true });
+    }
+    return true;
   } catch {
-    // Private mode / odd DOM — ignore.
+    return false;
   }
+}
+
+/**
+ * After hydrate: retry neutralize — Safari private often focuses after paint.
+ * Stops early once focus is no longer on a credential field.
+ */
+export function scheduleNeutralLoginFocus() {
+  if (typeof window === 'undefined') return () => {};
+  const delays = [0, 50, 150, 400];
+  const ids = [];
+  const run = () => {
+    blurAutofocusedCredentialField();
+  };
+  run();
+  if (typeof window.requestAnimationFrame === 'function') {
+    const raf = window.requestAnimationFrame(run);
+    ids.push(() => window.cancelAnimationFrame(raf));
+  }
+  for (const ms of delays) {
+    const t = window.setTimeout(run, ms);
+    ids.push(() => window.clearTimeout(t));
+  }
+  return () => {
+    for (const cancel of ids) cancel();
+  };
+}
+
+/**
+ * Install document listeners once (idempotent). Survives `#root` remounts.
+ * Pre-gesture focus on credential fields is rejected; gesture unlocks readonly.
+ */
+export function ensureNeutralLoginFocusGuards() {
+  if (typeof document === 'undefined') return;
+  if (document.documentElement.dataset.loginFocusGuard === '1') return;
+  document.documentElement.dataset.loginFocusGuard = '1';
+
+  let gestured = false;
+  const markGesture = () => {
+    gestured = true;
+  };
+  document.addEventListener('pointerdown', markGesture, true);
+  document.addEventListener('touchstart', markGesture, true);
+  document.addEventListener('keydown', markGesture, true);
+
+  document.addEventListener(
+    'focusin',
+    (ev) => {
+      const t = ev.target;
+      if (!isCredentialAutofillTarget(t)) return;
+      if (gestured) {
+        if (t.readOnly) t.readOnly = false;
+        return;
+      }
+      // Autofocus before any user gesture — keep neutral door.
+      if (typeof t.blur === 'function') t.blur();
+      const park = document.getElementById(LOGIN_FOCUS_PARK_ID);
+      if (park && typeof park.focus === 'function') {
+        park.focus({ preventScroll: true });
+      }
+    },
+    true,
+  );
 }

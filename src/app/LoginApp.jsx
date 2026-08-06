@@ -1,7 +1,12 @@
 import React, { Suspense, lazy, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 
-import { LoginFormShellFallback } from '../features/auth/login'
+import {
+  LoginFocusPark,
+  LoginFormShellFallback,
+  ensureNeutralLoginFocusGuards,
+  scheduleNeutralLoginFocus,
+} from '../features/auth/login'
 import AppBackground from '../shared/ui/AppBackground'
 
 const LoginPage = lazy(() => import('../pages/auth/LoginPage'))
@@ -29,9 +34,16 @@ function LeaveLoginDocument() {
  * replace HTML-first form with a blank spinner).
  */
 export default function LoginApp() {
+  // #909: document guards + post-mount retries (Safari private refocuses late).
+  useEffect(() => {
+    ensureNeutralLoginFocusGuards()
+    return scheduleNeutralLoginFocus()
+  }, [])
+
   return (
     <>
       <AppBackground />
+      <LoginFocusPark />
       <div className="relative z-[1] min-h-screen">
         <Suspense fallback={<LoginFormShellFallback />}>
           <Routes>
