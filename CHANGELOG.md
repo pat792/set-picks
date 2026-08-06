@@ -12,6 +12,20 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.3] — 2026-08-06
+
+### Changed
+- **Keyword page copy (#920)** — refresh `/phish-setlist-prediction-game` educational copy (prediction framing, personal stats, spreadsheet origin story, how-to-play steps).
+- **Splash Game Format lede (#920)** — replace “Three steps—then you're in” with lock / live scores / board framing for every show night.
+- **Public tour-stats intro (#920)** — Sphere-through-today tracking + action prompts to use the filter / frequency / bustouts / gaps.
+
+### Fixed
+- **Marketing soft-nav scroll (#920)** — mount `ScrollToTop` on the marketing document; header/footer nav clicks reset scroll. Preserve scroll depth when switching `/tour-stats` ↔ `/tour-stats/:slug` only.
+- **Public tour filter default + chrome (#920)** — default to most recent tour by `lastShowDate`; always-on teal ring on the filter.
+- **Public tour-stats “X of Y tour dates” (#920)** — `tourShowCount` (Y) is the full post-launch calendar itinerary; `showsWithSetlist` (X) stays through-today nights with setlists. Dashboard Tour stats already used full-tour Y and is unchanged.
+
+---
+
 ## [1.55.2] — 2026-08-06
 
 ### Fixed
