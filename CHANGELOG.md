@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.4] — 2026-08-06
+
+### Fixed
+- **Rollback marketing polish #920 / v1.55.3** — Safari stuck on marketing prerender HTML while Chrome hydrated. Reverts frontend from #921; keeps `public_tour_stats` “X of Y” itinerary fix in tree + already-deployed functions. Re-land #920 later with Safari private AC.
+
+---
+
 ## [1.55.3] — 2026-08-06
 
 ### Changed
@@ -23,6 +30,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 - **Marketing soft-nav scroll (#920)** — mount `ScrollToTop` on the marketing document; header/footer nav clicks reset scroll. Preserve scroll depth when switching `/tour-stats` ↔ `/tour-stats/:slug` only.
 - **Public tour filter default + chrome (#920)** — default to most recent tour by `lastShowDate`; always-on teal ring on the filter.
 - **Public tour-stats “X of Y tour dates” (#920)** — `tourShowCount` (Y) is the full post-launch calendar itinerary; `showsWithSetlist` (X) stays through-today nights with setlists. Dashboard Tour stats already used full-tour Y and is unchanged.
+
+### Notes
+- **Rolled back in v1.55.4** (Safari marketing hydrate). Functions itinerary fix retained.
 
 ---
 

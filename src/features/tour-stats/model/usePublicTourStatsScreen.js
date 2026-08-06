@@ -5,15 +5,11 @@ import {
   fetchPublicTourStatsDoc,
   fetchPublicTourStatsIndex,
 } from '../api/fetchPublicTourStats';
-import {
-  resolveDefaultPublicTourSlug,
-  sortPublicTourIndex,
-} from './publicTourIndex';
 
 /**
  * Public tour-stats screen (#665) — aggregate docs only; no self overlay.
- * Default tour = current / most recent by `lastShowDate` (not a hardcoded
- * Sphere preference).
+ * Default tour = `_index.defaultTourSlug` (current / most recent), not a
+ * hardcoded Sphere or Summer preference.
  */
 export function usePublicTourStatsScreen() {
   const { tourSlug: routeSlug } = useParams();
@@ -37,11 +33,13 @@ export function usePublicTourStatsScreen() {
       try {
         const idx = await fetchPublicTourStatsIndex();
         if (cancelled) return;
-        const list = sortPublicTourIndex(Array.isArray(idx.tours) ? idx.tours : []);
+        const list = Array.isArray(idx.tours) ? idx.tours : [];
         setTours(list);
-        setDefaultTourSlug(
-          resolveDefaultPublicTourSlug(list, idx.defaultTourSlug),
-        );
+        const fromIndex =
+          (typeof idx.defaultTourSlug === 'string' && idx.defaultTourSlug.trim()) ||
+          list[0]?.tourSlug ||
+          '';
+        setDefaultTourSlug(fromIndex);
       } catch (err) {
         if (!cancelled) setError(err);
       } finally {

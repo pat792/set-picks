@@ -29,12 +29,10 @@ export default function PublicTourStatsPanel({
           Phish tour setlist stats
         </h1>
         <p className="text-base leading-relaxed text-slate-300">
-          Since Setlist Pick&apos;Em launched at the Sphere, we&apos;ve tracked
-          every song from every tour—an easy, fun way to sift through setlist
-          stats and sharpen your predictions. Flip the tour filter, scan what&apos;s
-          getting played, hunt the bustouts, and check the high-gap songs that
-          might be due. Stats refresh every night the band plays live, so the
-          picture keeps getting sharper as the tour rolls on.
+          We track the setlist stories that help you make better picks—most-played
+          songs, bustouts, and gap highlights for each tour. Stats refresh every
+          night the band plays live, so the picture keeps getting sharper as the
+          tour rolls on.
         </p>
         <p className="text-sm leading-relaxed text-slate-400">
           We&apos;re starting with Phish and building toward more bands soon.
@@ -58,7 +56,7 @@ export default function PublicTourStatsPanel({
             Tour filter
           </span>
           <select
-            className="rounded-xl border border-white/10 bg-brand-bg-deep px-3 py-2.5 text-sm font-semibold text-white outline-none ring-2 ring-teal-400 focus-visible:ring-2 focus-visible:ring-teal-300"
+            className="rounded-xl border border-white/10 bg-brand-bg-deep px-3 py-2.5 text-sm font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
             value={activeSlug}
             onChange={(e) => onSelectTour(e.target.value)}
             disabled={indexLoading}
