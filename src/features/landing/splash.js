@@ -29,3 +29,6 @@ export {
   markLoginHopCta,
 } from './model/prefetchLoginIntent';
 export { default as useSpeculativeLoginWarm } from './model/useSpeculativeLoginWarm';
+/** Marketing-local scroll reset — no shared app ScrollToTop / appBootPath (#925). */
+export { default as MarketingScrollToTop } from './ui/MarketingScrollToTop';
+export { scrollMarketingToTop } from './model/scrollMarketingToTop';
