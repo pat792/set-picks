@@ -8,6 +8,7 @@
  */
 
 import { stripPrerenderBodyFromSpaShell } from './seo-strip-body.mjs';
+import { SPACE_GROTESK_FONT_FACE_CSS } from './space-grotesk-font-face.mjs';
 
 /** Attribute marker asserted by `verify:seo-prerender`. */
 export const LOGIN_BOOT_SHELL_MARKER = 'data-login-boot-shell';
@@ -21,6 +22,7 @@ const GOOGLE_ICON_SRC =
 
 function loginBootShellCriticalCss() {
   return `
+${SPACE_GROTESK_FONT_FACE_CSS}
 html, body {
   margin: 0;
   min-height: 100%;

@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.8] — 2026-08-08
+
+### Fixed
+- **Safari Space Grotesk preload warning** — early `@font-face` in entry HTML and boot-shell critical CSS so the preloaded display font is applied before the Vite CSS bundle arrives.
+
+---
+
 ## [1.55.7] — 2026-08-08
 
 ### Added
