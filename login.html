@@ -37,7 +37,23 @@
       content="Sign in or create an account to play Setlist Pick 'Em — free live setlist prediction for Phish fans."
     />
     <meta name="author" content="Road2 Media LLC" />
+    <!-- Preload + early @font-face so Safari applies the file before Vite CSS
+         (preload alone does not count as "used"). Keep in sync with
+         scripts/space-grotesk-font-face.mjs and src/index.css. -->
     <link rel="preload" href="/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2" as="font" type="font/woff2" crossorigin>
+    <style>
+      @font-face {
+        font-family: "Space Grotesk";
+        src: url("/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2") format("woff2");
+        font-weight: 300 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      /* Consume the preload before React/Vite CSS mounts (dev has no boot shell). */
+      html {
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+      }
+    </style>
     <title>Sign in | Setlist Pick'em</title>
   </head>
   <body>

@@ -7,6 +7,7 @@
  */
 
 import { stripPrerenderBodyFromSpaShell } from './seo-strip-body.mjs';
+import { SPACE_GROTESK_FONT_FACE_CSS } from './space-grotesk-font-face.mjs';
 
 /** Attribute marker asserted by `verify:seo-prerender`. */
 export const DASHBOARD_BOOT_SHELL_MARKER = 'data-dashboard-boot-shell';
@@ -20,6 +21,7 @@ const VINYL_MARK_SRC = '/branding/splash-vinyl-mark.webp';
  */
 function bootShellCriticalCss() {
   return `
+${SPACE_GROTESK_FONT_FACE_CSS}
 /* Paint brand canvas before the Vite CSS bundle arrives (email hard opens). */
 html, body {
   margin: 0;
