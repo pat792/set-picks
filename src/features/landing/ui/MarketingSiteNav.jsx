@@ -5,6 +5,7 @@ import {
   MARKETING_LEGAL_NAV,
   MARKETING_PRIMARY_NAV,
 } from '../model/marketingNav';
+import { scrollMarketingToTop } from '../model/scrollMarketingToTop';
 import {
   FOOTER_LINK_ON_DARK,
   HEADER_LINK_ACTIVE,
@@ -27,6 +28,7 @@ export function MarketingHeaderNav({ className = 'hidden lg:flex' }) {
           <Link
             key={to}
             to={to}
+            onClick={scrollMarketingToTop}
             className={`${HEADER_LINK_ON_DARK} ${active ? HEADER_LINK_ACTIVE : ''}`.trim()}
             aria-current={active ? 'page' : undefined}
           >
@@ -46,7 +48,12 @@ export function MarketingFooterNav({ className = '' }) {
   return (
     <p className={`mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 ${className}`.trim()}>
       {links.map(({ to, label }) => (
-        <Link key={to} to={to} className={FOOTER_LINK_ON_DARK}>
+        <Link
+          key={to}
+          to={to}
+          onClick={scrollMarketingToTop}
+          className={FOOTER_LINK_ON_DARK}
+        >
           {label}
         </Link>
       ))}

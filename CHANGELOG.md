@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.7] — 2026-08-08
+
+### Added
+- **Marketing-local scroll-to-top (#925 / #920 slice 2)** — `MarketingScrollToTop` + `scrollMarketingToTop` on the marketing document (nav clicks + route changes). Preserves scroll across `/tour-stats` ↔ `/tour-stats/:slug`. Does **not** import shared app `ScrollToTop` or `appBootPath`.
+
+---
+
 ## [1.55.6] — 2026-08-08
 
 ### Changed
