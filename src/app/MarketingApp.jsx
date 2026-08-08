@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import {
   MarketingAuthLeaveOverlay,
+  MarketingScrollToTop,
   resolveMarketingAuthLeaveMessage,
   useSpeculativeLoginWarm,
 } from '../features/landing/splash';
@@ -93,68 +94,71 @@ export default function MarketingApp() {
   useSpeculativeLoginWarm();
 
   return (
-    <Routes>
-      <Route path="/" element={<MarketingHomePage />} />
-      <Route
-        path="/how-it-works"
-        element={
-          <Suspense fallback={<MarketingRouteFallback />}>
-            <HowItWorksPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/how-scoring-works"
-        element={
-          <Suspense fallback={<MarketingRouteFallback />}>
-            <HowScoringWorksPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/phish-setlist-prediction-game"
-        element={
-          <Suspense fallback={<MarketingRouteFallback />}>
-            <PhishSetlistPredictionGamePage />
-          </Suspense>
-        }
-      />
-      {/* Public tour-stats: marketing document + deferred Firestore (#853). */}
-      <Route
-        path="/tour-stats"
-        element={
-          <Suspense fallback={<MarketingRouteFallback />}>
-            <PublicTourStatsPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/tour-stats/:tourSlug"
-        element={
-          <Suspense fallback={<MarketingRouteFallback />}>
-            <PublicTourStatsPage />
-          </Suspense>
-        }
-      />
-      {/* Legal: marketing document, no Auth (#908) — snappy from HTML-first /login. */}
-      <Route
-        path="/privacy"
-        element={
-          <Suspense fallback={<MarketingRouteFallback />}>
-            <PrivacyPolicyPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/terms"
-        element={
-          <Suspense fallback={<MarketingRouteFallback />}>
-            <TermsOfServicePage />
-          </Suspense>
-        }
-      />
-      {/* App-document surfaces — full load so Firebase/AuthProvider can boot. */}
-      <Route path="*" element={<LoadAppDocument />} />
-    </Routes>
+    <>
+      <MarketingScrollToTop />
+      <Routes>
+        <Route path="/" element={<MarketingHomePage />} />
+        <Route
+          path="/how-it-works"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <HowItWorksPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/how-scoring-works"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <HowScoringWorksPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/phish-setlist-prediction-game"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <PhishSetlistPredictionGamePage />
+            </Suspense>
+          }
+        />
+        {/* Public tour-stats: marketing document + deferred Firestore (#853). */}
+        <Route
+          path="/tour-stats"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <PublicTourStatsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/tour-stats/:tourSlug"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <PublicTourStatsPage />
+            </Suspense>
+          }
+        />
+        {/* Legal: marketing document, no Auth (#908) — snappy from HTML-first /login. */}
+        <Route
+          path="/privacy"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <PrivacyPolicyPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <TermsOfServicePage />
+            </Suspense>
+          }
+        />
+        {/* App-document surfaces — full load so Firebase/AuthProvider can boot. */}
+        <Route path="*" element={<LoadAppDocument />} />
+      </Routes>
+    </>
   );
 }

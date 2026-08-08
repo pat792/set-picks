@@ -12,6 +12,27 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.8] — 2026-08-08
+
+### Fixed
+- **Safari Space Grotesk preload warning** — early `@font-face` in entry HTML and boot-shell critical CSS so the preloaded display font is applied before the Vite CSS bundle arrives.
+
+---
+
+## [1.55.7] — 2026-08-08
+
+### Added
+- **Marketing-local scroll-to-top (#925 / #920 slice 2)** — `MarketingScrollToTop` + `scrollMarketingToTop` on the marketing document (nav clicks + route changes). Preserves scroll across `/tour-stats` ↔ `/tour-stats/:slug`. Does **not** import shared app `ScrollToTop` or `appBootPath`.
+
+---
+
+## [1.55.6] — 2026-08-08
+
+### Changed
+- **Re-land #920 copy + tour-stats UX (slice 1 / #925)** — keyword page, Game Format lede (“Lock in picks, track live setlists and scores…”), public tour-stats intro; default public tour filter to most recent by `lastShowDate`; always-on teal filter ring. Does **not** remount shared `ScrollToTop` / `appBootPath` on the marketing cold-open graph (deferred to a later #925 slice).
+
+---
+
 ## [1.55.4] — 2026-08-06
 
 ### Fixed

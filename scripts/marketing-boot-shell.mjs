@@ -8,6 +8,8 @@
  * Pure HTML/CSS — no src/ imports (safe for build scripts).
  */
 
+import { SPACE_GROTESK_FONT_FACE_CSS } from './space-grotesk-font-face.mjs';
+
 /** Attribute marker asserted by `verify:seo-prerender`. */
 export const MARKETING_BOOT_SHELL_MARKER = 'data-marketing-boot-shell';
 
@@ -17,6 +19,7 @@ export const MARKETING_BOOT_SHELL_MARKER = 'data-marketing-boot-shell';
  */
 export function buildMarketingBootShellMarkup() {
   const css = `
+${SPACE_GROTESK_FONT_FACE_CSS}
 html, body {
   margin: 0;
   min-height: 100%;

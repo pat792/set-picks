@@ -41,8 +41,22 @@
     />
     <meta name="author" content="Road2 Media LLC" />
     <!-- Space Grotesk only: Inter (~344KB variable) loads via @font-face +
-         font-display:swap so it does not contend with entry JS on cold opens. -->
+         font-display:swap so it does not contend with entry JS on cold opens.
+         Early @font-face required so the preload is actually applied (Safari).
+         Keep in sync with scripts/space-grotesk-font-face.mjs and src/index.css. -->
     <link rel="preload" href="/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2" as="font" type="font/woff2" crossorigin>
+    <style>
+      @font-face {
+        font-family: "Space Grotesk";
+        src: url("/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2") format("woff2");
+        font-weight: 300 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      html {
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+      }
+    </style>
     <title>Setlist Pick'em | The Ultimate Live Music Prediction Game</title>
   </head>
   <body>
