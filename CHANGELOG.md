@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.55.6] — 2026-08-08
+
+### Changed
+- **Re-land #920 copy + tour-stats UX (slice 1 / #925)** — keyword page, Game Format lede, public tour-stats intro; default public tour filter to most recent by `lastShowDate`; always-on teal filter ring. Does **not** remount shared `ScrollToTop` / `appBootPath` on the marketing cold-open graph (deferred to a later #925 slice).
+
+---
+
 ## [1.55.4] — 2026-08-06
 
 ### Fixed
