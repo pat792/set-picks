@@ -257,5 +257,5 @@ Born on Phish tour in 2001—from paper picks to spreadsheets to a live setlist 
 - Sync `seoRoutes.js` / prerender / sitemap / `llms.txt` / nav for #941; meta for #937 if title/description change.
 - Marketing document only; no shared app `ScrollToTop` / `appBootPath` on cold-open graph. Safari private AC on new/changed routes.
 - Prefer one PR for #937+#940 (copy), then #941 (route + SEO), or a single #942 tranche.
-- **In progress (2026-08-08):** #940 + #941 landing in **v1.56.0**; #937 walkthrough still deferred.
+- **Shipped:** #940 + #941 in **v1.56.0**; #937 walkthrough in **v1.56.1**.
 

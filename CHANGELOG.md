@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.56.1] — 2026-08-08
+
+### Changed
+- **`/how-it-works` show-night walkthrough (#937 / epic #942)** — replaces Lock/Watch/Claim card clone of splash Game Format with setlist card → timeline → pools vs global → personal stats; meta + HowTo JSON-LD updated. Home Game Format teaser unchanged.
+
+---
+
 ## [1.56.0] — 2026-08-08
 
 ### Added
