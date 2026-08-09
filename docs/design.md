@@ -160,8 +160,8 @@ Add or replace SVGs here; update **`src/shared/config/branding.js`** if filename
 
 ### Code contract (`src/shared/config/branding.js`)
 
-- **`BRAND_GRADIENT_WORDMARK_SRC` / `BRAND_WORDMARK_SRC` / `BRAND_HERO_WORDMARK_SRC`** — canonical URL for the gradient asset (hero and chrome share one file today).
-- **Hero-only**: `brandHeroWordmarkAspectFrameClassNames` + `brandHeroWordmarkImgClassNames` + `brandHeroWordmarkScaleWrapperClassNames` — aspect frame crops empty space below glyphs on desktop; mobile uses a slightly taller aspect ratio for rhythm.
+- **`BRAND_GRADIENT_WORDMARK_SRC` / `BRAND_WORDMARK_SRC` / `BRAND_HERO_WORDMARK_SRC`** — canonical **URL** for the gradient asset (`public/branding/…`; emails/OG/img surfaces).
+- **Hero-only (inline SVG, #962)**: bundled `src/shared/assets/branding/splash-gradient-4x1.svg` via `?raw` in `SplashHeroWordmark` — avoids WebKit `<img src=".svg">` raster softness. Frame/scale: `brandHeroWordmarkAspectFrameClassNames` + `brandHeroWordmarkSvgClassNames` + `brandHeroWordmarkScaleWrapperClassNames`; crop with `preserveAspectRatio` `* slice` (not CSS `object-*`). Legacy `brandHeroWordmarkImgClassNames` remains for img fallbacks.
 - **Per-surface img classes** — `brandWordmarkImgClassNames.splashHeader`, `.dashboardMobileBar`, `.dashboardSidebar` (height/width/`max-w`/`object-*` tuned per bar or sidebar column).
 - **Scale wrappers** — `brandWordmarkSplashHeaderScaleWrapperClassNames`, `brandWordmarkDashboardMobileBarScaleWrapperClassNames`, `brandWordmarkDashboardSidebarScaleWrapperClassNames` — `transform` + `origin` so the wide asset reads balanced next to nav type and CTAs.
 
