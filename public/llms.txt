@@ -35,6 +35,7 @@ Sites like Phish.net and setlist.fm are outstanding archives of what was already
 - How Scoring Works: https://www.setlistpickem.com/how-scoring-works
 - Tour Insights / Phish tour setlist statistics: https://www.setlistpickem.com/tour-stats
 - 2026 Sphere tour statistics: https://www.setlistpickem.com/tour-stats/2026-sphere
+- Summer Tour 2026 setlist statistics: https://www.setlistpickem.com/tour-stats/summer-tour-2026
 - Phish Setlist Prediction Game: https://www.setlistpickem.com/phish-setlist-prediction-game
 - About: https://www.setlistpickem.com/about
 - Setlist data credit: https://phish.net (The Mockingbird Foundation)

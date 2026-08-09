@@ -12,6 +12,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.59.0] — 2026-08-08
+
+### Added
+- **Summer Tour 2026 tour-stats SEO (#927 / epic #926)** — prerender `/tour-stats/summer-tour-2026` with query-shaped title/H1/description + JSON-LD; listed in `sitemap.xml` and `llms.txt`.
+
+### Changed
+- **Public tour-stats H1** — uses registry H1 when the slug is SEO’d (Sphere / Summer) so cold opens paint tour-specific titles before Firestore loads.
+- **Public tour filter (Safari)** — teal chrome uses `appearance-none` + border (native `<select>` often drops Tailwind rings in WebKit).
+
+---
+
 ## [1.58.0] — 2026-08-08
 
 ### Added

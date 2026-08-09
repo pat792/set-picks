@@ -2,8 +2,8 @@
  * Public marketing SEO route registry — Helmet pages + build-time prerender (#659).
  *
  * Post-build `scripts/prerender-seo.mjs` writes crawler-visible HTML into `dist/`.
- * Public tour-stats (#665): `/tour-stats` (+ Sphere slug for SEO); other tours
- * hydrate in the browser from public tour-stats docs.
+ * Public tour-stats (#665 / #927): `/tour-stats` (+ Sphere + Summer 2026 slugs
+ * for SEO); other tours hydrate in the browser from public tour-stats docs.
  *
  * Do not list `/dashboard/*`, `/invite/*`, or `/join/*`.
  *
@@ -189,6 +189,12 @@ const TOUR_STATS_SPHERE_DESCRIPTION =
   "2026 Sphere tour insights and setlist statistics—most-played songs, Sphere tour bustouts, and gap highlights from the inaugural Setlist Pick'Em tour. Updated after every live show night.";
 const TOUR_STATS_SPHERE_URL = `${SEO_CONFIG.siteUrl}/tour-stats/2026-sphere`;
 
+const TOUR_STATS_SUMMER_TITLE =
+  "Summer Tour 2026 Statistics | Setlist Pick'Em";
+const TOUR_STATS_SUMMER_DESCRIPTION =
+  "Summer Tour 2026 Phish setlist statistics—most-played songs, unique songs, summer tour bustouts, and gap highlights. Updated every night the band plays live. Play Setlist Pick'Em to unlock personal stats.";
+const TOUR_STATS_SUMMER_URL = `${SEO_CONFIG.siteUrl}/tour-stats/summer-tour-2026`;
+
 function buildTourStatsHubJsonLd() {
   return {
     '@context': 'https://schema.org',
@@ -254,6 +260,45 @@ function buildTourStatsSphereJsonLd() {
             position: 3,
             name: '2026 Sphere',
             item: TOUR_STATS_SPHERE_URL,
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function buildTourStatsSummerJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': TOUR_STATS_SUMMER_URL,
+        url: TOUR_STATS_SUMMER_URL,
+        name: TOUR_STATS_SUMMER_TITLE,
+        description: TOUR_STATS_SUMMER_DESCRIPTION,
+        isPartOf: { '@id': `${SEO_CONFIG.siteUrl}/#website` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: `${SEO_CONFIG.siteUrl}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Tour Insights',
+            item: TOUR_STATS_HUB_URL,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Summer Tour 2026',
+            item: TOUR_STATS_SUMMER_URL,
           },
         ],
       },
@@ -509,6 +554,19 @@ export const PRERENDER_ROUTES = [
       'Tour-wide song trends for fans—play the game to unlock personal stats as you compete.',
     ],
     buildJsonLd: buildTourStatsSphereJsonLd,
+  },
+  {
+    path: '/tour-stats/summer-tour-2026',
+    title: TOUR_STATS_SUMMER_TITLE,
+    description: TOUR_STATS_SUMMER_DESCRIPTION,
+    canonicalUrl: TOUR_STATS_SUMMER_URL,
+    h1: 'Summer Tour 2026 setlist statistics',
+    paragraphs: [
+      'Tour Insights for Phish Summer Tour 2026—setlist statistics, most-played songs, unique songs, summer tour bustouts, and gap highlights.',
+      'Statistics refresh every night the band plays live, so the picture keeps getting sharper as you make picks.',
+      'Tour-wide song trends for fans—play the game to unlock personal stats as you compete.',
+    ],
+    buildJsonLd: buildTourStatsSummerJsonLd,
   },
   {
     path: KEYWORD_PAGE_PATH,
