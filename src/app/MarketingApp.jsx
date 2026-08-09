@@ -22,16 +22,16 @@ const PhishSetlistPredictionGamePage = lazy(
 const PublicTourStatsPage = lazy(
   () => import('../pages/marketing/PublicTourStatsPage'),
 );
-const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
-const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
 
 /**
- * Paths that leave the marketing document (#832 / #892).
- * `/login` → HTML-first auth door (`login.html`); other app routes → `app.html`.
- * `/privacy` + `/terms` stay here (#908) — no Auth/Firebase on legal cold open.
+ * Paths that leave the marketing document (#832 / #892 / #916).
+ * `/login` → HTML-first auth door (`login.html`);
+ * `/privacy` + `/terms` → zero-JS legal door shells;
+ * other app routes → `app.html`.
  */
-function isAppDocumentPath(pathname) {
+function isLeaveMarketingDocumentPath(pathname) {
   if (typeof pathname !== 'string' || !pathname) return false;
+  if (pathname === '/privacy' || pathname === '/terms') return true;
   const prefixes = [
     '/login',
     '/dashboard',
@@ -48,16 +48,19 @@ function isAppDocumentPath(pathname) {
 
 /**
  * Full navigation out of the marketing document.
- * Used when a marketing-shell Link targets login / Firebase-backed routes.
+ * Used when a marketing-shell Link targets login / legal / Firebase-backed routes.
  */
-function LoadAppDocument() {
+function LoadLeaveMarketingDocument() {
   useEffect(() => {
     const { pathname, search, hash } = window.location;
-    if (!isAppDocumentPath(pathname)) return;
+    if (!isLeaveMarketingDocumentPath(pathname)) return;
     window.location.replace(`${pathname}${search}${hash}`);
   }, []);
 
-  if (typeof window !== 'undefined' && !isAppDocumentPath(window.location.pathname)) {
+  if (
+    typeof window !== 'undefined' &&
+    !isLeaveMarketingDocumentPath(window.location.pathname)
+  ) {
     return <Navigate to="/" replace />;
   }
 
@@ -148,25 +151,8 @@ export default function MarketingApp() {
             </Suspense>
           }
         />
-        {/* Legal: marketing document, no Auth (#908) — snappy from HTML-first /login. */}
-        <Route
-          path="/privacy"
-          element={
-            <Suspense fallback={<MarketingRouteFallback />}>
-              <PrivacyPolicyPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/terms"
-          element={
-            <Suspense fallback={<MarketingRouteFallback />}>
-              <TermsOfServicePage />
-            </Suspense>
-          }
-        />
-        {/* App-document surfaces — full load so Firebase/AuthProvider can boot. */}
-        <Route path="*" element={<LoadAppDocument />} />
+        {/* Legal + app-document surfaces — hard leave to legal door / app / login (#916). */}
+        <Route path="*" element={<LoadLeaveMarketingDocument />} />
       </Routes>
     </>
   );

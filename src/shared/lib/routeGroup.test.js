@@ -23,9 +23,12 @@ describe('resolveRouteGroup', () => {
     expect(resolveRouteGroup('/tour-stats/song/foo')).toBe('tour_stats');
   });
 
+  it('maps legal door paths (#916)', () => {
+    expect(resolveRouteGroup('/privacy')).toBe('legal');
+    expect(resolveRouteGroup('/terms')).toBe('legal');
+  });
+
   it('maps unknown paths to other', () => {
-    expect(resolveRouteGroup('/privacy')).toBe('marketing');
-    expect(resolveRouteGroup('/terms')).toBe('marketing');
     expect(resolveRouteGroup('')).toBe('other');
     expect(resolveRouteGroup(undefined)).toBe('other');
   });

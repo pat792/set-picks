@@ -13,8 +13,9 @@ Field stop after **v1.53.2** lifted with explicit human go. Phase 2 (#892 / #894
 | **v1.53.1 (#890)** | Phase 0 reliability: retire #881 thin CSR entry hang |
 | **v1.53.2 (#899)** | Log Out hang: post-sign-out → marketing `/` |
 | **v1.54.0 (#892 / #894)** | Phase 2: form-in-first-HTML + auth-only hydrate |
+| **v1.61.0 (#916)** | HTML-first `/privacy` + `/terms` door; Phase 3 (#895) deferred |
 
-**Do not start another CSR hop tier.** Phase 3 warm polish (#895) stays gated on WebKit green.
+**Do not start another CSR hop tier.** Phase 3 warm polish (#895) deferred — HTML-first door + legal door meet the product bar without marketing download-warm complexity.
 
 Standing rules still in force: `docs/AUTH_BOOT_PRACTICES.md` (Google gesture / App Check / Safari redirect).
 
@@ -166,8 +167,9 @@ Lesson: hop polish on a CSR login document can improve download and still leave 
 DONE (Phase 0)  → Restore login reliability on WebKit private (#890 / v1.53.1)
 DONE (Phase 1)  → Lock three-surface contract in docs/issues
 DONE (Phase 2)  → HTML-first /login + auth-only Firebase hydrate (#892 / v1.54.0)
-NEXT (Phase 2b) → Flow matrix QA (#893) — WebKit private human gate
-LATER(Phase 3)  → Re-attach download-only warm / leave chrome polish if still useful (#895)
+DONE (Phase 2b) → Flow matrix QA (#893) — WebKit private human gate
+DONE (legal)    → HTML-first /privacy + /terms door (#916) — zero-JS first HTML
+DEFER (Phase 3) → Marketing download-warm polish (#895) — not needed; door feels fast enough
 KEEP (Phase 4)  → Dashboard stays the SPA; don’t pull app graph into the auth door
 DEFER          → GIS / hosted IdP only if product still wants more after Phase 2
 ```
@@ -204,11 +206,11 @@ Treat as law (update issues/PRs against this, not against “finish hop bands”
 - [x] Signed-in `/login` hard-sends to dashboard/setup.
 - [x] Hop ms is a soak metric after reliability; not the design center.
 
-**Collateral (post–Phase 2):** `/privacy` + `/terms` ship on the **marketing** document (#908) — not `app.html` / spa-boot — so signup legal links from the auth door stay snappy.
+**Collateral (post–Phase 2):** `/privacy` + `/terms` left `app.html` (#908), then graduated to a **zero-JS HTML-first legal door** (#916 / v1.61.0) with full policy body in first HTML — signup legal links stay snappy without marketing CSR.
 
-### Phase 3 — Demand-gen polish (optional)
+### Phase 3 — Demand-gen polish (deferred)
 
-Only after Phase 2 is green on WebKit private: leave chrome, download-only warm of auth-door assets from marketing.
+**Deferred / not planned (#895):** leave chrome + download-only warm of auth-door assets from marketing. HTML-first `/login` and legal door already meet the acquisition-path bar; warm complexity is not worth re-attaching.
 
 ### Phase 4 — App surface
 
