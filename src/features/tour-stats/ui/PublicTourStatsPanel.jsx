@@ -12,6 +12,7 @@ export default function PublicTourStatsPanel({
   tours,
   activeSlug,
   tourName,
+  heading,
   hasTour,
   indexLoading,
   statsLoading,
@@ -19,6 +20,12 @@ export default function PublicTourStatsPanel({
   stats,
   onSelectTour,
 }) {
+  const h1 =
+    heading ||
+    (hasTour && tourName
+      ? `${tourName} setlist statistics`
+      : 'Phish tour setlist statistics');
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <header className="mb-8 space-y-3 text-center sm:text-left">
@@ -26,9 +33,7 @@ export default function PublicTourStatsPanel({
           Tour Insights
         </p>
         <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">
-          {hasTour && tourName
-            ? `${tourName} setlist statistics`
-            : 'Phish tour setlist statistics'}
+          {h1}
         </h1>
         <p className="text-base leading-relaxed text-slate-300">
           Tour Insights is our window on the latest Phish tour setlist
@@ -60,18 +65,40 @@ export default function PublicTourStatsPanel({
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
             Tour filter
           </span>
-          <select
-            className="rounded-xl border border-white/10 bg-brand-bg-deep px-3 py-2.5 text-sm font-semibold text-white outline-none ring-2 ring-teal-400 focus-visible:ring-2 focus-visible:ring-teal-300"
-            value={activeSlug}
-            onChange={(e) => onSelectTour(e.target.value)}
-            disabled={indexLoading}
-          >
-            {tours.map((t) => (
-              <option key={t.tourSlug} value={t.tourSlug}>
-                {t.tourLabel}
-              </option>
-            ))}
-          </select>
+          {/*
+            Teal chrome via border (not ring): Safari often drops box-shadow rings
+            on native <select>; appearance-none + border matches Chrome (#927).
+          */}
+          <div className="relative">
+            <select
+              className="w-full cursor-pointer appearance-none rounded-xl border-2 border-teal-400 bg-brand-bg-deep py-2.5 pl-3 pr-10 text-sm font-semibold text-white outline-none transition-colors focus-visible:border-teal-300 disabled:cursor-not-allowed disabled:opacity-60"
+              value={activeSlug}
+              onChange={(e) => onSelectTour(e.target.value)}
+              disabled={indexLoading}
+            >
+              {tours.map((t) => (
+                <option key={t.tourSlug} value={t.tourSlug}>
+                  {t.tourLabel}
+                </option>
+              ))}
+            </select>
+            <span
+              className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-teal-300"
+              aria-hidden
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </span>
+          </div>
         </label>
       ) : indexLoading ? (
         <div

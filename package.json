@@ -1,7 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.58.0",
+  "version": "1.59.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -50,6 +50,7 @@
     "test:comms-optimize-schedule": "node --test scripts/lib/commsOptimizeSchedule.test.mjs",
     "test:comms-show-recap-qa": "node --test scripts/lib/showRecapNarrativeQa.test.mjs",
     "test:comms-picks-lock-conversion": "node --test scripts/lib/picksLockConversion.test.mjs",
+    "test:tour-stats-seo-facts": "node --test scripts/lib/tourStatsSeoFacts.test.mjs scripts/lib/firestoreRestDecode.test.mjs",
     "emails:build": "npm run build --prefix emails",
     "emails:preview": "npm run preview --prefix emails"
   },

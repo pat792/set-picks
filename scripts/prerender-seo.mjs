@@ -5,6 +5,8 @@
  *
  * #832: marketing routes prerender from `dist/index.html` (marketing entry).
  * #853: `/tour-stats*` also uses the marketing shell (+ PublicTourStatsPage preload).
+ * #928: tour-stats SEO slugs fetch `public_tour_stats/{slug}` (REST) and embed
+ * bustout/frequency facts + FAQ/ItemList JSON-LD for crawlers.
  * Boot shells: `dashboard` / `spa-boot` use `dist/app.html`;
  * `login` uses HTML-first `dist/login.html` (#892).
  */
@@ -26,12 +28,23 @@ import {
   injectLegalBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
+import { fetchFirestoreRestDocument } from './lib/firestoreRestDecode.mjs';
+import {
+  buildTourStatsFactsHtml,
+  mergeTourStatsFactsJsonLd,
+  normalizeTourStatsFacts,
+} from './lib/tourStatsSeoFacts.mjs';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const distDir = join(root, 'dist');
 const distIndex = join(distDir, 'index.html');
 const distApp = join(distDir, 'app.html');
 const distLogin = join(distDir, 'login.html');
+
+const FIRESTORE_PROJECT_ID =
+  process.env.VITE_FIREBASE_PROJECT_ID ||
+  process.env.FIREBASE_PROJECT_ID ||
+  'set-picks';
 
 if (!existsSync(distIndex)) {
   console.error('prerender-seo: missing dist/index.html — run vite build first');
@@ -58,9 +71,52 @@ function isLegalPrerenderRoute(path) {
   return path === '/privacy' || path === '/terms';
 }
 
+/**
+ * @param {object} route
+ * @returns {Promise<{ factsHtml?: string, jsonLd?: object }>}
+ */
+async function loadTourStatsEnrichment(route) {
+  const slug =
+    typeof route.tourStatsSeoSlug === 'string' ? route.tourStatsSeoSlug.trim() : '';
+  if (!slug) return {};
+  try {
+    const doc = await fetchFirestoreRestDocument(
+      FIRESTORE_PROJECT_ID,
+      `public_tour_stats/${slug}`,
+    );
+    if (!doc) {
+      console.warn(
+        `prerender-seo: no public_tour_stats/${slug} — static copy only`,
+      );
+      return {};
+    }
+    const facts = normalizeTourStatsFacts(doc);
+    if (!facts.bustouts.length && !facts.topSongs.length) {
+      console.warn(
+        `prerender-seo: public_tour_stats/${slug} has no bustouts/topSongs yet`,
+      );
+    }
+    return {
+      factsHtml: buildTourStatsFactsHtml(facts),
+      jsonLd: mergeTourStatsFactsJsonLd(
+        route.buildJsonLd(),
+        facts,
+        route.canonicalUrl,
+      ),
+    };
+  } catch (err) {
+    console.warn(
+      `prerender-seo: failed to fetch public_tour_stats/${slug}:`,
+      err?.message || err,
+    );
+    return {};
+  }
+}
+
 for (const route of PRERENDER_ROUTES) {
   const shell = marketingShell;
-  let html = injectPrerenderHtml(shell, route);
+  const enrichment = await loadTourStatsEnrichment(route);
+  let html = injectPrerenderHtml(shell, route, enrichment);
   // Marketing home statically imports splash UI via marketingMain — no lazy
   // HomeRoute waterfall, so no splash modulepreload injection (#832).
   // /tour-stats* preloads PublicTourStatsPage UI closure; firebase stays off
@@ -76,7 +132,10 @@ for (const route of PRERENDER_ROUTES) {
   const outPath = join(distDir, rel);
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, html, 'utf8');
-  console.log(`prerender-seo: wrote dist/${rel} (${Buffer.byteLength(html, 'utf8')} bytes)`);
+  const factNote = enrichment.factsHtml ? ' +aggregate-facts' : '';
+  console.log(
+    `prerender-seo: wrote dist/${rel} (${Buffer.byteLength(html, 'utf8')} bytes)${factNote}`,
+  );
 }
 
 // Branded boot shell for /dashboard/* + /setup (via vercel.json).
