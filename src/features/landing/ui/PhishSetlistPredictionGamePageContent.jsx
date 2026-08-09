@@ -2,24 +2,37 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+import {
+  MARKETING_EDITORIAL_ARTICLE,
+  MARKETING_EDITORIAL_COLUMN,
+  MARKETING_EDITORIAL_EYEBROW,
+  MARKETING_EDITORIAL_H1,
+  MARKETING_EDITORIAL_H2,
+  MARKETING_EDITORIAL_LEDE,
+} from '../../../shared/ui/marketingEditorialChrome';
 import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
 import AppDocumentAuthLink from './AppDocumentAuthLink';
+import MarketingIphoneFigure from './MarketingIphoneFigure';
+
+const STANDINGS_SAMPLE_SRC =
+  '/images/marketing/standings-leaderboard-iphone-sample.png';
 
 /**
  * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660 / #940).
  * Copy source: `content/marketing/942-content-ia-drafts.md`.
+ * Chrome tokens: #944 / `marketingEditorialChrome`.
  */
 export default function PhishSetlistPredictionGamePageContent() {
   return (
-    <article className="relative z-10 w-full bg-slate-50 py-16 md:py-24">
-      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
-        <p className="mb-3 text-center text-[10px] font-black uppercase tracking-widest text-emerald-700">
+    <article className={MARKETING_EDITORIAL_ARTICLE}>
+      <div className={MARKETING_EDITORIAL_COLUMN}>
+        <p className={MARKETING_EDITORIAL_EYEBROW}>
           Setlist Pick&apos;Em
         </p>
-        <h1 className="mb-5 text-center font-display text-3xl font-bold text-slate-900 sm:text-4xl md:text-5xl">
+        <h1 className={MARKETING_EDITORIAL_H1}>
           The free Phish setlist prediction game
         </h1>
-        <p className="mb-10 text-center text-lg leading-relaxed text-slate-600">
+        <p className={MARKETING_EDITORIAL_LEDE}>
           Setlist Pick&apos;Em is a free live{' '}
           <strong className="font-semibold text-slate-800">setlist picks game</strong> for fans who
           love predicting setlists—built first for Phish, designed as a home for more bands soon.
@@ -27,7 +40,7 @@ export default function PhishSetlistPredictionGamePageContent() {
         </p>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
-          <h2 className="font-display text-2xl font-bold text-slate-900">
+          <h2 className={MARKETING_EDITORIAL_H2}>
             What is a setlist prediction game?
           </h2>
           <p>
@@ -38,6 +51,12 @@ export default function PhishSetlistPredictionGamePageContent() {
             to call songs and where they land in the setlist before the show. You compete in private
             pools and on the global leaderboard while scores update live.
           </p>
+          <MarketingIphoneFigure
+            className="pt-2"
+            src={STANDINGS_SAMPLE_SRC}
+            alt="iPhone showing Setlist Pick 'Em show standings with Crowd Pulse and a ranked leaderboard. Player names and player counts are blurred."
+            caption="Compete on show and tour boards. Live setlist and standings during the show, and archived history so you never miss a tour moment."
+          />
           <p>Use the app to:</p>
           <ul className="list-disc space-y-2 pl-5">
             <li>Call slots (openers, closers, encore, wildcard)</li>
@@ -55,7 +74,7 @@ export default function PhishSetlistPredictionGamePageContent() {
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
-          <h2 className="font-display text-2xl font-bold text-slate-900">
+          <h2 className={MARKETING_EDITORIAL_H2}>
             Fantasy setlists, without the spreadsheet
           </h2>
           <p>
@@ -89,7 +108,7 @@ export default function PhishSetlistPredictionGamePageContent() {
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
-          <h2 className="font-display text-2xl font-bold text-slate-900">How to play</h2>
+          <h2 className={MARKETING_EDITORIAL_H2}>How to play</h2>
           <ol className="list-decimal space-y-3 pl-5">
             <li>Create a free account—tonight&apos;s setlist card opens.</li>
             <li>
