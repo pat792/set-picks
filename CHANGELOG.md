@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.60.0] — 2026-08-09
+
+### Added
+- **Public tour-stats fan-language copy (#929 / epic #926)** — public surface uses H2s/intros for unique songs, song frequency, and bustouts (30+ show gap); hub `/tour-stats` adds a current-tour blurb linking to the summer SEO slug (Sphere as archive).
+
+### Changed
+- **Public tour filter URLs (#929)** — selecting any tour (including the current/default) navigates to `/tour-stats/:slug` so Summer no longer collapses to the hub path.
+
+---
+
 ## [1.59.0] — 2026-08-08
 
 ### Added
