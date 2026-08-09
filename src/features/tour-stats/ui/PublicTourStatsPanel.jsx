@@ -5,8 +5,12 @@ import { AppDocumentAuthLink } from '../../landing';
 import TourStatsView from '../ui/TourStatsView';
 import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
+/** Live SEO slug for the current summer run (#927 / #929). */
+const SUMMER_TOUR_SEO_PATH = '/tour-stats/2026-summer-tour';
+const SPHERE_TOUR_SEO_PATH = '/tour-stats/2026-sphere';
+
 /**
- * Public marketing chrome around tour stats (#665).
+ * Public marketing chrome around tour stats (#665 / #929).
  */
 export default function PublicTourStatsPanel({
   tours,
@@ -19,12 +23,24 @@ export default function PublicTourStatsPanel({
   error,
   stats,
   onSelectTour,
+  routeHasSlug = false,
+  defaultTourSlug = '',
 }) {
   const h1 =
     heading ||
     (hasTour && tourName
       ? `${tourName} setlist statistics`
       : 'Phish tour setlist statistics');
+
+  const isHub = !routeHasSlug;
+  const currentSlug = (defaultTourSlug || activeSlug || '').trim();
+  const currentTourLabel =
+    tours.find((t) => t.tourSlug === currentSlug)?.tourLabel ||
+    (currentSlug === '2026-summer-tour' ? '2026 Summer Tour' : '') ||
+    'the current tour';
+  const currentTourPath = currentSlug
+    ? `/tour-stats/${encodeURIComponent(currentSlug)}`
+    : SUMMER_TOUR_SEO_PATH;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
@@ -44,6 +60,21 @@ export default function PublicTourStatsPanel({
           night the band plays live, so the picture keeps getting sharper as the
           tour rolls on.
         </p>
+        {isHub ? (
+          <p className="text-sm leading-relaxed text-slate-300">
+            <strong className="font-semibold text-white">Current tour:</strong>{' '}
+            open{' '}
+            <Link to={currentTourPath} className={LINK_ON_DARK}>
+              {currentTourLabel} setlist statistics
+            </Link>{' '}
+            for unique songs, song frequency, and bustouts (30+ show gap). Looking
+            for the Sphere residency as an archive? Browse{' '}
+            <Link to={SPHERE_TOUR_SEO_PATH} className={LINK_ON_DARK}>
+              2026 Sphere tour statistics
+            </Link>
+            .
+          </p>
+        ) : null}
         <p className="text-sm leading-relaxed text-slate-400">
           We&apos;re starting with Phish and building toward more bands soon.
           Playing the game unlocks your personal stats as you rack up points and
@@ -123,6 +154,7 @@ export default function PublicTourStatsPanel({
         setlistReads={0}
         overlay={null}
         overlayLoading={false}
+        surface="public"
       />
 
       <div className="mt-10 flex flex-col items-center gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">

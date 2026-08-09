@@ -6,6 +6,7 @@ import {
   fetchPublicTourStatsIndex,
 } from '../api/fetchPublicTourStats';
 import {
+  publicTourStatsPathForSlug,
   resolveDefaultPublicTourSlug,
   sortPublicTourIndex,
 } from './publicTourIndex';
@@ -112,11 +113,9 @@ export function usePublicTourStatsScreen() {
   const selectTour = (slug) => {
     const next = String(slug ?? '').trim();
     if (!next) return;
-    if (next === defaultTourSlug) {
-      navigate('/tour-stats', { replace: false });
-    } else {
-      navigate(`/tour-stats/${encodeURIComponent(next)}`, { replace: false });
-    }
+    // Always slug URLs (#929) — default/current tour used to collapse to
+    // `/tour-stats`, which hid the summer SEO page behind the hub.
+    navigate(publicTourStatsPathForSlug(next), { replace: false });
   };
 
   return {

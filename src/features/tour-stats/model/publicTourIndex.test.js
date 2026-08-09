@@ -1,9 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  publicTourStatsPathForSlug,
   resolveDefaultPublicTourSlug,
   sortPublicTourIndex,
 } from './publicTourIndex';
+
+describe('publicTourStatsPathForSlug', () => {
+  it('uses slug paths for every tour including the current default (#929)', () => {
+    expect(publicTourStatsPathForSlug('2026-summer-tour')).toBe(
+      '/tour-stats/2026-summer-tour',
+    );
+    expect(publicTourStatsPathForSlug('2026-sphere')).toBe(
+      '/tour-stats/2026-sphere',
+    );
+    expect(publicTourStatsPathForSlug('')).toBe('/tour-stats');
+  });
+});
 
 describe('sortPublicTourIndex', () => {
   it('orders by lastShowDate descending', () => {

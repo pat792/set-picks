@@ -146,6 +146,7 @@ const TILE_DEFS = {
  *   },
  *   overlayLoading: boolean,
  *   onOpenScoringRules?: () => void,
+ *   surface?: 'dashboard' | 'public',
  * }} props
  */
 export default function TourStatsView({
@@ -158,7 +159,18 @@ export default function TourStatsView({
   overlay,
   overlayLoading,
   onOpenScoringRules,
+  surface = 'dashboard',
 }) {
+  const isPublic = surface === 'public';
+  const uniqueTileLabel = isPublic
+    ? 'Unique songs this tour'
+    : TILE_DEFS.unique.label;
+  const frequencyTitle = isPublic ? 'Song frequency' : 'Tour Frequency';
+  const bustoutsTitle = isPublic
+    ? `Bustouts (${BUSTOUT_MIN_GAP}+ show gap)`
+    : 'Bustouts';
+  const sectionHeading = isPublic ? 'h2' : 'p';
+
   // #827: keep interactive chrome structure (tiles / sections) instead of a
   // blank centered spinner — marketing header already painted above this.
   if (calendarLoading || setlistLoading) {
@@ -222,9 +234,20 @@ export default function TourStatsView({
           </span>
         </p>
 
+        {isPublic ? (
+          <p className="text-sm leading-relaxed text-slate-300">
+            <strong className="font-semibold text-white">Unique songs</strong>{' '}
+            count distinct titles played this tour.{' '}
+            <strong className="font-semibold text-white">Bustouts</strong> are
+            songs that returned after a {BUSTOUT_MIN_GAP}+ show gap — the same
+            threshold that can trigger a Bustout Boost™ when you call them in
+            picks.
+          </p>
+        ) : null}
+
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile
-            label={TILE_DEFS.unique.label}
+            label={uniqueTileLabel}
             value={stats.uniqueSongs}
             definition={TILE_DEFS.unique.long}
           />
@@ -304,15 +327,22 @@ export default function TourStatsView({
         ) : null}
 
         <TourStatsSectionCard
-          title="Tour Frequency"
+          title={frequencyTitle}
+          titleAs={sectionHeading}
           definition={TOUR_FREQUENCY_DEF}
         >
+          {isPublic ? (
+            <p className="mb-3 text-sm leading-relaxed text-content-secondary">
+              Song frequency ranks how often each title shows up on this tour —
+              useful when you&apos;re locking openers, closers, and wildcards.
+            </p>
+          ) : null}
           {stats.topSongs.length === 0 ? (
             <p className="text-sm text-content-secondary">No setlist songs yet.</p>
           ) : (
             <PagedRows
               rows={stats.topSongs}
-              label="tour frequency"
+              label="song frequency"
               listAs="ol"
               header={
                 <div className={`${TOP_SONGS_ROW_GRID} ${COL_HEADER}`} aria-hidden>
@@ -358,7 +388,18 @@ export default function TourStatsView({
           )}
         </TourStatsSectionCard>
 
-        <TourStatsSectionCard title="Bustouts" headerTone="bustout">
+        <TourStatsSectionCard
+          title={bustoutsTitle}
+          titleAs={sectionHeading}
+          headerTone="bustout"
+        >
+          {isPublic ? (
+            <p className="mb-3 text-sm leading-relaxed text-content-secondary">
+              Bustouts ({BUSTOUT_MIN_GAP}+ show gap) are the rare returns fans
+              hunt — the same gap band that can stack a Bustout Boost™ on a
+              correct pick.
+            </p>
+          ) : null}
           {stats.bustouts.length === 0 ? (
             <p className="text-sm text-content-secondary">No bustouts frozen yet.</p>
           ) : (
@@ -389,6 +430,7 @@ export default function TourStatsView({
         {stats.gapHighlights.length > 0 ? (
           <TourStatsSectionCard
             title="High gaps (non-bustout)"
+            titleAs={sectionHeading}
             definition={HIGH_GAPS_DEF}
             headerTone="muted"
           >
@@ -592,17 +634,21 @@ const HEADER_TONE = {
  */
 function TourStatsSectionCard({
   title,
+  titleAs = 'p',
   definition,
   headerTone = 'default',
   children,
 }) {
   const tone = HEADER_TONE[headerTone] ?? HEADER_TONE.default;
+  const TitleTag = titleAs === 'h2' ? 'h2' : 'p';
 
   return (
     <Card variant="frosted" padding="none" className={STANDINGS_CARD_SHELL}>
       <div className={`-mx-3.5 -mt-3.5 mb-3 rounded-t-xl border-b px-3.5 py-2.5 md:-mx-4 md:-mt-4 md:px-4 ${tone.bar}`}>
         <div className="flex items-center gap-1">
-          <p className={`${STANDINGS_BOX_EYEBROW} ${tone.text}`}>{title}</p>
+          <TitleTag className={`${STANDINGS_BOX_EYEBROW} ${tone.text}`}>
+            {title}
+          </TitleTag>
           {definition ? (
             <InfoTooltip label={title} definition={definition} />
           ) : null}
