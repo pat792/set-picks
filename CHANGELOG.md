@@ -12,6 +12,20 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.57.0] — 2026-08-08
+
+### Added
+- **Marketing mobile menu (#706)** — hamburger + disclosure panel for primary nav below `lg` on splash and marketing shells; inline nav and menu are `lg` complements (portrait tablet now uses hamburger on all marketing pages). Splash cluster: Sign In · Join → · menu (far right). Marketing pages: menu far right; `< Home` hidden below `sm` (logo is home).
+- **Splash CTA labels** — header primary is **Join** (trailing arrow); hero primary is **Jump on Tour** (was Make picks now).
+- **Splash hero copy** — dropped “Predict the setlist. Win the night.” from on-page + crawlable home paragraphs (competitor overlap); “for friends” → “to play”.
+- **Marketing desktop header** — primary nav sits near center (slight right bias) on splash + marketing shells so it no longer crowds Sign In / Join.
+
+### Changed
+- **Splash / marketing footer stack (#948)** — primary site links sit above the footer rule; © + Mockingbird attribution + legal links form the true footer.
+- **Splash About bottom link row (#947)** — one `text-sm` type scale for peer links (fixes Get started Button size drift).
+
+---
+
 ## [1.56.1] — 2026-08-08
 
 ### Changed

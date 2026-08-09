@@ -1,7 +1,11 @@
 export { default as AboutPageContent } from './ui/AboutPageContent';
 export { default as HowItWorksPageContent } from './ui/HowItWorksPageContent';
 export { default as MarketingPageShell } from './ui/MarketingPageShell';
-export { MarketingFooterNav, MarketingHeaderNav } from './ui/MarketingSiteNav';
+export {
+  MarketingFooterNav,
+  MarketingHeaderNav,
+  MarketingMobileMenu,
+} from './ui/MarketingSiteNav';
 export { MARKETING_LEGAL_NAV, MARKETING_PRIMARY_NAV } from './model/marketingNav';
 export { default as PhishSetlistPredictionGamePageContent } from './ui/PhishSetlistPredictionGamePageContent';
 export { default as SplashAboutSection } from './ui/SplashAboutSection';
