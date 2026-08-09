@@ -6,7 +6,8 @@ import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
 import AppDocumentAuthLink from './AppDocumentAuthLink';
 
 /**
- * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660).
+ * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660 / #940).
+ * Copy source: `content/marketing/942-content-ia-drafts.md`.
  */
 export default function PhishSetlistPredictionGamePageContent() {
   return (
@@ -21,9 +22,8 @@ export default function PhishSetlistPredictionGamePageContent() {
         <p className="mb-10 text-center text-lg leading-relaxed text-slate-600">
           Setlist Pick&apos;Em is a free live{' '}
           <strong className="font-semibold text-slate-800">setlist picks game</strong> for fans who
-          love predicting setlists—built first for Phish, and designed as a home for more bands soon.
-          Lock openers, closers, encore, and a wildcard before showtime, then score points for correct
-          picks as the night unfolds.
+          love predicting setlists—built first for Phish, designed as a home for more bands soon.
+          Lock openers, closers, encore, and a wildcard before showtime; score as the night unfolds.
         </p>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
@@ -31,39 +31,26 @@ export default function PhishSetlistPredictionGamePageContent() {
             What is a setlist prediction game?
           </h2>
           <p>
-            For jam bands like Phish, every night is unique, but patterns emerge that help the astute
-            fan anticipate how the setlist will unfold. A setlist prediction game—sometimes called a{' '}
-            <strong className="font-semibold text-slate-800">fantasy setlist</strong> game—asks you to
-            call songs, and to predict where they will land in the setlist. The goal is simple: prove
-            you have mastered the art of setlist construction, earning points along the way to
-            &quot;put your money where your mouth is&quot; and win the night. You compete with
-            friends in private pools
-            and with everyone on the global leaderboard. Scores update as songs are played, along with
-            a live view of the setlist so you never miss the band&apos;s last move, even if you
-            couldn&apos;t make it to the venue or carve out time for the live stream. Prefer a short
-            walkthrough? See{' '}
-            <Link to="/how-it-works" className={LINK_ON_LIGHT}>
-              how it works
-            </Link>
-            .
+            A{' '}
+            <strong className="font-semibold text-slate-800">setlist prediction game</strong>
+            —sometimes called a{' '}
+            <strong className="font-semibold text-slate-800">fantasy setlist</strong> game—asks you
+            to call songs and where they land in the setlist before the show. You compete in private
+            pools and on the global leaderboard while scores update live.
           </p>
+          <p>Use the app to:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>Call slots (openers, closers, encore, wildcard)</li>
+            <li>Score live as songs are played</li>
+            <li>
+              Climb show and tour boards with friends, and everyone playing the game on the global
+              leaderboard
+            </li>
+          </ul>
           <p>
-            Fans have been calling the set on paper, in group chats, and on couch tour for years.
-            Setlist Pick&apos;Em turns that ritual into a live game: lock your setlist picks, watch
-            the show, and climb the board together. We&apos;re live with Phish today and building
-            toward more bands soon.
-          </p>
-          <p>
-            We follow the tour with you. Song frequency, bustouts, and gap highlights live on our{' '}
-            <Link to="/tour-stats" className={LINK_ON_LIGHT}>
-              tour stats
-            </Link>{' '}
-            pages and refresh every night the band plays live—insights that help you stay sharp
-            between shows. When you join the community, you&apos;ll have access to even more tour
-            data, along with your own personal stats like picking average (think batting average, but
-            for setlist picking accuracy), Bustout Boost™ hits to measure how often you predict
-            catalog rarities, and a heatmap with all of your most frequent picks to hone your setlist
-            prediction skills.
+            Fans have called the set on paper and in group chats for years. Setlist Pick&apos;Em
+            turns that ritual into a live game. We&apos;re live with Phish today and building toward
+            more bands soon.
           </p>
         </section>
 
@@ -72,12 +59,8 @@ export default function PhishSetlistPredictionGamePageContent() {
             Fantasy setlists, without the spreadsheet
           </h2>
           <p>
-            Setlist games have always been fun, but just like paper in the early aughts, we&apos;ve
-            outgrown spreadsheets today. As fans ourselves, we set out to make it easier for our
-            friends to manage the setlist picks game we&apos;ve been playing for 25 years. We
-            automatically track the points you earn for hitting setlist slots and wildcards, and
-            Bustout Boosts when you call songs that are not heavy in the rotation. Full point values
-            are on{' '}
+            We track points for slot hits, wildcards, and Bustout Boost™ longshots automatically.
+            Full values:{' '}
             <Link to="/how-scoring-works" className={LINK_ON_LIGHT}>
               how scoring works
             </Link>
@@ -85,34 +68,35 @@ export default function PhishSetlistPredictionGamePageContent() {
           </p>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              <strong className="text-slate-900">Before the show:</strong> lock picks before the
-              showtime.
+              <strong className="text-slate-900">Before:</strong> lock picks before showtime
             </li>
             <li>
-              <strong className="text-slate-900">During the show:</strong> live scoring and
-              standings as the setlist unfolds—at the venue or on couch tour.
+              <strong className="text-slate-900">During:</strong> live scoring and standings—at the
+              venue or on couch tour
             </li>
             <li>
-              <strong className="text-slate-900">After the show:</strong> final grades, tour
-              standings, and personal stats that grow every night you play.
+              <strong className="text-slate-900">After:</strong> final grades, tour standings,
+              personal stats that grow every night you play
             </li>
           </ul>
           <p>
-            Playing unlocks those personal stats—so you can see how you stack up as you accumulate
-            points against other setlist pickers.
+            <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+              Tour stats
+            </Link>{' '}
+            (frequency, bustouts, gaps) refresh every night the band plays live. Playing unlocks
+            personal stats—picking average, Bustout Boost™ hits, and your pick heatmap.
           </p>
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className="font-display text-2xl font-bold text-slate-900">How to play</h2>
           <ol className="list-decimal space-y-3 pl-5">
-            <li>Create a free account and tonight&apos;s setlist card opens.</li>
+            <li>Create a free account—tonight&apos;s setlist card opens.</li>
             <li>
-              Pick Set 1 opener/closer, Set 2 opener/closer, an encore, and a wildcard.
+              Pick Set 1 opener/closer, Set 2 opener/closer, encore, and wildcard.
             </li>
             <li>
-              Watch scores update live; climb show and tour leaderboards, or invite friends to a
-              private pool for crew-specific standings.
+              Watch scores update live; climb boards or invite a private pool.
             </li>
           </ol>
           <p className="flex flex-wrap gap-x-4 gap-y-2">

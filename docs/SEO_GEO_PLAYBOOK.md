@@ -13,6 +13,8 @@
 | Homepage | `https://www.setlistpickem.com/` | Canonical; social scrapers get OG shell via `middleware.js` + `og-home-html.mjs` (**not** Googlebot — see #658) |
 | How it works | `/how-it-works` | In `public/sitemap.xml` |
 | Scoring | `/how-scoring-works` | In `public/sitemap.xml` |
+| About | `/about` | **v1.56.0 (#941):** origin story; in `public/sitemap.xml` |
+| Keyword landing | `/phish-setlist-prediction-game` | In `public/sitemap.xml` (#660 / #940) |
 | Sitemap | `/sitemap.xml` | Listed in `robots.txt` |
 | LLM / agent brief | `/llms.txt` | Static marketing summary + name variants + archive disambiguation (#661) |
 | SEO config | `src/shared/config/seo.js` | Titles, description, OG image version — sync via `npm run verify:seo-strings` (#663) |

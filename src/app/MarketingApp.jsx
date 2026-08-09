@@ -11,6 +11,7 @@ import MarketingHomePage from '../pages/marketing/MarketingHomePage';
 
 // Sibling marketing routes stay off the `/` cold-open graph (#835).
 // Home statically imports splash UI only; these load on navigation / deep link.
+const AboutPage = lazy(() => import('../pages/marketing/AboutPage'));
 const HowItWorksPage = lazy(() => import('../pages/marketing/HowItWorksPage'));
 const HowScoringWorksPage = lazy(
   () => import('../pages/marketing/HowScoringWorksPage'),
@@ -119,6 +120,14 @@ export default function MarketingApp() {
           element={
             <Suspense fallback={<MarketingRouteFallback />}>
               <PhishSetlistPredictionGamePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<MarketingRouteFallback />}>
+              <AboutPage />
             </Suspense>
           }
         />

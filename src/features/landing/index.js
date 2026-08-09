@@ -1,3 +1,4 @@
+export { default as AboutPageContent } from './ui/AboutPageContent';
 export { default as HowItWorksPageContent } from './ui/HowItWorksPageContent';
 export { default as MarketingPageShell } from './ui/MarketingPageShell';
 export { MarketingFooterNav, MarketingHeaderNav } from './ui/MarketingSiteNav';

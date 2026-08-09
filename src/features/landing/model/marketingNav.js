@@ -9,6 +9,7 @@ export const MARKETING_PRIMARY_NAV = [
   { to: '/how-scoring-works', label: 'Scoring' },
   { to: '/tour-stats', label: 'Tour stats' },
   { to: '/phish-setlist-prediction-game', label: 'The game' },
+  { to: '/about', label: 'About' },
 ];
 
 /** Legal links — footer only. */
