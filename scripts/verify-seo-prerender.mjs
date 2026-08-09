@@ -14,6 +14,11 @@ import {
   resolveModulepreloadClosure,
 } from './boot-modulepreload.mjs';
 import {
+  buildTourStatsFactsHtml,
+  mergeTourStatsFactsJsonLd,
+  normalizeTourStatsFacts,
+} from './lib/tourStatsSeoFacts.mjs';
+import {
   APP_BOOT_SHELL_REL_PATH,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   DASHBOARD_BOOT_SHELL_MARKER,
@@ -38,6 +43,7 @@ import {
   injectLegalBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
+import { TOUR_STATS_SEO_FACT_SLUGS } from '../src/shared/config/seoRoutes.js';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 
@@ -91,8 +97,8 @@ assert(
   'expected Sphere tour-stats prerender entry',
 );
 assert(
-  PRERENDER_ROUTES.some((r) => r.path === '/tour-stats/summer-tour-2026'),
-  'expected Summer Tour 2026 tour-stats prerender entry (#927)',
+  PRERENDER_ROUTES.some((r) => r.path === '/tour-stats/2026-summer-tour'),
+  'expected 2026 Summer Tour tour-stats prerender entry (#927/#928)',
 );
 assert(
   PRERENDER_ROUTES.some((r) => r.path === '/phish-setlist-prediction-game'),
@@ -119,6 +125,71 @@ for (const route of PRERENDER_ROUTES) {
   const html = injectPrerenderHtml(shell, route);
   assertRouteHtml(html, route, `fixture ${route.path}`);
 }
+
+assert(
+  TOUR_STATS_SEO_FACT_SLUGS.includes('2026-summer-tour'),
+  'TOUR_STATS_SEO_FACT_SLUGS must include live summer slug (#928)',
+);
+
+// #928: summer route with offline fixture aggregates (no network in CI).
+const summerRoute = PRERENDER_ROUTES.find(
+  (r) => r.path === '/tour-stats/2026-summer-tour',
+);
+assert(summerRoute?.tourStatsSeoSlug === '2026-summer-tour', 'summer tourStatsSeoSlug');
+const summerFacts = normalizeTourStatsFacts({
+  tourLabel: '2026 Summer Tour',
+  uniqueSongs: 188,
+  showsWithSetlist: 18,
+  tourShowCount: 21,
+  bustouts: [
+    { title: 'Melt the Guns', gap: 142, showDate: '2026-07-15' },
+    { title: 'Alumni Blues', gap: 80, showDate: '2026-07-18' },
+  ],
+  topSongs: [
+    { title: 'Character Zero', timesPlayed: 12 },
+    { title: 'Free', timesPlayed: 11 },
+  ],
+});
+const summerFactsHtml = buildTourStatsFactsHtml(summerFacts);
+const summerEnriched = injectPrerenderHtml(shell, summerRoute, {
+  factsHtml: summerFactsHtml,
+  jsonLd: mergeTourStatsFactsJsonLd(
+    summerRoute.buildJsonLd(),
+    summerFacts,
+    summerRoute.canonicalUrl,
+  ),
+});
+assertRouteHtml(summerEnriched, summerRoute, 'summer facts fixture');
+assert(
+  /bustout/i.test(summerEnriched),
+  'summer facts fixture: must mention bustout',
+);
+assert(
+  summerEnriched.includes('Melt the Guns'),
+  'summer facts fixture: must include real bustout title',
+);
+assert(
+  summerEnriched.includes('data-seo-tour-stats-facts="bustouts"'),
+  'summer facts fixture: missing bustouts list marker',
+);
+assert(
+  summerEnriched.includes('data-seo-tour-stats-facts="top-songs"'),
+  'summer facts fixture: missing top-songs list marker',
+);
+assert(
+  summerEnriched.includes('188 unique songs'),
+  'summer facts fixture: missing unique-songs summary',
+);
+assert(
+  summerEnriched.includes('"@type":"FAQPage"') ||
+    summerEnriched.includes('"@type": "FAQPage"'),
+  'summer facts fixture: missing FAQPage JSON-LD',
+);
+assert(
+  summerEnriched.includes('"@type":"ItemList"') ||
+    summerEnriched.includes('"@type": "ItemList"'),
+  'summer facts fixture: missing ItemList JSON-LD',
+);
 
 // Fixture: branded dashboard boot shell (#773) — no SEO body, marker present.
 const dirtyShell =
