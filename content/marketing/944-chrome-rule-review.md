@@ -1,9 +1,10 @@
 # #944 Marketing chrome rule — skill review
 
-**Status:** L0 dual-skill review (product-design-lead + brand-systems-partner)  
-**Date:** 2026-08-08  
+**Status:** Approved + implementing (v1.58.0)  
+**Date:** 2026-08-08 (review) / 2026-08-08 (execution)  
 **Issue:** [#944](https://github.com/pat792/set-picks/issues/944)  
-**Related:** [#942](https://github.com/pat792/set-picks/issues/942) content IA (chrome only; not copy)
+**Related:** [#942](https://github.com/pat792/set-picks/issues/942) content IA (chrome only; not copy)  
+**Code tokens:** `src/shared/ui/marketingEditorialChrome.js`
 
 ---
 
@@ -97,19 +98,19 @@ Keep issue acceptance; add:
 
 ---
 
-## 7. Addendum — H1 / eyebrow typography (2026-08-08)
+## 7. Editorial title / eyebrow system (shipped)
 
-Same issue scope. Page titles are not on one ramp today:
+| Token | Class constant | Use |
+|-------|----------------|-----|
+| Article | `MARKETING_EDITORIAL_ARTICLE` | Light `bg-slate-50` main |
+| Column | `MARKETING_EDITORIAL_COLUMN` | `max-w-3xl` reading width |
+| Eyebrow | `MARKETING_EDITORIAL_EYEBROW` | Optional — keyword / definitional only |
+| H1 | `MARKETING_EDITORIAL_H1` | `text-3xl → md:text-5xl`, sentence case, slate-900, centered |
+| H1 inset | `MARKETING_EDITORIAL_H1_INSET` | Same size ramp, left-aligned (Scoring light panel) |
+| Lede | `MARKETING_EDITORIAL_LEDE` | `text-lg` slate-600 |
+| H2 | `MARKETING_EDITORIAL_H2` | `text-2xl` display |
 
-| Surface | Pattern |
-|---------|---------|
-| `/how-it-works` (+ splash Game Format) | `text-display-lg` / `md:text-display-lg-lg`, sentence case, no eyebrow |
-| Keyword | Emerald `text-[10px]` uppercase eyebrow + `text-3xl→md:text-5xl` H1 |
-| `/about` | Keyword-sized H1, no eyebrow |
-| `/how-scoring-works` | `text-display-md` **uppercase** (dark panel) |
-| `/tour-stats*` | `text-3xl sm:text-4xl` white — product; may stay distinct |
-
-**Ask:** Define one marketing editorial title system (H1 size, case, optional eyebrow color/size, lede). Marketing Scoring light variant joins it; Tour stats / modal can keep product rules.
+**Exceptions (intentional):** Tour stats + in-app Scoring modal keep product title rules (dark / uppercase modal H1). Splash Game Format teaser may keep its local display scale (home composition, not editorial page).
 
 Issue comment: https://github.com/pat792/set-picks/issues/944#issuecomment-5229186779
 

@@ -1,5 +1,7 @@
 export { default as AboutPageContent } from './ui/AboutPageContent';
 export { default as HowItWorksPageContent } from './ui/HowItWorksPageContent';
+export { default as MarketingIphoneCarousel } from './ui/MarketingIphoneCarousel';
+export { default as MarketingIphoneFigure } from './ui/MarketingIphoneFigure';
 export { default as MarketingPageShell } from './ui/MarketingPageShell';
 export {
   MarketingFooterNav,

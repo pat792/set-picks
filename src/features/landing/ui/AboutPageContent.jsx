@@ -1,18 +1,24 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import {
+  MARKETING_EDITORIAL_ARTICLE,
+  MARKETING_EDITORIAL_COLUMN,
+  MARKETING_EDITORIAL_H1,
+} from '../../../shared/ui/marketingEditorialChrome';
 import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
 import AppDocumentAuthLink from './AppDocumentAuthLink';
 
 /**
  * Crawlable About / origin story for `/about` (#941).
  * Copy source: `content/marketing/942-content-ia-drafts.md`.
+ * Chrome tokens: #944 / `marketingEditorialChrome`.
  */
 export default function AboutPageContent() {
   return (
-    <article className="relative z-10 w-full bg-slate-50 py-16 md:py-24">
-      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-center font-display text-3xl font-bold text-slate-900 sm:text-4xl md:text-5xl">
+    <article className={MARKETING_EDITORIAL_ARTICLE}>
+      <div className={MARKETING_EDITORIAL_COLUMN}>
+        <h1 className={MARKETING_EDITORIAL_H1}>
           About Setlist Pick&apos;Em
         </h1>
 
