@@ -10,7 +10,7 @@ import { getPrerenderRoute } from '../../shared/config/seoRoutes';
 
 const route = getPrerenderRoute('/terms');
 
-/** Public route — marketing document (#908); soft-nav compat on app SPA. */
+/** Soft-nav compat on app SPA; hard-nav cold open uses HTML-first legal door (#916). */
 export default function TermsOfServicePage() {
   const jsonLd = route.buildJsonLd();
   const resumeKind = peekAuthDoorResume();

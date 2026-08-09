@@ -130,16 +130,26 @@ export function MarketingFooterNav({ className = '', variant = 'all' }) {
       aria-label={variant === 'legal' ? 'Legal' : 'Site'}
       className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 ${className}`.trim()}
     >
-      {links.map(({ to, label }) => (
-        <Link
-          key={to}
-          to={to}
-          onClick={scrollMarketingToTop}
-          className={`text-sm ${FOOTER_LINK_ON_DARK}`}
-        >
-          {label}
-        </Link>
-      ))}
+      {links.map(({ to, label, hard }) =>
+        hard ? (
+          <a
+            key={to}
+            href={to}
+            className={`text-sm ${FOOTER_LINK_ON_DARK}`}
+          >
+            {label}
+          </a>
+        ) : (
+          <Link
+            key={to}
+            to={to}
+            onClick={scrollMarketingToTop}
+            className={`text-sm ${FOOTER_LINK_ON_DARK}`}
+          >
+            {label}
+          </Link>
+        ),
+      )}
     </nav>
   );
 }

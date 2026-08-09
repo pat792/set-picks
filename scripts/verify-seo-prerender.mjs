@@ -27,20 +27,21 @@ import {
   LOGIN_BOOT_SHELL_MARKER,
   LOGIN_BOOT_SHELL_REL_PATH,
   LOGIN_FORM_SHELL_MARKER,
+  LEGAL_BOOT_BODY_MARKER,
+  LEGAL_BOOT_SHELL_MARKER,
   MARKETING_BOOT_SHELL_MARKER,
   PRERENDER_ROUTES,
   SPLASH_BOOT_PRELOAD_MARKER,
   TOUR_STATS_BOOT_PRELOAD_MARKER,
-  LEGAL_BOOT_PRELOAD_MARKER,
   buildDashboardBootShellHtml,
   buildFixtureShellHtml,
+  buildLegalBootDocumentHtml,
   buildLoginBootShellHtml,
   injectDashboardBootModulepreloads,
   injectLoginBootModulepreloads,
   injectPrerenderHtml,
   injectSplashBootModulepreloads,
   injectTourStatsBootModulepreloads,
-  injectLegalBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 import { TOUR_STATS_SEO_FACT_SLUGS } from '../src/shared/config/seoRoutes.js';
@@ -106,11 +107,11 @@ assert(
 );
 assert(
   PRERENDER_ROUTES.some((r) => r.path === '/privacy'),
-  'expected /privacy prerender entry (#908)',
+  'expected /privacy prerender entry (#916 legal door)',
 );
 assert(
   PRERENDER_ROUTES.some((r) => r.path === '/terms'),
-  'expected /terms prerender entry (#908)',
+  'expected /terms prerender entry (#916 legal door)',
 );
 assert(
   PRERENDER_ROUTES.every((r) => !r.path.startsWith('/dashboard')),
@@ -120,10 +121,54 @@ assert(
 const titles = new Set(PRERENDER_ROUTES.map((r) => r.title));
 assert(titles.size === PRERENDER_ROUTES.length, 'each prerender route needs a unique title');
 
+function isLegalPrerenderRoute(path) {
+  return path === '/privacy' || path === '/terms';
+}
+
 const shell = buildFixtureShellHtml();
 for (const route of PRERENDER_ROUTES) {
+  // Legal routes use zero-JS door shells — not marketing CSR overlay (#916).
+  if (isLegalPrerenderRoute(route.path)) continue;
   const html = injectPrerenderHtml(shell, route);
   assertRouteHtml(html, route, `fixture ${route.path}`);
+}
+
+// HTML-first legal door fixtures (no marketing/app/login module graph).
+for (const legalPath of ['/privacy', '/terms']) {
+  const route = PRERENDER_ROUTES.find((r) => r.path === legalPath);
+  const html = buildLegalBootDocumentHtml(legalPath, { rootDir: root });
+  const label = `legal door fixture ${legalPath}`;
+  assert(html.includes(`<title>${route.title}</title>`), `${label}: missing title`);
+  assert(html.includes(route.description), `${label}: missing description`);
+  assert(html.includes(route.h1), `${label}: missing H1`);
+  assert(html.includes('application/ld+json'), `${label}: missing JSON-LD`);
+  assert(
+    html.includes(`${LEGAL_BOOT_SHELL_MARKER}="true"`),
+    `${label}: missing legal boot shell marker`,
+  );
+  assert(
+    html.includes(`${LEGAL_BOOT_BODY_MARKER}="true"`),
+    `${label}: missing legal body marker`,
+  );
+  assert(html.includes('rel="icon"'), `${label}: missing favicon link`);
+  assert(html.includes(route.canonicalUrl), `${label}: missing canonical`);
+  assert(
+    !/type="module"/.test(html),
+    `${label}: must not include module scripts (#916)`,
+  );
+  assert(
+    !/\/assets\/(marketing|app|login)-/.test(html),
+    `${label}: must not reference marketing/app/login entry chunks`,
+  );
+  assert(
+    !/\/assets\/firebase/.test(html),
+    `${label}: must not reference firebase chunks`,
+  );
+  const bodyPhrase =
+    legalPath === '/terms'
+      ? 'entertainment platform where players predict setlists'
+      : 'what information we collect, why we collect it';
+  assert(html.includes(bodyPhrase), `${label}: missing full policy body excerpt`);
 }
 
 assert(
@@ -329,6 +374,8 @@ const distHowItWorks = join(root, 'dist', 'how-it-works', 'index.html');
 // Only validate dist when post-build prerender has clearly run (subdir artifact).
 if (existsSync(distIndex) && existsSync(distHowItWorks)) {
   for (const route of PRERENDER_ROUTES) {
+    // Legal door shells asserted separately (#916) — not marketing CSR overlay.
+    if (isLegalPrerenderRoute(route.path)) continue;
     const outPath = join(root, 'dist', prerenderOutputRelPath(route.path));
     assert(existsSync(outPath), `dist missing ${prerenderOutputRelPath(route.path)} — run npm run build`);
     const html = readFileSync(outPath, 'utf8');
@@ -471,29 +518,46 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     'marketing routes must include marketing boot overlay',
   );
 
-  // Legal pages: marketing document, not spa-boot / app SPA (#908).
+  // Legal door: zero-JS HTML-first shells (#916) — not marketing CSR / spa-boot.
   for (const legalPath of ['privacy', 'terms']) {
     const legalHtmlPath = join(root, 'dist', legalPath, 'index.html');
     assert(existsSync(legalHtmlPath), `dist missing ${legalPath}/index.html — run npm run build`);
     const legalHtml = readFileSync(legalHtmlPath, 'utf8');
     assert(
-      /\/assets\/marketing-[^"]+\.js/.test(legalHtml),
-      `prerendered /${legalPath} must boot the marketing entry (#908)`,
+      legalHtml.includes(`${LEGAL_BOOT_SHELL_MARKER}="true"`),
+      `prerendered /${legalPath} must include legal boot shell marker (#916)`,
+    );
+    assert(
+      legalHtml.includes(`${LEGAL_BOOT_BODY_MARKER}="true"`),
+      `prerendered /${legalPath} must include legal body in first HTML (#916)`,
+    );
+    assert(
+      !/type="module"/.test(legalHtml),
+      `prerendered /${legalPath} must not include module scripts (#916)`,
+    );
+    assert(
+      !/\/assets\/marketing-[^"]+\.js/.test(legalHtml),
+      `prerendered /${legalPath} must not boot the marketing entry (#916)`,
     );
     assert(
       !/\/assets\/app-[^"]+\.js/.test(legalHtml),
       `prerendered /${legalPath} must not boot the authenticated SPA entry`,
     );
     assert(
-      !/\/assets\/firebase[^"]*\.js/.test(legalHtml),
-      `prerendered /${legalPath} must not modulepreload firebase`,
+      !/\/assets\/login-[^"]+\.js/.test(legalHtml),
+      `prerendered /${legalPath} must not boot the login entry`,
     );
-    const pageChunk =
-      legalPath === 'terms' ? 'TermsOfServicePage-' : 'PrivacyPolicyPage-';
     assert(
-      legalHtml.includes(LEGAL_BOOT_PRELOAD_MARKER) &&
-        legalHtml.includes(pageChunk),
-      `prerendered /${legalPath} must modulepreload ${pageChunk} (#908)`,
+      !/\/assets\/firebase[^"]*\.js/.test(legalHtml),
+      `prerendered /${legalPath} must not reference firebase`,
+    );
+    const bodyPhrase =
+      legalPath === 'terms'
+        ? 'entertainment platform where players predict setlists'
+        : 'what information we collect, why we collect it';
+    assert(
+      legalHtml.includes(bodyPhrase),
+      `prerendered /${legalPath} must include full policy body (#916)`,
     );
   }
 

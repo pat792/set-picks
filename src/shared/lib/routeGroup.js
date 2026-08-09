@@ -6,6 +6,7 @@
  * @returns {
  *   | 'splash'
  *   | 'login'
+ *   | 'legal'
  *   | 'marketing'
  *   | 'tour_stats'
  *   | 'invite_join'
@@ -19,6 +20,7 @@ export function resolveRouteGroup(pathname) {
   if (typeof pathname !== 'string' || !pathname) return 'other';
   if (pathname === '/') return 'splash';
   if (pathname === '/login' || pathname.startsWith('/login/')) return 'login';
+  if (pathname === '/privacy' || pathname === '/terms') return 'legal';
   if (
     pathname === '/how-it-works' ||
     pathname.startsWith('/how-it-works/') ||
@@ -27,9 +29,7 @@ export function resolveRouteGroup(pathname) {
     pathname === '/phish-setlist-prediction-game' ||
     pathname.startsWith('/phish-setlist-prediction-game/') ||
     pathname === '/about' ||
-    pathname.startsWith('/about/') ||
-    pathname === '/privacy' ||
-    pathname === '/terms'
+    pathname.startsWith('/about/')
   ) {
     return 'marketing';
   }

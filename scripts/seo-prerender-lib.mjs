@@ -25,6 +25,12 @@ import {
   buildLoginBootShellMarkup,
 } from './login-boot-shell.mjs';
 import {
+  LEGAL_BOOT_BODY_MARKER,
+  LEGAL_BOOT_SHELL_MARKER,
+  buildLegalBootDocumentHtml,
+  buildLegalBootShellMarkup,
+} from './legal-boot-shell.mjs';
+import {
   MARKETING_BOOT_SHELL_MARKER,
   buildMarketingBootShellMarkup,
 } from './marketing-boot-shell.mjs';
@@ -51,6 +57,8 @@ export {
   DASHBOARD_BOOT_SHELL_MARKER,
   LOGIN_BOOT_SHELL_MARKER,
   LOGIN_FORM_SHELL_MARKER,
+  LEGAL_BOOT_SHELL_MARKER,
+  LEGAL_BOOT_BODY_MARKER,
   MARKETING_BOOT_SHELL_MARKER,
   DASHBOARD_BOOT_PRELOAD_MARKER,
   LOGIN_BOOT_PRELOAD_MARKER,
@@ -61,6 +69,8 @@ export {
   buildDashboardBootShellMarkup,
   buildLoginBootShellHtml,
   buildLoginBootShellMarkup,
+  buildLegalBootDocumentHtml,
+  buildLegalBootShellMarkup,
   buildMarketingBootShellMarkup,
   injectDashboardBootModulepreloads,
   injectLoginBootModulepreloads,

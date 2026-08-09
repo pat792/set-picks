@@ -8,7 +8,8 @@
  * #928: tour-stats SEO slugs fetch `public_tour_stats/{slug}` (REST) and embed
  * bustout/frequency facts + FAQ/ItemList JSON-LD for crawlers.
  * Boot shells: `dashboard` / `spa-boot` use `dist/app.html`;
- * `login` uses HTML-first `dist/login.html` (#892).
+ * `login` uses HTML-first `dist/login.html` (#892);
+ * `/privacy` + `/terms` use zero-JS legal door shells (#916).
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -20,12 +21,12 @@ import {
   LOGIN_BOOT_SHELL_REL_PATH,
   PRERENDER_ROUTES,
   buildDashboardBootShellHtml,
+  buildLegalBootDocumentHtml,
   buildLoginBootShellHtml,
   injectDashboardBootModulepreloads,
   injectLoginBootModulepreloads,
   injectPrerenderHtml,
   injectTourStatsBootModulepreloads,
-  injectLegalBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
 import { fetchFirestoreRestDocument } from './lib/firestoreRestDecode.mjs';
@@ -114,6 +115,9 @@ async function loadTourStatsEnrichment(route) {
 }
 
 for (const route of PRERENDER_ROUTES) {
+  // Legal door shells are written separately (zero-JS; #916) — not marketing CSR.
+  if (isLegalPrerenderRoute(route.path)) continue;
+
   const shell = marketingShell;
   const enrichment = await loadTourStatsEnrichment(route);
   let html = injectPrerenderHtml(shell, route, enrichment);
@@ -124,10 +128,6 @@ for (const route of PRERENDER_ROUTES) {
   if (isTourStatsPrerenderRoute(route.path)) {
     html = injectTourStatsBootModulepreloads(html, distDir);
   }
-  // /privacy + /terms: preload legal page + markdown closure (#908 soak).
-  if (isLegalPrerenderRoute(route.path)) {
-    html = injectLegalBootModulepreloads(html, distDir, route.path);
-  }
   const rel = prerenderOutputRelPath(route.path);
   const outPath = join(distDir, rel);
   mkdirSync(dirname(outPath), { recursive: true });
@@ -135,6 +135,18 @@ for (const route of PRERENDER_ROUTES) {
   const factNote = enrichment.factsHtml ? ' +aggregate-facts' : '';
   console.log(
     `prerender-seo: wrote dist/${rel} (${Buffer.byteLength(html, 'utf8')} bytes)${factNote}`,
+  );
+}
+
+// HTML-first legal door (#916): full policy body in first HTML, no module graph.
+for (const legalPath of ['/privacy', '/terms']) {
+  const html = buildLegalBootDocumentHtml(legalPath, { rootDir: root });
+  const rel = prerenderOutputRelPath(legalPath);
+  const outPath = join(distDir, rel);
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, html, 'utf8');
+  console.log(
+    `prerender-seo: wrote dist/${rel} (HTML-first legal door, ${Buffer.byteLength(html, 'utf8')} bytes)`,
   );
 }
 
@@ -149,7 +161,7 @@ console.log(
   `prerender-seo: wrote dist/${APP_BOOT_SHELL_REL_PATH} (branded #root boot shell + modulepreload)`,
 );
 
-// Light spa boot: same branded skeleton, no DashboardRoute preload — legal,
+// Light spa boot: same branded skeleton, no DashboardRoute preload —
 // public profile, bare /join, etc. must not contend for the dashboard graph.
 const lightBootPath = join(distDir, LIGHT_SPA_BOOT_SHELL_REL_PATH);
 mkdirSync(dirname(lightBootPath), { recursive: true });
@@ -169,5 +181,5 @@ console.log(
 );
 
 console.log(
-  `prerender-seo: OK (${PRERENDER_ROUTES.length} routes + app boot + light spa + login boot)`,
+  `prerender-seo: OK (${PRERENDER_ROUTES.length} routes + legal door + app boot + light spa + login boot)`,
 );
