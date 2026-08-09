@@ -12,8 +12,11 @@ export const MARKETING_PRIMARY_NAV = [
   { to: '/about', label: 'About' },
 ];
 
-/** Legal links — footer only. */
+/**
+ * Legal links — footer only.
+ * `hard: true` → `<a href>` so hosting serves the zero-JS legal door (#916).
+ */
 export const MARKETING_LEGAL_NAV = [
-  { to: '/privacy', label: 'Privacy Policy' },
-  { to: '/terms', label: 'Terms of Service' },
+  { to: '/privacy', label: 'Privacy Policy', hard: true },
+  { to: '/terms', label: 'Terms of Service', hard: true },
 ];

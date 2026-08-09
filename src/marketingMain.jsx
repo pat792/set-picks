@@ -17,12 +17,10 @@ try {
   if (typeof window !== 'undefined') {
     const path = window.location.pathname || ''
     // Public marketing surfaces that must stay reachable for returning
-    // sessions — do not bounce them to /dashboard (#853 tour-stats, #908 legal).
+    // sessions — do not bounce them to /dashboard (#853 tour-stats).
+    // Legal (`/privacy`|/terms`) is a separate zero-JS document (#916).
     const stayOnMarketingDocument =
-      path === '/tour-stats' ||
-      path.startsWith('/tour-stats/') ||
-      path === '/privacy' ||
-      path === '/terms'
+      path === '/tour-stats' || path.startsWith('/tour-stats/')
     if (
       !stayOnMarketingDocument &&
       window.localStorage?.getItem(PERSISTED_SESSION_HINT_STORAGE_KEY) === '1'

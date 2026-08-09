@@ -10,7 +10,7 @@ import { getPrerenderRoute } from '../../shared/config/seoRoutes';
 
 const route = getPrerenderRoute('/privacy');
 
-/** Public route — marketing document (#908); soft-nav compat on app SPA. */
+/** Soft-nav compat on app SPA; hard-nav cold open uses HTML-first legal door (#916). */
 export default function PrivacyPolicyPage() {
   const jsonLd = route.buildJsonLd();
   const resumeKind = peekAuthDoorResume();

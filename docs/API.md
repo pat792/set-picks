@@ -387,8 +387,8 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
 | `/user/:userId` | None | Public player profile — **`noindex,follow`** (#661); not a sitemap target |
-| `/privacy` | None | Privacy policy. **v1.55.0 (#908):** marketing document (prerendered; no AuthProvider) — snappy hard-nav from HTML-first `/login`. Soft route remains on app SPA for Profile/account. |
-| `/terms` | None | Terms of service. **v1.55.0 (#908):** same marketing-document boot as `/privacy`. |
+| `/privacy` | None | Privacy policy. **v1.61.0 (#916):** HTML-first legal door — full policy body in first HTML; no marketing CSR / Auth / Firebase. Soft route remains on app SPA for Profile/account. |
+| `/terms` | None | Terms of service. **v1.61.0 (#916):** same HTML-first legal-door boot as `/privacy`. |
 | `/password-reset-complete` | None | Firebase Auth continue URL |
 | `/setup` | Auth | Profile setup (new users) |
 | `/dashboard/*` | Auth | Full game dashboard |

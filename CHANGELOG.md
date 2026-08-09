@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.61.0] — 2026-08-09
+
+### Added
+- **HTML-first `/privacy` + `/terms` door (#916 / epic #889)** — zero-JS shells bake full policy markdown into first HTML (back control + title + body); Vercel rewrites + Vite dev middleware; no marketing CSR / Auth / Firebase on legal cold open.
+
+### Changed
+- **Legal document owner** — hard-nav from `/login` signup and marketing footer serve `dist/privacy|terms/index.html`; soft SPA routes remain for Profile/account. Docs: `API.md`, `AUTH_BOOT_PRACTICES` 1c, `OUTBOUND_AUTH_HANDOFF` (`legal-static`), `AUTH_SEAMLESS_PATH`.
+
+---
+
 ## [1.60.0] — 2026-08-09
 
 ### Added

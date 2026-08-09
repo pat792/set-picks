@@ -7,8 +7,9 @@ import { resolveLegalBackNav } from '../model/legalBackNav';
 
 /**
  * Shared layout for /privacy and /terms — full-screen, public, no auth.
- * Owns ambient background so legal works on the marketing document (#908)
- * without RootAppShell, and still looks correct on soft-nav from the app SPA.
+ * Owns ambient background so soft-nav from the app SPA (Profile/account)
+ * looks correct without RootAppShell. Hard-nav cold open uses the zero-JS
+ * legal door shell (#916).
  *
  * @param {{
  *   title: string,

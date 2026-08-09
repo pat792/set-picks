@@ -13,7 +13,7 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 
 1b. **Public `/tour-stats*` is marketing too (#853).** Paint chrome from the marketing entry; load App Check + Firestore only inside `fetchPublicTourStats*` (and a parallel page kick). Do not put tour-stats on `app.html` / `AuthProvider`.
 
-1c. **`/privacy` and `/terms` are marketing too (#908).** Serve from the marketing document (prerendered HTML). Do not park legal on `app.html` / spa-boot — signup from HTML-first `/login` hard-navs here and must stay snappy. Soft routes may remain on the app SPA for in-app Profile links.
+1c. **`/privacy` and `/terms` are an HTML-first legal door (#916).** Serve zero-JS shells with readable chrome + full policy body in the first HTML (`dist/privacy|terms/index.html`). No marketing CSR, no AuthProvider, no Firebase. Do not park legal on `app.html` / spa-boot. Soft routes may remain on the app SPA for in-app Profile links. Marketing footer uses hard `<a href>`.
 
 2. **Auth door `/login`: form in first HTML; auth-only hydrate (Phase 2 / #892).**  
    - **Today (v1.54.0):** `/login` boots `login.html` with **real form controls** in the first document; `loginMain.jsx` hydrates Auth + form wiring (not `app-*.js` / react-query). Suspense fallback keeps form chrome (anti-#881 blank hang). Session hint and Google redirect return stay eager. Success → hard-navigate to `/setup` or `/dashboard`.  
