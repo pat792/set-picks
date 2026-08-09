@@ -38,3 +38,15 @@ L0 default — no live scrape/post/BD send/affiliate inject. See maturity ladder
 ## Guardrails
 
 Draft-only; `staging` PRs only via execution squad; never merge/deploy; Phase 3 before in-product commercial.
+
+## Draft artifacts (required)
+
+Any crew/skill run that produces a draft, brief, pack, or structured deliverable **must write a reference document** (not chat-only). Prefer:
+
+| Kind | Path |
+|------|------|
+| Marketing / SEO page copy | `content/marketing/` |
+| Lifecycle comms | `content/comms/` |
+| Pipeline / ephemeral | `crew/output/<pipeline>/` or paths in `docs/LEADERSHIP_CREW.md` |
+
+See `.cursor/rules/crew-draft-artifacts.mdc` and `docs/LEADERSHIP_CREW.md` § Draft artifacts.

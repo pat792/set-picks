@@ -1,0 +1,19 @@
+---
+description: Crew/skill drafts and structured briefs must be written to disk as reference docs
+alwaysApply: true
+---
+
+# Draft & structured-output artifacts
+
+When a **Cursor skill**, **Leadership Ops crew role**, or **CrewAI pipeline** produces a draft, brief, pack, RACI note, intel digest, copy package, or other structured deliverable:
+
+1. **Write it to a file in the repo** (or under `crew/output/` for ephemeral pipeline artifacts). Chat-only delivery is not sufficient.
+2. **Prefer durable paths** for work that will be implemented or reviewed later:
+   - Marketing / SEO page copy → `content/marketing/`
+   - Lifecycle comms → `content/comms/` (existing workflow)
+   - Leadership pipeline outputs → paths in `docs/LEADERSHIP_CREW.md` Pipelines table, or `crew/output/<pipeline>/`
+3. **Include in the doc:** status (draft / EiC-approved / etc.), date, related issue/epic links, and enough context to implement without re-running the chat.
+4. **Point the user at the path** in the final response.
+5. Do **not** skip the file because the draft is “short” or “temporary.”
+
+Exceptions: pure Q&A with no reusable artifact; one-line status checks; secrets/PII (never write those).

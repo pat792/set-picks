@@ -302,6 +302,15 @@
       ]
     },
     {
+      "source": "/about",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    },
+    {
       "source": "/privacy",
       "headers": [
         {

@@ -37,6 +37,7 @@ const PoolInviteMissingCodePage = lazy(() =>
 );
 const PoolInvitePage = lazy(() => import('../pages/pool-invite/PoolInvitePage'));
 const InviteLandingPage = lazy(() => import('../pages/invite/InviteLandingPage'));
+const AboutPage = lazy(() => import('../pages/marketing/AboutPage'));
 const HowItWorksPage = lazy(() => import('../pages/marketing/HowItWorksPage'));
 const HowScoringWorksPage = lazy(() => import('../pages/marketing/HowScoringWorksPage'));
 const PublicTourStatsPage = lazy(() => import('../pages/marketing/PublicTourStatsPage'));
@@ -72,6 +73,7 @@ function App() {
           path="/phish-setlist-prediction-game"
           element={<PhishSetlistPredictionGamePage />}
         />
+        <Route path="/about" element={<AboutPage />} />
 
         {/* Legal pages — public, no auth (required for GCP OAuth consent screen) */}
         <Route path="/privacy" element={<PrivacyPolicyPage />} />

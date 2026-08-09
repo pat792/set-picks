@@ -39,10 +39,16 @@ export default function PublicTourStatsPage() {
     trackPublicTourStatsView({ tourSlug: screen.activeSlug });
   }, [screen.activeSlug, screen.statsLoading]);
 
-  const title = route?.title || `Tour stats | ${SEO_CONFIG.siteName}`;
+  const title =
+    route?.title ||
+    (screen.tourName
+      ? `${screen.tourName} Setlist Statistics | ${SEO_CONFIG.siteName}`
+      : `Phish Tour Statistics & Insights | ${SEO_CONFIG.siteName}`);
   const description =
     route?.description ||
-    'Phish tour setlist stats — most-played songs, bustouts, and gap highlights. Updated every night the band plays live.';
+    (screen.tourName
+      ? `Tour Insights for ${screen.tourName}: setlist statistics, most-played songs, bustouts, and gap highlights. Updated every night the band plays live.`
+      : 'Tour Insights: the latest Phish tour setlist statistics—most-played songs, bustouts by tour, and gap highlights. Updated every night the band plays live.');
   const canonical =
     route?.canonicalUrl ||
     `${SEO_CONFIG.siteUrl}/tour-stats/${screen.activeSlug}`;

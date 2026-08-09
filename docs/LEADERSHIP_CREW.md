@@ -89,6 +89,19 @@ Bridges (dotted): Chief of Staff · Growth Program Manager · RevOps Lead · Bra
 
 **Guardrails:** draft-only default; PR base `staging`; never merge/deploy from agents; no ad-hoc Resend; no live social/BD without L2 approval; commercial/affiliate in-product only after Phase 3; night `show_recap` ≠ tour `tour_recap`; scrape allowlist only; facts-only setlists.
 
+### Draft artifacts (required)
+
+Crew and Cursor skill runs that produce drafts, briefs, packs, or other structured deliverables **must write a reference document**. Chat-only output is not enough.
+
+| Kind | Durable path |
+|------|----------------|
+| Marketing / SEO page copy | `content/marketing/` |
+| Lifecycle email/push/inbox | `content/comms/` |
+| Campaign / revenue / BD / affiliate briefs | Pipeline `Output` column below, under `crew/output/` or `docs/` as appropriate |
+| Ephemeral Optimize / intel runs | `crew/output/<pipeline>/` |
+
+Cursor rule: `.cursor/rules/crew-draft-artifacts.mdc`.
+
 ---
 
 ## Pipelines
@@ -156,6 +169,7 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 
 | Date | Change |
 |------|--------|
+| 2026-08-08 | Draft artifacts required on disk (`content/marketing/`, `content/comms/`, `crew/output/`); Cursor rule `crew-draft-artifacts.mdc` |
 | 2026-07-20 | L0 scaffold: doc, `crew/`, Cursor skills, epic #695 — flexibility/learning principles documented |
 | 2026-07-20 | L1: allowlisted HTTP fetch + `market_intel_sweep` script; tests; status promoted for research only |
 | 2026-07-20 | L2: human-gated social/BD draft→approve→publish queue (`social_demand_gen`); optional webhook |

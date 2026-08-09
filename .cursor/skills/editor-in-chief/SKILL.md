@@ -30,6 +30,7 @@ Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc R
 - Comms delivery work → hand off via **comms-orchestration-lead** to existing squad skills.
 - External scrape/post/BD/affiliate live actions → only if maturity level and user explicitly enable (L1–L3).
 - Propose org adaptations when RACI feels wrong; update the doc changelog + comment on #695.
+- **Approved or gated drafts must land on disk** (e.g. `content/marketing/`, `content/comms/`, `crew/output/`) before the turn ends — never chat-only. See `.cursor/rules/crew-draft-artifacts.mdc`.
 
 ## Read first
 
