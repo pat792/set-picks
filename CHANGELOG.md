@@ -12,6 +12,27 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.56.1] — 2026-08-08
+
+### Changed
+- **`/how-it-works` show-night walkthrough (#937 / epic #942)** — replaces Lock/Watch/Claim card clone of splash Game Format with setlist card → timeline → pools vs global → personal stats; meta + HowTo JSON-LD updated. Home Game Format teaser unchanged.
+
+---
+
+## [1.56.0] — 2026-08-08
+
+### Added
+- **`/about` crawlable origin page (#941 / epic #942)** — prerendered marketing route with brand narrative; splash About becomes a short teaser + link; nav, sitemap, and `llms.txt` updated.
+
+### Changed
+- **Keyword landing tighten (#940 / epic #942)** — `/phish-setlist-prediction-game` scannable definitional copy (definition + bullets + short how-to); prerender paragraphs + FAQ JSON-LD answer aligned.
+- **Tour Insights copy** — public `/tour-stats*` leans on “Tour Insights” + “setlist statistics” (and tour-named H1/meta when a tour is selected) for fan-intent queries (latest tour stats, summer/fall/Sphere bustouts).
+
+### Added (ops)
+- **Crew/skill draft artifacts** — `content/marketing/` drafts + always-on Cursor rule requiring on-disk reference docs for crew/skill structured outputs.
+
+---
+
 ## [1.55.8] — 2026-08-08
 
 ### Fixed

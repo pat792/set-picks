@@ -123,9 +123,9 @@ function buildHomeJsonLd() {
   };
 }
 
-const HOW_IT_WORKS_TITLE = "How to Play Setlist Pick'Em | The Live Music Prediction Game";
+const HOW_IT_WORKS_TITLE = "How to Play Setlist Pick'Em | Show-Night Walkthrough";
 const HOW_IT_WORKS_DESCRIPTION =
-  "Learn how Setlist Pick'Em works: lock song picks before showtime, score live as the setlist unfolds, and unlock personal stats as you compete with other setlist pickers. Live with Phish today—more bands soon.";
+  "Lock picks before showtime, score live as the setlist unfolds, compete in pools or global standings, and unlock personal stats as you play. Free setlist prediction game—live with Phish today, more bands soon.";
 const HOW_IT_WORKS_URL = `${SEO_CONFIG.siteUrl}/how-it-works`;
 
 function buildHowItWorksJsonLd() {
@@ -148,20 +148,26 @@ function buildHowItWorksJsonLd() {
           {
             '@type': 'HowToStep',
             position: 1,
-            name: 'Lock It In',
-            text: 'Pick openers, closers, encore, and a wildcard before showtime. Earn points for correct picks, higher points for exact slot picks, plus a Bustout Boost for calling longshots.',
+            name: 'Lock your setlist card',
+            text: 'Before showtime, lock six calls: Set 1 opener and closer, Set 2 opener and closer, encore, and wildcard. Exact slot hits score more; rare songs can trigger a Bustout Boost.',
           },
           {
             '@type': 'HowToStep',
             position: 2,
-            name: 'Watch It Unfold',
-            text: "Live scores and standings update as songs are played. See your picks and everyone else's light up the leaderboard.",
+            name: 'Follow the show-night timeline',
+            text: 'Before the show, lock picks and peek at tour stats. During the show, scores and standings update as songs land. After the show, final grades and tour standings post.',
           },
           {
             '@type': 'HowToStep',
             position: 3,
-            name: 'Claim the Crown',
-            text: 'Challenge friends in private pools and compete in global standings. Your personal stats grow with every show you play.',
+            name: 'Compete in pools or global standings',
+            text: 'Invite friends to private pools for crew-only standings, or compete with everyone on the global board for the show and the tour. Same picks; different rivalries.',
+          },
+          {
+            '@type': 'HowToStep',
+            position: 4,
+            name: 'Unlock personal stats as you play',
+            text: 'Public tour trends are open to everyone. Your picking average, Bustout Boost hits, and pick heatmaps unlock as you earn points and climb the board.',
           },
         ],
       },
@@ -173,14 +179,14 @@ const HOW_SCORING_TITLE = "How Scoring Works | Setlist Pick'Em";
 const HOW_SCORING_DESCRIPTION = `Setlist Pick'Em scoring guide: In setlist (${IN_SETLIST} pts), exact slot (${EXACT_SLOT} pts), wildcard (${WILDCARD_HIT} pts), encore (${ENCORE_EXACT} pts), plus a Bustout Boost of ${BUSTOUT_BOOST} points for songs with a ${BUSTOUT_MIN_GAP}+ show gap.`;
 const HOW_SCORING_URL = `${SEO_CONFIG.siteUrl}/how-scoring-works`;
 
-const TOUR_STATS_HUB_TITLE = "Phish Tour Stats | Setlist Pick'Em";
+const TOUR_STATS_HUB_TITLE = "Phish Tour Statistics & Insights | Setlist Pick'Em";
 const TOUR_STATS_HUB_DESCRIPTION =
-  "Phish tour setlist stats for Setlist Pick 'Em fans — most-played songs, bustouts, and gap highlights. Updated every night the band plays live. Play the game to unlock personal stats.";
+  "Tour Insights: the latest Phish tour setlist statistics—most-played songs, bustouts by tour, and gap highlights. Updated every night the band plays live. Play Setlist Pick'Em to unlock personal stats.";
 const TOUR_STATS_HUB_URL = `${SEO_CONFIG.siteUrl}/tour-stats`;
 
-const TOUR_STATS_SPHERE_TITLE = "2026 Sphere Tour Stats | Setlist Pick'Em";
+const TOUR_STATS_SPHERE_TITLE = "2026 Sphere Tour Statistics | Setlist Pick'Em";
 const TOUR_STATS_SPHERE_DESCRIPTION =
-  "2026 Sphere setlist stats for Setlist Pick 'Em — most-played songs, bustouts, and gap highlights from the inaugural tour. Updated after every live show night.";
+  "2026 Sphere tour insights and setlist statistics—most-played songs, Sphere tour bustouts, and gap highlights from the inaugural Setlist Pick'Em tour. Updated after every live show night.";
 const TOUR_STATS_SPHERE_URL = `${SEO_CONFIG.siteUrl}/tour-stats/2026-sphere`;
 
 function buildTourStatsHubJsonLd() {
@@ -207,7 +213,7 @@ function buildTourStatsHubJsonLd() {
           {
             '@type': 'ListItem',
             position: 2,
-            name: 'Tour stats',
+            name: 'Tour Insights',
             item: TOUR_STATS_HUB_URL,
           },
         ],
@@ -240,7 +246,7 @@ function buildTourStatsSphereJsonLd() {
           {
             '@type': 'ListItem',
             position: 2,
-            name: 'Tour stats',
+            name: 'Tour Insights',
             item: TOUR_STATS_HUB_URL,
           },
           {
@@ -261,6 +267,12 @@ const KEYWORD_PAGE_TITLE =
 const KEYWORD_PAGE_DESCRIPTION =
   "Free Phish setlist prediction game and fantasy setlist picks—lock openers, closers, encore, and a wildcard before showtime, score live, and compete with friends. Built for jam bands; live with Phish today, more soon.";
 const KEYWORD_PAGE_URL = `${SEO_CONFIG.siteUrl}${KEYWORD_PAGE_PATH}`;
+
+const ABOUT_PATH = '/about';
+const ABOUT_TITLE = "About Setlist Pick'Em | From Tour Ritual to Live Game";
+const ABOUT_DESCRIPTION =
+  "The origin of Setlist Pick'Em—a fan-made setlist prediction game that started on Phish tour in 2001 and grew from paper and spreadsheets into a live game for friends and crews. Phish first; more bands soon.";
+const ABOUT_URL = `${SEO_CONFIG.siteUrl}${ABOUT_PATH}`;
 
 const PRIVACY_TITLE = "Privacy Policy | Setlist Pick'Em";
 const PRIVACY_DESCRIPTION =
@@ -308,7 +320,7 @@ function buildKeywordIntentPageJsonLd() {
             name: 'What is a setlist prediction game?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: "For jam bands like Phish, every night is a new setlist. A setlist prediction game—sometimes called a fantasy setlist game—asks fans to call songs and slots before the show. Setlist Pick'Em is a free setlist picks game that scores live and ranks players in private pools and global standings—live with Phish today, with more bands ahead.",
+              text: "A setlist prediction game—sometimes called a fantasy setlist game—asks you to call songs and where they land in the setlist before the show. You compete in private pools and on the global leaderboard while scores update live. Setlist Pick'Em is a free setlist picks game—live with Phish today, with more bands ahead.",
             },
           },
           {
@@ -452,11 +464,10 @@ export const PRERENDER_ROUTES = [
     canonicalUrl: HOW_IT_WORKS_URL,
     h1: "How to Play Setlist Pick'Em",
     paragraphs: [
-      'The free live setlist prediction game for Phish fans—and a home for more bands soon. Lock your picks before the lights go down, score as the setlist unfolds, and compete with friends.',
-      'We track key tour insights and refresh them every night the band plays live. Sign in to unlock personal stats as you earn points against other setlist pickers.',
-      'Lock It In: Pick openers, closers, encore, and a wildcard before showtime.',
-      'Watch It Unfold: Live scores and standings update as songs are played.',
-      'Claim the Crown: Challenge friends in private pools and compete in global standings.',
+      "Setlist Pick'Em is a free live setlist prediction game for Phish fans—and a home for more bands soon. Here's the show-night walkthrough: what you lock, how scoring moves, and where your crew ranks.",
+      'Before the lights go down, lock six calls: Set 1 opener and closer, Set 2 opener and closer, encore, and wildcard. Exact slot hits score more; rare songs can trigger a Bustout Boost.',
+      'Before the show, lock picks and peek at tour stats. During the show, scores update live. After the show, final grades and personal stats grow every night you play.',
+      'Compete in private pools with friends or on global standings—same picks, different rivalries. Personal stats unlock as you earn points and climb the board.',
     ],
     buildJsonLd: buildHowItWorksJsonLd,
   },
@@ -478,10 +489,10 @@ export const PRERENDER_ROUTES = [
     title: TOUR_STATS_HUB_TITLE,
     description: TOUR_STATS_HUB_DESCRIPTION,
     canonicalUrl: TOUR_STATS_HUB_URL,
-    h1: 'Phish tour setlist stats',
+    h1: 'Phish tour setlist statistics',
     paragraphs: [
-      'We track the setlist stories that help you make better picks—most-played songs, bustouts, and gap highlights for each Phish tour.',
-      'Stats refresh every night the band plays live. Playing the game unlocks your personal stats as you rack up points against other setlist pickers.',
+      'Tour Insights tracks Phish tour setlist statistics—most-played songs, bustouts by tour, and gap highlights that help you make better picks.',
+      'Statistics refresh every night the band plays live. Playing the game unlocks your personal stats as you rack up points against other setlist pickers.',
       'We\'re starting with Phish and building toward more bands soon. This page focuses on tour-wide song trends—not a full night-by-night setlist archive.',
     ],
     buildJsonLd: buildTourStatsHubJsonLd,
@@ -491,10 +502,10 @@ export const PRERENDER_ROUTES = [
     title: TOUR_STATS_SPHERE_TITLE,
     description: TOUR_STATS_SPHERE_DESCRIPTION,
     canonicalUrl: TOUR_STATS_SPHERE_URL,
-    h1: '2026 Sphere tour stats',
+    h1: '2026 Sphere tour statistics',
     paragraphs: [
-      'Most-played songs, bustouts, and gap highlights from the 2026 Sphere run—the inaugural Setlist Pick \'Em tour.',
-      'Stats refresh every night the band plays live, so the picture keeps getting sharper as you make picks.',
+      'Tour Insights for the 2026 Sphere run—setlist statistics, most-played songs, Sphere tour bustouts, and gap highlights from the inaugural Setlist Pick \'Em tour.',
+      'Statistics refresh every night the band plays live, so the picture keeps getting sharper as you make picks.',
       'Tour-wide song trends for fans—play the game to unlock personal stats as you compete.',
     ],
     buildJsonLd: buildTourStatsSphereJsonLd,
@@ -506,11 +517,29 @@ export const PRERENDER_ROUTES = [
     canonicalUrl: KEYWORD_PAGE_URL,
     h1: 'The free Phish setlist prediction game',
     paragraphs: [
-      "Setlist Pick'Em is a free setlist picks game for fans who love predicting setlists—built first for Phish fans, and designed for more bands soon.",
-      'For jam bands like Phish, every night is a new setlist. A setlist prediction game—sometimes called a fantasy setlist game—asks you to call songs and slots before showtime, then score live as the night unfolds.',
+      "Setlist Pick'Em is a free live setlist picks game for fans who love predicting setlists—built first for Phish, designed as a home for more bands soon.",
+      'A setlist prediction game—sometimes called a fantasy setlist game—asks you to call songs and where they land in the setlist before the show.',
       'Tour stats refresh every night the band plays live. Playing unlocks personal stats as you accumulate points against other setlist pickers.',
     ],
     buildJsonLd: buildKeywordIntentPageJsonLd,
+  },
+  {
+    path: ABOUT_PATH,
+    title: ABOUT_TITLE,
+    description: ABOUT_DESCRIPTION,
+    canonicalUrl: ABOUT_URL,
+    h1: "About Setlist Pick'Em",
+    paragraphs: [
+      'Born on Phish tour in 2001—from paper picks to spreadsheets to a live setlist prediction game for friends and crews.',
+      'Ryan M (Beaver), Glu, and Andy F shaped the ritual on the road; Pat later moved it from paper to a spreadsheet, then into Setlist Pick\'Em.',
+      'Live with Phish today—building toward more bands soon. Read how it works or the Phish setlist prediction game definition.',
+    ],
+    buildJsonLd: () =>
+      buildLegalWebPageJsonLd({
+        url: ABOUT_URL,
+        title: ABOUT_TITLE,
+        description: ABOUT_DESCRIPTION,
+      }),
   },
   {
     path: '/privacy',

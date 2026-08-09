@@ -23,18 +23,21 @@ export default function PublicTourStatsPanel({
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <header className="mb-8 space-y-3 text-center sm:text-left">
         <p className="text-[10px] font-black uppercase tracking-widest text-teal-400">
-          Tour stats
+          Tour Insights
         </p>
         <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">
-          Phish tour setlist stats
+          {hasTour && tourName
+            ? `${tourName} setlist statistics`
+            : 'Phish tour setlist statistics'}
         </h1>
         <p className="text-base leading-relaxed text-slate-300">
-          Since Setlist Pick&apos;Em launched at the Sphere, we&apos;ve tracked
-          every song from every tour—an easy, fun way to sift through setlist
-          stats and sharpen your predictions. Flip the tour filter, scan what&apos;s
-          getting played, hunt the bustouts, and check the high-gap songs that
-          might be due. Stats refresh every night the band plays live, so the
-          picture keeps getting sharper as the tour rolls on.
+          Tour Insights is our window on the latest Phish tour setlist
+          statistics—most-played songs, bustouts by tour (summer, fall, Sphere,
+          and more), and gap highlights that help you sharpen picks. Flip the
+          tour filter, scan what&apos;s getting played, hunt the bustouts, and
+          check the high-gap songs that might be due. Statistics refresh every
+          night the band plays live, so the picture keeps getting sharper as the
+          tour rolls on.
         </p>
         <p className="text-sm leading-relaxed text-slate-400">
           We&apos;re starting with Phish and building toward more bands soon.
