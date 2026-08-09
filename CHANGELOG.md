@@ -12,6 +12,19 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.58.0] — 2026-08-08
+
+### Added
+- **Marketing editorial chrome tokens (#944)** — `marketingEditorialChrome` shared title/article classes; documented rule in `content/marketing/944-chrome-rule-review.md`.
+
+### Changed
+- **`/how-scoring-works` light editorial surface (#944)** — light main + `ScoringRulesContent surface="light"` (soft white panel, slate type, `LINK_ON_LIGHT` next-links). Page owns centered editorial H1/lede (`includeIntro={false}`); in-app Scoring modal keeps embedded dark intro. Tour stats remains dark product chrome. Adds iPhone-framed standings sample (handle blurred) under the rules.
+- **Editorial H1 ramp** — HIW / keyword / About / marketing Scoring share one sentence-case size system; keyword keeps optional emerald eyebrow.
+- **How it works device carousel** — under “Your setlist card”: Picks form + song-search autocomplete (iPhone frames).
+- **Keyword page device shot** — standings leaderboard iPhone sample (names + player counts blurred) under “What is a setlist prediction game?”.
+
+---
+
 ## [1.57.0] — 2026-08-08
 
 ### Added

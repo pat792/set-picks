@@ -2,13 +2,26 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 
-import { AppDocumentAuthLink, MarketingPageShell } from '../../features/landing';
+import {
+  AppDocumentAuthLink,
+  MarketingIphoneFigure,
+  MarketingPageShell,
+} from '../../features/landing';
 import { ScoringRulesContent } from '../../features/scoring/marketing';
 import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
-import { LINK_ON_DARK } from '../../shared/ui/surfaceLinkStyles';
+import {
+  MARKETING_EDITORIAL_ARTICLE,
+  MARKETING_EDITORIAL_COLUMN,
+  MARKETING_EDITORIAL_H1,
+  MARKETING_EDITORIAL_LEDE,
+} from '../../shared/ui/marketingEditorialChrome';
+import { LINK_ON_LIGHT } from '../../shared/ui/surfaceLinkStyles';
 
 const route = getPrerenderRoute('/how-scoring-works');
+
+const SCORING_SAMPLE_SRC =
+  '/images/marketing/scoring-standings-iphone-sample.png';
 
 export default function HowScoringWorksPage() {
   const jsonLd = route.buildJsonLd();
@@ -34,24 +47,37 @@ export default function HowScoringWorksPage() {
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
       <MarketingPageShell>
-        <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-          <ScoringRulesContent />
-          <p className="mt-10 text-center text-sm leading-relaxed text-slate-500">
-            Next:{' '}
-            <Link to="/how-it-works" className={LINK_ON_DARK}>
-              how it works
-            </Link>
-            , browse{' '}
-            <Link to="/tour-stats" className={LINK_ON_DARK}>
-              tour stats
-            </Link>
-            , or{' '}
-            <AppDocumentAuthLink signup className={LINK_ON_DARK}>
-              start playing
-            </AppDocumentAuthLink>
-            .
-          </p>
-        </div>
+        <article className={MARKETING_EDITORIAL_ARTICLE}>
+          <div className={MARKETING_EDITORIAL_COLUMN}>
+            <h1 className={MARKETING_EDITORIAL_H1}>How scoring works</h1>
+            <p className={MARKETING_EDITORIAL_LEDE}>
+              Picks earn points based on where they land in the setlist. Live scoring feeds
+              nightly standings.
+            </p>
+            <ScoringRulesContent surface="light" includeIntro={false} />
+            <MarketingIphoneFigure
+              className="mt-12"
+              src={SCORING_SAMPLE_SRC}
+              alt="iPhone showing a Setlist Pick 'Em standings card with scored picks — In setlist, Bustout Boost, Wildcard hit, and points. Player handle blurred."
+              caption="Sample standings card after the show — exact slots, in-setlist hits, Wildcard, and Bustout Boost™ stacking into the night’s score."
+            />
+            <p className="mt-10 text-center text-sm leading-relaxed text-slate-500">
+              Next:{' '}
+              <Link to="/how-it-works" className={LINK_ON_LIGHT}>
+                how it works
+              </Link>
+              , browse{' '}
+              <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+                tour stats
+              </Link>
+              , or{' '}
+              <AppDocumentAuthLink signup className={LINK_ON_LIGHT}>
+                start playing
+              </AppDocumentAuthLink>
+              .
+            </p>
+          </div>
+        </article>
       </MarketingPageShell>
     </>
   );

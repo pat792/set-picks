@@ -2,19 +2,40 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+import {
+  MARKETING_EDITORIAL_ARTICLE,
+  MARKETING_EDITORIAL_COLUMN,
+  MARKETING_EDITORIAL_H1,
+  MARKETING_EDITORIAL_H2,
+} from '../../../shared/ui/marketingEditorialChrome';
 import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
 import AppDocumentAuthLink from './AppDocumentAuthLink';
+import MarketingIphoneCarousel from './MarketingIphoneCarousel';
+
+const SETLIST_CARD_SLIDES = [
+  {
+    src: '/images/marketing/picks-setlist-card-iphone-sample.png',
+    alt: "iPhone showing the Setlist Pick 'Em Picks screen with six empty setlist card slots and a Lock In Picks button.",
+    caption: 'Your setlist card before lock — six slots, then Lock In Picks.',
+  },
+  {
+    src: '/images/marketing/picks-song-search-iphone-sample.png',
+    alt: "iPhone showing song search autocomplete on Set 1 Opener with catalog stats for Total, Gap, and Last played.",
+    caption: 'Search any slot — type a few letters, pick from the catalog with Total / Gap / Last.',
+  },
+];
 
 /**
  * Full show-night walkthrough for `/how-it-works` (#937).
  * Distinct from splash Game Format teaser (3 cards).
  * Copy source: `content/marketing/942-content-ia-drafts.md`.
+ * Chrome tokens: #944 / `marketingEditorialChrome`.
  */
 export default function HowItWorksPageContent() {
   return (
-    <article className="relative z-10 w-full bg-slate-50 py-16 md:py-24">
-      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h1 className="mb-5 text-center font-display text-3xl font-bold text-slate-900 sm:text-4xl md:text-5xl">
+    <article className={MARKETING_EDITORIAL_ARTICLE}>
+      <div className={MARKETING_EDITORIAL_COLUMN}>
+        <h1 className={MARKETING_EDITORIAL_H1}>
           How to Play Setlist Pick&apos;Em
         </h1>
         <p className="mb-12 text-center text-lg leading-relaxed text-slate-600">
@@ -27,7 +48,7 @@ export default function HowItWorksPageContent() {
         </p>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
-          <h2 className="font-display text-2xl font-bold text-slate-900">
+          <h2 className={MARKETING_EDITORIAL_H2}>
             Your setlist card
           </h2>
           <p>Before the lights go down, you lock six calls:</p>
@@ -37,6 +58,11 @@ export default function HowItWorksPageContent() {
             <li>Encore</li>
             <li>Wildcard</li>
           </ul>
+          <MarketingIphoneCarousel
+            className="pt-2"
+            label="Setlist card screenshots"
+            slides={SETLIST_CARD_SLIDES}
+          />
           <p>
             Correct picks earn points; exact slot hits score more. Call rare songs
             and you can trigger a Bustout Boost™. For a full breakdown, check out{' '}
@@ -48,7 +74,7 @@ export default function HowItWorksPageContent() {
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
-          <h2 className="font-display text-2xl font-bold text-slate-900">
+          <h2 className={MARKETING_EDITORIAL_H2}>
             Show-night timeline
           </h2>
           <ol className="list-decimal space-y-4 pl-5">
@@ -75,7 +101,7 @@ export default function HowItWorksPageContent() {
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
-          <h2 className="font-display text-2xl font-bold text-slate-900">
+          <h2 className={MARKETING_EDITORIAL_H2}>
             Pools vs global
           </h2>
           <p>Play two ways at once:</p>
@@ -93,7 +119,7 @@ export default function HowItWorksPageContent() {
         </section>
 
         <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
-          <h2 className="font-display text-2xl font-bold text-slate-900">
+          <h2 className={MARKETING_EDITORIAL_H2}>
             Personal stats unlock when you play
           </h2>
           <p>
