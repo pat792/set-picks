@@ -60,6 +60,14 @@ export default function PublicTourStatsPage() {
     url: canonical,
   };
 
+  // Prefer registry H1 when the slug is SEO'd (#927) so Sphere/Summer paint
+  // tour-specific titles before Firestore doc load. Fall back to live label.
+  const heading =
+    route?.h1 ||
+    (screen.tourName && screen.tourName !== screen.activeSlug
+      ? `${screen.tourName} setlist statistics`
+      : 'Phish tour setlist statistics');
+
   return (
     <>
       <Helmet>
@@ -83,6 +91,7 @@ export default function PublicTourStatsPage() {
           tours={screen.tours}
           activeSlug={screen.activeSlug}
           tourName={screen.tourName}
+          heading={heading}
           hasTour={screen.hasTour}
           indexLoading={screen.indexLoading}
           statsLoading={screen.statsLoading}

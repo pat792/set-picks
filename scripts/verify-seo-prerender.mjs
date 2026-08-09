@@ -91,6 +91,10 @@ assert(
   'expected Sphere tour-stats prerender entry',
 );
 assert(
+  PRERENDER_ROUTES.some((r) => r.path === '/tour-stats/summer-tour-2026'),
+  'expected Summer Tour 2026 tour-stats prerender entry (#927)',
+);
+assert(
   PRERENDER_ROUTES.some((r) => r.path === '/phish-setlist-prediction-game'),
   'expected keyword-intent prerender entry',
 );
