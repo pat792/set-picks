@@ -21,6 +21,7 @@
 | Helmet + JSON-LD | `src/features/landing/ui/LandingSeo.jsx` | Client source of truth for browsers; homepage FAQ/HowTo also in prerender HTML |
 | Public profiles | `/user/:userId` | **`noindex,follow`** (#661) — not sitemap targets |
 | Dashboard | `/dashboard/*` | **Private** — `robots.txt` Disallow; never prerender for crawlers |
+| Tour Insights | `/tour-stats`, `/tour-stats/:slug` | Firestore `_index` + docs **auto-update** nightly; **SEO URLs are opt-in** (`seoRoutes.js` + sitemap + `llms.txt`). New tours do not auto-prerender (backlog under [#926](https://github.com/pat792/set-picks/issues/926)). Live summer slug: `2026-summer-tour`. |
 
 **Search Console:** Prefer a **Domain** property (`setlistpickem.com`) or the **URL-prefix** property for `https://www.setlistpickem.com/`. When inspecting, always use **www** URLs. Apex showing “Page with redirect” is expected and healthy.
 

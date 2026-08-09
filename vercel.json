@@ -5,6 +5,13 @@
       "includeFiles": "dist/**"
     }
   },
+  "redirects": [
+    {
+      "source": "/tour-stats/summer-tour-2026",
+      "destination": "/tour-stats/2026-summer-tour",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/:path*",

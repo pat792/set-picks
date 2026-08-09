@@ -189,11 +189,17 @@ const TOUR_STATS_SPHERE_DESCRIPTION =
   "2026 Sphere tour insights and setlist statistics—most-played songs, Sphere tour bustouts, and gap highlights from the inaugural Setlist Pick'Em tour. Updated after every live show night.";
 const TOUR_STATS_SPHERE_URL = `${SEO_CONFIG.siteUrl}/tour-stats/2026-sphere`;
 
+/** Live Firestore slug from calendar label "2026 Summer Tour" (#927/#928). */
 const TOUR_STATS_SUMMER_TITLE =
-  "Summer Tour 2026 Statistics | Setlist Pick'Em";
+  "2026 Summer Tour Statistics | Setlist Pick'Em";
 const TOUR_STATS_SUMMER_DESCRIPTION =
-  "Summer Tour 2026 Phish setlist statistics—most-played songs, unique songs, summer tour bustouts, and gap highlights. Updated every night the band plays live. Play Setlist Pick'Em to unlock personal stats.";
-const TOUR_STATS_SUMMER_URL = `${SEO_CONFIG.siteUrl}/tour-stats/summer-tour-2026`;
+  "2026 Summer Tour Phish setlist statistics—most-played songs, unique songs, summer tour bustouts, and gap highlights. Updated every night the band plays live. Play Setlist Pick'Em to unlock personal stats.";
+const TOUR_STATS_SUMMER_URL = `${SEO_CONFIG.siteUrl}/tour-stats/2026-summer-tour`;
+/** Opt-in: prerender fetches `public_tour_stats/{slug}` for crawler facts (#928). */
+export const TOUR_STATS_SEO_FACT_SLUGS = Object.freeze([
+  '2026-sphere',
+  '2026-summer-tour',
+]);
 
 function buildTourStatsHubJsonLd() {
   return {
@@ -297,7 +303,7 @@ function buildTourStatsSummerJsonLd() {
           {
             '@type': 'ListItem',
             position: 3,
-            name: 'Summer Tour 2026',
+            name: '2026 Summer Tour',
             item: TOUR_STATS_SUMMER_URL,
           },
         ],
@@ -548,6 +554,7 @@ export const PRERENDER_ROUTES = [
     description: TOUR_STATS_SPHERE_DESCRIPTION,
     canonicalUrl: TOUR_STATS_SPHERE_URL,
     h1: '2026 Sphere tour statistics',
+    tourStatsSeoSlug: '2026-sphere',
     paragraphs: [
       'Tour Insights for the 2026 Sphere run—setlist statistics, most-played songs, Sphere tour bustouts, and gap highlights from the inaugural Setlist Pick \'Em tour.',
       'Statistics refresh every night the band plays live, so the picture keeps getting sharper as you make picks.',
@@ -556,13 +563,15 @@ export const PRERENDER_ROUTES = [
     buildJsonLd: buildTourStatsSphereJsonLd,
   },
   {
-    path: '/tour-stats/summer-tour-2026',
+    path: '/tour-stats/2026-summer-tour',
     title: TOUR_STATS_SUMMER_TITLE,
     description: TOUR_STATS_SUMMER_DESCRIPTION,
     canonicalUrl: TOUR_STATS_SUMMER_URL,
-    h1: 'Summer Tour 2026 setlist statistics',
+    h1: '2026 Summer Tour setlist statistics',
+    /** Build-time Firestore REST enrich (#928). */
+    tourStatsSeoSlug: '2026-summer-tour',
     paragraphs: [
-      'Tour Insights for Phish Summer Tour 2026—setlist statistics, most-played songs, unique songs, summer tour bustouts, and gap highlights.',
+      'Tour Insights for Phish 2026 Summer Tour—setlist statistics, most-played songs, unique songs, summer tour bustouts, and gap highlights.',
       'Statistics refresh every night the band plays live, so the picture keeps getting sharper as you make picks.',
       'Tour-wide song trends for fans—play the game to unlock personal stats as you compete.',
     ],

@@ -82,6 +82,9 @@ jobs:
       - name: SEO prerender routes (crawler HTML)
         run: npm run verify:seo-prerender
 
+      - name: Tour-stats SEO facts helpers (#928)
+        run: npm run test:tour-stats-seo-facts
+
       - name: SEO string sync (description mirrors)
         run: npm run verify:seo-strings
 

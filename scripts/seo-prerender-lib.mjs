@@ -154,17 +154,18 @@ function injectJsonLd(html, jsonLd) {
   return cleaned.replace(/<\/head>/i, `  ${script}\n</head>`);
 }
 
-function buildCrawlerBody(route) {
+function buildCrawlerBody(route, factsHtml = '') {
   const paras = route.paragraphs
     .map((p) => `    <p>${escapeHtml(p)}</p>`)
     .join('\n');
+  const factsBlock = factsHtml ? `\n${factsHtml}` : '';
   // Thin top progress bar + crawler main: content visible while JS loads.
   // createRoot replaces the whole #root once React mounts.
   return `${buildMarketingBootShellMarkup()}
 <!--seo-prerender:${escapeHtml(route.path)}-->
   <main data-seo-prerender="true">
     <h1>${escapeHtml(route.h1)}</h1>
-${paras}
+${paras}${factsBlock}
   </main>`;
 }
 
@@ -178,8 +179,15 @@ function injectRootBody(html, bodyInner) {
 /**
  * Inject route-specific SEO into a Vite SPA `index.html` shell.
  * React `createRoot` still replaces `#root` for browsers.
+ *
+ * @param {string} shellHtml
+ * @param {object} route
+ * @param {{
+ *   factsHtml?: string,
+ *   jsonLd?: object,
+ * }} [enrichment] optional tour-stats aggregate facts (#928)
  */
-export function injectPrerenderHtml(shellHtml, route) {
+export function injectPrerenderHtml(shellHtml, route, enrichment = {}) {
   let html = shellHtml;
   html = upsertTitle(html, route.title);
   html = upsertMetaByName(html, 'description', route.description);
@@ -197,8 +205,12 @@ export function injectPrerenderHtml(shellHtml, route) {
   html = upsertMetaByName(html, 'twitter:image', SEO_CONFIG.ogImageUrl);
   html = upsertLinkCanonical(html, route.canonicalUrl);
   html = ensureFavicons(html);
-  html = injectJsonLd(html, route.buildJsonLd());
-  html = injectRootBody(html, buildCrawlerBody(route));
+  const jsonLd = enrichment.jsonLd || route.buildJsonLd();
+  html = injectJsonLd(html, jsonLd);
+  html = injectRootBody(
+    html,
+    buildCrawlerBody(route, enrichment.factsHtml || ''),
+  );
   return html;
 }
 
