@@ -52,6 +52,11 @@ export default function SplashPageShell({
           />
         </main>
 
+        {/* Primary site links above the legal footer rule (#948). */}
+        <div className="relative z-10 px-4 pb-4 pt-6 sm:px-6 lg:px-8">
+          <MarketingFooterNav variant="primary" />
+        </div>
+
         <footer className="relative z-10 border-t border-slate-800/60 bg-transparent px-4 py-6 text-center text-xs font-medium leading-relaxed text-slate-500 sm:px-6 lg:px-8">
           <p>
             &copy; {new Date().getFullYear()} Road2 Media, LLC. All rights reserved.
@@ -68,7 +73,7 @@ export default function SplashPageShell({
             </a>
             .
           </p>
-          <MarketingFooterNav />
+          <MarketingFooterNav variant="legal" className="mt-3" />
         </footer>
 
         {children}

@@ -5,11 +5,15 @@ import {
   BRAND_SPLASH_HEADER_VINYL_MARK_SRC,
   brandSplashHeaderVinylMarkImgClassNames,
 } from '../../../shared/config/branding';
-import { MarketingFooterNav, MarketingHeaderNav } from './MarketingSiteNav';
+import {
+  MarketingFooterNav,
+  MarketingHeaderNav,
+  MarketingMobileMenu,
+} from './MarketingSiteNav';
 
 /**
  * Shell for standalone marketing / educational pages.
- * Sticky header: home + primary marketing nav (#663); footer shares the same links.
+ * Sticky header: home + primary marketing nav (#663 / #706); footer is legal chrome (#948).
  *
  * Home uses a real `<a href="/">` (not React Router `<Link>`) so returning from
  * app-document surfaces (`/login`, invite VIP) always reloads the marketing
@@ -20,7 +24,7 @@ export default function MarketingPageShell({ children }) {
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
       <header className="sticky top-0 z-50 flex h-[5.35rem] items-center border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg sm:h-[5.25rem]">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
           <a
             href="/"
             aria-label="Setlist Pick 'Em — back to home"
@@ -39,18 +43,28 @@ export default function MarketingPageShell({ children }) {
             </span>
           </a>
 
-          <MarketingHeaderNav className="hidden md:flex" />
+          {/* Desktop: nav near center (slight right bias); Home stays right. */}
+          <MarketingHeaderNav className="pointer-events-auto absolute left-[52%] top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:flex" />
 
-          <a
-            href="/"
-            className="inline-flex shrink-0 items-center gap-1 rounded-sm text-sm font-semibold text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-            <span className="hidden sm:inline">Home</span>
-          </a>
+          {/* Mobile: logo already goes home — hamburger alone on the far right (#706). */}
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <a
+              href="/"
+              className="hidden items-center gap-1 rounded-sm text-sm font-semibold text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue sm:inline-flex"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden />
+              <span>Home</span>
+            </a>
+            <MarketingMobileMenu />
+          </div>
         </div>
       </header>
       <main className="w-full flex-1">{children}</main>
+
+      <div className="relative z-10 px-4 pb-4 pt-10 sm:px-6 lg:px-8">
+        <MarketingFooterNav variant="primary" />
+      </div>
+
       <footer className="relative z-10 border-t border-slate-800/60 bg-transparent px-4 py-6 text-center text-xs font-medium leading-relaxed text-slate-500 sm:px-6 lg:px-8">
         <p>&copy; {new Date().getFullYear()} Road2 Media, LLC. All rights reserved.</p>
         <p className="mt-1">
@@ -65,7 +79,7 @@ export default function MarketingPageShell({ children }) {
           </a>
           .
         </p>
-        <MarketingFooterNav />
+        <MarketingFooterNav variant="legal" className="mt-3" />
       </footer>
     </div>
   );

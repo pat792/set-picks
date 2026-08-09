@@ -34,12 +34,12 @@ export default function SplashHeroSection({ onPlayNowClick, onAuthCtaIntent }) {
           </p>
 
           <p className="text-base font-normal leading-relaxed text-slate-300 md:text-lg md:leading-relaxed">
-            Predict the setlist. Win the night. Make picks for tonight&apos;s show, watch scores
-            update as songs are played, and compete with your tour crew for the top spot.
+            Make picks for tonight&apos;s show, watch scores update as songs are played, and
+            compete with your tour crew for the top spot.
           </p>
 
           <p className="mt-4 text-base font-normal leading-relaxed text-slate-300 sm:mt-5 md:text-lg md:leading-relaxed">
-            What started as a game on paper 25 years ago is now a live setlist game for friends at
+            What started as a game on paper 25 years ago is now a live setlist game to play at
             the show and on couch tour. Invite your friends, track{' '}
             <Link to="/tour-stats" className={LINK_ON_DARK}>
               tour stats
@@ -63,10 +63,10 @@ export default function SplashHeroSection({ onPlayNowClick, onAuthCtaIntent }) {
             onPointerEnter={onAuthCtaIntent}
             onFocus={onAuthCtaIntent}
             onPointerDown={onAuthCtaIntent}
-            aria-label="Make picks now: create an account"
+            aria-label="Jump on Tour: create an account"
             className="w-full min-w-[12rem] sm:w-auto"
           >
-            Make picks now
+            Jump on Tour
           </Button>
           <nav
             className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm sm:gap-x-8"
