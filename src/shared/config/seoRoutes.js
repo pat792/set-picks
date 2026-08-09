@@ -123,9 +123,9 @@ function buildHomeJsonLd() {
   };
 }
 
-const HOW_IT_WORKS_TITLE = "How to Play Setlist Pick'Em | The Live Music Prediction Game";
+const HOW_IT_WORKS_TITLE = "How to Play Setlist Pick'Em | Show-Night Walkthrough";
 const HOW_IT_WORKS_DESCRIPTION =
-  "Learn how Setlist Pick'Em works: lock song picks before showtime, score live as the setlist unfolds, and unlock personal stats as you compete with other setlist pickers. Live with Phish today—more bands soon.";
+  "Lock picks before showtime, score live as the setlist unfolds, compete in pools or global standings, and unlock personal stats as you play. Free setlist prediction game—live with Phish today, more bands soon.";
 const HOW_IT_WORKS_URL = `${SEO_CONFIG.siteUrl}/how-it-works`;
 
 function buildHowItWorksJsonLd() {
@@ -148,20 +148,26 @@ function buildHowItWorksJsonLd() {
           {
             '@type': 'HowToStep',
             position: 1,
-            name: 'Lock It In',
-            text: 'Pick openers, closers, encore, and a wildcard before showtime. Earn points for correct picks, higher points for exact slot picks, plus a Bustout Boost for calling longshots.',
+            name: 'Lock your setlist card',
+            text: 'Before showtime, lock six calls: Set 1 opener and closer, Set 2 opener and closer, encore, and wildcard. Exact slot hits score more; rare songs can trigger a Bustout Boost.',
           },
           {
             '@type': 'HowToStep',
             position: 2,
-            name: 'Watch It Unfold',
-            text: "Live scores and standings update as songs are played. See your picks and everyone else's light up the leaderboard.",
+            name: 'Follow the show-night timeline',
+            text: 'Before the show, lock picks and peek at tour stats. During the show, scores and standings update as songs land. After the show, final grades and tour standings post.',
           },
           {
             '@type': 'HowToStep',
             position: 3,
-            name: 'Claim the Crown',
-            text: 'Challenge friends in private pools and compete in global standings. Your personal stats grow with every show you play.',
+            name: 'Compete in pools or global standings',
+            text: 'Invite friends to private pools for crew-only standings, or compete with everyone on the global board for the show and the tour. Same picks; different rivalries.',
+          },
+          {
+            '@type': 'HowToStep',
+            position: 4,
+            name: 'Unlock personal stats as you play',
+            text: 'Public tour trends are open to everyone. Your picking average, Bustout Boost hits, and pick heatmaps unlock as you earn points and climb the board.',
           },
         ],
       },
@@ -458,11 +464,10 @@ export const PRERENDER_ROUTES = [
     canonicalUrl: HOW_IT_WORKS_URL,
     h1: "How to Play Setlist Pick'Em",
     paragraphs: [
-      'The free live setlist prediction game for Phish fans—and a home for more bands soon. Lock your picks before the lights go down, score as the setlist unfolds, and compete with friends.',
-      'We track key tour insights and refresh them every night the band plays live. Sign in to unlock personal stats as you earn points against other setlist pickers.',
-      'Lock It In: Pick openers, closers, encore, and a wildcard before showtime.',
-      'Watch It Unfold: Live scores and standings update as songs are played.',
-      'Claim the Crown: Challenge friends in private pools and compete in global standings.',
+      "Setlist Pick'Em is a free live setlist prediction game for Phish fans—and a home for more bands soon. Here's the show-night walkthrough: what you lock, how scoring moves, and where your crew ranks.",
+      'Before the lights go down, lock six calls: Set 1 opener and closer, Set 2 opener and closer, encore, and wildcard. Exact slot hits score more; rare songs can trigger a Bustout Boost.',
+      'Before the show, lock picks and peek at tour stats. During the show, scores update live. After the show, final grades and personal stats grow every night you play.',
+      'Compete in private pools with friends or on global standings—same picks, different rivalries. Personal stats unlock as you earn points and climb the board.',
     ],
     buildJsonLd: buildHowItWorksJsonLd,
   },

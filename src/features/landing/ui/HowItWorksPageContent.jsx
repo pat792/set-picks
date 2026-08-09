@@ -2,76 +2,136 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
-import {
-  CARD_LINK_ON_LIGHT,
-  LINK_ON_LIGHT,
-} from '../../../shared/ui/surfaceLinkStyles';
+import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
 import AppDocumentAuthLink from './AppDocumentAuthLink';
 
 /**
- * Standalone "How It Works" content for the `/how-it-works` public page.
+ * Full show-night walkthrough for `/how-it-works` (#937).
+ * Distinct from splash Game Format teaser (3 cards).
+ * Copy source: `content/marketing/942-content-ia-drafts.md`.
  */
 export default function HowItWorksPageContent() {
   return (
-    <section className="relative z-10 w-full bg-slate-50 py-20 md:py-24 lg:py-32">
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="mb-4 text-center font-display text-display-lg font-bold text-slate-900 md:text-display-lg-lg">
+    <article className="relative z-10 w-full bg-slate-50 py-16 md:py-24">
+      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
+        <h1 className="mb-5 text-center font-display text-3xl font-bold text-slate-900 sm:text-4xl md:text-5xl">
           How to Play Setlist Pick&apos;Em
         </h1>
-        <p className="mx-auto mb-6 max-w-2xl text-center text-lg text-slate-600">
-          The free live{' '}
+        <p className="mb-12 text-center text-lg leading-relaxed text-slate-600">
+          Setlist Pick&apos;Em is a free live{' '}
           <Link to="/phish-setlist-prediction-game" className={LINK_ON_LIGHT}>
             setlist prediction game
           </Link>{' '}
-          for Phish fans—and a home for more bands soon. Lock your setlist picks before the lights go
-          down, score as the setlist unfolds, and compete with friends predicting setlists together.
+          for Phish fans—and a home for more bands soon. Here&apos;s the show-night
+          walkthrough: what you lock, how scoring moves, and where your crew ranks.
         </p>
-        <p className="mx-auto mb-12 max-w-2xl text-center text-base leading-relaxed text-slate-500">
-          We keep an eye on the tour for you: key song trends and bustout signals on{' '}
-          <Link to="/tour-stats" className={LINK_ON_LIGHT}>
-            tour stats
-          </Link>{' '}
-          update every night the band plays live. Sign in to unlock personal stats as you earn points
-          and climb the board against other setlist pickers.
-        </p>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
-          <div className="flex flex-col items-center rounded-2xl bg-white p-6 text-center shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200/60 md:items-start md:p-8 md:text-left">
-            <div className="mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xl font-black text-emerald-600">1</div>
-            <h2 className="mb-3 text-xl font-bold text-slate-900">Lock It In</h2>
-            <p className="leading-relaxed text-slate-600">
-              Pick openers, closers, encore and wildcard before showtime. Earn points for correct
-              picks, higher points for exact slot picks, plus a Bustout Boost&trade; for calling longshots.
-            </p>
-            <Link to="/how-scoring-works" className={CARD_LINK_ON_LIGHT}>
-              Learn how scoring works
-              <ArrowRight className="h-4 w-4" aria-hidden />
+
+        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+          <h2 className="font-display text-2xl font-bold text-slate-900">
+            Your setlist card
+          </h2>
+          <p>Before the lights go down, you lock six calls:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>Set 1 opener and closer</li>
+            <li>Set 2 opener and closer</li>
+            <li>Encore</li>
+            <li>Wildcard</li>
+          </ul>
+          <p>
+            Correct picks earn points; exact slot hits score more. Call rare songs
+            and you can trigger a Bustout Boost™. For a full breakdown, check out{' '}
+            <Link to="/how-scoring-works" className={LINK_ON_LIGHT}>
+              how scoring works
             </Link>
-          </div>
-          <div className="flex flex-col items-center rounded-2xl bg-white p-6 text-center shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200/60 md:items-start md:p-8 md:text-left">
-            <div className="mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xl font-black text-blue-600">2</div>
-            <h2 className="mb-3 text-xl font-bold text-slate-900">Watch It Unfold</h2>
-            <p className="leading-relaxed text-slate-600">
-              Live scores and standings update as songs are played. See your picks—and your
-              friends&apos;—light up the leaderboard.
-            </p>
-          </div>
-          <div className="flex flex-col items-center rounded-2xl bg-white p-6 text-center shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200/60 md:items-start md:p-8 md:text-left">
-            <div className="mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-100 text-xl font-black text-purple-600">3</div>
-            <h2 className="mb-3 text-xl font-bold text-slate-900">Claim the Crown</h2>
-            <p className="leading-relaxed text-slate-600">
-              Challenge friends in private pools and compete in global standings. Your personal
-              stats grow with every show you play—across the tour and beyond.
-            </p>
-          </div>
-        </div>
-        <p className="mx-auto mt-10 max-w-2xl text-center text-sm leading-relaxed text-slate-500">
-          Peek at public{' '}
-          <Link to="/tour-stats" className={LINK_ON_LIGHT}>
-            tour setlist stats
-          </Link>{' '}
-          anytime—then play to unlock the personal side of the story.
+            .
+          </p>
+        </section>
+
+        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+          <h2 className="font-display text-2xl font-bold text-slate-900">
+            Show-night timeline
+          </h2>
+          <ol className="list-decimal space-y-4 pl-5">
+            <li>
+              <strong className="text-slate-900">Before the show</strong> — Open
+              tonight&apos;s card, lock picks before showtime. Peek at{' '}
+              <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+                tour stats
+              </Link>{' '}
+              (song frequency, bustouts, gap highlights) that refresh every night
+              the band plays live.
+            </li>
+            <li>
+              <strong className="text-slate-900">During the show</strong> — Scores
+              and standings update as songs land. Follow the live setlist in the
+              app, whether you&apos;re at the venue or on couch tour.
+            </li>
+            <li>
+              <strong className="text-slate-900">After the show</strong> — Final
+              grades post for the night. Tour standings move. Personal stats grow
+              every night you play.
+            </li>
+          </ol>
+        </section>
+
+        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+          <h2 className="font-display text-2xl font-bold text-slate-900">
+            Pools vs global
+          </h2>
+          <p>Play two ways at once:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>
+              <strong className="text-slate-900">Private pools</strong> — Invite
+              friends for crew-only standings.
+            </li>
+            <li>
+              <strong className="text-slate-900">Global standings</strong> —
+              Compete with everyone on the board for the show and the tour.
+            </li>
+          </ul>
+          <p>Same picks. Different rivalries.</p>
+        </section>
+
+        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+          <h2 className="font-display text-2xl font-bold text-slate-900">
+            Personal stats unlock when you play
+          </h2>
+          <p>
+            Tour trends on{' '}
+            <Link to="/tour-stats" className={LINK_ON_LIGHT}>
+              tour stats
+            </Link>{' '}
+            are open to everyone. Your personal story—picking average, Bustout
+            Boost™ hits, pick heatmaps—unlocks as you earn points and climb the
+            board.
+          </p>
+        </section>
+
+        <p className="mb-10 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+          <Link
+            to="/phish-setlist-prediction-game"
+            className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}
+          >
+            The game
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+          <Link
+            to="/how-scoring-works"
+            className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}
+          >
+            How scoring works
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+          <Link
+            to="/tour-stats"
+            className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}
+          >
+            Tour stats
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
         </p>
-        <div className="mt-10 flex justify-center">
+
+        <div className="flex justify-center border-t border-slate-200 pt-10">
           <AppDocumentAuthLink
             signup
             className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-10 py-3.5 text-base font-bold text-white shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] transition-all hover:bg-brand-primary-hover hover:shadow-[0_15px_30px_-15px_rgba(16,185,129,0.6)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue"
@@ -80,6 +140,6 @@ export default function HowItWorksPageContent() {
           </AppDocumentAuthLink>
         </div>
       </div>
-    </section>
+    </article>
   );
 }
