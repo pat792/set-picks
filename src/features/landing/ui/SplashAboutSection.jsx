@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom';
 import Button from '../../../shared/ui/Button';
 import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
+/** Shared type for splash bottom peer links (#947). */
+const SPLASH_BOTTOM_LINK = `text-sm ${LINK_ON_DARK}`;
+
 export default function SplashAboutSection({
   sectionRef,
   headingRef,
@@ -53,29 +56,30 @@ export default function SplashAboutSection({
         </div>
 
         <nav
-          className="mt-16 flex flex-wrap items-center justify-start gap-x-2 gap-y-2 border-t border-slate-800 pt-8 text-center text-sm lg:justify-end"
+          className="mt-16 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-t border-slate-800 pt-8 lg:justify-end"
           aria-label="Jump to How it works, tour stats, or create an account"
         >
-          <Link to="/how-it-works" className={LINK_ON_DARK}>
+          <Link to="/how-it-works" className={SPLASH_BOTTOM_LINK}>
             How it works
           </Link>
-          <span className="mx-2 select-none text-slate-600" aria-hidden>
+          <span className="select-none text-sm text-slate-600" aria-hidden>
             ·
           </span>
-          <Link to="/tour-stats" className={LINK_ON_DARK}>
+          <Link to="/tour-stats" className={SPLASH_BOTTOM_LINK}>
             Tour stats
           </Link>
-          <span className="mx-2 select-none text-slate-600" aria-hidden>
+          <span className="select-none text-sm text-slate-600" aria-hidden>
             ·
           </span>
           <Button
             variant="link"
+            size="none"
             type="button"
             onClick={onGetStartedClick}
             onPointerEnter={onAuthCtaIntent}
             onFocus={onAuthCtaIntent}
             onPointerDown={onAuthCtaIntent}
-            className={LINK_ON_DARK}
+            className={SPLASH_BOTTOM_LINK}
           >
             Get started
           </Button>
