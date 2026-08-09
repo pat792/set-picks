@@ -3,6 +3,20 @@
  */
 
 /**
+ * Path for a public tour filter selection (#929).
+ * Always use the slug URL — including the current/default tour — so Summer
+ * (and future defaults) share an address bar with their SEO prerender page.
+ *
+ * @param {string} slug
+ * @returns {string}
+ */
+export function publicTourStatsPathForSlug(slug) {
+  const next = String(slug ?? '').trim();
+  if (!next) return '/tour-stats';
+  return `/tour-stats/${encodeURIComponent(next)}`;
+}
+
+/**
  * @param {{ tourSlug?: string, tourLabel?: string, lastShowDate?: string | null }} a
  * @param {{ tourSlug?: string, tourLabel?: string, lastShowDate?: string | null }} b
  * @returns {number}

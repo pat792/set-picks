@@ -98,6 +98,8 @@ export default function PublicTourStatsPage() {
           error={screen.error}
           stats={screen.stats}
           onSelectTour={screen.selectTour}
+          routeHasSlug={screen.routeHasSlug}
+          defaultTourSlug={screen.defaultTourSlug}
         />
       </MarketingPageShell>
     </>
