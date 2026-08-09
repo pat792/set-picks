@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.61.1] — 2026-08-09
+
+### Fixed
+- **Splash hero wordmark sharpness (#962)** — render the gradient lockup as inline SVG (`?raw`) instead of `<img src=".svg">`, so WebKit keeps vector paint; crop via `preserveAspectRatio` slice (mobile top / `sm+` mid).
+
+---
+
 ## [1.61.0] — 2026-08-09
 
 ### Added
