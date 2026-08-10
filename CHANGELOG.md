@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.61.2] — 2026-08-09
+
+### Changed
+- **Tour stats above-fold copy** — public `/tour-stats*` hero is one short lede (plus a compact hub Current/Archive line) so the tour filter sits in the first viewport; onboarding/SEO deep links move below the stats.
+
+### Fixed
+- **Tour stats Bustouts section tooltip** — restore the header InfoTooltip using the same copy as the dashboard Bustouts tile; keep the public #929 SEO description under the header.
+
+---
+
 ## [1.61.1] — 2026-08-09
 
 ### Fixed
