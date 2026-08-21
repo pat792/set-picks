@@ -70,7 +70,7 @@ GSC live-test console noise (CSP Report-Only, service worker reject, reCAPTCHA s
 
 Track these weekly in Search Console (Performance → Queries) and spot-check SERPs / AI Overviews.
 
-**Strategy (own / bridge / compete / concede):** [`content/marketing/pickem-search-plan-2026-08.md`](../content/marketing/pickem-search-plan-2026-08.md) — authoritative Pick'em search plan from 2026-08 SERP notes. Machine-readable registry lands under #931.
+**Strategy (own / bridge / compete / concede):** [`content/marketing/pickem-search-plan-2026-08.md`](../content/marketing/pickem-search-plan-2026-08.md) — EiC-approved Pick'em search plan (epic #972). Machine-readable registry lands under #931.
 
 ### Brand / navigational
 

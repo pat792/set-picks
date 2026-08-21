@@ -1,11 +1,22 @@
 # Pick'em Search Plan — authoritative SERP / GEO strategy
 
-**Status:** L0 draft (Marketing Specialist → EiC review)  
+**Status:** EiC-approved L0 (2026-08-21) — **no execution yet**  
 **Date:** 2026-08-21  
-**Tracking:** #970  
-**Source:** Manual SERP spot-checks (owner notes) + `docs/SEO_GEO_PLAYBOOK.md` + epic #926 / #657  
+**Epic:** #972  
+**Tracking (plan/decisions):** #970  
+**Children:** #973 (Phase 1 bridge) · #974 (owned social) · #975 (gated doorway) · reuse #930 / #926 / #931–#934 / #959  
+**Source:** Manual SERP spot-checks (owner notes) + `docs/SEO_GEO_PLAYBOOK.md` + prior epics #926 / #657  
 **Canonical host:** `https://www.setlistpickem.com`  
 **Out of scope:** Buying links, SERP HTML scraping, cloning archive encyclopedias, unlocking `/dashboard/*` for crawlers
+
+### Decisions (2026-08-21)
+
+| # | Decision | Status |
+|---|----------|--------|
+| 1 | Adopt this plan as SEO/GEO north star | **Approved** |
+| 2 | Keyword title includes prediction + picks + game (bridge C6/C7) | **Approved** → #973 |
+| 3 | Social as SEO authority: show-week **and** always-on owned social | **Approved** → #974 |
+| 4 | `/phish-picks` doorway only if we can overtake competition | **Approved (gated)** → #975 · **no build yet** |
 
 ---
 
@@ -108,7 +119,7 @@ Track in GSC + manual SERP/AI spot-checks (playbook §4 + upcoming #931 registry
    - Ensure “prediction” and “picks” appear in title *or* H1 *or* first paragraph (not stuffed in all three).
    - Proposed title pattern (draft): `Phish Setlist Prediction Game & Picks | Setlist Pick'Em` — EiC must approve; avoid looking like phishpicks.net.
 2. Add FAQ entities: “What are Phish setlist picks?” → answer = lock six slots in our game (not tip lists).
-3. **Do not** ship a separate `/phish-picks` doorway unless #931 + GSC show durable demand *and* we can out-differentiate; default is strengthen the existing keyword URL.
+3. **Do not** ship a separate `/phish-picks` doorway until #975 gate is green (overtake evidence). Default: strengthen the existing keyword URL (#973).
 4. Feed title/H1 gap findings into #933 (competitor gap briefs).
 
 ### W3 — Stats + bustouts (selective authority)
@@ -126,18 +137,20 @@ Track in GSC + manual SERP/AI spot-checks (playbook §4 + upcoming #931 registry
 
 ### W4 — Off-site authority (close the Instagram / backlink gap)
 
-**Owner:** Social Demand Gen (L2 queue) + Marketing  
+**Owner:** Social Demand Gen (L2 queue) + Marketing · **Issue:** #974  
 **Problem:** phishpicks.net wins `phish picks` partly via **IG volume → indexed posts → referring domains**. We have product share surfaces but no sustained SEO-aware social cadence.
 
 **Actions:**
 
-1. **Cadence brief** (draft → EiC): 2–4 posts / show week during tour — formats that earn saves/shares:
+1. **Cadence brief** (draft → EiC): **show weeks** (2–4 posts / week) **and always-on** off-week product/authority posts:
    - Pre-show: “card is open” + link to app (not a tip sheet of songs).
    - Mid/post: Bustout Boost hits, pool leaderboard moments, tour-stats “most played this tour.”
+   - Off-week: how-to / Bustout Boost education, evergreen tour-stats highlights, soft brand/`/about` beats.
 2. Every public URL uses playbook §6 UTMs (`utm_campaign=seo_geo`).
 3. Reddit/Discord: reply-only when useful; link tour-stats or how-it-works — never spam.
 4. Pursue 1–2 **honest** directory/newsletter mentions (jam-band tools lists) after EiC approval — still no paid links.
 5. Track referring domains in GSC Links monthly; goal is trend, not vanity DR.
+6. **Human:** create owned IG (Business/Creator) + optional X/Threads before first publish.
 
 ### W5 — Measurement loop (stop flying blind)
 
@@ -192,14 +205,15 @@ Stable IDs — keep forever once logged.
 
 ## 8. Ship order (recommended)
 
-| Phase | Focus | Depends on | Artifact |
-|-------|--------|------------|----------|
-| **0 — Now** | Log snapshot; adopt this plan; EiC approve | — | This doc |
-| **1 — Meta bridge** | Title/H1/FAQ tune on keyword (+ home if needed) for C6/C7 | EiC | Copy PR → `staging` |
-| **2 — Index & verify** | GSC index summer tour-stats; Googlebot curl shows bustout names | #927–#929 live | Playbook §2 checklist |
-| **3 — Social authority** | L2 IG/social package + UTM discipline | EiC | `crew/output/demand_gen/` drafts |
-| **4 — Optimize engine** | Registry + weekly packs + competitor briefs | #931–#934 | Packs on #926 |
-| **5 — Only if data says so** | Optional bustouts alias page / deeper stats modules | 4+ weeks GSC | New issue under #926 |
+| Phase | Focus | Issue | Depends on | Artifact |
+|-------|--------|-------|------------|----------|
+| **0 — Now** | Plan + decisions; epic graph | #972 / #970 | — | This doc (**done**) |
+| **1 — Meta bridge** | Title/H1/FAQ for C6/C7 | #973 | Kickoff | Copy PR → `staging` |
+| **2 — Index & verify** | GSC summer tour-stats; bustout HTML | #930 (reuse) | #927–#929 live | Playbook §2 |
+| **3 — Social authority** | Owned IG/X + show-week **and** always-on packs | #974 | Accounts + EiC | `crew/output/demand_gen/` |
+| **4 — Optimize engine** | Registry + weekly packs + competitor briefs | #931–#934 under #926 | — | Packs on #926 |
+| **5 — Gated doorway** | `/phish-picks` only if overtake evidence | #975 | Gate checklist | **No build until green** |
+| **6 — Auto tours** | Future tour SEO expand | #959 under #926 | Gate on aggregates | Prerender/sitemap |
 
 ---
 
@@ -207,9 +221,10 @@ Stable IDs — keep forever once logged.
 
 - Outranking phish.net for archival setlist queries.
 - Publishing nightly “predicted setlist” blog posts to chase `phish picks`.
-- Doorway pages for every keyword variant.
+- Doorway pages for every keyword variant (single gated doorway max — #975).
 - Scraping Google SERPs or competitor full content.
 - Making private game surfaces crawlable.
+- Agents creating network accounts (human prerequisite for #974).
 
 ---
 
@@ -218,19 +233,21 @@ Stable IDs — keep forever once logged.
 | Work | A | R | C |
 |------|---|---|---|
 | Plan approve | EiC | Marketing Specialist | CCO, Brand Systems, GPM |
-| On-page copy/meta | EiC | Marketing → eng PR | Brand Systems |
-| Tour-stats SEO remainders | GPM / CTO | Engineering | Marketing |
-| Social / IG cadence | EiC (L2) | Social Demand Gen | Marketing |
-| Weekly measurement | GPM | Reporting / #932 | CDO, Marketing |
+| On-page copy/meta (#973) | EiC | Marketing → eng PR | Brand Systems |
+| Tour-stats SEO remainders (#926) | GPM / CTO | Engineering | Marketing |
+| Social / IG cadence (#974) | EiC (L2) | Social Demand Gen | Marketing, Brand Systems |
+| Weekly measurement (#931–#934) | GPM | Reporting / #932 | CDO, Marketing |
+| Doorway gate (#975) | EiC + CCO | Marketing + eng (when green) | GPM |
 
 ---
 
-## 11. Next human decisions (EiC / CCO)
+## 11. Next human decisions
 
-1. Approve **bridge title pattern** for keyword page (prediction + picks + game) vs keep current titles and only add FAQ entities.
-2. Approve **Social Demand Gen** show-week cadence as SEO-authority work (not just brand awareness).
-3. Confirm we will **not** open a `/phish-picks` route in Phase 1–3.
-4. Prioritize #931 registry commit so this snapshot becomes machine-readable.
+**Resolved 2026-08-21** — see Decisions table at top. Remaining before execution:
+
+1. Create owned IG (+ optional X/Threads) accounts.
+2. Explicit **kickoff** per child (#973 / #974 / #930) — no silent starts.
+3. Keep #975 blocked until gate evidence.
 
 ---
 
@@ -238,4 +255,4 @@ Stable IDs — keep forever once logged.
 
 - Ops checklist: [`docs/SEO_GEO_PLAYBOOK.md`](../../docs/SEO_GEO_PLAYBOOK.md)
 - Content IA: [`content/marketing/942-content-ia-drafts.md`](./942-content-ia-drafts.md)
-- Epic: #926 (enrichment + Optimize) · #657 (findability foundation)
+- Epic: #972 · Stats/Optimize: #926 · Foundation: #657
