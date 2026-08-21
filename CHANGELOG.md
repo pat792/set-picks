@@ -12,6 +12,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.61.3] — 2026-08-21
+
+### Added
+- **Pick'em search plan** — `content/marketing/pickem-search-plan-2026-08.md`: SERP snapshot (wins/losses), intent map (own/bridge/compete/concede), workstreams, and query IDs C6–C7 / S4 for epic #926.
+
+### Changed
+- **SEO/GEO playbook** — expand baseline query set + record 2026-08 competitive SERP notes; link the search plan.
+
+---
+
 ## [1.61.2] — 2026-08-09
 
 ### Changed

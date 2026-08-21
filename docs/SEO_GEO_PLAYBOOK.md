@@ -70,6 +70,8 @@ GSC live-test console noise (CSP Report-Only, service worker reject, reCAPTCHA s
 
 Track these weekly in Search Console (Performance → Queries) and spot-check SERPs / AI Overviews.
 
+**Strategy (own / bridge / compete / concede):** [`content/marketing/pickem-search-plan-2026-08.md`](../content/marketing/pickem-search-plan-2026-08.md) — authoritative Pick'em search plan from 2026-08 SERP notes. Machine-readable registry lands under #931.
+
 ### Brand / navigational
 
 | ID | Query |
@@ -87,18 +89,33 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | C3 | `phish pick em` / `phish pick'em` / `setlist picks game` |
 | C4 | `live setlist prediction` |
 | C5 | `fantasy setlist` / `fantasy setlists` / `phish fantasy setlist` |
+| C6 | `phish setlist prediction` |
+| C7 | `phish picks` / `phish setlist picks` |
 
-**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C5; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar.
+**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C7; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar. C6/C7 are **bridge** queries (see search plan) — strengthen this URL before adding doorways.
 
 ### Stats-intent (after #665 public `/tour-stats`)
 
 | ID | Query |
 |----|--------|
-| S1 | `phish tour setlist stats` |
+| S1 | `phish tour stats` / `phish tour setlist stats` |
 | S2 | `phish song frequency [tour year]` (e.g. summer 2026) |
-| S3 | `phish bustouts [tour]` |
+| S3 | `phish bustouts` / `phish bustouts [tour]` |
+| S4 | `phish unique songs` / `songs played this tour` |
 
-Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere shell; other tours hydrate client-side from `public_tour_stats`.
+Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere + Summer 2026 shells (#927–#929); other tours hydrate client-side from `public_tour_stats` unless opted into `seoRoutes.js` (#959).
+
+### SERP snapshot (2026-08, owner notes)
+
+| Query | Position / note | Top competitors |
+|-------|-----------------|-----------------|
+| C1 `phish setlist game` | **Win** — gen AI + ~#2 SERP | — |
+| C6 `phish setlist prediction` | Not top 10 | phishpicks.net, callingit.live |
+| C7 `phish picks` | Not top 10 | phishpicks.net (IG → backlinks) |
+| S1 `phish tour stats` | ~#7 | ihoz.com, Phantasy Tour |
+| S3 `phish bustouts` | Not top 10 | Reddit, live-music blogs, phish.net |
+
+Re-spot-check these five whenever filling §4. Full game plan: search plan doc above.
 
 ### Profile indexing policy (#661)
 
