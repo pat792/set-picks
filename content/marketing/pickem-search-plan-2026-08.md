@@ -11,7 +11,7 @@
 
 ## 1. Verdict in one paragraph
 
-We already **own the game-intent lane** (`phish setlist game` → #2 SERP + generative citations). We **lose every adjacent high-volume fan phrase** that competitors treat as tip sheets, archives, or Instagram-fed content hubs. The plan is not “rank for everything Phish.” It is: **defend game ownership → bridge prediction/picks queries with differentiated game pages → make tour-stats the answer for stats/bustout *decision* intent → close the off-site authority gap** that phishpicks.net is winning with Instagram + backlinks.
+We already **own the game-intent lane** (`phish setlist game` → 2nd on SERP + generative citations). We **lose every adjacent high-volume fan phrase** that competitors treat as tip sheets, archives, or Instagram-fed content hubs. The plan is not “rank for everything Phish.” It is: **defend game ownership → bridge prediction/picks queries with differentiated game pages → make tour-stats the answer for stats/bustout *decision* intent → close the off-site authority gap** that phishpicks.net is winning with Instagram + backlinks.
 
 ---
 
@@ -19,10 +19,10 @@ We already **own the game-intent lane** (`phish setlist game` → #2 SERP + gene
 
 | Query | Us | Winners | Intent read |
 |-------|----|---------|-------------|
-| `phish setlist game` | **Win** — gen AI + **#2 SERP** | — | Category / product = **our home turf** |
+| `phish setlist game` | **Win** — gen AI + **2nd on SERP** | — | Category / product = **our home turf** |
 | `phish setlist prediction` | Not in top 10 | phishpicks.net, callingit.live | Prediction tips / picks tools — competitors frame as “call the set,” we frame as “game” |
 | `phish picks` | Not in top 10 | phishpicks.net (dominant); IG-driven posts → backlinks | Short-tail brand collision with a peer product |
-| `phish tour stats` | **#7** | ihoz.com, Phantasy Tour | Stats encyclopedia / tour dashboards |
+| `phish tour stats` | **7th** | ihoz.com, Phantasy Tour | Stats encyclopedia / tour dashboards |
 | `phish bustouts` | Not in top 10 | Reddit threads, live-music blogs, phish.net | News + archive gap lists |
 
 **Strategic implication:** Plumbing from #657 / #926 A–C (keyword page, prerender, summer tour URL, crawlable bustout facts) is necessary but not sufficient. Ranking gaps are now **positioning, query-to-URL fit, and off-site authority** — not “are we indexed?”
@@ -79,7 +79,7 @@ Track in GSC + manual SERP/AI spot-checks (playbook §4 + upcoming #931 registry
 |---------|---------|
 | **Defend** | Hold top-3 for `phish setlist game`; keep generative citation |
 | **Bridge (8–12 weeks)** | Appear top-10 for `phish setlist prediction` and at least one `phish pick'em` / `phish picks` variant |
-| **Stats (8–12 weeks)** | Move `phish tour stats` from ~#7 → top-5; earn impressions on ≥1 bustout query pointing at `/tour-stats/*` |
+| **Stats (8–12 weeks)** | Move `phish tour stats` from ~7th → top-5; earn impressions on ≥1 bustout query pointing at `/tour-stats/*` |
 | **Authority** | Measurable referral/organic lift from IG/social UTMs (`utm_campaign=seo_geo`); ≥3 honest citations (Reddit reply, Discord, newsletter) — no PBNs |
 
 ---

@@ -109,10 +109,10 @@ Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from 
 
 | Query | Position / note | Top competitors |
 |-------|-----------------|-----------------|
-| C1 `phish setlist game` | **Win** — gen AI + ~#2 SERP | — |
+| C1 `phish setlist game` | **Win** — gen AI + ~2nd SERP | — |
 | C6 `phish setlist prediction` | Not top 10 | phishpicks.net, callingit.live |
 | C7 `phish picks` | Not top 10 | phishpicks.net (IG → backlinks) |
-| S1 `phish tour stats` | ~#7 | ihoz.com, Phantasy Tour |
+| S1 `phish tour stats` | ~7th | ihoz.com, Phantasy Tour |
 | S3 `phish bustouts` | Not top 10 | Reddit, live-music blogs, phish.net |
 
 Re-spot-check these five whenever filling §4. Full game plan: search plan doc above.
