@@ -28,6 +28,18 @@ Sites like Phish.net and setlist.fm are outstanding archives of what was already
 - Encore: 15 pts
 - Bustout Boost (song gap 30+ shows): +20 pts on top of base
 
+## Tour Insights (tour setlist statistics)
+
+Public aggregates only — never full night setlists. Numbers refresh every night the band plays live.
+
+- Unique songs: distinct titles played this tour (unique songs played this tour).
+- Song frequency: how often each title shows up on this tour (most-played / tour setlist stats). Ties break by all-time plays.
+- Bustouts: songs that returned after a 30+ show gap (bustouts summer tour 2026; Phish bustout list this tour). Same gap band as Bustout Boost™ on a correct pick.
+
+Deep link — 2026 Summer Tour setlist statistics: https://www.setlistpickem.com/tour-stats/2026-summer-tour
+
+Hub (Tour Insights / Phish tour setlist statistics): https://www.setlistpickem.com/tour-stats
+
 ## Links
 
 - Home: https://www.setlistpickem.com/
