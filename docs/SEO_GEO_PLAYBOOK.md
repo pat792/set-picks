@@ -124,6 +124,8 @@ Add/remove rows as pages ship; keep IDs stable once used in the log.
 
 Fill one row per week (Sunday or Monday). Source: Search Console Performance (28-day or weekly filter) + manual SERP/AI Overview spot-check.
 
+**Query IDs:** [`docs/seo/query-registry.json`](seo/query-registry.json) (Child E0 #931). Weekly JSONL write procedure: [`docs/seo/README.md`](seo/README.md).
+
 **Resume (Child D / #930):** the table below is the **interim** log. Keep filling it until Child **E0** [#931](https://github.com/pat792/set-picks/issues/931) (query registry) + **E1** [#932](https://github.com/pat792/set-picks/issues/932) (GSC API + GA4 organic → weekly packs on [#926](https://github.com/pat792/set-picks/issues/926)) land. After E1, this table becomes a pointer — prefer the Action pack + `crew/output/seo/` snapshot over empty Markdown cells. Until then: GSC → Performance → last 7 days → Totals, plus a spot-check of S4–S6 after summer reindex.
 
 | Week starting | Impressions (site) | Clicks | Top query (non-brand) | Best position (C1–C4) | Favicon on `site:setlistpickem.com`? | AI Overview / generative citation? | Notes |
@@ -137,7 +139,7 @@ Fill one row per week (Sunday or Monday). Source: Search Console Performance (28
 | 2026-08-30 | | | | | | | **#930 resume week.** After promote: request indexing on hub + `/tour-stats/2026-summer-tour` + `/llms.txt`; fill last-7-days totals here. |
 | 2026-09-06 | | | | | | | First full week after Child D reindex (if indexing landed 2026-09-02). |
 
-**How to fill Impressions/Clicks:** GSC → Performance → last 7 days → Totals. Optional: export CSV into a spreadsheet; keep this table as the epic-facing summary. Future machine log: `crew/output/seo/` (gitignored; spec in #931 / #932).
+**How to fill Impressions/Clicks:** GSC → Performance → last 7 days → Totals. Optional: export CSV into a spreadsheet; keep this table as the epic-facing summary. Machine log: append-only `crew/output/seo/weekly-log.jsonl` (gitignored — do not commit snapshots). Procedure: [`docs/seo/README.md`](seo/README.md). Automation is #932.
 
 **Favicon check:** Incognito Google → `site:setlistpickem.com` → note whether result icon appears (Child E #662 if still missing after ~2–4 weeks).
 
@@ -208,7 +210,7 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 5. **#666** enrichment after H1 is indexed
 6. ~~#927 / #928 / #929~~ Children A–C (summer slug, crawler facts, fan H2s)
 7. **#930** Child D — llms + this playbook (docs); GSC reindex + UTM share are **human ops after promote** (see §9)
-8. **#931 / #932** Child E0/E1 — query registry + GSC/GA4 weekly packs (replaces empty §4 cells)
+8. **#931 / #932** Child E0/E1 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json) + GSC/GA4 weekly packs (replaces empty §4 cells)
 
 ---
 

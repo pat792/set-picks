@@ -10,6 +10,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+### Added
+- **SEO query registry (#931 / epic #926)** — `docs/seo/query-registry.json` seeds B1–B3, C1–C7, S1–S7 (including #931 fan strings). Weekly append-only GSC log procedure is in `docs/seo/README.md`; snapshots stay under gitignored `crew/output/seo/`.
+
 ---
 
 ## [1.62.1] — 2026-09-02
