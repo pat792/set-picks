@@ -391,6 +391,9 @@ export default function TourStatsView({
         <TourStatsSectionCard
           title={bustoutsTitle}
           titleAs={sectionHeading}
+          // Match dashboard Bustouts tile tooltip (`TILE_DEFS.bustouts.long`).
+          // Public body paragraph below stays — #929 fan-language SEO copy.
+          definition={TILE_DEFS.bustouts.long}
           headerTone="bustout"
         >
           {isPublic ? (

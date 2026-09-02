@@ -7,6 +7,8 @@
  * #853: `/tour-stats*` also uses the marketing shell (+ PublicTourStatsPage preload).
  * #928: tour-stats SEO slugs fetch `public_tour_stats/{slug}` (REST) and embed
  * bustout/frequency facts + FAQ/ItemList JSON-LD for crawlers.
+ * #869: also writes `dist/tour-stats-data/{slug}.json` so public `/tour-stats`
+ * can paint aggregates without App Check / Firestore SDK.
  * Boot shells: `dashboard` / `spa-boot` use `dist/app.html`;
  * `login` uses HTML-first `dist/login.html` (#892);
  * `/privacy` + `/terms` use zero-JS legal door shells (#916).
@@ -72,6 +74,96 @@ function isLegalPrerenderRoute(path) {
   return path === '/privacy' || path === '/terms';
 }
 
+/** @type {Map<string, Record<string, unknown> | null>} */
+const publicTourStatsDocCache = new Map();
+
+/**
+ * @param {string} slug
+ * @returns {Promise<Record<string, unknown> | null>}
+ */
+async function loadPublicTourStatsDoc(slug) {
+  const id = String(slug || '').trim();
+  if (!id) return null;
+  if (publicTourStatsDocCache.has(id)) return publicTourStatsDocCache.get(id);
+  const doc = await fetchFirestoreRestDocument(
+    FIRESTORE_PROJECT_ID,
+    `public_tour_stats/${id}`,
+  );
+  publicTourStatsDocCache.set(id, doc);
+  return doc;
+}
+
+/**
+ * Same-origin CDN snapshots for the public tour-stats data plane (#869).
+ * Missing Firestore docs are skipped — the client falls back to REST.
+ */
+async function emitPublicTourStatsCdnJson() {
+  const outDir = join(distDir, 'tour-stats-data');
+  mkdirSync(outDir, { recursive: true });
+  let indexDoc = null;
+  try {
+    indexDoc = await loadPublicTourStatsDoc('_index');
+  } catch (err) {
+    console.warn(
+      'prerender-seo: failed to fetch public_tour_stats/_index for CDN JSON:',
+      err?.message || err,
+    );
+    return;
+  }
+  if (!indexDoc) {
+    console.warn(
+      'prerender-seo: no public_tour_stats/_index — skip CDN JSON (#869)',
+    );
+    return;
+  }
+  const tours = Array.isArray(indexDoc.tours) ? indexDoc.tours : [];
+  const indexPayload = {
+    tours,
+    defaultTourSlug:
+      typeof indexDoc.defaultTourSlug === 'string'
+        ? indexDoc.defaultTourSlug
+        : '',
+    cdnGeneratedAt: new Date().toISOString(),
+  };
+  writeFileSync(join(outDir, '_index.json'), JSON.stringify(indexPayload));
+  console.log(
+    `prerender-seo: wrote dist/tour-stats-data/_index.json (${tours.length} tours)`,
+  );
+
+  const slugs = new Set(
+    tours
+      .map((t) => (typeof t?.tourSlug === 'string' ? t.tourSlug.trim() : ''))
+      .filter((slug) => slug && !slug.startsWith('_')),
+  );
+  for (const route of PRERENDER_ROUTES) {
+    const seoSlug =
+      typeof route.tourStatsSeoSlug === 'string'
+        ? route.tourStatsSeoSlug.trim()
+        : '';
+    if (seoSlug) slugs.add(seoSlug);
+  }
+
+  for (const slug of slugs) {
+    try {
+      const doc = await loadPublicTourStatsDoc(slug);
+      if (!doc) {
+        console.warn(`prerender-seo: no public_tour_stats/${slug} for CDN JSON`);
+        continue;
+      }
+      const rel = `tour-stats-data/${slug}.json`;
+      writeFileSync(join(outDir, `${slug}.json`), JSON.stringify({ id: slug, ...doc }));
+      console.log(
+        `prerender-seo: wrote dist/${rel} (${Buffer.byteLength(JSON.stringify(doc), 'utf8')} bytes)`,
+      );
+    } catch (err) {
+      console.warn(
+        `prerender-seo: failed CDN JSON for ${slug}:`,
+        err?.message || err,
+      );
+    }
+  }
+}
+
 /**
  * @param {object} route
  * @returns {Promise<{ factsHtml?: string, jsonLd?: object }>}
@@ -81,10 +173,7 @@ async function loadTourStatsEnrichment(route) {
     typeof route.tourStatsSeoSlug === 'string' ? route.tourStatsSeoSlug.trim() : '';
   if (!slug) return {};
   try {
-    const doc = await fetchFirestoreRestDocument(
-      FIRESTORE_PROJECT_ID,
-      `public_tour_stats/${slug}`,
-    );
+    const doc = await loadPublicTourStatsDoc(slug);
     if (!doc) {
       console.warn(
         `prerender-seo: no public_tour_stats/${slug} — static copy only`,
@@ -137,6 +226,8 @@ for (const route of PRERENDER_ROUTES) {
     `prerender-seo: wrote dist/${rel} (${Buffer.byteLength(html, 'utf8')} bytes)${factNote}`,
   );
 }
+
+await emitPublicTourStatsCdnJson();
 
 // HTML-first legal door (#916): full policy body in first HTML, no module graph.
 for (const legalPath of ['/privacy', '/terms']) {

@@ -12,6 +12,36 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.62.1] — 2026-09-02
+
+### Changed
+- **GEO brief + playbook (#930 / epic #926)** — `/llms.txt` adds Tour Insights definitions (unique songs, song frequency, 30+ bustouts) and a 2026 Summer Tour deep link. Playbook §3 adds S4–S6 fan queries; §4 points at Child E0/E1 packs; GSC reindex + UTM off-site share remain human ops after promote.
+
+---
+
+## [1.62.0] — 2026-09-02
+
+### Added
+- **Public tour-stats CDN JSON (#869)** — build writes `/tour-stats-data/_index.json` and `/tour-stats-data/{slug}.json` from world-readable `public_tour_stats` so marketing `/tour-stats*` can paint aggregates without App Check or the Firestore SDK.
+
+### Changed
+- **Public `/tour-stats*` data plane (#869)** — fetch waterfall is same-origin CDN JSON → Firestore REST → SDK last resort. Session cache + background REST revalidate keep the filter/header interactive and clear the skeleton with last-good data. Marketing page no longer kicks App Check on mount.
+
+### Fixed
+- **Safari public tour-stats data gate (#869)** — first meaningful stats no longer wait on reCAPTCHA Enterprise + Firestore WebChannel (the WebKit Private ceiling after #853). Human AC remains: private Safari cold `/tour-stats` vs Chrome mobile.
+
+---
+
+## [1.61.2] — 2026-08-09
+
+### Changed
+- **Tour stats above-fold copy** — public `/tour-stats*` hero is one short lede (plus a compact hub Current/Archive line) so the tour filter sits in the first viewport; onboarding/SEO deep links move below the stats.
+
+### Fixed
+- **Tour stats Bustouts section tooltip** — restore the header InfoTooltip using the same copy as the dashboard Bustouts tile; keep the public #929 SEO description under the header.
+
+---
+
 ## [1.61.1] — 2026-08-09
 
 ### Fixed

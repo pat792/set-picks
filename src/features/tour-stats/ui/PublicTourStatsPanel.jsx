@@ -44,51 +44,31 @@ export default function PublicTourStatsPanel({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <header className="mb-8 space-y-3 text-center sm:text-left">
+      <header className="mb-5 space-y-2 text-center sm:text-left">
         <p className="text-[10px] font-black uppercase tracking-widest text-teal-400">
           Tour Insights
         </p>
         <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">
           {h1}
         </h1>
-        <p className="text-base leading-relaxed text-slate-300">
-          Tour Insights is our window on the latest Phish tour setlist
-          statistics—most-played songs, bustouts by tour (summer, fall, Sphere,
-          and more), and gap highlights that help you sharpen picks. Flip the
-          tour filter, scan what&apos;s getting played, hunt the bustouts, and
-          check the high-gap songs that might be due. Statistics refresh every
-          night the band plays live, so the picture keeps getting sharper as the
-          tour rolls on.
+        <p className="text-base leading-snug text-slate-300">
+          Phish tour setlist statistics: most-played songs, song frequency,
+          bustouts by tour, and gap highlights that help you stay sharp between
+          shows—updated every night the band plays live.
         </p>
         {isHub ? (
-          <p className="text-sm leading-relaxed text-slate-300">
-            <strong className="font-semibold text-white">Current tour:</strong>{' '}
-            open{' '}
+          <p className="text-sm leading-snug text-slate-400">
+            <strong className="font-semibold text-slate-300">Current:</strong>{' '}
             <Link to={currentTourPath} className={LINK_ON_DARK}>
               {currentTourLabel} setlist statistics
-            </Link>{' '}
-            for unique songs, song frequency, and bustouts (30+ show gap). Looking
-            for the Sphere residency as an archive? Browse{' '}
-            <Link to={SPHERE_TOUR_SEO_PATH} className={LINK_ON_DARK}>
-              2026 Sphere tour statistics
             </Link>
-            .
+            {' · '}
+            <strong className="font-semibold text-slate-300">Archive:</strong>{' '}
+            <Link to={SPHERE_TOUR_SEO_PATH} className={LINK_ON_DARK}>
+              2026 Sphere
+            </Link>
           </p>
         ) : null}
-        <p className="text-sm leading-relaxed text-slate-400">
-          We&apos;re starting with Phish and building toward more bands soon.
-          Playing the game unlocks your personal stats as you rack up points and
-          compete with other setlist pickers. New to the format? See{' '}
-          <Link to="/how-it-works" className={LINK_ON_DARK}>
-            how it works
-          </Link>{' '}
-          or what makes this a{' '}
-          <Link to="/phish-setlist-prediction-game" className={LINK_ON_DARK}>
-            Phish setlist prediction game
-          </Link>
-          . This page stays focused on tour-wide song trends—not a full
-          night-by-night setlist archive.
-        </p>
       </header>
 
       {tours.length > 0 ? (
@@ -157,7 +137,19 @@ export default function PublicTourStatsPanel({
         surface="public"
       />
 
-      <div className="mt-10 flex flex-col items-center gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+      <p className="mt-8 text-center text-sm leading-snug text-slate-400 sm:text-left">
+        Tour-wide trends only—not a night-by-night archive. Playing unlocks
+        personal stats.{' '}
+        <Link to="/how-it-works" className={LINK_ON_DARK}>
+          How it works
+        </Link>
+        {' · '}
+        <Link to="/phish-setlist-prediction-game" className={LINK_ON_DARK}>
+          Phish setlist prediction game
+        </Link>
+      </p>
+
+      <div className="mt-6 flex flex-col items-center gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-400">
           Ready to compete on the next show? Or skim{' '}
           <Link to="/how-scoring-works" className={LINK_ON_DARK}>
