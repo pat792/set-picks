@@ -11,22 +11,12 @@ import { SEO_CONFIG } from '../../shared/config/seo';
 import { getPrerenderRoute } from '../../shared/config/seoRoutes';
 
 /**
- * Public `/tour-stats*` — marketing document (#853).
- * Chrome paints without AuthProvider; Firestore + App Check load inside
- * `fetchPublicTourStats*` only (restores post-#827 feel after #835 login defer
- * regressed the app-document path).
+ * Public `/tour-stats*` — marketing document (#853 / #869).
+ * Chrome paints without AuthProvider. Aggregates load from CDN JSON / Firestore
+ * REST — do **not** kick App Check here (Safari data-gate). SDK is last resort
+ * inside `fetchPublicTourStats*` only.
  */
 export default function PublicTourStatsPage() {
-  // Kick App Check in parallel with first paint (dynamic — keeps firebase off
-  // this module's static graph / modulepreload closure).
-  useEffect(() => {
-    void import('../../shared/lib/firebaseAppCheck.js')
-      .then((m) => m.ensureAppCheckNow())
-      .catch(() => {
-        // Fetch path awaits Check; best-effort warm only.
-      });
-  }, []);
-
   const screen = usePublicTourStatsScreen();
   const route = screen.routeHasSlug
     ? getPrerenderRoute(`/tour-stats/${screen.activeSlug}`) ||

@@ -507,6 +507,16 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
       !tourHtml.includes(SPLASH_BOOT_PRELOAD_MARKER),
       'prerendered /tour-stats must not gain splash modulepreloads',
     );
+    const cdnIndex = join(root, 'dist', 'tour-stats-data', '_index.json');
+    assert(
+      existsSync(cdnIndex),
+      'dist missing tour-stats-data/_index.json — public CDN snapshot (#869)',
+    );
+    const cdnIndexJson = JSON.parse(readFileSync(cdnIndex, 'utf8'));
+    assert(
+      Array.isArray(cdnIndexJson.tours),
+      'tour-stats-data/_index.json must include tours[]',
+    );
   }
   const howItWorksHtml = readFileSync(distHowItWorks, 'utf8');
   assert(
