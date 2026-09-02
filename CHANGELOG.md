@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.61.3] — 2026-09-02
+
+### Changed
+- **GEO brief + playbook (#930 / epic #926)** — `/llms.txt` adds Tour Insights definitions (unique songs, song frequency, 30+ bustouts) and a 2026 Summer Tour deep link. Playbook §3 adds S4–S6 fan queries; §4 points at Child E0/E1 packs; GSC reindex + UTM off-site share remain human ops after promote.
+
+---
+
 ## [1.61.2] — 2026-08-09
 
 ### Changed
