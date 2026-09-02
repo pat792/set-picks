@@ -28,7 +28,7 @@ After marketing cold opens stop booting `AuthProvider`, every outbound link must
 | `/setup` | New-user profile gate | `app-ok` | Dashboard boot shell |
 | Push → `/dashboard/profile/notifications` | `fcmMessagingCore`, messaging SW | `app-ok` | |
 | `/`, `/how-it-works`, `/how-scoring-works`, `/phish-setlist-prediction-game` | Marketing entry; some email allowlist paths | `public-static` | No Firebase until CTA → `/login` |
-| `/tour-stats*` | Public Firestore UI | `public-static` | **#853:** marketing document; Firebase only at aggregate fetch (not AuthProvider) |
+| `/tour-stats*` | Public aggregate UI | `public-static` | **#853:** marketing document (not AuthProvider). **#869:** CDN JSON `/tour-stats-data/*.json` + Firestore REST; App Check/SDK last resort only |
 | `/privacy`, `/terms` | Login signup legal links, marketing footer, Profile/account | `legal-static` | **#916:** HTML-first legal door (full body in first HTML; no marketing CSR / Auth). Soft routes remain on app SPA for in-app Profile links. From signup, stash `splashResumeAuthModal=signup` — legal in-page back → `/login?mode=signup`; browser Back also resumes via consume on LoginPage |
 | `/join/:code`, `/invite/:handle` | Invite kits, OG `api/invite` | `invite-shell` | Prefers `dist/app.html` |
 | Marketing splash CTAs | `MarketingHomePage` | `retarget-auth` | **Done (#832 / #834 / #835 / #872 / #860):** hard-nav `/login` / `/login?mode=signup` with leave chrome + intent prefetch of login UI (no Firebase on marketing). Mid-page Get Started chooser removed — hero/header/section CTAs go straight to auth. |

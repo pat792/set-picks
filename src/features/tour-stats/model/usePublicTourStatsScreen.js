@@ -6,27 +6,52 @@ import {
   fetchPublicTourStatsIndex,
 } from '../api/fetchPublicTourStats';
 import {
+  readCachedPublicTourStatsDoc,
+  readCachedPublicTourStatsIndex,
+  writeCachedPublicTourStatsDoc,
+  writeCachedPublicTourStatsIndex,
+} from './publicTourStatsCdn';
+import {
   publicTourStatsPathForSlug,
   resolveDefaultPublicTourSlug,
   sortPublicTourIndex,
 } from './publicTourIndex';
 
 /**
- * Public tour-stats screen (#665) — aggregate docs only; no self overlay.
- * Default tour = current / most recent by `lastShowDate` (not a hardcoded
- * Sphere preference).
+ * Public tour-stats screen (#665 / #869) — aggregate docs only; no self overlay.
+ * Seeds from session cache so chrome stays interactive and the skeleton is not
+ * the first paint when last-good data exists. CDN JSON / REST revalidate
+ * without App Check.
  */
 export function usePublicTourStatsScreen() {
   const { tourSlug: routeSlug } = useParams();
   const navigate = useNavigate();
-  const [indexLoading, setIndexLoading] = useState(true);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [tours, setTours] = useState([]);
-  const [defaultTourSlug, setDefaultTourSlug] = useState('');
-  const [doc, setDoc] = useState(null);
-  const [error, setError] = useState(null);
-
+  const [indexLoading, setIndexLoading] = useState(
+    () => !readCachedPublicTourStatsIndex(),
+  );
+  const [tours, setTours] = useState(() => {
+    const cached = readCachedPublicTourStatsIndex();
+    return cached
+      ? sortPublicTourIndex(Array.isArray(cached.tours) ? cached.tours : [])
+      : [];
+  });
+  const [defaultTourSlug, setDefaultTourSlug] = useState(() => {
+    const cached = readCachedPublicTourStatsIndex();
+    if (!cached) return '';
+    return resolveDefaultPublicTourSlug(
+      sortPublicTourIndex(Array.isArray(cached.tours) ? cached.tours : []),
+      cached.defaultTourSlug,
+    );
+  });
   const trimmedRoute = (routeSlug || '').trim();
+  const [doc, setDoc] = useState(() =>
+    trimmedRoute ? readCachedPublicTourStatsDoc(trimmedRoute) : null,
+  );
+  const [statsLoading, setStatsLoading] = useState(() => {
+    if (trimmedRoute && readCachedPublicTourStatsDoc(trimmedRoute)) return false;
+    return true;
+  });
+  const [error, setError] = useState(null);
   // Wait for index before picking a default so we don't flash the wrong tour.
   const activeSlug =
     trimmedRoute || (indexLoading ? '' : defaultTourSlug);
@@ -34,7 +59,7 @@ export function usePublicTourStatsScreen() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setIndexLoading(true);
+      if (!readCachedPublicTourStatsIndex()) setIndexLoading(true);
       try {
         const idx = await fetchPublicTourStatsIndex();
         if (cancelled) return;
@@ -43,8 +68,20 @@ export function usePublicTourStatsScreen() {
         setDefaultTourSlug(
           resolveDefaultPublicTourSlug(list, idx.defaultTourSlug),
         );
+        writeCachedPublicTourStatsIndex(idx);
+        void fetchPublicTourStatsIndex({ skipCdn: true }).then((fresh) => {
+          if (cancelled || !fresh) return;
+          const next = sortPublicTourIndex(
+            Array.isArray(fresh.tours) ? fresh.tours : [],
+          );
+          setTours(next);
+          setDefaultTourSlug(
+            resolveDefaultPublicTourSlug(next, fresh.defaultTourSlug),
+          );
+          writeCachedPublicTourStatsIndex(fresh);
+        });
       } catch (err) {
-        if (!cancelled) setError(err);
+        if (!cancelled && !readCachedPublicTourStatsIndex()) setError(err);
       } finally {
         if (!cancelled) setIndexLoading(false);
       }
@@ -61,15 +98,34 @@ export function usePublicTourStatsScreen() {
       if (!indexLoading) setDoc(null);
       return undefined;
     }
-    (async () => {
+    const cached = readCachedPublicTourStatsDoc(activeSlug);
+    if (cached) {
+      setDoc(cached);
+      setStatsLoading(false);
+    } else {
       setStatsLoading(true);
-      setError(null);
+    }
+    setError(null);
+    (async () => {
       try {
         const data = await fetchPublicTourStatsDoc(activeSlug);
         if (cancelled) return;
-        setDoc(data);
+        if (data) {
+          setDoc(data);
+          writeCachedPublicTourStatsDoc(activeSlug, data);
+        } else if (!cached) {
+          setDoc(null);
+        }
+        void fetchPublicTourStatsDoc(activeSlug, { skipCdn: true }).then(
+          (fresh) => {
+            if (cancelled || !fresh) return;
+            if (fresh.writtenAt && data?.writtenAt === fresh.writtenAt) return;
+            setDoc(fresh);
+            writeCachedPublicTourStatsDoc(activeSlug, fresh);
+          },
+        );
       } catch (err) {
-        if (!cancelled) {
+        if (!cancelled && !cached) {
           setError(err);
           setDoc(null);
         }

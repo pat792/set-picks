@@ -11,7 +11,7 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 
 1. **Marketing `/` stays Firebase-free on cold first paint.** Marketing entry (`index.html` → `marketingMain`). Auth CTAs hard-navigate to `/login`. Do not put `AuthProvider` / `initializeApp` on the marketing critical path. Download-only prefetch of auth-door assets after idle is optional polish (**Phase 3** in path doc) — never execute Auth on marketing first paint.
 
-1b. **Public `/tour-stats*` is marketing too (#853).** Paint chrome from the marketing entry; load App Check + Firestore only inside `fetchPublicTourStats*` (and a parallel page kick). Do not put tour-stats on `app.html` / `AuthProvider`.
+1b. **Public `/tour-stats*` is marketing too (#853 / #869).** Paint chrome from the marketing entry. Prefer same-origin `/tour-stats-data/*.json` then Firestore REST — **do not** kick App Check from `PublicTourStatsPage`. Load App Check + Firestore SDK only as a last-resort fallback inside `fetchPublicTourStats*`. Do not put tour-stats on `app.html` / `AuthProvider`.
 
 1c. **`/privacy` and `/terms` are an HTML-first legal door (#916).** Serve zero-JS shells with readable chrome + full policy body in the first HTML (`dist/privacy|terms/index.html`). No marketing CSR, no AuthProvider, no Firebase. Do not park legal on `app.html` / spa-boot. Soft routes may remain on the app SPA for in-app Profile links. Marketing footer uses hard `<a href>`.
 
@@ -26,7 +26,7 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 
 4. **Never await App Check before `signInWithPopup` / email Auth CTAs.** Use `ensureAuthReady()` + fire-and-forget Check on fallback paths. First enabled tap must open the account picker or start redirect.
 
-5. **Await App Check only before Firestore.** Profile/consent/`public_tour_stats` go through `whenFirebaseReady` / `ensureAppCheckNow`.
+5. **Await App Check only before Firestore SDK reads/writes.** Profile/consent and other SDK paths go through `whenFirebaseReady` / `ensureAppCheckNow`. Public `/tour-stats*` must **not** await App Check on the CDN/REST happy path (#869).
 
 6. **Safari / iOS / in-app prefer redirect (#859).** Desktop Chromium/Firefox keep popup; `auth/popup-blocked` → one-shot redirect. On return, **always** call `getRedirectResult` after Auth is ready — do not require sessionStorage intent (Safari may drop the stash; #893).
 
@@ -43,6 +43,7 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 | Another CSR hop epic as the auth strategy | Path doc §5 — door construction, not preload tiers |
 | Skeleton-only `/login` HTML as “done” for the auth door | Product door requires form in first HTML (Phase 2) |
 | `initializeApp` / AuthProvider on marketing as a hop fix | Violates rule 1 |
+| Kick App Check on marketing `/tour-stats` | Safari data-gate (#869) — CDN/REST first |
 | Claim “verified on Safari” from `qa:cache` / `qa:chunks` alone | Harness cannot run WebKit |
 | Ship auth-door boot changes without WebKit private AC | #881 hang class of failure |
 
@@ -55,5 +56,6 @@ Standing rules for marketing, the **auth door** (`/login`), and the app SPA. Lea
 # Google: Preparing… then enables; first tap → redirect (Safari) or popup (desktop Chromium)
 # Network: App Check must not gate the Google OAuth request
 # Marketing / — no Firebase execute on cold first paint
+# /tour-stats — no App Check kick; CDN JSON / REST for aggregates (#869)
 # Phase 2: View source / first document for /login includes form fields
 ```

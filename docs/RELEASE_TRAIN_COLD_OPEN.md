@@ -13,7 +13,7 @@
 
 - **v1.53.1 (#890):** restore `/login` on `app.html` after #881 Safari hang  
 - **v1.53.2 (#899):** Log Out → marketing `/` (fix HardRedirect race to `/login`)  
-- **Open but not in this stop:** [#869](https://github.com/pat792/set-picks/issues/869) tour-stats data plane (CDN JSON), [#889](https://github.com/pat792/set-picks/issues/889) HTML-first auth door  
+- **Open but not in this stop:** [#889](https://github.com/pat792/set-picks/issues/889) HTML-first auth door. **#869** (tour-stats CDN JSON / REST data plane) resumed separately — not a hop-tier PR.  
 
 Agents: do **not** continue Phase E / epic #856 hop work / epic #889 Phase 1–2 by default.
 
@@ -34,7 +34,7 @@ Agents: do **not** continue Phase E / epic #856 hop work / epic #889 Phase 1–2
 | **C login Safari hotfix** | #850 | Idle-warm Auth on `/login`; never await App Check before Google popup. | **v1.48.4** |
 | **D — Invite parity** | #844 | Inline auth on `/invite` + `/join` VIP (same panel chrome as `/login`). | **Held** — not in this promote |
 | **E1 — Public tour-stats** | #853 | Regression after #835 login firebase defer: move `/tour-stats*` to marketing entry; Firebase only at fetch. Bundle `AUTH_BOOT_PRACTICES.md`. | **Shipped** (v1.49.0) |
-| **E1b — Safari data gate** | #869 | Post-#853: chrome paints; Safari still extremely slow on `public_tour_stats` / App Check (Chrome mobile OK). | **Open — parked** (CDN JSON when resumed) |
+| **E1b — Safari data gate** | #869 | Post-#853: chrome paints; Safari still extremely slow on `public_tour_stats` / App Check (Chrome mobile OK). | **Shipping** — CDN JSON + Firestore REST; App Check/SDK last resort (human Safari AC still required) |
 | **E2 — Auth residual** | #844 (+ feel) | Invite/join inline auth; further `/login` feel. | **Held** |
 | **E0 hotfix** | #890 | Restore `/login` app.html boot after #881 hang. | **v1.53.1** |
 | **E0 follow** | #899 | Log Out HardRedirect race → `/login`. | **v1.53.2** |
@@ -67,6 +67,7 @@ npm run build && npm run preview
 # /login — inline forms (no role=dialog); session hint / Google redirect still complete
 # From /login → Home — full load of marketing /; Sign in again → /login (not modal)
 # /join/:code and /invite/:handle — still modal auth until #844
-# /tour-stats — marketing entry (no AuthProvider); skeleton chrome; firebase after fetch
-# Network: no firebase-core modulepreload on /tour-stats shell; Auth CTA → /login
+# /tour-stats — marketing entry (no AuthProvider); interactive chrome; CDN JSON / REST (no App Check kick)
+# Network: GET /tour-stats-data/*.json (or firestore.googleapis.com REST); no firebase-core modulepreload
+# Auth CTA → /login; do not claim Safari verified from Chromium alone
 ```
