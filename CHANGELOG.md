@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.63.1] — 2026-09-03
+
+### Added
+- **Tertiary chrome contract (#765)** — `docs/DASHBOARD_IA.md` documents the rectangular equal-width tray (`ChromeSegmentedControl`), mobile portal vs desktop in-page placement, snap-to-top, primary-tab `isActive`, and the cluster checklist (`dashboardPageMeta` / `verify-dashboard-meta` / vocabulary). `NAV_LABEL_STATS` stub only; Profile primary label unchanged.
+
+### Changed
+- **Profile desktop cluster nav + Standings desktop toggle (#765)** — both use `ChromeSegmentedControl` (no duplicated tray classes; desktop Standings drops auto-width pills). Standings still has Show / Tour / Stats / Pools.
+
+---
+
 ## [1.63.0] — 2026-09-03
 
 ### Added

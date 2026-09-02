@@ -16,8 +16,14 @@ const segmentInactive =
   'text-content-secondary hover:bg-surface-inset hover:text-white';
 
 /**
- * Boxed segmented control for mobile dashboard chrome (#609).
- * One tray, equal-width segments — used for mutual-exclusive IA (views, sections).
+ * Dashboard tertiary chrome (#765 / #609): rectangular equal-width tray.
+ *
+ * Canonical primitive for Profile, Standings, and upcoming clusters — do not
+ * fork tray CSS in features. NavLink mode when any `items[].to` is set;
+ * otherwise a `tablist` of buttons (`value` / `onChange`).
+ *
+ * Placement (mobile portal vs desktop in-page) belongs at the cluster layout
+ * call site. Do not add `md:`-as-device visibility here (#704–#707).
  *
  * @param {{
  *   ariaLabel: string,
@@ -33,6 +39,7 @@ const segmentInactive =
  *     badge?: React.ReactNode,
  *   }>,
  * }} props
+ * @see docs/DASHBOARD_IA.md
  */
 export default function ChromeSegmentedControl({
   ariaLabel,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 
 import {
   NAV_LABEL_ACCOUNT,
@@ -8,8 +8,8 @@ import {
   NAV_LABEL_PROFILE,
 } from '../../../shared/config/dashboardVocabulary';
 import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
-import { scrollAppToTop } from '../../../shared/lib/scrollAppToTop';
 import { useDashboardMobileChromePortal } from '../../../shared/hooks/useDashboardMobileChromePortal';
+import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
 import ProfileMobileFixedChrome from './ProfileMobileFixedChrome';
 
 const SUB_NAV = [
@@ -22,6 +22,7 @@ const SUB_NAV = [
  * Persistent Profile-cluster sub-navigation (identity / messages / account).
  * Nested routes render via {@link Outlet}; `user` is passed through outlet context.
  * Mobile: sub-nav is fixed under the context bar (Standings chrome pattern).
+ * Desktop: same {@link ChromeSegmentedControl} tray in-page (#765).
  *
  * @param {{ user: import('firebase/auth').User | null | undefined }} props
  */
@@ -34,29 +35,10 @@ export default function ProfileClusterLayout({ user }) {
         ? createPortal(<ProfileMobileFixedChrome />, mobileChromeRoot)
         : null}
 
-      <nav
-        className="mb-6 hidden gap-1 rounded-2xl border border-border-subtle/60 bg-surface-panel-strong p-1 shadow-inset-glass md:flex"
-        aria-label="Profile sections"
-      >
-        {SUB_NAV.map(({ to, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            onClick={scrollAppToTop}
-            className={({ isActive }) =>
-              [
-                'flex-1 rounded-xl px-2 py-2.5 text-center text-[11px] font-black uppercase tracking-widest transition-colors sm:text-xs',
-                isActive
-                  ? 'bg-brand-primary/15 text-brand-primary ring-1 ring-inset ring-brand-primary/35'
-                  : 'text-content-secondary hover:bg-surface-inset hover:text-white',
-              ].join(' ')
-            }
-          >
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      {/* Visibility stays at the cluster call site — not in shared chrome (#704). */}
+      <div className="mb-6 hidden md:block">
+        <ChromeSegmentedControl ariaLabel="Profile sections" items={SUB_NAV} />
+      </div>
       <Outlet context={{ user }} />
     </div>
   );
