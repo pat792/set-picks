@@ -23,4 +23,4 @@ export const LINK_ON_LIGHT =
 
 /** Card “learn more” row on light. */
 export const CARD_LINK_ON_LIGHT =
-  'mt-4 inline-flex items-center gap-1 rounded-md text-sm font-bold text-emerald-700 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-800 hover:decoration-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue';
+  'inline-flex items-center gap-1 rounded-md text-sm font-bold text-emerald-700 underline decoration-emerald-300 underline-offset-4 transition-colors hover:text-emerald-800 hover:decoration-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue';

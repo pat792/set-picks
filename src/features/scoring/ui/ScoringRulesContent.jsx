@@ -1,5 +1,10 @@
 import React from 'react';
-import { MARKETING_EDITORIAL_H1_INSET } from '../../../shared/ui/marketingEditorialChrome.js';
+import {
+  MARKETING_EDITORIAL_H1_INSET,
+  MARKETING_EDITORIAL_TYPE_BODY,
+  MARKETING_EDITORIAL_TYPE_LEDE,
+  MARKETING_EDITORIAL_TYPE_META,
+} from '../../../shared/ui/marketingEditorialChrome.js';
 import { SCORING_RULES } from '../../../shared/utils/scoring.js';
 
 const {
@@ -43,15 +48,15 @@ const SURFACES = {
   light: {
     // Soft paper panel — not dark glass island on slate-50 (#944).
     shell:
-      'rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/5 md:p-8',
+      'rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm ring-1 ring-slate-900/5 md:p-8',
     title: MARKETING_EDITORIAL_H1_INSET,
-    lede: 'mb-6 text-sm font-semibold leading-relaxed text-slate-600',
+    lede: `mb-6 font-semibold leading-relaxed text-slate-600 ${MARKETING_EDITORIAL_TYPE_LEDE}`,
     ruleTitle:
       'mb-1 text-sm font-bold uppercase tracking-widest text-slate-900',
-    ruleBody: 'text-sm font-semibold leading-relaxed text-slate-600',
+    ruleBody: `font-semibold leading-relaxed text-slate-600 ${MARKETING_EDITORIAL_TYPE_BODY}`,
     ruleBodyEmph: 'font-bold text-slate-800',
     footnote:
-      'mt-6 scroll-mt-4 border-t border-slate-200 pt-4 text-xs font-semibold leading-snug text-slate-600',
+      `mt-6 scroll-mt-4 border-t border-[#e2e8f0] pt-4 font-semibold leading-snug text-slate-600 ${MARKETING_EDITORIAL_TYPE_META}`,
     footnoteStar: 'mr-1 font-bold text-amber-700',
     starLink:
       'ml-0.5 align-super text-[0.65rem] font-bold text-amber-700 no-underline hover:text-amber-800',

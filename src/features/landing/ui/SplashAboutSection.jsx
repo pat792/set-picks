@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import Button from '../../../shared/ui/Button';
+import { MARKETING_PAGE_GUTTER_X } from '../../../shared/ui/marketingEditorialChrome';
 import { LINK_ON_DARK } from '../../../shared/ui/surfaceLinkStyles';
 
 /** Shared type for splash bottom peer links (#947). */
@@ -18,7 +19,7 @@ export default function SplashAboutSection({
       ref={sectionRef}
       className="relative z-10 w-full bg-transparent py-20 md:py-24 lg:py-32"
     >
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`mx-auto w-full max-w-5xl ${MARKETING_PAGE_GUTTER_X}`}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-16 items-start">
           <div className="lg:col-span-5 lg:sticky lg:top-32">
             <h2

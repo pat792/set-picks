@@ -1,0 +1,28 @@
+---
+description: Editorial marketing viewport tokens (#968) — extends #944 chrome split
+globs: src/shared/ui/marketingEditorialChrome.js,src/shared/ui/marketingEditorialViewport.css,src/features/landing/ui/**,src/pages/marketing/**
+alwaysApply: false
+---
+
+# Marketing editorial viewport (#968)
+
+Extends #944 (editorial light / product dark). Do not reopen that chrome split.
+
+Tokens: `src/shared/ui/marketingEditorialViewport.css`  
+Class constants: `src/shared/ui/marketingEditorialChrome.js`  
+Note for the next marketing PR: `content/marketing/968-editorial-viewport-tokens.md`
+
+## Do
+
+- Use `--page-gutter` / `MARKETING_PAGE_GUTTER_X` instead of `px-4 sm:px-6 lg:px-8` on marketing editorial + splash chrome.
+- Use `--header-height` / `MARKETING_HEADER_HEIGHT` instead of `h-[5.35rem] sm:h-[5.25rem]`. Keep rem values in sync with `splashScrollPadding.js` (5.35rem / 5.25rem).
+- Light editorial type roles only: H1 / lede / body / meta / eyebrow. Space Grotesk display + Inter body. No `text-[10px]` eyebrows on those pages.
+- Sibling card rows: shared height per track; pin actions (`MARKETING_EDITORIAL_CARD_ACTION`). Do not pad shorter copy.
+
+## Non-goals
+
+- Splash hero viewport (#837) — keep `min-h-[100svh]`; do not apply road2 `PageStage`.
+- Dashboard / post-login type (#609) — `text-body` 0.875rem, `max-w-xl`, `h-[100dvh]` shell stay.
+- Tour stats stays dark product chrome (#944). Do not apply the light type ladder.
+- Do not import road2media `globals.css`.
+- Marketing hamburger / light header redesign (#706).
