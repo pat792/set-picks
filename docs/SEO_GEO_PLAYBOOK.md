@@ -91,7 +91,7 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | C4 | `live setlist prediction` |
 | C5 | `fantasy setlist` / `fantasy setlists` / `phish fantasy setlist` |
 
-**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C5; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar.
+**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C5; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar. **#973:** C6 (`phish setlist prediction`) and C7 (`phish picks`) also target this URL.
 
 ### Stats-intent (after #665 public `/tour-stats`)
 

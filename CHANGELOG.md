@@ -12,6 +12,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.62.2] — 2026-09-02
+
+### Changed
+- **Keyword landing C6/C7 bridge (#973 / epic #972)** — `/phish-setlist-prediction-game` title, meta, prerender, and FAQ now include prediction + lock-your-picks while keeping the C1 “game” H1. No `/phish-picks` doorway.
+
+---
+
 ## [1.62.1] — 2026-09-02
 
 ### Changed
