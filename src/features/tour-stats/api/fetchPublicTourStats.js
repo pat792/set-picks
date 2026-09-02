@@ -1,11 +1,21 @@
 /**
- * Public aggregate reads for `/tour-stats` (#665 / #853).
+ * Public aggregate reads for `/tour-stats` (#665 / #853 / #869).
  *
- * Firebase stays off the marketing critical path: App Check + Firestore SDK +
- * `db` load only when a fetch runs. No static `firebase/*` or `firebase.js`
- * imports — after #835 login deferral, static imports regressed cold-open TTI
- * when this page still lived on `app.html`.
+ * Happy path does **not** load App Check or the Firestore SDK:
+ * 1. Same-origin CDN JSON (`/tour-stats-data/*.json`, written at build)
+ * 2. Firestore REST (world-readable `public_tour_stats`, no App Check)
+ * 3. SDK + `ensureAppCheckNow()` last resort (dashboard / REST blocked)
+ *
+ * #869: Safari Private stays on the data-gate skeleton because reCAPTCHA
+ * Enterprise + WebChannel serialize much worse on WebKit than Chrome mobile.
+ * CDN / REST clear that gate. Do not statically import `firebase/*`.
  */
+
+import { fetchFirestoreRestDocument } from '../../../shared/lib/firestoreRestDecode';
+import {
+  PUBLIC_TOUR_STATS_FIRESTORE_PROJECT_ID,
+  publicTourStatsCdnUrl,
+} from '../model/publicTourStatsCdn';
 
 /**
  * @returns {Promise<{
@@ -39,6 +49,27 @@ async function readyPublicTourStatsFirestore() {
 }
 
 /**
+ * @param {string} docId
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<unknown | null>}
+ */
+async function fetchCdnJson(docId, signal) {
+  try {
+    const res = await fetch(publicTourStatsCdnUrl(docId), {
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+    if (!res.ok) return null;
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) return null;
+    const data = await res.json();
+    return data && typeof data === 'object' ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * @typedef {{
  *   tourSlug: string,
  *   tourLabel: string,
@@ -49,19 +80,14 @@ async function readyPublicTourStatsFirestore() {
  */
 
 /**
- * @returns {Promise<{
- *   tours: PublicTourIndexEntry[],
- *   defaultTourSlug: string,
- * }>}
+ * @param {unknown} data
+ * @returns {{ tours: PublicTourIndexEntry[], defaultTourSlug: string } | null}
  */
-export async function fetchPublicTourStatsIndex() {
-  const { db, doc, getDoc } = await readyPublicTourStatsFirestore();
-  const snap = await getDoc(doc(db, 'public_tour_stats', '_index'));
-  if (!snap.exists()) {
-    return { tours: [], defaultTourSlug: '' };
+export function normalizePublicTourStatsIndex(data) {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.tours)) {
+    return null;
   }
-  const data = snap.data() || {};
-  const tours = Array.isArray(data.tours) ? data.tours : [];
+  const tours = data.tours;
   const defaultTourSlug =
     typeof data.defaultTourSlug === 'string' && data.defaultTourSlug
       ? data.defaultTourSlug
@@ -70,16 +96,111 @@ export async function fetchPublicTourStatsIndex() {
 }
 
 /**
+ * @param {string} slug
+ * @param {unknown} data
+ * @returns {Record<string, unknown> | null}
+ */
+export function normalizePublicTourStatsDoc(slug, data) {
+  if (!data || typeof data !== 'object') return null;
+  const hasRows =
+    Array.isArray(data.topSongs) ||
+    Array.isArray(data.bustouts) ||
+    Array.isArray(data.gapHighlights);
+  const hasLabel =
+    typeof data.tourLabel === 'string' || typeof data.tourSlug === 'string';
+  if (!hasRows && !hasLabel) return null;
+  return { id: slug, ...data };
+}
+
+/**
+ * @param {{ signal?: AbortSignal, skipCdn?: boolean }} [opts]
+ * @returns {Promise<{
+ *   tours: PublicTourIndexEntry[],
+ *   defaultTourSlug: string,
+ * }>}
+ */
+export async function fetchPublicTourStatsIndex(opts = {}) {
+  const signal = opts.signal;
+  if (!opts.skipCdn) {
+    const cdn = normalizePublicTourStatsIndex(await fetchCdnJson('_index', signal));
+    if (cdn) return cdn;
+  }
+  try {
+    const rest = normalizePublicTourStatsIndex(
+      await fetchFirestoreRestDocument(
+        PUBLIC_TOUR_STATS_FIRESTORE_PROJECT_ID,
+        'public_tour_stats/_index',
+        { signal },
+      ),
+    );
+    if (rest) return rest;
+  } catch {
+    // SDK last resort.
+  }
+  return fetchPublicTourStatsIndexViaSdk();
+}
+
+/**
+ * @returns {Promise<{
+ *   tours: PublicTourIndexEntry[],
+ *   defaultTourSlug: string,
+ * }>}
+ */
+async function fetchPublicTourStatsIndexViaSdk() {
+  const { db, doc, getDoc } = await readyPublicTourStatsFirestore();
+  const snap = await getDoc(doc(db, 'public_tour_stats', '_index'));
+  if (!snap.exists()) {
+    return { tours: [], defaultTourSlug: '' };
+  }
+  return (
+    normalizePublicTourStatsIndex(snap.data() || {}) || {
+      tours: [],
+      defaultTourSlug: '',
+    }
+  );
+}
+
+/**
  * @param {string} tourSlug
+ * @param {{ signal?: AbortSignal, skipCdn?: boolean }} [opts]
  * @returns {Promise<null | Record<string, unknown>>}
  */
-export async function fetchPublicTourStatsDoc(tourSlug) {
+export async function fetchPublicTourStatsDoc(tourSlug, opts = {}) {
   const slug = String(tourSlug ?? '').trim();
   if (!slug || slug.startsWith('_')) return null;
+  const signal = opts.signal;
+  if (!opts.skipCdn) {
+    const cdn = normalizePublicTourStatsDoc(
+      slug,
+      await fetchCdnJson(slug, signal),
+    );
+    if (cdn) return cdn;
+  }
+  try {
+    const rest = normalizePublicTourStatsDoc(
+      slug,
+      await fetchFirestoreRestDocument(
+        PUBLIC_TOUR_STATS_FIRESTORE_PROJECT_ID,
+        `public_tour_stats/${slug}`,
+        { signal },
+      ),
+    );
+    if (rest) return rest;
+  } catch {
+    // SDK last resort.
+  }
+  return fetchPublicTourStatsDocViaSdk(slug);
+}
+
+/**
+ * @param {string} slug
+ * @returns {Promise<null | Record<string, unknown>>}
+ */
+async function fetchPublicTourStatsDocViaSdk(slug) {
   const { db, doc, getDoc } = await readyPublicTourStatsFirestore();
   const snap = await getDoc(doc(db, 'public_tour_stats', slug));
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() };
+  return normalizePublicTourStatsDoc(slug, { id: snap.id, ...snap.data() });
 }
 
 /**

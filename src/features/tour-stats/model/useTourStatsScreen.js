@@ -84,7 +84,8 @@ export function useTourStatsScreen(options = {}) {
     enabled: Boolean(tourName),
     staleTime: 5 * 60 * 1000,
     retry: 1,
-    queryFn: () => fetchPublicTourStatsDoc(tourLabelToSlug(tourName)),
+    queryFn: () =>
+      fetchPublicTourStatsDoc(tourLabelToSlug(tourName), { skipCdn: true }),
   });
 
   const stats = useMemo(() => {
