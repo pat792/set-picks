@@ -112,6 +112,8 @@ Keep issue acceptance; add:
 
 **Exceptions (intentional):** Tour stats + in-app Scoring modal keep product title rules (dark / uppercase modal H1). Splash Game Format teaser may keep its local display scale (home composition, not editorial page).
 
+**Viewport / type tokens (#968):** gutters, header height, and light type roles live in `src/shared/ui/marketingEditorialViewport.css`. See `content/marketing/968-editorial-viewport-tokens.md`. Do not reopen this chrome split to change splash `100svh` or dashboard `text-body`.
+
 Issue comment: https://github.com/pat792/set-picks/issues/944#issuecomment-5229186779
 
 ---

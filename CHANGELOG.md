@@ -18,6 +18,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.62.3] — 2026-09-02
+
+### Changed
+- **Editorial viewport tokens (#968)** — marketing chrome uses local `--page-gutter` / `--header-height` and light type roles (H1 / lede / body / meta / eyebrow). Splash header height stays 5.35rem / 5.25rem; Game Format cards share row height and pin actions. Extends #944; splash `100svh` and dashboard type unchanged.
+
+---
+
 ## [1.62.2] — 2026-09-02
 
 ### Changed

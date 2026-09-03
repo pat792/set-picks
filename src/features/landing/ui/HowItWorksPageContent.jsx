@@ -4,9 +4,12 @@ import { ArrowRight } from 'lucide-react';
 
 import {
   MARKETING_EDITORIAL_ARTICLE,
+  MARKETING_EDITORIAL_BODY,
   MARKETING_EDITORIAL_COLUMN,
   MARKETING_EDITORIAL_H1,
   MARKETING_EDITORIAL_H2,
+  MARKETING_EDITORIAL_LEDE,
+  MARKETING_EDITORIAL_META,
 } from '../../../shared/ui/marketingEditorialChrome';
 import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
 import AppDocumentAuthLink from './AppDocumentAuthLink';
@@ -38,7 +41,7 @@ export default function HowItWorksPageContent() {
         <h1 className={MARKETING_EDITORIAL_H1}>
           How to Play Setlist Pick&apos;Em
         </h1>
-        <p className="mb-12 text-center text-lg leading-relaxed text-slate-600">
+        <p className={MARKETING_EDITORIAL_LEDE}>
           Setlist Pick&apos;Em is a free live{' '}
           <Link to="/phish-setlist-prediction-game" className={LINK_ON_LIGHT}>
             setlist prediction game
@@ -47,7 +50,7 @@ export default function HowItWorksPageContent() {
           walkthrough: what you lock, how scoring moves, and where your crew ranks.
         </p>
 
-        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+        <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>
             Your setlist card
           </h2>
@@ -73,7 +76,7 @@ export default function HowItWorksPageContent() {
           </p>
         </section>
 
-        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+        <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>
             Show-night timeline
           </h2>
@@ -100,7 +103,7 @@ export default function HowItWorksPageContent() {
           </ol>
         </section>
 
-        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+        <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>
             Pools vs global
           </h2>
@@ -118,7 +121,7 @@ export default function HowItWorksPageContent() {
           <p>Same picks. Different rivalries.</p>
         </section>
 
-        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+        <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>
             Personal stats unlock when you play
           </h2>
@@ -133,7 +136,7 @@ export default function HowItWorksPageContent() {
           </p>
         </section>
 
-        <p className="mb-10 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+        <p className={`mb-10 flex flex-wrap justify-center gap-x-4 gap-y-2 ${MARKETING_EDITORIAL_META}`}>
           <Link
             to="/phish-setlist-prediction-game"
             className={`inline-flex items-center gap-1 ${LINK_ON_LIGHT}`}

@@ -6,6 +6,10 @@ import {
   brandSplashHeaderVinylMarkImgClassNames,
 } from '../../../shared/config/branding';
 import {
+  MARKETING_HEADER_HEIGHT,
+  MARKETING_PAGE_GUTTER_X,
+} from '../../../shared/ui/marketingEditorialChrome';
+import {
   MarketingFooterNav,
   MarketingHeaderNav,
   MarketingMobileMenu,
@@ -23,8 +27,8 @@ import {
 export default function MarketingPageShell({ children }) {
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
-      <header className="sticky top-0 z-50 flex h-[5.35rem] items-center border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg sm:h-[5.25rem]">
-        <div className="relative mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
+      <header className={`sticky top-0 z-50 flex items-center border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg ${MARKETING_HEADER_HEIGHT}`}>
+        <div className={`relative mx-auto flex w-full max-w-5xl items-center justify-between gap-3 sm:gap-4 ${MARKETING_PAGE_GUTTER_X}`}>
           <a
             href="/"
             aria-label="Setlist Pick 'Em — back to home"
@@ -61,11 +65,11 @@ export default function MarketingPageShell({ children }) {
       </header>
       <main className="w-full flex-1">{children}</main>
 
-      <div className="relative z-10 px-4 pb-4 pt-10 sm:px-6 lg:px-8">
+      <div className={`relative z-10 pb-4 pt-10 ${MARKETING_PAGE_GUTTER_X}`}>
         <MarketingFooterNav variant="primary" />
       </div>
 
-      <footer className="relative z-10 border-t border-slate-800/60 bg-transparent px-4 py-6 text-center text-xs font-medium leading-relaxed text-slate-500 sm:px-6 lg:px-8">
+      <footer className={`relative z-10 border-t border-slate-800/60 bg-transparent py-6 text-center text-xs font-medium leading-relaxed text-slate-500 ${MARKETING_PAGE_GUTTER_X}`}>
         <p>&copy; {new Date().getFullYear()} Road2 Media, LLC. All rights reserved.</p>
         <p className="mt-1">
           Song and setlist data provided by{' '}

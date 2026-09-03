@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 import {
   MARKETING_EDITORIAL_ARTICLE,
+  MARKETING_EDITORIAL_BODY,
   MARKETING_EDITORIAL_COLUMN,
   MARKETING_EDITORIAL_EYEBROW,
   MARKETING_EDITORIAL_H1,
@@ -41,7 +42,7 @@ export default function PhishSetlistPredictionGamePageContent() {
           score as the night unfolds.
         </p>
 
-        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+        <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>
             What is a setlist prediction game?
           </h2>
@@ -75,7 +76,7 @@ export default function PhishSetlistPredictionGamePageContent() {
           </p>
         </section>
 
-        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+        <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>
             What are Phish setlist picks?
           </h2>
@@ -121,7 +122,7 @@ export default function PhishSetlistPredictionGamePageContent() {
           </p>
         </section>
 
-        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
+        <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>How to play</h2>
           <ol className="list-decimal space-y-3 pl-5">
             <li>Create a free account—tonight&apos;s setlist card opens.</li>
