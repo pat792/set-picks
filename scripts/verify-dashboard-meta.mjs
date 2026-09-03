@@ -16,6 +16,7 @@ import {
   NAV_LABEL_POOLS,
   NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
+  NAV_LABEL_STATS,
   POOL_DETAILS_LAYOUT_EYEBROW,
 } from '../src/shared/config/dashboardVocabulary.js';
 
@@ -109,13 +110,56 @@ const CASES = [
     },
   },
   {
-    // #555: Tour stats — peer Standings view; tour scope picker, no date picker.
+    // #769: legacy hop — Stats primary stays active; tour picker; redirects to Global.
     path: '/dashboard/tour-stats',
     expect: {
-      contextTitle: NAV_LABEL_STANDINGS,
+      contextTitle: NAV_LABEL_STATS,
       showDatePicker: false,
-      layoutDesktopHeading: null,
+      layoutDesktopHeading: NAV_LABEL_STATS,
       layoutDetailEyebrow: null,
+      isStandingsTourView: true,
+    },
+  },
+  {
+    // #769: Personal Stats — career scoped; no date picker.
+    path: '/dashboard/stats',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: NAV_LABEL_STATS,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: false,
+    },
+  },
+  {
+    path: '/dashboard/stats/personal',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: NAV_LABEL_STATS,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: false,
+    },
+  },
+  {
+    // #769: Global Stats — tour scope picker, no date picker.
+    path: '/dashboard/stats/global',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: NAV_LABEL_STATS,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: true,
+    },
+  },
+  {
+    path: '/dashboard/stats/band',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: NAV_LABEL_STATS,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: true,
     },
   },
   {

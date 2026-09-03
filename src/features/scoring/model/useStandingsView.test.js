@@ -16,8 +16,9 @@ describe('normalizeView', () => {
     }
   });
 
-  it('does not treat Stats as a standings-path view', () => {
-    expect(STANDINGS_VIEWS).toContain('stats');
+  it('does not treat Stats as a standings view (#769)', () => {
+    expect(STANDINGS_VIEWS).not.toContain('stats');
+    expect(STANDINGS_VIEWS).toEqual(STANDINGS_PATH_VIEWS);
     expect(normalizeView('stats')).toBe(DEFAULT_STANDINGS_VIEW);
   });
 

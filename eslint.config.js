@@ -130,7 +130,7 @@ export default [
             },
             {
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|tour-stats)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$|login(?:\\.[^/]+)?$|splash(?:\\.[^/]+)?$|public(?:\\.[^/]+)?$|averages(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|stats|tour-stats)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$|login(?:\\.[^/]+)?$|splash(?:\\.[^/]+)?$|public(?:\\.[^/]+)?$|averages(?:\\.[^/]+)?$).+",
               message:
                 "Cross-feature imports must target feature root or a documented secondary barrel, not deep internals.",
             },
@@ -185,7 +185,7 @@ export default [
             },
             {
               regex:
-                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|tour-stats)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$|login(?:\\.[^/]+)?$|splash(?:\\.[^/]+)?$|public(?:\\.[^/]+)?$|averages(?:\\.[^/]+)?$).+",
+                "^(?:\\.\\./)+(?:admin|auth|landing|picks|pools|profile|scoring|standings|stats|tour-stats)/(?!index(?:\\.[^/]+)?$|marketing(?:\\.[^/]+)?$|auth-modals(?:\\.[^/]+)?$|splash-entry(?:\\.[^/]+)?$|login(?:\\.[^/]+)?$|splash(?:\\.[^/]+)?$|public(?:\\.[^/]+)?$|averages(?:\\.[^/]+)?$).+",
               message:
                 "Cross-feature imports must target feature root or a documented secondary barrel, not deep internals.",
             },

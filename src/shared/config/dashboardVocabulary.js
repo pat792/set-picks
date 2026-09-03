@@ -57,12 +57,22 @@ export const NAV_LABEL_MESSAGES = 'Messages';
 export const NAV_LABEL_ACCOUNT = 'Account';
 
 /**
- * Stats tertiary / upcoming primary label (#764 / #769).
- *
- * Stub only: Standings chrome still uses this string as a **fourth** segment
- * (Show / Tour / Stats / Pools). Do **not** add a Stats primary tab here.
+ * Stats primary tab (#769) — `/dashboard/stats` and `/dashboard/stats/*`.
+ * Also the context bar + desktop H1 for the Stats cluster.
  */
 export const NAV_LABEL_STATS = 'Stats';
+
+/** Stats tertiary — career self stats (`/dashboard/stats` and `/dashboard/stats/personal`) */
+export const NAV_LABEL_PERSONAL_STATS = 'Personal Stats';
+
+/** Stats tertiary — private tour explorer (`/dashboard/stats/global`) */
+export const NAV_LABEL_GLOBAL_STATS = 'Global Stats';
+
+/** Stats tertiary — band song-stats shell (`/dashboard/stats/band`) */
+export const NAV_LABEL_BAND_STATS = 'Band Stats';
+
+/** Quiet Profile → Personal Stats cross-link */
+export const VIEW_PERSONAL_STATS_LINK = 'View personal stats';
 
 /** Admin tab label (`/dashboard/admin`); context/desktop title stays War Room */
 export const NAV_LABEL_ADMIN = 'Admin';

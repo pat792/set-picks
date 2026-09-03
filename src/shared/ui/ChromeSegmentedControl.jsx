@@ -18,7 +18,7 @@ const segmentInactive =
 /**
  * Dashboard tertiary chrome (#765 / #609): rectangular equal-width tray.
  *
- * Canonical primitive for Profile, Standings, and upcoming clusters — do not
+ * Canonical primitive for Profile, Standings, Picks, Pools, and Stats — do not
  * fork tray CSS in features. NavLink mode when any `items[].to` is set;
  * otherwise a `tablist` of buttons (`value` / `onChange`).
  *
@@ -37,6 +37,7 @@ const segmentInactive =
  *     label: string,
  *     icon?: React.ComponentType<{ className?: string, 'aria-hidden'?: boolean }>,
  *     badge?: React.ReactNode,
+ *     onClick?: (event: React.MouseEvent) => void,
  *   }>,
  * }} props
  * @see docs/DASHBOARD_IA.md
@@ -56,12 +57,15 @@ export default function ChromeSegmentedControl({
         className={[trayClass, className].filter(Boolean).join(' ')}
         aria-label={ariaLabel}
       >
-        {items.map(({ to, label, end, icon: Icon, badge }) => (
+        {items.map(({ to, label, end, icon: Icon, badge, onClick }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
-            onClick={scrollAppToTop}
+            onClick={(event) => {
+              scrollAppToTop();
+              onClick?.(event);
+            }}
             className={({ isActive }) =>
               [segmentBase, isActive ? segmentActive : segmentInactive].join(' ')
             }

@@ -16,6 +16,8 @@ const TARGETS = [
   'src/app/layout/ui/DashboardMobileBrandBar.jsx',
   'src/app/layout/ui/DashboardMobileContextBar.jsx',
   'src/app/layout/ui/PicksClusterLayout.jsx',
+  'src/app/layout/ui/StatsClusterLayout.jsx',
+  'src/app/layout/ui/StatsClusterMobileChrome.jsx',
   'src/pages/picks/PicksPage.jsx',
   'src/features/scoring/ui/LeaderboardList.jsx',
   'src/features/scoring/ui/LeaderboardRow.jsx',
