@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.68.0] — 2026-09-03
+
+### Added
+- **Scorecard full-song model odds (#767)** — `pick-recommendations.json` now includes `playProbBySong` (normalized title → show-wide `playProb`) for every song in the history window. Scorecard looks up each pick; titles missing from the map show `<1% model odds`. Older artifacts without the map still use per-slot top-K rows. Odds stay omitted when the artifact is missing or for another night.
+
+---
+
 ## [1.67.0] — 2026-09-03
 
 ### Added

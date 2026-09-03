@@ -43,9 +43,12 @@ First-time ops: run `refreshPickRecommendationHistory` (or local Admin SDK sync)
     "s2c": [],
     "enc": [],
     "wild": []
-  }
+  },
+  "playProbBySong": { "tweezer": 0.184 }
 }
 ```
+
+`playProbBySong` (**v1.68.0+ / #767**) is show-wide `playProb` for every song in the history window (normalized title keys). Scorecard uses it so every pick on the card can show model odds. Lab still reads `slots` top-K only.
 
 Model methodology: `docs/scoring-analysis/08-recommendation-model.md`.
 
