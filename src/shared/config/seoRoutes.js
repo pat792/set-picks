@@ -313,10 +313,11 @@ function buildTourStatsSummerJsonLd() {
 }
 
 const KEYWORD_PAGE_PATH = '/phish-setlist-prediction-game';
+/** #973: C6/C7 bridge — prediction + picks + game; tuned off "& Picks" (phishpicks.net). */
 const KEYWORD_PAGE_TITLE =
-  "Phish Setlist Prediction Game | Setlist Pick'Em";
+  "Phish Setlist Prediction Game — Lock Your Picks | Setlist Pick'Em";
 const KEYWORD_PAGE_DESCRIPTION =
-  "Free Phish setlist prediction game and fantasy setlist picks—lock openers, closers, encore, and a wildcard before showtime, score live, and compete with friends. Built for jam bands; live with Phish today, more soon.";
+  "Free Phish setlist prediction game: lock your setlist picks—openers, closers, encore, and a wildcard—before showtime, score live, and compete with friends. Built for jam bands; live with Phish today, more soon.";
 const KEYWORD_PAGE_URL = `${SEO_CONFIG.siteUrl}${KEYWORD_PAGE_PATH}`;
 
 const ABOUT_PATH = '/about';
@@ -372,6 +373,14 @@ function buildKeywordIntentPageJsonLd() {
             acceptedAnswer: {
               '@type': 'Answer',
               text: "A setlist prediction game—sometimes called a fantasy setlist game—asks you to call songs and where they land in the setlist before the show. You compete in private pools and on the global leaderboard while scores update live. Setlist Pick'Em is a free setlist picks game—live with Phish today, with more bands ahead.",
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'What are Phish setlist picks?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: "Phish setlist picks are the six calls you lock in Setlist Pick'Em before showtime: Set 1 opener and closer, Set 2 opener and closer, encore, and a wildcard. They are your card in this live prediction game—not a predicted full-night setlist or a tip sheet. Score as songs land, and compete in private pools or on the global board.",
             },
           },
           {
@@ -584,8 +593,9 @@ export const PRERENDER_ROUTES = [
     canonicalUrl: KEYWORD_PAGE_URL,
     h1: 'The free Phish setlist prediction game',
     paragraphs: [
-      "Setlist Pick'Em is a free live setlist picks game for fans who love predicting setlists—built first for Phish, designed as a home for more bands soon.",
+      "Setlist Pick'Em is a free live setlist picks game for fans who love predicting setlists—built first for Phish, designed as a home for more bands soon. Lock six Phish setlist picks—openers, closers, encore, and a wildcard—before showtime; score as the night unfolds.",
       'A setlist prediction game—sometimes called a fantasy setlist game—asks you to call songs and where they land in the setlist before the show.',
+      "Phish setlist picks are the six calls you lock in Setlist Pick'Em before showtime: Set 1 opener and closer, Set 2 opener and closer, encore, and a wildcard. They are your card in this live prediction game—not a predicted full-night setlist or a tip sheet.",
       'Tour stats refresh every night the band plays live. Playing unlocks personal stats as you accumulate points against other setlist pickers.',
     ],
     buildJsonLd: buildKeywordIntentPageJsonLd,

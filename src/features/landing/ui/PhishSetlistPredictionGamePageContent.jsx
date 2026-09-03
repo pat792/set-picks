@@ -19,8 +19,9 @@ const STANDINGS_SAMPLE_SRC =
   '/images/marketing/standings-leaderboard-iphone-sample.png';
 
 /**
- * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660 / #940).
- * Copy source: `content/marketing/942-content-ia-drafts.md`.
+ * Keyword-intent educational page for `/phish-setlist-prediction-game` (#660 / #940 / #973).
+ * Copy source: `content/marketing/973-c6-c7-keyword-bridge.md` (C6/C7) on top of
+ * `content/marketing/942-content-ia-drafts.md` (#940 definition).
  * Chrome tokens: #944 / `marketingEditorialChrome`.
  */
 export default function PhishSetlistPredictionGamePageContent() {
@@ -37,7 +38,8 @@ export default function PhishSetlistPredictionGamePageContent() {
           Setlist Pick&apos;Em is a free live{' '}
           <strong className="font-semibold text-slate-800">setlist picks game</strong> for fans who
           love predicting setlists—built first for Phish, designed as a home for more bands soon.
-          Lock openers, closers, encore, and a wildcard before showtime; score as the night unfolds.
+          Lock six Phish setlist picks—openers, closers, encore, and a wildcard—before showtime;
+          score as the night unfolds.
         </p>
 
         <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
@@ -75,6 +77,18 @@ export default function PhishSetlistPredictionGamePageContent() {
         </section>
 
         <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
+          <h2 className={MARKETING_EDITORIAL_H2}>
+            What are Phish setlist picks?
+          </h2>
+          <p>
+            Phish setlist picks are the six calls you lock in Setlist Pick&apos;Em before showtime:
+            Set 1 opener and closer, Set 2 opener and closer, encore, and a wildcard. They are your
+            card in this live prediction game—not a predicted full-night setlist or a tip sheet.
+            Score as songs land, and compete in private pools or on the global board.
+          </p>
+        </section>
+
+        <section className="mb-12 space-y-4 text-base leading-relaxed text-slate-700">
           <h2 className={MARKETING_EDITORIAL_H2}>
             Fantasy setlists, without the spreadsheet
           </h2>

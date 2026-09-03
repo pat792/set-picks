@@ -10,12 +10,25 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+### Added
+- **SEO query registry (#931 / epic #926)** — `docs/seo/query-registry.json` seeds B1–B3, C1–C7, S1–S7 (including #931 fan strings). Weekly append-only GSC log procedure is in `docs/seo/README.md`; snapshots stay under gitignored `crew/output/seo/`.
+
+### Changed
+- **Pick'em search plan (#970)** — EiC-approved SERP/GEO plan + playbook C6/C7 / SERP snapshot. Docs only; no declared API change and no version bump.
+
 ---
 
 ## [1.62.3] — 2026-09-02
 
 ### Changed
 - **Editorial viewport tokens (#968)** — marketing chrome uses local `--page-gutter` / `--header-height` and light type roles (H1 / lede / body / meta / eyebrow). Splash header height stays 5.35rem / 5.25rem; Game Format cards share row height and pin actions. Extends #944; splash `100svh` and dashboard type unchanged.
+
+---
+
+## [1.62.2] — 2026-09-02
+
+### Changed
+- **Keyword landing C6/C7 bridge (#973 / epic #972)** — `/phish-setlist-prediction-game` title, meta, prerender, and FAQ now include prediction + lock-your-picks while keeping the C1 “game” H1. No `/phish-picks` doorway.
 
 ---
 

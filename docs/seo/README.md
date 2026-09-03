@@ -1,0 +1,90 @@
+# SEO query registry + weekly log
+
+**Epic:** #926 · **This child:** #931 (E0)  
+**Ops playbook:** [`docs/SEO_GEO_PLAYBOOK.md`](../SEO_GEO_PLAYBOOK.md)  
+**Canonical host:** `https://www.setlistpickem.com`
+
+Machine-readable fan-intent IDs live in **[`query-registry.json`](./query-registry.json)**. Optimize packs and GSC pulls must key off those IDs — do not invent parallel Markdown tables.
+
+**Later:** #932 (E1) automates GSC API + GA4 organic → weekly packs on #926. Until then, humans or cloud agents write the log **manually** after a Search Console pull.
+
+## Policy (do not violate)
+
+- Tour Insights pages are **aggregates only** (most played, bustouts, gaps). Never publish full night setlists.
+- No Google/Bing SERP HTML scraping. Spot-checks are visual / URL Inspection only.
+- No paid links, PBNs, or scraped directories.
+- No `/phish-picks` route (gated #975). C7 targets `/phish-setlist-prediction-game`.
+
+## Registry
+
+| Field | Required | Notes |
+|-------|----------|--------|
+| `id` | yes | Stable forever once used in a log (B1, C6, S4, …). |
+| `query` | yes | One primary string per row. Variants go in `notes`. |
+| `intent` | yes | `stats` \| `game` \| `brand` \| `geo` |
+| `targetPath` | yes | Site path only (`/tour-stats/2026-summer-tour`), not a full URL. |
+| `priority` | yes | `P0` \| `P1` \| `P2` |
+| `notes` | yes | Variants, policy, related issues. |
+
+Target paths in this seed: keyword `/phish-setlist-prediction-game`, hub `/tour-stats`, summer `/tour-stats/2026-summer-tour`, brand `/`.
+
+Add/remove rows as pages ship; **keep IDs stable**. Prefer a new id over redefining an old query.
+
+## Weekly append-only log (`crew/output/seo/`)
+
+`crew/output/` is **gitignored**. Do not commit snapshots, CSVs, or JSONL dumps.
+
+### After a GSC pull (local or cloud agent)
+
+1. Search Console → Performance → **last 7 days** → Totals (impressions, clicks, CTR, avg position). Use the **www** property / www URLs.
+2. Performance → Queries: look up registry ids (at least C1, C6, C7, S1, S3, plus S4–S7 after summer reindex). Record impressions / clicks / position when GSC shows the query; leave `null` when it does not appear.
+3. Optional: export the Queries CSV to your machine. **Do not** commit it.
+4. Write (or append) under `crew/output/seo/` — create the directory if needed:
+
+```bash
+mkdir -p crew/output/seo
+```
+
+**Canonical machine file:** `crew/output/seo/weekly-log.jsonl`  
+Append **one JSON object per week**. Never rewrite or delete earlier lines.
+
+```bash
+# Example: append a filled clone of the committed template
+# (edit the object first — do not append empty nulls as a “week”).
+cat docs/seo/weekly-log.example.json >> crew/output/seo/weekly-log.jsonl
+printf '\n' >> crew/output/seo/weekly-log.jsonl
+```
+
+Optional dated copy for humans: `crew/output/seo/YYYY-MM-DD.json` (same object as that week’s JSONL line).
+
+5. Copy site totals into playbook §4 (interim Markdown table) until #932 replaces empty cells with packs.
+6. Post a **short summary comment on #926** (impressions/clicks + whether S-cluster queries appeared). Do not paste full GSC exports.
+
+### Cadence
+
+Sunday or Monday, matching playbook §4. One row per week starting date (`weekStarting`, ISO date of that Monday).
+
+### Optional post-show intent refresh
+
+When public tour-stats / `comms_show_context` shows a notable bustout, you may append a **same-week note** (or a second JSONL object with `"source": "post-show"`) calling out S3/S4/S5 — still aggregates only, still no SERP scrape. Do not add a new registry id for a one-night song name.
+
+### Schema (log object)
+
+See [`weekly-log.example.json`](./weekly-log.example.json). Required keys: `weekStarting`, `source`, `site`, `queries` (array of `{ id, impressions, clicks, position }`). `source` is `gsc-manual` until #932; then `gsc-api`.
+
+`queries[].id` **must** match `query-registry.json`. Unknown ids are a procedure bug, not a new keyword.
+
+## What not to do
+
+- Do not commit `crew/output/seo/**`.
+- Do not scrape SERPs or competitor HTML here (competitor title/H1 briefs are #933, allowlist only).
+- Do not treat empty playbook §4 cells as the registry — this JSON is the source of IDs.
+- Do not claim a Vercel preview “works” from curl (401). Do not claim Safari/WebKit verified without human evidence.
+
+## Check
+
+```bash
+npm run test:seo-query-registry
+```
+
+Parses the registry and asserts required ids (C1, C6, C7, S1, S3) plus the #931 fan strings.
