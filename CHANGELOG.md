@@ -25,6 +25,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.62.4] — 2026-09-03
+
+### Added
+- **SEO GSC + GA4 weekly packs (#932 / epic #926)** — `npm run seo:gsc-weekly-snapshot` reads the #931 query registry, builds a last-7d Search Console + GA4 organic facts pack (fixture mode for CI), and the Monday Action posts `[SKIP-PRD]` on #926 when `GSC_SERVICE_ACCOUNT_JSON` is present. No merge/deploy. Secrets documented in playbook §4 and `docs/GITHUB_AUTOMATION_CONTEXT.md`.
+
+---
+
 ## [1.62.3] — 2026-09-02
 
 ### Changed

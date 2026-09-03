@@ -1,0 +1,102 @@
+{
+  "source": "gsc-fixture",
+  "property": "https://www.setlistpickem.com/",
+  "runDate": "2026-09-08",
+  "weekStarting": "2026-09-01",
+  "startDate": "2026-09-01",
+  "endDate": "2026-09-07",
+  "window": "last_7_days",
+  "site": {
+    "impressions": 128,
+    "clicks": 19,
+    "ctr": 0.148,
+    "avgPosition": 8.4
+  },
+  "queries": [
+    {
+      "query": "phish setlist game",
+      "impressions": 42,
+      "clicks": 11,
+      "ctr": 0.262,
+      "position": 3.1
+    },
+    {
+      "query": "phish setlist prediction",
+      "impressions": 18,
+      "clicks": 3,
+      "ctr": 0.167,
+      "position": 9.2
+    },
+    {
+      "query": "phish picks",
+      "impressions": 9,
+      "clicks": 1,
+      "ctr": 0.111,
+      "position": 12.0
+    },
+    {
+      "query": "phish tour setlist stats",
+      "impressions": 7,
+      "clicks": 2,
+      "ctr": 0.286,
+      "position": 6.5
+    },
+    {
+      "query": "phish bustouts",
+      "impressions": 14,
+      "clicks": 2,
+      "ctr": 0.143,
+      "position": 11.4
+    },
+    {
+      "query": "setlist pick em",
+      "impressions": 21,
+      "clicks": 4,
+      "ctr": 0.19,
+      "position": 4.8
+    },
+    {
+      "query": "phish summer tour stats 2026",
+      "impressions": 6,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 18.2
+    }
+  ],
+  "ga4": {
+    "propertyId": "527619709",
+    "status": "ok",
+    "rows": [
+      {
+        "landingPage": "/phish-setlist-prediction-game",
+        "sessions": 8,
+        "totalUsers": 7,
+        "channel": "Organic Search"
+      },
+      {
+        "landingPage": "/tour-stats",
+        "sessions": 3,
+        "totalUsers": 3,
+        "channel": "Organic Search"
+      },
+      {
+        "landingPage": "/tour-stats/2026-summer-tour",
+        "sessions": 5,
+        "totalUsers": 4,
+        "channel": "Organic Search"
+      },
+      {
+        "landingPage": "/",
+        "sessions": 40,
+        "totalUsers": 35,
+        "channel": "Organic Search"
+      },
+      {
+        "landingPage": "/phish-picks",
+        "sessions": 1,
+        "totalUsers": 1,
+        "channel": "Organic Search"
+      }
+    ]
+  }
+}

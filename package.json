@@ -52,6 +52,8 @@
     "test:comms-picks-lock-conversion": "node --test scripts/lib/picksLockConversion.test.mjs",
     "test:tour-stats-seo-facts": "node --test scripts/lib/tourStatsSeoFacts.test.mjs scripts/lib/tourStatsSeoAutoExpand.test.mjs scripts/lib/firestoreRestDecode.test.mjs",
     "test:seo-query-registry": "node --test scripts/lib/queryRegistry.test.mjs",
+    "test:seo-gsc-snapshot": "node --test scripts/lib/seoGscSnapshot.test.mjs",
+    "seo:gsc-weekly-snapshot": "node scripts/seo/gsc-weekly-snapshot.mjs",
     "emails:build": "npm run build --prefix emails",
     "emails:preview": "npm run preview --prefix emails"
   },
