@@ -161,9 +161,9 @@ test("skips when email is on suppression list", async () => {
   assert.equal(captured.length, 0);
 });
 
-test("unsubscribeHeaders point at the notifications screen when unsigned", () => {
+test("unsubscribeHeaders point at the Preferences page when unsigned", () => {
   const headers = unsubscribeHeaders("https://www.setlistpickem.com");
-  assert.match(headers["List-Unsubscribe"], /\/dashboard\/profile\/notifications/);
+  assert.match(headers["List-Unsubscribe"], /\/dashboard\/profile\/account/);
 });
 
 test("sends branded shell with hosted wordmark URL (no MIME attachments)", async () => {
@@ -247,7 +247,7 @@ test("sends a branded HTML body alongside the plain-text fallback", async () => 
   assert.match(html, /\/branding\/email-gradient-wordmark\.png/, "references hosted wordmark in header");
   assert.match(html, /Manage preferences/);
   assert.match(html, /Unsubscribe/);
-  assert.match(html, /\/dashboard\/profile\/notifications/, "visible footer link goes to the preferences page");
+  assert.match(html, /\/dashboard\/profile\/account/, "visible footer link goes to the preferences page");
   // #456: the visible body link must be a safe GET (preferences page), never the
   // raw signed one-click suppression URL — that's reserved for the invisible
   // List-Unsubscribe header, which mail clients only ever invoke via POST.
