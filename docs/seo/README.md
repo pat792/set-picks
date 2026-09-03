@@ -89,7 +89,7 @@ See [`weekly-log.example.json`](./weekly-log.example.json). Required keys: `week
 ## What not to do
 
 - Do not commit `crew/output/seo/**`.
-- Do not scrape SERPs or competitor HTML here (competitor title/H1 briefs are #933, allowlist only).
+- Do not scrape SERPs or competitor HTML here. Competitor title/H1 briefs are #933 — allowlist + refuse in `crew/knowledge/allowlists/domains.md`; scanner `python3 -m crew.scripts.seo_title_h1_scan`; durable brief `content/marketing/933-competitor-title-h1-gap-brief.md`.
 - Do not treat empty playbook §4 cells as the registry — this JSON is the source of IDs.
 - Do not claim a Vercel preview “works” from curl (401). Do not claim Safari/WebKit verified without human evidence.
 

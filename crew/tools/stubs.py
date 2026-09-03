@@ -13,7 +13,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from .allowlist import DEFAULT_ALLOWLIST, host_allowed, load_allowlist
+from .allowlist import DEFAULT_ALLOWLIST, host_allowed, load_allowlist, refuse_url
 
 USER_AGENT = (
     "SetlistPickemLeadershipCrew/0.1 "
@@ -58,6 +58,14 @@ def web_fetch_allowlisted(
     """Allowlisted GET. dry_run=True plans only; False performs read-only fetch (L1)."""
     allowed = allowlist if allowlist is not None else load_allowlist()
     host = _host(url)
+    refused = refuse_url(url)
+    if refused:
+        return ToolResult(
+            False,
+            dry_run,
+            refused,
+            {"url": url, "host": host, "refused": True},
+        )
     if not host_allowed(host, allowed):
         return ToolResult(
             False,
@@ -229,4 +237,5 @@ __all__ = [
     "lead_pack_export",
     "load_allowlist",
     "host_allowed",
+    "refuse_url",
 ]

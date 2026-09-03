@@ -144,6 +144,8 @@ Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from 
 
 Re-spot-check these five whenever filling §4. Full game plan: search plan doc above. Do **not** scrape Google/Bing SERP HTML.
 
+**Child E2 (#933):** allowlisted title/H1 scans — `python3 -m crew.scripts.seo_title_h1_scan` (or `npm run seo:title-h1-scan`). Allowlist + refuse: `crew/knowledge/allowlists/domains.md`. Durable brief: [`content/marketing/933-competitor-title-h1-gap-brief.md`](../content/marketing/933-competitor-title-h1-gap-brief.md). Homepage title/heading patterns only; no SERP HTML; no `/phish-picks`. Cadence: weekly with E1 (#932).
+
 ### Profile indexing policy (#661)
 
 | Path | robots | Rationale |
@@ -286,7 +288,8 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 7. **#930** Child D — llms + this playbook (docs); GSC reindex + UTM share are **human ops after promote** (see §9)
 8. **#931** Child E0 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json)
 9. **#932** Child E1 — GSC API + GA4 organic weekly Action → packs on [#926](https://github.com/pat792/set-picks/issues/926) (this playbook §4 + `crew/output/seo/`). Human: add `GSC_SERVICE_ACCOUNT_JSON` + GSC property access before the first live pack.
-10. ~~#959~~ tour-stats SEO auto-expand (v1.63.0) — prerender/sitemap/`llms` from `_index` + gate; GSC Request indexing stays human
+10. **#933** Child E2 — allowlisted competitor title/H1 scan + [`content/marketing/933-competitor-title-h1-gap-brief.md`](../content/marketing/933-competitor-title-h1-gap-brief.md)
+11. ~~#959~~ tour-stats SEO auto-expand (v1.63.0) — prerender/sitemap/`llms` from `_index` + gate; GSC Request indexing stays human
 
 ---
 

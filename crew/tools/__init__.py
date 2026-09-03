@@ -1,4 +1,9 @@
-from .allowlist import DEFAULT_ALLOWLIST, host_allowed, load_allowlist
+from .allowlist import (
+    DEFAULT_ALLOWLIST,
+    host_allowed,
+    load_allowlist,
+    refuse_url,
+)
 from .stubs import (
     ToolResult,
     affiliate_catalog_research,
@@ -20,4 +25,5 @@ __all__ = [
     "lead_pack_export",
     "load_allowlist",
     "host_allowed",
+    "refuse_url",
 ]

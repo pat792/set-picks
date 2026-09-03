@@ -89,6 +89,16 @@ python3.13 -m crew.scripts.market_intel_sweep
 
 Artifacts: `crew/output/intel/` (gitignored).
 
+### SEO title/H1 scan (L1, #933)
+
+```bash
+python3 -m crew.scripts.seo_title_h1_scan --dry-run
+python3 -m crew.scripts.seo_title_h1_scan
+# optional alias (no SemVer bump): npm run seo:title-h1-scan -- --dry-run
+```
+
+Extracts title + meta + H1–H3 from allowlisted URLs and diffs `docs/seo/query-registry.json`. Refuses Google/Bing SERP HTML, ToS-omitted hosts (`callingit.live`, ihoz, Phantasy Tour), PII paths, and aggressive URL counts. Durable brief: `content/marketing/933-competitor-title-h1-gap-brief.md`. Do not commit `crew/output/intel/` HTML or gap dumps.
+
 ### Social / BD demand gen (L2)
 
 ```bash
