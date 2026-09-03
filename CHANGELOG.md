@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.64.0] — 2026-09-03
+
+### Added
+- **Picks tertiary cluster (#766)** — Make Picks / Picks Lab / Scorecard nested under the primary Picks tab: `/dashboard` and `/dashboard/picks` (form), `/dashboard/picks/lab`, `/dashboard/picks/scorecard`. Mobile portal + desktop in-page tray use `ChromeSegmentedControl`. Lab tab stays visible when `VITE_ENABLE_PREDICTION_LAB` is off (coming-soon shell). Scorecard is an empty shell. Date picker stays on all three destinations.
+
+### Changed
+- **Prediction Lab destination (#766)** — `PickPredictionPanel` moves off the Make Picks scroll to `/dashboard/picks/lab`. Make Picks keeps lock/edit, scoring/lock-status tools, and `utm_campaign` landed logging.
+
+---
+
 ## [1.63.1] — 2026-09-03
 
 ### Added

@@ -6,7 +6,7 @@ Single reference for **support**, **product**, and **engineering** when adding r
 
 | Tab (label) | Path | Purpose |
 |-------------|------|---------|
-| **Picks** | `/dashboard` | Lock/edit song picks for the **selected show** (global date picker). |
+| **Picks** | `/dashboard` | **Picks cluster** (#766): Make Picks / Picks Lab / Scorecard. Primary tab stays active on all three. Global date picker stays on. |
 | **Pools** | `/dashboard/pools` | List pools; create/join. |
 | **Standings** | `/dashboard/standings` | **Show standings** for the selected show (everyone or one pool). |
 | **Profile** | `/dashboard/profile` | Profile **cluster**: identity, **Messages**, **Account** (sub-nav). |
@@ -31,6 +31,18 @@ Soft **New** labels (not coachmarks) may appear temporarily on:
 
 Markers auto-expire by catalog `until` date and persist dismissals in `localStorage` per signed-in uid. Support can tell users: clear site data for the origin if a marker is stuck; otherwise ignore — they vanish by end of the window.
 
+### Picks tertiary (#766)
+
+Nested routes (not `?view=`). Primary **Picks** tab stays active. Lab segment is **always visible**; when `VITE_ENABLE_PREDICTION_LAB` is not `true`, Picks Lab shows an empty / coming-soon shell (do not hide the tab). Scorecard is a shell only — comparison metrics are a sibling.
+
+| Sub-nav | Path | Responsibility |
+|---------|------|----------------|
+| **Make Picks** | `/dashboard` and `/dashboard/picks` | Existing picks form (lock/edit). `utm_campaign` landed logging stays here. |
+| **Picks Lab** | `/dashboard/picks/lab` | Prediction Lab (`PickPredictionPanel`) when the env flag is `true`; otherwise coming-soon. |
+| **Scorecard** | `/dashboard/picks/scorecard` | Empty / coming-soon placeholder. |
+
+Mobile: tertiary tray portals under the context bar via `ChromeSegmentedControl` (same primitive as Profile). Desktop: in-page tray at the cluster layout call site. Make Picks keeps scoring / lock-status tools (`PicksMobileFixedChrome`) on that destination only.
+
 ### Profile cluster (#418)
 
 | Sub-nav | Path | Responsibility |
@@ -51,6 +63,7 @@ Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
 - **Pools** tab stays active on `/dashboard/pools` **and** `/dashboard/pool/:poolId` (**pool details**).
 - **Profile** tab stays active on the entire Profile cluster (including legacy redirect paths).
 - **Standings** tab stays active on `/dashboard/standings` **and** `/dashboard/tour-stats`.
+- **Picks** tab stays active on `/dashboard`, `/dashboard/picks`, `/dashboard/picks/lab`, and `/dashboard/picks/scorecard`.
 
 ## Tertiary chrome contract (#765)
 
@@ -103,6 +116,7 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 |------------------------|-------------------|--------|
 | **Profile** | Profile · Messages · Account | Nested routes under `/dashboard/profile/*` |
 | **Standings** | Show · Tour · Stats · Pools | Stats remains until #769 moves it to a Stats primary. Epic “3 options after Stats moves” is that child — not this PR. |
+| **Picks** | Make Picks · Picks Lab · Scorecard | Nested routes (#766). Lab segment always visible; Scorecard is a shell. |
 
 Vocabulary stub: `NAV_LABEL_STATS` exists for the Standings segment / future primary. **Account-as-primary** (relabel Profile vs rename `/dashboard/profile`) is an open question on #764 / #770 — do not change the user-visible Profile primary label until that child.
 
@@ -123,7 +137,10 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 
 | Term | Meaning |
 |------|---------|
-| **Picks** | Tab + context + desktop H1 for `/dashboard` (`NAV_LABEL_PICKS`). |
+| **Picks** | Tab + context + desktop H1 for the Picks cluster (`NAV_LABEL_PICKS`) — `/dashboard`, `/dashboard/picks`, `/dashboard/picks/lab`, `/dashboard/picks/scorecard`. |
+| **Make Picks** | Picks-cluster tertiary for the form (`NAV_LABEL_MAKE_PICKS`). |
+| **Picks Lab** | Picks-cluster tertiary for Prediction Lab (`NAV_LABEL_PICKS_LAB`); path `/dashboard/picks/lab`. |
+| **Scorecard** | Picks-cluster tertiary shell (`NAV_LABEL_SCORECARD`); path `/dashboard/picks/scorecard`. |
 | **Pools** | Tab + context + desktop H1 for `/dashboard/pools` (`NAV_LABEL_POOLS`) — same word in nav and shell. |
 | **Profile** | Tab + context for `/dashboard/profile` (`NAV_LABEL_PROFILE`); desktop in-page subheading matches. **Account-as-primary** is an open question (#764 / #770) — primary label stays Profile until that child. |
 | **Messages** | Profile-cluster inbox + prefs (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. |
@@ -145,7 +162,10 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 
 | Users see | Route / surface | Source of truth |
 |-----------|-----------------|-----------------|
-| Picks | `/dashboard` | `NAV_LABEL_PICKS` |
+| Picks | `/dashboard`, `/dashboard/picks`, `/dashboard/picks/lab`, `/dashboard/picks/scorecard` | `NAV_LABEL_PICKS` |
+| Make Picks | Picks cluster tertiary | `NAV_LABEL_MAKE_PICKS` |
+| Picks Lab | `/dashboard/picks/lab` | `NAV_LABEL_PICKS_LAB` |
+| Scorecard | `/dashboard/picks/scorecard` | `NAV_LABEL_SCORECARD` |
 | Pools | `/dashboard/pools` | `NAV_LABEL_POOLS` |
 | Pool Details (context) | `/dashboard/pool/:id` | `NAV_LABEL_POOL_DETAILS` |
 | Pool details (desktop eyebrow) | Pool hub | `POOL_DETAILS_LAYOUT_EYEBROW` |
@@ -196,7 +216,10 @@ flowchart TB
     Pr[Profile]
   end
 
-  P --> PicksRoute["/dashboard"]
+  P --> PicksRoute["/dashboard · Make Picks"]
+  P --> PicksAlias["/dashboard/picks · Make Picks"]
+  P --> PicksLab["/dashboard/picks/lab · Picks Lab"]
+  P --> PicksScore["/dashboard/picks/scorecard · Scorecard"]
   Po --> PoolsList["/dashboard/pools"]
   Po --> PoolDetail["/dashboard/pool/:id\nPool details"]
   S --> StandingsRoute["/dashboard/standings"]
@@ -205,6 +228,9 @@ flowchart TB
   Pr --> MessagesRoute["/dashboard/profile/notifications\nMessages"]
   Pr --> AccountRoute["/dashboard/profile/account\nAccount"]
 
+  PicksAlias -.->|same tab active| PicksRoute
+  PicksLab -.->|same tab active| PicksRoute
+  PicksScore -.->|same tab active| PicksRoute
   PoolDetail -.->|breadcrumb| PoolsList
   MessagesRoute -.->|same tab active| ProfileRoute
   AccountRoute -.->|same tab active| ProfileRoute
@@ -222,9 +248,10 @@ flowchart TB
 ## Related code
 
 - `getDashboardPageMeta`, `normalizeDashboardPathname` — `src/app/layout/model/dashboardPageMeta.js`
-- `PROFILE_CLUSTER_PATHS`, `isProfileClusterPath` — `src/shared/config/dashboardRoutes.js`
+- `PROFILE_CLUSTER_PATHS`, `isProfileClusterPath`, `PICKS_CLUSTER_PATHS`, `isPicksClusterPath` — `src/shared/config/dashboardRoutes.js`
 - Tertiary tray — `src/shared/ui/ChromeSegmentedControl.jsx`
 - Profile cluster layout — `src/app/layout/ui/ProfileClusterLayout.jsx`
+- Picks cluster layout — `src/app/layout/ui/PicksClusterLayout.jsx`
 - Nav items + active rules — `src/app/layout/DashboardLayout.jsx`
 - Scoring modal provider — `src/features/scoring/ui/ScoringRulesModalProvider.jsx`
 

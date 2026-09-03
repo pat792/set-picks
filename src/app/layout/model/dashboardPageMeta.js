@@ -20,6 +20,7 @@ import {
 import {
   PROFILE_CLUSTER_LEGACY_PATHS,
   PROFILE_CLUSTER_PATHS,
+  isPicksClusterPath,
   isProfileClusterPath,
   normalizeDashboardPathname,
 } from '../../../shared/config/dashboardRoutes.js';
@@ -72,6 +73,7 @@ export function getDashboardPageMeta(pathname, search) {
     normalized === PROFILE_CLUSTER_PATHS.account ||
     normalized === PROFILE_CLUSTER_LEGACY_PATHS.accountSecurity;
   const isProfileCluster = isProfileClusterPath(normalized);
+  const isPicksCluster = isPicksClusterPath(normalized);
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
   const isStandings = normalized === '/dashboard/standings';
@@ -88,6 +90,7 @@ export function getDashboardPageMeta(pathname, search) {
     if (isProfileMessages) return NAV_LABEL_MESSAGES;
     if (isProfileAccount) return NAV_LABEL_ACCOUNT;
     if (isAdmin) return 'War Room';
+    if (isPicksCluster) return NAV_LABEL_PICKS;
     return NAV_LABEL_PICKS;
   })();
 

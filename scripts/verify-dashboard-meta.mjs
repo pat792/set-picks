@@ -39,6 +39,36 @@ const CASES = [
     },
   },
   {
+    // #766: Make Picks alias — same cluster meta as /dashboard.
+    path: '/dashboard/picks',
+    expect: {
+      contextTitle: NAV_LABEL_PICKS,
+      showDatePicker: true,
+      layoutDesktopHeading: NAV_LABEL_PICKS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #766: Picks Lab — primary Picks tab + date picker stay on.
+    path: '/dashboard/picks/lab',
+    expect: {
+      contextTitle: NAV_LABEL_PICKS,
+      showDatePicker: true,
+      layoutDesktopHeading: NAV_LABEL_PICKS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #766: Scorecard shell — primary Picks tab + date picker stay on.
+    path: '/dashboard/picks/scorecard',
+    expect: {
+      contextTitle: NAV_LABEL_PICKS,
+      showDatePicker: true,
+      layoutDesktopHeading: NAV_LABEL_PICKS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
     path: '/dashboard/standings',
     expect: {
       contextTitle: NAV_LABEL_STANDINGS,
