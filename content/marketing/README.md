@@ -5,6 +5,7 @@ Editable reference copy for public marketing / SEO surfaces (not lifecycle comms
 | Doc | Epic / issues | Status |
 |-----|---------------|--------|
 | [`pickem-search-plan-2026-08.md`](./pickem-search-plan-2026-08.md) | #972 · #970 · #973 · #974 · #975 · #926 · #657 | **EiC-approved** (2026-08-21) — docs-only north star; Next/A execution via sibling issues, not this file |
+| [`974-owned-social-cadence-brief.md`](./974-owned-social-cadence-brief.md) | #974 · epic #972 | **Draft** (2026-09-03) — owned IG/X show-week + always-on cadence; UTMs `seo_geo`; human accounts + first L2 post still open |
 | [`973-c6-c7-keyword-bridge.md`](./973-c6-c7-keyword-bridge.md) | #973 · epic #972 | EiC-facing — C6/C7 title/H1/FAQ on `/phish-setlist-prediction-game` (v1.62.2) |
 | [`933-competitor-title-h1-gap-brief.md`](./933-competitor-title-h1-gap-brief.md) | #933 · epic #926 · refs #973 / #975 | **Draft** (2026-09-03) — allowlisted title/H1 gap vs keyword + tour-stats; no `/phish-picks` |
 | [`942-content-ia-drafts.md`](./942-content-ia-drafts.md) | [#942](https://github.com/pat792/set-picks/issues/942) — [#937](https://github.com/pat792/set-picks/issues/937), [#940](https://github.com/pat792/set-picks/issues/940), [#941](https://github.com/pat792/set-picks/issues/941) | EiC-approved L0 draft. **#940/#941** v1.56.0; **#937** v1.56.1 |

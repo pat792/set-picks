@@ -21,9 +21,29 @@
 | Helmet + JSON-LD | `src/features/landing/ui/LandingSeo.jsx` | Client source of truth for browsers; homepage FAQ/HowTo also in prerender HTML |
 | Public profiles | `/user/:userId` | **`noindex,follow`** (#661) — not sitemap targets |
 | Dashboard | `/dashboard/*` | **Private** — `robots.txt` Disallow; never prerender for crawlers |
-| Tour Insights | `/tour-stats`, `/tour-stats/:slug` | Firestore `_index` + docs **auto-update** nightly; **SEO URLs are opt-in** (`seoRoutes.js` + sitemap + `llms.txt`). New tours do not auto-prerender (backlog under [#926](https://github.com/pat792/set-picks/issues/926)). Live summer slug: `2026-summer-tour`. |
+| Tour Insights | `/tour-stats`, `/tour-stats/:slug` | Product `_index` + docs **auto-update** nightly (filter / hub). **SEO prerender** auto-expands `/tour-stats/{slug}` + sitemap/`llms` on the next production build when the thin-page gate passes (**#959** / v1.63.0). Static opt-in seed: Sphere + `2026-summer-tour` in `seoRoutes.js`. See §1.1. |
 
 **Search Console:** Prefer a **Domain** property (`setlistpickem.com`) or the **URL-prefix** property for `https://www.setlistpickem.com/`. When inspecting, always use **www** URLs. Apex showing “Page with redirect” is expected and healthy.
+
+### 1.1 Product `_index` vs SEO auto-expand (#959)
+
+Two different “auto” layers — do not conflate them.
+
+| Layer | What updates | Gate | Who |
+|-------|--------------|------|-----|
+| Product `_index` | `public_tour_stats/_index` + per-slug docs; public filter / hub “current tour” | Through-today shows exist (nightly refresh) | Cloud Functions |
+| SEO auto-expand | Prerender HTML under `dist/tour-stats/{slug}/`, `dist/sitemap.xml`, `dist/llms.txt` | `showsWithSetlist ≥ 4` **and** `uniqueSongs ≥ 20` **and** `lastShowDate` in the current UTC year. Does **not** expand on the first empty night. | Next production `vite build` + `prerender-seo.mjs` |
+| GSC Request indexing | Optional nudge for a high-priority new slug | Human judgment after `main` is READY | Human — **not** automated |
+
+Constants live in `scripts/lib/tourStatsSeoAutoExpand.mjs` (`TOUR_STATS_SEO_MIN_SHOWS_WITH_SETLIST = 4`, `TOUR_STATS_SEO_MIN_UNIQUE_SONGS = 20`). First-wave allowlist is the current-year `lastShowDate` rule (plus optional `TOUR_STATS_SEO_ALLOWLIST`).
+
+**Rollback / kill-switch** (Vercel build env, then rebuild):
+
+- `TOUR_STATS_SEO_AUTO_EXPAND=0` — skip all auto slugs; static `seoRoutes.js` opt-in (Sphere + Summer) still prerenders.
+- `TOUR_STATS_SEO_DENYLIST=bad-slug` — block one shipped slug.
+- `TOUR_STATS_SEO_ALLOWLIST=slug-a,slug-b` — only those slugs may auto-expand (still gated).
+
+Do **not** scrape Google/Bing SERP HTML. Do **not** add `/phish-picks`. Aggregates only — never full night setlists.
 
 ---
 
@@ -108,7 +128,7 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | S5 | `phish bustout list this tour` | `/tour-stats/2026-summer-tour` |
 | S6 | `phish unique songs` / `unique songs played this tour` / `songs played this tour` | `/tour-stats/2026-summer-tour` |
 
-Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere + **2026 Summer Tour** (`2026-summer-tour`). Definitions in `/llms.txt` match the public UI: unique = distinct titles this tour; frequency = plays this tour; bustout = 30+ show pre-show gap.
+Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere + **2026 Summer Tour** (`2026-summer-tour`) stay static opt-in; later tours that clear the §1.1 gate auto-prerender on the next production build (#959). Definitions in `/llms.txt` match the public UI: unique = distinct titles this tour; frequency = plays this tour; bustout = 30+ show pre-show gap.
 
 **GEO / LLM brief (#930):** `/llms.txt` restates those three definitions and deep-links the summer slug so agents can cite the live tour page, not only home.
 
@@ -140,11 +160,48 @@ Add/remove rows as pages ship; keep IDs stable once used in the log.
 
 ## 4. Weekly measurement log (8+ weeks)
 
-Fill one row per week (Sunday or Monday). Source: Search Console Performance (28-day or weekly filter) + manual SERP/AI Overview spot-check.
+**Canonical after Child E1 #932:** the weekly **SEO Optimize pack** comment on epic #926, plus gitignored snapshots under `crew/output/seo/`. Do not treat empty Markdown cells in the archive table as the source of truth.
 
-**Query IDs:** [`docs/seo/query-registry.json`](seo/query-registry.json) (Child E0 #931). Weekly JSONL write procedure: [`docs/seo/README.md`](seo/README.md).
+| Piece | Path |
+|-------|------|
+| Query IDs | [`docs/seo/query-registry.json`](seo/query-registry.json) (Child E0 #931) |
+| Snapshot script | `npm run seo:gsc-weekly-snapshot` (`scripts/seo/gsc-weekly-snapshot.mjs`) |
+| Fixture / dry-run | `npm run seo:gsc-weekly-snapshot -- --fixture` |
+| Cron | `.github/workflows/seo-gsc-weekly-schedule.yml` — Monday `15:00` UTC (~09:00 America/Denver) |
+| Epic comments | Workflow posts a `[SKIP-PRD]` facts pack on **#926** when live GSC credentials exist |
+| Machine log | `crew/output/seo/weekly-log.jsonl` (gitignored — never commit) |
+| Procedure | [`docs/seo/README.md`](seo/README.md) |
 
-**Resume (Child D / #930):** the table below is the **interim** log. Keep filling it until Child **E0** [#931](https://github.com/pat792/set-picks/issues/931) (query registry) + **E1** [#932](https://github.com/pat792/set-picks/issues/932) (GSC API + GA4 organic → weekly packs on [#926](https://github.com/pat792/set-picks/issues/926)) land. After E1, this table becomes a pointer — prefer the Action pack + `crew/output/seo/` snapshot over empty Markdown cells. Until then: GSC → Performance → last 7 days → Totals, plus a spot-check of S4–S6 after summer reindex.
+**Note:** GitHub `schedule` workflows run only from the repo **default branch** (`main`). Merge to `staging` first; cron becomes live after promote to `main`. Use `workflow_dispatch` (`live` or `fixture`) on the workflow file’s branch for earlier dry runs. `fixture` prints a pack and **never** comments on #926.
+
+The Action does **not** merge, deploy, or open PRs. Child E3 autonomy (#934) is out of scope.
+
+### Secrets (human — never commit)
+
+Live packs need a Search Console API principal with access to the **www** property. Optional GA4 organic landings reuse the existing Optimize property (**527619709**) and the same ADC / service-account style as `crew/scripts/ga4_snapshot.py` — do not stand up a second GA4 stack.
+
+| Name | Where | Required for live post? | Purpose |
+|------|--------|-------------------------|---------|
+| `GSC_SERVICE_ACCOUNT_JSON` | GitHub Actions **secret** (repo Settings → Secrets) | **Yes** | Full service-account JSON (or WIF-equivalent ADC). Scopes: Search Console readonly; optionally Analytics Data readonly. |
+| `GSC_SITE_URL` | optional Actions **variable** | No | Default `https://www.setlistpickem.com/`. Must match the GSC property the SA can read. |
+| `GA4_PROPERTY_ID` | optional Actions **variable** | No | Default `527619709` (same as Optimize / `ga4_snapshot.py`). |
+| `GOOGLE_APPLICATION_CREDENTIALS` | local ADC path | Local live only | Alternative to pasting JSON; same SA file Optimize already uses is fine if it also has GSC access. |
+| `GSC_ACCESS_TOKEN` | local / CI env | Local live only | Pre-minted bearer (`webmasters.readonly` + optionally `analytics.readonly`). |
+
+**Human service-account steps (prod GSC — agent cannot complete):**
+
+1. GCP project: enable **Search Console API** (`searchconsole.googleapis.com`) and, for GA4 organic, **Google Analytics Data API** (`analyticsdata.googleapis.com`) — the latter is already required for Optimize (`docs/GA4_MCP_SETUP.md`).
+2. Create a service account (or reuse the Optimize SA). Create a JSON key **or** configure Workload Identity Federation for GitHub Actions (`google-github-actions/auth`) so no long-lived key sits in the repo.
+3. Search Console → Settings → Users and permissions → add the SA email on the **URL-prefix** property `https://www.setlistpickem.com/` (or the Domain property `setlistpickem.com`) with at least **Restricted** / read access. Inspect **www** URLs only.
+4. Optional: GA4 Admin → Property access management → **Viewer** on property `527619709` for the same SA (already used by Optimize).
+5. Paste the JSON into repo secret `GSC_SERVICE_ACCOUNT_JSON`. Never commit the file, never put it in `docs/`, never echo it in logs.
+6. Dispatch **SEO GSC weekly pack** → `live` and confirm a pack comment on #926. Until that human checkbox is done, use `--fixture` only.
+
+Without `GSC_SERVICE_ACCOUNT_JSON` (forks, first enable), the workflow **SKIP**s with a clear log and stays green. It does **not** post a fixture pack to #926.
+
+### Archive table (pre-E1)
+
+Historical rows below stay for the 2026-07 baseline. Prefer the Action pack + `crew/output/seo/` after E1 credentials are live. Manual fallback: GSC → Performance → last 7 days → Totals, plus a spot-check of S4–S6 after summer reindex.
 
 | Week starting | Impressions (site) | Clicks | Top query (non-brand) | Best position (C1–C4) | Favicon on `site:setlistpickem.com`? | AI Overview / generative citation? | Notes |
 |---------------|--------------------:|-------:|------------------------|------------------------:|--------------------------------------|------------------------------------|-------|
@@ -157,7 +214,7 @@ Fill one row per week (Sunday or Monday). Source: Search Console Performance (28
 | 2026-08-30 | | | | | | | **#930 resume week.** After promote: request indexing on hub + `/tour-stats/2026-summer-tour` + `/llms.txt`; fill last-7-days totals here. |
 | 2026-09-06 | | | | | | | First full week after Child D reindex (if indexing landed 2026-09-02). |
 
-**How to fill Impressions/Clicks:** GSC → Performance → last 7 days → Totals. Optional: export CSV into a spreadsheet; keep this table as the epic-facing summary. Machine log: append-only `crew/output/seo/weekly-log.jsonl` (gitignored — do not commit snapshots). Procedure: [`docs/seo/README.md`](seo/README.md). Automation is #932.
+**How to fill if the Action has not posted yet:** GSC → Performance → last 7 days → Totals (manual). Optional CSV stays on your machine. After #932 credentials are live, copy site totals from the #926 pack instead of this table. Machine log: append-only `crew/output/seo/weekly-log.jsonl` (gitignored).
 
 **Favicon check:** Incognito Google → `site:setlistpickem.com` → note whether result icon appears (Child E #662 if still missing after ~2–4 weeks).
 
@@ -214,8 +271,9 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 | Check | Command / file |
 |-------|----------------|
 | OG shell + social UA matrix | `npm run verify:og-home` (`scripts/verify-og-home.mjs`, `og-home-html.mjs`) |
-| Prerender (#659) | `npm run verify:seo-prerender` (`scripts/prerender-seo.mjs` after build; registry `src/shared/config/seoRoutes.js`) |
-| Automation context | `docs/GITHUB_AUTOMATION_CONTEXT.md` → Public landing SEO |
+| Prerender (#659 / #959) | `npm run verify:seo-prerender` (`scripts/prerender-seo.mjs` after build; static registry `src/shared/config/seoRoutes.js`; auto-expand gate `scripts/lib/tourStatsSeoAutoExpand.mjs`) |
+| Automation context | `docs/GITHUB_AUTOMATION_CONTEXT.md` → Public landing SEO + SEO GSC weekly pack |
+| GSC/GA4 weekly pack (#932) | `npm run seo:gsc-weekly-snapshot -- --fixture` · `npm run test:seo-gsc-snapshot` |
 
 ---
 
@@ -228,8 +286,10 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 5. **#666** enrichment after H1 is indexed
 6. ~~#927 / #928 / #929~~ Children A–C (summer slug, crawler facts, fan H2s)
 7. **#930** Child D — llms + this playbook (docs); GSC reindex + UTM share are **human ops after promote** (see §9)
-8. **#931 / #932** Child E0/E1 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json) + GSC/GA4 weekly packs (replaces empty §4 cells)
-9. **#933** Child E2 — allowlisted competitor title/H1 scan + [`content/marketing/933-competitor-title-h1-gap-brief.md`](../content/marketing/933-competitor-title-h1-gap-brief.md)
+8. **#931** Child E0 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json)
+9. **#932** Child E1 — GSC API + GA4 organic weekly Action → packs on [#926](https://github.com/pat792/set-picks/issues/926) (this playbook §4 + `crew/output/seo/`). Human: add `GSC_SERVICE_ACCOUNT_JSON` + GSC property access before the first live pack.
+10. **#933** Child E2 — allowlisted competitor title/H1 scan + [`content/marketing/933-competitor-title-h1-gap-brief.md`](../content/marketing/933-competitor-title-h1-gap-brief.md)
+11. ~~#959~~ tour-stats SEO auto-expand (v1.63.0) — prerender/sitemap/`llms` from `_index` + gate; GSC Request indexing stays human
 
 ---
 
@@ -240,7 +300,7 @@ Docs (llms + this playbook) ship in the product PR. The two remaining acceptance
 | Step | Owner | Status |
 |------|--------|--------|
 | `public/llms.txt` Tour Insights definitions + summer deep link | Agent | Done (this PR) |
-| Playbook §3 S4–S6 + §4 resume pointer to E0/E1 | Agent | Done (this PR) |
+| Playbook §3 S4–S6 + §4 packs/secrets pointer (E0 #931 / E1 #932) | Agent | Done |
 | GSC URL Inspection + **Request indexing** on hub, `/tour-stats/2026-summer-tour`, `/llms.txt` | Human | **Open** — after promote |
 | ≥1 UTM’d off-site share of the **summer** URL (not only home) after a real bustout night; campaign `seo_geo` or `seo_926`, content `tour-stats-summer-2026` | Human | **Open** — log here or on #926 / #930 |
 
