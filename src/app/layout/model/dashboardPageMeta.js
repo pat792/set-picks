@@ -21,6 +21,7 @@ import {
   PROFILE_CLUSTER_LEGACY_PATHS,
   PROFILE_CLUSTER_PATHS,
   isPicksClusterPath,
+  isPoolsTertiaryPath,
   isProfileClusterPath,
   normalizeDashboardPathname,
 } from '../../../shared/config/dashboardRoutes.js';
@@ -84,7 +85,7 @@ export function getDashboardPageMeta(pathname, search) {
 
   const contextTitle = (() => {
     if (isStandings || isTourStats) return NAV_LABEL_STANDINGS;
-    if (normalized === '/dashboard/pools') return NAV_LABEL_POOLS;
+    if (isPoolsTertiaryPath(normalized)) return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
     if (isProfileIdentity) return NAV_LABEL_PROFILE;
     if (isProfileMessages) return NAV_LABEL_MESSAGES;

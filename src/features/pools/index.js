@@ -18,11 +18,15 @@ export { usePoolAdminControls } from './model/usePoolAdminControls';
 export { usePoolStandingsSection } from './model/usePoolStandingsSection';
 export { invalidateUserPools } from './model/userPoolsRefreshBus';
 export { default as useUserPools } from './model/useUserPools';
+export { default as usePoolsClusterScreen } from './model/usePoolsClusterScreen';
 export { default as PoolAdminControls } from './ui/PoolAdminControls';
 export { default as PoolAdminSection } from './ui/PoolAdminSection';
+export { default as PendingPoolJoinBanner } from './ui/PendingPoolJoinBanner';
+export { default as PoolCreateCard } from './ui/PoolCreateCard';
 export { default as PoolHubActiveShow } from './ui/PoolHubActiveShow';
 export { default as PoolHubHeader } from './ui/PoolHubHeader';
 export { default as PoolHubLeaderboard } from './ui/PoolHubLeaderboard';
+export { default as PoolJoinCard } from './ui/PoolJoinCard';
 /**
  * @deprecated Renamed to {@link PoolHubStandingsSection} under the #148
  * All-time / Tour split. Retained as an alias so in-flight branches keep

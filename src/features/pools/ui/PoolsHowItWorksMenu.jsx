@@ -5,12 +5,13 @@ import DashboardRowPill from '../../../shared/ui/DashboardRowPill';
 import PoolsHowItWorksBody from './PoolsHowItWorksBody';
 
 /**
- * Native disclosure: top row is the action bar (leading + “How pools work”);
+ * Native disclosure: optional leading action + “How pools work”;
  * open content expands in normal flow below—no overlay or floating layer.
+ * Not a tertiary segment (#768).
  *
- * @param {{ leading: React.ReactNode }} props
+ * @param {{ leading?: React.ReactNode }} props
  */
-export default function PoolsHowItWorksMenu({ leading }) {
+export default function PoolsHowItWorksMenu({ leading = null }) {
   return (
     <details className="group w-full">
       <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-2 [&::-webkit-details-marker]:hidden">

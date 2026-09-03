@@ -32,6 +32,15 @@ export const NAV_LABEL_SCORECARD = 'Scorecard';
 /** Pools list tab + context + desktop H1 (`/dashboard/pools`) */
 export const NAV_LABEL_POOLS = 'Pools';
 
+/** Pools tertiary — list destination (`/dashboard/pools`) */
+export const NAV_LABEL_MY_POOLS = 'My Pools';
+
+/** Pools tertiary — create destination (`/dashboard/pools/create`) */
+export const NAV_LABEL_CREATE_POOL = 'Create Pool';
+
+/** Pools tertiary — join-by-code destination (`/dashboard/pools/join`) */
+export const NAV_LABEL_JOIN_POOL = 'Join Pool';
+
 /**
  * Profile tab + cluster identity surface (`/dashboard/profile`).
  *

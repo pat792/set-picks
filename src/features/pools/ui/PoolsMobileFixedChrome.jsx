@@ -6,9 +6,11 @@ import DashboardMobileChromeBar from '../../../shared/ui/DashboardMobileChromeBa
 import DashboardRowPill from '../../../shared/ui/DashboardRowPill';
 
 /**
+ * @deprecated Use `src/app/layout/ui/PoolsMobileFixedChrome.jsx` (tertiary tray, #768).
+ * Legacy “Go to Picks” + How-it-works tools band. Kept exported so in-flight
+ * branches do not break while the cluster layout lands.
+ *
  * Mobile-only Pools chrome (#609) — fixed under the context bar.
- * “How pools work” toggles an in-flow panel below the chrome (same pattern
- * as Picks locked/saved), not an absolute overlay.
  *
  * @param {{
  *   isHowItWorksExpanded?: boolean,
