@@ -21,9 +21,29 @@
 | Helmet + JSON-LD | `src/features/landing/ui/LandingSeo.jsx` | Client source of truth for browsers; homepage FAQ/HowTo also in prerender HTML |
 | Public profiles | `/user/:userId` | **`noindex,follow`** (#661) — not sitemap targets |
 | Dashboard | `/dashboard/*` | **Private** — `robots.txt` Disallow; never prerender for crawlers |
-| Tour Insights | `/tour-stats`, `/tour-stats/:slug` | Firestore `_index` + docs **auto-update** nightly; **SEO URLs are opt-in** (`seoRoutes.js` + sitemap + `llms.txt`). New tours do not auto-prerender (backlog under [#926](https://github.com/pat792/set-picks/issues/926)). Live summer slug: `2026-summer-tour`. |
+| Tour Insights | `/tour-stats`, `/tour-stats/:slug` | Product `_index` + docs **auto-update** nightly (filter / hub). **SEO prerender** auto-expands `/tour-stats/{slug}` + sitemap/`llms` on the next production build when the thin-page gate passes (**#959** / v1.63.0). Static opt-in seed: Sphere + `2026-summer-tour` in `seoRoutes.js`. See §1.1. |
 
 **Search Console:** Prefer a **Domain** property (`setlistpickem.com`) or the **URL-prefix** property for `https://www.setlistpickem.com/`. When inspecting, always use **www** URLs. Apex showing “Page with redirect” is expected and healthy.
+
+### 1.1 Product `_index` vs SEO auto-expand (#959)
+
+Two different “auto” layers — do not conflate them.
+
+| Layer | What updates | Gate | Who |
+|-------|--------------|------|-----|
+| Product `_index` | `public_tour_stats/_index` + per-slug docs; public filter / hub “current tour” | Through-today shows exist (nightly refresh) | Cloud Functions |
+| SEO auto-expand | Prerender HTML under `dist/tour-stats/{slug}/`, `dist/sitemap.xml`, `dist/llms.txt` | `showsWithSetlist ≥ 4` **and** `uniqueSongs ≥ 20` **and** `lastShowDate` in the current UTC year. Does **not** expand on the first empty night. | Next production `vite build` + `prerender-seo.mjs` |
+| GSC Request indexing | Optional nudge for a high-priority new slug | Human judgment after `main` is READY | Human — **not** automated |
+
+Constants live in `scripts/lib/tourStatsSeoAutoExpand.mjs` (`TOUR_STATS_SEO_MIN_SHOWS_WITH_SETLIST = 4`, `TOUR_STATS_SEO_MIN_UNIQUE_SONGS = 20`). First-wave allowlist is the current-year `lastShowDate` rule (plus optional `TOUR_STATS_SEO_ALLOWLIST`).
+
+**Rollback / kill-switch** (Vercel build env, then rebuild):
+
+- `TOUR_STATS_SEO_AUTO_EXPAND=0` — skip all auto slugs; static `seoRoutes.js` opt-in (Sphere + Summer) still prerenders.
+- `TOUR_STATS_SEO_DENYLIST=bad-slug` — block one shipped slug.
+- `TOUR_STATS_SEO_ALLOWLIST=slug-a,slug-b` — only those slugs may auto-expand (still gated).
+
+Do **not** scrape Google/Bing SERP HTML. Do **not** add `/phish-picks`. Aggregates only — never full night setlists.
 
 ---
 
@@ -108,7 +128,7 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | S5 | `phish bustout list this tour` | `/tour-stats/2026-summer-tour` |
 | S6 | `phish unique songs` / `unique songs played this tour` / `songs played this tour` | `/tour-stats/2026-summer-tour` |
 
-Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere + **2026 Summer Tour** (`2026-summer-tour`). Definitions in `/llms.txt` match the public UI: unique = distinct titles this tour; frequency = plays this tour; bustout = 30+ show pre-show gap.
+Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere + **2026 Summer Tour** (`2026-summer-tour`) stay static opt-in; later tours that clear the §1.1 gate auto-prerender on the next production build (#959). Definitions in `/llms.txt` match the public UI: unique = distinct titles this tour; frequency = plays this tour; bustout = 30+ show pre-show gap.
 
 **GEO / LLM brief (#930):** `/llms.txt` restates those three definitions and deep-links the summer slug so agents can cite the live tour page, not only home.
 
@@ -249,7 +269,7 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 | Check | Command / file |
 |-------|----------------|
 | OG shell + social UA matrix | `npm run verify:og-home` (`scripts/verify-og-home.mjs`, `og-home-html.mjs`) |
-| Prerender (#659) | `npm run verify:seo-prerender` (`scripts/prerender-seo.mjs` after build; registry `src/shared/config/seoRoutes.js`) |
+| Prerender (#659 / #959) | `npm run verify:seo-prerender` (`scripts/prerender-seo.mjs` after build; static registry `src/shared/config/seoRoutes.js`; auto-expand gate `scripts/lib/tourStatsSeoAutoExpand.mjs`) |
 | Automation context | `docs/GITHUB_AUTOMATION_CONTEXT.md` → Public landing SEO + SEO GSC weekly pack |
 | GSC/GA4 weekly pack (#932) | `npm run seo:gsc-weekly-snapshot -- --fixture` · `npm run test:seo-gsc-snapshot` |
 
@@ -265,7 +285,8 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 6. ~~#927 / #928 / #929~~ Children A–C (summer slug, crawler facts, fan H2s)
 7. **#930** Child D — llms + this playbook (docs); GSC reindex + UTM share are **human ops after promote** (see §9)
 8. **#931** Child E0 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json)
-9. **#932** Child E1 — GSC API + GA4 organic weekly Action → packs on [#926](https://github.com/pat792/[REDACTED]/issues/926) (this playbook §4 + `crew/output/seo/`). Human: add `GSC_SERVICE_ACCOUNT_JSON` + GSC property access before the first live pack.
+9. **#932** Child E1 — GSC API + GA4 organic weekly Action → packs on [#926](https://github.com/pat792/set-picks/issues/926) (this playbook §4 + `crew/output/seo/`). Human: add `GSC_SERVICE_ACCOUNT_JSON` + GSC property access before the first live pack.
+10. ~~#959~~ tour-stats SEO auto-expand (v1.63.0) — prerender/sitemap/`llms` from `_index` + gate; GSC Request indexing stays human
 
 ---
 

@@ -18,6 +18,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.63.0] — 2026-09-03
+
+### Added
+- **Tour-stats SEO auto-expand (#959 / epic #926)** — when `public_tour_stats` meets the thin-page gate (`showsWithSetlist ≥ 4`, `uniqueSongs ≥ 20`, `lastShowDate` in the current year), the next production build prerenders `/tour-stats/{slug}` (facts HTML + FAQ/ItemList), and appends sitemap + `llms.txt` from the same registry — no hand edit of `seoRoutes.js`. Kill-switch: `TOUR_STATS_SEO_AUTO_EXPAND=0`. Optional `TOUR_STATS_SEO_ALLOWLIST` / `TOUR_STATS_SEO_DENYLIST`. Aggregates only; GSC Request indexing stays human.
+
+---
+
 ## [1.62.4] — 2026-09-03
 
 ### Added
