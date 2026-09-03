@@ -23,7 +23,7 @@ function readSessionPending() {
 /**
  * Optional push follow-up (#334): after the app is installed (or added to home
  * screen), nudge users who have not decided on notification permission yet.
- * One tap routes to Notifications with the push section opened — closest to
+ * One tap routes to Preferences with the push section opened — closest to
  * "one-click" the web platform allows (browser still shows its own prompt).
  *
  * @param {{ userId: string | null | undefined, isInstalled: boolean }} params

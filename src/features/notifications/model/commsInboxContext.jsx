@@ -1,9 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import {
+  archiveCommsInboxMessage,
+  deleteCommsInboxMessage,
   markCommsInboxMessageRead,
   subscribeCommsInbox,
 } from '../api/commsInboxApi.js';
+import { countCommsInboxUnread } from './commsInboxPartition.js';
 
 const CommsInboxContext = createContext(null);
 
@@ -46,15 +49,28 @@ export function CommsInboxProvider({ userId, children }) {
     return () => unsub();
   }, [userId]);
 
-  const unreadCount = useMemo(
-    () => messages.filter((m) => m.readAt == null).length,
-    [messages],
-  );
+  const unreadCount = useMemo(() => countCommsInboxUnread(messages), [messages]);
 
   const markRead = useCallback(
     async (messageId) => {
       if (!userId) return;
       await markCommsInboxMessageRead(userId, messageId);
+    },
+    [userId],
+  );
+
+  const archive = useCallback(
+    async (messageId) => {
+      if (!userId) return;
+      await archiveCommsInboxMessage(userId, messageId);
+    },
+    [userId],
+  );
+
+  const deleteMessage = useCallback(
+    async (messageId) => {
+      if (!userId) return;
+      await deleteCommsInboxMessage(userId, messageId);
     },
     [userId],
   );
@@ -66,8 +82,10 @@ export function CommsInboxProvider({ userId, children }) {
       error,
       ready,
       markRead,
+      archive,
+      deleteMessage,
     }),
-    [messages, unreadCount, error, ready, markRead],
+    [messages, unreadCount, error, ready, markRead, archive, deleteMessage],
   );
 
   return <CommsInboxContext.Provider value={value}>{children}</CommsInboxContext.Provider>;

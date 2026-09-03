@@ -186,7 +186,7 @@ function buildAlmostEndPayload({
     subject: DEFAULT_SUBJECT,
     preheader: DEFAULT_PREHEADER,
     siteUrl: base,
-    settingsUrl: `${base}/dashboard/profile/notifications`,
+    settingsUrl: `${base}/dashboard/profile/account`,
     standingsUrl,
     shareUrl: inviteFields.invite_url || standingsUrl,
     inviterHandle,

@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { Outlet } from 'react-router-dom';
 
 import {
-  NAV_LABEL_ACCOUNT,
   NAV_LABEL_MESSAGES,
+  NAV_LABEL_PREFERENCES,
   NAV_LABEL_PROFILE,
 } from '../../../shared/config/dashboardVocabulary';
 import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
@@ -15,11 +15,11 @@ import ProfileMobileFixedChrome from './ProfileMobileFixedChrome';
 const SUB_NAV = [
   { to: PROFILE_CLUSTER_PATHS.profile, label: NAV_LABEL_PROFILE, end: true },
   { to: PROFILE_CLUSTER_PATHS.notifications, label: NAV_LABEL_MESSAGES, end: true },
-  { to: PROFILE_CLUSTER_PATHS.account, label: NAV_LABEL_ACCOUNT, end: true },
+  { to: PROFILE_CLUSTER_PATHS.account, label: NAV_LABEL_PREFERENCES, end: true },
 ];
 
 /**
- * Persistent Profile-cluster sub-navigation (identity / messages / account).
+ * Persistent Account-cluster sub-navigation (Profile / Messages / Preferences).
  * Nested routes render via {@link Outlet}; `user` is passed through outlet context.
  * Mobile: sub-nav is fixed under the context bar (Standings chrome pattern).
  * Desktop: same {@link ChromeSegmentedControl} tray in-page (#765).
@@ -37,7 +37,7 @@ export default function ProfileClusterLayout({ user }) {
 
       {/* Visibility stays at the cluster call site — not in shared chrome (#704). */}
       <div className="mb-6 hidden md:block">
-        <ChromeSegmentedControl ariaLabel="Profile sections" items={SUB_NAV} />
+        <ChromeSegmentedControl ariaLabel="Account sections" items={SUB_NAV} />
       </div>
       <Outlet context={{ user }} />
     </div>

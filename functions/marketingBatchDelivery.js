@@ -62,7 +62,7 @@ function buildEmailPayload(segment, greetingName, inviterHandle, inviteCode, poo
     audienceSegment: segment,
     openerLabel: "Tuesday, July 7",
     siteUrl: base,
-    settingsUrl: `${base}/dashboard/profile/notifications`,
+    settingsUrl: `${base}/dashboard/profile/account`,
     shareUrl: inviteFields.invite_url || "",
     ...(inviteCode ? { inviteCode } : {}),
     ...(poolName ? { poolName } : {}),

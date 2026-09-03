@@ -66,7 +66,7 @@ Implemented in `src/shared/lib/dashboardLastPath.js` and used from:
 
 ### Excluded from persist and restore
 
-- Entire Profile cluster (`/dashboard/profile`, `/dashboard/profile/notifications`, `/dashboard/profile/account`)
+- Entire Account cluster (`/dashboard/profile`, `/dashboard/profile/notifications`, `/dashboard/profile/account`)
 - Legacy redirects: `/dashboard/notifications`, `/dashboard/account-security`
 
 Rationale: users often open **Profile** / **Account** only to sign out; remembering those routes would send them back to Profile on every login. Visiting the cluster does **not** overwrite the last remembered game tab.
@@ -91,7 +91,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 | `/dashboard/scoring` | Redirects in-app to Picks + modal; still a valid stored path |
 | `/dashboard/pool/:poolId` | Pool details (`poolId` alphanumerics + `_-`) |
 | `/dashboard/admin` | Admin only |
-| Profile cluster (`/dashboard/profile…`) | **Not** eligible |
+| Account cluster (`/dashboard/profile…`) | **Not** eligible |
 | Legacy `/dashboard/notifications`, `/dashboard/account-security` | **Not** eligible |
 
 ## Scenarios

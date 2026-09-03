@@ -12,7 +12,7 @@ test("buildSummerTour2026LaunchChannels returns html, text, and subject", async 
     audienceSegment: "sphere_alum",
     openerLabel: "Tuesday, July 7",
     siteUrl: "https://www.setlistpickem.com",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
     shareUrl:
       "https://www.setlistpickem.com/join/ABC12?from=Rivertranced&utm_source=email&utm_campaign=summer_tour_2026_launch&utm_content=share_friends",
     inviteCode: "ABC12",

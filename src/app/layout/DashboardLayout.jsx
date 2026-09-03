@@ -32,10 +32,10 @@ import {
   useStandingsTourSelection,
 } from '../../features/scoring';
 import {
+  NAV_LABEL_ACCOUNT,
   NAV_LABEL_ADMIN,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOLS,
-  NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
   NAV_LABEL_STATS,
 } from '../../shared/config/dashboardVocabulary';
@@ -147,7 +147,7 @@ export default function DashboardLayout() {
     { name: NAV_LABEL_POOLS, path: '/dashboard/pools', icon: Users },
     { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Medal },
     { name: NAV_LABEL_STATS, path: STATS_CLUSTER_PATHS.root, icon: BarChart3 },
-    { name: NAV_LABEL_PROFILE, path: '/dashboard/profile', icon: UserIcon },
+    { name: NAV_LABEL_ACCOUNT, path: '/dashboard/profile', icon: UserIcon },
   ];
 
   if (isAdmin) {

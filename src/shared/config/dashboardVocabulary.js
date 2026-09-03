@@ -42,19 +42,25 @@ export const NAV_LABEL_CREATE_POOL = 'Create Pool';
 export const NAV_LABEL_JOIN_POOL = 'Join Pool';
 
 /**
- * Profile tab + cluster identity surface (`/dashboard/profile`).
- *
- * Open question (#764 / #770): whether this **primary** tab relabels to
- * Account (label-only vs path rename). Do **not** change the user-visible
- * Profile primary label until that child ships.
+ * Identity tertiary only (`/dashboard/profile`) — handle, favorite song, avatar, badges.
+ * Primary tab label is {@link NAV_LABEL_ACCOUNT}.
  */
 export const NAV_LABEL_PROFILE = 'Profile';
 
-/** Profile-cluster messages surface (`/dashboard/profile/notifications`) — inbox + prefs */
+/** Account-cluster inbox (`/dashboard/profile/notifications`) — mailbox only */
 export const NAV_LABEL_MESSAGES = 'Messages';
 
-/** Profile-cluster account surface (`/dashboard/profile/account`) */
+/**
+ * Primary tab for the `/dashboard/profile/*` cluster (#770).
+ * Path prefix stays `/dashboard/profile` (MINOR label change, not a new path family).
+ */
 export const NAV_LABEL_ACCOUNT = 'Account';
+
+/**
+ * Preferences tertiary (`/dashboard/profile/account`) — security, logout, legal,
+ * install/PWA, and notification prefs. Path stays `PROFILE_CLUSTER_PATHS.account`.
+ */
+export const NAV_LABEL_PREFERENCES = 'Preferences';
 
 /**
  * Stats primary tab (#769) — `/dashboard/stats` and `/dashboard/stats/*`.
@@ -83,7 +89,7 @@ export const VIEW_PERSONAL_STATS_LINK = 'View personal stats';
 export const NAV_LABEL_ADMIN = 'Admin';
 
 /**
- * @deprecated Prefer {@link NAV_LABEL_ACCOUNT} for the cluster Account tab.
+ * @deprecated Prefer {@link NAV_LABEL_PREFERENCES} for the Preferences tertiary.
  * Retained for legacy `/dashboard/account-security` meta until redirects settle.
  */
 export const NAV_LABEL_ACCOUNT_SECURITY = 'Sign-in & password';
