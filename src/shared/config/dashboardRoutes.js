@@ -24,6 +24,17 @@ export const PICKS_CLUSTER_PATHS = Object.freeze({
   scorecard: '/dashboard/picks/scorecard',
 });
 
+/**
+ * Pools tertiary cluster — My Pools / Create Pool / Join Pool (#768).
+ * Pool details (`/dashboard/pool/:id`) stays a sibling destination; primary
+ * Pools stays active there (Option C chrome).
+ */
+export const POOLS_CLUSTER_PATHS = Object.freeze({
+  list: '/dashboard/pools',
+  create: '/dashboard/pools/create',
+  join: '/dashboard/pools/join',
+});
+
 /** Pre-#418 paths; SPA redirects preserve bookmarks and email deep links. */
 export const PROFILE_CLUSTER_LEGACY_PATHS = Object.freeze({
   notifications: '/dashboard/notifications',
@@ -81,4 +92,31 @@ export function isPicksClusterPath(pathname) {
 export function isMakePicksPath(pathname) {
   const path = normalizeDashboardPathname(pathname);
   return path === PICKS_CLUSTER_PATHS.home || path === PICKS_CLUSTER_PATHS.makePicks;
+}
+
+/**
+ * True for Pools tertiary destinations only (My / Create / Join).
+ * Does not include `/dashboard/pool/:id`.
+ *
+ * @param {string} pathname
+ * @returns {boolean}
+ */
+export function isPoolsTertiaryPath(pathname) {
+  const path = normalizeDashboardPathname(pathname);
+  if (path === POOLS_CLUSTER_PATHS.list) return true;
+  if (path === POOLS_CLUSTER_PATHS.create) return true;
+  if (path === POOLS_CLUSTER_PATHS.join) return true;
+  return path.startsWith(`${POOLS_CLUSTER_PATHS.list}/`);
+}
+
+/**
+ * True when pathname is any Pools-cluster surface, including pool details.
+ *
+ * @param {string} pathname
+ * @returns {boolean}
+ */
+export function isPoolsClusterPath(pathname) {
+  const path = normalizeDashboardPathname(pathname);
+  if (isPoolsTertiaryPath(path)) return true;
+  return path.startsWith('/dashboard/pool/');
 }

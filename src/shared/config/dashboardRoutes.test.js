@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   PICKS_CLUSTER_PATHS,
+  POOLS_CLUSTER_PATHS,
   isMakePicksPath,
   isPicksClusterPath,
+  isPoolsClusterPath,
+  isPoolsTertiaryPath,
   isProfileClusterPath,
 } from './dashboardRoutes';
 
@@ -35,6 +38,32 @@ describe('isMakePicksPath', () => {
     expect(isMakePicksPath('/dashboard/picks')).toBe(true);
     expect(isMakePicksPath(PICKS_CLUSTER_PATHS.lab)).toBe(false);
     expect(isMakePicksPath(PICKS_CLUSTER_PATHS.scorecard)).toBe(false);
+  });
+});
+
+describe('isPoolsClusterPath / isPoolsTertiaryPath (#768)', () => {
+  it('treats My / Create / Join as tertiary + cluster', () => {
+    for (const path of [
+      POOLS_CLUSTER_PATHS.list,
+      `${POOLS_CLUSTER_PATHS.list}/`,
+      POOLS_CLUSTER_PATHS.create,
+      POOLS_CLUSTER_PATHS.join,
+    ]) {
+      expect(isPoolsTertiaryPath(path)).toBe(true);
+      expect(isPoolsClusterPath(path)).toBe(true);
+    }
+  });
+
+  it('keeps pool details in the cluster (Pools primary active) but not tertiary', () => {
+    expect(isPoolsClusterPath('/dashboard/pool/abc123')).toBe(true);
+    expect(isPoolsTertiaryPath('/dashboard/pool/abc123')).toBe(false);
+  });
+
+  it('does not treat other dashboard tabs as Pools', () => {
+    expect(isPoolsClusterPath('/dashboard')).toBe(false);
+    expect(isPoolsClusterPath('/dashboard/standings')).toBe(false);
+    expect(isPoolsClusterPath('/dashboard/profile')).toBe(false);
+    expect(isPoolsTertiaryPath('/dashboard')).toBe(false);
   });
 });
 

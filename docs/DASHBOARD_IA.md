@@ -7,7 +7,7 @@ Single reference for **support**, **product**, and **engineering** when adding r
 | Tab (label) | Path | Purpose |
 |-------------|------|---------|
 | **Picks** | `/dashboard` | **Picks cluster** (#766): Make Picks / Picks Lab / Scorecard. Primary tab stays active on all three. Global date picker stays on. |
-| **Pools** | `/dashboard/pools` | List pools; create/join. |
+| **Pools** | `/dashboard/pools` | Pools **cluster**: My Pools, Create Pool, Join Pool (sub-nav). |
 | **Standings** | `/dashboard/standings` | **Show standings** for the selected show (everyone or one pool). |
 | **Profile** | `/dashboard/profile` | Profile **cluster**: identity, **Messages**, **Account** (sub-nav). |
 
@@ -60,7 +60,7 @@ Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
 
 ### Pools parent / child (active state)
 
-- **Pools** tab stays active on `/dashboard/pools` **and** `/dashboard/pool/:poolId` (**pool details**).
+- **Pools** tab stays active on `/dashboard/pools`, `/dashboard/pools/create`, `/dashboard/pools/join`, **and** `/dashboard/pool/:poolId` (**pool details**).
 - **Profile** tab stays active on the entire Profile cluster (including legacy redirect paths).
 - **Standings** tab stays active on `/dashboard/standings` **and** `/dashboard/tour-stats`.
 - **Picks** tab stays active on `/dashboard`, `/dashboard/picks`, `/dashboard/picks/lab`, and `/dashboard/picks/scorecard`.
@@ -69,7 +69,7 @@ Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
 
 Single visual/interaction pattern for in-tab section navigation. **Canonical primitive:** `ChromeSegmentedControl` (`src/shared/ui/ChromeSegmentedControl.jsx`) — NavLink mode (route clusters) or `tablist` / button mode (`value` / `onChange` view switches). **Do not fork tray CSS** in features.
 
-This documents the **current** Profile + Standings chrome. The epic **5-tab target** (Picks / Pools / Standings / Stats / Account) ships in children #766–#770 — not here.
+This documents the shared tray contract. Picks (#766) and Pools (#768) use it; Stats / Account still ship in later children.
 
 ### Visual
 
@@ -114,11 +114,23 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 
 | Primary (stays active) | Tertiary segments | Notes |
 |------------------------|-------------------|--------|
-| **Profile** | Profile · Messages · Account | Nested routes under `/dashboard/profile/*` |
-| **Standings** | Show · Tour · Stats · Pools | Stats remains until #769 moves it to a Stats primary. Epic “3 options after Stats moves” is that child — not this PR. |
+| **Pools** | My Pools · Create Pool · Join Pool | Nested routes; pool details stays a child, not a segment |
 | **Picks** | Make Picks · Picks Lab · Scorecard | Nested routes (#766). Lab segment always visible; Scorecard is a shell. |
+| **Profile** | Profile · Messages · Account | Nested routes under `/dashboard/profile/*` |
+| **Standings** | Show · Tour · Stats · Pools | Stats remains until #769 moves it to a Stats primary. |
 
 Vocabulary stub: `NAV_LABEL_STATS` exists for the Standings segment / future primary. **Account-as-primary** (relabel Profile vs rename `/dashboard/profile`) is an open question on #764 / #770 — do not change the user-visible Profile primary label until that child.
+
+### Pools tertiary (#768)
+
+| Sub-nav | Path | Responsibility |
+|---------|------|----------------|
+| **My Pools** | `/dashboard/pools` | `UserPoolsSection` list (default) |
+| **Create Pool** | `/dashboard/pools/create` | Create flow (`PoolCreateCard` / `useUserPools` `handleCreate`) |
+| **Join Pool** | `/dashboard/pools/join` | Join-by-code; pending-join / invite retry (`POOL_INVITE_STORAGE_KEY`) |
+| **Pool details** | `/dashboard/pool/:id` | Unchanged Option C chrome; Pools primary stays active (not a tertiary segment) |
+
+Nested routes (not `?view=`). After a successful create or join, navigate to that pool’s details. How-it-works stays a disclosure/menu — not a fourth tertiary segment. Post-auth `/join/:code` with a pending invite lands on **Join Pool**.
 
 ## Pool details desktop chrome (decision: Option C)
 
@@ -141,7 +153,7 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Make Picks** | Picks-cluster tertiary for the form (`NAV_LABEL_MAKE_PICKS`). |
 | **Picks Lab** | Picks-cluster tertiary for Prediction Lab (`NAV_LABEL_PICKS_LAB`); path `/dashboard/picks/lab`. |
 | **Scorecard** | Picks-cluster tertiary shell (`NAV_LABEL_SCORECARD`); path `/dashboard/picks/scorecard`. |
-| **Pools** | Tab + context + desktop H1 for `/dashboard/pools` (`NAV_LABEL_POOLS`) — same word in nav and shell. |
+| **Pools** | Tab + context + desktop H1 for `/dashboard/pools`, `/dashboard/pools/create`, and `/dashboard/pools/join` (`NAV_LABEL_POOLS`) — same word in nav and shell. Tertiary labels: **My Pools** / **Create Pool** / **Join Pool**. |
 | **Profile** | Tab + context for `/dashboard/profile` (`NAV_LABEL_PROFILE`); desktop in-page subheading matches. **Account-as-primary** is an open question (#764 / #770) — primary label stays Profile until that child. |
 | **Messages** | Profile-cluster inbox + prefs (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. |
 | **Account** | Profile-cluster account surface (`NAV_LABEL_ACCOUNT`); path `/dashboard/profile/account`. |
@@ -166,7 +178,7 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | Make Picks | Picks cluster tertiary | `NAV_LABEL_MAKE_PICKS` |
 | Picks Lab | `/dashboard/picks/lab` | `NAV_LABEL_PICKS_LAB` |
 | Scorecard | `/dashboard/picks/scorecard` | `NAV_LABEL_SCORECARD` |
-| Pools | `/dashboard/pools` | `NAV_LABEL_POOLS` |
+| Pools | `/dashboard/pools`, `/dashboard/pools/create`, `/dashboard/pools/join` | `NAV_LABEL_POOLS` |
 | Pool Details (context) | `/dashboard/pool/:id` | `NAV_LABEL_POOL_DETAILS` |
 | Pool details (desktop eyebrow) | Pool hub | `POOL_DETAILS_LAYOUT_EYEBROW` |
 | Standings | `/dashboard/standings` | `NAV_LABEL_STANDINGS` |
@@ -220,7 +232,9 @@ flowchart TB
   P --> PicksAlias["/dashboard/picks · Make Picks"]
   P --> PicksLab["/dashboard/picks/lab · Picks Lab"]
   P --> PicksScore["/dashboard/picks/scorecard · Scorecard"]
-  Po --> PoolsList["/dashboard/pools"]
+  Po --> PoolsList["/dashboard/pools\nMy Pools"]
+  Po --> PoolsCreate["/dashboard/pools/create\nCreate Pool"]
+  Po --> PoolsJoin["/dashboard/pools/join\nJoin Pool"]
   Po --> PoolDetail["/dashboard/pool/:id\nPool details"]
   S --> StandingsRoute["/dashboard/standings"]
   S --> TourStatsRoute["/dashboard/tour-stats\nStats"]
@@ -248,10 +262,11 @@ flowchart TB
 ## Related code
 
 - `getDashboardPageMeta`, `normalizeDashboardPathname` — `src/app/layout/model/dashboardPageMeta.js`
-- `PROFILE_CLUSTER_PATHS`, `isProfileClusterPath`, `PICKS_CLUSTER_PATHS`, `isPicksClusterPath` — `src/shared/config/dashboardRoutes.js`
+- `PROFILE_CLUSTER_PATHS`, `isProfileClusterPath`, `PICKS_CLUSTER_PATHS`, `isPicksClusterPath`, `POOLS_CLUSTER_PATHS`, `isPoolsClusterPath` — `src/shared/config/dashboardRoutes.js`
 - Tertiary tray — `src/shared/ui/ChromeSegmentedControl.jsx`
 - Profile cluster layout — `src/app/layout/ui/ProfileClusterLayout.jsx`
 - Picks cluster layout — `src/app/layout/ui/PicksClusterLayout.jsx`
+- Pools cluster layout — `src/app/layout/ui/PoolsClusterLayout.jsx`
 - Nav items + active rules — `src/app/layout/DashboardLayout.jsx`
 - Scoring modal provider — `src/features/scoring/ui/ScoringRulesModalProvider.jsx`
 

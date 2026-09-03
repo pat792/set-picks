@@ -12,10 +12,13 @@ import {
 } from './model/dashboardRouteModules';
 import PicksClusterLayout from './ui/PicksClusterLayout';
 import ProfileClusterLayout from './ui/ProfileClusterLayout';
+import PoolsClusterLayout from './ui/PoolsClusterLayout';
 
 import PicksPage from '../../pages/picks/PicksPage';
 import PicksLabPage from '../../pages/picks/PicksLabPage';
 import PicksScorecardPage from '../../pages/picks/PicksScorecardPage';
+import PoolCreatePage from '../../pages/pools/PoolCreatePage';
+import PoolJoinPage from '../../pages/pools/PoolJoinPage';
 import PoolsPage from '../../pages/pools/PoolsPage';
 import StandingsPage from '../../pages/standings/StandingsPage';
 import ProfilePage from '../../pages/profile/ProfilePage';
@@ -34,6 +37,8 @@ import {
 import {
   PROFILE_CLUSTER_PATHS,
   isPicksClusterPath,
+  isPoolsClusterPath,
+  isPoolsTertiaryPath,
   isProfileClusterPath,
 } from '../../shared/config/dashboardRoutes';
 import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
@@ -159,13 +164,11 @@ export default function DashboardLayout() {
     location.pathname === '/dashboard/tour-stats' ||
     location.pathname === '/dashboard/tour-stats/';
   const isPicksCluster = isPicksClusterPath(location.pathname);
-  const isPoolsListRoute =
-    location.pathname === '/dashboard/pools' ||
-    location.pathname === '/dashboard/pools/';
+  const isPoolsTertiary = isPoolsTertiaryPath(location.pathname);
   const isProfileCluster = isProfileClusterPath(location.pathname);
   /** Primary tabs nest controls under the mobile context bar (Standings pattern). */
   const usesMobileFixedChrome =
-    isStandingsRoute || isPicksCluster || isPoolsListRoute || isProfileCluster;
+    isStandingsRoute || isPicksCluster || isPoolsTertiary || isProfileCluster;
 
   return (
     <ScoringRulesModalProvider>
@@ -208,8 +211,7 @@ export default function DashboardLayout() {
               isProfileClusterPath(location.pathname);
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
-              (location.pathname === '/dashboard/pools' ||
-                location.pathname.startsWith('/dashboard/pool/'));
+              isPoolsClusterPath(location.pathname);
             const isStandingsSection =
               item.path === '/dashboard/standings' &&
               (location.pathname === '/dashboard/standings' ||
@@ -426,7 +428,11 @@ export default function DashboardLayout() {
                 />
               }
             />
-            <Route path="pools" element={<PoolsPage user={user} />} />
+            <Route path="pools" element={<PoolsClusterLayout user={user} />}>
+              <Route index element={<PoolsPage />} />
+              <Route path="create" element={<PoolCreatePage />} />
+              <Route path="join" element={<PoolJoinPage />} />
+            </Route>
             <Route
               path="pool/:poolId"
               element={
@@ -451,8 +457,7 @@ export default function DashboardLayout() {
               isProfileClusterPath(location.pathname);
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
-              (location.pathname === '/dashboard/pools' ||
-                location.pathname.startsWith('/dashboard/pool/'));
+              isPoolsClusterPath(location.pathname);
             const isStandingsSection =
               item.path === '/dashboard/standings' &&
               (location.pathname === '/dashboard/standings' ||

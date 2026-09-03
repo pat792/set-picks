@@ -128,6 +128,26 @@ const CASES = [
     },
   },
   {
+    // #768: Create Pool tertiary — same Pools context as My Pools.
+    path: '/dashboard/pools/create',
+    expect: {
+      contextTitle: NAV_LABEL_POOLS,
+      showDatePicker: true,
+      layoutDesktopHeading: NAV_LABEL_POOLS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #768: Join Pool tertiary — same Pools context as My Pools.
+    path: '/dashboard/pools/join',
+    expect: {
+      contextTitle: NAV_LABEL_POOLS,
+      showDatePicker: true,
+      layoutDesktopHeading: NAV_LABEL_POOLS,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
     path: '/dashboard/pool/test-pool-id',
     expect: {
       contextTitle: NAV_LABEL_POOL_DETAILS,

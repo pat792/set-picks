@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.65.0] — 2026-09-03
+
+### Added
+- **Pools tertiary (#768)** — nested destinations **My Pools** (`/dashboard/pools`), **Create Pool** (`/dashboard/pools/create`), and **Join Pool** (`/dashboard/pools/join`) with the standard `ChromeSegmentedControl` tray. How-it-works stays a disclosure. `/dashboard/pool/:id` is unchanged (Pools primary stays active). Post-auth `/join/:code` with a pending invite lands on Join Pool.
+
+---
+
 ## [1.64.0] — 2026-09-03
 
 ### Added
