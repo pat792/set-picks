@@ -73,6 +73,8 @@ GSC live-test console noise (CSP Report-Only, service worker reject, reCAPTCHA s
 
 Track these weekly in Search Console (Performance → Queries) and spot-check SERPs / AI Overviews.
 
+**Strategy (own / bridge / compete / concede):** [`content/marketing/pickem-search-plan-2026-08.md`](../content/marketing/pickem-search-plan-2026-08.md) — EiC-approved Pick'em search plan (epic #972, tracking #970). Machine-readable registry lands under #931 (sibling; not this PR).
+
 ### Brand / navigational
 
 | ID | Query |
@@ -90,23 +92,37 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | C3 | `phish pick em` / `phish pick'em` / `setlist picks game` |
 | C4 | `live setlist prediction` |
 | C5 | `fantasy setlist` / `fantasy setlists` / `phish fantasy setlist` |
+| C6 | `phish setlist prediction` |
+| C7 | `phish picks` / `phish setlist picks` |
 
-**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C5; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar.
+**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C7; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar. C6/C7 are **bridge** queries (see search plan) — strengthen this URL before adding doorways. Title/H1 execution is #973 (sibling).
 
 ### Stats-intent (after #665 public `/tour-stats`)
 
 | ID | Query | Target path |
 |----|--------|-------------|
-| S1 | `phish tour setlist stats` | `/tour-stats` |
+| S1 | `phish tour stats` / `phish tour setlist stats` | `/tour-stats` |
 | S2 | `phish song frequency [tour year]` (e.g. summer 2026) | `/tour-stats/2026-summer-tour` |
-| S3 | `phish bustouts [tour]` | `/tour-stats/2026-summer-tour` |
+| S3 | `phish bustouts` / `phish bustouts [tour]` | `/tour-stats/2026-summer-tour` |
 | S4 | `bustouts summer tour 2026` | `/tour-stats/2026-summer-tour` |
 | S5 | `phish bustout list this tour` | `/tour-stats/2026-summer-tour` |
-| S6 | `unique songs played this tour` | `/tour-stats/2026-summer-tour` |
+| S6 | `phish unique songs` / `unique songs played this tour` / `songs played this tour` | `/tour-stats/2026-summer-tour` |
 
 Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere + **2026 Summer Tour** (`2026-summer-tour`). Definitions in `/llms.txt` match the public UI: unique = distinct titles this tour; frequency = plays this tour; bustout = 30+ show pre-show gap.
 
 **GEO / LLM brief (#930):** `/llms.txt` restates those three definitions and deep-links the summer slug so agents can cite the live tour page, not only home.
+
+### SERP snapshot (2026-08, owner notes)
+
+| Query | Position / note | Top competitors |
+|-------|-----------------|-----------------|
+| C1 `phish setlist game` | **Win** — gen AI + ~2nd SERP | — |
+| C6 `phish setlist prediction` | Not top 10 | phishpicks.net, callingit.live |
+| C7 `phish picks` | Not top 10 | phishpicks.net (IG → backlinks) |
+| S1 `phish tour stats` | ~7th | ihoz.com, Phantasy Tour |
+| S3 `phish bustouts` | Not top 10 | Reddit, live-music blogs, phish.net |
+
+Re-spot-check these five whenever filling §4. Full game plan: search plan doc above. Do **not** scrape Google/Bing SERP HTML.
 
 ### Profile indexing policy (#661)
 
