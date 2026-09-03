@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  INBOX_HISTORY_PREVIEW_LIMIT,
   countCommsInboxUnread,
   isCommsInboxUnread,
   partitionCommsInbox,
+  previewCommsInboxMessages,
 } from './commsInboxPartition.js';
 
 describe('commsInboxPartition (#513 / #770)', () => {
@@ -24,6 +26,15 @@ describe('commsInboxPartition (#513 / #770)', () => {
     expect(isCommsInboxUnread(read)).toBe(false);
     expect(isCommsInboxUnread(archivedUnread)).toBe(false);
     expect(countCommsInboxUnread([unopened, read, archivedUnread])).toBe(1);
+  });
+
+  it('previews newest history rows until Show older', () => {
+    const rows = Array.from({ length: 12 }, (_, i) => ({ id: String(i) }));
+    expect(previewCommsInboxMessages(rows).map((m) => m.id)).toEqual(
+      rows.slice(0, INBOX_HISTORY_PREVIEW_LIMIT).map((m) => m.id),
+    );
+    expect(previewCommsInboxMessages(rows, { showAll: true })).toHaveLength(12);
+    expect(previewCommsInboxMessages(rows.slice(0, 3))).toHaveLength(3);
   });
 
   it('treats empty input as empty sections', () => {

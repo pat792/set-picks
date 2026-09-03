@@ -3,7 +3,11 @@ import { ChevronDown, Inbox } from 'lucide-react';
 
 import { logCommsCtaClick, logCommsDismissed, logCommsOpened } from '../../comms';
 import { useCommsInbox } from '../model/commsInboxContext.jsx';
-import { partitionCommsInbox } from '../model/commsInboxPartition.js';
+import {
+  INBOX_HISTORY_PREVIEW_LIMIT,
+  partitionCommsInbox,
+  previewCommsInboxMessages,
+} from '../model/commsInboxPartition.js';
 import CommsMessageBody from './CommsMessageBody.jsx';
 import { triggerIdForTemplate } from './commsTemplates/commsTemplateRegistry.jsx';
 
@@ -34,6 +38,9 @@ function formatDeliveredAt(createdAt) {
  *   onDeleteCancel: () => void,
  *   onCtaClick: (row: import('../api/commsInboxApi.js').CommsInboxMessage, cta: unknown) => void,
  *   showArchive: boolean,
+ *   defaultOpen?: boolean,
+ *   hideWhenEmpty?: boolean,
+ *   previewLimit?: number | null,
  * }} props
  */
 function InboxSectionList({
@@ -50,23 +57,72 @@ function InboxSectionList({
   onDeleteCancel,
   onCtaClick,
   showArchive,
+  defaultOpen = true,
+  hideWhenEmpty = false,
+  previewLimit = null,
 }) {
-  return (
-    <section aria-labelledby={headingId}>
-      <h3
-        id={headingId}
-        className="text-xs font-black uppercase tracking-widest text-content-secondary"
-      >
+  const [isGroupOpen, setIsGroupOpen] = useState(defaultOpen);
+  const [showAllHistory, setShowAllHistory] = useState(false);
+  const visibleMessages =
+    previewLimit == null
+      ? messages
+      : previewCommsInboxMessages(messages, {
+          limit: previewLimit,
+          showAll: showAllHistory,
+        });
+  const hiddenCount = messages.length - visibleMessages.length;
+
+  if (hideWhenEmpty && messages.length === 0) return null;
+
+  const headingRow = (
+    <>
+      <span id={headingId}>
         {heading}
         {messages.length > 0 ? (
           <span className="ml-2 font-bold text-content-secondary/70">{messages.length}</span>
         ) : null}
-      </h3>
-      {messages.length === 0 ? (
+      </span>
+    </>
+  );
+
+  return (
+    <section aria-labelledby={headingId}>
+      {defaultOpen ? (
+        <h3 className="text-xs font-black uppercase tracking-widest text-content-secondary">
+          {headingRow}
+        </h3>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            const next = !isGroupOpen;
+            setIsGroupOpen(next);
+            if (!next) {
+              setShowAllHistory(false);
+              if (openId && messages.some((m) => m.id === openId)) {
+                onToggle(openId, false);
+              }
+            }
+          }}
+          aria-expanded={isGroupOpen}
+          aria-controls={`${headingId}-panel`}
+          className="flex w-full items-center justify-between gap-2 text-left text-xs font-black uppercase tracking-widest text-content-secondary transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+        >
+          {headingRow}
+          <ChevronDown
+            className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+              isGroupOpen ? 'rotate-180' : ''
+            }`}
+            aria-hidden
+          />
+        </button>
+      )}
+      {!defaultOpen && !isGroupOpen ? null : messages.length === 0 ? (
         <p className="mt-2 text-xs font-bold leading-relaxed text-content-secondary">{emptyCopy}</p>
       ) : (
+        <div id={defaultOpen ? undefined : `${headingId}-panel`}>
         <ul className="mt-3 space-y-3">
-          {messages.map((m) => {
+          {visibleMessages.map((m) => {
             const isOpen = openId === m.id;
             const unread = m.readAt == null && m.archivedAt == null;
             const delivered = formatDeliveredAt(m.createdAt);
@@ -171,6 +227,16 @@ function InboxSectionList({
             );
           })}
         </ul>
+        {hiddenCount > 0 ? (
+          <button
+            type="button"
+            onClick={() => setShowAllHistory(true)}
+            className="mt-3 text-xs font-black uppercase tracking-widest text-brand-primary hover:underline"
+          >
+            Show older ({hiddenCount})
+          </button>
+        ) : null}
+        </div>
       )}
     </section>
   );
@@ -355,6 +421,9 @@ export default function CommsInboxSection() {
                 onDeleteCancel={() => setConfirmDeleteId(null)}
                 onCtaClick={handleCtaClick}
                 showArchive
+                defaultOpen={false}
+                hideWhenEmpty
+                previewLimit={INBOX_HISTORY_PREVIEW_LIMIT}
               />
               <InboxSectionList
                 heading="Archived"
@@ -370,6 +439,9 @@ export default function CommsInboxSection() {
                 onDeleteCancel={() => setConfirmDeleteId(null)}
                 onCtaClick={handleCtaClick}
                 showArchive={false}
+                defaultOpen={false}
+                hideWhenEmpty
+                previewLimit={INBOX_HISTORY_PREVIEW_LIMIT}
               />
             </div>
           )}

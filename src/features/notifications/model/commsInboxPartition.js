@@ -5,11 +5,27 @@
  * Read: `readAt` set and not archived
  * Archived: `archivedAt` set
  * Unread bell: unopened only (archived never counts)
+ *
+ * History lists (Read / Archived) preview this many newest rows; Show older
+ * reveals the rest. Query stays `createdAt desc` — no extra Firestore read.
  */
+export const INBOX_HISTORY_PREVIEW_LIMIT = 8;
 
 /**
  * @typedef {import('../api/commsInboxApi.js').CommsInboxMessage} CommsInboxMessage
  */
+
+/**
+ * @param {CommsInboxMessage[]} messages
+ * @param {{ limit?: number, showAll?: boolean }} [opts]
+ * @returns {CommsInboxMessage[]}
+ */
+export function previewCommsInboxMessages(messages, opts = {}) {
+  const limit = opts.limit ?? INBOX_HISTORY_PREVIEW_LIMIT;
+  const list = messages ?? [];
+  if (opts.showAll || list.length <= limit) return list;
+  return list.slice(0, limit);
+}
 
 /**
  * @param {CommsInboxMessage | null | undefined} message
