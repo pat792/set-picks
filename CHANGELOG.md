@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.65.1] — 2026-09-03
+
+### Added
+- **Picks Scorecard (#767)** — `/dashboard/picks/scorecard` replaces the coming-soon shell with a global, show-scoped self card. Post-lock overlap (“N players also picked this”), optional model odds from Storage `pick-recommendations.json`, and rank/score from the existing show-scoped standings query. Pre-lock shows the player’s own card only. **GA4:** `scorecard_open` `{ show_date, lock_state }`, `scorecard_metric_impression` `{ show_date, metric }` (`overlap` \| `odds` \| `rank`).
+
+---
+
 ## [1.65.0] — 2026-09-03
 
 ### Added

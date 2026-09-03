@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.64.0  
+**Version:** 1.65.1  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -398,7 +398,9 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
 
-**Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is the Scorecard shell (empty / coming-soon). The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
+**Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
+
+**Picks — Scorecard (**v1.65.1 / #767**):** global, show-scoped self card at **`/dashboard/picks/scorecard`**. Overlap is post-lock only. Odds are optional `playProb` from Storage `pick-recommendations.json` (omit if missing). Rank/score reuse the existing show-scoped standings query. **GA4 (client):** `scorecard_open` `{ show_date, lock_state }` where `lock_state` is `empty` \| `pre_lock` \| `locked_ungraded` \| `graded`; `scorecard_metric_impression` `{ show_date, metric }` where `metric` is `overlap` \| `odds` \| `rank`.
 
 **Pools tertiary (**v1.65.0 / #768**):** nested destinations under Pools — **`/dashboard/pools`** (My Pools), **`/dashboard/pools/create`** (Create Pool), **`/dashboard/pools/join`** (Join Pool). **`/dashboard/pool/:id`** (pool details) is unchanged; Pools primary stays active. Not `?view=`. Post-auth `/join/:code` with a pending invite lands on `/dashboard/pools/join`.
 

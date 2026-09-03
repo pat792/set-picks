@@ -26,7 +26,7 @@ export const NAV_LABEL_MAKE_PICKS = 'Make Picks';
 /** Picks-cluster tertiary: Prediction Lab destination (`/dashboard/picks/lab`) */
 export const NAV_LABEL_PICKS_LAB = 'Picks Lab';
 
-/** Picks-cluster tertiary: Scorecard shell (`/dashboard/picks/scorecard`) — metrics in #767 */
+/** Picks-cluster tertiary: Scorecard (`/dashboard/picks/scorecard`) — self card + post-lock metrics (#767) */
 export const NAV_LABEL_SCORECARD = 'Scorecard';
 
 /** Pools list tab + context + desktop H1 (`/dashboard/pools`) */

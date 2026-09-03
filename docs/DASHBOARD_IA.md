@@ -33,13 +33,17 @@ Markers auto-expire by catalog `until` date and persist dismissals in `localStor
 
 ### Picks tertiary (#766)
 
-Nested routes (not `?view=`). Primary **Picks** tab stays active. Lab segment is **always visible**; when `VITE_ENABLE_PREDICTION_LAB` is not `true`, Picks Lab shows an empty / coming-soon shell (do not hide the tab). Scorecard is a shell only — comparison metrics are a sibling.
+Nested routes (not `?view=`). Primary **Picks** tab stays active. Lab segment is **always visible**; when `VITE_ENABLE_PREDICTION_LAB` is not `true`, Picks Lab shows an empty / coming-soon shell (do not hide the tab).
 
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
 | **Make Picks** | `/dashboard` and `/dashboard/picks` | Existing picks form (lock/edit). `utm_campaign` landed logging stays here. |
 | **Picks Lab** | `/dashboard/picks/lab` | Prediction Lab (`PickPredictionPanel`) when the env flag is `true`; otherwise coming-soon. |
-| **Scorecard** | `/dashboard/picks/scorecard` | Empty / coming-soon placeholder. |
+| **Scorecard** | `/dashboard/picks/scorecard` | Global, show-scoped self card + comparison metrics (#767). |
+
+**Scorecard v1 (#767):** Global only (not pool-scoped). Show comes from the existing global date picker. Overlap (“N players also picked this song”) is **post-lock only** (LIVE / PAST or admin-locked NEXT). Pre-lock shows the player’s own card plus locked copy — no overlap. Odds are optional `playProb` from Storage `pick-recommendations.json` (same artifact as Lab); omit the odds row if the artifact is missing or for another night. Score / rank reuse the show-scoped standings query already used by `useStandings` / `computeStandingsSelfRecap` — no new collections or unbounded picks scans.
+
+**Deferred (not v1):** pool-scoped Scorecard, live crowd %, pre-lock overlap.
 
 Mobile: tertiary tray portals under the context bar via `ChromeSegmentedControl` (same primitive as Profile). Desktop: in-page tray at the cluster layout call site. Make Picks keeps scoring / lock-status tools (`PicksMobileFixedChrome`) on that destination only.
 
@@ -152,7 +156,7 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Picks** | Tab + context + desktop H1 for the Picks cluster (`NAV_LABEL_PICKS`) — `/dashboard`, `/dashboard/picks`, `/dashboard/picks/lab`, `/dashboard/picks/scorecard`. |
 | **Make Picks** | Picks-cluster tertiary for the form (`NAV_LABEL_MAKE_PICKS`). |
 | **Picks Lab** | Picks-cluster tertiary for Prediction Lab (`NAV_LABEL_PICKS_LAB`); path `/dashboard/picks/lab`. |
-| **Scorecard** | Picks-cluster tertiary shell (`NAV_LABEL_SCORECARD`); path `/dashboard/picks/scorecard`. |
+| **Scorecard** | Picks-cluster tertiary (`NAV_LABEL_SCORECARD`); path `/dashboard/picks/scorecard`. Global self card + post-lock metrics (#767). |
 | **Pools** | Tab + context + desktop H1 for `/dashboard/pools`, `/dashboard/pools/create`, and `/dashboard/pools/join` (`NAV_LABEL_POOLS`) — same word in nav and shell. Tertiary labels: **My Pools** / **Create Pool** / **Join Pool**. |
 | **Profile** | Tab + context for `/dashboard/profile` (`NAV_LABEL_PROFILE`); desktop in-page subheading matches. **Account-as-primary** is an open question (#764 / #770) — primary label stays Profile until that child. |
 | **Messages** | Profile-cluster inbox + prefs (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. |

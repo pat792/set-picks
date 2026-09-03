@@ -1,0 +1,37 @@
+import {
+  DASHBOARD_CARD_BODY,
+  DASHBOARD_CARD_EYEBROW,
+  DASHBOARD_CARD_EYEBROW_ICON,
+  DASHBOARD_CARD_PAD,
+  DASHBOARD_CARD_RADIUS,
+  DASHBOARD_CARD_TITLE,
+} from '../../../shared/ui/dashboardCardClasses';
+
+/**
+ * Scorecard chrome (#767) — related to StandingsSelfRecapCard geometry
+ * (shared dashboard card tokens) but distinguished: stronger elevation,
+ * thicker border, violet tertiary accent — not a teal recap clone.
+ */
+export const SCORECARD_SHELL = [
+  'flex flex-col',
+  DASHBOARD_CARD_RADIUS,
+  'border-2 border-violet-400/35',
+  'bg-surface-panel-strong',
+  DASHBOARD_CARD_PAD,
+  'shadow-lg shadow-black/30',
+  'ring-1 ring-violet-400/25',
+].join(' ');
+
+export const SCORECARD_EYEBROW = `${DASHBOARD_CARD_EYEBROW} text-violet-300/90`;
+
+export const SCORECARD_EYEBROW_ICON = `${DASHBOARD_CARD_EYEBROW_ICON} text-violet-300/90`;
+
+export const SCORECARD_TITLE = DASHBOARD_CARD_TITLE;
+
+export const SCORECARD_BODY = DASHBOARD_CARD_BODY;
+
+export const SCORECARD_SLOT_LABEL =
+  'text-[10px] font-black uppercase tracking-widest text-violet-300/75';
+
+export const SCORECARD_METRIC =
+  'text-[11px] font-semibold leading-snug text-content-secondary md:text-xs';
