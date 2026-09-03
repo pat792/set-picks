@@ -73,6 +73,8 @@ GSC live-test console noise (CSP Report-Only, service worker reject, reCAPTCHA s
 
 Track these weekly in Search Console (Performance → Queries) and spot-check SERPs / AI Overviews.
 
+**Strategy (own / bridge / compete / concede):** [`content/marketing/pickem-search-plan-2026-08.md`](../content/marketing/pickem-search-plan-2026-08.md) — EiC-approved Pick'em search plan (epic #972, tracking #970). Machine-readable registry lands under #931 (sibling; not this PR).
+
 ### Brand / navigational
 
 | ID | Query |
@@ -90,23 +92,37 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | C3 | `phish pick em` / `phish pick'em` / `setlist picks game` |
 | C4 | `live setlist prediction` |
 | C5 | `fantasy setlist` / `fantasy setlists` / `phish fantasy setlist` |
+| C6 | `phish setlist prediction` |
+| C7 | `phish picks` / `phish setlist picks` |
 
-**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C5; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar. **#973:** C6 (`phish setlist prediction`) and C7 (`phish picks`) also target this URL.
+**Keyword landing (#660 / #973):** `/phish-setlist-prediction-game` — definitional page targeting C1–C7; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar. C6/C7 are **bridge** queries (see search plan) — this URL only; no `/phish-picks` doorway. Title/H1/FAQ shipped in #973.
 
 ### Stats-intent (after #665 public `/tour-stats`)
 
 | ID | Query | Target path |
 |----|--------|-------------|
-| S1 | `phish tour setlist stats` | `/tour-stats` |
+| S1 | `phish tour stats` / `phish tour setlist stats` | `/tour-stats` |
 | S2 | `phish song frequency [tour year]` (e.g. summer 2026) | `/tour-stats/2026-summer-tour` |
-| S3 | `phish bustouts [tour]` | `/tour-stats/2026-summer-tour` |
+| S3 | `phish bustouts` / `phish bustouts [tour]` | `/tour-stats/2026-summer-tour` |
 | S4 | `bustouts summer tour 2026` | `/tour-stats/2026-summer-tour` |
 | S5 | `phish bustout list this tour` | `/tour-stats/2026-summer-tour` |
-| S6 | `unique songs played this tour` | `/tour-stats/2026-summer-tour` |
+| S6 | `phish unique songs` / `unique songs played this tour` / `songs played this tour` | `/tour-stats/2026-summer-tour` |
 
 Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from Phish.net calendar ingest). **Aggregates only** — most played, bustouts, gap highlights; never full night setlists. Default tour: **current** (newest `lastShowDate`). Prerender hub + Sphere + **2026 Summer Tour** (`2026-summer-tour`). Definitions in `/llms.txt` match the public UI: unique = distinct titles this tour; frequency = plays this tour; bustout = 30+ show pre-show gap.
 
 **GEO / LLM brief (#930):** `/llms.txt` restates those three definitions and deep-links the summer slug so agents can cite the live tour page, not only home.
+
+### SERP snapshot (2026-08, owner notes)
+
+| Query | Position / note | Top competitors |
+|-------|-----------------|-----------------|
+| C1 `phish setlist game` | **Win** — gen AI + ~2nd SERP | — |
+| C6 `phish setlist prediction` | Not top 10 | phishpicks.net, callingit.live |
+| C7 `phish picks` | Not top 10 | phishpicks.net (IG → backlinks) |
+| S1 `phish tour stats` | ~7th | ihoz.com, Phantasy Tour |
+| S3 `phish bustouts` | Not top 10 | Reddit, live-music blogs, phish.net |
+
+Re-spot-check these five whenever filling §4. Full game plan: search plan doc above. Do **not** scrape Google/Bing SERP HTML.
 
 ### Profile indexing policy (#661)
 
@@ -124,6 +140,8 @@ Add/remove rows as pages ship; keep IDs stable once used in the log.
 
 Fill one row per week (Sunday or Monday). Source: Search Console Performance (28-day or weekly filter) + manual SERP/AI Overview spot-check.
 
+**Query IDs:** [`docs/seo/query-registry.json`](seo/query-registry.json) (Child E0 #931). Weekly JSONL write procedure: [`docs/seo/README.md`](seo/README.md).
+
 **Resume (Child D / #930):** the table below is the **interim** log. Keep filling it until Child **E0** [#931](https://github.com/pat792/set-picks/issues/931) (query registry) + **E1** [#932](https://github.com/pat792/set-picks/issues/932) (GSC API + GA4 organic → weekly packs on [#926](https://github.com/pat792/set-picks/issues/926)) land. After E1, this table becomes a pointer — prefer the Action pack + `crew/output/seo/` snapshot over empty Markdown cells. Until then: GSC → Performance → last 7 days → Totals, plus a spot-check of S4–S6 after summer reindex.
 
 | Week starting | Impressions (site) | Clicks | Top query (non-brand) | Best position (C1–C4) | Favicon on `site:setlistpickem.com`? | AI Overview / generative citation? | Notes |
@@ -137,7 +155,7 @@ Fill one row per week (Sunday or Monday). Source: Search Console Performance (28
 | 2026-08-30 | | | | | | | **#930 resume week.** After promote: request indexing on hub + `/tour-stats/2026-summer-tour` + `/llms.txt`; fill last-7-days totals here. |
 | 2026-09-06 | | | | | | | First full week after Child D reindex (if indexing landed 2026-09-02). |
 
-**How to fill Impressions/Clicks:** GSC → Performance → last 7 days → Totals. Optional: export CSV into a spreadsheet; keep this table as the epic-facing summary. Future machine log: `crew/output/seo/` (gitignored; spec in #931 / #932).
+**How to fill Impressions/Clicks:** GSC → Performance → last 7 days → Totals. Optional: export CSV into a spreadsheet; keep this table as the epic-facing summary. Machine log: append-only `crew/output/seo/weekly-log.jsonl` (gitignored — do not commit snapshots). Procedure: [`docs/seo/README.md`](seo/README.md). Automation is #932.
 
 **Favicon check:** Incognito Google → `site:setlistpickem.com` → note whether result icon appears (Child E #662 if still missing after ~2–4 weeks).
 
@@ -208,7 +226,7 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 5. **#666** enrichment after H1 is indexed
 6. ~~#927 / #928 / #929~~ Children A–C (summer slug, crawler facts, fan H2s)
 7. **#930** Child D — llms + this playbook (docs); GSC reindex + UTM share are **human ops after promote** (see §9)
-8. **#931 / #932** Child E0/E1 — query registry + GSC/GA4 weekly packs (replaces empty §4 cells)
+8. **#931 / #932** Child E0/E1 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json) + GSC/GA4 weekly packs (replaces empty §4 cells)
 
 ---
 

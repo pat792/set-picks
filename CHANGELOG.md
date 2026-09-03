@@ -10,6 +10,12 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+### Added
+- **SEO query registry (#931 / epic #926)** — `docs/seo/query-registry.json` seeds B1–B3, C1–C7, S1–S7 (including #931 fan strings). Weekly append-only GSC log procedure is in `docs/seo/README.md`; snapshots stay under gitignored `crew/output/seo/`.
+
+### Changed
+- **Pick'em search plan (#970)** — EiC-approved SERP/GEO plan + playbook C6/C7 / SERP snapshot. Docs only; no declared API change and no version bump.
+
 ---
 
 ## [1.62.2] — 2026-09-02
