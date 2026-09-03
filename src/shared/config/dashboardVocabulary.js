@@ -62,14 +62,19 @@ export const NAV_LABEL_ACCOUNT = 'Account';
  */
 export const NAV_LABEL_STATS = 'Stats';
 
-/** Stats tertiary — career self stats (`/dashboard/stats` and `/dashboard/stats/personal`) */
-export const NAV_LABEL_PERSONAL_STATS = 'Personal Stats';
+/**
+ * Stats tertiary chips — drop the redundant “Stats” suffix so three
+ * uppercase `tracking-widest` segments fit the equal-width tray (Standings
+ * Show / Tour / Pools pattern). Destination names stay Personal / Global /
+ * Band Stats in IA and page copy.
+ */
+export const NAV_LABEL_PERSONAL_STATS = 'Personal';
 
 /** Stats tertiary — private tour explorer (`/dashboard/stats/global`) */
-export const NAV_LABEL_GLOBAL_STATS = 'Global Stats';
+export const NAV_LABEL_GLOBAL_STATS = 'Global';
 
 /** Stats tertiary — band song-stats shell (`/dashboard/stats/band`) */
-export const NAV_LABEL_BAND_STATS = 'Band Stats';
+export const NAV_LABEL_BAND_STATS = 'Band';
 
 /** Quiet Profile → Personal Stats cross-link */
 export const VIEW_PERSONAL_STATS_LINK = 'View personal stats';

@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.66.1] — 2026-09-03
+
+### Changed
+- **Stats tertiary chips** — tray labels are **Personal / Global / Band** (drop the redundant “Stats” suffix) so three uppercase equal-width segments fit on mobile. Destination names and page copy stay Personal / Global / Band Stats.
+
+---
+
 ## [1.66.0] — 2026-09-03
 
 ### Added

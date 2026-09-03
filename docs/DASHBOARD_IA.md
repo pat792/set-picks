@@ -130,7 +130,7 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 | **Picks** | Make Picks · Picks Lab · Scorecard | Nested routes (#766). Lab segment always visible; Scorecard is the #767 surface. |
 | **Profile** | Profile · Messages · Account | Nested routes under `/dashboard/profile/*` |
 | **Standings** | Show · Tour · Pools | Stats moved to the Stats primary (#769). |
-| **Stats** | Personal Stats · Global Stats · Band Stats | Nested routes (#769). Band is a coming-soon shell. |
+| **Stats** | Personal · Global · Band | Nested routes (#769). Tray drops the redundant “Stats” suffix so three uppercase chips fit. Band is a coming-soon shell. |
 
 `NAV_LABEL_STATS` is the **Stats** primary. **Account-as-primary** (relabel Profile vs rename `/dashboard/profile`) is an open question on #764 / #770 — do not change the user-visible Profile primary label until that child.
 
@@ -172,10 +172,10 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Account** | Profile-cluster account surface (`NAV_LABEL_ACCOUNT`); path `/dashboard/profile/account`. |
 | **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
 | **Standings** | Tab, context bar for `/dashboard/standings` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Pools tray live in sticky in-page chrome (not the layout H2) so banners and the leaderboard scroll underneath. View is URL-synced via `?view=show\|tour\|pools`. Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker and shows the shared tour scope picker (`?tour=`). |
-| **Stats** | Primary tab + context + desktop H1 for the Stats cluster (`NAV_LABEL_STATS`) — `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band`. Tertiary labels: **Personal Stats** / **Global Stats** / **Band Stats**. |
-| **Personal Stats** | Stats-cluster tertiary for career self stats (`NAV_LABEL_PERSONAL_STATS`). |
-| **Global Stats** | Stats-cluster tertiary for the private tour explorer (`NAV_LABEL_GLOBAL_STATS`); path `/dashboard/stats/global`. |
-| **Band Stats** | Stats-cluster tertiary shell (`NAV_LABEL_BAND_STATS`); path `/dashboard/stats/band`. |
+| **Stats** | Primary tab + context + desktop H1 for the Stats cluster (`NAV_LABEL_STATS`) — `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band`. Tertiary chips: **Personal** / **Global** / **Band**. |
+| **Personal** | Stats-cluster tertiary for career self stats (`NAV_LABEL_PERSONAL_STATS`). Destination name: Personal Stats. |
+| **Global** | Stats-cluster tertiary for the private tour explorer (`NAV_LABEL_GLOBAL_STATS`); path `/dashboard/stats/global`. Destination name: Global Stats. |
+| **Band** | Stats-cluster tertiary shell (`NAV_LABEL_BAND_STATS`); path `/dashboard/stats/band`. Destination name: Band Stats. |
 | **Show standings** | Ordered points for **one show date** only (Standings screen); use this phrase in glossary, help, and cross-links where the “one night” nuance matters. |
 | **All-time standings** | Cumulative points / wins / shows across **every** finalized show (all tours). Canonical name on pool details (`POOL_ALL_TIME_STANDINGS_HEADING`) and optional global companion on Standings. Replaces legacy **Season totals**. See #148. |
 | **Tour standings** | Cumulative points / wins / shows scoped to the **current tour** via `show_calendar.showDatesByTour` (`TOUR_STANDINGS_HEADING`). Global on Standings (#219), pool-scoped on pool details (#148). |
@@ -199,9 +199,9 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | Pool details (desktop eyebrow) | Pool hub | `POOL_DETAILS_LAYOUT_EYEBROW` |
 | Standings | `/dashboard/standings` | `NAV_LABEL_STANDINGS` |
 | Stats | `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band` | `NAV_LABEL_STATS` |
-| Personal Stats | Stats cluster tertiary | `NAV_LABEL_PERSONAL_STATS` |
-| Global Stats | `/dashboard/stats/global` | `NAV_LABEL_GLOBAL_STATS` |
-| Band Stats | `/dashboard/stats/band` | `NAV_LABEL_BAND_STATS` |
+| Personal | Stats cluster tertiary | `NAV_LABEL_PERSONAL_STATS` |
+| Global | `/dashboard/stats/global` | `NAV_LABEL_GLOBAL_STATS` |
+| Band | `/dashboard/stats/band` | `NAV_LABEL_BAND_STATS` |
 | Profile | `/dashboard/profile` | `NAV_LABEL_PROFILE` |
 | Messages | `/dashboard/profile/notifications` | `NAV_LABEL_MESSAGES` |
 | Account | `/dashboard/profile/account` | `NAV_LABEL_ACCOUNT` |

@@ -3,7 +3,6 @@ import { Music2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { STATS_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
-import { NAV_LABEL_GLOBAL_STATS } from '../../../shared/config/dashboardVocabulary';
 import {
   DASHBOARD_CARD_BODY,
   DASHBOARD_CARD_EYEBROW,
@@ -42,7 +41,7 @@ export default function BandStatsComingSoon({ className = '' }) {
         to={STATS_CLUSTER_PATHS.global}
         className="mt-4 inline-flex items-center text-sm font-bold text-brand-primary hover:underline"
       >
-        {NAV_LABEL_GLOBAL_STATS}
+        View Global Stats
       </Link>
     </section>
   );
