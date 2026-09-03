@@ -1,12 +1,24 @@
 # SEO query registry + weekly log
 
-**Epic:** #926 · **This child:** #931 (E0)  
-**Ops playbook:** [`docs/SEO_GEO_PLAYBOOK.md`](../SEO_GEO_PLAYBOOK.md)  
+**Epic:** #926 · **E0:** #931 · **E1:** #932  
+**Ops playbook:** [`docs/SEO_GEO_PLAYBOOK.md`](../SEO_GEO_PLAYBOOK.md) §4  
 **Canonical host:** `https://www.setlistpickem.com`
 
 Machine-readable fan-intent IDs live in **[`query-registry.json`](./query-registry.json)**. Optimize packs and GSC pulls must key off those IDs — do not invent parallel Markdown tables.
 
-**Later:** #932 (E1) automates GSC API + GA4 organic → weekly packs on #926. Until then, humans or cloud agents write the log **manually** after a Search Console pull.
+**#932 (E1)** automates last-7d GSC + GA4 organic → a `[SKIP-PRD]` SEO Optimize pack on #926.
+
+```bash
+# Fixture / dry-run (no network, no #926 comment)
+npm run seo:gsc-weekly-snapshot -- --fixture
+npm run test:seo-gsc-snapshot
+
+# Live pull (needs GSC_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS)
+npm run seo:gsc-weekly-snapshot -- --write
+npm run seo:gsc-weekly-snapshot -- --write --post   # comment on #926
+```
+
+Workflow: `.github/workflows/seo-gsc-weekly-schedule.yml` (`workflow_dispatch` + Monday cron). Posts only when live credentials exist; otherwise SKIP (fork-safe). Secrets and human SA steps: playbook §4 + `docs/GITHUB_AUTOMATION_CONTEXT.md`. Manual GSC UI pulls remain valid if the secret is not set yet.
 
 ## Policy (do not violate)
 
@@ -57,8 +69,8 @@ printf '\n' >> crew/output/seo/weekly-log.jsonl
 
 Optional dated copy for humans: `crew/output/seo/YYYY-MM-DD.json` (same object as that week’s JSONL line).
 
-5. Copy site totals into playbook §4 (interim Markdown table) until #932 replaces empty cells with packs.
-6. Post a **short summary comment on #926** (impressions/clicks + whether S-cluster queries appeared). Do not paste full GSC exports.
+5. After a **live** script run (`--write`), the JSONL line is already appended. Copy site totals from the pack (or playbook §4 archive table if the Action has not posted yet).
+6. Live `--post` (or the weekly Action) comments the pack on #926. Do not paste full GSC exports. Fixture mode must never `--post`.
 
 ### Cadence
 
@@ -70,7 +82,7 @@ When public tour-stats / `comms_show_context` shows a notable bustout, you may a
 
 ### Schema (log object)
 
-See [`weekly-log.example.json`](./weekly-log.example.json). Required keys: `weekStarting`, `source`, `site`, `queries` (array of `{ id, impressions, clicks, position }`). `source` is `gsc-manual` until #932; then `gsc-api`.
+See [`weekly-log.example.json`](./weekly-log.example.json). Required keys: `weekStarting`, `source`, `site`, `queries` (array of `{ id, impressions, clicks, position }`). `source` is `gsc-api` for the Action, `gsc-fixture` for dry-run, or `gsc-manual` for a UI pull.
 
 `queries[].id` **must** match `query-registry.json`. Unknown ids are a procedure bug, not a new keyword.
 
@@ -85,6 +97,7 @@ See [`weekly-log.example.json`](./weekly-log.example.json). Required keys: `week
 
 ```bash
 npm run test:seo-query-registry
+npm run test:seo-gsc-snapshot
 ```
 
-Parses the registry and asserts required ids (C1, C6, C7, S1, S3) plus the #931 fan strings.
+Registry: required ids (C1, C6, C7, S1, S3) plus the #931 fan strings. Snapshot: fixture pack + fork-safe SKIP when credentials are missing.
