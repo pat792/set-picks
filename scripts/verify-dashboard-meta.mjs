@@ -59,7 +59,7 @@ const CASES = [
     },
   },
   {
-    // #766: Scorecard shell — primary Picks tab + date picker stay on.
+    // #766 / #767: Scorecard — primary Picks tab + date picker stay on.
     path: '/dashboard/picks/scorecard',
     expect: {
       contextTitle: NAV_LABEL_PICKS,
