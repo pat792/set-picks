@@ -49,6 +49,7 @@ function stateCopy(state) {
  *     song: string,
  *     alsoPickedCount: number | null,
  *     playProb: number | null,
+ *     oddsUnknown?: boolean,
  *   }>,
  *   showOverlap?: boolean,
  *   showOdds?: boolean,
@@ -148,7 +149,9 @@ export default function PicksScorecardCard({
 
           <ul className="mt-3 space-y-2.5">
             {slots.map((slot) => {
-              const odds = showOdds ? formatOddsPercent(slot.playProb) : null;
+              const odds = showOdds
+                ? formatOddsPercent(slot.playProb, { unknown: slot.oddsUnknown })
+                : null;
               return (
                 <li
                   key={slot.fieldId}

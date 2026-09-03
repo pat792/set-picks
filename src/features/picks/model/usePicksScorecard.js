@@ -23,8 +23,9 @@ import { usePickRecommendations } from './usePickRecommendations';
 /**
  * Picks → Scorecard screen hook (#767). Global + show-scoped via the date
  * picker. Overlap is post-lock only. Odds come from Storage
- * `pick-recommendations.json` (omit if missing). Rank/score reuse the
- * show-scoped standings query — no extra collections.
+ * `pick-recommendations.json` (`playProbBySong` when present; omit if
+ * missing or for another night). Rank/score reuse the show-scoped
+ * standings query — no extra collections.
  *
  * @param {{
  *   user: { uid?: string } | null | undefined,
@@ -84,11 +85,11 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
   }, [overlapRows]);
 
   const oddsBySlot = useMemo(() => {
-    /** @type {Record<string, number>} */
+    /** @type {Record<string, { playProb: number | null, unknown: boolean }>} */
     const map = {};
     if (!oddsRows) return map;
     for (const row of oddsRows) {
-      map[row.fieldId] = row.playProb;
+      map[row.fieldId] = { playProb: row.playProb, unknown: Boolean(row.unknown) };
     }
     return map;
   }, [oddsRows]);
@@ -97,12 +98,14 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
     () =>
       FORM_FIELDS.map((field) => {
         const song = String(formData?.[field.id] ?? '').trim();
+        const odds = oddsBySlot[field.id];
         return {
           fieldId: field.id,
           label: field.label,
           song,
           alsoPickedCount: showOverlap ? overlapBySlot[field.id] ?? 0 : null,
-          playProb: oddsBySlot[field.id] ?? null,
+          playProb: odds?.playProb ?? null,
+          oddsUnknown: Boolean(odds?.unknown),
         };
       }).filter((slot) => slot.song),
     [formData, showOverlap, overlapBySlot, oddsBySlot],
