@@ -95,7 +95,7 @@ Track these weekly in Search Console (Performance → Queries) and spot-check SE
 | C6 | `phish setlist prediction` |
 | C7 | `phish picks` / `phish setlist picks` |
 
-**Keyword landing (#660):** `/phish-setlist-prediction-game` — definitional page targeting C1–C7; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar. C6/C7 are **bridge** queries (see search plan) — strengthen this URL before adding doorways. Title/H1 execution is #973 (sibling).
+**Keyword landing (#660 / #973):** `/phish-setlist-prediction-game` — definitional page targeting C1–C7; disambiguates prediction / fantasy setlist game vs setlist archives; jam-band framing with Phish as exemplar. C6/C7 are **bridge** queries (see search plan) — this URL only; no `/phish-picks` doorway. Title/H1/FAQ shipped in #973.
 
 ### Stats-intent (after #665 public `/tour-stats`)
 
