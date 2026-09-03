@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-02",
+  "epic": 926,
+  "issue": 931,
+  "canonicalHost": "https://www.setlistpickem.com",
+  "policy": {
+    "aggregatesOnly": true,
+    "neverFullNightSetlists": true,
+    "noSerpHtmlScraping": true,
+    "noPaidLinks": true,
+    "noPhishPicksRoute": true
+  },
+  "queries": [
+    {
+      "id": "B1",
+      "query": "setlist pick'em",
+      "intent": "brand",
+      "targetPath": "/",
+      "priority": "P1",
+      "notes": "Variant: setlist pickem. Navigational brand."
+    },
+    {
+      "id": "B2",
+      "query": "setlistpickem",
+      "intent": "brand",
+      "targetPath": "/",
+      "priority": "P1",
+      "notes": "Concatenated brand / domain-style query."
+    },
+    {
+      "id": "B3",
+      "query": "setlist pick em phish",
+      "intent": "brand",
+      "targetPath": "/",
+      "priority": "P1",
+      "notes": "Brand + Phish qualifier."
+    },
+    {
+      "id": "C1",
+      "query": "phish setlist game",
+      "intent": "game",
+      "targetPath": "/phish-setlist-prediction-game",
+      "priority": "P0",
+      "notes": "Defend: already winning game-intent lane. Keyword landing (#660)."
+    },
+    {
+      "id": "C2",
+      "query": "setlist prediction game",
+      "intent": "game",
+      "targetPath": "/phish-setlist-prediction-game",
+      "priority": "P0",
+      "notes": "Variant: predicting setlists. Definitional game query."
+    },
+    {
+      "id": "C3",
+      "query": "phish pick em",
+      "intent": "game",
+      "targetPath": "/phish-setlist-prediction-game",
+      "priority": "P1",
+      "notes": "Variants: phish pick'em, setlist picks game. Primary URL is the keyword landing; home is a secondary entry, not a doorway."
+    },
+    {
+      "id": "C4",
+      "query": "live setlist prediction",
+      "intent": "game",
+      "targetPath": "/phish-setlist-prediction-game",
+      "priority": "P2",
+      "notes": "Live-game framing on the keyword landing."
+    },
+    {
+      "id": "C5",
+      "query": "fantasy setlist",
+      "intent": "game",
+      "targetPath": "/phish-setlist-prediction-game",
+      "priority": "P2",
+      "notes": "Variants: fantasy setlists, phish fantasy setlist. Disambiguate vs archive encyclopedias."
+    },
+    {
+      "id": "C6",
+      "query": "phish setlist prediction",
+      "intent": "game",
+      "targetPath": "/phish-setlist-prediction-game",
+      "priority": "P0",
+      "notes": "Bridge query (playbook / Pick'em search plan). Strengthen the existing keyword URL — do not add a thin prediction doorway. Title/H1 work is #973, not this registry."
+    },
+    {
+      "id": "C7",
+      "query": "phish picks",
+      "intent": "game",
+      "targetPath": "/phish-setlist-prediction-game",
+      "priority": "P0",
+      "notes": "Variant: phish setlist picks. Bridge query. Do not ship /phish-picks (#975 gated). Compete on game + pools + live scoring, not tip-sheet cadence."
+    },
+    {
+      "id": "S1",
+      "query": "phish tour setlist stats",
+      "intent": "stats",
+      "targetPath": "/tour-stats",
+      "priority": "P0",
+      "notes": "Playbook S1. Hub for tour aggregates. Variant in search-plan seed: phish tour stats."
+    },
+    {
+      "id": "S2",
+      "query": "phish song frequency summer 2026",
+      "intent": "stats",
+      "targetPath": "/tour-stats/2026-summer-tour",
+      "priority": "P1",
+      "notes": "Playbook S2 pattern: phish song frequency [tour year]. Frequency = plays this tour. Aggregates only."
+    },
+    {
+      "id": "S3",
+      "query": "phish bustouts",
+      "intent": "stats",
+      "targetPath": "/tour-stats/2026-summer-tour",
+      "priority": "P0",
+      "notes": "Playbook S3. Variant: phish bustouts [tour] / phish bustouts this tour. Bustout = 30+ show pre-show gap. Decision intent, not historical lore."
+    },
+    {
+      "id": "S4",
+      "query": "bustouts summer tour 2026",
+      "intent": "stats",
+      "targetPath": "/tour-stats/2026-summer-tour",
+      "priority": "P0",
+      "notes": "Fan string from #931 / playbook S4. Summer slug, not the 308 alias."
+    },
+    {
+      "id": "S5",
+      "query": "bustout list this tour",
+      "intent": "stats",
+      "targetPath": "/tour-stats/2026-summer-tour",
+      "priority": "P0",
+      "notes": "Fan string from #931. Playbook phrasing: phish bustout list this tour."
+    },
+    {
+      "id": "S6",
+      "query": "unique songs played this tour",
+      "intent": "stats",
+      "targetPath": "/tour-stats/2026-summer-tour",
+      "priority": "P1",
+      "notes": "Fan string from #931 / playbook S6. Unique = distinct titles this tour."
+    },
+    {
+      "id": "S7",
+      "query": "tour setlist stats",
+      "intent": "stats",
+      "targetPath": "/tour-stats",
+      "priority": "P0",
+      "notes": "Fan string from #931 (unprefixed). S1 keeps the playbook phish-qualified form; both map to the hub."
+    }
+  ]
+}
