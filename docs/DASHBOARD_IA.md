@@ -134,7 +134,7 @@ Vocabulary stub: `NAV_LABEL_STATS` exists for the Standings segment / future pri
 | **Join Pool** | `/dashboard/pools/join` | Join-by-code; pending-join / invite retry (`POOL_INVITE_STORAGE_KEY`) |
 | **Pool details** | `/dashboard/pool/:id` | Unchanged Option C chrome; Pools primary stays active (not a tertiary segment) |
 
-Nested routes (not `?view=`). After a successful create or join, navigate to that pool’s details. How-it-works stays a disclosure/menu — not a fourth tertiary segment. Post-auth `/join/:code` with a pending invite lands on **Join Pool**.
+Nested routes (not `?view=`). After a successful create or join, navigate to that pool’s details. How-it-works is a **CircleHelp** icon in the mobile context-bar trailing slot and beside the desktop tertiary tray (Standings Scale pattern) — not a fourth tertiary segment or in-flow disclosure. Post-auth `/join/:code` with a pending invite lands on **Join Pool**.
 
 ## Pool details desktop chrome (decision: Option C)
 

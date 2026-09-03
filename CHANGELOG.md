@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.65.2] — 2026-09-03
+
+### Changed
+- **Pools how-it-works chrome** — “How pools work” is a context-bar / tray-adjacent CircleHelp icon (Standings Scale pattern) that opens a modal. Removes the in-flow disclosure under the Pools tertiary tray.
+
+---
+
 ## [1.65.1] — 2026-09-03
 
 ### Added
