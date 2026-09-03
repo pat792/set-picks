@@ -1,12 +1,14 @@
 # SEO query registry + weekly log
 
-**Epic:** #926 · **E0:** #931 · **E1:** #932  
+**Epic:** #926 · **E0:** #931 · **E1:** #932 · **E3:** #934  
 **Ops playbook:** [`docs/SEO_GEO_PLAYBOOK.md`](../SEO_GEO_PLAYBOOK.md) §4  
+**Scored tune loop:** [`docs/SEO_OPTIMIZE_AUTONOMY.md`](../SEO_OPTIMIZE_AUTONOMY.md)  
 **Canonical host:** `https://www.setlistpickem.com`
 
 Machine-readable fan-intent IDs live in **[`query-registry.json`](./query-registry.json)**. Optimize packs and GSC pulls must key off those IDs — do not invent parallel Markdown tables.
 
-**#932 (E1)** automates last-7d GSC + GA4 organic → a `[SKIP-PRD]` SEO Optimize pack on #926.
+**#932 (E1)** automates last-7d GSC + GA4 organic → a `[SKIP-PRD]` SEO Optimize **facts** pack on #926.  
+**#934 (E3)** is the agent-driven scored loop on top of that pack (`DRAFT_PR` / `REQUEST_INDEX` / `OFFSITE_SHARE` / `WAIT_EVIDENCE` / `NOOP`). Copy-paste prompt + template: [`docs/SEO_OPTIMIZE_AUTONOMY.md`](../SEO_OPTIMIZE_AUTONOMY.md). No weekly Action opens PRs.
 
 ```bash
 # Fixture / dry-run (no network, no #926 comment)
