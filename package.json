@@ -52,6 +52,7 @@
     "test:comms-picks-lock-conversion": "node --test scripts/lib/picksLockConversion.test.mjs",
     "test:tour-stats-seo-facts": "node --test scripts/lib/tourStatsSeoFacts.test.mjs scripts/lib/firestoreRestDecode.test.mjs",
     "test:seo-query-registry": "node --test scripts/lib/queryRegistry.test.mjs",
+    "seo:title-h1-scan": "python3 -m crew.scripts.seo_title_h1_scan",
     "emails:build": "npm run build --prefix emails",
     "emails:preview": "npm run preview --prefix emails"
   },

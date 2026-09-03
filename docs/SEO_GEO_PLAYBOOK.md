@@ -124,6 +124,8 @@ Public surface: `/tour-stats` + `/tour-stats/:tourSlug` (kebab-case labels from 
 
 Re-spot-check these five whenever filling §4. Full game plan: search plan doc above. Do **not** scrape Google/Bing SERP HTML.
 
+**Child E2 (#933):** allowlisted title/H1 scans — `python3 -m crew.scripts.seo_title_h1_scan` (or `npm run seo:title-h1-scan`). Allowlist + refuse: `crew/knowledge/allowlists/domains.md`. Durable brief: [`content/marketing/933-competitor-title-h1-gap-brief.md`](../content/marketing/933-competitor-title-h1-gap-brief.md). Homepage title/heading patterns only; no SERP HTML; no `/phish-picks`. Cadence: weekly with E1 (#932).
+
 ### Profile indexing policy (#661)
 
 | Path | robots | Rationale |
@@ -227,6 +229,7 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 6. ~~#927 / #928 / #929~~ Children A–C (summer slug, crawler facts, fan H2s)
 7. **#930** Child D — llms + this playbook (docs); GSC reindex + UTM share are **human ops after promote** (see §9)
 8. **#931 / #932** Child E0/E1 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json) + GSC/GA4 weekly packs (replaces empty §4 cells)
+9. **#933** Child E2 — allowlisted competitor title/H1 scan + [`content/marketing/933-competitor-title-h1-gap-brief.md`](../content/marketing/933-competitor-title-h1-gap-brief.md)
 
 ---
 

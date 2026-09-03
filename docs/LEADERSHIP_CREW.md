@@ -169,6 +169,7 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 
 | Date | Change |
 |------|--------|
+| 2026-09-03 | #933 E2: allowlisted SEO title/H1 scan (`seo_title_h1_scan`) + refuse list; brief `content/marketing/933-competitor-title-h1-gap-brief.md` |
 | 2026-08-08 | Draft artifacts required on disk (`content/marketing/`, `content/comms/`, `crew/output/`); Cursor rule `crew-draft-artifacts.mdc` |
 | 2026-07-20 | L0 scaffold: doc, `crew/`, Cursor skills, epic #695 — flexibility/learning principles documented |
 | 2026-07-20 | L1: allowlisted HTTP fetch + `market_intel_sweep` script; tests; status promoted for research only |
