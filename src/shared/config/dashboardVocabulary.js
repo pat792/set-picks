@@ -20,6 +20,15 @@
 /** Primary tab for locking picks (`/dashboard`) — same label in context bar + desktop H1 */
 export const NAV_LABEL_PICKS = 'Picks';
 
+/** Picks-cluster tertiary: existing form (`/dashboard` and `/dashboard/picks`) */
+export const NAV_LABEL_MAKE_PICKS = 'Make Picks';
+
+/** Picks-cluster tertiary: Prediction Lab destination (`/dashboard/picks/lab`) */
+export const NAV_LABEL_PICKS_LAB = 'Picks Lab';
+
+/** Picks-cluster tertiary: Scorecard shell (`/dashboard/picks/scorecard`) — metrics in #767 */
+export const NAV_LABEL_SCORECARD = 'Scorecard';
+
 /** Pools list tab + context + desktop H1 (`/dashboard/pools`) */
 export const NAV_LABEL_POOLS = 'Pools';
 

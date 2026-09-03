@@ -9,7 +9,7 @@
  * post-auth lands on Pools for honest joining chrome (#728).
  */
 
-import { isProfileClusterPath } from '../config/dashboardRoutes';
+import { isPicksClusterPath, isProfileClusterPath } from '../config/dashboardRoutes';
 import { POOL_INVITE_STORAGE_KEY } from '../config/poolInvite';
 import { getLocalStorageItem, setLocalStorageItem } from './local-storage';
 
@@ -46,8 +46,7 @@ export function isRestorableDashboardPath(pathname, search = '', opts = {}) {
     return false;
   }
 
-  if (path === '/dashboard') return true;
-  if (path === '/dashboard/picks') return true;
+  if (isPicksClusterPath(path)) return true;
   if (path === '/dashboard/pools') return true;
   if (path === '/dashboard/standings') return true;
   if (path === '/dashboard/scoring') return true;

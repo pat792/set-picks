@@ -4,6 +4,7 @@ import { Bell, Download, Share2 } from 'lucide-react';
 
 import {
   PROFILE_CLUSTER_PATHS,
+  isMakePicksPath,
   isProfileClusterPath,
 } from '../../../shared/config/dashboardRoutes';
 import { ga4Event } from '../../../shared/lib/ga4';
@@ -27,8 +28,7 @@ export function dashboardRouteShowsInstallEngage(pathname) {
   }
   if (n.startsWith('/dashboard/pool/')) return false;
   return (
-    n === '/dashboard' ||
-    n === '/dashboard/picks' ||
+    isMakePicksPath(n) ||
     n === '/dashboard/standings' ||
     n === '/dashboard/pools'
   );

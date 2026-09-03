@@ -10,9 +10,12 @@ import {
   dashboardLazyRouteImport,
   prefetchDashboardRoutes,
 } from './model/dashboardRouteModules';
+import PicksClusterLayout from './ui/PicksClusterLayout';
 import ProfileClusterLayout from './ui/ProfileClusterLayout';
 
 import PicksPage from '../../pages/picks/PicksPage';
+import PicksLabPage from '../../pages/picks/PicksLabPage';
+import PicksScorecardPage from '../../pages/picks/PicksScorecardPage';
 import PoolsPage from '../../pages/pools/PoolsPage';
 import StandingsPage from '../../pages/standings/StandingsPage';
 import ProfilePage from '../../pages/profile/ProfilePage';
@@ -30,6 +33,7 @@ import {
 } from '../../shared/config/dashboardVocabulary';
 import {
   PROFILE_CLUSTER_PATHS,
+  isPicksClusterPath,
   isProfileClusterPath,
 } from '../../shared/config/dashboardRoutes';
 import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
@@ -154,18 +158,14 @@ export default function DashboardLayout() {
     location.pathname === '/dashboard/standings/' ||
     location.pathname === '/dashboard/tour-stats' ||
     location.pathname === '/dashboard/tour-stats/';
-  const isPicksRoute =
-    location.pathname === '/dashboard' ||
-    location.pathname === '/dashboard/' ||
-    location.pathname === '/dashboard/picks' ||
-    location.pathname === '/dashboard/picks/';
+  const isPicksCluster = isPicksClusterPath(location.pathname);
   const isPoolsListRoute =
     location.pathname === '/dashboard/pools' ||
     location.pathname === '/dashboard/pools/';
   const isProfileCluster = isProfileClusterPath(location.pathname);
   /** Primary tabs nest controls under the mobile context bar (Standings pattern). */
   const usesMobileFixedChrome =
-    isStandingsRoute || isPicksRoute || isPoolsListRoute || isProfileCluster;
+    isStandingsRoute || isPicksCluster || isPoolsListRoute || isProfileCluster;
 
   return (
     <ScoringRulesModalProvider>
@@ -201,6 +201,8 @@ export default function DashboardLayout() {
         <div className="flex flex-col gap-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
+            const isPicksSection =
+              item.path === '/dashboard' && isPicksClusterPath(location.pathname);
             const isProfileSection =
               item.path === PROFILE_CLUSTER_PATHS.profile &&
               isProfileClusterPath(location.pathname);
@@ -215,10 +217,12 @@ export default function DashboardLayout() {
                 location.pathname === '/dashboard/tour-stats' ||
                 location.pathname === '/dashboard/tour-stats/');
             const isActive =
+              isPicksSection ||
               isProfileSection ||
               isPoolsSection ||
               isStandingsSection ||
-              (!isProfileSection &&
+              (!isPicksSection &&
+                !isProfileSection &&
                 !isPoolsSection &&
                 !isStandingsSection &&
                 (location.pathname === item.path ||
@@ -286,7 +290,10 @@ export default function DashboardLayout() {
           'flex-1 min-w-0 overflow-y-auto relative',
           'pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8',
           usesMobileFixedChrome
-            ? 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
+            ? // Picks cluster: tertiary tray + optional Make Picks tools band.
+              isPicksCluster
+              ? 'pt-[calc(env(safe-area-inset-top,0px)+15.25rem)]'
+              : 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
             : 'pt-[calc(env(safe-area-inset-top,0px)+9rem)]',
         ].join(' ')}
       >
@@ -335,11 +342,24 @@ export default function DashboardLayout() {
           )}
 
           <Routes>
-            <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
-            <Route
-              path="picks"
-              element={<PicksPage user={user} selectedDate={selectedDate} />}
-            />
+            <Route element={<PicksClusterLayout user={user} selectedDate={selectedDate} />}>
+              <Route
+                index
+                element={<PicksPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route
+                path="picks"
+                element={<PicksPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route
+                path="picks/lab"
+                element={<PicksLabPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route
+                path="picks/scorecard"
+                element={<PicksScorecardPage />}
+              />
+            </Route>
             <Route
               path="scoring"
               element={<Navigate to="/dashboard?scoringRules=1" replace />}
@@ -424,6 +444,8 @@ export default function DashboardLayout() {
         <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center gap-0.5 px-1.5 h-16`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
+            const isPicksSection =
+              item.path === '/dashboard' && isPicksClusterPath(location.pathname);
             const isProfileSection =
               item.path === PROFILE_CLUSTER_PATHS.profile &&
               isProfileClusterPath(location.pathname);
@@ -438,10 +460,12 @@ export default function DashboardLayout() {
                 location.pathname === '/dashboard/tour-stats' ||
                 location.pathname === '/dashboard/tour-stats/');
             const isActive =
+              isPicksSection ||
               isProfileSection ||
               isPoolsSection ||
               isStandingsSection ||
-              (!isProfileSection &&
+              (!isPicksSection &&
+                !isProfileSection &&
                 !isPoolsSection &&
                 !isStandingsSection &&
                 (location.pathname === item.path ||

@@ -45,6 +45,19 @@ describe('getDashboardEntryHref', () => {
     expect(getDashboardEntryHref()).toBe('/dashboard/standings');
   });
 
+  it('restores Picks Lab and Scorecard cluster paths (#766)', () => {
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/picks/lab', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/picks/lab');
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/picks/scorecard', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/picks/scorecard');
+  });
+
   it('overrides remembered tab when a pending pool invite is stored (#728)', () => {
     localStorage.setItem(
       DASHBOARD_LAST_PATH_STORAGE_KEY,

@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.42.0  
+**Version:** 1.64.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -398,9 +398,11 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 
 Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
 
+**Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is the Scorecard shell (empty / coming-soon). The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
+
 **Standings Show — Crowd pulse (**v1.35.0 / #687**, productized **#694**, preview blur **v1.39.4**):** client-side aggregate of submitted picks for the selected `showDate`. While `showStatus === 'NEXT'`, preview **Song** + **Last** columns blur (pickers / gap stay clear); full deep stats (multi list / gaps / vintage / leaders) stay locked until showtime. **GA4 (client):** `crowd_pulse_view` `{ show_date, deep_stats: locked|open, pickers }`, `crowd_pulse_full_expand` `{ show_date }`, `crowd_pulse_section_open` `{ show_date, section }` where `section` is `top_songs` | `multi_picker` | `highest_gaps` | `vintage` | `leaders`.
 
-**Picks — Prediction Lab (**v1.38.0 / #651**):** opt-in collapsed panel on `/dashboard/picks` consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete unchanged when Lab unused/unavailable. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
+**Picks — Prediction Lab (**v1.38.0 / #651**, moved **v1.64.0 / #766**):** lives at **`/dashboard/picks/lab`**. Opt-in slot recommendations consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete on Make Picks is unchanged. When `VITE_ENABLE_PREDICTION_LAB` is not `true`, the Lab route still renders (coming-soon shell) — the tertiary tab is not hidden. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
 
 **Field RUM — web-vitals (**v1.44.0 / #801**, route groups **v1.49.1 / #857**):** production hostnames only. Client emits GA4 `web_vital` for LCP, INP, CLS, TTFB, FCP after idle. Params: `{ metric_name, value, metric_id, metric_rating, route_group, navigation_type }` where `route_group` is `splash` \| `login` \| `marketing` \| `tour_stats` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` and `navigation_type` is `navigate` \| `reload` \| `back_forward` \| `prerender`. Ops: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
 
@@ -468,7 +470,7 @@ These `VITE_*` variables are read at build time. Adding or removing one is a MIN
 | `VITE_SONG_CATALOG_URL` | No | CDN URL override for song catalog |
 | `VITE_PICK_RECOMMENDATIONS_URL` | No | CDN URL override for pick recommendations (#650) |
 | `VITE_ENABLE_SPONSOR_SLOTS` | No | `true` renders reserved sponsor/ad placements (`SponsorSlot`); omit to hide (default) |
-| `VITE_ENABLE_PREDICTION_LAB` | No | `true` renders Prediction Lab + loads pick-recommendations artifact on Picks; omit to hide (default). Use on Preview/local for QA; leave unset in Production until launch |
+| `VITE_ENABLE_PREDICTION_LAB` | No | `true` renders Prediction Lab + loads pick-recommendations artifact on **`/dashboard/picks/lab`**. Omit to show the Lab coming-soon shell (default). The Lab tertiary segment stays visible either way (**v1.64.0 / #766**). Use on Preview/local for QA; leave unset in Production until launch |
 
 ### 4.1 Cloud Functions runtime env vars
 
