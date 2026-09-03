@@ -10,7 +10,7 @@ Single reference for **support**, **product**, and **engineering** when adding r
 | **Pools** | `/dashboard/pools` | Pools **cluster**: My Pools, Create Pool, Join Pool (sub-nav). |
 | **Standings** | `/dashboard/standings` | **Show standings** for the selected show (everyone or one pool). Tertiary: Show / Tour / Pools. |
 | **Stats** | `/dashboard/stats` | **Stats cluster** (#769): Personal / Global / Band. Primary tab stays active on all three and on the `/dashboard/tour-stats` redirect hop. |
-| **Profile** | `/dashboard/profile` | Profile **cluster**: identity, **Messages**, **Account** (sub-nav). |
+| **Account** | `/dashboard/profile` | Account **cluster** (#770): identity, **Messages**, **Preferences** (sub-nav). Path prefix stays `/dashboard/profile/*`. |
 
 **Admin** (sixth item, single admin user): `/dashboard/admin` — War Room. Bottom nav is **5 columns** for players, **6** when Admin is present.
 
@@ -54,25 +54,27 @@ Nested routes (not `?view=`). Primary **Picks** tab stays active. Lab segment is
 
 Mobile: tertiary tray portals under the context bar via `ChromeSegmentedControl` (same primitive as Profile). Desktop: in-page tray at the cluster layout call site. Make Picks keeps scoring / lock-status tools (`PicksMobileFixedChrome`) on that destination only.
 
-### Profile cluster (#418)
+### Account cluster (#418 / #770)
+
+Primary nav **label** is **Account**. Path prefix stays `/dashboard/profile/*` (no `/dashboard/account` family).
 
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
-| **Profile** | `/dashboard/profile` | Handle, favorite song, public preview, join date |
-| **Messages** | `/dashboard/profile/notifications` | `commsInbox` + push/category/email prefs |
-| **Account** | `/dashboard/profile/account` | Sign-in method, logout, delete, Privacy/Terms |
+| **Profile** | `/dashboard/profile` | Handle, favorite song, avatar, badges. Callout + **View public profile** CTA. Quiet **View personal stats** link. |
+| **Messages** | `/dashboard/profile/notifications` | Inbox only — Unopened / Read / Archived; archive + delete. No prefs accordion. |
+| **Preferences** | `/dashboard/profile/account` | Sign-in, logout, legal, install/PWA, notification prefs (same `notificationPrefs` keys). Delete account is a text-link disclosure. Contact us hidden (no inbound address). |
 
-Legacy redirects (preserve bookmarks + email deep links):
+Legacy redirects (preserve bookmarks + email deep links; query string preserved):
 
-- `/dashboard/notifications` → `/dashboard/profile/notifications` (query string preserved, e.g. `?openPush=1`)
+- `/dashboard/notifications` → `/dashboard/profile/notifications` (e.g. `?openPush=1` then hops to Preferences)
 - `/dashboard/account-security` → `/dashboard/profile/account`
 
-Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
+`?openPush=1` and `DashboardInstallEngageBanner` land on **Preferences** (`/dashboard/profile/account?openPush=1`). Avatar in the mobile brand bar links to **Preferences**. Bell links to **Messages**.
 
 ### Pools parent / child (active state)
 
 - **Pools** tab stays active on `/dashboard/pools`, `/dashboard/pools/create`, `/dashboard/pools/join`, **and** `/dashboard/pool/:poolId` (**pool details**).
-- **Profile** tab stays active on the entire Profile cluster (including legacy redirect paths).
+- **Account** tab stays active on the entire Account cluster (including legacy redirect paths).
 - **Standings** tab stays active on `/dashboard/standings` only (Show / Tour / Pools).
 - **Stats** tab stays active on `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band`, **and** `/dashboard/tour-stats` (redirect hop).
 - **Picks** tab stays active on `/dashboard`, `/dashboard/picks`, `/dashboard/picks/lab`, and `/dashboard/picks/scorecard`.
@@ -81,7 +83,7 @@ Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
 
 Single visual/interaction pattern for in-tab section navigation. **Canonical primitive:** `ChromeSegmentedControl` (`src/shared/ui/ChromeSegmentedControl.jsx`) — NavLink mode (route clusters) or `tablist` / button mode (`value` / `onChange` view switches). **Do not fork tray CSS** in features.
 
-This documents the shared tray contract. Picks (#766), Pools (#768), and Stats (#769) use it. Account-as-primary is still a later child.
+This documents the shared tray contract. Picks (#766), Pools (#768), Stats (#769), and Account (#770) use it.
 
 ### Visual
 
@@ -115,7 +117,7 @@ Do **not** add new `md:`-as-device assumptions in **shared** chrome. Until `desk
 When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 
 1. Update **`getDashboardPageMeta`** (`contextTitle`, `showDatePicker`, `layoutDesktopHeading`, `layoutDetailEyebrow` if needed).
-2. Update **`DashboardLayout`** nav **`isActive`** so the primary tab stays active on every child (mirror **Pools / pool details** and **Profile / account**).
+2. Update **`DashboardLayout`** nav **`isActive`** so the primary tab stays active on every child (mirror **Pools / pool details** and **Account / Preferences**).
 3. Add a row to **`scripts/verify-dashboard-meta.mjs`** and run **`npm run verify:dashboard-meta`**.
 4. Update **`src/shared/config/dashboardVocabulary.js`** (`NAV_LABEL_*`) and this doc.
 5. If paths change: **`src/shared/config/dashboardRoutes.js`** (cluster constants + legacy redirects) and **`docs/API.md`** when a declared route is added/renamed.
@@ -128,11 +130,11 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 |------------------------|-------------------|--------|
 | **Pools** | My Pools · Create Pool · Join Pool | Nested routes; pool details stays a child, not a segment |
 | **Picks** | Make Picks · Picks Lab · Scorecard | Nested routes (#766). Lab segment always visible; Scorecard is the #767 surface. |
-| **Profile** | Profile · Messages · Account | Nested routes under `/dashboard/profile/*` |
+| **Account** | Profile · Messages · Preferences | Nested routes under `/dashboard/profile/*` (#770). |
 | **Standings** | Show · Tour · Pools | Stats moved to the Stats primary (#769). |
 | **Stats** | Personal · Global · Band | Nested routes (#769). Tray drops the redundant “Stats” suffix so three uppercase chips fit. Band is a coming-soon shell. |
 
-`NAV_LABEL_STATS` is the **Stats** primary. **Account-as-primary** (relabel Profile vs rename `/dashboard/profile`) is an open question on #764 / #770 — do not change the user-visible Profile primary label until that child.
+`NAV_LABEL_STATS` is the **Stats** primary. `NAV_LABEL_ACCOUNT` is the **Account** primary; `NAV_LABEL_PROFILE` is identity tertiary only; `NAV_LABEL_PREFERENCES` is the Preferences tertiary (`/dashboard/profile/account`).
 
 ### Pools tertiary (#768)
 
@@ -167,9 +169,10 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Picks Lab** | Picks-cluster tertiary for Prediction Lab (`NAV_LABEL_PICKS_LAB`); path `/dashboard/picks/lab`. |
 | **Scorecard** | Picks-cluster tertiary (`NAV_LABEL_SCORECARD`); path `/dashboard/picks/scorecard`. Global self card + post-lock metrics (#767). |
 | **Pools** | Tab + context + desktop H1 for `/dashboard/pools`, `/dashboard/pools/create`, and `/dashboard/pools/join` (`NAV_LABEL_POOLS`) — same word in nav and shell. Tertiary labels: **My Pools** / **Create Pool** / **Join Pool**. |
-| **Profile** | Tab + context for `/dashboard/profile` (`NAV_LABEL_PROFILE`); desktop in-page subheading matches. **Account-as-primary** is an open question (#764 / #770) — primary label stays Profile until that child. |
-| **Messages** | Profile-cluster inbox + prefs (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. |
-| **Account** | Profile-cluster account surface (`NAV_LABEL_ACCOUNT`); path `/dashboard/profile/account`. |
+| **Account** | Primary tab + identity context for the `/dashboard/profile/*` cluster (`NAV_LABEL_ACCOUNT`). Path prefix unchanged. |
+| **Profile** | Identity tertiary only (`NAV_LABEL_PROFILE`); handle / favorite song / avatar / badges. |
+| **Messages** | Account-cluster inbox (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. Prefs live on Preferences. |
+| **Preferences** | Account-cluster settings (`NAV_LABEL_PREFERENCES`); path `/dashboard/profile/account`. |
 | **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
 | **Standings** | Tab, context bar for `/dashboard/standings` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Pools tray live in sticky in-page chrome (not the layout H2) so banners and the leaderboard scroll underneath. View is URL-synced via `?view=show\|tour\|pools`. Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker and shows the shared tour scope picker (`?tour=`). |
 | **Stats** | Primary tab + context + desktop H1 for the Stats cluster (`NAV_LABEL_STATS`) — `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band`. Tertiary chips: **Personal** / **Global** / **Band**. |
@@ -202,9 +205,10 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | Personal | Stats cluster tertiary | `NAV_LABEL_PERSONAL_STATS` |
 | Global | `/dashboard/stats/global` | `NAV_LABEL_GLOBAL_STATS` |
 | Band | `/dashboard/stats/band` | `NAV_LABEL_BAND_STATS` |
-| Profile | `/dashboard/profile` | `NAV_LABEL_PROFILE` |
+| Account | `/dashboard/profile` (primary) | `NAV_LABEL_ACCOUNT` |
+| Profile | `/dashboard/profile` (identity tertiary) | `NAV_LABEL_PROFILE` |
 | Messages | `/dashboard/profile/notifications` | `NAV_LABEL_MESSAGES` |
-| Account | `/dashboard/profile/account` | `NAV_LABEL_ACCOUNT` |
+| Preferences | `/dashboard/profile/account` | `NAV_LABEL_PREFERENCES` |
 | War Room | `/dashboard/admin` | `getDashboardPageMeta` (admin branch) |
 | Admin (tab only) | `/dashboard/admin` | `NAV_LABEL_ADMIN` in `DashboardLayout.jsx` |
 
@@ -245,7 +249,7 @@ flowchart TB
     Po[Pools]
     S[Standings]
     St[Stats]
-    Pr[Profile]
+    Pr[Account]
   end
 
   P --> PicksRoute["/dashboard · Make Picks"]
@@ -262,9 +266,9 @@ flowchart TB
   St --> StatsGlobal["/dashboard/stats/global · Global"]
   St --> StatsBand["/dashboard/stats/band · Band"]
   St --> TourStatsRedirect["/dashboard/tour-stats → Global"]
-  Pr --> ProfileRoute["/dashboard/profile"]
+  Pr --> ProfileRoute["/dashboard/profile\nProfile"]
   Pr --> MessagesRoute["/dashboard/profile/notifications\nMessages"]
-  Pr --> AccountRoute["/dashboard/profile/account\nAccount"]
+  Pr --> AccountRoute["/dashboard/profile/account\nPreferences"]
 
   PicksAlias -.->|same tab active| PicksRoute
   PicksLab -.->|same tab active| PicksRoute

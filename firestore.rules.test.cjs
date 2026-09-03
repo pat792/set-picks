@@ -257,6 +257,85 @@ test("commsInbox: owner may set readAt only (preserves payload)", async () => {
   );
 });
 
+test("commsInbox: owner may set archivedAt", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      archivedAt: Timestamp.now(),
+    })
+  );
+});
+
+test("commsInbox: owner may set readAt and archivedAt together", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      readAt: Timestamp.now(),
+      archivedAt: Timestamp.now(),
+    })
+  );
+});
+
+test("commsInbox: owner may delete own inbox doc", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(deleteDoc(doc(db, "users", "alice", "commsInbox", "msg1")));
+});
+
+test("commsInbox: non-owner cannot delete another user's inbox doc", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(deleteDoc(doc(db, "users", "bob", "commsInbox", "msg1")));
+});
+
+test("commsInbox: owner cannot rewrite payload when archiving", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      payload: { rank: 99 },
+      archivedAt: Timestamp.now(),
+    })
+  );
+});
+
 test("commsInbox: owner cannot rewrite templateId", async () => {
   const ts = Timestamp.fromMillis(1_700_000_000_000);
   await seed(async (adminDb) => {

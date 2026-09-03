@@ -161,9 +161,9 @@ test("skips when email is on suppression list", async () => {
   assert.equal(captured.length, 0);
 });
 
-test("unsubscribeHeaders point at the notifications screen when unsigned", () => {
+test("unsubscribeHeaders point at the Preferences page when unsigned", () => {
   const headers = unsubscribeHeaders("https://www.setlistpickem.com");
-  assert.match(headers["List-Unsubscribe"], /\/dashboard\/profile\/notifications/);
+  assert.match(headers["List-Unsubscribe"], /\/dashboard\/profile\/account/);
 });
 
 test("sends branded shell with hosted wordmark URL (no MIME attachments)", async () => {
@@ -247,7 +247,7 @@ test("sends a branded HTML body alongside the plain-text fallback", async () => 
   assert.match(html, /\/branding\/email-gradient-wordmark\.png/, "references hosted wordmark in header");
   assert.match(html, /Manage preferences/);
   assert.match(html, /Unsubscribe/);
-  assert.match(html, /\/dashboard\/profile\/notifications/, "visible footer link goes to the preferences page");
+  assert.match(html, /\/dashboard\/profile\/account/, "visible footer link goes to the preferences page");
   // #456: the visible body link must be a safe GET (preferences page), never the
   // raw signed one-click suppression URL — that's reserved for the invisible
   // List-Unsubscribe header, which mail clients only ever invoke via POST.
@@ -317,7 +317,7 @@ test("production branded shell never uses data: or cid: URIs", () => {
     siteUrl: "https://www.setlistpickem.com",
     bodyText: "ArmenianMan, the run kicks off tomorrow.",
     ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
     ctaLabel: "Make Your Picks",
     signOff: "See you on tour!",
   });
@@ -343,7 +343,7 @@ test("buildBrandedEmailHtml renders in-app style header when provided", () => {
     siteUrl: "https://www.setlistpickem.com",
     bodyText: "Body para.",
     ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
     header: {
       icon: "📈",
       eyebrow: "Tour standings",
@@ -363,7 +363,7 @@ test("buildBrandedEmailHtml renders gradient wordmark, sign-off, teal CTA, and t
     siteUrl: "https://www.setlistpickem.com",
     bodyText: "ArmenianMan, the run kicks off tomorrow.",
     ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
     ctaLabel: "Make Your Picks",
     signOff: "See you on tour!",
   });
@@ -390,7 +390,7 @@ test("buildBrandedEmailHtml uses blank-line paragraphs (joined prose, not a br-p
     siteUrl: "https://www.setlistpickem.com",
     bodyText: "Night para one.\nStill night.\n\nTour para two.",
     ctaUrl: "https://www.setlistpickem.com/dashboard",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
   });
   const bodyParagraphCount = (html.match(/<p style="margin:0 0 20px 0/g) || []).length;
   assert.equal(bodyParagraphCount, 2, "blank line should split into two body <p> blocks");
@@ -405,7 +405,7 @@ test("buildBrandedEmailHtml strips invite appendix lines from HTML body", () => 
     bodyText:
       'Recap paragraph.\n\nOpen the app: https://www.setlistpickem.com/dashboard/picks\n\nSee you on tour!\n\nWant to invite friends to join the community? Log in and tap "invite friends" on the standings page to create a personal invite link.\nOr forward this email to a friend.\n\nOpen Standings: https://www.setlistpickem.com/dashboard/standings?utm_source=email',
     ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
     signOff: "See you on tour!",
     inviteBlockHtml: "<div>invite card</div>",
   });
@@ -422,7 +422,7 @@ test("buildBrandedEmailHtml escapes body text to avoid HTML injection", () => {
     siteUrl: "https://www.setlistpickem.com",
     bodyText: "Hi <script>alert(1)</script>",
     ctaUrl: "https://www.setlistpickem.com/dashboard",
-    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
   });
   assert.ok(!html.includes("<script>alert(1)</script>"));
   assert.match(html, /&lt;script&gt;/);

@@ -20,6 +20,23 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.67.0] — 2026-09-03
+
+### Added
+- **Account Preferences hub (#770 / #513)** — tertiary **Preferences** at `/dashboard/profile/account` composes sign-in, logout, legal, install/PWA status, and notification prefs (same `notificationPrefs` keys). Cosmetic Push / Email grouping only.
+- **Inbox archive + delete (#513 Phase 2)** — Messages sections **Unopened / Read / Archived**. Owners may set `commsInbox.archivedAt` and hard-delete their own inbox docs. Unread bell count excludes archived.
+
+### Changed
+- **Primary nav (#770)** — last player tab label is **Account** (path prefix stays `/dashboard/profile/*`). Tertiary is **Profile / Messages / Preferences**. Context titles: Account primary, Preferences tertiary.
+- **Messages** — inbox only. Preferences accordion removed. Inbox card keeps the existing expand/collapse header. **Read** and **Archived** start collapsed (count on the row); empty Archived/Read are hidden; history previews 8 newest with Show older. `?openPush=1` and `DashboardInstallEngageBanner` land on Preferences. Legacy `/dashboard/notifications` and `/dashboard/account-security` still preserve query.
+- **Profile identity** — callout + prominent **View public profile** CTA. Quiet **View personal stats** link kept. Install card moves to Preferences.
+- **Delete account** — demoted to a text-link disclosure (existing #388 confirm flow). Contact us stays hidden.
+
+### Removed / Deprecated
+- Preferences accordion on Messages (`NotificationsPrototypeScreen`).
+
+---
+
 ## [1.66.1] — 2026-09-03
 
 ### Changed

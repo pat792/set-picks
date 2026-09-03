@@ -6,12 +6,18 @@
  * @see docs/RELEASE_TRAIN_SPRINT_5_6.md (#418)
  */
 
-/** Profile cluster — identity, messages (inbox/prefs), account. */
+/**
+ * Account cluster (#770) — identity / Messages / Preferences.
+ * Path prefix stays `/dashboard/profile/*` (label-only primary rename; not a new family).
+ */
 export const PROFILE_CLUSTER_PATHS = Object.freeze({
   profile: '/dashboard/profile',
   notifications: '/dashboard/profile/notifications',
   account: '/dashboard/profile/account',
 });
+
+/** Push-enable deep link — lands on Preferences, not Messages (#513 / #770). */
+export const PROFILE_PREFERENCES_OPEN_PUSH_HREF = `${PROFILE_CLUSTER_PATHS.account}?openPush=1`;
 
 /**
  * Picks cluster — Make Picks / Picks Lab / Scorecard (#766).
@@ -68,7 +74,7 @@ export function normalizeDashboardPathname(pathname) {
 }
 
 /**
- * True when pathname is any Profile-cluster surface (including legacy redirects).
+ * True when pathname is any Account-cluster surface (including legacy redirects).
  *
  * @param {string} pathname
  * @returns {boolean}

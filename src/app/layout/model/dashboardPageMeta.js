@@ -13,7 +13,7 @@ import {
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_POOLS,
-  NAV_LABEL_PROFILE,
+  NAV_LABEL_PREFERENCES,
   NAV_LABEL_STANDINGS,
   NAV_LABEL_STATS,
   POOL_DETAILS_LAYOUT_EYEBROW,
@@ -92,9 +92,9 @@ export function getDashboardPageMeta(pathname, search) {
     if (isStandings) return NAV_LABEL_STANDINGS;
     if (isPoolsTertiaryPath(normalized)) return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
-    if (isProfileIdentity) return NAV_LABEL_PROFILE;
+    if (isProfileIdentity) return NAV_LABEL_ACCOUNT;
     if (isProfileMessages) return NAV_LABEL_MESSAGES;
-    if (isProfileAccount) return NAV_LABEL_ACCOUNT;
+    if (isProfileAccount) return NAV_LABEL_PREFERENCES;
     if (isAdmin) return 'War Room';
     if (isPicksCluster) return NAV_LABEL_PICKS;
     return NAV_LABEL_PICKS;

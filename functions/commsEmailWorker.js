@@ -48,7 +48,7 @@ const { buildCommsEmailHeaderHtml } = require("./comms/emailCommsHeader.cjs");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
-const UNSUB_PATH = "/dashboard/profile/notifications";
+const UNSUB_PATH = "/dashboard/profile/account";
 const EMAIL_SHELL_ACCENT_BORDER_PX = 2;
 
 /**

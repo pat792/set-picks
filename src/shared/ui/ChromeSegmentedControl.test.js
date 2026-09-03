@@ -47,7 +47,7 @@ describe('ChromeSegmentedControl (#765 tertiary chrome)', () => {
         MemoryRouter,
         { initialEntries: ['/dashboard/profile'] },
         React.createElement(ChromeSegmentedControl, {
-          ariaLabel: 'Profile sections',
+          ariaLabel: 'Account sections',
           items: [
             { to: '/dashboard/profile', label: 'Profile', end: true },
             {
@@ -55,13 +55,13 @@ describe('ChromeSegmentedControl (#765 tertiary chrome)', () => {
               label: 'Messages',
               end: true,
             },
-            { to: '/dashboard/profile/account', label: 'Account', end: true },
+            { to: '/dashboard/profile/account', label: 'Preferences', end: true },
           ],
         }),
       ),
     );
 
-    expect(html).toContain('aria-label="Profile sections"');
+    expect(html).toContain('aria-label="Account sections"');
     expect(html).toContain('<nav');
     expect(html).not.toContain('role="tablist"');
     expect(count(html, 'flex-1')).toBe(3);
@@ -69,6 +69,6 @@ describe('ChromeSegmentedControl (#765 tertiary chrome)', () => {
     expect(html).toContain('ring-brand-primary/35');
     expect(html).toContain('Profile');
     expect(html).toContain('Messages');
-    expect(html).toContain('Account');
+    expect(html).toContain('Preferences');
   });
 });

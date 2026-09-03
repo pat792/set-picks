@@ -174,6 +174,11 @@ Allow‑categories opt out only on an explicit `false`; `commercial` opts in onl
 on an explicit `true`. The orchestrator checks the trigger's `prefKeys` before
 any send.
 
+**UI (v1.67.0 / #770 / #513):** toggles live on **Preferences**
+(`/dashboard/profile/account`), not Messages. Same keys — cosmetic Push / Email
+grouping only. Per-channel keys (`notificationPrefs.push.lifecycle`, etc.) and
+`commsDelivery.js` changes are **Phase 3 / out of scope**.
+
 ---
 
 ## 6. Measurement

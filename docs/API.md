@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.65.1  
+**Version:** 1.67.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -60,8 +60,11 @@ All collections live in the default `(default)` Firestore database for project `
 | `templateId` | string | Registry key (e.g. `"account-welcome"`) |
 | `triggerId` | string | Catalog trigger ID |
 | `readAt` | Timestamp? | Null until user opens message |
+| `archivedAt` | Timestamp? | **v1.67.0+ (#513 / #770)** Set when the owner archives the message. Unread bell count excludes archived. |
 | `createdAt` | Timestamp | |
 | `payload` | map | Template-specific variables |
+
+**Client write surface (v1.67.0 / #513):** owners may update `readAt` and/or `archivedAt` only (payload / `templateId` / `createdAt` stay server-owned). Owners may **hard-delete** their own inbox docs. Clients cannot create inbox docs — Admin SDK / Cloud Functions only.
 
 ### 1.5 `pools/{poolId}`
 
@@ -358,11 +361,11 @@ Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` 
 - **GET** with a valid signature (the visible footer "Unsubscribe"/"Manage preferences" link, or any link-scanner/antivirus gateway prefetching it) never suppresses by itself — it renders an HTML confirmation page with a form that must be explicitly submitted (a real POST) to complete the unsubscribe.
 - Any other method, or an invalid/missing signature, returns `400`/`405` without touching `email_suppression`.
 
-The branded HTML email body's visible footer link points at the `/dashboard/profile/notifications` Messages settings page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header. Legacy `/dashboard/notifications` redirects there in the SPA.
+The branded HTML email body's visible footer link points at the `/dashboard/profile/account` Preferences page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header. Legacy `/dashboard/notifications` still redirects to Messages (query preserved); `?openPush=1` then hops to Preferences. `/dashboard/account-security` redirects to Preferences (query preserved).
 
 ### 2.6 Comms email subscription callables (v1.10.0, #455)
 
-Authenticated callables backing the Notifications screen email section. Clients cannot read `email_suppression` directly.
+Authenticated callables backing the Preferences email section (`/dashboard/profile/account`). Clients cannot read `email_suppression` directly.
 
 | Export | Auth | Description |
 |--------|------|-------------|
@@ -397,6 +400,8 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/dashboard/*` | Auth | Full game dashboard |
 
 Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
+
+**Account primary (**v1.67.0 / #770**):** last player-tab label is **Account** (was Profile). Path prefix stays **`/dashboard/profile/*`** (no new `/dashboard/account` family). Tertiary: **Profile** (`/dashboard/profile`) · **Messages** (`/dashboard/profile/notifications`, inbox only) · **Preferences** (`/dashboard/profile/account` — security, logout, legal, install/PWA, notification prefs). `?openPush=1` and the dashboard install push nudge land on Preferences. Avatar shortcut → Preferences; bell → Messages. **#513 Phase 2:** inbox sections Unopened / Read / Archived; owner `archivedAt` + hard delete. Phase 3 per-channel pref keys are deferred (same `notificationPrefs` keys; cosmetic Push / Email grouping only).
 
 **Stats primary (**v1.66.0 / #769**):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal Stats — career self averages / heatmap), **`/dashboard/stats/global`** (private tour explorer + self overlay from **v1.30.0 / #555**), **`/dashboard/stats/band`** (coming-soon shell; Phish song stats stay on Global). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/global` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Personal hides the global date picker. Global / Band keep the #555 tour scope picker. Global leaderboards (points / picking averages) are deferred. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
 

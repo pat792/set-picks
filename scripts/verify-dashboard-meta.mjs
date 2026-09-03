@@ -14,7 +14,7 @@ import {
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_POOLS,
-  NAV_LABEL_PROFILE,
+  NAV_LABEL_PREFERENCES,
   NAV_LABEL_STANDINGS,
   NAV_LABEL_STATS,
   POOL_DETAILS_LAYOUT_EYEBROW,
@@ -203,7 +203,7 @@ const CASES = [
   {
     path: '/dashboard/profile',
     expect: {
-      contextTitle: NAV_LABEL_PROFILE,
+      contextTitle: NAV_LABEL_ACCOUNT,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
@@ -221,7 +221,7 @@ const CASES = [
   {
     path: '/dashboard/profile/account',
     expect: {
-      contextTitle: NAV_LABEL_ACCOUNT,
+      contextTitle: NAV_LABEL_PREFERENCES,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
@@ -231,7 +231,7 @@ const CASES = [
   {
     path: '/dashboard/account-security',
     expect: {
-      contextTitle: NAV_LABEL_ACCOUNT,
+      contextTitle: NAV_LABEL_PREFERENCES,
       showDatePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
