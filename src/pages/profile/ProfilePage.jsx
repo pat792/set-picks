@@ -7,9 +7,10 @@ import { InstallAppCard } from '../../features/install';
 import {
   BadgeShelf,
   ProfileEditForm,
-  ProfileSelfStatsPanel,
   useUserProfile,
 } from '../../features/profile';
+import { STATS_CLUSTER_PATHS } from '../../shared/config/dashboardRoutes';
+import { VIEW_PERSONAL_STATS_LINK } from '../../shared/config/dashboardVocabulary';
 import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
@@ -57,6 +58,9 @@ export default function ProfilePage({ user: userProp }) {
             Preview public view
           </DashboardRowPill>
         ) : null}
+        <DashboardRowPill as={Link} to={STATS_CLUSTER_PATHS.personal} tone="muted">
+          {VIEW_PERSONAL_STATS_LINK}
+        </DashboardRowPill>
       </DashboardActionRow>
 
       <div className="mb-6 text-left">
@@ -71,8 +75,6 @@ export default function ProfilePage({ user: userProp }) {
           </p>
         )}
       </div>
-
-      <ProfileSelfStatsPanel uid={user?.uid} />
 
       {!isLoading ? (
         <BadgeShelf

@@ -15,6 +15,7 @@ import {
   isPicksClusterPath,
   isPoolsTertiaryPath,
   isProfileClusterPath,
+  isStatsClusterPath,
 } from '../config/dashboardRoutes';
 import { POOL_INVITE_STORAGE_KEY } from '../config/poolInvite';
 import { getLocalStorageItem, setLocalStorageItem } from './local-storage';
@@ -56,6 +57,7 @@ export function isRestorableDashboardPath(pathname, search = '', opts = {}) {
 
   if (isPicksClusterPath(path)) return true;
   if (isPoolsTertiaryPath(path)) return true;
+  if (isStatsClusterPath(path)) return true;
   if (path === '/dashboard/standings') return true;
   if (path === '/dashboard/scoring') return true;
   if (path === '/dashboard/admin') return isAdminUser;

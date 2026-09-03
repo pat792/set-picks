@@ -20,6 +20,20 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.66.0] — 2026-09-03
+
+### Added
+- **Stats primary (#769)** — fifth player tab (`BarChart3`) with nested **Personal Stats** (`/dashboard/stats` and `/dashboard/stats/personal`), **Global Stats** (`/dashboard/stats/global`), and **Band Stats** (`/dashboard/stats/band`). `ChromeSegmentedControl` tray at the cluster call site. Bottom nav is 5 columns for players, 6 when Admin is present.
+
+### Changed
+- **Standings tertiary (#769)** — chrome is exactly **Show / Tour / Pools**. Feature-discovery marker `tour-stats` moves to the Stats **Global** segment. Personal stats (season averages + heatmap) move off Profile onto Personal Stats; Profile keeps a quiet **View personal stats** link.
+- **`/dashboard/tour-stats` (#769)** — redirects to `/dashboard/stats/global` and preserves `?tour=`. Stats primary stays active on the hop. Public marketing `/tour-stats` is unchanged.
+
+### Removed
+- Standings **Stats** segment from `StandingsViewToggle` / `useStandingsView` / mobile Standings chrome (legacy path kept as a redirect).
+
+---
+
 ## [1.65.2] — 2026-09-03
 
 ### Changed

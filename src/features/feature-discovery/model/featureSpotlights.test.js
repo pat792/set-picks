@@ -52,6 +52,8 @@ describe('featureSpotlights', () => {
 
   it('isSpotlightInWindow is inclusive on since/until', () => {
     const spot = getFeatureSpotlight('tour-stats');
+    expect(spot.path).toBe('/dashboard/stats/global');
+    expect(spot.surfaces).toEqual(['stats-global-tab']);
     expect(isSpotlightInWindow(spot, '2026-06-01')).toBe(true);
     expect(isSpotlightInWindow(spot, '2026-08-31')).toBe(true);
     expect(isSpotlightInWindow(spot, '2026-05-31')).toBe(false);

@@ -2,22 +2,29 @@
 
 Single reference for **support**, **product**, and **engineering** when adding routes or writing user-facing copy.
 
-## Primary navigation (four-tab core)
+## Primary navigation (five-tab core)
 
 | Tab (label) | Path | Purpose |
 |-------------|------|---------|
 | **Picks** | `/dashboard` | **Picks cluster** (#766): Make Picks / Picks Lab / Scorecard. Primary tab stays active on all three. Global date picker stays on. |
 | **Pools** | `/dashboard/pools` | Pools **cluster**: My Pools, Create Pool, Join Pool (sub-nav). |
-| **Standings** | `/dashboard/standings` | **Show standings** for the selected show (everyone or one pool). |
+| **Standings** | `/dashboard/standings` | **Show standings** for the selected show (everyone or one pool). Tertiary: Show / Tour / Pools. |
+| **Stats** | `/dashboard/stats` | **Stats cluster** (#769): Personal / Global / Band. Primary tab stays active on all three and on the `/dashboard/tour-stats` redirect hop. |
 | **Profile** | `/dashboard/profile` | Profile **cluster**: identity, **Messages**, **Account** (sub-nav). |
 
-**Admin** (fifth item, single admin user): `/dashboard/admin` — War Room.
+**Admin** (sixth item, single admin user): `/dashboard/admin` — War Room. Bottom nav is **5 columns** for players, **6** when Admin is present.
 
-### Standings child: Tour stats (#555)
+### Stats cluster (#769)
 
-| Route | Path | Notes |
-|-------|------|-------|
-| **Stats** (Standings peer tab) | `/dashboard/tour-stats` | Private explorer: unique songs, frequency, bustouts, self pick overlay. Discovered via Standings chrome **Show \| Tour \| Stats \| Pools** (not a 5th primary nav tab). Standings tab stays active. Shares the chrome **tour scope** picker with Tour view (`?tour=`). No global date picker. |
+Nested routes (not `?view=`). Icon: `BarChart3`. Personal is career-scoped (no global date picker). Global / Band keep the #555 tour scope picker (`?tour=`).
+
+| Sub-nav | Path | Responsibility |
+|---------|------|----------------|
+| **Personal Stats** | `/dashboard/stats` and `/dashboard/stats/personal` | Profile self stats (`ProfileSelfStatsPanel` / season averages / heatmap). Profile may keep a quiet **View personal stats** link. |
+| **Global Stats** | `/dashboard/stats/global` | Private tour explorer from #555 (`TourStatsView` / `useTourStatsScreen`) including self overlay. Leaderboards (points / picking averages) are **deferred**. |
+| **Band Stats** | `/dashboard/stats/band` | Coming-soon shell. Phish song stats by tour live under Global until multi-band (#300). Links to Global — do not duplicate the explorer. |
+
+**Legacy redirect:** `/dashboard/tour-stats` → `/dashboard/stats/global` (preserve `?tour=`). Stats primary stays active on the hop.
 
 **Public marketing counterpart (#665):** `/tour-stats` and `/tour-stats/:tourSlug` — aggregate song datasets only (most played, bustouts, gaps); default tour is the **current** tour (newest `lastShowDate` on `_index`). Not a dashboard route; `robots.txt` still Disallows `/dashboard/*`. Do not unlock private Stats or self-overlay for anonymous users.
 
@@ -25,7 +32,7 @@ Single reference for **support**, **product**, and **engineering** when adding r
 
 Soft **New** labels (not coachmarks) may appear temporarily on:
 
-- Standings chrome **Stats** segment → clears after visiting `/dashboard/tour-stats` (compact corner **dot**, not a “New” text label — keeps the Stats word readable in the four-tab chrome)
+- Stats chrome **Global** segment → clears after visiting `/dashboard/stats/global` (compact corner **dot**, not a “New” text label — keeps the Global Stats word readable). Same `tour-stats` feature id as the retired Standings Stats pill.
 - Official setlist card on Standings → clears when the card is toggled open/closed
 - Profile **Avatar** / **Badges** headings → clears after picking an avatar
 
@@ -66,14 +73,15 @@ Avatar in the mobile brand bar links to **Account**. Bell links to **Messages**.
 
 - **Pools** tab stays active on `/dashboard/pools`, `/dashboard/pools/create`, `/dashboard/pools/join`, **and** `/dashboard/pool/:poolId` (**pool details**).
 - **Profile** tab stays active on the entire Profile cluster (including legacy redirect paths).
-- **Standings** tab stays active on `/dashboard/standings` **and** `/dashboard/tour-stats`.
+- **Standings** tab stays active on `/dashboard/standings` only (Show / Tour / Pools).
+- **Stats** tab stays active on `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band`, **and** `/dashboard/tour-stats` (redirect hop).
 - **Picks** tab stays active on `/dashboard`, `/dashboard/picks`, `/dashboard/picks/lab`, and `/dashboard/picks/scorecard`.
 
 ## Tertiary chrome contract (#765)
 
 Single visual/interaction pattern for in-tab section navigation. **Canonical primitive:** `ChromeSegmentedControl` (`src/shared/ui/ChromeSegmentedControl.jsx`) — NavLink mode (route clusters) or `tablist` / button mode (`value` / `onChange` view switches). **Do not fork tray CSS** in features.
 
-This documents the shared tray contract. Picks (#766) and Pools (#768) use it; Stats / Account still ship in later children.
+This documents the shared tray contract. Picks (#766), Pools (#768), and Stats (#769) use it. Account-as-primary is still a later child.
 
 ### Visual
 
@@ -119,11 +127,12 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 | Primary (stays active) | Tertiary segments | Notes |
 |------------------------|-------------------|--------|
 | **Pools** | My Pools · Create Pool · Join Pool | Nested routes; pool details stays a child, not a segment |
-| **Picks** | Make Picks · Picks Lab · Scorecard | Nested routes (#766). Lab segment always visible; Scorecard is a shell. |
+| **Picks** | Make Picks · Picks Lab · Scorecard | Nested routes (#766). Lab segment always visible; Scorecard is the #767 surface. |
 | **Profile** | Profile · Messages · Account | Nested routes under `/dashboard/profile/*` |
-| **Standings** | Show · Tour · Stats · Pools | Stats remains until #769 moves it to a Stats primary. |
+| **Standings** | Show · Tour · Pools | Stats moved to the Stats primary (#769). |
+| **Stats** | Personal Stats · Global Stats · Band Stats | Nested routes (#769). Band is a coming-soon shell. |
 
-Vocabulary stub: `NAV_LABEL_STATS` exists for the Standings segment / future primary. **Account-as-primary** (relabel Profile vs rename `/dashboard/profile`) is an open question on #764 / #770 — do not change the user-visible Profile primary label until that child.
+`NAV_LABEL_STATS` is the **Stats** primary. **Account-as-primary** (relabel Profile vs rename `/dashboard/profile`) is an open question on #764 / #770 — do not change the user-visible Profile primary label until that child.
 
 ### Pools tertiary (#768)
 
@@ -162,8 +171,11 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Messages** | Profile-cluster inbox + prefs (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. |
 | **Account** | Profile-cluster account surface (`NAV_LABEL_ACCOUNT`); path `/dashboard/profile/account`. |
 | **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
-| **Standings** | Tab, context bar for `/dashboard/standings` and `/dashboard/tour-stats` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Stats/Pools tray live in sticky in-page chrome (not the layout H2) so banners and the leaderboard scroll underneath. View is URL-synced via `?view=show\|tour\|pools` on standings; **Stats** navigates to `/dashboard/tour-stats`. Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` and `/dashboard/tour-stats` hide the global date picker and show the shared tour scope picker (`?tour=`). |
-| **Stats** | Standings chrome segment (`NAV_LABEL_STATS`) → `/dashboard/tour-stats`. Stub for a future Stats primary (#769); not a 5th tab in this train. |
+| **Standings** | Tab, context bar for `/dashboard/standings` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Pools tray live in sticky in-page chrome (not the layout H2) so banners and the leaderboard scroll underneath. View is URL-synced via `?view=show\|tour\|pools`. Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker and shows the shared tour scope picker (`?tour=`). |
+| **Stats** | Primary tab + context + desktop H1 for the Stats cluster (`NAV_LABEL_STATS`) — `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band`. Tertiary labels: **Personal Stats** / **Global Stats** / **Band Stats**. |
+| **Personal Stats** | Stats-cluster tertiary for career self stats (`NAV_LABEL_PERSONAL_STATS`). |
+| **Global Stats** | Stats-cluster tertiary for the private tour explorer (`NAV_LABEL_GLOBAL_STATS`); path `/dashboard/stats/global`. |
+| **Band Stats** | Stats-cluster tertiary shell (`NAV_LABEL_BAND_STATS`); path `/dashboard/stats/band`. |
 | **Show standings** | Ordered points for **one show date** only (Standings screen); use this phrase in glossary, help, and cross-links where the “one night” nuance matters. |
 | **All-time standings** | Cumulative points / wins / shows across **every** finalized show (all tours). Canonical name on pool details (`POOL_ALL_TIME_STANDINGS_HEADING`) and optional global companion on Standings. Replaces legacy **Season totals**. See #148. |
 | **Tour standings** | Cumulative points / wins / shows scoped to the **current tour** via `show_calendar.showDatesByTour` (`TOUR_STANDINGS_HEADING`). Global on Standings (#219), pool-scoped on pool details (#148). |
@@ -186,10 +198,13 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | Pool Details (context) | `/dashboard/pool/:id` | `NAV_LABEL_POOL_DETAILS` |
 | Pool details (desktop eyebrow) | Pool hub | `POOL_DETAILS_LAYOUT_EYEBROW` |
 | Standings | `/dashboard/standings` | `NAV_LABEL_STANDINGS` |
+| Stats | `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band` | `NAV_LABEL_STATS` |
+| Personal Stats | Stats cluster tertiary | `NAV_LABEL_PERSONAL_STATS` |
+| Global Stats | `/dashboard/stats/global` | `NAV_LABEL_GLOBAL_STATS` |
+| Band Stats | `/dashboard/stats/band` | `NAV_LABEL_BAND_STATS` |
 | Profile | `/dashboard/profile` | `NAV_LABEL_PROFILE` |
 | Messages | `/dashboard/profile/notifications` | `NAV_LABEL_MESSAGES` |
 | Account | `/dashboard/profile/account` | `NAV_LABEL_ACCOUNT` |
-| Stats (Standings segment) | `/dashboard/tour-stats` | `NAV_LABEL_STATS` (stub; not a primary tab) |
 | War Room | `/dashboard/admin` | `getDashboardPageMeta` (admin branch) |
 | Admin (tab only) | `/dashboard/admin` | `NAV_LABEL_ADMIN` in `DashboardLayout.jsx` |
 
@@ -229,6 +244,7 @@ flowchart TB
     P[Picks]
     Po[Pools]
     S[Standings]
+    St[Stats]
     Pr[Profile]
   end
 
@@ -241,7 +257,11 @@ flowchart TB
   Po --> PoolsJoin["/dashboard/pools/join\nJoin Pool"]
   Po --> PoolDetail["/dashboard/pool/:id\nPool details"]
   S --> StandingsRoute["/dashboard/standings"]
-  S --> TourStatsRoute["/dashboard/tour-stats\nStats"]
+  St --> StatsPersonal["/dashboard/stats · Personal"]
+  St --> StatsPersonalAlias["/dashboard/stats/personal · Personal"]
+  St --> StatsGlobal["/dashboard/stats/global · Global"]
+  St --> StatsBand["/dashboard/stats/band · Band"]
+  St --> TourStatsRedirect["/dashboard/tour-stats → Global"]
   Pr --> ProfileRoute["/dashboard/profile"]
   Pr --> MessagesRoute["/dashboard/profile/notifications\nMessages"]
   Pr --> AccountRoute["/dashboard/profile/account\nAccount"]
@@ -252,7 +272,10 @@ flowchart TB
   PoolDetail -.->|breadcrumb| PoolsList
   MessagesRoute -.->|same tab active| ProfileRoute
   AccountRoute -.->|same tab active| ProfileRoute
-  TourStatsRoute -.->|same tab active| StandingsRoute
+  StatsPersonalAlias -.->|same tab active| StatsPersonal
+  StatsGlobal -.->|same tab active| StatsPersonal
+  StatsBand -.->|same tab active| StatsPersonal
+  TourStatsRedirect -.->|same tab active| StatsPersonal
 
   subgraph modal [Global modal]
     SR[Scoring rules modal]
@@ -266,11 +289,12 @@ flowchart TB
 ## Related code
 
 - `getDashboardPageMeta`, `normalizeDashboardPathname` — `src/app/layout/model/dashboardPageMeta.js`
-- `PROFILE_CLUSTER_PATHS`, `isProfileClusterPath`, `PICKS_CLUSTER_PATHS`, `isPicksClusterPath`, `POOLS_CLUSTER_PATHS`, `isPoolsClusterPath` — `src/shared/config/dashboardRoutes.js`
+- `PROFILE_CLUSTER_PATHS`, `isProfileClusterPath`, `PICKS_CLUSTER_PATHS`, `isPicksClusterPath`, `POOLS_CLUSTER_PATHS`, `isPoolsClusterPath`, `STATS_CLUSTER_PATHS`, `isStatsClusterPath` — `src/shared/config/dashboardRoutes.js`
 - Tertiary tray — `src/shared/ui/ChromeSegmentedControl.jsx`
 - Profile cluster layout — `src/app/layout/ui/ProfileClusterLayout.jsx`
 - Picks cluster layout — `src/app/layout/ui/PicksClusterLayout.jsx`
 - Pools cluster layout — `src/app/layout/ui/PoolsClusterLayout.jsx`
+- Stats cluster layout — `src/app/layout/ui/StatsClusterLayout.jsx`
 - Nav items + active rules — `src/app/layout/DashboardLayout.jsx`
 - Scoring modal provider — `src/features/scoring/ui/ScoringRulesModalProvider.jsx`
 

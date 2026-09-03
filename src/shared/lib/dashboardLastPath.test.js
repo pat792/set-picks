@@ -69,6 +69,20 @@ describe('getDashboardEntryHref', () => {
     expect(getDashboardEntryHref()).toBe(POOLS_CLUSTER_PATHS.join);
   });
 
+  it('restores Stats cluster destinations (#769)', () => {
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/stats/global', search: '?tour=Summer+2026' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/stats/global?tour=Summer+2026');
+
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/stats/personal', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/stats/personal');
+  });
+
   it('restores Pools tertiary destinations (#768)', () => {
     localStorage.setItem(
       DASHBOARD_LAST_PATH_STORAGE_KEY,

@@ -15,6 +15,7 @@ import {
   NAV_LABEL_POOLS,
   NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
+  NAV_LABEL_STATS,
   POOL_DETAILS_LAYOUT_EYEBROW,
 } from '../../../shared/config/dashboardVocabulary.js';
 import {
@@ -23,6 +24,8 @@ import {
   isPicksClusterPath,
   isPoolsTertiaryPath,
   isProfileClusterPath,
+  isStatsClusterPath,
+  isStatsTourScopedPath,
   normalizeDashboardPathname,
 } from '../../../shared/config/dashboardRoutes.js';
 
@@ -49,8 +52,8 @@ function readViewQuery(search) {
  * @param {string} pathname
  * @param {string | URLSearchParams | null | undefined} [search]  `location.search`.
  *   Used by `/dashboard/standings` to hide the global date picker when
- *   `?view=tour` is active (#255), and by `/dashboard/tour-stats` (#555) —
- *   both are tour-scoped and share the chrome tour picker.
+ *   `?view=tour` is active (#255), and by Stats Global / Band (#769) —
+ *   tour-scoped surfaces share the chrome tour picker.
  */
 export function getDashboardPageMeta(pathname, search) {
   const normalized = normalizeDashboardPathname(pathname);
@@ -75,16 +78,18 @@ export function getDashboardPageMeta(pathname, search) {
     normalized === PROFILE_CLUSTER_LEGACY_PATHS.accountSecurity;
   const isProfileCluster = isProfileClusterPath(normalized);
   const isPicksCluster = isPicksClusterPath(normalized);
+  const isStatsCluster = isStatsClusterPath(normalized);
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
   const isStandings = normalized === '/dashboard/standings';
-  const isTourStats = normalized === '/dashboard/tour-stats';
-  // Tour standings + Tour stats share the chrome tour scope picker (#295 / #555).
+  // Tour standings + Stats Global/Band share the chrome tour scope picker (#295 / #555 / #769).
   const isStandingsTourView =
-    (isStandings && readViewQuery(search) === 'tour') || isTourStats;
+    (isStandings && readViewQuery(search) === 'tour') ||
+    isStatsTourScopedPath(normalized);
 
   const contextTitle = (() => {
-    if (isStandings || isTourStats) return NAV_LABEL_STANDINGS;
+    if (isStatsCluster) return NAV_LABEL_STATS;
+    if (isStandings) return NAV_LABEL_STANDINGS;
     if (isPoolsTertiaryPath(normalized)) return NAV_LABEL_POOLS;
     if (isPoolHub) return NAV_LABEL_POOL_DETAILS;
     if (isProfileIdentity) return NAV_LABEL_PROFILE;
@@ -96,12 +101,12 @@ export function getDashboardPageMeta(pathname, search) {
   })();
 
   const showDatePicker =
-    !isProfileCluster && !isPoolHub && !isStandingsTourView;
+    !isProfileCluster && !isPoolHub && !isStandingsTourView && !isStatsCluster;
 
-  // Profile cluster + pool details own in-page headings; Standings (+ Stats peer)
-  // owns sticky title + Show/Tour/Stats/Pools chrome so layout does not duplicate H1.
+  // Profile cluster + pool details own in-page headings; Standings owns sticky
+  // title + Show/Tour/Pools chrome so layout does not duplicate H1.
   const layoutDesktopHeading =
-    !isProfileCluster && !isPoolHub && !isStandings && !isTourStats
+    !isProfileCluster && !isPoolHub && !isStandings
       ? contextTitle
       : null;
 

@@ -35,6 +35,22 @@ export const POOLS_CLUSTER_PATHS = Object.freeze({
   join: '/dashboard/pools/join',
 });
 
+/**
+ * Stats primary cluster — Personal / Global / Band (#769).
+ * `/dashboard/stats` and `/dashboard/stats/personal` are the same Personal surface.
+ */
+export const STATS_CLUSTER_PATHS = Object.freeze({
+  root: '/dashboard/stats',
+  personal: '/dashboard/stats/personal',
+  global: '/dashboard/stats/global',
+  band: '/dashboard/stats/band',
+});
+
+/** Pre-#769 Standings Stats peer; SPA redirect preserves `?tour=`. */
+export const STATS_CLUSTER_LEGACY_PATHS = Object.freeze({
+  tourStats: '/dashboard/tour-stats',
+});
+
 /** Pre-#418 paths; SPA redirects preserve bookmarks and email deep links. */
 export const PROFILE_CLUSTER_LEGACY_PATHS = Object.freeze({
   notifications: '/dashboard/notifications',
@@ -119,4 +135,47 @@ export function isPoolsClusterPath(pathname) {
   const path = normalizeDashboardPathname(pathname);
   if (isPoolsTertiaryPath(path)) return true;
   return path.startsWith('/dashboard/pool/');
+}
+
+/**
+ * True when pathname is Personal Stats (`/dashboard/stats` or `/personal`).
+ *
+ * @param {string} pathname
+ * @returns {boolean}
+ */
+export function isPersonalStatsPath(pathname) {
+  const path = normalizeDashboardPathname(pathname);
+  return path === STATS_CLUSTER_PATHS.root || path === STATS_CLUSTER_PATHS.personal;
+}
+
+/**
+ * True when pathname is any Stats-cluster surface, including the
+ * `/dashboard/tour-stats` redirect hop (Stats primary stays active).
+ *
+ * @param {string} pathname
+ * @returns {boolean}
+ */
+export function isStatsClusterPath(pathname) {
+  const path = normalizeDashboardPathname(pathname);
+  if (path === STATS_CLUSTER_PATHS.root) return true;
+  if (path === STATS_CLUSTER_PATHS.personal) return true;
+  if (path === STATS_CLUSTER_PATHS.global) return true;
+  if (path === STATS_CLUSTER_PATHS.band) return true;
+  if (path === STATS_CLUSTER_LEGACY_PATHS.tourStats) return true;
+  return path.startsWith(`${STATS_CLUSTER_PATHS.root}/`);
+}
+
+/**
+ * True when the chrome tour scope picker should show (Global / Band / legacy hop).
+ * Personal is career-scoped and does not use a tour picker.
+ *
+ * @param {string} pathname
+ * @returns {boolean}
+ */
+export function isStatsTourScopedPath(pathname) {
+  const path = normalizeDashboardPathname(pathname);
+  if (path === STATS_CLUSTER_PATHS.global) return true;
+  if (path === STATS_CLUSTER_PATHS.band) return true;
+  if (path === STATS_CLUSTER_LEGACY_PATHS.tourStats) return true;
+  return false;
 }

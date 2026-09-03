@@ -156,7 +156,7 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 
 Public, aggregate-only tour song stats for SEO marketing routes. Written by Cloud Functions Admin SDK (`refreshPublicTourStats` / nightly schedule). **Never** contains full per-show `officialSetlist` arrays. Clients may read; client writes denied.
 
-**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard `/dashboard/tour-stats` still reads this collection (REST, `skipCdn`) for Last-date join.
+**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard **`/dashboard/stats/global`** (legacy `/dashboard/tour-stats` redirect, **v1.66.0 / #769**) still reads this collection (REST, `skipCdn`) for Last-date join.
 
 Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` → `2026-sphere`). Special doc `_index` lists tours for the public filter.
 
@@ -396,7 +396,9 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/setup` | Auth | Profile setup (new users) |
 | `/dashboard/*` | Auth | Full game dashboard |
 
-Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
+Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
+
+**Stats primary (**v1.66.0 / #769**):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal Stats — career self averages / heatmap), **`/dashboard/stats/global`** (private tour explorer + self overlay from **v1.30.0 / #555**), **`/dashboard/stats/band`** (coming-soon shell; Phish song stats stay on Global). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/global` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Personal hides the global date picker. Global / Band keep the #555 tour scope picker. Global leaderboards (points / picking averages) are deferred. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
 
 **Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
 
