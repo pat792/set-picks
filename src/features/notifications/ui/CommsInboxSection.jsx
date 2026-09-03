@@ -184,6 +184,7 @@ export default function CommsInboxSection() {
     useCommsInbox();
   const [openId, setOpenId] = useState(/** @type {string | null} */ (null));
   const [confirmDeleteId, setConfirmDeleteId] = useState(/** @type {string | null} */ (null));
+  const [isSectionOpen, setIsSectionOpen] = useState(true);
 
   const { unopened, read, archived } = useMemo(
     () => partitionCommsInbox(messages),
@@ -272,7 +273,17 @@ export default function CommsInboxSection() {
       className="mb-10 rounded-3xl border border-border-subtle bg-surface-panel/60 p-5 shadow-inset-glass"
       aria-labelledby="comms-inbox-heading"
     >
-      <div className="flex items-start gap-3">
+      <button
+        type="button"
+        onClick={() => {
+          setIsSectionOpen((prev) => !prev);
+          setOpenId(null);
+          setConfirmDeleteId(null);
+        }}
+        aria-expanded={isSectionOpen}
+        aria-controls="comms-inbox-panel"
+        className="flex w-full items-start gap-3 text-left transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+      >
         <span className="min-w-0 flex-1">
           <span
             id="comms-inbox-heading"
@@ -291,71 +302,79 @@ export default function CommsInboxSection() {
             ) : null}
           </span>
         </span>
-      </div>
+        <ChevronDown
+          className={`mt-0.5 h-5 w-5 shrink-0 text-content-secondary transition-transform duration-200 ${
+            isSectionOpen ? 'rotate-180' : ''
+          }`}
+          aria-hidden
+        />
+      </button>
 
-      <div className="mt-6">
-        {!ready ? (
-          <p className="text-sm font-bold text-content-secondary">Loading messages…</p>
-        ) : error ? (
-          <p className="text-sm font-bold text-amber-300">{error}</p>
-        ) : emptyInbox ? (
-          <div className="flex flex-col items-center gap-3 rounded-3xl border border-border-subtle bg-surface-panel px-6 py-10 text-center shadow-inset-glass">
-            <Inbox className="h-10 w-10 text-content-secondary" aria-hidden />
-            <p className="max-w-sm text-sm font-bold leading-relaxed text-content-secondary">
-              No messages yet. New scoring updates, nightly recaps, and important announcements
-              will appear here as soon as they are available.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            <InboxSectionList
-              heading="Unopened"
-              headingId="comms-inbox-unopened"
-              emptyCopy="No unopened messages."
-              messages={unopened}
-              openId={openId}
-              confirmDeleteId={confirmDeleteId}
-              onToggle={handleToggle}
-              onArchive={handleArchive}
-              onDeleteRequest={setConfirmDeleteId}
-              onDeleteConfirm={handleDeleteConfirm}
-              onDeleteCancel={() => setConfirmDeleteId(null)}
-              onCtaClick={handleCtaClick}
-              showArchive
-            />
-            <InboxSectionList
-              heading="Read"
-              headingId="comms-inbox-read"
-              emptyCopy="No read messages."
-              messages={read}
-              openId={openId}
-              confirmDeleteId={confirmDeleteId}
-              onToggle={handleToggle}
-              onArchive={handleArchive}
-              onDeleteRequest={setConfirmDeleteId}
-              onDeleteConfirm={handleDeleteConfirm}
-              onDeleteCancel={() => setConfirmDeleteId(null)}
-              onCtaClick={handleCtaClick}
-              showArchive
-            />
-            <InboxSectionList
-              heading="Archived"
-              headingId="comms-inbox-archived"
-              emptyCopy="No archived messages."
-              messages={archived}
-              openId={openId}
-              confirmDeleteId={confirmDeleteId}
-              onToggle={handleToggle}
-              onArchive={handleArchive}
-              onDeleteRequest={setConfirmDeleteId}
-              onDeleteConfirm={handleDeleteConfirm}
-              onDeleteCancel={() => setConfirmDeleteId(null)}
-              onCtaClick={handleCtaClick}
-              showArchive={false}
-            />
-          </div>
-        )}
-      </div>
+      {isSectionOpen ? (
+        <div id="comms-inbox-panel" className="mt-6">
+          {!ready ? (
+            <p className="text-sm font-bold text-content-secondary">Loading messages…</p>
+          ) : error ? (
+            <p className="text-sm font-bold text-amber-300">{error}</p>
+          ) : emptyInbox ? (
+            <div className="flex flex-col items-center gap-3 rounded-3xl border border-border-subtle bg-surface-panel px-6 py-10 text-center shadow-inset-glass">
+              <Inbox className="h-10 w-10 text-content-secondary" aria-hidden />
+              <p className="max-w-sm text-sm font-bold leading-relaxed text-content-secondary">
+                No messages yet. New scoring updates, nightly recaps, and important announcements
+                will appear here as soon as they are available.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <InboxSectionList
+                heading="Unopened"
+                headingId="comms-inbox-unopened"
+                emptyCopy="No unopened messages."
+                messages={unopened}
+                openId={openId}
+                confirmDeleteId={confirmDeleteId}
+                onToggle={handleToggle}
+                onArchive={handleArchive}
+                onDeleteRequest={setConfirmDeleteId}
+                onDeleteConfirm={handleDeleteConfirm}
+                onDeleteCancel={() => setConfirmDeleteId(null)}
+                onCtaClick={handleCtaClick}
+                showArchive
+              />
+              <InboxSectionList
+                heading="Read"
+                headingId="comms-inbox-read"
+                emptyCopy="No read messages."
+                messages={read}
+                openId={openId}
+                confirmDeleteId={confirmDeleteId}
+                onToggle={handleToggle}
+                onArchive={handleArchive}
+                onDeleteRequest={setConfirmDeleteId}
+                onDeleteConfirm={handleDeleteConfirm}
+                onDeleteCancel={() => setConfirmDeleteId(null)}
+                onCtaClick={handleCtaClick}
+                showArchive
+              />
+              <InboxSectionList
+                heading="Archived"
+                headingId="comms-inbox-archived"
+                emptyCopy="No archived messages."
+                messages={archived}
+                openId={openId}
+                confirmDeleteId={confirmDeleteId}
+                onToggle={handleToggle}
+                onArchive={handleArchive}
+                onDeleteRequest={setConfirmDeleteId}
+                onDeleteConfirm={handleDeleteConfirm}
+                onDeleteCancel={() => setConfirmDeleteId(null)}
+                onCtaClick={handleCtaClick}
+                showArchive={false}
+              />
+            </div>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }
