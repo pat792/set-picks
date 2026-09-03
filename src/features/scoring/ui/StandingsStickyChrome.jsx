@@ -6,7 +6,7 @@ import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashbo
 import StandingsViewToggle from './StandingsViewToggle';
 
 /**
- * Desktop Standings page chrome: title + Show/Tour/Stats/Pools + Scoring rules.
+ * Desktop Standings page chrome: title + Show/Tour/Stats/Pools tray + Scoring rules.
  * Sticky in the dashboard `main` scrollport under the Tour Date / Tour scope row.
  * Invite lives in-flow as {@link StandingsInvitePromo} (mirrors mobile).
  *
@@ -49,7 +49,7 @@ export default function StandingsStickyChrome({
         <StandingsViewToggle
           view={view}
           onChange={onChange}
-          className="mb-0 w-auto flex-none"
+          className="mb-0 min-w-0 flex-1"
         />
 
         <button

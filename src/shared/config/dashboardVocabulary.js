@@ -23,7 +23,13 @@ export const NAV_LABEL_PICKS = 'Picks';
 /** Pools list tab + context + desktop H1 (`/dashboard/pools`) */
 export const NAV_LABEL_POOLS = 'Pools';
 
-/** Profile tab + cluster identity surface (`/dashboard/profile`) */
+/**
+ * Profile tab + cluster identity surface (`/dashboard/profile`).
+ *
+ * Open question (#764 / #770): whether this **primary** tab relabels to
+ * Account (label-only vs path rename). Do **not** change the user-visible
+ * Profile primary label until that child ships.
+ */
 export const NAV_LABEL_PROFILE = 'Profile';
 
 /** Profile-cluster messages surface (`/dashboard/profile/notifications`) — inbox + prefs */
@@ -31,6 +37,14 @@ export const NAV_LABEL_MESSAGES = 'Messages';
 
 /** Profile-cluster account surface (`/dashboard/profile/account`) */
 export const NAV_LABEL_ACCOUNT = 'Account';
+
+/**
+ * Stats tertiary / upcoming primary label (#764 / #769).
+ *
+ * Stub only: Standings chrome still uses this string as a **fourth** segment
+ * (Show / Tour / Stats / Pools). Do **not** add a Stats primary tab here.
+ */
+export const NAV_LABEL_STATS = 'Stats';
 
 /** Admin tab label (`/dashboard/admin`); context/desktop title stays War Room */
 export const NAV_LABEL_ADMIN = 'Admin';
