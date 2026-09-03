@@ -174,7 +174,7 @@ Add/remove rows as pages ship; keep IDs stable once used in the log.
 
 **Note:** GitHub `schedule` workflows run only from the repo **default branch** (`main`). Merge to `staging` first; cron becomes live after promote to `main`. Use `workflow_dispatch` (`live` or `fixture`) on the workflow file’s branch for earlier dry runs. `fixture` prints a pack and **never** comments on #926.
 
-The Action does **not** merge, deploy, or open PRs. Child E3 autonomy (#934) is out of scope.
+The Action does **not** merge, deploy, or open PRs. Child E3 scored loop: [`docs/SEO_OPTIMIZE_AUTONOMY.md`](./SEO_OPTIMIZE_AUTONOMY.md) (copy-paste Cloud Agent prompt; draft PR to `staging` only when scored `DRAFT_PR`).
 
 ### Secrets (human — never commit)
 
@@ -274,6 +274,7 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 | Prerender (#659 / #959) | `npm run verify:seo-prerender` (`scripts/prerender-seo.mjs` after build; static registry `src/shared/config/seoRoutes.js`; auto-expand gate `scripts/lib/tourStatsSeoAutoExpand.mjs`) |
 | Automation context | `docs/GITHUB_AUTOMATION_CONTEXT.md` → Public landing SEO + SEO GSC weekly pack |
 | GSC/GA4 weekly pack (#932) | `npm run seo:gsc-weekly-snapshot -- --fixture` · `npm run test:seo-gsc-snapshot` |
+| SEO Optimize scored loop (#934) | [`docs/SEO_OPTIMIZE_AUTONOMY.md`](./SEO_OPTIMIZE_AUTONOMY.md) — follow-up comment on #926; no weekly “open PR” Action |
 
 ---
 
@@ -287,9 +288,10 @@ Optional future event: `organic_landing` (landing path + campaign) — only if p
 6. ~~#927 / #928 / #929~~ Children A–C (summer slug, crawler facts, fan H2s)
 7. **#930** Child D — llms + this playbook (docs); GSC reindex + UTM share are **human ops after promote** (see §9)
 8. **#931** Child E0 — query registry [`docs/seo/query-registry.json`](seo/query-registry.json)
-9. **#932** Child E1 — GSC API + GA4 organic weekly Action → packs on [#926](https://github.com/pat792/set-picks/issues/926) (this playbook §4 + `crew/output/seo/`). Human: add `GSC_SERVICE_ACCOUNT_JSON` + GSC property access before the first live pack.
+9. **#932** Child E1 — GSC API + GA4 organic weekly Action → packs on #926 (this playbook §4 + `crew/output/seo/`). Human: add `GSC_SERVICE_ACCOUNT_JSON` + GSC property access before the first live pack.
 10. **#933** Child E2 — allowlisted competitor title/H1 scan + [`content/marketing/933-competitor-title-h1-gap-brief.md`](../content/marketing/933-competitor-title-h1-gap-brief.md)
 11. ~~#959~~ tour-stats SEO auto-expand (v1.63.0) — prerender/sitemap/`llms` from `_index` + gate; GSC Request indexing stays human
+12. **#934** Child E3 — scored tune loop [`docs/SEO_OPTIMIZE_AUTONOMY.md`](./SEO_OPTIMIZE_AUTONOMY.md) (draft-only; no autonomous merge/deploy).
 
 ---
 

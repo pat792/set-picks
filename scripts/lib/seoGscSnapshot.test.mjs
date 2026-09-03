@@ -150,6 +150,8 @@ describe("seoGscSnapshot fixture pack (#932)", () => {
     assert.match(pack, /aggregates only/i);
     assert.match(pack, /No Google\/Bing SERP HTML scraping/);
     assert.match(pack, /No `\/phish-picks` route/);
+    assert.match(pack, /SEO_OPTIMIZE_AUTONOMY/);
+    assert.doesNotMatch(pack, /E3 \(#934\) is out of scope/);
     assert.doesNotMatch(pack, /will merge/i);
     assert.doesNotMatch(pack, /comms:deploy/);
   });

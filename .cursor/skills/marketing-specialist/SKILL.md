@@ -35,4 +35,4 @@ Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc R
 
 1. `docs/LEADERSHIP_CREW.md`
 2. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
-3. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)
+3. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `SEO_OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)

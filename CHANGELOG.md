@@ -13,6 +13,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ### Added
 - **SEO query registry (#931 / epic #926)** — `docs/seo/query-registry.json` seeds B1–B3, C1–C7, S1–S7 (including #931 fan strings). Weekly append-only GSC log procedure is in `docs/seo/README.md`; snapshots stay under gitignored `crew/output/seo/`.
 - **SEO competitor title/H1 scan (#933 / epic #926)** — PR-gated allowlist adds `phishpicks.net` / `phish.jampicks.com` (homepage GET only). `crew/scripts/seo_title_h1_scan.py` extracts title + H1–H3 and diffs `docs/seo/query-registry.json`. Durable brief: `content/marketing/933-competitor-title-h1-gap-brief.md`. Callingit.live / ihoz / Phantasy Tour omitted (ToS or unverifiable). No `/phish-picks`. No version bump (docs + crew scripts).
+- **SEO Optimize autonomy (#934 / epic #926)** — `docs/SEO_OPTIMIZE_AUTONOMY.md` is the draft-only scored tune loop (`stats_impressions` \| `query_coverage` \| `geo_citations` \| `crawl_regressions`). Weekly E1 facts packs stay comment-only; agents may open a **draft** PR to `staging` only when scored `DRAFT_PR`. Docs only after **1.63.0** (#991 / #993); no PATCH bump. Packs ingest the #933 competitor brief when present.
 
 ### Changed
 - **Pick'em search plan (#970)** — EiC-approved SERP/GEO plan + playbook C6/C7 / SERP snapshot. Docs only; no declared API change and no version bump.
