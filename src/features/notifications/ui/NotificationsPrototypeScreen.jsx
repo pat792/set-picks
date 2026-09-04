@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
 import {
   PROFILE_CLUSTER_PATHS,
   PROFILE_PREFERENCES_OPEN_PUSH_HREF,
 } from '../../../shared/config/dashboardRoutes';
+import DashboardActionRow from '../../../shared/ui/DashboardActionRow';
 import CommsInboxSection from './CommsInboxSection.jsx';
 
 /**
@@ -28,17 +28,10 @@ export default function NotificationsPrototypeScreen() {
 
   return (
     <div>
-      <div className="mb-6 text-left">
-        <h2
-          className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
-        >
-          Messages
-        </h2>
-        <p className="mt-2 text-sm font-bold leading-relaxed text-content-secondary md:mt-3">
-          In-app updates land here — recaps, scores, and announcements. Notification settings
-          live under Preferences.
-        </p>
-      </div>
+      <DashboardActionRow
+        hint="In-app updates land here — recaps, scores, and announcements. Notification settings live under Preferences."
+        hintLabel="Messages inbox"
+      />
 
       <CommsInboxSection />
     </div>

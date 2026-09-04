@@ -7,11 +7,16 @@ import {
   NAV_LABEL_CREATE_POOL,
   NAV_LABEL_JOIN_POOL,
   NAV_LABEL_MY_POOLS,
+  NAV_LABEL_POOLS,
 } from '../../../shared/config/dashboardVocabulary';
 import { POOLS_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
-import { useDashboardMobileChromePortal } from '../../../shared/hooks/useDashboardMobileChromePortal';
+import {
+  useDashboardDesktopPageChromePortal,
+  useDashboardMobileChromePortal,
+} from '../../../shared/hooks/useDashboardMobileChromePortal';
 import ChromeIconButton from '../../../shared/ui/ChromeIconButton';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
+import DashboardStickyPageChrome from '../../../shared/ui/DashboardStickyPageChrome';
 import { PoolsHowItWorksModal } from '../../../features/pools';
 import PoolsMobileFixedChrome from './PoolsMobileFixedChrome';
 
@@ -32,6 +37,7 @@ const SUB_NAV = [
  */
 export default function PoolsClusterLayout({ user }) {
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const desktopChromeRoot = useDashboardDesktopPageChromePortal();
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const openHowItWorks = useCallback(() => setHowItWorksOpen(true), []);
   const closeHowItWorks = useCallback(() => setHowItWorksOpen(false), []);
@@ -45,19 +51,28 @@ export default function PoolsClusterLayout({ user }) {
           )
         : null}
 
-      <div className="mb-6 hidden items-center justify-between gap-4 md:flex">
-        <ChromeSegmentedControl
-          ariaLabel="Pools sections"
-          items={SUB_NAV}
-          className="min-w-0 flex-1"
-        />
-        <ChromeIconButton
-          icon={CircleHelp}
-          label="How pools work"
-          onClick={openHowItWorks}
-          size="sm"
-        />
-      </div>
+      {desktopChromeRoot
+        ? createPortal(
+            <DashboardStickyPageChrome
+              title={NAV_LABEL_POOLS}
+              trailing={
+                <ChromeIconButton
+                  icon={CircleHelp}
+                  label="How pools work"
+                  onClick={openHowItWorks}
+                  size="sm"
+                />
+              }
+            >
+              <ChromeSegmentedControl
+                ariaLabel="Pools sections"
+                items={SUB_NAV}
+                className="min-w-0 flex-1"
+              />
+            </DashboardStickyPageChrome>,
+            desktopChromeRoot,
+          )
+        : null}
 
       <PoolsHowItWorksModal open={howItWorksOpen} onClose={closeHowItWorks} />
 

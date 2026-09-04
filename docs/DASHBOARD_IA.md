@@ -60,7 +60,7 @@ Primary nav **label** is **Account**. Path prefix stays `/dashboard/profile/*` (
 
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
-| **Profile** | `/dashboard/profile` | Handle, favorite song, avatar, badges. Callout + **View public profile** CTA. Quiet **View personal stats** link. |
+| **Profile** | `/dashboard/profile` | Handle, favorite song, avatar, badges. Appearance helper is an **InfoTooltip**. Prominent **View public profile** CTA. Quiet **View personal stats** link. |
 | **Messages** | `/dashboard/profile/notifications` | Inbox only — Unopened / Read / Archived; archive + delete. No prefs accordion. |
 | **Preferences** | `/dashboard/profile/account` | Sign-in, logout, legal, install/PWA, notification prefs (same `notificationPrefs` keys). Delete account is a text-link disclosure. Contact us hidden (no inbound address). |
 
@@ -85,6 +85,10 @@ Single visual/interaction pattern for in-tab section navigation. **Canonical pri
 
 This documents the shared tray contract. Picks (#766), Pools (#768), Stats (#769), and Account (#770) use it.
 
+### Helper copy
+
+Page and section **descriptions default to an `InfoTooltip`** (`DashboardActionRow` `hint`, or a standalone `InfoTooltip` next to a heading/control). Do **not** add a visible description paragraph unless the repo owner explicitly asks — then use `DashboardActionRow` `summary` (or in-flow copy) for that exception. Control-adjacent status lines (e.g. “Sign-in · Google”) are not descriptions.
+
 ### Visual
 
 - Rectangular **equal-width** tray (`flex w-full`, segments `flex-1`) — not auto-width pills
@@ -98,7 +102,7 @@ This documents the shared tray contract. Picks (#766), Pools (#768), Stats (#769
 | Viewport | Pattern |
 |----------|---------|
 | **Mobile** | Fixed under the context bar via `useDashboardMobileChromePortal` (`ProfileMobileFixedChrome`, `StandingsMobileFixedChrome`) |
-| **Desktop** | Sticky or in-page tray (Profile cluster pattern). Standings uses sticky in-page chrome (`StandingsStickyChrome`) |
+| **Desktop** | One sticky stack in `#dashboard-scrollport`: optional Tour Date / Tour scope, then cluster title + tertiary tray (`DashboardStickyPageChrome` portaled into `DashboardStickyChromeStack`). Lock / install banners and page body scroll underneath. Pool details stays Option C (no cluster title). War Room keeps the layout H2. |
 
 Visibility (`hidden md:block` vs portal) lives at the **cluster layout call site**, not inside `ChromeSegmentedControl`.
 
@@ -116,7 +120,7 @@ Do **not** add new `md:`-as-device assumptions in **shared** chrome. Until `desk
 
 When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 
-1. Update **`getDashboardPageMeta`** (`contextTitle`, `showDatePicker`, `layoutDesktopHeading`, `layoutDetailEyebrow` if needed).
+1. Update **`getDashboardPageMeta`** (`contextTitle`, `showDatePicker`, `layoutDesktopHeading`, `ownsDesktopStickyChrome`, `layoutDetailEyebrow` if needed).
 2. Update **`DashboardLayout`** nav **`isActive`** so the primary tab stays active on every child (mirror **Pools / pool details** and **Account / Preferences**).
 3. Add a row to **`scripts/verify-dashboard-meta.mjs`** and run **`npm run verify:dashboard-meta`**.
 4. Update **`src/shared/config/dashboardVocabulary.js`** (`NAV_LABEL_*`) and this doc.
@@ -174,7 +178,7 @@ Rationale: **Entity-first** detail view without a second full-width display titl
 | **Messages** | Account-cluster inbox (`NAV_LABEL_MESSAGES`); path `/dashboard/profile/notifications`. Prefs live on Preferences. |
 | **Preferences** | Account-cluster settings (`NAV_LABEL_PREFERENCES`); path `/dashboard/profile/account`. |
 | **Admin** | Tab label for `/dashboard/admin` (`NAV_LABEL_ADMIN`); context + desktop H1 stay **War Room** (meta string in `dashboardPageMeta.js`). |
-| **Standings** | Tab, context bar for `/dashboard/standings` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Pools tray live in sticky in-page chrome (not the layout H2) so banners and the leaderboard scroll underneath. View is URL-synced via `?view=show\|tour\|pools`. Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker and shows the shared tour scope picker (`?tour=`). |
+| **Standings** | Tab, context bar for `/dashboard/standings` (`NAV_LABEL_STANDINGS`). Desktop **Standings** title + Show/Tour/Pools tray live in the shared sticky stack (not the layout H2). Lock / install banners sit in the scrolling body below that stack. View is URL-synced via `?view=show\|tour\|pools`. Pools view takes an optional `?pool=<id>` sub-selector. `?view=tour` hides the global date picker and shows the shared tour scope picker (`?tour=`). |
 | **Stats** | Primary tab + context + desktop H1 for the Stats cluster (`NAV_LABEL_STATS`) — `/dashboard/stats`, `/dashboard/stats/personal`, `/dashboard/stats/global`, `/dashboard/stats/band`. Tertiary chips: **Personal** / **Global** / **Band**. |
 | **Personal** | Stats-cluster tertiary for career self stats (`NAV_LABEL_PERSONAL_STATS`). Destination name: Personal Stats. |
 | **Global** | Stats-cluster tertiary for the private tour explorer (`NAV_LABEL_GLOBAL_STATS`); path `/dashboard/stats/global`. Destination name: Global Stats. |

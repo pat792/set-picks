@@ -3,13 +3,18 @@ import { createPortal } from 'react-dom';
 import { Outlet } from 'react-router-dom';
 
 import {
+  NAV_LABEL_ACCOUNT,
   NAV_LABEL_MESSAGES,
   NAV_LABEL_PREFERENCES,
   NAV_LABEL_PROFILE,
 } from '../../../shared/config/dashboardVocabulary';
 import { PROFILE_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
-import { useDashboardMobileChromePortal } from '../../../shared/hooks/useDashboardMobileChromePortal';
+import {
+  useDashboardDesktopPageChromePortal,
+  useDashboardMobileChromePortal,
+} from '../../../shared/hooks/useDashboardMobileChromePortal';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
+import DashboardStickyPageChrome from '../../../shared/ui/DashboardStickyPageChrome';
 import ProfileMobileFixedChrome from './ProfileMobileFixedChrome';
 
 const SUB_NAV = [
@@ -22,12 +27,13 @@ const SUB_NAV = [
  * Persistent Account-cluster sub-navigation (Profile / Messages / Preferences).
  * Nested routes render via {@link Outlet}; `user` is passed through outlet context.
  * Mobile: sub-nav is fixed under the context bar (Standings chrome pattern).
- * Desktop: same {@link ChromeSegmentedControl} tray in-page (#765).
+ * Desktop: title + tray portaled into the layout sticky stack.
  *
  * @param {{ user: import('firebase/auth').User | null | undefined }} props
  */
 export default function ProfileClusterLayout({ user }) {
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const desktopChromeRoot = useDashboardDesktopPageChromePortal();
 
   return (
     <div className="max-w-xl mx-auto pb-6 md:pb-12">
@@ -35,10 +41,14 @@ export default function ProfileClusterLayout({ user }) {
         ? createPortal(<ProfileMobileFixedChrome />, mobileChromeRoot)
         : null}
 
-      {/* Visibility stays at the cluster call site — not in shared chrome (#704). */}
-      <div className="mb-6 hidden md:block">
-        <ChromeSegmentedControl ariaLabel="Account sections" items={SUB_NAV} />
-      </div>
+      {desktopChromeRoot
+        ? createPortal(
+            <DashboardStickyPageChrome title={NAV_LABEL_ACCOUNT}>
+              <ChromeSegmentedControl ariaLabel="Account sections" items={SUB_NAV} />
+            </DashboardStickyPageChrome>,
+            desktopChromeRoot,
+          )
+        : null}
       <Outlet context={{ user }} />
     </div>
   );

@@ -10,7 +10,6 @@ import {
 } from '../../features/profile';
 import { STATS_CLUSTER_PATHS } from '../../shared/config/dashboardRoutes';
 import { VIEW_PERSONAL_STATS_LINK } from '../../shared/config/dashboardVocabulary';
-import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
 
@@ -51,7 +50,8 @@ export default function ProfilePage({ user: userProp }) {
   return (
     <div>
       <DashboardActionRow
-        summary="These settings control how you appear on your public profile (/user/…) and anywhere badges or avatars show."
+        hint="These settings control how you appear on your public profile (/user/…) and anywhere badges or avatars show."
+        hintLabel="public profile appearance"
       >
         {user?.uid ? (
           <Link
@@ -67,18 +67,11 @@ export default function ProfilePage({ user: userProp }) {
         </DashboardRowPill>
       </DashboardActionRow>
 
-      <div className="mb-6 text-left">
-        <h2
-          className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
-        >
-          Profile
-        </h2>
-        {joinDate && (
-          <p className="mt-1 text-xs font-bold uppercase tracking-widest text-brand-primary">
-            Playing Since {joinDate}
-          </p>
-        )}
-      </div>
+      {joinDate ? (
+        <p className="mb-6 text-xs font-bold uppercase tracking-widest text-brand-primary">
+          Playing Since {joinDate}
+        </p>
+      ) : null}
 
       {!isLoading ? (
         <BadgeShelf

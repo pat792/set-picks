@@ -13,8 +13,8 @@ const OPTIONS = [
  * Primary IA toggle for Standings (#255 / #769) — Show / Tour / Pools.
  *
  * One {@link ChromeSegmentedControl} tray on mobile and desktop (#765).
- * Parents own placement: {@link StandingsMobileFixedChrome} (portal) vs
- * {@link StandingsStickyChrome} (sticky in-page). Stats moved to the Stats
+ * Parents own placement: {@link StandingsMobileFixedChrome} (mobile portal) vs
+ * {@link StandingsStickyChrome} (desktop sticky-stack portal). Stats moved to the Stats
  * primary (#769) — do not add a fourth segment here.
  *
  * State + navigation lives in {@link useStandingsView} /
