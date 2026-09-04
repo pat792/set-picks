@@ -3,14 +3,17 @@ import React from 'react';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import SongAutocomplete from '../../../shared/ui/SongAutocomplete';
 import { useSongCatalog } from '../../song-catalog';
+import { useMakePicksOdds } from '../model/useMakePicksOdds';
 
 export default function PicksFieldsForm({
   formData,
   onChange,
   isLocked,
   disabled = false,
+  selectedDate,
 }) {
   const { songs } = useSongCatalog();
+  const getOddsLabel = useMakePicksOdds({ selectedDate });
 
   return (
     <>
@@ -30,6 +33,7 @@ export default function PicksFieldsForm({
               .filter(Boolean)}
             readOnly={isLocked}
             disabled={disabled || isLocked}
+            getOddsLabel={getOddsLabel}
           />
         </div>
       ))}

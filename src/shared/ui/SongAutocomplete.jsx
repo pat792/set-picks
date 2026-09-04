@@ -6,6 +6,28 @@ import { rankCatalogSongMatches } from '../lib/rankCatalogSongMatches.js';
 import { resolveCatalogSongTitle } from '../lib/resolveCatalogSongTitle.js';
 import Input from './Input';
 
+/**
+ * @param {string | { label?: string, compactLabel?: string } | null | undefined} raw
+ * @returns {{ label: string, compactLabel?: string } | null}
+ */
+function normalizeOddsLabel(raw) {
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    const label = raw.trim();
+    return label ? { label } : null;
+  }
+  if (typeof raw === 'object' && typeof raw.label === 'string') {
+    const label = raw.label.trim();
+    if (!label) return null;
+    const compact =
+      typeof raw.compactLabel === 'string' && raw.compactLabel.trim()
+        ? raw.compactLabel.trim()
+        : undefined;
+    return { label, compactLabel: compact };
+  }
+  return null;
+}
+
 export default function SongAutocomplete({
   value,
   onChange,
@@ -24,6 +46,12 @@ export default function SongAutocomplete({
   excludeTitles = [],
   /** @type {{ name: string, total?: string, gap?: string, last?: string }[] | undefined} */
   songs: songsProp,
+  /**
+   * Optional presentational odds lookup. Parent owns IO (FSD: no fetch here).
+   * Return a string, or `{ label, compactLabel }` for a shorter mobile form.
+   * @type {((songName: string) => (string | { label: string, compactLabel?: string } | null | undefined)) | undefined}
+   */
+  getOddsLabel,
 }) {
   const songs = songsProp ?? PHISH_SONGS;
   const excludedLower = useMemo(
@@ -191,6 +219,7 @@ export default function SongAutocomplete({
                 ? song.total
                 : 'N/A';
             const isKeyboardActive = index === activeIndex;
+            const odds = normalizeOddsLabel(getOddsLabel?.(songName));
             return (
               <li 
                 key={index}
@@ -206,8 +235,22 @@ export default function SongAutocomplete({
                     : 'md:hover:bg-[#1e293b]'
                 }`}
               >
-                <div className="text-base font-bold text-slate-200 whitespace-normal break-words text-left">
-                  {songName}
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <div className="min-w-0 break-words text-left text-base font-bold text-slate-200">
+                    {songName}
+                  </div>
+                  {odds ? (
+                    <span className="shrink-0 tabular-nums text-sm font-semibold text-slate-400">
+                      {odds.compactLabel ? (
+                        <>
+                          <span className="sm:hidden">{odds.compactLabel}</span>
+                          <span className="hidden sm:inline">{odds.label}</span>
+                        </>
+                      ) : (
+                        odds.label
+                      )}
+                    </span>
+                  ) : null}
                 </div>
                 
                 {typeof song !== 'string' && (

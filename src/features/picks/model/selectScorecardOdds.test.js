@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   formatOddsPercent,
+  lookupPlayProbForSong,
+  resolvePickerOddsLabel,
   SCORECARD_ODDS_UNKNOWN_LABEL,
+  SCORECARD_ODDS_UNKNOWN_LABEL_COMPACT,
   selectScorecardOdds,
 } from './selectScorecardOdds';
 
@@ -107,5 +110,55 @@ describe('formatOddsPercent', () => {
 
   it('labels unknown map misses as <1%', () => {
     expect(formatOddsPercent(null, { unknown: true })).toBe(SCORECARD_ODDS_UNKNOWN_LABEL);
+  });
+
+  it('uses a shorter compact form for unknown map misses', () => {
+    expect(formatOddsPercent(null, { unknown: true, compact: true })).toBe(
+      SCORECARD_ODDS_UNKNOWN_LABEL_COMPACT,
+    );
+  });
+});
+
+describe('lookupPlayProbForSong', () => {
+  it('returns null when the artifact is missing or for another night', () => {
+    expect(lookupPlayProbForSong(null, '2026-07-19', 'Tweezer')).toBeNull();
+    expect(lookupPlayProbForSong(mappedArtifact, '2026-07-20', 'Tweezer')).toBeNull();
+  });
+
+  it('looks up playProbBySong and floors catalog titles missing from the map', () => {
+    expect(lookupPlayProbForSong(mappedArtifact, '2026-07-19', 'Tweezer')).toEqual({
+      playProb: 0.184,
+      unknown: false,
+    });
+    expect(
+      lookupPlayProbForSong(mappedArtifact, '2026-07-19', 'You Enjoy Myself'),
+    ).toEqual({ playProb: null, unknown: true });
+  });
+
+  it('falls back to any slot row on legacy artifacts and omits unmatched titles', () => {
+    expect(lookupPlayProbForSong(legacyArtifact, '2026-07-19', 'Tweezer')).toEqual({
+      playProb: 0.184,
+      unknown: false,
+    });
+    expect(lookupPlayProbForSong(legacyArtifact, '2026-07-19', 'First Tube')).toBeNull();
+  });
+});
+
+describe('resolvePickerOddsLabel', () => {
+  it('returns C1 percent labels and a compact <1 for map misses', () => {
+    expect(resolvePickerOddsLabel(mappedArtifact, '2026-07-19', 'Tweezer')).toEqual({
+      label: '18%',
+      compactLabel: undefined,
+    });
+    expect(
+      resolvePickerOddsLabel(mappedArtifact, '2026-07-19', 'You Enjoy Myself'),
+    ).toEqual({
+      label: SCORECARD_ODDS_UNKNOWN_LABEL,
+      compactLabel: SCORECARD_ODDS_UNKNOWN_LABEL_COMPACT,
+    });
+  });
+
+  it('omits odds when the artifact targets another night', () => {
+    expect(resolvePickerOddsLabel(mappedArtifact, '2026-07-20', 'Tweezer')).toBeNull();
   });
 });

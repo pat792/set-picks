@@ -16,6 +16,7 @@ import {
   scorecardShowsOverlap,
   scorecardShowsRank,
 } from './resolveScorecardState';
+import { mapScorecardSlotGrade } from './mapScorecardSlotGrade';
 import { selectScorecardOdds } from './selectScorecardOdds';
 import usePicksForm from './usePicksForm';
 import { usePickRecommendations } from './usePickRecommendations';
@@ -99,6 +100,10 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
       FORM_FIELDS.map((field) => {
         const song = String(formData?.[field.id] ?? '').trim();
         const odds = oddsBySlot[field.id];
+        const grade =
+          state === 'graded' && actualSetlist
+            ? mapScorecardSlotGrade(field.id, song, actualSetlist)
+            : null;
         return {
           fieldId: field.id,
           label: field.label,
@@ -106,9 +111,10 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
           alsoPickedCount: showOverlap ? overlapBySlot[field.id] ?? 0 : null,
           playProb: odds?.playProb ?? null,
           oddsUnknown: Boolean(odds?.unknown),
+          grade,
         };
       }).filter((slot) => slot.song),
-    [formData, showOverlap, overlapBySlot, oddsBySlot],
+    [formData, showOverlap, overlapBySlot, oddsBySlot, state, actualSetlist],
   );
 
   const show = selectedDate ? showDates?.find((s) => s.date === selectedDate) : null;

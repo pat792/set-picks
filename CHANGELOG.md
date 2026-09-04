@@ -20,6 +20,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.71.0] — 2026-09-04
+
+### Added
+- **Scorecard graded hit chrome (#1013)** — on graded nights, each slot uses `getSlotScoreBreakdown`. Hits (`points > 0`) show an A5 check + soft inset ring: brand-primary for `exact_slot` / `encore_exact` / `wildcard_hit`, accent-blue for `in_setlist`, amber overlay when `bustoutBoost`. Misses are slightly muted. Pre-grade cards are unchanged.
+- **Make Picks dropdown model odds (#1013)** — song autocomplete shows a trailing compact `N%` (or `<1%` / mobile `<1` for `playProbBySong` map misses) from the same Storage artifact as Scorecard, only when `targetShow.date` matches the selected night. Total / Gap / Last stay visible. Not live crowd %.
+
+---
+
 ## [1.70.2] — 2026-09-04
 
 ### Fixed

@@ -1,9 +1,11 @@
 import React from 'react';
-import { ClipboardList } from 'lucide-react';
+import { Check, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { PICKS_SELF_RECAP_STANDINGS_LINK } from '../../../shared/config/dashboardVocabulary';
+import { SCORE_BREAKDOWN_KIND_LABEL } from '../../../shared/utils/scoring';
 import { formatOverlapLabel } from '../model/computeScorecardOverlap';
+import { scorecardHitChromeSpec } from '../model/mapScorecardSlotGrade';
 import { formatOddsPercent } from '../model/selectScorecardOdds';
 import {
   SCORECARD_BODY,
@@ -11,7 +13,11 @@ import {
   SCORECARD_EYEBROW_ICON,
   SCORECARD_METRIC,
   SCORECARD_SHELL,
+  SCORECARD_SLOT_CHECK,
+  SCORECARD_SLOT_ITEM,
   SCORECARD_SLOT_LABEL,
+  SCORECARD_SLOT_RING,
+  SCORECARD_SLOT_TITLE_TONE,
   SCORECARD_TITLE,
 } from './picksScorecardClasses';
 
@@ -35,6 +41,24 @@ function stateCopy(state) {
   return '';
 }
 
+function slotItemClass(chrome) {
+  const ring = chrome.ringTone ? SCORECARD_SLOT_RING[chrome.ringTone] : '';
+  return [SCORECARD_SLOT_ITEM, ring].filter(Boolean).join(' ');
+}
+
+function slotTitleClass(chrome) {
+  const base = 'text-sm font-bold leading-snug md:text-base';
+  if (chrome.titleTone === 'default') return `${base} text-white`;
+  const tone = SCORECARD_SLOT_TITLE_TONE[chrome.titleTone];
+  return tone ? `${base} ${tone}` : `${base} text-white`;
+}
+
+function hitStatusLabel(grade) {
+  if (!grade?.hit) return '';
+  const kindLabel = SCORE_BREAKDOWN_KIND_LABEL[grade.kind] || 'Hit';
+  return grade.bustoutBoost ? `${kindLabel}, Bustout Boost` : kindLabel;
+}
+
 /**
  * Global, show-scoped Scorecard (#767). Presentational — data from
  * {@link usePicksScorecard}.
@@ -50,6 +74,12 @@ function stateCopy(state) {
  *     alsoPickedCount: number | null,
  *     playProb: number | null,
  *     oddsUnknown?: boolean,
+ *     grade?: {
+ *       kind: string,
+ *       points: number,
+ *       bustoutBoost: boolean,
+ *       hit: boolean,
+ *     } | null,
  *   }>,
  *   showOverlap?: boolean,
  *   showOdds?: boolean,
@@ -152,13 +182,28 @@ export default function PicksScorecardCard({
               const odds = showOdds
                 ? formatOddsPercent(slot.playProb, { unknown: slot.oddsUnknown })
                 : null;
+              const grade = state === 'graded' ? slot.grade : null;
+              const chrome = scorecardHitChromeSpec(grade);
+              const statusLabel = hitStatusLabel(grade);
               return (
                 <li
                   key={slot.fieldId}
-                  className="rounded-lg border border-violet-400/15 bg-surface-panel/40 px-3 py-2"
+                  className={slotItemClass(chrome)}
+                  data-scorecard-hit={grade ? String(Boolean(grade.hit)) : undefined}
+                  data-scorecard-kind={grade?.kind}
                 >
                   <p className={SCORECARD_SLOT_LABEL}>{slot.label}</p>
-                  <p className={`mt-0.5 ${SCORECARD_TITLE}`}>{slot.song}</p>
+                  <p className={`mt-0.5 flex items-start gap-1.5 ${slotTitleClass(chrome)}`}>
+                    {chrome.showCheck ? (
+                      <Check
+                        className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${SCORECARD_SLOT_CHECK[chrome.checkTone] || ''}`}
+                        strokeWidth={2.75}
+                        aria-hidden
+                      />
+                    ) : null}
+                    <span className="min-w-0">{slot.song}</span>
+                    {statusLabel ? <span className="sr-only">{statusLabel}</span> : null}
+                  </p>
                   {showOverlap ? (
                     <p className={`mt-1 ${SCORECARD_METRIC}`}>
                       {formatOverlapLabel(slot.alsoPickedCount ?? 0)}
