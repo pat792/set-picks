@@ -136,6 +136,23 @@ describe('comms template registry', () => {
     expect(entry.build({ picks_secured: true }).cta.label).toBe('View / Edit picks');
   });
 
+  it('show_recap Tonight uses narrative_line, not highlight-only (#985)', () => {
+    const entry = getCommsTemplateEntry('show-recap');
+    const built = entry.build({
+      handle: 'Pat',
+      venue_name: "Dick's Sporting Goods Park",
+      narrative_line:
+        'Set 1 opened with Carini (8 songs); encore closed on Tweeprise. Tough board — none of your six landed. That lands you #184 of 210 globally.',
+      setlist_highlight: 'Bustout: Foo - a 40 show gap.',
+      bustout_bonus: 20,
+    });
+    const text = built.paragraphs.join(' ');
+    expect(text).toContain('Set 1 opened with Carini');
+    expect(text).toContain('#184 of 210');
+    expect(text).not.toContain('Tonight: Bustout: Foo');
+    expect(text).not.toContain('Bustout bonus:');
+  });
+
   it('show_recap CTA is honest about standings destination (#551)', () => {
     const entry = getCommsTemplateEntry('show-recap');
     expect(entry.build({}).cta).toEqual({

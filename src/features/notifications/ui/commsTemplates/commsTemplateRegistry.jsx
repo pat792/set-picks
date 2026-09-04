@@ -373,7 +373,8 @@ export const COMMS_TEMPLATE_REGISTRY = {
             (p.correct_picks_count != null && p.total_picks_count != null
               ? `You nailed ${p.correct_picks_count} of ${p.total_picks_count} picks.`
               : 'Tap through for the full breakdown.'),
-          p.bustout_bonus ? `Bustout bonus: +${p.bustout_bonus}.` : null,
+          // Bonus stays on the stats row when the composer already named the bustout.
+          !narrative && p.bustout_bonus ? `Bustout bonus: +${p.bustout_bonus}.` : null,
         ].filter(Boolean),
         stats: [
           p.show_score != null ? { label: 'Show score', value: p.show_score } : null,
@@ -410,7 +411,10 @@ export const COMMS_TEMPLATE_REGISTRY = {
           correct_picks_count: 3,
           total_picks_count: 4,
           setlist_highlight: "Bustout: Wolfman's Brother - an 87 show gap.",
-          narrative_line: "You caught a bustout — Wolfman's Brother - an 87 show gap.",
+          set_flow_summary:
+            "Set 1 opened with YEM (8 songs); Set 2 added 7; encore closed on Slave to the Traffic Light.",
+          narrative_line:
+            "Set 1 opened with YEM (8 songs); Set 2 added 7; encore closed on Slave to the Traffic Light. You caught a bustout — Wolfman's Brother - an 87 show gap on your wildcard (3 of 6). That puts you #4 of 312 globally and #1 in Couch Tour.",
           narrative_branch: 'bustout_hero',
           bustout_bonus: 20,
           user_bustout_hits: [{ title: "Wolfman's Brother", gap: 87 }],

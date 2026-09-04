@@ -24,6 +24,8 @@
 export const FIXTURE_FENWAY_UNLABELED = {
   showDate: "2026-07-31",
   setlist_highlight: "Melt the Guns - a 2051 show gap",
+  set_flow_summary:
+    "Set 1 opened with Carini (10 songs); Set 2 added 8; encore closed on A Life Beyond The Dream.",
   bustout_titles: ["Melt the Guns"],
   bustout_entries: [{ title: "Melt the Guns", gap: 2051 }],
   tour_debut_titles: ["Melt the Guns"],
@@ -57,6 +59,7 @@ export const FIXTURE_MULTI_BUSTOUT = {
   tour_debut_titles: [],
   opener_title: "YEM",
   encore_title: "Slave",
+  set_flow_summary: "Set 1 opened with YEM (6 songs); Set 2 added 5; encore closed on Slave.",
   show_moment_tags: ["bustout"],
 };
 
@@ -162,7 +165,7 @@ export function runHighlightChecklist(ctx) {
  * @param {string} branch
  * @returns {{ id: string, ok: boolean, detail: string }[]}
  */
-export function runNarrativeLineChecklist(narrativeLine, ctx, branch) {
+export function runNarrativeLineChecklist(narrativeLine, ctx, branch, opts = {}) {
   /** @type {{ id: string, ok: boolean, detail: string }[]} */
   const checks = [];
   const line = String(narrativeLine || "").trim();
@@ -170,14 +173,15 @@ export function runNarrativeLineChecklist(narrativeLine, ctx, branch) {
   const bustoutCount =
     (ctx.bustout_entries || []).filter((e) => e?.title).length ||
     (ctx.bustout_titles || []).filter(Boolean).length;
+  const requireComposerBeats = opts.requireComposerBeats === true;
 
   if (branch === "bustout_hero") {
-    const ok = /^You caught a bustout/i.test(line);
+    const ok = /You caught a bustout/i.test(line);
     checks.push({
       id: "bustout_hero_prefix",
       ok,
       detail: ok
-        ? "bustout_hero opens with You caught a bustout"
+        ? "bustout_hero names You caught a bustout"
         : `unexpected bustout_hero line: "${line.slice(0, 80)}"`,
     });
   }
@@ -194,6 +198,45 @@ export function runNarrativeLineChecklist(narrativeLine, ctx, branch) {
       detail: retains
         ? `${branch} retains Bustout label`
         : `${branch} dropped Bustout label — line="${line.slice(0, 100)}"`,
+    });
+  }
+
+  if (requireComposerBeats) {
+    const flow = String(ctx.set_flow_summary || "").trim();
+    if (flow) {
+      const needle = flow.replace(/\.$/, "").slice(0, 24);
+      const ok = Boolean(needle) && line.includes(needle);
+      checks.push({
+        id: "arc_flow",
+        ok,
+        detail: ok
+          ? "narrative includes set_flow_summary"
+          : `missing arc from set_flow_summary — line="${line.slice(0, 100)}"`,
+      });
+    }
+
+    const hasCard =
+      /\d+ of \d+/.test(line) ||
+      /you hit /i.test(line) ||
+      /none of your six/i.test(line) ||
+      /You caught a bustout/i.test(line) ||
+      /Tough board/i.test(line) ||
+      /Strong night/i.test(line);
+    checks.push({
+      id: "card_voice",
+      ok: hasCard,
+      detail: hasCard
+        ? `${branch} includes a board/card beat`
+        : `${branch} missing card beat — line="${line.slice(0, 100)}"`,
+    });
+
+    const hasRank = /#\d+/.test(line);
+    checks.push({
+      id: "relative_rank",
+      ok: hasRank,
+      detail: hasRank
+        ? "narrative weaves #rank"
+        : `missing relative rank — line="${line.slice(0, 100)}"`,
     });
   }
 

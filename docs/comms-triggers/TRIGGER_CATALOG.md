@@ -333,7 +333,7 @@ Scores update live during the show. Check back tonight.
 | **Prefs key** | `results` |
 | **Dedup** | `show_recap:{uid}:{showDate}` in `commsInbox` + `fcm_notification_log` |
 | **Implementation** | Batch fan-out triggered after `rollupScoresForShow` completes |
-| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. Narrative vars from `comms_show_context` (#572). |
+| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. Narrative vars from `comms_show_context` (#572). `narrative_line` composer (#985) weaves arc + card + relative rank; push stays a short tease. |
 
 #### Variables used
 
@@ -359,7 +359,7 @@ Scores update live during the show. Check back tonight.
 - Encore: {{encore_result}}
 - Wildcard: {{wildcard_result}}{{#if bustout_bonus}} (+{{bustout_bonus}} Bustout Boost){{/if}}
 
-**Tonight:** {{setlist_highlight}}
+**Tonight:** {{narrative_line}} *(composer: arc + your card + relative rank — #985; soft-fails to `{{setlist_highlight}}`)*
 
 Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the room.
 
@@ -410,9 +410,9 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 **Preview:** `{{correct_picks_count}} of {{total_picks_count}} correct last night. Now #{{tour_rank}} on tour ({{rank_change}}).`
 
 **Body sections:**
-1. **Your night** *(absorbed from `show_recap`, #451)* — score, rank (global + pool if applicable), correct picks count.
+1. **Your night** *(absorbed from `show_recap`, #451 / #985)* — `{{narrative_line}}` weaves set-flow arc, which of *their* slots hit (bustout caught or missed), and night rank (global + pool when present). Tour `rank_change` stays in the tour paragraph below.
 2. **Pick-by-pick** — opener, closer, encore, wildcard results with song names. Bustout Boost called out if earned.
-3. **Setlist context** — `{{setlist_highlight}}` (e.g., `Bustout: Melt the Guns - a 2051 show gap.` or `Bustouts: Song A - an 87 show gap; Song B - a 40 show gap.`).
+3. **Setlist context** — `{{setlist_highlight}}` (e.g., `Bustout: Melt the Guns - a 2051 show gap.` or `Bustouts: Song A - an 87 show gap; Song B - a 40 show gap.`). Folded into `{{narrative_line}}` when the composer has facts.
 4. **Your tour position** — rank, points, shows played, rank change vs yesterday.
 5. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
 6. **Next show** — {{next_show_venue}}, {{next_show_date}}. Picks are open.

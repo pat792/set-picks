@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.68.1  
+**Version:** 1.71.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -137,7 +137,7 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `setlist_highlight` | string? | One-liner for push / Tonight block. Bustout nights: `Bustout: Song - a/an N show gap.` (singular) or `Bustouts: …; ….` (plural, `;`-separated) (#780). |
+| `setlist_highlight` | string? | One-liner bustout/debut sticker. Bustout nights: `Bustout: Song - a/an N show gap.` (singular) or `Bustouts: …; ….` (plural, `;`-separated) (#780). Inbox Tonight / morning night-para prefer composed `narrative_line` (#985). |
 | `set_flow_summary` | string? | Short S1/S2/E structure |
 | `bustout_titles` | string[] | From official setlist bustouts |
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
