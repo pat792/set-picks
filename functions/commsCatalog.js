@@ -114,6 +114,16 @@ const TRIGGER_SPECS = {
     family: "lifecycle",
     priority: "P1",
   },
+  // Email channel is the abbreviated teaser (emailFull is optional / in-app long form).
+  tour_recap: {
+    triggerId: "tour_recap",
+    templateId: "tour-recap",
+    channels: ["inApp", "push", "email"],
+    prefKeys: ["results"],
+    dedupKey: "tour_recap:{tourId}:{uid}",
+    family: "results_recap",
+    priority: "P1",
+  },
   marketing_summer_tour_2026_launch: {
     triggerId: "marketing_summer_tour_2026_launch",
     templateId: "summer-tour-2026-launch",

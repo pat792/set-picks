@@ -8,6 +8,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.73.0] — 2026-09-04
+
+### Added
+- **`tour_recap` trigger (#510)** — durable personalized end-of-tour recap (`results_recap`, P1). Audience: users with ≥1 graded pick on any show in that tour. Channels: in-app, push, abbreviated email. Prefs: `notificationPrefs.results`. Dedup: `tour_recap:{tourId}:{uid}`. Automated batch fan-out after the tour’s final show is graded (`deliverTourRecapIfFinalShow` → `deliverCommsTrigger`). Rank branches: champion / top 5 / top 10 / full-run outside top 10 / partial attendance / fallback. Edition flavor from `content/comms/tours/<edition>.md` + send-time payload.
+
+### Changed
+- **Sphere ’26 recap** — `sphere-2026-inaugural` / `tour_recap_sphere_2026` is archive + War Room replay (`deliverSphere2026TourRecapInbox`) only. Live catalog template is `tour-recap`. `/comms-preview` samples use a generic Sample Tour fixture (no Sphere live IDs).
+
+---
+
 ## [Unreleased]
 
 ### Added
