@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.70.2] — 2026-09-04
+
+### Fixed
+- **Picks Lab add confirmation** — Lab **Use** still writes the shared draft only (does not persist). The Lab destination now shows a live **Your card**, marks the filled slot, toasts the add, and surfaces Lock In Picks / Update Picks when the card is unsaved. Persist remains the explicit lock/update action.
+
+---
+
 ## [1.70.1] — 2026-09-04
 
 ### Changed

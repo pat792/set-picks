@@ -10,7 +10,11 @@ import {
 import { subscribeShowLockState } from '../api/showLockStateApi';
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import { getShowStatus } from '../../../shared/utils/timeLogic';
-import { validatePicksForSave } from './picksCatalogUtils';
+import {
+  isPicksCardDirty,
+  serializePicksCard,
+  validatePicksForSave,
+} from './picksCatalogUtils';
 import { trackEditPicks, trackSubmitPicks } from './picksAnalytics';
 
 function tourLabelForShowDate(selectedDate, showDatesByTour) {
@@ -39,6 +43,9 @@ export default function usePicksForm({
   const [isLoadingPicks, setIsLoadingPicks] = useState(false);
   /** True once we've loaded non-empty picks from Firestore for this show (or after first successful save). */
   const [hadPersistedPicksOnServer, setHadPersistedPicksOnServer] = useState(false);
+  const [persistedCardSerialized, setPersistedCardSerialized] = useState(() =>
+    serializePicksCard({}),
+  );
   const [saveFeedback, setSaveFeedback] = useState(null);
   const [pickConstraintMessage, setPickConstraintMessage] = useState(null);
   const { songs } = useSongCatalog();
@@ -78,6 +85,7 @@ export default function usePicksForm({
       if (!user?.uid || !selectedDate) {
         setFormData({});
         setHadPersistedPicksOnServer(false);
+        setPersistedCardSerialized(serializePicksCard({}));
         setIsLoadingPicks(false);
         return;
       }
@@ -88,12 +96,14 @@ export default function usePicksForm({
         if (!cancelled) {
           setFormData(picks);
           setHadPersistedPicksOnServer(picksObjectHasAnyValue(picks));
+          setPersistedCardSerialized(serializePicksCard(picks));
         }
       } catch (err) {
         console.error('Error loading picks:', err);
         if (!cancelled) {
           setFormData({});
           setHadPersistedPicksOnServer(false);
+          setPersistedCardSerialized(serializePicksCard({}));
           setSaveFeedback({
             tone: 'error',
             text: 'Error loading picks. Refresh and try again.',
@@ -110,6 +120,9 @@ export default function usePicksForm({
     };
   }, [selectedDate, user?.uid]);
 
+  /**
+   * @returns {boolean} `false` when a duplicate title was rejected.
+   */
   const handleInput = useCallback((fieldId, value) => {
     let rejectedDuplicate = false;
     setFormData((prev) => {
@@ -130,14 +143,15 @@ export default function usePicksForm({
     });
     if (!String(value ?? '').trim()) {
       setPickConstraintMessage(null);
-      return;
+      return true;
     }
     if (rejectedDuplicate) {
       setPickConstraintMessage('Each pick must be a different song.');
       window.setTimeout(() => setPickConstraintMessage(null), 3500);
-    } else {
-      setPickConstraintMessage(null);
+      return false;
     }
+    setPickConstraintMessage(null);
+    return true;
   }, []);
 
   const handleSave = useCallback(
@@ -205,6 +219,7 @@ export default function usePicksForm({
           });
         }
         setHadPersistedPicksOnServer(true);
+        setPersistedCardSerialized(serializePicksCard(formData));
       } catch (error) {
         console.error('Error saving picks:', error);
         const code = error?.code;
@@ -236,6 +251,11 @@ export default function usePicksForm({
     ]
   );
 
+  const isDirty =
+    Boolean(user?.uid && selectedDate) &&
+    !isLoadingPicks &&
+    isPicksCardDirty(formData, persistedCardSerialized);
+
   return {
     formData,
     handleInput,
@@ -244,6 +264,8 @@ export default function usePicksForm({
     isLoadingPicks,
     isLocked,
     hasExistingPicks,
+    hadPersistedPicksOnServer,
+    isDirty,
     showStatus,
     saveFeedback,
     pickConstraintMessage,
