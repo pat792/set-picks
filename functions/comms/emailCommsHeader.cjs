@@ -68,6 +68,18 @@ function resolveCommsEmailHeader(templateId, p = {}) {
         title: 'Where you stand on tour',
         accentColor: ACCENT_TEAL,
       };
+    case 'tour-recap': {
+      const tourName =
+        typeof p.tour_name === 'string' && p.tour_name.trim()
+          ? p.tour_name.trim()
+          : 'Tour recap';
+      return {
+        icon: '🏆',
+        eyebrow: 'Tour recap',
+        title: `${tourName} is in the books`,
+        accentColor: ACCENT_TEAL,
+      };
+    }
     case 'picks-lock-reminder':
       return {
         icon: '⏰',

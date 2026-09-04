@@ -1,12 +1,15 @@
 # Tour recap — Sphere 2026 (inaugural Setlist Pick'em)
 
+**Status:** superseded / historical edition archive + War Room replay-QA only (#510).  
+**Not** the live catalog trigger. Production end-of-tour sends use `tour_recap` / `content/comms/tours/tour-recap.md`.
+
 | Field | Value |
 |--------|--------|
-| **Template ID** | `sphere-2026-inaugural` |
-| **Implementation** | `src/features/tour-recap/model/sphere2026Recap.js` |
+| **Template ID** | `sphere-2026-inaugural` (existing inbox docs only) |
+| **Implementation** | `src/features/tour-recap/model/sphere2026Recap.js` (edition wrapper over `tourRecap.js`) |
 | **In-app UI** | `src/features/tour-recap/ui/Sphere2026TourRecapInApp.jsx` |
-| **Admin preview** | War Room → “Tour recap copy (Sphere '26)” (`AdminTourRecapPreview`) |
-| **Inbox delivery** | Callable `deliverSphere2026TourRecapInbox` + War Room “Deliver recap to user inboxes” (graded picks on Sphere dates → `users/{uid}/commsInbox/sphere-2026-inaugural`) |
+| **Admin preview** | War Room → “Tour recap” generic preview + Sphere replay panel |
+| **Inbox delivery** | Replay/QA callable `deliverSphere2026TourRecapInbox` only — not the prod happy path |
 
 Edit **either** this file (proposal / source draft) **or** the implementation module. Production strings are the **JS module** until a content loader exists; keep this doc aligned when marketing copy changes.
 

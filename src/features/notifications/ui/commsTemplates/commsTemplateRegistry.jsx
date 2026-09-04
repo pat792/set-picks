@@ -5,7 +5,7 @@
  * Two render shapes are supported:
  *  - `build(payload)` → a plain structure rendered by {@link CommsTemplateBody}
  *    (used by all v1 lifecycle / show / results templates).
- *  - `Component` → a bespoke React component (used by the rich Sphere recap).
+ *  - `Component` → a bespoke React component (used by the rich tour recap).
  *
  * `samples` powers the dev-only Comms Template Preview screen and the unit tests,
  * so every template ships with realistic preview data.
@@ -25,7 +25,13 @@ import {
   Zap,
 } from 'lucide-react';
 
-import { SPHERE_2026_RECAP_ID, Sphere2026TourRecapInApp } from '../../../tour-recap';
+import {
+  PREVIEW_TOUR_EDITION,
+  SPHERE_2026_RECAP_ID,
+  Sphere2026TourRecapInApp,
+  TOUR_RECAP_TEMPLATE_ID,
+  TourRecapInApp,
+} from '../../../tour-recap';
 import { buildTourRankingsDailyParagraphs } from '../../model/tourRankingsDailyCopy';
 
 const FALLBACK_HANDLE = 'Picker';
@@ -751,9 +757,72 @@ export const COMMS_TEMPLATE_REGISTRY = {
     ],
   },
 
+  [TOUR_RECAP_TEMPLATE_ID]: {
+    triggerId: 'tour_recap',
+    displayName: 'Tour recap',
+    Component: TourRecapInApp,
+    toComponentProps: (p) => {
+      const num = (v, f = 0) => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : f;
+      };
+      return {
+        rank: num(p.rank),
+        points: num(p.points),
+        wins: num(p.wins),
+        showsPlayed: num(p.showsPlayed),
+        participantCount: num(p.participantCount, PREVIEW_TOUR_EDITION.participantCount),
+        showCount: num(p.show_count ?? p.showCount, PREVIEW_TOUR_EDITION.showCount),
+        tourName: typeof p.tour_name === 'string' ? p.tour_name : PREVIEW_TOUR_EDITION.tourName,
+        headline: typeof p.headline === 'string' ? p.headline : PREVIEW_TOUR_EDITION.headline,
+        podium: p.podium && typeof p.podium === 'object' ? p.podium : PREVIEW_TOUR_EDITION.podium,
+        edition: PREVIEW_TOUR_EDITION,
+      };
+    },
+    samples: [
+      {
+        name: 'Champion',
+        payload: {
+          rank: 1,
+          points: 180,
+          wins: 3,
+          showsPlayed: 8,
+          participantCount: 24,
+          tour_name: 'Sample Tour',
+          show_count: 8,
+        },
+      },
+      {
+        name: 'Top 10',
+        payload: {
+          rank: 8,
+          points: 110,
+          wins: 1,
+          showsPlayed: 8,
+          participantCount: 24,
+          tour_name: 'Sample Tour',
+          show_count: 8,
+        },
+      },
+      {
+        name: 'Partial attendance',
+        payload: {
+          rank: 14,
+          points: 60,
+          wins: 0,
+          showsPlayed: 3,
+          participantCount: 24,
+          tour_name: 'Sample Tour',
+          show_count: 8,
+        },
+      },
+    ],
+  },
+
+  // Historical Sphere ’26 inbox docs + War Room replay — not the live catalog trigger.
   [SPHERE_2026_RECAP_ID]: {
     triggerId: 'tour_recap_sphere_2026',
-    displayName: "Sphere 2026 recap",
+    displayName: 'Sphere 2026 recap (archive)',
     Component: Sphere2026TourRecapInApp,
     toComponentProps: (p) => {
       const num = (v, f = 0) => {
@@ -770,12 +839,8 @@ export const COMMS_TEMPLATE_REGISTRY = {
     },
     samples: [
       {
-        name: 'Champion',
+        name: 'Champion (archive)',
         payload: { rank: 1, points: 160, wins: 4, showsPlayed: 9, participantCount: 23 },
-      },
-      {
-        name: 'Top 10',
-        payload: { rank: 7, points: 120, wins: 1, showsPlayed: 9, participantCount: 23 },
       },
     ],
   },
