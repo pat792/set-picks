@@ -41,6 +41,49 @@ describe('ChromeSegmentedControl (#765 tertiary chrome)', () => {
     expect(html).toContain('Pools');
   });
 
+  it('still renders a tablist when scrollToTop is disabled (in-page trays)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(ChromeSegmentedControl, {
+        ariaLabel: 'Personal stats scope',
+        value: 'allTime',
+        scrollToTop: false,
+        items: [
+          { id: 'allTime', label: 'All-time' },
+          { id: 'tour', label: 'This tour' },
+        ],
+      }),
+    );
+
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain('All-time');
+    expect(html).toContain('This tour');
+    expect(html).toContain('shadow-inset-glass');
+  });
+
+  it('inset tone keeps the equal-width tray without chrome glass + brand ring', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(ChromeSegmentedControl, {
+        ariaLabel: 'Global ranking board',
+        value: 'shows',
+        scrollToTop: false,
+        tone: 'inset',
+        items: [
+          { id: 'pointsPerShow', label: 'PPS' },
+          { id: 'pickingAverage', label: 'Picking Avg' },
+          { id: 'shows', label: 'Shows' },
+        ],
+      }),
+    );
+
+    expect(html).toContain('role="tablist"');
+    expect(count(html, 'flex-1')).toBe(3);
+    expect(html).toContain('bg-surface-field');
+    expect(html).toContain('bg-surface-panel-strong');
+    expect(html).not.toContain('shadow-inset-glass');
+    expect(html).not.toContain('ring-brand-primary/35');
+    expect(html).not.toContain('bg-brand-primary/15');
+  });
+
   it('renders a nav of equal-width NavLinks for route clusters', () => {
     const html = renderToStaticMarkup(
       React.createElement(

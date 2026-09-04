@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.73.0  
+**Version:** 1.73.0
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -159,7 +159,7 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 
 Public, aggregate-only tour song stats for SEO marketing routes. Written by Cloud Functions Admin SDK (`refreshPublicTourStats` / nightly schedule). **Never** contains full per-show `officialSetlist` arrays. Clients may read; client writes denied.
 
-**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard **`/dashboard/stats/global`** (legacy `/dashboard/tour-stats` redirect, **v1.66.0 / #769**) still reads this collection (REST, `skipCdn`) for Last-date join.
+**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard **`/dashboard/stats/band`** (legacy `/dashboard/tour-stats` redirect, **v1.69.0 / #1004**) still reads this collection (REST, `skipCdn`) for Last-date join.
 
 Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` → `2026-sphere`). Special doc `_index` lists tours for the public filter.
 
@@ -188,6 +188,33 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 `_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`. `showCount` matches doc `tourShowCount` (full post-launch itinerary). `firstShowDate` / `lastShowDate` remain through-today.
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
+
+### 1.14 `global_stats_leaderboards/{docId}` (**v1.70.0 / #1004**)
+
+Functions-owned Global Stats leaderboards for **`/dashboard/stats/global`**. Written by Cloud Functions Admin SDK from materialized `users` fields (`totalPoints`, `showsPlayed`, `careerCorrectSlots`, `seasonStats.{tourKey}`). **Clients `getDoc` these docs + the signed-in `users/{uid}` only — no `users` collection query/scan.**
+
+Doc IDs: **`allTime`** (career) and **`tour:{tourKey}`** (same tour key as `seasonStats` / chrome `?tour=`).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `schemaVersion` | number | `1` |
+| `minShows` | number | Ratio-board gate. Default **3** (`showsPlayed` / tour `shows`). Documented so one-show spikes do not own Points per show or Picking average. The Shows board has **no** ratio gate. |
+| `slotsPerShow` | number | `6` — same as `PROFILE_SLOTS_PER_SHOW` / `FORM_FIELDS.length` |
+| `topN` | number | `50` |
+| `scope` | `'allTime' \| 'tour'` | |
+| `tourKey` | string \| null | Calendar tour label when `scope === 'tour'` |
+| `playerCount` | number | Eligible players scanned for that scope (before top-N slice) |
+| `boards.pointsPerShow` | `{ uid, handle, value, shows, rank }[]` | `totalPoints / shows`. Competition rank. |
+| `boards.pickingAverage` | `{ uid, handle, value, shows, rank }[]` | `correctSlots / (shows * 6)` |
+| `boards.shows` | `{ uid, handle, value, shows, rank }[]` | Show count; no min-shows gate |
+| `trigger` | `'rollup' \| 'scheduled' \| 'admin' \| 'revert'` | Last rebuild source |
+| `rebuiltAt` | Timestamp | Server write time |
+
+Rebuild: after `rollupScoresForShow` / revert (all-time + that show’s tour, soft-fail), nightly **`scheduledGlobalStatsLeaderboardsRefresh`** (08:00 ET), and admin callable **`refreshGlobalStatsLeaderboards`**.
+
+**Out of v1:** avg vintage, Bustout Boost, In most played, pool-scoped boards.
+
+Signed-in read; client writes denied. Admin SDK / Functions write only.
 
 ---
 
@@ -323,6 +350,8 @@ Phish.net integration, live scoring, and public tour-stats refresh. Deployed via
 
 **`public_tour_stats` (#665):** `scheduledPublicTourStatsRefresh` (daily 07:30 ET) and admin callable `refreshPublicTourStats` rebuild aggregate docs. Calendar sync also triggers a refresh after writing `show_calendar/snapshot`.
 
+**`global_stats_leaderboards` (#1004 / v1.70.0):** `scheduledGlobalStatsLeaderboardsRefresh` (daily 08:00 ET) and admin callable `refreshGlobalStatsLeaderboards` rebuild all-time + every tour. `rollupScoresForShow` also rebuilds all-time + the finalized show’s tour (soft-fail). Request: none. Response: `{ ok, docsWritten, usersScanned, tourKeys }`. Admin claim required on the callable.
+
 **Storage object `song-catalog.json` (v1.25.0+, #554):** published by `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog`. Each song object includes `{ name, total, gap, last, debut }` where `debut` is a string (typically `YYYY-MM-DD`) or `""` when unknown. See `docs/SONG_CATALOG.md`. Adding `debut` is a **MINOR** catalog-field addition (clients may ignore unknown fields).
 
 **Storage archive `song-catalog/archive/{stamp}.json` (v1.36.0+, #647):** each catalog sync also writes a dated private snapshot (same JSON payload as live) at `song-catalog/archive/YYYY-MM-DDTHH-mm-ssZ.json` for leakage-safe recommendation backtests (#646). Not public-read (Admin SDK / ops only). Live client path is unchanged. `refreshPhishnetSongCatalog` may return optional `archivePath` (`string | null`) when the archive write succeeded.
@@ -405,7 +434,7 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
 
 **Account primary (**v1.67.0 / #770**):** last player-tab label is **Account** (was Profile). Path prefix stays **`/dashboard/profile/*`** (no new `/dashboard/account` family). Tertiary: **Profile** (`/dashboard/profile`) · **Messages** (`/dashboard/profile/notifications`, inbox only) · **Preferences** (`/dashboard/profile/account` — security, logout, legal, install/PWA, notification prefs). `?openPush=1` and the dashboard install push nudge land on Preferences. Avatar shortcut → Preferences; bell → Messages. **#513 Phase 2:** inbox sections Unopened / Read / Archived; owner `archivedAt` + hard delete. Phase 3 per-channel pref keys are deferred (same `notificationPrefs` keys; cosmetic Push / Email grouping only).
 
-**Stats primary (**v1.66.0 / #769**):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal Stats — career self averages / heatmap), **`/dashboard/stats/global`** (private tour explorer + self overlay from **v1.30.0 / #555**), **`/dashboard/stats/band`** (coming-soon shell; Phish song stats stay on Global). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/global` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Personal hides the global date picker. Global / Band keep the #555 tour scope picker. Global leaderboards (points / picking averages) are deferred. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
+**Stats primary (**v1.66.0 / #769** chrome, **v1.69.0 / #1004** remap, **v1.70.0 / #1004** Global boards, **v1.70.1** trays):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal — All-time | This tour tray; All-time inner Your stats | Top picks; This tour self overlay), **`/dashboard/stats/global`** (All-time | This tour tray, then PPS | Picking Avg | Shows; top 50 paginated 10/page + you-row; Functions-owned `global_stats_leaderboards`), **`/dashboard/stats/band`** (private tour song explorer from **v1.30.0 / #555** — frequency / bustouts / high gaps). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/band` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Every Stats destination uses the chrome tour picker (`showTourScopePicker`); Personal and Global all-time do not restamp with `?tour=`. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — Band’s marketing twin; aggregates only, no self overlay, not under `/dashboard/`. Unchanged in v1.70.1.
 
 **Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
 
