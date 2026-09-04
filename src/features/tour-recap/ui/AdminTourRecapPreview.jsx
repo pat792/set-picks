@@ -2,50 +2,64 @@ import React, { useMemo, useState } from 'react';
 import Card from '../../../shared/ui/Card';
 
 import {
-  SPHERE_2026_META,
-  buildSphere2026EmailAbbreviatedPlainText,
-  buildSphere2026EmailPlainText,
-  buildSphere2026PushPayload,
-} from '../model/sphere2026Recap.js';
-import Sphere2026TourRecapInApp from './Sphere2026TourRecapInApp.jsx';
+  PREVIEW_TOUR_EDITION,
+  buildTourRecapEmailAbbreviatedPlainText,
+  buildTourRecapEmailPlainText,
+  buildTourRecapPushPayload,
+} from '../model/tourRecap.js';
+import TourRecapInApp from './TourRecapInApp.jsx';
 
 /**
- * Admin-only utility: preview recap copy, plain-text email body, and push payload for QA / send pipelines.
+ * Admin-only utility: preview generic tour_recap copy (not a live tour edition).
+ * Sphere ’26 replay lives in the War Room delivery panel below this preview.
  */
 export default function AdminTourRecapPreview() {
+  const edition = PREVIEW_TOUR_EDITION;
   const [rank, setRank] = useState(1);
-  const [points, setPoints] = useState(160);
-  const [wins, setWins] = useState(4);
-  const [showsPlayed, setShowsPlayed] = useState(9);
+  const [points, setPoints] = useState(edition.podium.rows[0].points);
+  const [wins, setWins] = useState(edition.podium.rows[0].wins);
+  const [showsPlayed, setShowsPlayed] = useState(edition.showCount);
 
   const emailTeaserBody = useMemo(
     () =>
-      buildSphere2026EmailAbbreviatedPlainText({
+      buildTourRecapEmailAbbreviatedPlainText({
         rank,
         points,
         wins,
         showsPlayed,
-        participantCount: SPHERE_2026_META.participantCount,
+        participantCount: edition.participantCount,
+        showCount: edition.showCount,
+        tourName: edition.tourName,
+        edition,
       }),
-    [rank, points, wins, showsPlayed],
+    [edition, rank, points, wins, showsPlayed],
   );
 
   const emailFullBody = useMemo(
     () =>
-      buildSphere2026EmailPlainText({
+      buildTourRecapEmailPlainText({
         rank,
         points,
         wins,
         showsPlayed,
-        participantCount: SPHERE_2026_META.participantCount,
+        participantCount: edition.participantCount,
+        showCount: edition.showCount,
+        tourName: edition.tourName,
+        edition,
       }),
-    [rank, points, wins, showsPlayed],
+    [edition, rank, points, wins, showsPlayed],
   );
 
-  const push = useMemo(() => buildSphere2026PushPayload({ rank, points, wins }), [rank, points, wins]);
+  const push = useMemo(
+    () => buildTourRecapPushPayload({ rank, points, wins, edition }),
+    [edition, rank, points, wins],
+  );
 
   return (
     <div className="space-y-4">
+      <p className="text-xs font-bold text-content-secondary">
+        Preview uses the generic Sample Tour fixture — not a live calendar edition.
+      </p>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-xs font-bold uppercase tracking-wider text-content-secondary">
           Rank
@@ -83,12 +97,10 @@ export default function AdminTourRecapPreview() {
           <input
             type="number"
             min={1}
-            max={SPHERE_2026_META.showCount}
+            max={edition.showCount}
             value={showsPlayed}
             onChange={(e) =>
-              setShowsPlayed(
-                Math.min(SPHERE_2026_META.showCount, Math.max(1, Number(e.target.value) || 1)),
-              )
+              setShowsPlayed(Math.min(edition.showCount, Math.max(1, Number(e.target.value) || 1)))
             }
             className="mt-1 w-full rounded-lg border border-border-muted/50 bg-surface-inset px-3 py-2 text-sm font-bold text-white"
           />
@@ -96,11 +108,12 @@ export default function AdminTourRecapPreview() {
       </div>
 
       <Card variant="nested" padding="md" className="max-h-[min(70vh,520px)] overflow-y-auto">
-        <Sphere2026TourRecapInApp
+        <TourRecapInApp
           rank={rank}
           points={points}
           wins={wins}
           showsPlayed={showsPlayed}
+          edition={edition}
         />
       </Card>
 

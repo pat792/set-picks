@@ -426,6 +426,57 @@ const BUILDERS = {
     };
   },
 
+  "tour-recap": (p) => {
+    const handle = handleOf(p);
+    const tourName =
+      (typeof p.tour_name === "string" && p.tour_name.trim()) || "the tour";
+    const rank = p.rank != null ? Number(p.rank) : null;
+    const points = p.points != null ? Number(p.points) : null;
+    const wins = p.wins != null ? Number(p.wins) : null;
+    const teaser =
+      rank === 1
+        ? `You took #1 overall${points != null ? ` with ${points} points` : ""}${
+            wins != null ? ` and ${wins} nightly wins` : ""
+          }.`
+        : rank != null
+          ? `You finished #${rank}${points != null ? ` with ${points} points` : ""}${
+              wins != null ? ` and ${wins} nightly wins` : ""
+            }.`
+          : "Your personalized tour recap is ready.";
+    const assembled = assembleServiceEmail(
+      [
+        `${handle}, ${tourName} is wrapped.`,
+        teaser,
+        "The full podium, honorable mentions, and your recap are in the app.",
+      ],
+      { ctaUrl: STANDINGS_CTA_URL }
+    );
+    return {
+      push: {
+        title: typeof p.push_title === "string" && p.push_title.trim()
+          ? p.push_title.trim()
+          : "Tour recap is in",
+        body:
+          rank === 1
+            ? `You took #1${points != null ? ` with ${points} pts` : ""}${
+                wins != null ? ` and ${wins} nightly wins` : ""
+              }. Open the app for the full wrap-up.`
+            : rank != null
+              ? `You finished #${rank}${points != null ? ` (${points} pts` : ""}${
+                  wins != null ? `, ${wins} wins)` : points != null ? ")" : ""
+                }. Open the app for your personalized recap.`
+              : "Your tour recap is in. Open the app to read it.",
+      },
+      email: {
+        subject: `${tourName} recap is in`,
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: STANDINGS_CTA_URL,
+        ctaLabel: "See standings",
+      },
+    };
+  },
+
   "tour-engagement-reminder": (p) => {
     const assembled = assembleServiceEmail([
       `${handleOf(p)}, you're off to a great start${
