@@ -14,6 +14,7 @@ This directory is the **canonical home** for triggered, templated communications
 | [CTA_ROUTE_AUDIT.md](./CTA_ROUTE_AUDIT.md) | In-app/email CTA label ↔ destination matrix (#551) |
 | [EXPERIMENT_PLAYBOOK.md](./EXPERIMENT_PLAYBOOK.md) | A/B rules, variant assignment, ship/kill criteria |
 | [OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md) | **Optimize autonomy** — cycle order, PM pack template, L2 schedule (#573 / #778) |
+| [SHOW_RECAP_COMPOSER.md](./SHOW_RECAP_COMPOSER.md) | Night `show_recap` composer — arc + your card + relative rank (#985) |
 | [optimize_for.md](./optimize_for.md) | Scheduled goal rotation + override for Optimize kickoffs (#778) |
 
 CLI: `npm run comms:optimize-kickoff` · `npm run comms:show-recap-qa` (#779) · `npm run comms:picks-lock-conversion` (#698)

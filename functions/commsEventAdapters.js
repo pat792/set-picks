@@ -417,6 +417,8 @@ async function deliverPostRollupComms({
       show_score: score,
       top_scorer_handle: topScorerHandle,
       top_score: topScore,
+      global_rank: rankInfo.rank,
+      global_total_pickers: rankInfo.total,
     });
 
     recapRecipients.push({
@@ -806,6 +808,8 @@ async function runScheduledTourRankingsDaily({
         userPicks: pickData.picks,
         actualSetlist,
         show_score: rankInfo?.score ?? null,
+        global_rank: rankInfo?.rank ?? null,
+        global_total_pickers: rankInfo?.total ?? null,
       });
       const payload = {
         ...buildTourRankingsDailyPayloadFields({

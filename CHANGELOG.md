@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.71.0] — 2026-09-04
+
+### Changed
+- **show_recap composer (#985)** — `narrative_line` (inbox Tonight + morning night-para) weaves set-flow arc, which of the player’s slots hit (bustout caught or missed), and night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight + scorecard when context is missing. Existing vars only — no new catalog field. Assigned after the Sprint 14 / #1004 `1.70.1` promote.
+
+---
+
 ## [1.70.1] — 2026-09-04
 
 ### Changed

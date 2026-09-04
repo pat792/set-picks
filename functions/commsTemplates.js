@@ -39,16 +39,42 @@ function handleOf(p) {
  * @param {{ rankScope?: string, rankTense?: "present" | "past" }} [opts]
  * @returns {string} Full sentence including trailing period, or "" if nothing to say.
  */
+/**
+ * True when narrative_line already weaves `#N` rank (#985) — skip the
+ * trailing scorecard rank dump.
+ * @param {Record<string, unknown>} p
+ * @returns {boolean}
+ */
+function narrativeWeavesRank(p) {
+  const n = typeof p.narrative_line === "string" ? p.narrative_line : "";
+  return /#\d+/.test(n);
+}
+
+/**
+ * Omit the scorecard sentence when the composer already covered card + rank.
+ * @param {Record<string, unknown>} p
+ * @returns {boolean}
+ */
+function shouldOmitScorecardAfterNarrative(p) {
+  const n = typeof p.narrative_line === "string" ? p.narrative_line.trim() : "";
+  if (!n) return false;
+  const sentences = n.split(/(?<=[.!?])\s+/).filter(Boolean);
+  return sentences.length >= 2 && narrativeWeavesRank(p);
+}
+
 function buildShowScorecardSentence(
   p,
   { rankScope = "globally", rankTense = "present" } = {}
 ) {
+  if (shouldOmitScorecardAfterNarrative(p)) return "";
+
   /** @type {string[]} */
   const lead = [];
   if (p.show_score != null) {
     lead.push(`scored ${p.show_score} points`);
   }
-  if (p.global_rank != null) {
+  // Rank stays in the composer paragraph when narrative_line already weaves it.
+  if (p.global_rank != null && !narrativeWeavesRank(p)) {
     const of =
       p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : "";
     // Morning `tour_rankings_daily` looks back at last night → past tense.
@@ -310,13 +336,13 @@ const BUILDERS = {
       .filter(Boolean)
       .join(" ");
     const assembled = assembleServiceEmail([para], { ctaUrl: STANDINGS_CTA_URL });
+    // Push stays a short tease — full arc/card/rank lives in inbox + email.
     const pushBodyBits = [
-      narrative,
       p.show_score != null ? `You scored ${p.show_score} points.` : "",
       p.global_rank != null
-        ? `You're now ranked #${p.global_rank}${
+        ? `You're #${p.global_rank}${
             p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""
-          } globally.`
+          }.`
         : "",
       "Open for the full breakdown.",
     ].filter(Boolean);
