@@ -36,18 +36,18 @@ export default function StatsClusterMobileChrome({ items }) {
 
 /**
  * @param {string} personalTo
- * @param {{ badge?: React.ReactNode, onGlobalClick?: () => void }} [opts]
+ * @param {{ badge?: React.ReactNode, onBandClick?: () => void }} [opts]
  */
 export function buildStatsClusterNavItems(personalTo, opts = {}) {
   return [
     { to: personalTo, label: NAV_LABEL_PERSONAL_STATS, end: true },
+    { to: STATS_CLUSTER_PATHS.global, label: NAV_LABEL_GLOBAL_STATS, end: true },
     {
-      to: STATS_CLUSTER_PATHS.global,
-      label: NAV_LABEL_GLOBAL_STATS,
+      to: STATS_CLUSTER_PATHS.band,
+      label: NAV_LABEL_BAND_STATS,
       end: true,
       badge: opts.badge ?? null,
-      onClick: opts.onGlobalClick,
+      onClick: opts.onBandClick,
     },
-    { to: STATS_CLUSTER_PATHS.band, label: NAV_LABEL_BAND_STATS, end: true },
   ];
 }

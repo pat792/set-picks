@@ -19,8 +19,8 @@ export const FEATURE_SPOTLIGHTS = Object.freeze([
     id: 'tour-stats',
     since: '2026-06-01',
     until: '2026-08-31',
-    surfaces: ['stats-global-tab'],
-    path: '/dashboard/stats/global',
+    surfaces: ['stats-band-tab'],
+    path: '/dashboard/stats/band',
   },
   {
     id: 'live-setlist',

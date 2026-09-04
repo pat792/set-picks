@@ -109,11 +109,12 @@ describe('isStatsClusterPath (#769)', () => {
     expect(isPersonalStatsPath(STATS_CLUSTER_PATHS.band)).toBe(false);
   });
 
-  it('scopes the tour picker to Global / Band / legacy hop only', () => {
+  it('scopes the tour picker to every Stats destination plus the legacy hop', () => {
+    expect(isStatsTourScopedPath(STATS_CLUSTER_PATHS.root)).toBe(true);
+    expect(isStatsTourScopedPath(STATS_CLUSTER_PATHS.personal)).toBe(true);
     expect(isStatsTourScopedPath(STATS_CLUSTER_PATHS.global)).toBe(true);
     expect(isStatsTourScopedPath(STATS_CLUSTER_PATHS.band)).toBe(true);
     expect(isStatsTourScopedPath('/dashboard/tour-stats')).toBe(true);
-    expect(isStatsTourScopedPath(STATS_CLUSTER_PATHS.root)).toBe(false);
-    expect(isStatsTourScopedPath(STATS_CLUSTER_PATHS.personal)).toBe(false);
+    expect(isStatsTourScopedPath('/dashboard/standings')).toBe(false);
   });
 });

@@ -20,6 +20,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.69.0] — 2026-09-03
+
+### Added
+- **Stats content remap (#1004)** — Personal owns every *your* stat (expandable all-time above expandable “Your picks this tour”). Band mounts the #555 song explorer. Global is an honest rankings-coming shell until Phase 2 leaderboards.
+
+### Changed
+- **`/dashboard/tour-stats`** — redirects to `/dashboard/stats/band` (preserve `?tour=`). Feature-discovery marker `tour-stats` moves to the Band segment.
+- **Tour picker** — `showTourScopePicker` is a real meta flag. Personal gains the same chrome picker as Standings Tour / Band; all-time stats stay tour-agnostic.
+
+---
+
 ## [1.68.1] — 2026-09-03
 
 ### Changed

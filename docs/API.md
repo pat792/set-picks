@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.68.1  
+**Version:** 1.69.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -159,7 +159,7 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 
 Public, aggregate-only tour song stats for SEO marketing routes. Written by Cloud Functions Admin SDK (`refreshPublicTourStats` / nightly schedule). **Never** contains full per-show `officialSetlist` arrays. Clients may read; client writes denied.
 
-**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard **`/dashboard/stats/global`** (legacy `/dashboard/tour-stats` redirect, **v1.66.0 / #769**) still reads this collection (REST, `skipCdn`) for Last-date join.
+**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard **`/dashboard/stats/band`** (legacy `/dashboard/tour-stats` redirect, **v1.69.0 / #1004**) still reads this collection (REST, `skipCdn`) for Last-date join.
 
 Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` → `2026-sphere`). Special doc `_index` lists tours for the public filter.
 
@@ -403,7 +403,7 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
 
 **Account primary (**v1.67.0 / #770**):** last player-tab label is **Account** (was Profile). Path prefix stays **`/dashboard/profile/*`** (no new `/dashboard/account` family). Tertiary: **Profile** (`/dashboard/profile`) · **Messages** (`/dashboard/profile/notifications`, inbox only) · **Preferences** (`/dashboard/profile/account` — security, logout, legal, install/PWA, notification prefs). `?openPush=1` and the dashboard install push nudge land on Preferences. Avatar shortcut → Preferences; bell → Messages. **#513 Phase 2:** inbox sections Unopened / Read / Archived; owner `archivedAt` + hard delete. Phase 3 per-channel pref keys are deferred (same `notificationPrefs` keys; cosmetic Push / Email grouping only).
 
-**Stats primary (**v1.66.0 / #769**):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal Stats — career self averages / heatmap), **`/dashboard/stats/global`** (private tour explorer + self overlay from **v1.30.0 / #555**), **`/dashboard/stats/band`** (coming-soon shell; Phish song stats stay on Global). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/global` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Personal hides the global date picker. Global / Band keep the #555 tour scope picker. Global leaderboards (points / picking averages) are deferred. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
+**Stats primary (**v1.66.0 / #769** chrome, **v1.69.0 / #1004** content):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal — expandable all-time career stats above expandable tour self overlay), **`/dashboard/stats/global`** (Phase 1 rankings-coming shell; leaderboards deferred), **`/dashboard/stats/band`** (private tour song explorer from **v1.30.0 / #555** — frequency / bustouts / high gaps). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/band` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Every Stats destination uses the chrome tour picker (`showTourScopePicker`); Personal all-time does not restamp with `?tour=`. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — Band’s marketing twin; aggregates only, no self overlay, not under `/dashboard/`.
 
 **Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
 

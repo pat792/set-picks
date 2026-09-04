@@ -147,6 +147,7 @@ const TILE_DEFS = {
  *   overlayLoading: boolean,
  *   onOpenScoringRules?: () => void,
  *   surface?: 'dashboard' | 'public',
+ *   showSelfOverlay?: boolean,
  * }} props
  */
 export default function TourStatsView({
@@ -160,8 +161,10 @@ export default function TourStatsView({
   overlayLoading,
   onOpenScoringRules,
   surface = 'dashboard',
+  showSelfOverlay = true,
 }) {
   const isPublic = surface === 'public';
+  const renderSelfOverlay = !isPublic && showSelfOverlay;
   const uniqueTileLabel = isPublic
     ? 'Unique songs this tour'
     : TILE_DEFS.unique.label;
@@ -269,61 +272,11 @@ export default function TourStatsView({
           />
         </div>
 
-        {overlayLoading ? (
-          <Card
-            variant="frosted"
-            padding="none"
-            className={`${STANDINGS_CARD_SHELL} flex items-center gap-2`}
-          >
-            <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden />
-            <span className="text-sm font-semibold text-content-secondary">
-              Stacking your picks…
-            </span>
-          </Card>
-        ) : overlay ? (
-          <TourStatsSectionCard
-            title="Your picks this tour"
-            headerTone="muted"
-          >
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatTile
-                label="Shows"
-                value={overlay.showsPicked}
-                accent="personal"
-                definition="Tour shows where you submitted picks."
-              />
-              <StatTile
-                label="Picking average"
-                value={formatAvgCorrectPicksPerShow(
-                  overlay.showsPicked > 0
-                    ? overlay.slotsCorrect /
-                        (overlay.showsPicked * PROFILE_SLOTS_PER_SHOW)
-                    : null
-                )}
-                sub={
-                  overlay.showsPicked > 0
-                    ? `${overlay.slotsCorrect}/${
-                        overlay.showsPicked * PROFILE_SLOTS_PER_SHOW
-                      } correct`
-                    : null
-                }
-                accent="personal"
-                definition={`Like a batting average in baseball — correct picks ÷ total picks (${PROFILE_SLOTS_PER_SHOW} per show) across your tour shows (.500 means half your picks hit).`}
-              />
-              <StatTile
-                label="Bustout Boost"
-                value={overlay.bustoutHits}
-                accent="personalBustout"
-                definition={`Picks that earned the Bustout Boost — a hit on a song with a pre-show gap ≥ ${BUSTOUT_MIN_GAP}.`}
-              />
-              <StatTile
-                label="In most played"
-                value={overlay.topSongOverlap}
-                accent="personal"
-                definition={`How many of this tour's top ${TOUR_STATS_TOP_N} most-played songs you've picked.`}
-              />
-            </div>
-          </TourStatsSectionCard>
+        {renderSelfOverlay ? (
+          <TourStatsSelfOverlay
+            overlay={overlay}
+            overlayLoading={overlayLoading}
+          />
         ) : null}
 
         <TourStatsSectionCard
@@ -746,5 +699,125 @@ function StatTile({ label, value, definition, accent = 'default', sub = null }) 
         </p>
       ) : null}
     </Card>
+  );
+}
+
+/**
+ * Personal tour rollup — “Your picks this tour” (#1004).
+ * Used on Personal Stats; Band hides this via `showSelfOverlay={false}`.
+ *
+ * @param {{
+ *   overlay: null | {
+ *     showsPicked: number,
+ *     slotsFilled: number,
+ *     slotsCorrect: number,
+ *     bustoutHits: number,
+ *     topSongOverlap: number,
+ *   },
+ *   overlayLoading: boolean,
+ *   calendarLoading?: boolean,
+ *   setlistLoading?: boolean,
+ *   hasTour?: boolean,
+ *   setlistError?: unknown,
+ *   showEmpty?: boolean,
+ * }} props
+ */
+export function TourStatsSelfOverlay({
+  overlay,
+  overlayLoading,
+  calendarLoading = false,
+  setlistLoading = false,
+  hasTour = true,
+  setlistError = null,
+  showEmpty = false,
+}) {
+  if (calendarLoading || setlistLoading || overlayLoading) {
+    return (
+      <Card
+        variant="frosted"
+        padding="none"
+        className={`${STANDINGS_CARD_SHELL} flex items-center gap-2`}
+      >
+        <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden />
+        <span className="text-sm font-semibold text-content-secondary">
+          Stacking your picks…
+        </span>
+      </Card>
+    );
+  }
+
+  if (!hasTour) {
+    return (
+      <Card variant="frosted" padding="none" className={STANDINGS_CARD_SHELL}>
+        <p className="text-sm font-semibold text-content-secondary">
+          No tour is available yet. Your tour picks appear once a post-launch
+          tour has shows on or before today.
+        </p>
+      </Card>
+    );
+  }
+
+  if (setlistError) {
+    return (
+      <Card variant="danger" padding="none" className={STANDINGS_CARD_SHELL}>
+        <p className="text-sm font-semibold text-red-300">
+          Couldn’t load tour setlists. Try again in a moment.
+        </p>
+      </Card>
+    );
+  }
+
+  if (!overlay) {
+    if (!showEmpty) return null;
+    return (
+      <Card variant="frosted" padding="none" className={STANDINGS_CARD_SHELL}>
+        <p className="text-sm font-semibold text-content-secondary">
+          Your tour picks appear here after you lock a show this tour.
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <TourStatsSectionCard title="Your picks this tour" headerTone="muted">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatTile
+          label="Shows"
+          value={overlay.showsPicked}
+          accent="personal"
+          definition="Tour shows where you submitted picks."
+        />
+        <StatTile
+          label="Picking average"
+          value={formatAvgCorrectPicksPerShow(
+            overlay.showsPicked > 0
+              ? overlay.slotsCorrect /
+                  (overlay.showsPicked * PROFILE_SLOTS_PER_SHOW)
+              : null,
+          )}
+          sub={
+            overlay.showsPicked > 0
+              ? `${overlay.slotsCorrect}/${
+                  overlay.showsPicked * PROFILE_SLOTS_PER_SHOW
+                } correct`
+              : null
+          }
+          accent="personal"
+          definition={`Like a batting average in baseball — correct picks ÷ total picks (${PROFILE_SLOTS_PER_SHOW} per show) across your tour shows (.500 means half your picks hit).`}
+        />
+        <StatTile
+          label="Bustout Boost"
+          value={overlay.bustoutHits}
+          accent="personalBustout"
+          definition={`Picks that earned the Bustout Boost — a hit on a song with a pre-show gap ≥ ${BUSTOUT_MIN_GAP}.`}
+        />
+        <StatTile
+          label="In most played"
+          value={overlay.topSongOverlap}
+          accent="personal"
+          definition={`How many of this tour's top ${TOUR_STATS_TOP_N} most-played songs you've picked.`}
+        />
+      </div>
+    </TourStatsSectionCard>
   );
 }
