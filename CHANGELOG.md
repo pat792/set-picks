@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.70.1] — 2026-09-04
+
+### Changed
+- **Personal / Global Stats display (#1004)** — All-time | This tour trays replace stacked expandables (All-time default). Personal All-time switches Your stats | Top picks; Global switches PPS | Picking Avg | Shows. Global boards page the top 50 at 10 rows and pin the you-row when it is off-page. In-page trays use `ChromeSegmentedControl` `tone="inset"` so they do not clone tertiary chrome.
+
+---
+
 ## [1.70.0] — 2026-09-04
 
 ### Added

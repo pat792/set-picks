@@ -2,6 +2,8 @@ import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 
 /** Must match `functions/globalStatsLeaderboards.js`. */
 export const GLOBAL_LEADERBOARD_TOP_N = 50;
+/** Client pager over the Functions top-50 — does not fetch beyond 50. */
+export const GLOBAL_LEADERBOARD_PAGE_SIZE = 10;
 export const GLOBAL_LEADERBOARD_MIN_SHOWS = 3;
 export const GLOBAL_LEADERBOARD_SLOTS_PER_SHOW = FORM_FIELDS.length;
 export const ALL_TIME_LEADERBOARD_DOC_ID = 'allTime';
@@ -107,6 +109,31 @@ export function formatBoardValue(boardKey, value) {
  */
 export function tourLeaderboardDocId(tourKey) {
   return `tour:${tourKey}`;
+}
+
+/**
+ * Clamp a 0-based page into a window over `total` ranked rows.
+ *
+ * @param {number} total
+ * @param {number} page
+ * @param {number} [pageSize]
+ * @returns {{ current: number, maxPage: number, start: number, end: number }}
+ */
+export function leaderboardPageWindow(
+  total,
+  page,
+  pageSize = GLOBAL_LEADERBOARD_PAGE_SIZE
+) {
+  const safeTotal = Number.isFinite(total) && total > 0 ? total : 0;
+  const size =
+    Number.isFinite(pageSize) && pageSize > 0
+      ? pageSize
+      : GLOBAL_LEADERBOARD_PAGE_SIZE;
+  const maxPage = Math.max(0, Math.ceil(safeTotal / size) - 1);
+  const current = Math.min(Math.max(0, Number.isFinite(page) ? page : 0), maxPage);
+  const start = safeTotal === 0 ? 0 : current * size;
+  const end = Math.min(start + size, safeTotal);
+  return { current, maxPage, start, end };
 }
 
 /**

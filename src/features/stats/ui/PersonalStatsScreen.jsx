@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { ProfileSelfStatsPanel } from '../../profile';
 import { useStandingsTourSelection } from '../../scoring';
 import { TourStatsSelfOverlay, useTourStatsScreen } from '../../tour-stats';
 import { useShowCalendar } from '../../show-calendar';
-import StatsExpandableSection from './StatsExpandableSection';
+import StatsScopeToggle from './StatsScopeToggle';
+
+const SCOPE_ITEMS = [
+  { id: 'allTime', label: 'All-time' },
+  { id: 'tour', label: 'This tour' },
+];
+
+const PERSONAL_CARD_ITEMS = [
+  { id: 'stats', label: 'Your stats' },
+  { id: 'picks', label: 'Top picks' },
+];
 
 /**
- * Personal Stats stack (#1004): all-time (tour-agnostic) above a tour rollup.
- * Career never unmounts; `?tour=` restamps only the overlay block.
+ * Personal Stats (#1004): All-time / This tour tray. All-time stays mounted.
  *
  * @param {{ user?: { uid?: string } | null }} props
  */
 export default function PersonalStatsScreen({ user }) {
+  const [scope, setScope] = useState('allTime');
+  const [personalCard, setPersonalCard] = useState('stats');
   const { showDatesByTour, loading: calendarLoading } = useShowCalendar();
   const { selectedTour } = useStandingsTourSelection(showDatesByTour);
   const screen = useTourStatsScreen({
@@ -23,19 +34,28 @@ export default function PersonalStatsScreen({ user }) {
 
   return (
     <div className="space-y-4">
-      <StatsExpandableSection
-        title="All-time"
-        hint="Career stats across every show you've played. The tour picker does not change this block."
-        defaultOpen
-      >
-        <ProfileSelfStatsPanel uid={user?.uid} />
-      </StatsExpandableSection>
+      <StatsScopeToggle
+        ariaLabel="Personal stats scope"
+        value={scope}
+        onChange={setScope}
+        items={SCOPE_ITEMS}
+        hint="All-time is every show you've played. This tour uses the picker above."
+        hintLabel="Personal stats scope"
+      />
 
-      <StatsExpandableSection
-        title="This tour"
-        hint="Your picks for the tour selected in the picker above."
-        defaultOpen
-      >
+      <div hidden={scope !== 'allTime'}>
+        <StatsScopeToggle
+          ariaLabel="All-time personal cards"
+          value={personalCard}
+          onChange={setPersonalCard}
+          items={PERSONAL_CARD_ITEMS}
+        />
+        <div className="mt-3">
+          <ProfileSelfStatsPanel uid={user?.uid} section={personalCard} />
+        </div>
+      </div>
+
+      <div hidden={scope !== 'tour'}>
         <TourStatsSelfOverlay
           overlay={screen.overlay}
           overlayLoading={screen.overlayLoading}
@@ -45,7 +65,7 @@ export default function PersonalStatsScreen({ user }) {
           setlistError={screen.setlistError}
           showEmpty
         />
-      </StatsExpandableSection>
+      </div>
     </div>
   );
 }
