@@ -38,6 +38,9 @@ const {
 } = require("./postShowRollupPush");
 const { deliverPostRollupComms } = require("./commsEventAdapters");
 const { awardBadgesForUsers } = require("./badgeAwards");
+const {
+  rebuildGlobalStatsLeaderboardsSafe,
+} = require("./globalStatsLeaderboards");
 
 /** Same invariant as `adminRollupApi.js` / `profileApi.js`. */
 const MAX_FIRESTORE_BATCH_WRITES = 500;
@@ -345,6 +348,14 @@ async function runRollupForShow({
         msg,
       });
     }
+
+    await rebuildGlobalStatsLeaderboardsSafe({
+      db,
+      admin,
+      tourKey,
+      trigger: "rollup",
+      logger,
+    });
   }
 
   return {

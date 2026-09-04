@@ -3,17 +3,26 @@ import { NavLink } from 'react-router-dom';
 
 import { scrollAppToTop } from '../lib/scrollAppToTop';
 
-const trayClass =
-  'flex w-full min-w-0 gap-1 rounded-xl border border-border-subtle/60 bg-surface-panel-strong p-1 shadow-inset-glass';
-
-const segmentBase =
-  'relative flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2 text-center text-[11px] font-black uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
-
-const segmentActive =
-  'bg-brand-primary/15 text-brand-primary ring-1 ring-inset ring-brand-primary/35';
-
-const segmentInactive =
-  'text-content-secondary hover:bg-surface-inset hover:text-white';
+const TONES = {
+  chrome: {
+    tray:
+      'flex w-full min-w-0 gap-1 rounded-xl border border-border-subtle/60 bg-surface-panel-strong p-1 shadow-inset-glass',
+    segment:
+      'relative flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2 text-center text-[11px] font-black uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg',
+    active:
+      'bg-brand-primary/15 text-brand-primary ring-1 ring-inset ring-brand-primary/35',
+    inactive: 'text-content-secondary hover:bg-surface-inset hover:text-white',
+  },
+  /** In-page filters (Stats All-time / boards). Same layout, recessed vs chrome. */
+  inset: {
+    tray:
+      'flex w-full min-w-0 gap-1 rounded-lg border border-border-subtle/30 bg-surface-field p-0.5',
+    segment:
+      'relative flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md px-2 py-1.5 text-center text-[10px] font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg',
+    active: 'bg-surface-panel-strong text-white',
+    inactive: 'text-content-secondary hover:bg-surface-inset/70 hover:text-white',
+  },
+};
 
 /**
  * Dashboard tertiary chrome (#765 / #609): rectangular equal-width tray.
@@ -30,6 +39,8 @@ const segmentInactive =
  *   className?: string,
  *   value?: string,
  *   onChange?: (id: string) => void,
+ *   scrollToTop?: boolean,
+ *   tone?: 'chrome' | 'inset',
  *   items: Array<{
  *     id?: string,
  *     to?: string,
@@ -47,14 +58,17 @@ export default function ChromeSegmentedControl({
   className = '',
   value,
   onChange,
+  scrollToTop = true,
+  tone = 'chrome',
   items,
 }) {
+  const palette = TONES[tone] ?? TONES.chrome;
   const isNav = items.some((item) => item.to != null);
 
   if (isNav) {
     return (
       <nav
-        className={[trayClass, className].filter(Boolean).join(' ')}
+        className={[palette.tray, className].filter(Boolean).join(' ')}
         aria-label={ariaLabel}
       >
         {items.map(({ to, label, end, icon: Icon, badge, onClick }) => (
@@ -63,11 +77,11 @@ export default function ChromeSegmentedControl({
             to={to}
             end={end}
             onClick={(event) => {
-              scrollAppToTop();
+              if (scrollToTop) scrollAppToTop();
               onClick?.(event);
             }}
             className={({ isActive }) =>
-              [segmentBase, isActive ? segmentActive : segmentInactive].join(' ')
+              [palette.segment, isActive ? palette.active : palette.inactive].join(' ')
             }
           >
             {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
@@ -83,7 +97,7 @@ export default function ChromeSegmentedControl({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={[trayClass, className].filter(Boolean).join(' ')}
+      className={[palette.tray, className].filter(Boolean).join(' ')}
     >
       {items.map(({ id, label, icon: Icon, badge }) => {
         const selected = value === id;
@@ -94,10 +108,13 @@ export default function ChromeSegmentedControl({
             role="tab"
             aria-selected={selected}
             onClick={() => {
-              scrollAppToTop();
+              if (scrollToTop) scrollAppToTop();
               onChange?.(id);
             }}
-            className={[segmentBase, selected ? segmentActive : segmentInactive].join(' ')}
+            className={[
+              palette.segment,
+              selected ? palette.active : palette.inactive,
+            ].join(' ')}
           >
             {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
             <span className="truncate">{label}</span>

@@ -63,6 +63,22 @@ days**, file a materialize follow-up:
 Thresholds are centralized in `PROFILE_STATS_TELEMETRY_THRESHOLDS` (same
 module) so product + engineering share a single source of truth.
 
+## Global Stats leaderboards (#1004 Phase 2)
+
+`/dashboard/stats/global` must **not** scan `users` from the client.
+
+Read formula per visit:
+
+```
+reads_per_view = 1                          // global_stats_leaderboards/allTime
+               + 1                          // global_stats_leaderboards/tour:{tourKey}
+               + 0 or 1                     // users/{uid} only if Auth profile is not already live
+```
+
+Ratio boards (Points per show, Picking average) require **`showsPlayed >= 3`** (tour boards: `seasonStats.{tourKey}.shows >= 3`) so a one-show spike cannot own the list. The Shows board has no ratio gate. Constants live in `functions/globalStatsLeaderboards.js` and `src/features/stats/model/globalLeaderboardRanking.js` (`GLOBAL_LEADERBOARD_MIN_SHOWS`).
+
+Rebuild is Functions-owned (`rollupScoresForShow`, nightly schedule, admin callable) from materialized `users` fields. See `docs/API.md` §1.14.
+
 ## Materialization follow-up (out of scope for #220)
 
 When the thresholds trip, the natural next step is to materialize

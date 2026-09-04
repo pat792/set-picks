@@ -116,10 +116,12 @@ const CASES = [
       layoutDesktopHeading: null,
       ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
+      isStandingsTourView: true,
+      showTourScopePicker: true,
     },
   },
   {
-    // #769: legacy hop — Stats primary stays active; tour picker; redirects to Global.
+    // #1004: legacy hop — Stats primary stays active; tour picker; redirects to Band.
     path: '/dashboard/tour-stats',
     expect: {
       contextTitle: NAV_LABEL_STATS,
@@ -127,11 +129,12 @@ const CASES = [
       layoutDesktopHeading: null,
       ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
-      isStandingsTourView: true,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
     },
   },
   {
-    // #769: Personal Stats — career scoped; no date picker.
+    // #1004: Personal Stats — tour picker scopes the rollup only; no date picker.
     path: '/dashboard/stats',
     expect: {
       contextTitle: NAV_LABEL_STATS,
@@ -140,6 +143,7 @@ const CASES = [
       ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
       isStandingsTourView: false,
+      showTourScopePicker: true,
     },
   },
   {
@@ -151,10 +155,11 @@ const CASES = [
       ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
       isStandingsTourView: false,
+      showTourScopePicker: true,
     },
   },
   {
-    // #769: Global Stats — tour scope picker, no date picker.
+    // #1004: Global Stats — tour picker stays (Phase 2 boards may be tour-scoped).
     path: '/dashboard/stats/global',
     expect: {
       contextTitle: NAV_LABEL_STATS,
@@ -162,7 +167,8 @@ const CASES = [
       layoutDesktopHeading: null,
       ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
-      isStandingsTourView: true,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
     },
   },
   {
@@ -173,7 +179,8 @@ const CASES = [
       layoutDesktopHeading: null,
       ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
-      isStandingsTourView: true,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
     },
   },
   {

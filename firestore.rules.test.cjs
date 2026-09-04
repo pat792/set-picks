@@ -563,6 +563,39 @@ test("rollup_audit: client writes always rejected (even admin)", async () => {
   );
 });
 
+// ─── global_stats_leaderboards/{docId} (#1004) ───────────────────────────────
+
+test("global_stats_leaderboards: signed-in user may read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "global_stats_leaderboards", "allTime"), {
+      schemaVersion: 1,
+      boards: { shows: [] },
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(getDoc(doc(db, "global_stats_leaderboards", "allTime")));
+});
+
+test("global_stats_leaderboards: anon cannot read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "global_stats_leaderboards", "allTime"), {
+      schemaVersion: 1,
+    });
+  });
+  await assertFails(
+    getDoc(doc(anon(), "global_stats_leaderboards", "allTime"))
+  );
+});
+
+test("global_stats_leaderboards: client writes always rejected (even admin)", async () => {
+  const db = signedInAs("mod", { admin: true });
+  await assertFails(
+    setDoc(doc(db, "global_stats_leaderboards", "allTime"), {
+      boards: { shows: [] },
+    })
+  );
+});
+
 // ─── comms_email_engagement/{resendEmailId} ──────────────────────────────────
 
 test("comms_email_engagement: no client read or write (even admin claim)", async () => {
