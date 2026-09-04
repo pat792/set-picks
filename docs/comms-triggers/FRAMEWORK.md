@@ -93,7 +93,7 @@ EVENT (Firestore onCreate/onUpdate · scheduler cron · post-grade hook · live-
    | Firestore `onCreate users/{uid}` | `account_welcome` |
    | Firestore `onUpdate picks/{pickId}` (lock) | `picks_confirmed` |
    | `onSchedule` cron | `tour_countdown`, `tour_rankings_daily` |
-   | post-grade hook after `rollupScoresForShow` | `show_recap`, `tour_engagement_reminder` |
+   | post-grade hook after `rollupScoresForShow` | `show_recap`, `tour_engagement_reminder`, `tour_recap` (final show of tour only) |
    | live-scoring hook | `score_first_points`, `score_leader` |
 
 3. **Pluggable, idempotent channel workers** — each returns `{ ok, skipReason }` and shares one delivery-log contract so re-ticks / retries never double-send:

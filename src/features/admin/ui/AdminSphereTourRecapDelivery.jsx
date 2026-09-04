@@ -4,8 +4,8 @@ import { deliverSphere2026TourRecapInbox } from '../api/sphereTourRecapDeliveryA
 import ConfirmationModal from '../../../shared/ui/ConfirmationModal/ConfirmationModal';
 
 /**
- * War Room: dry-run / execute Sphere ’26 recap inbox delivery (#120).
- * Requires admin claim; callable reads `picks` for Sphere Run dates server-side.
+ * War Room replay / QA: Sphere ’26 recap inbox delivery (#120 / #510).
+ * Not the production `tour_recap` path. Requires admin claim.
  */
 export default function AdminSphereTourRecapDelivery() {
   const [busy, setBusy] = useState(false);
@@ -46,8 +46,10 @@ export default function AdminSphereTourRecapDelivery() {
   return (
     <div className="space-y-4">
       <p className="text-sm font-bold leading-relaxed text-content-secondary">
-        Computes tour totals from graded picks on all nine Sphere inaugural dates (same rules as
-        Tour standings), then writes{' '}
+        Replay / QA only — production end-of-tour recaps use the automated{' '}
+        <code className="rounded bg-surface-inset px-1 font-mono text-xs text-white">tour_recap</code>{' '}
+        adapter. This callable still computes totals from graded picks on the nine Sphere inaugural
+        dates (same rules as Tour standings), then writes{' '}
         <code className="rounded bg-surface-inset px-1 font-mono text-xs text-white">
           users/&lt;uid&gt;/commsInbox/sphere-2026-inaugural
         </code>{' '}

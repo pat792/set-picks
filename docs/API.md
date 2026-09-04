@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.68.1  
+**Version:** 1.73.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -195,9 +195,9 @@ Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET
 
 All callables are in region `us-central1`. Requests must be authenticated Firebase users. Admin-only callables additionally require the `admin` custom claim.
 
-### 2.1 `deliverSphere2026TourRecapInbox` (admin-only)
+### 2.1 `deliverSphere2026TourRecapInbox` (admin-only, replay / QA)
 
-Delivers the Sphere 2026 tour recap to a set of recipients.
+Historical Sphere ’26 inbox + push fan-out. **Not** the production `tour_recap` path (#510). Use War Room dry-run / execute or `functions/scripts/deliverSphere2026TourRecapInbox.js` for backfill and incident replay only. Live end-of-tour recaps fire from the post-rollup adapter (`deliverTourRecapIfFinalShow` → `deliverCommsTrigger`).
 
 **Request:**
 ```json
@@ -339,13 +339,15 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 |--------|---------|--------------|
 | `commsOnUserProfileWrite` | `account_welcome` | `users/{uid}` write when handle first appears |
 | `commsOnPickWrite` | `picks_confirmed` | `picks/{pickId}` create with non-empty picks |
-| Post-rollup hook | `show_recap`, `tour_engagement_reminder` | `rollupScoresForShow` completion |
+| Post-rollup hook | `show_recap`, `tour_engagement_reminder`, `tour_recap` (final show of tour) | `rollupScoresForShow` completion |
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
 | `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily` | Daily 8am PT cron (morning-after show) |
 | `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (window tracks per-show lock from ticket-time+20 or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
+
+**v1.73.0+ (#510):** `tour_recap` is a P1 `results_recap` batch trigger. Audience is users with ≥1 graded pick on any show in that tour. Channels: in-app, push, abbreviated email. Prefs: `notificationPrefs.results`. Dedup: `tour_recap:{tourId}:{uid}`. Night `show_recap` is unchanged. Sphere ’26 (`deliverSphere2026TourRecapInbox`) is replay/QA only.
 
 ### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
 

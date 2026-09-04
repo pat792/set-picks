@@ -101,6 +101,30 @@ test("unknown template falls back to a generic payload", async () => {
   assert.equal(hasTemplate("does-not-exist"), false);
 });
 
+test("tour-recap push and email are rank-aware teasers without Sphere live IDs", async () => {
+  const champ = await renderCommsTemplate("tour-recap", {
+    handle: "Pat",
+    rank: 1,
+    points: 180,
+    wins: 3,
+    tour_name: "Sample Tour",
+  });
+  assert.equal(champ.inApp.templateId, "tour-recap");
+  assert.match(champ.push.title, /Tour recap is in/);
+  assert.match(champ.push.body, /#1/);
+  assert.match(champ.email.subject, /Sample Tour/);
+  assert.doesNotMatch(`${champ.push.title} ${champ.push.body} ${champ.email.text}`, /sphere-2026/i);
+
+  const mid = await renderCommsTemplate("tour-recap", {
+    handle: "Pat",
+    rank: 8,
+    points: 110,
+    wins: 1,
+    tour_name: "Sample Tour",
+  });
+  assert.match(mid.push.body, /#8/);
+});
+
 test("show-recap push surfaces score + rank when present", async () => {
   const out = await renderCommsTemplate("show-recap", { show_score: 70, global_rank: 4 });
   assert.match(out.push.body, /70/);
