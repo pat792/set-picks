@@ -62,6 +62,9 @@ const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorke
 const { getTriggerSpec } = require("./commsCatalog");
 const { refreshPublicTourStats } = require("./publicTourStats");
 const {
+  rebuildGlobalStatsLeaderboards,
+} = require("./globalStatsLeaderboards");
+const {
   verifyResendWebhookPayload,
   handleResendWebhookEvent,
 } = require("./commsResendWebhook");
@@ -1746,6 +1749,64 @@ exports.refreshPhishnetShowCalendar = onCall(
       throw new HttpsError(
         "failed-precondition",
         `refreshPhishnetShowCalendar failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Nightly rebuild of Global Stats leaderboard aggregates (#1004).
+ * Catch-up for rollup-hook misses; Admin SDK scan of `users` only.
+ */
+exports.scheduledGlobalStatsLeaderboardsRefresh = onSchedule(
+  {
+    schedule: "0 8 * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION, // pragma: allowlist secret
+    timeoutSeconds: 300,
+    memory: "512MiB",
+  },
+  async () => {
+    await rebuildGlobalStatsLeaderboards({
+      db,
+      admin,
+      allTours: true,
+      trigger: "scheduled",
+      logger,
+    });
+    return null;
+  }
+);
+
+/**
+ * Admin-only on-demand rebuild of Global Stats leaderboards (#1004).
+ */
+exports.refreshGlobalStatsLeaderboards = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION, // pragma: allowlist secret
+    invoker: "public",
+    enforceAppCheck: false,
+    timeoutSeconds: 300,
+    memory: "512MiB",
+  },
+  async (request) => {
+    try {
+      assertAdminClaim(request);
+      const result = await rebuildGlobalStatsLeaderboards({
+        db,
+        admin,
+        allTours: true,
+        trigger: "admin",
+        logger,
+      });
+      return { ok: true, ...result };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshGlobalStatsLeaderboards unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshGlobalStatsLeaderboards failed: ${msg}`
       );
     }
   }
