@@ -162,6 +162,11 @@ async function deliverCommsTrigger({
     const rendered = await renderCommsTemplate(spec.templateId, recipient.payload || {});
 
     // 4) Dispatch to each declared channel that has a worker
+    const campaignId =
+      typeof vars.campaignId === "string" && vars.campaignId.trim()
+        ? vars.campaignId.trim()
+        : null;
+
     const ctxBase = {
       db,
       admin,
@@ -173,6 +178,7 @@ async function deliverCommsTrigger({
       dryRun,
       forceResend,
       bypassDailyCap,
+      campaignId,
       logger,
     };
 
@@ -225,6 +231,10 @@ async function deliverCommsTrigger({
 
     // 7) Persist dedup record (only on real delivery).
     if (anyDelivered && !dryRun && dedupRef) {
+      const resendEmailId =
+        typeof channelResults.email?.id === "string" && channelResults.email.id.trim()
+          ? channelResults.email.id.trim()
+          : null;
       await dedupRef.set(
         {
           kind: "comms",
@@ -234,6 +244,8 @@ async function deliverCommsTrigger({
           channels: deliveredChannels,
           delivered: true,
           decidedAt: admin.firestore.FieldValue.serverTimestamp(),
+          ...(campaignId ? { campaignId } : {}),
+          ...(resendEmailId ? { resendEmailId } : {}),
         },
         { merge: true }
       );

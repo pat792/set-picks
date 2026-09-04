@@ -231,6 +231,15 @@ service cloud.firestore {
     }
 
     /**
+     * Resend email open/click plane (#512 Slice A). Written only by
+     * `commsResendWebhook` (Admin SDK). Clients have no access — Slice B
+     * reminder audience resolution is server-side.
+     */
+    match /comms_email_engagement/{resendEmailId} {
+      allow read, write: if false;
+    }
+
+    /**
      * Self-serve account deletion audit (`deleteAccountWithAudit` callable).
      * Written only via Admin SDK; no client access.
      */
