@@ -229,7 +229,7 @@ export default function SongAutocomplete({
                   e.preventDefault();
                   handleSelect(songName);
                 }}
-                className={`flex cursor-pointer flex-col gap-1 border-b border-border-muted/50 p-3 transition-colors last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
+                className={`flex cursor-pointer flex-col gap-1 border-b border-border-muted/50 p-3 transition-colors last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4 sm:gap-y-1 ${
                   isKeyboardActive
                     ? 'bg-[#1e293b] ring-1 ring-inset ring-brand/50'
                     : 'md:hover:bg-[#1e293b]'
@@ -254,7 +254,7 @@ export default function SongAutocomplete({
                 </div>
                 
                 {typeof song !== 'string' && (
-                  <div className="inline-flex flex-wrap items-baseline justify-start sm:justify-end gap-x-1.5 gap-y-0.5 text-xs sm:text-sm font-medium text-slate-400 tabular-nums text-left sm:text-right">
+                  <div className="inline-flex shrink-0 flex-wrap items-baseline justify-start gap-x-1.5 gap-y-0.5 text-left text-xs font-medium tabular-nums text-slate-400 sm:justify-end sm:text-right sm:text-sm">
                     <span className="whitespace-nowrap">
                       <span className="text-slate-500">Total:</span> {songTotal}
                     </span>

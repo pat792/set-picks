@@ -193,15 +193,20 @@ export default function PicksScorecardCard({
                   data-scorecard-kind={grade?.kind}
                 >
                   <p className={SCORECARD_SLOT_LABEL}>{slot.label}</p>
-                  <p className={`mt-0.5 flex items-start gap-1.5 ${slotTitleClass(chrome)}`}>
+                  <p className={`mt-0.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 ${slotTitleClass(chrome)}`}>
                     {chrome.showCheck ? (
                       <Check
-                        className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${SCORECARD_SLOT_CHECK[chrome.checkTone] || ''}`}
+                        className={`h-3.5 w-3.5 shrink-0 self-center ${SCORECARD_SLOT_CHECK[chrome.checkTone] || ''}`}
                         strokeWidth={2.75}
                         aria-hidden
                       />
                     ) : null}
-                    <span className="min-w-0">{slot.song}</span>
+                    <span className="min-w-0 break-words">{slot.song}</span>
+                    {odds ? (
+                      <span className="shrink-0 tabular-nums text-sm font-semibold text-violet-200/90">
+                        {odds}
+                      </span>
+                    ) : null}
                     {statusLabel ? <span className="sr-only">{statusLabel}</span> : null}
                   </p>
                   {showOverlap ? (
@@ -210,9 +215,7 @@ export default function PicksScorecardCard({
                     </p>
                   ) : null}
                   {odds ? (
-                    <p className={SCORECARD_METRIC}>
-                      {odds} {SCORECARD_ODDS_HINT}
-                    </p>
+                    <p className={SCORECARD_METRIC}>{SCORECARD_ODDS_HINT}</p>
                   ) : null}
                 </li>
               );

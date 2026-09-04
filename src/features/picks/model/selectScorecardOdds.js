@@ -16,8 +16,9 @@ export const SCORECARD_ODDS_UNKNOWN_LABEL_COMPACT = '<1';
 export function artifactTargetsDate(artifact, selectedDate) {
   if (!artifact || typeof artifact !== 'object') return false;
   const targetDate =
-    typeof artifact.targetShow?.date === 'string' ? artifact.targetShow.date : '';
-  return Boolean(selectedDate && targetDate && selectedDate === targetDate);
+    typeof artifact.targetShow?.date === 'string' ? artifact.targetShow.date.trim() : '';
+  const date = typeof selectedDate === 'string' ? selectedDate.trim() : '';
+  return Boolean(date && targetDate && date === targetDate);
 }
 
 /**

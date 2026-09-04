@@ -32,9 +32,15 @@ import { usePickRecommendations } from './usePickRecommendations';
  *   user: { uid?: string } | null | undefined,
  *   selectedDate: string | undefined,
  *   picksForm?: ReturnType<typeof usePicksForm>,
+ *   artifact?: object | null,
  * }} args
  */
-export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp }) {
+export function usePicksScorecard({
+  user,
+  selectedDate,
+  picksForm: picksFormProp,
+  artifact: artifactProp,
+}) {
   const { showDates, showDatesByTour } = useShowCalendar();
   const localForm = usePicksForm({
     user: picksFormProp ? null : user,
@@ -52,7 +58,10 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
     selectedDate,
     showDates,
   );
-  const { artifact } = usePickRecommendations({ enabled: true });
+  const { artifact: fetchedArtifact } = usePickRecommendations({
+    enabled: artifactProp === undefined,
+  });
+  const artifact = artifactProp !== undefined ? artifactProp : fetchedArtifact;
 
   const hasPicks = hasNonEmptyPicksObject(formData);
   const hasSetlist = Boolean(actualSetlist);

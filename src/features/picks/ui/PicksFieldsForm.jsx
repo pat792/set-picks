@@ -11,9 +11,13 @@ export default function PicksFieldsForm({
   isLocked,
   disabled = false,
   selectedDate,
+  pickRecommendationsArtifact,
 }) {
   const { songs } = useSongCatalog();
-  const getOddsLabel = useMakePicksOdds({ selectedDate });
+  const getOddsLabel = useMakePicksOdds({
+    selectedDate,
+    artifact: pickRecommendationsArtifact,
+  });
 
   return (
     <>
