@@ -23,7 +23,35 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.71.0] — 2026-09-04
 
 ### Changed
-- **show_recap composer (#985)** — `narrative_line` (inbox Tonight + morning night-para) weaves set-flow arc, which of the player’s slots hit (bustout caught or missed), and night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight + scorecard when context is missing. Existing vars only — no new catalog field. Assigned after the Sprint 14 / #1004 `1.70.0` train.
+- **show_recap composer (#985)** — `narrative_line` (inbox Tonight + morning night-para) weaves set-flow arc, which of the player’s slots hit (bustout caught or missed), and night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight + scorecard when context is missing. Existing vars only — no new catalog field. Assigned after the Sprint 14 / #1004 `1.70.1` promote.
+
+---
+
+## [1.70.1] — 2026-09-04
+
+### Changed
+- **Personal / Global Stats display (#1004)** — All-time | This tour trays replace stacked expandables (All-time default). Personal All-time switches Your stats | Top picks; Global switches PPS | Picking Avg | Shows. Global boards page the top 50 at 10 rows and pin the you-row when it is off-page. In-page trays use `ChromeSegmentedControl` `tone="inset"` so they do not clone tertiary chrome.
+
+---
+
+## [1.70.0] — 2026-09-04
+
+### Added
+- **Global Stats leaderboards (#1004 Phase 2)** — `/dashboard/stats/global` replaces the rankings-coming shell with expandable **All-time** and **This tour** boards (same IA as Personal): Points per show, Picking average, Shows. Top 50 per board plus a highlighted you-row from the signed-in `users/{uid}` doc. Ratio boards require `showsPlayed >= 3` (documented; Shows has no gate). Functions-owned `global_stats_leaderboards/{allTime|tour:{tourKey}}` rebuild after rollup/revert, nightly at 08:00 ET, and via admin `refreshGlobalStatsLeaderboards`. Client reads those docs + own user doc only.
+
+### Changed
+- **Firestore rules** — authenticated read of `global_stats_leaderboards`; Admin SDK / Functions write only.
+
+---
+
+## [1.69.0] — 2026-09-03
+
+### Added
+- **Stats content remap (#1004)** — Personal owns every *your* stat (expandable all-time above expandable “Your picks this tour”). Band mounts the #555 song explorer. Global is an honest rankings-coming shell until Phase 2 leaderboards.
+
+### Changed
+- **`/dashboard/tour-stats`** — redirects to `/dashboard/stats/band` (preserve `?tour=`). Feature-discovery marker `tour-stats` moves to the Band segment.
+- **Tour picker** — `showTourScopePicker` is a real meta flag. Personal gains the same chrome picker as Standings Tour / Band; all-time stats stay tour-agnostic.
 
 ---
 

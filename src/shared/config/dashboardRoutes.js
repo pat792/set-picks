@@ -172,14 +172,17 @@ export function isStatsClusterPath(pathname) {
 }
 
 /**
- * True when the chrome tour scope picker should show (Global / Band / legacy hop).
- * Personal is career-scoped and does not use a tour picker.
+ * True when the chrome tour scope picker should show on a Stats path
+ * (Personal / Global / Band / legacy hop). Personal uses the picker only
+ * for the tour rollup; all-time stats stay tour-agnostic (#1004).
  *
  * @param {string} pathname
  * @returns {boolean}
  */
 export function isStatsTourScopedPath(pathname) {
   const path = normalizeDashboardPathname(pathname);
+  if (path === STATS_CLUSTER_PATHS.root) return true;
+  if (path === STATS_CLUSTER_PATHS.personal) return true;
   if (path === STATS_CLUSTER_PATHS.global) return true;
   if (path === STATS_CLUSTER_PATHS.band) return true;
   if (path === STATS_CLUSTER_LEGACY_PATHS.tourStats) return true;

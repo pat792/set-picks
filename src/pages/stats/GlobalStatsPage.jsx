@@ -1,39 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { useOutletContext } from 'react-router-dom';
 
-import { useFeatureSpotlight } from '../../features/feature-discovery';
-import { useScoringRulesModal, useStandingsTourSelection } from '../../features/scoring';
-import { TourStatsView, useTourStatsScreen } from '../../features/tour-stats';
-import { useShowCalendar } from '../../features/show-calendar';
-import { ga4Event } from '../../shared/lib/ga4';
+import { GlobalStatsScreen } from '../../features/stats';
 
 /**
  * Stats cluster — Global Stats (`/dashboard/stats/global`).
- * Private tour explorer (unique songs, frequency, bustouts, self overlay) from #555.
+ * Phase 2 leaderboards (#1004). Song explorer lives on Band.
  */
-export default function GlobalStatsPage() {
-  const { showDatesByTour, loading: calendarLoading } = useShowCalendar();
-  const { selectedTour } = useStandingsTourSelection(showDatesByTour);
-  const screen = useTourStatsScreen({
-    selectedTour,
-    calendarLoading,
-  });
-  const { openScoringRules: openScoringRulesModal } = useScoringRulesModal();
-  const tourStatsSpotlight = useFeatureSpotlight('tour-stats', {
-    trackImpression: false,
-  });
+export default function GlobalStatsPage({ user: userProp }) {
+  const outlet = useOutletContext();
+  const user = userProp ?? outlet?.user;
 
-  useEffect(() => {
-    tourStatsSpotlight.markSeen();
-  }, [tourStatsSpotlight.markSeen]);
-
-  const openScoringRules = () => {
-    ga4Event('scoring_rules_opened', { surface: 'tour-stats' });
-    openScoringRulesModal();
-  };
-
-  return (
-    <div className="w-full">
-      <TourStatsView {...screen} onOpenScoringRules={openScoringRules} />
-    </div>
-  );
+  return <GlobalStatsScreen user={user} />;
 }
