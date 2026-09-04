@@ -3,6 +3,7 @@ import { Check, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { PICKS_SELF_RECAP_STANDINGS_LINK } from '../../../shared/config/dashboardVocabulary';
+import InfoTooltip, { InfoTooltipProvider } from '../../../shared/ui/InfoTooltip';
 import { SCORE_BREAKDOWN_KIND_LABEL } from '../../../shared/utils/scoring';
 import { formatOverlapLabel } from '../model/computeScorecardOverlap';
 import { scorecardHitChromeSpec } from '../model/mapScorecardSlotGrade';
@@ -24,8 +25,8 @@ import {
 export const SCORECARD_EMPTY_TITLE = 'No picks for this show';
 export const SCORECARD_EMPTY_BODY =
   'Lock a card on Make Picks to see your Scorecard for the selected night.';
-export const SCORECARD_PRE_LOCK_COPY =
-  'Overlap unlocks after picks lock. Your card stays private until showtime.';
+export const SCORECARD_HINT =
+  "Scorecard displays our predictive model's odds for all your picks. At showtime, see a comparison to other pickers and your correct picks. View Standings for the full leaderboard, live setlist and crowd pulse.";
 export const SCORECARD_LOCKED_UNGRADED_COPY =
   'Picks are locked. Rank and points land when the official setlist is posted.';
 export const SCORECARD_GRADED_COPY = 'Show results for the selected night.';
@@ -35,7 +36,6 @@ export const SCORECARD_ODDS_HINT = 'model odds';
 
 function stateCopy(state) {
   if (state === 'empty') return SCORECARD_EMPTY_BODY;
-  if (state === 'pre_lock') return SCORECARD_PRE_LOCK_COPY;
   if (state === 'locked_ungraded') return SCORECARD_LOCKED_UNGRADED_COPY;
   if (state === 'graded') return SCORECARD_GRADED_COPY;
   return '';
@@ -111,15 +111,23 @@ export default function PicksScorecardCard({
   const playerWord = recap?.totalPlayers === 1 ? 'player' : 'players';
 
   return (
-    <section
-      className={`${SCORECARD_SHELL} ${className}`}
-      aria-label="Scorecard"
-      aria-busy={isLoading || undefined}
-    >
-      <p className={`inline-flex items-center gap-1.5 ${SCORECARD_EYEBROW}`}>
-        <ClipboardList className={SCORECARD_EYEBROW_ICON} aria-hidden />
-        Scorecard
-      </p>
+    <InfoTooltipProvider>
+      <section
+        className={`${SCORECARD_SHELL} ${className}`}
+        aria-label="Scorecard"
+        aria-busy={isLoading || undefined}
+      >
+      <div className="flex items-start justify-between gap-2">
+        <p className={`inline-flex items-center gap-1.5 ${SCORECARD_EYEBROW}`}>
+          <ClipboardList className={SCORECARD_EYEBROW_ICON} aria-hidden />
+          Scorecard
+        </p>
+        <InfoTooltip
+          label="Scorecard"
+          definition={SCORECARD_HINT}
+          triggerClassName="text-violet-300/85 hover:text-violet-200"
+        />
+      </div>
 
       {isLoading ? (
         <p className={`mt-2 ${SCORECARD_BODY}`}>{SCORECARD_LOADING_LABEL}…</p>
@@ -226,5 +234,6 @@ export default function PicksScorecardCard({
         </>
       ) : null}
     </section>
+    </InfoTooltipProvider>
   );
 }

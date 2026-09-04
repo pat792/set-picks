@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   SCORECARD_EMPTY_BODY,
   SCORECARD_EMPTY_TITLE,
+  SCORECARD_HINT,
   SCORECARD_LOCKED_UNGRADED_COPY,
-  SCORECARD_PRE_LOCK_COPY,
 } from './PicksScorecardCard';
 
 describe('PicksScorecardCard copy (#767)', () => {
@@ -13,9 +13,11 @@ describe('PicksScorecardCard copy (#767)', () => {
     expect(SCORECARD_EMPTY_BODY).toMatch(/Make Picks/i);
   });
 
-  it('explains that overlap waits until lock', () => {
-    expect(SCORECARD_PRE_LOCK_COPY).toMatch(/overlap/i);
-    expect(SCORECARD_PRE_LOCK_COPY).toMatch(/lock/i);
+  it('explains model odds and showtime comparison in the header hint', () => {
+    expect(SCORECARD_HINT).toMatch(/predictive model's odds/i);
+    expect(SCORECARD_HINT).toMatch(/showtime/i);
+    expect(SCORECARD_HINT).toMatch(/Standings/i);
+    expect(SCORECARD_HINT).not.toMatch(/Overlap unlocks/i);
   });
 
   it('explains locked / ungraded rank pending', () => {

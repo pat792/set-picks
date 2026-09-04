@@ -26,6 +26,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 - **Scorecard graded hit chrome (#1013)** — on graded nights, each slot uses `getSlotScoreBreakdown`. Hits (`points > 0`) show an A5 check + soft inset ring: brand-primary for `exact_slot` / `encore_exact` / `wildcard_hit`, accent-blue for `in_setlist`, amber overlay when `bustoutBoost`. Misses are slightly muted. Pre-grade cards are unchanged.
 - **Make Picks dropdown model odds (#1013)** — song autocomplete shows a trailing compact `N%` (or `<1%` / mobile `<1` for `playProbBySong` map misses) from the same Storage artifact as Scorecard, only when `targetShow.date` matches the selected night. Total / Gap / Last stay visible. Not live crowd %.
 
+### Changed
+- **Scorecard helper copy (#1013)** — the pre-lock “Overlap unlocks…” footer is now a top-right `InfoTooltip`. Hint copy covers model odds, showtime comparison, and Standings (leaderboard / live setlist / crowd pulse).
+
 ### Fixed
 - **Scorecard odds on the live night (#1013)** — Picks cluster fetches `pick-recommendations.json` once and shares it with Scorecard and Make Picks. Hits show a trailing `N%` on the song title (plus a “model odds” hint). Storage `getDownloadURL` failures (App Check on preview hosts) retry the public `alt=media` URL so odds load instead of staying blank.
 - **Make Picks Last dates (#1013)** — dropdown Last was falling back to the bundled 2025 catalog (`PHISH_SONGS`) when Storage `getDownloadURL` failed or the tokenized download returned 402. Catalog fetch now retries `alt=media` and normalizes `last` / `last_played` to `YYYY-MM-DD` so Last stays on the live last-played date. Odds `%` no longer clips the Last column.
