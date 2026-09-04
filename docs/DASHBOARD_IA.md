@@ -20,8 +20,8 @@ Nested routes (not `?view=`). Icon: `BarChart3`. Every Stats destination uses th
 
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
-| **Personal Stats** | `/dashboard/stats` and `/dashboard/stats/personal` | Every *your* stat. Expandable **All-time** (career averages / heatmap — all shows played) above expandable **This tour** (“Your picks this tour” self overlay). Profile may keep a quiet **View personal stats** link. |
-| **Global Stats** | `/dashboard/stats/global` | Leaderboards of those same individual stats (best → worst). **v1.70.0 / #1004:** expandable All-time + This tour boards — Points per show, Picking average, Shows. Top 50 + you-row. No song explorer. No self overlay. |
+| **Personal Stats** | `/dashboard/stats` and `/dashboard/stats/personal` | Every *your* stat. **All-time \| This tour** tray (All-time default). All-time inner tray: **Your stats \| Top picks**. This tour is the “Your picks this tour” self overlay (no inner tray). Profile may keep a quiet **View personal stats** link. |
+| **Global Stats** | `/dashboard/stats/global` | Leaderboards of those same individual stats (best → worst). **v1.70.1 / #1004:** **All-time \| This tour** tray, then **PPS \| Picking Avg \| Shows**. Top 50 paginated (10/page) + you-row (pinned when off-page). No song explorer. No self overlay. |
 | **Band Stats** | `/dashboard/stats/band` | Band/song datasets now: #555 `TourStatsView` frequency / bustouts / high gaps. `#300` adds more bands later — it does not gate this slot. |
 
 **Legacy redirect:** `/dashboard/tour-stats` → `/dashboard/stats/band` (preserve `?tour=`). Stats primary stays active on the hop.
@@ -93,7 +93,8 @@ Page and section **descriptions default to an `InfoTooltip`** (`DashboardActionR
 
 - Rectangular **equal-width** tray (`flex w-full`, segments `flex-1`) — not auto-width pills
 - Uppercase labels (`uppercase tracking-widest`)
-- Active ring/fill: `bg-brand-primary/15 text-brand-primary ring-1 ring-inset ring-brand-primary/35`
+- Active ring/fill (`tone="chrome"`, default): `bg-brand-primary/15 text-brand-primary ring-1 ring-inset ring-brand-primary/35`
+- In-page filters (`tone="inset"`, Stats All-time / board trays): same equal-width layout, recessed field, neutral selected chip — do not fork tray CSS in features
 - Inactive: `text-content-secondary` + inset hover
 - Icons optional (Standings today; Profile text-only) — do not require icons on every cluster
 

@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   GLOBAL_LEADERBOARD_MIN_SHOWS,
+  GLOBAL_LEADERBOARD_PAGE_SIZE,
   GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
   GLOBAL_LEADERBOARD_TOP_N,
+  leaderboardPageWindow,
   computePickingAverage,
   computePointsPerShow,
   formatPickingAverage,
@@ -124,5 +126,30 @@ describe('viewerMetricsFromUserDoc', () => {
     expect(viewer.values.pointsPerShow).toBe(5);
     expect(viewer.values.pickingAverage).toBe(1 / 3);
     expect(viewer.values.shows).toBe(3);
+  });
+});
+
+describe('leaderboardPageWindow', () => {
+  it('pages the top 50 in tens and clamps a stale page', () => {
+    expect(GLOBAL_LEADERBOARD_PAGE_SIZE).toBe(10);
+    expect(leaderboardPageWindow(49, 0)).toEqual({
+      current: 0,
+      maxPage: 4,
+      start: 0,
+      end: 10,
+    });
+    expect(leaderboardPageWindow(49, 4)).toEqual({
+      current: 4,
+      maxPage: 4,
+      start: 40,
+      end: 49,
+    });
+    expect(leaderboardPageWindow(12, 9)).toEqual({
+      current: 1,
+      maxPage: 1,
+      start: 10,
+      end: 12,
+    });
+    expect(leaderboardPageWindow(8, 0).maxPage).toBe(0);
   });
 });
