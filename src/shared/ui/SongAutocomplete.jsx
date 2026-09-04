@@ -49,6 +49,7 @@ export default function SongAutocomplete({
   /**
    * Optional presentational odds lookup. Parent owns IO (FSD: no fetch here).
    * Return a string, or `{ label, compactLabel }` for a shorter mobile form.
+   * Rendered as an `Odds:` stat next to Total / Gap / Last (not after the title).
    * @type {((songName: string) => (string | { label: string, compactLabel?: string } | null | undefined)) | undefined}
    */
   getOddsLabel,
@@ -235,35 +236,38 @@ export default function SongAutocomplete({
                     : 'md:hover:bg-[#1e293b]'
                 }`}
               >
-                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <div className="min-w-0 break-words text-left text-base font-bold text-slate-200">
-                    {songName}
-                  </div>
-                  {odds ? (
-                    <span className="shrink-0 tabular-nums text-sm font-semibold text-slate-400">
-                      {odds.compactLabel ? (
-                        <>
-                          <span className="sm:hidden">{odds.compactLabel}</span>
-                          <span className="hidden sm:inline">{odds.label}</span>
-                        </>
-                      ) : (
-                        odds.label
-                      )}
-                    </span>
-                  ) : null}
+                <div className="min-w-0 flex-1 break-words text-left text-base font-bold text-slate-200">
+                  {songName}
                 </div>
                 
-                {typeof song !== 'string' && (
+                {(odds || typeof song !== 'string') && (
                   <div className="inline-flex shrink-0 flex-wrap items-baseline justify-start gap-x-1.5 gap-y-0.5 text-left text-xs font-medium tabular-nums text-slate-400 sm:justify-end sm:text-right sm:text-sm">
-                    <span className="whitespace-nowrap">
-                      <span className="text-slate-500">Total:</span> {songTotal}
-                    </span>
-                    <span className="whitespace-nowrap">
-                      <span className="text-slate-500">Gap:</span> {songGap}
-                    </span>
-                    <span className="whitespace-nowrap">
-                      <span className="text-slate-500">Last:</span> {songLast}
-                    </span>
+                    {odds ? (
+                      <span className="whitespace-nowrap">
+                        <span className="text-slate-500">Odds:</span>{' '}
+                        {odds.compactLabel ? (
+                          <>
+                            <span className="sm:hidden">{odds.compactLabel}</span>
+                            <span className="hidden sm:inline">{odds.label}</span>
+                          </>
+                        ) : (
+                          odds.label
+                        )}
+                      </span>
+                    ) : null}
+                    {typeof song !== 'string' ? (
+                      <>
+                        <span className="whitespace-nowrap">
+                          <span className="text-slate-500">Total:</span> {songTotal}
+                        </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-slate-500">Gap:</span> {songGap}
+                        </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-slate-500">Last:</span> {songLast}
+                        </span>
+                      </>
+                    ) : null}
                   </div>
                 )}
               </li>

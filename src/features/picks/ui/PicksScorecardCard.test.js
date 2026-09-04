@@ -13,11 +13,11 @@ describe('PicksScorecardCard copy (#767)', () => {
     expect(SCORECARD_EMPTY_BODY).toMatch(/Make Picks/i);
   });
 
-  it('explains model odds and showtime comparison in the header hint', () => {
-    expect(SCORECARD_HINT).toMatch(/predictive model's odds/i);
+  it('explains odds in plain language and showtime comparison in the header hint', () => {
+    expect(SCORECARD_HINT).toMatch(/best guess/i);
     expect(SCORECARD_HINT).toMatch(/showtime/i);
     expect(SCORECARD_HINT).toMatch(/Standings/i);
-    expect(SCORECARD_HINT).not.toMatch(/Overlap unlocks/i);
+    expect(SCORECARD_HINT).not.toMatch(/predictive|Overlap unlocks|model odds/i);
   });
 
   it('explains locked / ungraded rank pending', () => {

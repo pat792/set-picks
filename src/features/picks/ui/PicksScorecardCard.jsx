@@ -7,7 +7,9 @@ import InfoTooltip, { InfoTooltipProvider } from '../../../shared/ui/InfoTooltip
 import { SCORE_BREAKDOWN_KIND_LABEL } from '../../../shared/utils/scoring';
 import { formatOverlapLabel } from '../model/computeScorecardOverlap';
 import { scorecardHitChromeSpec } from '../model/mapScorecardSlotGrade';
+import { PICKS_ODDS_HINT } from '../model/picksOddsCopy';
 import { formatOddsPercent } from '../model/selectScorecardOdds';
+import PicksOddsHint from './PicksOddsHint';
 import {
   SCORECARD_BODY,
   SCORECARD_EYEBROW,
@@ -26,13 +28,13 @@ export const SCORECARD_EMPTY_TITLE = 'No picks for this show';
 export const SCORECARD_EMPTY_BODY =
   'Lock a card on Make Picks to see your Scorecard for the selected night.';
 export const SCORECARD_HINT =
-  "Scorecard displays our predictive model's odds for all your picks. At showtime, see a comparison to other pickers and your correct picks. View Standings for the full leaderboard, live setlist and crowd pulse.";
+  `${PICKS_ODDS_HINT} At showtime, see how you compare with other pickers and which songs you got right. View Standings for the full leaderboard, live setlist and crowd pulse.`;
 export const SCORECARD_LOCKED_UNGRADED_COPY =
   'Picks are locked. Rank and points land when the official setlist is posted.';
 export const SCORECARD_GRADED_COPY = 'Show results for the selected night.';
 export const SCORECARD_LOADING_LABEL = 'Loading scorecard';
 export const SCORECARD_RANK_PENDING = 'Rank updates after the setlist is posted.';
-export const SCORECARD_ODDS_HINT = 'model odds';
+export const SCORECARD_ODDS_HINT = 'Odds';
 
 function stateCopy(state) {
   if (state === 'empty') return SCORECARD_EMPTY_BODY;
@@ -122,11 +124,18 @@ export default function PicksScorecardCard({
           <ClipboardList className={SCORECARD_EYEBROW_ICON} aria-hidden />
           Scorecard
         </p>
-        <InfoTooltip
-          label="Scorecard"
-          definition={SCORECARD_HINT}
-          triggerClassName="text-violet-300/85 hover:text-violet-200"
-        />
+        {showOdds ? (
+          <PicksOddsHint
+            definition={SCORECARD_HINT}
+            triggerClassName="text-violet-300/85 hover:text-violet-200"
+          />
+        ) : (
+          <InfoTooltip
+            label="Scorecard"
+            definition={SCORECARD_HINT}
+            triggerClassName="text-violet-300/85 hover:text-violet-200"
+          />
+        )}
       </div>
 
       {isLoading ? (
@@ -201,7 +210,7 @@ export default function PicksScorecardCard({
                   data-scorecard-kind={grade?.kind}
                 >
                   <p className={SCORECARD_SLOT_LABEL}>{slot.label}</p>
-                  <p className={`mt-0.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 ${slotTitleClass(chrome)}`}>
+                  <p className={`mt-0.5 flex min-w-0 items-start gap-1.5 ${slotTitleClass(chrome)}`}>
                     {chrome.showCheck ? (
                       <Check
                         className={`h-3.5 w-3.5 shrink-0 self-center ${SCORECARD_SLOT_CHECK[chrome.checkTone] || ''}`}
@@ -210,11 +219,6 @@ export default function PicksScorecardCard({
                       />
                     ) : null}
                     <span className="min-w-0 break-words">{slot.song}</span>
-                    {odds ? (
-                      <span className="shrink-0 tabular-nums text-sm font-semibold text-violet-200/90">
-                        {odds}
-                      </span>
-                    ) : null}
                     {statusLabel ? <span className="sr-only">{statusLabel}</span> : null}
                   </p>
                   {showOverlap ? (
@@ -223,7 +227,11 @@ export default function PicksScorecardCard({
                     </p>
                   ) : null}
                   {odds ? (
-                    <p className={SCORECARD_METRIC}>{SCORECARD_ODDS_HINT}</p>
+                    <p className={`mt-1 ${SCORECARD_METRIC}`}>
+                      <span className="text-content-secondary/80">{SCORECARD_ODDS_HINT}</span>
+                      {' '}
+                      <span className="tabular-nums text-violet-200/90">{odds}</span>
+                    </p>
                   ) : null}
                 </li>
               );

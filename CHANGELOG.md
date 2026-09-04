@@ -28,6 +28,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ### Changed
 - **Scorecard helper copy (#1013)** — the pre-lock “Overlap unlocks…” footer is now a top-right `InfoTooltip`. Hint copy covers model odds, showtime comparison, and Standings (leaderboard / live setlist / crowd pulse).
+- **Picks odds chrome (#1013)** — when `%` would wrap under the song title, Scorecard and Make Picks show an **Odds** label instead. Card top-right tooltip explains odds in plain language (best guess from recent shows). Dropdown stats use `Odds: N%` beside Total / Gap / Last.
 
 ### Fixed
 - **Scorecard odds on the live night (#1013)** — Picks cluster fetches `pick-recommendations.json` once and shares it with Scorecard and Make Picks. Hits show a trailing `N%` on the song title (plus a “model odds” hint). Storage `getDownloadURL` failures (App Check on preview hosts) retry the public `alt=media` URL so odds load instead of staying blank.
