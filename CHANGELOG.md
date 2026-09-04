@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.70.0] — 2026-09-04
+
+### Added
+- **Global Stats leaderboards (#1004 Phase 2)** — `/dashboard/stats/global` replaces the rankings-coming shell with expandable **All-time** and **This tour** boards (same IA as Personal): Points per show, Picking average, Shows. Top 50 per board plus a highlighted you-row from the signed-in `users/{uid}` doc. Ratio boards require `showsPlayed >= 3` (documented; Shows has no gate). Functions-owned `global_stats_leaderboards/{allTime|tour:{tourKey}}` rebuild after rollup/revert, nightly at 08:00 ET, and via admin `refreshGlobalStatsLeaderboards`. Client reads those docs + own user doc only.
+
+### Changed
+- **Firestore rules** — authenticated read of `global_stats_leaderboards`; Admin SDK / Functions write only.
+
+---
+
 ## [1.69.0] — 2026-09-03
 
 ### Added

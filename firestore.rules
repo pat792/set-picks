@@ -189,6 +189,16 @@ service cloud.firestore {
     }
 
     /**
+     * Global Stats leaderboards (#1004). Written by Cloud Functions Admin SDK
+     * from `users` career / seasonStats fields. Authenticated clients may read
+     * the top-50 boards; no client writes.
+     */
+    match /global_stats_leaderboards/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    /**
      * Aggregate-only public tour stats for SEO (#665). Written by Cloud Functions
      * Admin SDK from official_setlists; never contains full per-show setlists.
      * Doc `_index` lists tours for the public picker. Clients may read; no writes.

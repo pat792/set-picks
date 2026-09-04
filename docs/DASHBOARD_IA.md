@@ -21,7 +21,7 @@ Nested routes (not `?view=`). Icon: `BarChart3`. Every Stats destination uses th
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
 | **Personal Stats** | `/dashboard/stats` and `/dashboard/stats/personal` | Every *your* stat. Expandable **All-time** (career averages / heatmap — all shows played) above expandable **This tour** (“Your picks this tour” self overlay). Profile may keep a quiet **View personal stats** link. |
-| **Global Stats** | `/dashboard/stats/global` | Leaderboards of those same individual stats (best → worst). Phase 1 is a rankings-coming shell. No song explorer. No self overlay. |
+| **Global Stats** | `/dashboard/stats/global` | Leaderboards of those same individual stats (best → worst). **v1.70.0 / #1004:** expandable All-time + This tour boards — Points per show, Picking average, Shows. Top 50 + you-row. No song explorer. No self overlay. |
 | **Band Stats** | `/dashboard/stats/band` | Band/song datasets now: #555 `TourStatsView` frequency / bustouts / high gaps. `#300` adds more bands later — it does not gate this slot. |
 
 **Legacy redirect:** `/dashboard/tour-stats` → `/dashboard/stats/band` (preserve `?tour=`). Stats primary stays active on the hop.
@@ -136,7 +136,7 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 | **Picks** | Make Picks · Picks Lab · Scorecard | Nested routes (#766). Lab segment always visible; Scorecard is the #767 surface. |
 | **Account** | Profile · Messages · Preferences | Nested routes under `/dashboard/profile/*` (#770). |
 | **Standings** | Show · Tour · Pools | Stats moved to the Stats primary (#769). |
-| **Stats** | Personal · Global · Band | Nested routes (#769). Tray drops the redundant “Stats” suffix so three uppercase chips fit. Band is a coming-soon shell. |
+| **Stats** | Personal · Global · Band | Nested routes (#769 / #1004). Tray drops the redundant “Stats” suffix so three uppercase chips fit. Global is leaderboards; Band is the song explorer. |
 
 `NAV_LABEL_STATS` is the **Stats** primary. `NAV_LABEL_ACCOUNT` is the **Account** primary; `NAV_LABEL_PROFILE` is identity tertiary only; `NAV_LABEL_PREFERENCES` is the Preferences tertiary (`/dashboard/profile/account`).
 
@@ -269,7 +269,7 @@ flowchart TB
   St --> StatsPersonalAlias["/dashboard/stats/personal · Personal"]
   St --> StatsGlobal["/dashboard/stats/global · Global"]
   St --> StatsBand["/dashboard/stats/band · Band"]
-  St --> TourStatsRedirect["/dashboard/tour-stats → Global"]
+  St --> TourStatsRedirect["/dashboard/tour-stats → Band"]
   Pr --> ProfileRoute["/dashboard/profile\nProfile"]
   Pr --> MessagesRoute["/dashboard/profile/notifications\nMessages"]
   Pr --> AccountRoute["/dashboard/profile/account\nPreferences"]
