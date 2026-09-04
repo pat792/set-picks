@@ -73,17 +73,17 @@
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.4",
-    "@vitejs/plugin-react": "^6.0.4",
+    "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.5.4",
-    "eslint": "^10.8.0",
+    "eslint": "^10.9.1",
     "eslint-plugin-import-x": "^4.17.1",
-    "playwright": "^1.62.0",
-    "postcss": "^8.4.27",
-    "sharp": "^0.35.3",
+    "playwright": "^1.62.1",
+    "postcss": "^8.5.26",
+    "sharp": "^0.35.4",
     "tailwindcss": "^3.3.3",
-    "vite": "^8.1.5",
+    "vite": "^8.2.2",
     "vite-node": "^6.0.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "firebase": "10.14.1"
