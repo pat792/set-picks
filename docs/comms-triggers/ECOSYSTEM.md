@@ -150,7 +150,7 @@ Agents produce a **PM review pack** (template in the playbook), may open **draft
 |---------|--------|---------------------|-------|
 | `inApp` | inbox worker | `users/{uid}/commsInbox/{messageId}` (Admin SDK) | Rich personalized body; clients read + set `readAt` only |
 | `push` | push worker | FCM over `users/{uid}/private_fcmTokens` + `fcm_notification_log` | Short teaser + deep link to `/dashboard/profile/notifications` |
-| `email` | email worker | **Resend** (`resend.batch.send`, idempotency key) | Verified `setlistpickem.com` sender; `List-Unsubscribe` (RFC 8058) wired to `notificationPrefs`; bounce/complaint webhook → suppress |
+| `email` | email worker | **Resend** (`resend.emails.send`, idempotency key + `uid`/`triggerId`/`campaignId` tags) | Verified `setlistpickem.com` sender; `List-Unsubscribe` (RFC 8058) wired to `notificationPrefs`; bounce/complaint webhook → suppress; open/click webhook → `comms_email_engagement` ([RESEND_WEBHOOK.md](./RESEND_WEBHOOK.md)) |
 
 **Proven v1 pattern:** push tease → full message in inbox; email carries the
 abbreviated teaser + CTA back into the app.

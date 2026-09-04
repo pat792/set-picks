@@ -48,6 +48,21 @@ test("sends via Resend with idempotency key + unsubscribe headers", async () => 
   assert.equal(captured[0].options.idempotencyKey, "show_recap/u1:show_recap:u1:2026-07-18");
   assert.match(captured[0].message.headers["List-Unsubscribe"], /commsEmailUnsubscribe/);
   assert.equal(captured[0].message.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
+  assert.deepEqual(captured[0].message.tags, [
+    { name: "uid", value: "u1" },
+    { name: "triggerId", value: "show_recap" },
+  ]);
+});
+
+test("send tags include campaignId when the orchestrator passes one", async () => {
+  const captured = [];
+  const worker = createCommsEmailWorker({ resendClient: fakeResend(captured) });
+  await worker({ ...baseCtx, campaignId: "summer_tour_2026" });
+  assert.deepEqual(captured[0].message.tags, [
+    { name: "uid", value: "u1" },
+    { name: "triggerId", value: "show_recap" },
+    { name: "campaignId", value: "summer_tour_2026" },
+  ]);
 });
 
 test("idempotencyKey is stable (no forceResend) — production retries never double-send", async () => {

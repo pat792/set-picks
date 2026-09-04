@@ -563,6 +563,22 @@ test("rollup_audit: client writes always rejected (even admin)", async () => {
   );
 });
 
+// ─── comms_email_engagement/{resendEmailId} ──────────────────────────────────
+
+test("comms_email_engagement: no client read or write (even admin claim)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "comms_email_engagement", "email_1"), {
+      uid: "alice",
+      triggerId: "marketing_summer_tour_2026_launch",
+    });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertFails(getDoc(doc(db, "comms_email_engagement", "email_1")));
+  await assertFails(
+    setDoc(doc(db, "comms_email_engagement", "email_2"), { uid: "bob" })
+  );
+});
+
 // ─── account_deletion_reports/{reportId} ─────────────────────────────────────
 
 test("account_deletion_reports: no client read or write (even admin claim)", async () => {

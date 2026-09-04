@@ -18,6 +18,7 @@ This directory is the **canonical home** for triggered, templated communications
 
 CLI: `npm run comms:optimize-kickoff` · `npm run comms:show-recap-qa` (#779) · `npm run comms:picks-lock-conversion` (#698)
 | [EMAIL_INBOX_BADGE.md](./EMAIL_INBOX_BADGE.md) | Inbox sender badge (BIMI/DMARC) vs in-body email logo (#498) |
+| [RESEND_WEBHOOK.md](./RESEND_WEBHOOK.md) | Resend dashboard events + open/click persistence (#512 Slice A) |
 | [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md) | Sponsor / affiliate / offer gates (Phase 3) |
 
 ## Related repo paths
@@ -36,6 +37,7 @@ CLI: `npm run comms:optimize-kickoff` · `npm run comms:show-recap-qa` (#779) ·
 | `functions/commsEmailWorker.js` | Email channel worker (Resend, #442) |
 | `comms/emailBranding.cjs` | Shared in-body email logo URL |
 | `fcm_notification_log` | Shared delivery / dedup log |
+| `comms_email_engagement/{resendEmailId}` | Resend open/click plane (#512 Slice A; Admin write only) |
 
 ## Delivery model
 

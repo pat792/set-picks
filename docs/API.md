@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.68.1  
+**Version:** 1.72.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -90,7 +90,7 @@ Stores per-user, per-show slot picks and computed scores.
 
 ### 1.7 `fcm_notification_log/{dedupId}`
 
-Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). Presence of a doc = trigger already delivered; delete to allow re-send.
+Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). Presence of a doc = trigger already delivered; delete to allow re-send. After a successful email send (**v1.72.0 / #512 Slice A**) the doc may also include `resendEmailId` and `campaignId` for join with `comms_email_engagement`.
 
 Also hosts the per-user daily email fatigue cap (#453): doc ID `email_cap:{uid}:{day}` (`day` = `YYYY-MM-DD` in `America/Los_Angeles`), `{ kind: "email_daily_cap", count, cap, lastTriggerId, lastEmailSentAt }`. Written transactionally by `commsEmailDailyCap.js`. `account_welcome` is exempt and never creates one of these docs. Not a new collection — same server-only rules entry as the dedup docs above.
 
@@ -188,6 +188,24 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 `_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`. `showCount` matches doc `tourShowCount` (full post-launch itinerary). `firstShowDate` / `lastShowDate` remain through-today.
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
+
+### 1.14 `comms_email_engagement/{resendEmailId}` (**v1.72.0 / #512 Slice A**)
+
+Server-only Resend open/click plane. Document ID is the Resend `email_id`. Written by `commsResendWebhook` on `email.opened` / `email.clicked`. Clients have no access. Join keys come from Resend send tags (`uid`, `triggerId`, `campaignId`). Ops checklist: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `resendEmailId` | string | Same as doc id |
+| `uid` | string? | From send tag, or unique `users.email` match for untagged legacy mail |
+| `triggerId` | string? | Catalog trigger id from send tag |
+| `campaignId` | string? | Marketing `vars.campaignId` from send tag when present |
+| `email` | string? | Normalized recipient |
+| `openedAt` | Timestamp? | First open (click without a prior open also stamps this) |
+| `clickedAt` | Timestamp? | First click |
+| `openedEventId` / `clickedEventId` | string? | First Svix delivery id per event type |
+| `updatedAt` | Timestamp | Last applied write |
+
+Idempotent: duplicate webhook deliveries do not overwrite first-write timestamps. The `fcm_notification_log` dedup doc may also carry `resendEmailId` + `campaignId` after a successful email send.
 
 ---
 
@@ -351,10 +369,10 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 
 | Export | Method | Auth | Description |
 |--------|--------|------|-------------|
-| `commsResendWebhook` | POST | Svix signature (`RESEND_WEBHOOK_SECRET`) | Resend bounce/complaint/suppression events → `email_suppression` |
+| `commsResendWebhook` | POST | Svix signature (`RESEND_WEBHOOK_SECRET`) | Bounce/complaint/suppression → `email_suppression`. **v1.72.0 / #512 Slice A:** `email.opened` / `email.clicked` → `comms_email_engagement`. Dashboard events: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md). |
 | `commsEmailUnsubscribe` | GET/POST | HMAC query params (`uid`, `email`, `sig`) | RFC 8058 one-click unsubscribe; opts user out of lifecycle email |
 
-Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` HTTPS endpoint. Signing secret: `firebase functions:secrets:set RESEND_WEBHOOK_SECRET`.
+Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` HTTPS endpoint and enable bounce, complaint, suppressed, opened, and clicked events. Signing secret: `firebase functions:secrets:set RESEND_WEBHOOK_SECRET`. Checklist: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md).
 
 **`commsEmailUnsubscribe` method gating (v1.9.0+, #456):** the two HTTP methods behave differently by design —
 - **POST** with a valid signature (the real RFC 8058 one-click action; mail clients issue this automatically via `List-Unsubscribe-Post`) suppresses immediately and returns a success page.

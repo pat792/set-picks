@@ -107,6 +107,32 @@ test("bypassDailyCap defaults to false when not passed", async () => {
   assert.equal(email.calls[0].bypassDailyCap, false);
 });
 
+test("campaignId from recipient.vars threads to the email worker and stamps the dedup doc", async () => {
+  const db = makeFakeDb();
+  const email = recordingWorker("email", { ok: true, id: "re_abc" });
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "account_welcome",
+    recipients: [
+      {
+        uid: "u1",
+        userData: { email: "u1@example.com" },
+        vars: { campaignId: "summer_tour_2026" },
+      },
+    ],
+    workers: { email },
+    dryRun: false,
+    sendGa4Delivered: async () => ({ sent: true }),
+  });
+
+  assert.equal(email.calls[0].campaignId, "summer_tour_2026");
+  const stamped = db._dedup.get("welcome:u1");
+  assert.equal(stamped.resendEmailId, "re_abc");
+  assert.equal(stamped.campaignId, "summer_tour_2026");
+});
+
 test("forceResend threads through to the channel worker ctx (so email can vary its Resend idempotency key)", async () => {
   const db = makeFakeDb();
   const email = recordingWorker("email", { ok: true });
