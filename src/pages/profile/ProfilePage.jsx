@@ -3,19 +3,18 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 
 import { useFeatureSpotlight } from '../../features/feature-discovery';
-import { InstallAppCard } from '../../features/install';
 import {
   BadgeShelf,
   ProfileEditForm,
-  ProfileSelfStatsPanel,
   useUserProfile,
 } from '../../features/profile';
-import { dashboardPageTitleGradientClasses } from '../../shared/config/dashboardHeadingTypography';
+import { STATS_CLUSTER_PATHS } from '../../shared/config/dashboardRoutes';
+import { VIEW_PERSONAL_STATS_LINK } from '../../shared/config/dashboardVocabulary';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import DashboardRowPill from '../../shared/ui/DashboardRowPill';
 
 /**
- * Profile cluster — identity surface (handle, favorite song, public preview, join date).
+ * Account cluster — identity surface (handle, favorite song, avatar, badges).
  */
 export default function ProfilePage({ user: userProp }) {
   const outlet = useOutletContext();
@@ -50,29 +49,29 @@ export default function ProfilePage({ user: userProp }) {
 
   return (
     <div>
-      <DashboardActionRow>
+      <DashboardActionRow
+        hint="These settings control how you appear on your public profile (/user/…) and anywhere badges or avatars show."
+        hintLabel="public profile appearance"
+      >
         {user?.uid ? (
-          <DashboardRowPill as={Link} to={`/user/${user.uid}`} tone="muted">
+          <Link
+            to={`/user/${user.uid}`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-brand-primary/50 bg-brand-primary/15 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/25"
+          >
             <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            Preview public view
-          </DashboardRowPill>
+            View public profile
+          </Link>
         ) : null}
+        <DashboardRowPill as={Link} to={STATS_CLUSTER_PATHS.personal} tone="muted">
+          {VIEW_PERSONAL_STATS_LINK}
+        </DashboardRowPill>
       </DashboardActionRow>
 
-      <div className="mb-6 text-left">
-        <h2
-          className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
-        >
-          Profile
-        </h2>
-        {joinDate && (
-          <p className="mt-1 text-xs font-bold uppercase tracking-widest text-brand-primary">
-            Playing Since {joinDate}
-          </p>
-        )}
-      </div>
-
-      <ProfileSelfStatsPanel uid={user?.uid} />
+      {joinDate ? (
+        <p className="mb-6 text-xs font-bold uppercase tracking-widest text-brand-primary">
+          Playing Since {joinDate}
+        </p>
+      ) : null}
 
       {!isLoading ? (
         <BadgeShelf
@@ -97,9 +96,6 @@ export default function ProfilePage({ user: userProp }) {
           showAvatarNewBadge={identitySpotlight.active}
         />
       </div>
-
-      {/* Remounted for #539 — shares installCopy with dashboard banner */}
-      <InstallAppCard />
     </div>
   );
 }

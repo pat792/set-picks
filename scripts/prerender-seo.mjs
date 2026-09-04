@@ -7,6 +7,9 @@
  * #853: `/tour-stats*` also uses the marketing shell (+ PublicTourStatsPage preload).
  * #928: tour-stats SEO slugs fetch `public_tour_stats/{slug}` (REST) and embed
  * bustout/frequency facts + FAQ/ItemList JSON-LD for crawlers.
+ * #959: additional `/tour-stats/{slug}` pages auto-expand from `_index` when
+ * the thin-page gate passes (see `scripts/lib/tourStatsSeoAutoExpand.mjs`).
+ * Sitemap + `llms.txt` in `dist/` are rewritten from the same registry.
  * #869: also writes `dist/tour-stats-data/{slug}.json` so public `/tour-stats`
  * can paint aggregates without App Check / Firestore SDK.
  * Boot shells: `dashboard` / `spa-boot` use `dist/app.html`;
@@ -33,10 +36,18 @@ import {
 } from './seo-prerender-lib.mjs';
 import { fetchFirestoreRestDocument } from './lib/firestoreRestDecode.mjs';
 import {
+  appendLlmsTourStatsLinks,
+  appendSitemapTourStatsUrls,
+  isTourStatsSeoAutoExpandEnabled,
+  resolveAutoExpandTourStatsRoutes,
+  tourStatsDiscoveryFromRoutes,
+} from './lib/tourStatsSeoAutoExpand.mjs';
+import {
   buildTourStatsFactsHtml,
   mergeTourStatsFactsJsonLd,
   normalizeTourStatsFacts,
 } from './lib/tourStatsSeoFacts.mjs';
+import { TOUR_STATS_SEO_FACT_SLUGS } from '../src/shared/config/seoRoutes.js';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const distDir = join(root, 'dist');
@@ -203,7 +214,77 @@ async function loadTourStatsEnrichment(route) {
   }
 }
 
-for (const route of PRERENDER_ROUTES) {
+async function resolvePrerenderRoutes() {
+  const existingSlugs = new Set(TOUR_STATS_SEO_FACT_SLUGS);
+  for (const route of PRERENDER_ROUTES) {
+    const seoSlug =
+      typeof route.tourStatsSeoSlug === 'string'
+        ? route.tourStatsSeoSlug.trim()
+        : '';
+    if (seoSlug) existingSlugs.add(seoSlug);
+  }
+  if (!isTourStatsSeoAutoExpandEnabled()) {
+    console.log('prerender-seo: tour-stats SEO auto-expand off (kill-switch)');
+    return [...PRERENDER_ROUTES];
+  }
+  let indexDoc = null;
+  try {
+    indexDoc = await loadPublicTourStatsDoc('_index');
+  } catch (err) {
+    console.warn(
+      'prerender-seo: auto-expand skipped — failed to fetch _index:',
+      err?.message || err,
+    );
+    return [...PRERENDER_ROUTES];
+  }
+  if (!indexDoc) {
+    console.warn('prerender-seo: auto-expand skipped — no public_tour_stats/_index');
+    return [...PRERENDER_ROUTES];
+  }
+  const extra = await resolveAutoExpandTourStatsRoutes({
+    indexDoc,
+    loadDoc: loadPublicTourStatsDoc,
+    existingSlugs,
+  });
+  if (extra.length) {
+    console.log(
+      `prerender-seo: auto-expand +${extra.length} tour-stats SEO slug(s): ${extra
+        .map((r) => r.tourStatsSeoSlug)
+        .join(', ')}`,
+    );
+  } else {
+    console.log('prerender-seo: auto-expand found no extra slugs that meet the gate');
+  }
+  return [...PRERENDER_ROUTES, ...extra];
+}
+
+function emitTourStatsDiscoveryFiles(allRoutes) {
+  const { locs, llms } = tourStatsDiscoveryFromRoutes(allRoutes);
+  const publicSitemap = join(root, 'public', 'sitemap.xml');
+  const publicLlms = join(root, 'public', 'llms.txt');
+  if (!existsSync(publicSitemap) || !existsSync(publicLlms)) {
+    console.warn('prerender-seo: missing public/sitemap.xml or public/llms.txt');
+    return;
+  }
+  const sitemap = appendSitemapTourStatsUrls(
+    readFileSync(publicSitemap, 'utf8'),
+    locs,
+  );
+  const llmsTxt = appendLlmsTourStatsLinks(readFileSync(publicLlms, 'utf8'), llms);
+  writeFileSync(join(distDir, 'sitemap.xml'), sitemap, 'utf8');
+  writeFileSync(join(distDir, 'llms.txt'), llmsTxt, 'utf8');
+  const extraCount = locs.filter(
+    (loc) =>
+      !TOUR_STATS_SEO_FACT_SLUGS.some((slug) => loc.endsWith(`/tour-stats/${slug}`)),
+  ).length;
+  console.log(
+    `prerender-seo: wrote dist/sitemap.xml + dist/llms.txt (${locs.length} tour-stats SEO loc(s), ${extraCount} auto-expanded)`,
+  );
+}
+
+const prerenderRoutes = await resolvePrerenderRoutes();
+
+for (const route of prerenderRoutes) {
   // Legal door shells are written separately (zero-JS; #916) — not marketing CSR.
   if (isLegalPrerenderRoute(route.path)) continue;
 
@@ -228,6 +309,7 @@ for (const route of PRERENDER_ROUTES) {
 }
 
 await emitPublicTourStatsCdnJson();
+emitTourStatsDiscoveryFiles(prerenderRoutes);
 
 // HTML-first legal door (#916): full policy body in first HTML, no module graph.
 for (const legalPath of ['/privacy', '/terms']) {
@@ -272,5 +354,5 @@ console.log(
 );
 
 console.log(
-  `prerender-seo: OK (${PRERENDER_ROUTES.length} routes + legal door + app boot + light spa + login boot)`,
+  `prerender-seo: OK (${prerenderRoutes.length} routes + legal door + app boot + light spa + login boot)`,
 );

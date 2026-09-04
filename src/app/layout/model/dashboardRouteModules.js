@@ -3,7 +3,7 @@ import { isProfileClusterPath } from '../../../shared/config/dashboardRoutes';
 /**
  * Dynamic import factories for **secondary** dashboard routes only.
  *
- * Primary nav tabs (Picks, Pools, Standings, Profile) are static imports in
+ * Primary nav tabs (Picks, Pools, Standings, Stats, Profile) are static imports in
  * `DashboardLayout` so `<Routes>` tab switches never unmount into an empty
  * Suspense boundary — Safari shows "Loading…" on every lazy swap otherwise.
  *
@@ -14,13 +14,11 @@ export const dashboardLazyRouteImport = {
   account: () => import('../../../pages/profile/AccountPage'),
   poolHub: () => import('../../../pages/pools/PoolHubPage'),
   notifications: () => import('../../../pages/notifications/NotificationsPage'),
-  tourStats: () => import('../../../pages/tour-stats/TourStatsPage'),
 };
 
 /** Nav path → lazy route keys to warm before navigation. */
 export const DASHBOARD_NAV_PRELOAD_BY_PATH = Object.freeze({
   '/dashboard/admin': ['admin'],
-  '/dashboard/standings': ['tourStats'],
 });
 
 const started = new Set();
@@ -50,7 +48,6 @@ export function dashboardLazyRouteKeysForPathname(pathname) {
   const path = pathname.replace(/\/+$/, '') || '/dashboard';
   if (path.startsWith('/dashboard/pool/')) return ['poolHub'];
   if (path === '/dashboard/admin') return ['admin'];
-  if (path === '/dashboard/tour-stats') return ['tourStats'];
   if (isProfileClusterPath(path)) {
     const keys = [];
     if (path.includes('/notifications')) keys.push('notifications');

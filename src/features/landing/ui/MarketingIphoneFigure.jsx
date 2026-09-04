@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { MARKETING_EDITORIAL_META } from '../../../shared/ui/marketingEditorialChrome';
+
 /**
  * Centered marketing device figure (light editorial pages).
  *
@@ -28,7 +30,7 @@ export default function MarketingIphoneFigure({
         className="mx-auto h-auto w-full select-none"
       />
       {caption ? (
-        <figcaption className="mt-4 text-center text-sm leading-relaxed text-slate-500">
+        <figcaption className={`mt-4 text-center ${MARKETING_EDITORIAL_META}`}>
           {caption}
         </figcaption>
       ) : null}

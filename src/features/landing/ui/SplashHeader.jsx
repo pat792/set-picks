@@ -8,6 +8,7 @@ import {
 } from '../../../shared/config/branding';
 import BrandWordmarkBarRow from '../../../shared/ui/BrandWordmarkBarRow';
 import Button from '../../../shared/ui/Button';
+import { MARKETING_HEADER_HEIGHT } from '../../../shared/ui/marketingEditorialChrome';
 import { MarketingHeaderNav, MarketingMobileMenu } from './MarketingSiteNav';
 
 export default function SplashHeader({
@@ -15,10 +16,10 @@ export default function SplashHeader({
   onSignInClick,
   onAuthCtaIntent,
 }) {
-  // If `h-[5.35rem]` / `sm:h-[5.25rem]` change, update `splashScrollPadding.js` (html scroll-padding).
+  // Height is `--header-height` (`marketingEditorialViewport.css` / `splashScrollPadding.js`).
   // Mobile (#706): [Sign In] [Join →] [☰]. Desktop: nav sits near center (slight right bias); CTAs stay right.
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 flex h-[5.35rem] items-center overflow-visible border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg transition-all duration-300 sm:h-[5.25rem]">
+    <header className={`fixed left-0 right-0 top-0 z-50 flex items-center overflow-visible border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg transition-all duration-300 ${MARKETING_HEADER_HEIGHT}`}>
       <div className="relative mx-auto h-full w-full max-w-7xl min-w-0">
         <BrandWordmarkBarRow variant="splash">
           <button

@@ -81,7 +81,7 @@ test("buildOneClickUnsubscribeUrl falls back to the notifications settings page 
     email: "",
     signingSecret: "",
   });
-  assert.equal(url, "https://www.setlistpickem.com/dashboard/profile/notifications");
+  assert.equal(url, "https://www.setlistpickem.com/dashboard/profile/account");
 });
 
 test("resolveUnsubscribeBaseUrl honors COMMS_UNSUBSCRIBE_BASE_URL override", () => {

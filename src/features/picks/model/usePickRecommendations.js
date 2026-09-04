@@ -50,8 +50,10 @@ function writeCache(entry) {
 /**
  * Loads versioned pick recommendations from Storage with TTL + stale fallback (#650).
  * Returns null artifact when unavailable (Lab / Predictive Mode stay dark).
- * No-ops when `VITE_ENABLE_PREDICTION_LAB` is not exactly `'true'` (prod default).
+ * Defaults to no-op when `VITE_ENABLE_PREDICTION_LAB` is not exactly `'true'`.
+ * Pass `{ enabled: true }` to fetch for Scorecard odds even when Lab UI is off.
  *
+ * @param {{ enabled?: boolean }} [options]
  * @returns {{
  *   artifact: object | null,
  *   loadError: Error | null,
@@ -59,8 +61,8 @@ function writeCache(entry) {
  *   loadedFromCache: boolean,
  * }}
  */
-export function usePickRecommendations() {
-  const enabled = isPredictionLabEnabled();
+export function usePickRecommendations(options = {}) {
+  const enabled = options.enabled ?? isPredictionLabEnabled();
   const [artifact, setArtifact] = useState(/** @type {object | null} */ (null));
   const [loadError, setLoadError] = useState(/** @type {Error | null} */ (null));
   const [resolved, setResolved] = useState(!enabled);

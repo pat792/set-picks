@@ -1,0 +1,63 @@
+{
+  "weekStarting": "2026-09-01",
+  "loggedAt": "2026-09-08T12:00:00Z",
+  "source": "gsc-manual",
+  "property": "https://www.setlistpickem.com/",
+  "window": "last_7_days",
+  "site": {
+    "impressions": null,
+    "clicks": null,
+    "ctr": null,
+    "avgPosition": null
+  },
+  "queries": [
+    {
+      "id": "C1",
+      "impressions": null,
+      "clicks": null,
+      "position": null,
+      "notes": ""
+    },
+    {
+      "id": "C6",
+      "impressions": null,
+      "clicks": null,
+      "position": null,
+      "notes": ""
+    },
+    {
+      "id": "C7",
+      "impressions": null,
+      "clicks": null,
+      "position": null,
+      "notes": ""
+    },
+    {
+      "id": "S1",
+      "impressions": null,
+      "clicks": null,
+      "position": null,
+      "notes": ""
+    },
+    {
+      "id": "S3",
+      "impressions": null,
+      "clicks": null,
+      "position": null,
+      "notes": ""
+    },
+    {
+      "id": "S4",
+      "impressions": null,
+      "clicks": null,
+      "position": null,
+      "notes": ""
+    }
+  ],
+  "serpSpotCheck": {
+    "faviconOnSiteSearch": null,
+    "aiOverviewCitation": null,
+    "notes": "Manual spot-check only. Do not scrape Google/Bing SERP HTML."
+  },
+  "notes": "Replace nulls after a GSC Performance pull. Append this object as one JSONL line; never edit prior weeks."
+}

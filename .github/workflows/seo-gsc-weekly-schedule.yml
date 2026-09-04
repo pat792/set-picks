@@ -1,0 +1,63 @@
+# Scheduled SEO Optimize pack (#932 / epic #926).
+# Pulls last-7d GSC (registry queries + top new) and GA4 organic landings
+# for /tour-stats* + /phish-setlist-prediction-game, then posts a [SKIP-PRD]
+# facts pack on #926.
+#
+# Mirrors comms-optimize-schedule.yml:
+#   - workflow_dispatch + schedule
+#   - comments only (never merge, deploy, or open PRs)
+#   - kickoff/pack comment only when live API credentials are present;
+#     otherwise SKIP with a clear log so forks / unset secrets stay green.
+#
+# GitHub `schedule` workflows run only from the repo default branch (`main`).
+# Merge to staging first; cron becomes live after promote. Use workflow_dispatch
+# on this file’s branch for earlier dry runs.
+
+name: SEO GSC weekly pack
+
+on:
+  schedule:
+    # Monday ~09:00 America/Denver during MDT (15:00 UTC).
+    - cron: "0 15 * * 1"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "live (needs GSC secret) | fixture (print only, never posts)"
+        required: true
+        default: "live"
+        type: choice
+        options:
+          - live
+          - fixture
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Fixture dry-run (no post)
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'fixture'
+        run: node scripts/seo/gsc-weekly-snapshot.mjs --fixture
+
+      - name: Live snapshot + post pack on #926
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'live')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          GSC_SITE_URL: ${{ vars.GSC_SITE_URL }}
+          GA4_PROPERTY_ID: ${{ vars.GA4_PROPERTY_ID }}
+        run: |
+          set -euo pipefail
+          # Script SKIP-exits 0 when the secret is unset (forks / first enable).
+          node scripts/seo/gsc-weekly-snapshot.mjs --write --post

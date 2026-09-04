@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   onSnapshot,
   orderBy,
@@ -15,13 +16,14 @@ import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
 
 /**
  * Per-user editorial / recap messages (in-app inbox). Written by Admin SDK /
- * Cloud Functions; clients read and may set `readAt` only.
+ * Cloud Functions; clients may set `readAt` / `archivedAt` or delete own docs.
  *
  * Doc shape:
  * - `templateId` — registry key (e.g. `sphere-2026-inaugural`)
  * - `payload` — variables for the template renderer (numbers coerced in UI)
  * - `createdAt` — server write time
  * - `readAt` — optional; set when the user acknowledges the message
+ * - `archivedAt` — optional; set when the user archives the message (#513)
  */
 export const COMMS_INBOX_COLLECTION_ID = 'commsInbox';
 
@@ -41,6 +43,7 @@ export const COMMS_INBOX_COLLECTION_ID = 'commsInbox';
  * @property {Record<string, unknown>} payload
  * @property {FirestoreTimestamp | null | undefined} createdAt
  * @property {FirestoreTimestamp | null | undefined} readAt
+ * @property {FirestoreTimestamp | null | undefined} archivedAt
  */
 
 /**
@@ -70,6 +73,7 @@ export function subscribeCommsInbox(uid, onNext, onError) {
             payload: data.payload && typeof data.payload === 'object' ? data.payload : {},
             createdAt: data.createdAt,
             readAt: data.readAt,
+            archivedAt: data.archivedAt,
           };
         });
         onNext(list);
@@ -97,4 +101,26 @@ export async function markCommsInboxMessageRead(uid, messageId) {
   await updateDoc(doc(db, 'users', uid, COMMS_INBOX_COLLECTION_ID, messageId), {
     readAt: serverTimestamp(),
   });
+}
+
+/**
+ * @param {string} uid
+ * @param {string} messageId
+ */
+export async function archiveCommsInboxMessage(uid, messageId) {
+  await whenFirebaseReady();
+  await updateDoc(doc(db, 'users', uid, COMMS_INBOX_COLLECTION_ID, messageId), {
+    archivedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Hard-delete policy: owner purge of the inbox doc (#513).
+ *
+ * @param {string} uid
+ * @param {string} messageId
+ */
+export async function deleteCommsInboxMessage(uid, messageId) {
+  await whenFirebaseReady();
+  await deleteDoc(doc(db, 'users', uid, COMMS_INBOX_COLLECTION_ID, messageId));
 }

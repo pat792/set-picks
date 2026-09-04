@@ -14,7 +14,7 @@ test("every catalog template renders push + email + inApp payloads", async () =>
             greetingName: "RiverTranced",
             audienceSegment: "sphere_alum",
             siteUrl: "https://www.setlistpickem.com",
-            settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+            settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
           }
         : spec.templateId === "summer-2026-almost-end"
           ? {

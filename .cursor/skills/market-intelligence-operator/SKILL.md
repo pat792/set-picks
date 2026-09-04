@@ -19,7 +19,8 @@ Allowlisted external research/scrape into structured intel for marketing and str
 
 Respect robots.txt and allowlist (`crew/knowledge/allowlists/domains.md`).
 **L1 enabled:** run `python3.13 -m crew.scripts.market_intel_sweep` (or `--dry-run`).
-Output to `crew/output/intel/`. No social publish from this role.
+SEO title/H1 (#933): `python3 -m crew.scripts.seo_title_h1_scan` (or `--dry-run`).
+Output to `crew/output/intel/`. No social publish from this role. Never scrape Google/Bing SERP HTML.
 
 ## Guardrails
 

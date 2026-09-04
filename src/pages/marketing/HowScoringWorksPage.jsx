@@ -15,6 +15,7 @@ import {
   MARKETING_EDITORIAL_COLUMN,
   MARKETING_EDITORIAL_H1,
   MARKETING_EDITORIAL_LEDE,
+  MARKETING_EDITORIAL_META,
 } from '../../shared/ui/marketingEditorialChrome';
 import { LINK_ON_LIGHT } from '../../shared/ui/surfaceLinkStyles';
 
@@ -61,7 +62,7 @@ export default function HowScoringWorksPage() {
               alt="iPhone showing a Setlist Pick 'Em standings card with scored picks — In setlist, Bustout Boost, Wildcard hit, and points. Player handle blurred."
               caption="Sample standings card after the show — exact slots, in-setlist hits, Wildcard, and Bustout Boost™ stacking into the night’s score."
             />
-            <p className="mt-10 text-center text-sm leading-relaxed text-slate-500">
+            <p className={`mt-10 text-center ${MARKETING_EDITORIAL_META}`}>
               Next:{' '}
               <Link to="/how-it-works" className={LINK_ON_LIGHT}>
                 how it works

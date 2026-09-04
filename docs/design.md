@@ -92,6 +92,8 @@ As each **menu tab** (Standings, Picks, Pools, Profile, etc.) gains more **card 
 | Standard Body | `text-body` | Inter | 0.875rem / 1.5 | Normal |
 | Secondary / meta copy | `text-content-secondary` | Inter | (inherits) | Use for labels, helpers, empty states |
 
+**Editorial marketing (not this table):** light pages (`/how-it-works`, `/about`, `/phish-setlist-prediction-game`, `/how-scoring-works`) use local viewport + type tokens in [`src/shared/ui/marketingEditorialViewport.css`](../src/shared/ui/marketingEditorialViewport.css) (#968). **Do not** apply that ladder to dashboard or `/tour-stats*` — post-login body remains `text-body` (0.875rem). Note: [`content/marketing/968-editorial-viewport-tokens.md`](../content/marketing/968-editorial-viewport-tokens.md).
+
 ## 4. Component Stylings & Shapes (CRITICAL)
 
 ### Primary Action Buttons (CTAs)

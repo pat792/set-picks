@@ -1,6 +1,8 @@
 import React, { useId, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import { MARKETING_EDITORIAL_META } from '../../../shared/ui/marketingEditorialChrome';
+
 /**
  * Light-editorial carousel for iPhone marketing figures (#944).
  *
@@ -76,7 +78,7 @@ export default function MarketingIphoneCarousel({
       </div>
 
       {slide.caption ? (
-        <figcaption className="mt-4 text-center text-sm leading-relaxed text-slate-500">
+        <figcaption className={`mt-4 text-center ${MARKETING_EDITORIAL_META}`}>
           {slide.caption}
           {count > 1 ? (
             <span className="mt-1 block text-xs text-slate-400">

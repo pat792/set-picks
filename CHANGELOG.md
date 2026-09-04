@@ -10,6 +10,164 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ## [Unreleased]
 
+### Added
+- **SEO query registry (#931 / epic #926)** — `docs/seo/query-registry.json` seeds B1–B3, C1–C7, S1–S7 (including #931 fan strings). Weekly append-only GSC log procedure is in `docs/seo/README.md`; snapshots stay under gitignored `crew/output/seo/`.
+- **SEO competitor title/H1 scan (#933 / epic #926)** — PR-gated allowlist adds `phishpicks.net` / `phish.jampicks.com` (homepage GET only). `crew/scripts/seo_title_h1_scan.py` extracts title + H1–H3 and diffs `docs/seo/query-registry.json`. Durable brief: `content/marketing/933-competitor-title-h1-gap-brief.md`. Callingit.live / ihoz / Phantasy Tour omitted (ToS or unverifiable). No `/phish-picks`. No version bump (docs + crew scripts).
+- **SEO Optimize autonomy (#934 / epic #926)** — `docs/SEO_OPTIMIZE_AUTONOMY.md` is the draft-only scored tune loop (`stats_impressions` \| `query_coverage` \| `geo_citations` \| `crawl_regressions`). Weekly E1 facts packs stay comment-only; agents may open a **draft** PR to `staging` only when scored `DRAFT_PR`. Docs only after **1.63.0** (#991 / #993); no PATCH bump. Packs ingest the #933 competitor brief when present.
+
+### Changed
+- **Pick'em search plan (#970)** — EiC-approved SERP/GEO plan + playbook C6/C7 / SERP snapshot. Docs only; no declared API change and no version bump.
+
+---
+
+## [1.70.1] — 2026-09-04
+
+### Changed
+- **Personal / Global Stats display (#1004)** — All-time | This tour trays replace stacked expandables (All-time default). Personal All-time switches Your stats | Top picks; Global switches PPS | Picking Avg | Shows. Global boards page the top 50 at 10 rows and pin the you-row when it is off-page. In-page trays use `ChromeSegmentedControl` `tone="inset"` so they do not clone tertiary chrome.
+
+---
+
+## [1.70.0] — 2026-09-04
+
+### Added
+- **Global Stats leaderboards (#1004 Phase 2)** — `/dashboard/stats/global` replaces the rankings-coming shell with expandable **All-time** and **This tour** boards (same IA as Personal): Points per show, Picking average, Shows. Top 50 per board plus a highlighted you-row from the signed-in `users/{uid}` doc. Ratio boards require `showsPlayed >= 3` (documented; Shows has no gate). Functions-owned `global_stats_leaderboards/{allTime|tour:{tourKey}}` rebuild after rollup/revert, nightly at 08:00 ET, and via admin `refreshGlobalStatsLeaderboards`. Client reads those docs + own user doc only.
+
+### Changed
+- **Firestore rules** — authenticated read of `global_stats_leaderboards`; Admin SDK / Functions write only.
+
+---
+
+## [1.69.0] — 2026-09-03
+
+### Added
+- **Stats content remap (#1004)** — Personal owns every *your* stat (expandable all-time above expandable “Your picks this tour”). Band mounts the #555 song explorer. Global is an honest rankings-coming shell until Phase 2 leaderboards.
+
+### Changed
+- **`/dashboard/tour-stats`** — redirects to `/dashboard/stats/band` (preserve `?tour=`). Feature-discovery marker `tour-stats` moves to the Band segment.
+- **Tour picker** — `showTourScopePicker` is a real meta flag. Personal gains the same chrome picker as Standings Tour / Band; all-time stats stay tour-agnostic.
+
+---
+
+## [1.68.1] — 2026-09-03
+
+### Changed
+- **Desktop sticky chrome** — Picks, Pools, Standings, Stats, and Account share one scrollport sticky stack (date/tour scope + cluster title + tertiary tray). Lock and install banners sit in the scrolling body below that stack. Mobile chrome is unchanged. #704 landscape/`desk` screens stay follow-on.
+- **Helper copy** — Account Profile (and Messages) descriptions are `InfoTooltip`s via `DashboardActionRow` `hint`. Visible description paragraphs are owner-opt-in only (`summary`).
+
+---
+
+## [1.68.0] — 2026-09-03
+
+### Added
+- **Scorecard full-song model odds (#767)** — `pick-recommendations.json` now includes `playProbBySong` (normalized title → show-wide `playProb`) for every song in the history window. Scorecard looks up each pick; titles missing from the map show `<1% model odds`. Older artifacts without the map still use per-slot top-K rows. Odds stay omitted when the artifact is missing or for another night.
+
+---
+
+## [1.67.0] — 2026-09-03
+
+### Added
+- **Account Preferences hub (#770 / #513)** — tertiary **Preferences** at `/dashboard/profile/account` composes sign-in, logout, legal, install/PWA status, and notification prefs (same `notificationPrefs` keys). Cosmetic Push / Email grouping only.
+- **Inbox archive + delete (#513 Phase 2)** — Messages sections **Unopened / Read / Archived**. Owners may set `commsInbox.archivedAt` and hard-delete their own inbox docs. Unread bell count excludes archived.
+
+### Changed
+- **Primary nav (#770)** — last player tab label is **Account** (path prefix stays `/dashboard/profile/*`). Tertiary is **Profile / Messages / Preferences**. Context titles: Account primary, Preferences tertiary.
+- **Messages** — inbox only. Preferences accordion removed. Inbox card keeps the existing expand/collapse header. **Read** and **Archived** start collapsed (count on the row); empty Archived/Read are hidden; history previews 8 newest with Show older. `?openPush=1` and `DashboardInstallEngageBanner` land on Preferences. Legacy `/dashboard/notifications` and `/dashboard/account-security` still preserve query.
+- **Profile identity** — callout + prominent **View public profile** CTA. Quiet **View personal stats** link kept. Install card moves to Preferences.
+- **Delete account** — demoted to a text-link disclosure (existing #388 confirm flow). Contact us stays hidden.
+
+### Removed / Deprecated
+- Preferences accordion on Messages (`NotificationsPrototypeScreen`).
+
+---
+
+## [1.66.1] — 2026-09-03
+
+### Changed
+- **Stats tertiary chips** — tray labels are **Personal / Global / Band** (drop the redundant “Stats” suffix) so three uppercase equal-width segments fit on mobile. Destination names and page copy stay Personal / Global / Band Stats.
+
+---
+
+## [1.66.0] — 2026-09-03
+
+### Added
+- **Stats primary (#769)** — fifth player tab (`BarChart3`) with nested **Personal Stats** (`/dashboard/stats` and `/dashboard/stats/personal`), **Global Stats** (`/dashboard/stats/global`), and **Band Stats** (`/dashboard/stats/band`). `ChromeSegmentedControl` tray at the cluster call site. Bottom nav is 5 columns for players, 6 when Admin is present.
+
+### Changed
+- **Standings tertiary (#769)** — chrome is exactly **Show / Tour / Pools**. Feature-discovery marker `tour-stats` moves to the Stats **Global** segment. Personal stats (season averages + heatmap) move off Profile onto Personal Stats; Profile keeps a quiet **View personal stats** link.
+- **`/dashboard/tour-stats` (#769)** — redirects to `/dashboard/stats/global` and preserves `?tour=`. Stats primary stays active on the hop. Public marketing `/tour-stats` is unchanged.
+
+### Removed
+- Standings **Stats** segment from `StandingsViewToggle` / `useStandingsView` / mobile Standings chrome (legacy path kept as a redirect).
+
+---
+
+## [1.65.2] — 2026-09-03
+
+### Changed
+- **Pools how-it-works chrome** — “How pools work” is a context-bar / tray-adjacent CircleHelp icon (Standings Scale pattern) that opens a modal. Removes the in-flow disclosure under the Pools tertiary tray.
+
+---
+
+## [1.65.1] — 2026-09-03
+
+### Added
+- **Picks Scorecard (#767)** — `/dashboard/picks/scorecard` replaces the coming-soon shell with a global, show-scoped self card. Post-lock overlap (“N players also picked this”), optional model odds from Storage `pick-recommendations.json`, and rank/score from the existing show-scoped standings query. Pre-lock shows the player’s own card only. **GA4:** `scorecard_open` `{ show_date, lock_state }`, `scorecard_metric_impression` `{ show_date, metric }` (`overlap` \| `odds` \| `rank`).
+
+---
+
+## [1.65.0] — 2026-09-03
+
+### Added
+- **Pools tertiary (#768)** — nested destinations **My Pools** (`/dashboard/pools`), **Create Pool** (`/dashboard/pools/create`), and **Join Pool** (`/dashboard/pools/join`) with the standard `ChromeSegmentedControl` tray. How-it-works stays a disclosure. `/dashboard/pool/:id` is unchanged (Pools primary stays active). Post-auth `/join/:code` with a pending invite lands on Join Pool.
+
+---
+
+## [1.64.0] — 2026-09-03
+
+### Added
+- **Picks tertiary cluster (#766)** — Make Picks / Picks Lab / Scorecard nested under the primary Picks tab: `/dashboard` and `/dashboard/picks` (form), `/dashboard/picks/lab`, `/dashboard/picks/scorecard`. Mobile portal + desktop in-page tray use `ChromeSegmentedControl`. Lab tab stays visible when `VITE_ENABLE_PREDICTION_LAB` is off (coming-soon shell). Scorecard is an empty shell. Date picker stays on all three destinations.
+
+### Changed
+- **Prediction Lab destination (#766)** — `PickPredictionPanel` moves off the Make Picks scroll to `/dashboard/picks/lab`. Make Picks keeps lock/edit, scoring/lock-status tools, and `utm_campaign` landed logging.
+
+---
+
+## [1.63.1] — 2026-09-03
+
+### Added
+- **Tertiary chrome contract (#765)** — `docs/DASHBOARD_IA.md` documents the rectangular equal-width tray (`ChromeSegmentedControl`), mobile portal vs desktop in-page placement, snap-to-top, primary-tab `isActive`, and the cluster checklist (`dashboardPageMeta` / `verify-dashboard-meta` / vocabulary). `NAV_LABEL_STATS` stub only; Profile primary label unchanged.
+
+### Changed
+- **Profile desktop cluster nav + Standings desktop toggle (#765)** — both use `ChromeSegmentedControl` (no duplicated tray classes; desktop Standings drops auto-width pills). Standings still has Show / Tour / Stats / Pools.
+
+---
+
+## [1.63.0] — 2026-09-03
+
+### Added
+- **Tour-stats SEO auto-expand (#959 / epic #926)** — when `public_tour_stats` meets the thin-page gate (`showsWithSetlist ≥ 4`, `uniqueSongs ≥ 20`, `lastShowDate` in the current year), the next production build prerenders `/tour-stats/{slug}` (facts HTML + FAQ/ItemList), and appends sitemap + `llms.txt` from the same registry — no hand edit of `seoRoutes.js`. Kill-switch: `TOUR_STATS_SEO_AUTO_EXPAND=0`. Optional `TOUR_STATS_SEO_ALLOWLIST` / `TOUR_STATS_SEO_DENYLIST`. Aggregates only; GSC Request indexing stays human.
+
+---
+
+## [1.62.4] — 2026-09-03
+
+### Added
+- **SEO GSC + GA4 weekly packs (#932 / epic #926)** — `npm run seo:gsc-weekly-snapshot` reads the #931 query registry, builds a last-7d Search Console + GA4 organic facts pack (fixture mode for CI), and the Monday Action posts `[SKIP-PRD]` on #926 when `GSC_SERVICE_ACCOUNT_JSON` is present. No merge/deploy. Secrets documented in playbook §4 and `docs/GITHUB_AUTOMATION_CONTEXT.md`.
+
+---
+
+## [1.62.3] — 2026-09-02
+
+### Changed
+- **Editorial viewport tokens (#968)** — marketing chrome uses local `--page-gutter` / `--header-height` and light type roles (H1 / lede / body / meta / eyebrow). Splash header height stays 5.35rem / 5.25rem; Game Format cards share row height and pin actions. Extends #944; splash `100svh` and dashboard type unchanged.
+
+---
+
+## [1.62.2] — 2026-09-02
+
+### Changed
+- **Keyword landing C6/C7 bridge (#973 / epic #972)** — `/phish-setlist-prediction-game` title, meta, prerender, and FAQ now include prediction + lock-your-picks while keeping the C1 “game” H1. No `/phish-picks` doorway.
+
 ---
 
 ## [1.62.1] — 2026-09-02

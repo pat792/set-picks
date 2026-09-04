@@ -134,6 +134,7 @@ export default function PublicTourStatsPanel({
         setlistReads={0}
         overlay={null}
         overlayLoading={false}
+        showSelfOverlay={false}
         surface="public"
       />
 

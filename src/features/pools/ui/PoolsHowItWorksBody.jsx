@@ -1,17 +1,23 @@
 import React from 'react';
 
 /**
- * Shared copy for “How pools work” — solid panel so text stays readable
- * over dashboard content (no translucent overlay).
+ * Shared copy for “How pools work”.
+ * `framed` is the in-flow panel (legacy disclosure). Modal uses `framed={false}`.
  *
- * @param {{ className?: string, id?: string }} props
+ * @param {{ className?: string, id?: string, framed?: boolean }} props
  */
-export default function PoolsHowItWorksBody({ className = '', id }) {
+export default function PoolsHowItWorksBody({
+  className = '',
+  id,
+  framed = true,
+}) {
   return (
     <div
       id={id}
       className={[
-        'rounded-xl border border-border-subtle bg-surface-panel-strong px-3 py-3 shadow-inset-glass',
+        framed
+          ? 'rounded-xl border border-border-subtle bg-surface-panel-strong px-3 py-3 shadow-inset-glass'
+          : '',
         className,
       ]
         .filter(Boolean)

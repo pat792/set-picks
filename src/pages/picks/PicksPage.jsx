@@ -1,19 +1,16 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Lock, Scale } from 'lucide-react';
 
 import { logCommsEmailLanded } from '../../features/comms';
 import {
-  PickPredictionPanel,
   PicksFieldsForm,
   PicksLockTimingBanner,
   PicksMobileFixedChrome,
   PicksSelfRecapSection,
   PicksSubmitButton,
-  isPredictionLabEnabled,
   trackPicksPageInteractive,
-  usePickRecommendations,
   usePicksForm,
   usePicksSelfRecap,
 } from '../../features/picks';
@@ -25,11 +22,20 @@ import Card from '../../shared/ui/Card';
 import DashboardActionRow from '../../shared/ui/DashboardActionRow';
 import GhostPill from '../../shared/ui/GhostPill';
 
-export default function PicksPage({ user, selectedDate }) {
+export default function PicksPage({ user: userProp, selectedDate: selectedDateProp }) {
   const [searchParams] = useSearchParams();
+  const outlet = useOutletContext() || {};
+  const user = userProp ?? outlet.user;
+  const selectedDate = selectedDateProp ?? outlet.selectedDate;
   const { showDates, showDatesByTour } = useShowCalendar();
   const showForShare = selectedDate ? showDates?.find((s) => s.date === selectedDate) : null;
   const shareShowLabel = showForShare ? showOptionLabelCompact(showForShare) : selectedDate || '';
+  const localForm = usePicksForm({
+    user: outlet.picksForm ? null : user,
+    selectedDate: outlet.picksForm ? '' : selectedDate,
+    showDates,
+    showDatesByTour,
+  });
   const {
     formData,
     handleInput,
@@ -41,21 +47,21 @@ export default function PicksPage({ user, selectedDate }) {
     showStatus,
     saveFeedback,
     pickConstraintMessage,
-  } = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
+  } = outlet.picksForm ?? localForm;
 
   const picksRecap = usePicksSelfRecap({ user, selectedDate, showDates, formData });
-  const predictionLabEnabled = isPredictionLabEnabled();
-  const {
-    artifact: pickRecsArtifact,
-    isLoading: pickRecsLoading,
-    loadError: pickRecsError,
-  } = usePickRecommendations();
 
   const { openScoringRules } = useScoringRulesModal();
   const statusContentId = useId();
   const landedLoggedRef = useRef(false);
   const interactiveLoggedRef = useRef(false);
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const [clusterToolsRoot, setClusterToolsRoot] = useState(null);
+
+  useEffect(() => {
+    setClusterToolsRoot(document.getElementById('picks-cluster-mobile-tools-root'));
+  }, []);
+  const mobileToolsRoot = clusterToolsRoot || mobileChromeRoot;
 
   const shouldShowSavedStatus = !isLocked && hasExistingPicks;
   const shouldShowLockedStatus = isLocked;
@@ -103,9 +109,9 @@ export default function PicksPage({ user, selectedDate }) {
   );
 
   return (
-    <div className="max-w-xl mx-auto pb-6 md:pb-12">
-      {mobileChromeRoot
-        ? createPortal(mobileFixedChrome, mobileChromeRoot)
+    <div>
+      {mobileToolsRoot
+        ? createPortal(mobileFixedChrome, mobileToolsRoot)
         : null}
 
       <div className="hidden md:block">
@@ -163,17 +169,6 @@ export default function PicksPage({ user, selectedDate }) {
                 ? `/dashboard/standings?showDate=${encodeURIComponent(selectedDate)}`
                 : '/dashboard/standings'
             }
-          />
-        ) : null}
-        {predictionLabEnabled && !isLoadingPicks ? (
-          <PickPredictionPanel
-            selectedDate={selectedDate}
-            artifact={pickRecsArtifact}
-            isLoading={pickRecsLoading}
-            loadError={pickRecsError}
-            formData={formData}
-            isLocked={isLocked}
-            onApplySong={handleInput}
           />
         ) : null}
         <Card

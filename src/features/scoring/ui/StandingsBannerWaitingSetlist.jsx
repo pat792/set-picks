@@ -12,7 +12,7 @@ import {
  * Waiting-for-setlist callout on Standings. Mobile-first: thin strip with
  * optional expand so the leaderboard stays near the fold (#317). Desktop
  * keeps the full alert card. Chevron flips and the whole strip toggles
- * expand/collapse (same pattern as Picks locked / How pools work).
+ * expand/collapse (same pattern as Picks locked status).
  */
 export default function StandingsBannerWaitingSetlist() {
   const panelId = useId();

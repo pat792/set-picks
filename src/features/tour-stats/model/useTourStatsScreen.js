@@ -44,12 +44,14 @@ function buildLifetimePlaysByKey(songs) {
  * @param {{
  *   selectedTour?: { tour: string, shows?: Array<{ date: string }> } | null,
  *   calendarLoading?: boolean,
+ *   includeSelfOverlay?: boolean,
  * }} [options]
  */
 export function useTourStatsScreen(options = {}) {
   const { user } = useAuth();
   const selectedTour = options.selectedTour ?? null;
   const calendarLoading = Boolean(options.calendarLoading);
+  const includeSelfOverlay = options.includeSelfOverlay !== false;
 
   const showDates = useMemo(
     () =>
@@ -114,6 +116,7 @@ export function useTourStatsScreen(options = {}) {
       overlayTopSongTitles.join('|'),
     ],
     enabled:
+      includeSelfOverlay &&
       Boolean(uid) &&
       setlistQuery.isSuccess &&
       (setlistQuery.data?.docs?.length || 0) > 0,

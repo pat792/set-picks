@@ -1,0 +1,72 @@
+/**
+ * Local editorial marketing viewport tokens (#968).
+ *
+ * Process from road2media Epic #35 §8 (classify block → type role → tokenize
+ * chrome → sibling cards share a row). Values are local — do not import
+ * road2 `globals.css` / PageStage / ~18px body / 80rem content max.
+ *
+ * Consume on marketing editorial + splash chrome only.
+ * Do not apply to dashboard or `/tour-stats*` product chrome (#609 / #944).
+ */
+
+:root {
+  --page-gutter: 1rem; /* Tailwind px-4 */
+  --header-height: 5.35rem; /* sync `splashScrollPadding.js` */
+
+  /* Light editorial type roles — Space Grotesk display + Inter body */
+  --editorial-text-h1: clamp(1.875rem, 1.2rem + 2.5vw, 3rem);
+  --editorial-text-lede: clamp(1.125rem, 1.05rem + 0.4vw, 1.25rem);
+  --editorial-text-body: 1.125rem; /* 18px sentence copy, not caption */
+  --editorial-text-meta: 0.875rem;
+  --editorial-text-eyebrow: 0.75rem; /* was 10px */
+}
+
+@media (min-width: 640px) {
+  :root {
+    --page-gutter: 1.5rem; /* px-6 */
+    --header-height: 5.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-gutter: 2rem; /* px-8 */
+  }
+}
+
+.marketing-header-height {
+  height: var(--header-height);
+}
+
+.marketing-page-gutter-x {
+  padding-inline: var(--page-gutter);
+}
+
+html.splash-scroll-padding {
+  scroll-padding-top: var(--header-height);
+}
+
+.editorial-type-h1 {
+  font-size: var(--editorial-text-h1);
+  line-height: 1.15;
+}
+
+.editorial-type-lede {
+  font-size: var(--editorial-text-lede);
+  line-height: 1.625;
+}
+
+.editorial-type-body {
+  font-size: var(--editorial-text-body);
+  line-height: 1.625;
+}
+
+.editorial-type-meta {
+  font-size: var(--editorial-text-meta);
+  line-height: 1.5;
+}
+
+.editorial-type-eyebrow {
+  font-size: var(--editorial-text-eyebrow);
+  line-height: 1.25;
+}

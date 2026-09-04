@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.42.0  
+**Version:** 1.70.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -60,8 +60,11 @@ All collections live in the default `(default)` Firestore database for project `
 | `templateId` | string | Registry key (e.g. `"account-welcome"`) |
 | `triggerId` | string | Catalog trigger ID |
 | `readAt` | Timestamp? | Null until user opens message |
+| `archivedAt` | Timestamp? | **v1.67.0+ (#513 / #770)** Set when the owner archives the message. Unread bell count excludes archived. |
 | `createdAt` | Timestamp | |
 | `payload` | map | Template-specific variables |
+
+**Client write surface (v1.67.0 / #513):** owners may update `readAt` and/or `archivedAt` only (payload / `templateId` / `createdAt` stay server-owned). Owners may **hard-delete** their own inbox docs. Clients cannot create inbox docs — Admin SDK / Cloud Functions only.
 
 ### 1.5 `pools/{poolId}`
 
@@ -156,7 +159,7 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 
 Public, aggregate-only tour song stats for SEO marketing routes. Written by Cloud Functions Admin SDK (`refreshPublicTourStats` / nightly schedule). **Never** contains full per-show `officialSetlist` arrays. Clients may read; client writes denied.
 
-**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard `/dashboard/tour-stats` still reads this collection (REST, `skipCdn`) for Last-date join.
+**Public data plane (v1.62.0 / #869):** marketing `/tour-stats*` prefers same-origin CDN snapshots at `/tour-stats-data/{docId}.json` (build-time copy of these docs, including `_index`) then Firestore REST. App Check + the Firestore SDK are a last-resort fallback only — not required for the happy path. Dashboard **`/dashboard/stats/band`** (legacy `/dashboard/tour-stats` redirect, **v1.69.0 / #1004**) still reads this collection (REST, `skipCdn`) for Last-date join.
 
 Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` → `2026-sphere`). Special doc `_index` lists tours for the public filter.
 
@@ -185,6 +188,33 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 `_index` fields: `tours[]` (`tourSlug`, `tourLabel`, `firstShowDate`, `lastShowDate`, `showCount`), `defaultTourSlug` (current tour = newest `lastShowDate` among indexed tours), `writtenAt`, `schemaVersion`. `showCount` matches doc `tourShowCount` (full post-launch itinerary). `firstShowDate` / `lastShowDate` remain through-today.
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
+
+### 1.14 `global_stats_leaderboards/{docId}` (**v1.70.0 / #1004**)
+
+Functions-owned Global Stats leaderboards for **`/dashboard/stats/global`**. Written by Cloud Functions Admin SDK from materialized `users` fields (`totalPoints`, `showsPlayed`, `careerCorrectSlots`, `seasonStats.{tourKey}`). **Clients `getDoc` these docs + the signed-in `users/{uid}` only — no `users` collection query/scan.**
+
+Doc IDs: **`allTime`** (career) and **`tour:{tourKey}`** (same tour key as `seasonStats` / chrome `?tour=`).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `schemaVersion` | number | `1` |
+| `minShows` | number | Ratio-board gate. Default **3** (`showsPlayed` / tour `shows`). Documented so one-show spikes do not own Points per show or Picking average. The Shows board has **no** ratio gate. |
+| `slotsPerShow` | number | `6` — same as `PROFILE_SLOTS_PER_SHOW` / `FORM_FIELDS.length` |
+| `topN` | number | `50` |
+| `scope` | `'allTime' \| 'tour'` | |
+| `tourKey` | string \| null | Calendar tour label when `scope === 'tour'` |
+| `playerCount` | number | Eligible players scanned for that scope (before top-N slice) |
+| `boards.pointsPerShow` | `{ uid, handle, value, shows, rank }[]` | `totalPoints / shows`. Competition rank. |
+| `boards.pickingAverage` | `{ uid, handle, value, shows, rank }[]` | `correctSlots / (shows * 6)` |
+| `boards.shows` | `{ uid, handle, value, shows, rank }[]` | Show count; no min-shows gate |
+| `trigger` | `'rollup' \| 'scheduled' \| 'admin' \| 'revert'` | Last rebuild source |
+| `rebuiltAt` | Timestamp | Server write time |
+
+Rebuild: after `rollupScoresForShow` / revert (all-time + that show’s tour, soft-fail), nightly **`scheduledGlobalStatsLeaderboardsRefresh`** (08:00 ET), and admin callable **`refreshGlobalStatsLeaderboards`**.
+
+**Out of v1:** avg vintage, Bustout Boost, In most played, pool-scoped boards.
+
+Signed-in read; client writes denied. Admin SDK / Functions write only.
 
 ---
 
@@ -320,11 +350,13 @@ Phish.net integration, live scoring, and public tour-stats refresh. Deployed via
 
 **`public_tour_stats` (#665):** `scheduledPublicTourStatsRefresh` (daily 07:30 ET) and admin callable `refreshPublicTourStats` rebuild aggregate docs. Calendar sync also triggers a refresh after writing `show_calendar/snapshot`.
 
+**`global_stats_leaderboards` (#1004 / v1.70.0):** `scheduledGlobalStatsLeaderboardsRefresh` (daily 08:00 ET) and admin callable `refreshGlobalStatsLeaderboards` rebuild all-time + every tour. `rollupScoresForShow` also rebuilds all-time + the finalized show’s tour (soft-fail). Request: none. Response: `{ ok, docsWritten, usersScanned, tourKeys }`. Admin claim required on the callable.
+
 **Storage object `song-catalog.json` (v1.25.0+, #554):** published by `scheduledPhishnetSongCatalog` / `refreshPhishnetSongCatalog`. Each song object includes `{ name, total, gap, last, debut }` where `debut` is a string (typically `YYYY-MM-DD`) or `""` when unknown. See `docs/SONG_CATALOG.md`. Adding `debut` is a **MINOR** catalog-field addition (clients may ignore unknown fields).
 
 **Storage archive `song-catalog/archive/{stamp}.json` (v1.36.0+, #647):** each catalog sync also writes a dated private snapshot (same JSON payload as live) at `song-catalog/archive/YYYY-MM-DDTHH-mm-ssZ.json` for leakage-safe recommendation backtests (#646). Not public-read (Admin SDK / ops only). Live client path is unchanged. `refreshPhishnetSongCatalog` may return optional `archivePath` (`string | null`) when the archive write succeeded.
 
-**Storage object `pick-recommendations.json` (v1.37.0+, #650; history merge v1.39.0+, #721):** published by `scheduledPickRecommendations` (cron `15 */6 * * *` ET) and admin callable `refreshPickRecommendations`. Payload includes `generatedAt`, `modelVersion` (`v0.1.1-explainable`+), `targetShow`, `historyShowCount`, `historySource` (`merged` \| `phishnet` \| `firestore`), `topK`, and `slots` (`s1o`/`s1c`/`s2o`/`s2c`/`enc`/`wild`) — each an array of `{ name, normalizedName, rank, score, playProb, slotAffinity, confidence, riskBand, reasons }`. `riskBand`: `safe` (high show-wide playProb), `slot_fit` (strong for that slot over prior window *t*), `long_shot` (bustout), or `unbanded` (Lab hides). Priors: private Phish.net ~1y window at `pick-recommendations/history/window.json` merged with `official_setlists` (`showDate < target`; Firestore wins ties). Join to catalog by `normalizedName` / normalized title. No-op (skip publish) when there is no upcoming show or insufficient history. Optional private archives under `pick-recommendations/archive/`. Client: Storage `getDownloadURL` + localStorage TTL (override `VITE_PICK_RECOMMENDATIONS_URL`). See `docs/PICK_RECOMMENDATIONS.md`.
+**Storage object `pick-recommendations.json` (v1.37.0+, #650; history merge v1.39.0+, #721; full-song map v1.68.0+ / #767):** published by `scheduledPickRecommendations` (cron `15 */6 * * *` ET) and admin callable `refreshPickRecommendations`. Payload includes `generatedAt`, `modelVersion` (`v0.1.1-explainable`+), `targetShow`, `historyShowCount`, `historySource` (`merged` \| `phishnet` \| `firestore`), `topK`, `slots` (`s1o`/`s1c`/`s2o`/`s2c`/`enc`/`wild`) — each an array of `{ name, normalizedName, rank, score, playProb, slotAffinity, confidence, riskBand, reasons }` — and **`playProbBySong`** (`{ [normalizedName]: number }`, show-wide `playProb` for every history song; Lab still uses `slots` top-K). `riskBand`: `safe` (high show-wide playProb), `slot_fit` (strong for that slot over prior window *t*), `long_shot` (bustout), or `unbanded` (Lab hides). Priors: private Phish.net ~1y window at `pick-recommendations/history/window.json` merged with `official_setlists` (`showDate < target`; Firestore wins ties). Join to catalog by `normalizedName` / normalized title. No-op (skip publish) when there is no upcoming show or insufficient history. Optional private archives under `pick-recommendations/archive/`. Client: Storage `getDownloadURL` + localStorage TTL (override `VITE_PICK_RECOMMENDATIONS_URL`). See `docs/PICK_RECOMMENDATIONS.md`.
 
 **Storage object `pick-recommendations/history/window.json` (v1.39.0+, #721):** private recommendation-only setlist cache (not public-read). Synced by `scheduledPickRecommendationHistory` (`40 4 * * *` ET) and admin `refreshPickRecommendationHistory` (`{ force?: boolean, years?: number }`, default 1y). Does **not** write `official_setlists`.
 
@@ -358,11 +390,11 @@ Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` 
 - **GET** with a valid signature (the visible footer "Unsubscribe"/"Manage preferences" link, or any link-scanner/antivirus gateway prefetching it) never suppresses by itself — it renders an HTML confirmation page with a form that must be explicitly submitted (a real POST) to complete the unsubscribe.
 - Any other method, or an invalid/missing signature, returns `400`/`405` without touching `email_suppression`.
 
-The branded HTML email body's visible footer link points at the `/dashboard/profile/notifications` Messages settings page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header. Legacy `/dashboard/notifications` redirects there in the SPA.
+The branded HTML email body's visible footer link points at the `/dashboard/profile/account` Preferences page, not this endpoint directly — the raw one-click URL is only ever embedded in the invisible `List-Unsubscribe` header. Legacy `/dashboard/notifications` still redirects to Messages (query preserved); `?openPush=1` then hops to Preferences. `/dashboard/account-security` redirects to Preferences (query preserved).
 
 ### 2.6 Comms email subscription callables (v1.10.0, #455)
 
-Authenticated callables backing the Notifications screen email section. Clients cannot read `email_suppression` directly.
+Authenticated callables backing the Preferences email section (`/dashboard/profile/account`). Clients cannot read `email_suppression` directly.
 
 | Export | Auth | Description |
 |--------|------|-------------|
@@ -383,9 +415,9 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/how-it-works` | None | How to play marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-it-works/index.html` when present. **v1.47.0:** marketing document. **v1.56.1 (#937):** show-night walkthrough (distinct from splash Game Format teaser). |
 | `/how-scoring-works` | None | Scoring rules marketing page. **v1.32.0+ (#659):** served as prerendered `dist/how-scoring-works/index.html` when present. **v1.47.0:** marketing document. **v1.58.0 (#944):** light editorial main + `ScoringRulesContent surface="light"` (in-app modal remains dark default). |
 | `/tour-stats` | None | **v1.33.0 (#665):** public aggregate tour song stats (filter + default Sphere). Prerendered shell; live data from `public_tour_stats`. Never full nightly setlists. **v1.47.1 (#827):** skeleton chrome + `PublicTourStatsPage` modulepreload. **v1.49.0 (#853):** boots the **marketing** document (no `AuthProvider`); App Check + Firestore load at fetch time only — restores cold-open feel after #835 login deferral regressed the app-shell path. **v1.60.0 (#929):** hub “current tour” blurb links to the live summer SEO slug; filter selection always uses slug URLs. **v1.62.0 (#869):** first meaningful stats prefer `/tour-stats-data/*.json` + Firestore REST (no App Check kick on marketing). |
-| `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `2026-sphere`). Default Sphere slug is also prerendered. **v1.49.0 (#853):** same marketing-document boot as `/tour-stats`. **v1.59.0 (#927/#928):** `2026-summer-tour` prerendered + sitemap/`llms.txt` (live calendar label **2026 Summer Tour**); crawler HTML includes aggregate bustout/frequency facts at build time. **v1.60.0 (#929):** fan-language H2s/intros on the public surface; selecting the current/default tour keeps the slug path (no collapse to `/tour-stats`). **v1.62.0 (#869):** same CDN/REST data plane as the hub. **v1.62.1 (#930):** `/llms.txt` restates unique / frequency / 30+ bustout definitions and deep-links this summer slug. |
+| `/tour-stats/:tourSlug` | None | **v1.33.0 (#665):** same surface for a kebab-case tour slug (e.g. `2026-sphere`). Default Sphere slug is also prerendered. **v1.49.0 (#853):** same marketing-document boot as `/tour-stats`. **v1.59.0 (#927/#928):** `2026-summer-tour` prerendered + sitemap/`llms.txt` (live calendar label **2026 Summer Tour**); crawler HTML includes aggregate bustout/frequency facts at build time. **v1.60.0 (#929):** fan-language H2s/intros on the public surface; selecting the current/default tour keeps the slug path (no collapse to `/tour-stats`). **v1.62.0 (#869):** same CDN/REST data plane as the hub. **v1.62.1 (#930):** `/llms.txt` restates unique / frequency / 30+ bustout definitions and deep-links this summer slug. **v1.63.0 (#959):** additional slugs auto-prerender (facts HTML + FAQ/ItemList, sitemap, `llms.txt`) when `public_tour_stats` meets the thin-page gate — no hand edit of `seoRoutes.js`. Gate: `showsWithSetlist ≥ 4` and `uniqueSongs ≥ 20` and `lastShowDate` in the current UTC year. Kill-switch / allowlist / denylist: `TOUR_STATS_SEO_AUTO_EXPAND`, `TOUR_STATS_SEO_ALLOWLIST`, `TOUR_STATS_SEO_DENYLIST`. Aggregates only; never full night setlists. No `/phish-picks`. |
 | `/tour-stats-data/:docId.json` | None | **v1.62.0 (#869):** build-time JSON snapshot of `public_tour_stats/{docId}` (`_index` + each tour slug). Same-origin; `Cache-Control: public, max-age=300, stale-while-revalidate=86400`. Aggregates only — never full night setlists. Client revalidates via Firestore REST. |
-| `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. **v1.47.0:** marketing document. **v1.56.0 (#940):** tightened scannable definitional landing (epic #942). |
+| `/phish-setlist-prediction-game` | None | **v1.34.0 (#660):** keyword-intent educational page for Phish setlist prediction game queries; prerendered HTML + FAQ JSON-LD. **v1.47.0:** marketing document. **v1.56.0 (#940):** tightened scannable definitional landing (epic #942). **v1.62.2 (#973):** title / description / FAQ bridge C6 (`phish setlist prediction`) and C7 (`phish picks`) on this same URL — no `/phish-picks` doorway. |
 | `/about` | None | **v1.56.0 (#941):** crawlable origin / brand narrative (extracted from splash About); prerendered marketing document. |
 | `/join/:code` | None | Pool invite deep link; optional `?from={handle}` for inviter personalization; VIP landing stores code and prompts auth (#580); personalized OG (#582) |
 | `/invite/:handle` | None | Site VIP invite deep link; personalized landing when handle resolves; no pool join side effects (#580); personalized OG (#582) |
@@ -396,11 +428,21 @@ These routes are part of the public surface. Renaming or removing them is a MAJO
 | `/setup` | Auth | Profile setup (new users) |
 | `/dashboard/*` | Auth | Full game dashboard |
 
-Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`. Notable secondary route: **`/dashboard/tour-stats`** (**v1.30.0 / #555**) — private tour stats explorer (unique songs, frequency, bustouts, self pick overlay). Peer Standings chrome tab (**Stats** alongside Show / Tour / Pools); shares tour scope (`?tour=`) with Tour view. Standings nav stays active. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — aggregates only, no self overlay, not under `/dashboard/`.
+Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
+
+**Account primary (**v1.67.0 / #770**):** last player-tab label is **Account** (was Profile). Path prefix stays **`/dashboard/profile/*`** (no new `/dashboard/account` family). Tertiary: **Profile** (`/dashboard/profile`) · **Messages** (`/dashboard/profile/notifications`, inbox only) · **Preferences** (`/dashboard/profile/account` — security, logout, legal, install/PWA, notification prefs). `?openPush=1` and the dashboard install push nudge land on Preferences. Avatar shortcut → Preferences; bell → Messages. **#513 Phase 2:** inbox sections Unopened / Read / Archived; owner `archivedAt` + hard delete. Phase 3 per-channel pref keys are deferred (same `notificationPrefs` keys; cosmetic Push / Email grouping only).
+
+**Stats primary (**v1.66.0 / #769** chrome, **v1.69.0 / #1004** remap, **v1.70.0 / #1004** Global boards, **v1.70.1** trays):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal — All-time | This tour tray; All-time inner Your stats | Top picks; This tour self overlay), **`/dashboard/stats/global`** (All-time | This tour tray, then PPS | Picking Avg | Shows; top 50 paginated 10/page + you-row; Functions-owned `global_stats_leaderboards`), **`/dashboard/stats/band`** (private tour song explorer from **v1.30.0 / #555** — frequency / bustouts / high gaps). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/band` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Every Stats destination uses the chrome tour picker (`showTourScopePicker`); Personal and Global all-time do not restamp with `?tour=`. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — Band’s marketing twin; aggregates only, no self overlay, not under `/dashboard/`. Unchanged in v1.70.1.
+
+**Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
+
+**Picks — Scorecard (**v1.65.1 / #767**, full-song odds **v1.68.0**):** global, show-scoped self card at **`/dashboard/picks/scorecard`**. Overlap is post-lock only. Odds are optional show-wide `playProb` from Storage `pick-recommendations.json` (`playProbBySong` when present; else per-slot top-K). When the map exists, every pick shows a percent; titles missing from history show `<1%`. Omit all odds if the artifact is missing or for another night. Rank/score reuse the existing show-scoped standings query. **GA4 (client):** `scorecard_open` `{ show_date, lock_state }` where `lock_state` is `empty` \| `pre_lock` \| `locked_ungraded` \| `graded`; `scorecard_metric_impression` `{ show_date, metric }` where `metric` is `overlap` \| `odds` \| `rank`.
+
+**Pools tertiary (**v1.65.0 / #768**):** nested destinations under Pools — **`/dashboard/pools`** (My Pools), **`/dashboard/pools/create`** (Create Pool), **`/dashboard/pools/join`** (Join Pool). **`/dashboard/pool/:id`** (pool details) is unchanged; Pools primary stays active. Not `?view=`. Post-auth `/join/:code` with a pending invite lands on `/dashboard/pools/join`.
 
 **Standings Show — Crowd pulse (**v1.35.0 / #687**, productized **#694**, preview blur **v1.39.4**):** client-side aggregate of submitted picks for the selected `showDate`. While `showStatus === 'NEXT'`, preview **Song** + **Last** columns blur (pickers / gap stay clear); full deep stats (multi list / gaps / vintage / leaders) stay locked until showtime. **GA4 (client):** `crowd_pulse_view` `{ show_date, deep_stats: locked|open, pickers }`, `crowd_pulse_full_expand` `{ show_date }`, `crowd_pulse_section_open` `{ show_date, section }` where `section` is `top_songs` | `multi_picker` | `highest_gaps` | `vintage` | `leaders`.
 
-**Picks — Prediction Lab (**v1.38.0 / #651**):** opt-in collapsed panel on `/dashboard/picks` consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete unchanged when Lab unused/unavailable. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
+**Picks — Prediction Lab (**v1.38.0 / #651**, moved **v1.64.0 / #766**):** lives at **`/dashboard/picks/lab`**. Opt-in slot recommendations consuming Storage `pick-recommendations.json` (see §2.3). Manual autocomplete on Make Picks is unchanged. When `VITE_ENABLE_PREDICTION_LAB` is not `true`, the Lab route still renders (coming-soon shell) — the tertiary tab is not hidden. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
 
 **Field RUM — web-vitals (**v1.44.0 / #801**, route groups **v1.49.1 / #857**):** production hostnames only. Client emits GA4 `web_vital` for LCP, INP, CLS, TTFB, FCP after idle. Params: `{ metric_name, value, metric_id, metric_rating, route_group, navigation_type }` where `route_group` is `splash` \| `login` \| `marketing` \| `tour_stats` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` and `navigation_type` is `navigate` \| `reload` \| `back_forward` \| `prerender`. Ops: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
 
@@ -468,7 +510,7 @@ These `VITE_*` variables are read at build time. Adding or removing one is a MIN
 | `VITE_SONG_CATALOG_URL` | No | CDN URL override for song catalog |
 | `VITE_PICK_RECOMMENDATIONS_URL` | No | CDN URL override for pick recommendations (#650) |
 | `VITE_ENABLE_SPONSOR_SLOTS` | No | `true` renders reserved sponsor/ad placements (`SponsorSlot`); omit to hide (default) |
-| `VITE_ENABLE_PREDICTION_LAB` | No | `true` renders Prediction Lab + loads pick-recommendations artifact on Picks; omit to hide (default). Use on Preview/local for QA; leave unset in Production until launch |
+| `VITE_ENABLE_PREDICTION_LAB` | No | `true` renders Prediction Lab + loads pick-recommendations artifact on **`/dashboard/picks/lab`**. Omit to show the Lab coming-soon shell (default). The Lab tertiary segment stays visible either way (**v1.64.0 / #766**). Use on Preview/local for QA; leave unset in Production until launch |
 
 ### 4.1 Cloud Functions runtime env vars
 
@@ -482,6 +524,16 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 | `GA4_MP_API_SECRET` | For server `comms_delivered` MP | GA4 Measurement Protocol API secret (Secret Manager); bound on all `deliverCommsTrigger` hosts; unset → no-op |
 | `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |
 | `PHISHNET_API_KEY` | For Phish.net callables | Phish.net API key (Secret Manager) |
+
+### 4.2 Build-time tour-stats SEO auto-expand (#959)
+
+Read by `scripts/prerender-seo.mjs` (not `VITE_*`; not shipped to the client). Adding one is MINOR; removing or renaming is MAJOR.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TOUR_STATS_SEO_AUTO_EXPAND` | No | Kill-switch. Default on. Set `0` / `false` / `off` to skip extra slugs (static Sphere + Summer in `seoRoutes.js` still prerender). |
+| `TOUR_STATS_SEO_ALLOWLIST` | No | Optional comma-separated slugs; when set, only those slugs may auto-expand (still must meet the thin-page gate). |
+| `TOUR_STATS_SEO_DENYLIST` | No | Optional comma-separated slugs that must never auto-expand (rollback a bad tour). |
 
 ---
 

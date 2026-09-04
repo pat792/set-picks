@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 
 import {
   MARKETING_EDITORIAL_ARTICLE,
+  MARKETING_EDITORIAL_BODY,
   MARKETING_EDITORIAL_COLUMN,
   MARKETING_EDITORIAL_H1,
+  MARKETING_EDITORIAL_META,
+  MARKETING_EDITORIAL_TYPE_LEDE,
 } from '../../../shared/ui/marketingEditorialChrome';
 import { LINK_ON_LIGHT } from '../../../shared/ui/surfaceLinkStyles';
 import AppDocumentAuthLink from './AppDocumentAuthLink';
@@ -22,11 +25,11 @@ export default function AboutPageContent() {
           About Setlist Pick&apos;Em
         </h1>
 
-        <blockquote className="mb-10 border-l-4 border-teal-500/60 pl-5 text-lg italic leading-relaxed text-slate-600 md:text-xl">
+        <blockquote className={`${MARKETING_EDITORIAL_TYPE_LEDE} mb-10 border-l-4 border-teal-500/60 pl-5 italic leading-relaxed text-slate-600`}>
           “Lock your picks, ride the scores, run with your crew—one show at a time.”
         </blockquote>
 
-        <div className="space-y-6 text-base leading-relaxed text-slate-700 md:text-lg">
+        <div className={`space-y-6 ${MARKETING_EDITORIAL_BODY}`}>
           <p>
             In <strong className="font-semibold text-slate-900">2001</strong>, on{' '}
             <strong className="font-semibold text-slate-900">Phish tour</strong> that summer,{' '}
@@ -90,7 +93,7 @@ export default function AboutPageContent() {
         </div>
 
         <nav
-          className="mt-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-sm"
+          className={`mt-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 ${MARKETING_EDITORIAL_META}`}
           aria-label="How it works, tour stats, or create an account"
         >
           <Link to="/how-it-works" className={LINK_ON_LIGHT}>

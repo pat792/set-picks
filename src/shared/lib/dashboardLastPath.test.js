@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { POOLS_CLUSTER_PATHS } from '../config/dashboardRoutes';
+import { POOL_INVITE_STORAGE_KEY } from '../config/poolInvite';
 import {
   DASHBOARD_LAST_PATH_STORAGE_KEY,
-  DASHBOARD_POOLS_HREF,
+  DASHBOARD_POOLS_JOIN_HREF,
   getDashboardEntryHref,
 } from './dashboardLastPath';
-import { POOL_INVITE_STORAGE_KEY } from '../config/poolInvite';
 
 function installMemoryLocalStorage() {
   const store = new Map();
@@ -45,12 +46,54 @@ describe('getDashboardEntryHref', () => {
     expect(getDashboardEntryHref()).toBe('/dashboard/standings');
   });
 
-  it('overrides remembered tab when a pending pool invite is stored (#728)', () => {
+  it('restores Picks Lab and Scorecard cluster paths (#766)', () => {
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/picks/lab', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/picks/lab');
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/picks/scorecard', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/picks/scorecard');
+  });
+
+  it('overrides remembered tab when a pending pool invite is stored (#728 / #768)', () => {
     localStorage.setItem(
       DASHBOARD_LAST_PATH_STORAGE_KEY,
       JSON.stringify({ pathname: '/dashboard/standings', search: '' }),
     );
     localStorage.setItem(POOL_INVITE_STORAGE_KEY, 'A7X9K');
-    expect(getDashboardEntryHref()).toBe(DASHBOARD_POOLS_HREF);
+    expect(getDashboardEntryHref()).toBe(DASHBOARD_POOLS_JOIN_HREF);
+    expect(getDashboardEntryHref()).toBe(POOLS_CLUSTER_PATHS.join);
+  });
+
+  it('restores Stats cluster destinations (#769)', () => {
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/stats/global', search: '?tour=Summer+2026' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/stats/global?tour=Summer+2026');
+
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/stats/personal', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/stats/personal');
+  });
+
+  it('restores Pools tertiary destinations (#768)', () => {
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/pools/create', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/pools/create');
+
+    localStorage.setItem(
+      DASHBOARD_LAST_PATH_STORAGE_KEY,
+      JSON.stringify({ pathname: '/dashboard/pools/join', search: '' }),
+    );
+    expect(getDashboardEntryHref()).toBe('/dashboard/pools/join');
   });
 });

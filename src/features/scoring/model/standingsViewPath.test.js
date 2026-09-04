@@ -21,17 +21,11 @@ describe('buildStandingsViewPath', () => {
     );
   });
 
-  it('builds Stats on the dedicated tour-stats route', () => {
-    expect(buildStandingsViewPath('stats')).toBe('/dashboard/tour-stats');
-    expect(buildStandingsViewPath('stats', { tourKey: 'Spring 2026' })).toBe(
-      '/dashboard/tour-stats?tour=Spring+2026',
-    );
+  it('does not own a Stats path (#769)', () => {
+    expect(buildStandingsViewPath('stats')).toBe('/dashboard/standings');
   });
 
   it('ignores blank tour / pool keys', () => {
-    expect(buildStandingsViewPath('stats', { tourKey: '  ' })).toBe(
-      '/dashboard/tour-stats',
-    );
     expect(buildStandingsViewPath('pools', { poolId: '' })).toBe(
       '/dashboard/standings?view=pools',
     );

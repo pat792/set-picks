@@ -98,18 +98,21 @@ service cloud.firestore {
       }
 
       /**
-       * In-app comms inbox (issue #120 / epic #272): recap + editorial messages.
-       * Clients read; Admin SDK / Cloud Functions create. Owners may set `readAt` only.
+       * In-app comms inbox (issue #120 / epic #272 / #513): recap + editorial messages.
+       * Clients read; Admin SDK / Cloud Functions create. Owners may set `readAt` /
+       * `archivedAt` and may hard-delete their own docs. Payload stays server-owned.
        */
       match /commsInbox/{messageId} {
         allow read: if signedIn() && request.auth.uid == userId;
-        allow create, delete: if false;
+        allow create: if false;
+        allow delete: if signedIn() && request.auth.uid == userId;
         allow update: if signedIn()
           && request.auth.uid == userId
           && request.resource.data.templateId == resource.data.templateId
           && request.resource.data.payload == resource.data.payload
           && request.resource.data.createdAt == resource.data.createdAt
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']);
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['readAt', 'archivedAt']);
       }
     }
 
@@ -183,6 +186,16 @@ service cloud.firestore {
      */
     match /comms_show_context/{showDate} {
       allow read, write: if false;
+    }
+
+    /**
+     * Global Stats leaderboards (#1004). Written by Cloud Functions Admin SDK
+     * from `users` career / seasonStats fields. Authenticated clients may read
+     * the top-50 boards; no client writes.
+     */
+    match /global_stats_leaderboards/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     /**

@@ -85,6 +85,12 @@ jobs:
       - name: Tour-stats SEO facts helpers (#928)
         run: npm run test:tour-stats-seo-facts
 
+      - name: SEO query registry (#931)
+        run: npm run test:seo-query-registry
+
+      - name: SEO GSC weekly snapshot (#932)
+        run: npm run test:seo-gsc-snapshot
+
       - name: SEO string sync (description mirrors)
         run: npm run verify:seo-strings
 

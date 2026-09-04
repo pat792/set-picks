@@ -91,4 +91,11 @@ test("buildPickRecommendationsArtifact emits versioned slots", () => {
   assert.ok(out.artifact.slots.s1o[0].normalizedName);
   assert.ok(out.artifact.slots.s1o[0].riskBand);
   assert.ok(Array.isArray(out.artifact.slots.wild));
+  assert.equal(typeof out.artifact.playProbBySong, "object");
+  assert.ok(out.artifact.playProbBySong.alpha >= 0);
+  assert.ok(out.artifact.playProbBySong.delta >= 0);
+  assert.ok(
+    Object.keys(out.artifact.playProbBySong).length >=
+      new Set(["alpha", "beta", "gamma", "delta"]).size
+  );
 });

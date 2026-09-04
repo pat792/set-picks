@@ -66,7 +66,7 @@ Implemented in `src/shared/lib/dashboardLastPath.js` and used from:
 
 ### Excluded from persist and restore
 
-- Entire Profile cluster (`/dashboard/profile`, `/dashboard/profile/notifications`, `/dashboard/profile/account`)
+- Entire Account cluster (`/dashboard/profile`, `/dashboard/profile/notifications`, `/dashboard/profile/account`)
 - Legacy redirects: `/dashboard/notifications`, `/dashboard/account-security`
 
 Rationale: users often open **Profile** / **Account** only to sign out; remembering those routes would send them back to Profile on every login. Visiting the cluster does **not** overwrite the last remembered game tab.
@@ -84,12 +84,14 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 | Path pattern | Notes |
 |--------------|--------|
 | `/dashboard` | Picks (optional safe query, e.g. scoring modal deep link) |
-| `/dashboard/pools` | Pool list |
+| `/dashboard/pools` | My Pools (Pools tertiary default) |
+| `/dashboard/pools/create` | Create Pool |
+| `/dashboard/pools/join` | Join Pool (pending-invite landing) |
 | `/dashboard/standings` | Standings; query string must pass safe-character rules |
 | `/dashboard/scoring` | Redirects in-app to Picks + modal; still a valid stored path |
 | `/dashboard/pool/:poolId` | Pool details (`poolId` alphanumerics + `_-`) |
 | `/dashboard/admin` | Admin only |
-| Profile cluster (`/dashboard/profile…`) | **Not** eligible |
+| Account cluster (`/dashboard/profile…`) | **Not** eligible |
 | Legacy `/dashboard/notifications`, `/dashboard/account-security` | **Not** eligible |
 
 ## Scenarios
@@ -107,10 +109,10 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 
 1. `usePoolInviteCodeStorage` (`src/features/pool-invite/model/usePoolInviteCodeStorage.js`): valid code → saved under pool-invite storage key → **VIP landing stays on `/join/:code`** (`InviteVipLanding` via `PoolInvitePage`). Optional `?from=` resolves inviter handle for personalized H1.
 2. User taps **Create account** or **Sign in** → splash auth modals with pool join banner (`poolInvitePending`). Create account honors legal checkbox (#577).
-3. After auth → `useInviteLanding` redirect → `getDashboardEntryHref` → **`/dashboard/pools`** while invite breadcrumb is present (overrides remembered last-tab for that session, #728).
-4. `DashboardRoute` → **`/setup`** if no profile; after setup → **`/dashboard/pools`** again via the same invite override.
-5. `usePendingPoolJoin` (`src/features/pool-invite/model/usePendingPoolJoin.js`) inside `DashboardLayout`: status machine `idle | joining | succeeded | failed`; consumes invite code, joins pool. Pools UI shows **“Joining your pool…”** (never empty-state) while `joining`. On **`joined`** / **`already-member`** → toast + navigate to **pool detail** when id known, else **`/dashboard/pools`**. Timeout (~15s) keeps breadcrumb + Retry (#729).
-6. Invalid/expired code: no navigation to pool detail; user stays on Pools; breadcrumb cleared.
+3. After auth → `useInviteLanding` redirect → `getDashboardEntryHref` → **`/dashboard/pools/join`** while invite breadcrumb is present (overrides remembered last-tab for that session, #728 / #768).
+4. `DashboardRoute` → **`/setup`** if no profile; after setup → **`/dashboard/pools/join`** again via the same invite override.
+5. `usePendingPoolJoin` (`src/features/pool-invite/model/usePendingPoolJoin.js`) inside `DashboardLayout`: status machine `idle | joining | succeeded | failed`; consumes invite code, joins pool. Join Pool shows **“Joining your pool…”** while `joining`. On **`joined`** / **`already-member`** → toast + navigate to **pool detail** when id known, else **`/dashboard/pools`**. Timeout (~15s) keeps breadcrumb + Retry (#729).
+6. Invalid/expired code: no navigation to pool detail; user stays on Join Pool; breadcrumb cleared.
 
 ### B2. First-time user with site invite (`/invite/:handle`)
 
@@ -126,7 +128,7 @@ If nothing is stored, stored JSON is invalid, or the path is ineligible → **`/
 ### D. Existing user with a new invite link
 
 1. **Pool:** Same as B.1–B.2 (code stored on landing; signed-in visitors redirect immediately to dashboard with code already in storage).
-2. After sign-in, **`getDashboardEntryHref`** returns **`/dashboard/pools`** while the invite breadcrumb is present (not the remembered tab). **`usePendingPoolJoin`** runs with honest joining chrome on Pools.
+2. After sign-in, **`getDashboardEntryHref`** returns **`/dashboard/pools/join`** while the invite breadcrumb is present (not the remembered tab). **`usePendingPoolJoin`** runs with honest joining chrome on Join Pool.
 
 **Priority:** pending-invite entry to **Pools** + successful **invite join navigation** (pool detail when known) override the restored tab for those outcomes.
 
@@ -156,7 +158,7 @@ flowchart TD
   restore[getDashboardEntryHref_or_URL_unchanged]
   layout[DashboardLayout_persist_path]
   pendingJoin{usePendingPoolJoin_invite_code?}
-  poolsNav[Navigate_to_/dashboard/pools]
+  poolsNav[Navigate_to_pool_details_or_/dashboard/pools]
 
   entry --> inviteLanding
   inviteLanding -->|site_/invite| authGates
