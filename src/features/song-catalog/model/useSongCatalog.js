@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { fetchFirstOkJson } from '../../../shared/lib/fetchFirstOkJson.js';
 import { selectCatalogSongs } from './selectCatalogSongs.js';
 import {
   SONG_CATALOG_CACHE_KEY,
   SONG_CATALOG_CACHE_MAX_AGE_MS,
 } from './songCatalogConstants.js';
-import { resolveSongCatalogFetchUrl } from './songCatalogUrl.js';
+import { resolveSongCatalogFetchUrls } from './songCatalogUrl.js';
 
 /**
  * @typedef {{ fetchedAt: number, songs: { name: string, total?: string, gap?: string, last?: string, debut?: string }[], updatedAt?: string }} CatalogCacheV1
@@ -101,9 +102,9 @@ export function useSongCatalog() {
         return;
       }
 
-      let url;
+      let urls;
       try {
-        url = await resolveSongCatalogFetchUrl();
+        urls = await resolveSongCatalogFetchUrls();
       } catch (e) {
         if (ac.signal.aborted || cancelled) return;
         const stale = cached && cached.songs.length > 0 ? cached.songs : null;
@@ -121,16 +122,7 @@ export function useSongCatalog() {
       }
 
       try {
-        const res = await fetch(url, {
-          signal: ac.signal,
-          headers: { Accept: 'application/json' },
-        });
-
-        if (!res.ok) {
-          throw new Error(`Song catalog HTTP ${res.status}`);
-        }
-
-        const body = await res.json();
+        const body = await fetchFirstOkJson(urls, { signal: ac.signal });
         const songs = songsFromResponseBody(body);
         if (!songs) {
           throw new Error('Song catalog JSON missing songs array.');

@@ -16,6 +16,7 @@ import {
   scorecardShowsOverlap,
   scorecardShowsRank,
 } from './resolveScorecardState';
+import { mapScorecardSlotGrade } from './mapScorecardSlotGrade';
 import { selectScorecardOdds } from './selectScorecardOdds';
 import usePicksForm from './usePicksForm';
 import { usePickRecommendations } from './usePickRecommendations';
@@ -31,9 +32,15 @@ import { usePickRecommendations } from './usePickRecommendations';
  *   user: { uid?: string } | null | undefined,
  *   selectedDate: string | undefined,
  *   picksForm?: ReturnType<typeof usePicksForm>,
+ *   artifact?: object | null,
  * }} args
  */
-export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp }) {
+export function usePicksScorecard({
+  user,
+  selectedDate,
+  picksForm: picksFormProp,
+  artifact: artifactProp,
+}) {
   const { showDates, showDatesByTour } = useShowCalendar();
   const localForm = usePicksForm({
     user: picksFormProp ? null : user,
@@ -51,7 +58,10 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
     selectedDate,
     showDates,
   );
-  const { artifact } = usePickRecommendations({ enabled: true });
+  const { artifact: fetchedArtifact } = usePickRecommendations({
+    enabled: artifactProp === undefined,
+  });
+  const artifact = artifactProp !== undefined ? artifactProp : fetchedArtifact;
 
   const hasPicks = hasNonEmptyPicksObject(formData);
   const hasSetlist = Boolean(actualSetlist);
@@ -99,6 +109,10 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
       FORM_FIELDS.map((field) => {
         const song = String(formData?.[field.id] ?? '').trim();
         const odds = oddsBySlot[field.id];
+        const grade =
+          state === 'graded' && actualSetlist
+            ? mapScorecardSlotGrade(field.id, song, actualSetlist)
+            : null;
         return {
           fieldId: field.id,
           label: field.label,
@@ -106,9 +120,10 @@ export function usePicksScorecard({ user, selectedDate, picksForm: picksFormProp
           alsoPickedCount: showOverlap ? overlapBySlot[field.id] ?? 0 : null,
           playProb: odds?.playProb ?? null,
           oddsUnknown: Boolean(odds?.unknown),
+          grade,
         };
       }).filter((slot) => slot.song),
-    [formData, showOverlap, overlapBySlot, oddsBySlot],
+    [formData, showOverlap, overlapBySlot, oddsBySlot, state, actualSetlist],
   );
 
   const show = selectedDate ? showDates?.find((s) => s.date === selectedDate) : null;

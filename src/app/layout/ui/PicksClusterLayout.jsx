@@ -2,7 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Outlet, useLocation } from 'react-router-dom';
 
-import { usePicksForm } from '../../../features/picks';
+import { usePickRecommendations, usePicksForm } from '../../../features/picks';
 import { useShowCalendar } from '../../../features/show-calendar';
 import {
   PICKS_CLUSTER_PATHS,
@@ -39,6 +39,9 @@ export default function PicksClusterLayout({ user, selectedDate }) {
   const desktopChromeRoot = useDashboardDesktopPageChromePortal();
   const { showDates, showDatesByTour } = useShowCalendar();
   const picksForm = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
+  const { artifact: pickRecommendationsArtifact } = usePickRecommendations({
+    enabled: true,
+  });
   const makePicksTo = isMakePicksPath(location.pathname)
     ? normalizeDashboardPathname(location.pathname)
     : PICKS_CLUSTER_PATHS.makePicks;
@@ -64,7 +67,9 @@ export default function PicksClusterLayout({ user, selectedDate }) {
             desktopChromeRoot,
           )
         : null}
-      <Outlet context={{ user, selectedDate, picksForm }} />
+      <Outlet
+        context={{ user, selectedDate, picksForm, pickRecommendationsArtifact }}
+      />
     </div>
   );
 }

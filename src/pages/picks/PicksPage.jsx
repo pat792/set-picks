@@ -190,6 +190,8 @@ export default function PicksPage({ user: userProp, selectedDate: selectedDatePr
             onChange={handleInput}
             isLocked={isLocked}
             disabled={isLoadingPicks}
+            selectedDate={selectedDate}
+            pickRecommendationsArtifact={outlet.pickRecommendationsArtifact}
           />
           <PicksSubmitButton
             isSaving={isSaving}

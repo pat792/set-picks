@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.70.2  
+**Version:** 1.71.0  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -436,7 +436,9 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
 
 **Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
 
-**Picks — Scorecard (**v1.65.1 / #767**, full-song odds **v1.68.0**):** global, show-scoped self card at **`/dashboard/picks/scorecard`**. Overlap is post-lock only. Odds are optional show-wide `playProb` from Storage `pick-recommendations.json` (`playProbBySong` when present; else per-slot top-K). When the map exists, every pick shows a percent; titles missing from history show `<1%`. Omit all odds if the artifact is missing or for another night. Rank/score reuse the existing show-scoped standings query. **GA4 (client):** `scorecard_open` `{ show_date, lock_state }` where `lock_state` is `empty` \| `pre_lock` \| `locked_ungraded` \| `graded`; `scorecard_metric_impression` `{ show_date, metric }` where `metric` is `overlap` \| `odds` \| `rank`.
+**Picks — Scorecard (**v1.65.1 / #767**, full-song odds **v1.68.0**, graded hit chrome **v1.71.0 / #1013**):** global, show-scoped self card at **`/dashboard/picks/scorecard`**. Overlap is post-lock only. Odds are optional show-wide `playProb` from Storage `pick-recommendations.json` (`playProbBySong` when present; else per-slot top-K). When the map exists, every pick shows a percent; titles missing from history show `<1%`. Omit all odds if the artifact is missing or for another night. On graded nights (`locked` + official setlist), each slot uses `getSlotScoreBreakdown`: hits (`points > 0`) show a light A5 check + inset ring (brand-primary for `exact_slot` / `encore_exact` / `wildcard_hit`; accent-blue for `in_setlist`; amber overlay when `bustoutBoost`). Misses are slightly muted. Pre-grade cards are unchanged. Rank/score reuse the existing show-scoped standings query. **GA4 (client):** `scorecard_open` `{ show_date, lock_state }` where `lock_state` is `empty` \| `pre_lock` \| `locked_ungraded` \| `graded`; `scorecard_metric_impression` `{ show_date, metric }` where `metric` is `overlap` \| `odds` \| `rank`.
+
+**Picks — Make Picks song picker (**v1.71.0 / #1013**):** the autocomplete dropdown shows compact model odds as an `Odds: N%` stat (`<1%` / mobile `<1` when the title is missing from `playProbBySong`) from the same Storage artifact as Scorecard, only when `targetShow.date` matches the selected night. Total / Gap / Last stay beside it. The Make Picks card shows an **Odds** label + tooltip (plain-language “best guess from recent shows”). Not live crowd %.
 
 **Pools tertiary (**v1.65.0 / #768**):** nested destinations under Pools — **`/dashboard/pools`** (My Pools), **`/dashboard/pools/create`** (Create Pool), **`/dashboard/pools/join`** (Join Pool). **`/dashboard/pool/:id`** (pool details) is unchanged; Pools primary stays active. Not `?view=`. Post-auth `/join/:code` with a pending invite lands on `/dashboard/pools/join`.
 
