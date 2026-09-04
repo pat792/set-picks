@@ -52,8 +52,8 @@ function readViewQuery(search) {
  * @param {string} pathname
  * @param {string | URLSearchParams | null | undefined} [search]  `location.search`.
  *   Used by `/dashboard/standings` to hide the global date picker when
- *   `?view=tour` is active (#255), and by Stats Global / Band (#769) —
- *   tour-scoped surfaces share the chrome tour picker.
+ *   `?view=tour` is active (#255), and by Stats Personal / Global / Band
+ *   (#769 / #1004) — tour-scoped surfaces share the chrome tour picker.
  */
 export function getDashboardPageMeta(pathname, search) {
   const normalized = normalizeDashboardPathname(pathname);
@@ -63,6 +63,8 @@ export function getDashboardPageMeta(pathname, search) {
     return {
       contextTitle: '',
       showDatePicker: false,
+      isStandingsTourView: false,
+      showTourScopePicker: false,
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
       desktopHeadingTone: 'default',
@@ -83,10 +85,10 @@ export function getDashboardPageMeta(pathname, search) {
   const isAdmin = normalized === '/dashboard/admin';
   const isPoolHub = normalized.startsWith('/dashboard/pool/');
   const isStandings = normalized === '/dashboard/standings';
-  // Tour standings + Stats Global/Band share the chrome tour scope picker (#295 / #555 / #769).
-  const isStandingsTourView =
-    (isStandings && readViewQuery(search) === 'tour') ||
-    isStatsTourScopedPath(normalized);
+  // Narrow: Standings Tour only. Stats uses `showTourScopePicker` (#1004).
+  const isStandingsTourView = isStandings && readViewQuery(search) === 'tour';
+  const showTourScopePicker =
+    isStandingsTourView || isStatsTourScopedPath(normalized);
 
   const contextTitle = (() => {
     if (isStatsCluster) return NAV_LABEL_STATS;
@@ -102,7 +104,7 @@ export function getDashboardPageMeta(pathname, search) {
   })();
 
   const showDatePicker =
-    !isProfileCluster && !isPoolHub && !isStandingsTourView && !isStatsCluster;
+    !isProfileCluster && !isPoolHub && !showTourScopePicker && !isStatsCluster;
 
   // Five player tabs own title + tray in the desktop sticky stack. Layout H2
   // stays only for War Room. Pool details keeps Option C (no cluster title).
@@ -122,6 +124,7 @@ export function getDashboardPageMeta(pathname, search) {
     contextTitle,
     showDatePicker,
     isStandingsTourView,
+    showTourScopePicker,
     layoutDesktopHeading,
     layoutDetailEyebrow,
     desktopHeadingTone: isAdmin ? 'warRoom' : 'default',

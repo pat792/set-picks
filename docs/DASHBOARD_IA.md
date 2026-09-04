@@ -14,25 +14,25 @@ Single reference for **support**, **product**, and **engineering** when adding r
 
 **Admin** (sixth item, single admin user): `/dashboard/admin` — War Room. Bottom nav is **5 columns** for players, **6** when Admin is present.
 
-### Stats cluster (#769)
+### Stats cluster (#769 chrome / #1004 content)
 
-Nested routes (not `?view=`). Icon: `BarChart3`. Personal is career-scoped (no global date picker). Global / Band keep the #555 tour scope picker (`?tour=`).
+Nested routes (not `?view=`). Icon: `BarChart3`. Every Stats destination uses the chrome tour scope picker (`?tour=`). Personal’s **All-time** block is tour-agnostic; the picker restamps only **This tour**.
 
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
-| **Personal Stats** | `/dashboard/stats` and `/dashboard/stats/personal` | Profile self stats (`ProfileSelfStatsPanel` / season averages / heatmap). Profile may keep a quiet **View personal stats** link. |
-| **Global Stats** | `/dashboard/stats/global` | Private tour explorer from #555 (`TourStatsView` / `useTourStatsScreen`) including self overlay. Leaderboards (points / picking averages) are **deferred**. |
-| **Band Stats** | `/dashboard/stats/band` | Coming-soon shell. Phish song stats by tour live under Global until multi-band (#300). Links to Global — do not duplicate the explorer. |
+| **Personal Stats** | `/dashboard/stats` and `/dashboard/stats/personal` | Every *your* stat. Expandable **All-time** (career averages / heatmap — all shows played) above expandable **This tour** (“Your picks this tour” self overlay). Profile may keep a quiet **View personal stats** link. |
+| **Global Stats** | `/dashboard/stats/global` | Leaderboards of those same individual stats (best → worst). Phase 1 is a rankings-coming shell. No song explorer. No self overlay. |
+| **Band Stats** | `/dashboard/stats/band` | Band/song datasets now: #555 `TourStatsView` frequency / bustouts / high gaps. `#300` adds more bands later — it does not gate this slot. |
 
-**Legacy redirect:** `/dashboard/tour-stats` → `/dashboard/stats/global` (preserve `?tour=`). Stats primary stays active on the hop.
+**Legacy redirect:** `/dashboard/tour-stats` → `/dashboard/stats/band` (preserve `?tour=`). Stats primary stays active on the hop.
 
-**Public marketing counterpart (#665):** `/tour-stats` and `/tour-stats/:tourSlug` — aggregate song datasets only (most played, bustouts, gaps); default tour is the **current** tour (newest `lastShowDate` on `_index`). Not a dashboard route; `robots.txt` still Disallows `/dashboard/*`. Do not unlock private Stats or self-overlay for anonymous users.
+**Public marketing counterpart (#665):** `/tour-stats` and `/tour-stats/:tourSlug` — Band’s public twin: aggregate song datasets only (most played, bustouts, gaps); default tour is the **current** tour (newest `lastShowDate` on `_index`). Not a dashboard route; `robots.txt` still Disallows `/dashboard/*`. Do not unlock private Stats or self-overlay for anonymous users.
 
 ### Feature discovery “New” markers (#639)
 
 Soft **New** labels (not coachmarks) may appear temporarily on:
 
-- Stats chrome **Global** segment → clears after visiting `/dashboard/stats/global` (compact corner **dot**, not a “New” text label — keeps the Global Stats word readable). Same `tour-stats` feature id as the retired Standings Stats pill.
+- Stats chrome **Band** segment → clears after visiting `/dashboard/stats/band` (compact corner **dot**, not a “New” text label — keeps the Band Stats word readable). Same `tour-stats` feature id as the retired Standings Stats pill.
 - Official setlist card on Standings → clears when the card is toggled open/closed
 - Profile **Avatar** / **Badges** headings → clears after picking an avatar
 
@@ -120,7 +120,7 @@ Do **not** add new `md:`-as-device assumptions in **shared** chrome. Until `desk
 
 When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 
-1. Update **`getDashboardPageMeta`** (`contextTitle`, `showDatePicker`, `layoutDesktopHeading`, `ownsDesktopStickyChrome`, `layoutDetailEyebrow` if needed).
+1. Update **`getDashboardPageMeta`** (`contextTitle`, `showDatePicker`, `showTourScopePicker`, `layoutDesktopHeading`, `ownsDesktopStickyChrome`, `layoutDetailEyebrow` if needed).
 2. Update **`DashboardLayout`** nav **`isActive`** so the primary tab stays active on every child (mirror **Pools / pool details** and **Account / Preferences**).
 3. Add a row to **`scripts/verify-dashboard-meta.mjs`** and run **`npm run verify:dashboard-meta`**.
 4. Update **`src/shared/config/dashboardVocabulary.js`** (`NAV_LABEL_*`) and this doc.

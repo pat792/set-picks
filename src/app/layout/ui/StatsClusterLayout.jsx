@@ -39,7 +39,7 @@ export default function StatsClusterLayout({ user }) {
     badge: tourStatsSpotlight.active ? (
       <FeatureNewBadge variant="dot" title="New: Tour Stats" />
     ) : null,
-    onGlobalClick: tourStatsSpotlight.active
+    onBandClick: tourStatsSpotlight.active
       ? () => tourStatsSpotlight.trackClick()
       : undefined,
   });

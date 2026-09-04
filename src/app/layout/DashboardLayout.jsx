@@ -283,7 +283,7 @@ export default function DashboardLayout() {
               showDates={showDates}
               showDatesByTour={showDatesByTour}
               tourScope={
-                meta.isStandingsTourView
+                meta.showTourScopePicker
                   ? {
                       tours: selectableTours,
                       selectedTourKey: selectedTour?.tour ?? null,
@@ -316,7 +316,7 @@ export default function DashboardLayout() {
         <div className="max-w-xl mx-auto w-full min-w-0 px-4 pt-2 md:p-8">
           {meta.ownsDesktopStickyChrome ||
           meta.showDatePicker ||
-          meta.isStandingsTourView ? (
+          meta.showTourScopePicker ? (
             <DashboardStickyChromeStack>
               {meta.showDatePicker ? (
                 <DashboardTourDateScope
@@ -326,7 +326,7 @@ export default function DashboardLayout() {
                   showDates={showDates}
                   showDatesByTour={showDatesByTour}
                 />
-              ) : meta.isStandingsTourView ? (
+              ) : meta.showTourScopePicker ? (
                 <StandingsTourScopeSelect
                   variant="desktop"
                   tours={selectableTours}
@@ -390,7 +390,7 @@ export default function DashboardLayout() {
               path="tour-stats"
               element={
                 <Navigate
-                  to={`${STATS_CLUSTER_PATHS.global}${location.search}`}
+                  to={`${STATS_CLUSTER_PATHS.band}${location.search}`}
                   replace
                 />
               }

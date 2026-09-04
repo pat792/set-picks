@@ -1,5 +1,5 @@
 import React from 'react';
-import { Music2 } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { STATS_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
@@ -13,35 +13,39 @@ import {
   DASHBOARD_CARD_TITLE,
 } from '../../../shared/ui/dashboardCardClasses';
 
-export const BAND_STATS_COMING_SOON_TITLE = 'Band Stats is coming soon';
-export const BAND_STATS_COMING_SOON_BODY =
-  'Phish song stats by tour live under Global until we support more than one band.';
+export const GLOBAL_STATS_COMING_SOON_TITLE = 'Global rankings are coming soon';
+export const GLOBAL_STATS_COMING_SOON_BODY =
+  'Leaderboards of the same individual stats you see on Personal — best to worst. Song frequency, bustouts, and high gaps live under Band.';
 
 /**
- * Band Stats cluster destination placeholder (#769).
- * Does not duplicate the Global tour explorer.
+ * Global Stats Phase 1 shell (#1004).
+ * Honest rankings-coming placeholder — no song explorer, no self overlay.
  */
-export default function BandStatsComingSoon({ className = '' }) {
+export default function GlobalStatsComingSoon({ className = '' }) {
   const shellClass = `flex flex-col ${DASHBOARD_CARD_RADIUS} border border-border-subtle bg-surface-panel/60 ${DASHBOARD_CARD_PAD} ${className}`;
 
   return (
     <section
       className={`${shellClass} ${DASHBOARD_CARD_L2_MIN_H} justify-center`}
-      aria-label="Band Stats"
+      aria-label="Global Stats"
     >
       <p
         className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-primary`}
       >
-        <Music2 className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
-        Band Stats
+        <Trophy className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
+        Global Stats
       </p>
-      <p className={`mt-1 ${DASHBOARD_CARD_TITLE}`}>{BAND_STATS_COMING_SOON_TITLE}</p>
-      <p className={`mt-1 ${DASHBOARD_CARD_BODY}`}>{BAND_STATS_COMING_SOON_BODY}</p>
+      <p className={`mt-1 ${DASHBOARD_CARD_TITLE}`}>
+        {GLOBAL_STATS_COMING_SOON_TITLE}
+      </p>
+      <p className={`mt-1 ${DASHBOARD_CARD_BODY}`}>
+        {GLOBAL_STATS_COMING_SOON_BODY}
+      </p>
       <Link
-        to={STATS_CLUSTER_PATHS.global}
+        to={STATS_CLUSTER_PATHS.band}
         className="mt-4 inline-flex items-center text-sm font-bold text-brand-primary hover:underline"
       >
-        View Global Stats
+        View Band Stats
       </Link>
     </section>
   );
