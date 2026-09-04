@@ -8,8 +8,13 @@ import {
   isPersonalStatsPath,
   normalizeDashboardPathname,
 } from '../../../shared/config/dashboardRoutes';
-import { useDashboardMobileChromePortal } from '../../../shared/hooks/useDashboardMobileChromePortal';
+import {
+  useDashboardDesktopPageChromePortal,
+  useDashboardMobileChromePortal,
+} from '../../../shared/hooks/useDashboardMobileChromePortal';
+import { NAV_LABEL_STATS } from '../../../shared/config/dashboardVocabulary';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
+import DashboardStickyPageChrome from '../../../shared/ui/DashboardStickyPageChrome';
 import StatsClusterMobileChrome, {
   buildStatsClusterNavItems,
 } from './StatsClusterMobileChrome';
@@ -18,13 +23,14 @@ import StatsClusterMobileChrome, {
  * Persistent Stats-cluster sub-navigation (Personal / Global / Band).
  * Nested routes render via {@link Outlet}.
  * Mobile: tertiary tray portals under the context bar (Profile cluster pattern).
- * Desktop: in-page tray at this call site — no md:-as-device assumptions in shared chrome.
+ * Desktop: title + tray portaled into the layout sticky stack.
  *
  * @param {{ user: import('firebase/auth').User | null | undefined }} props
  */
 export default function StatsClusterLayout({ user }) {
   const location = useLocation();
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const desktopChromeRoot = useDashboardDesktopPageChromePortal();
   const tourStatsSpotlight = useFeatureSpotlight('tour-stats');
   const personalTo = isPersonalStatsPath(location.pathname)
     ? normalizeDashboardPathname(location.pathname)
@@ -44,9 +50,14 @@ export default function StatsClusterLayout({ user }) {
         ? createPortal(<StatsClusterMobileChrome items={items} />, mobileChromeRoot)
         : null}
 
-      <div className="mb-6 hidden md:block">
-        <ChromeSegmentedControl ariaLabel="Stats sections" items={items} />
-      </div>
+      {desktopChromeRoot
+        ? createPortal(
+            <DashboardStickyPageChrome title={NAV_LABEL_STATS}>
+              <ChromeSegmentedControl ariaLabel="Stats sections" items={items} />
+            </DashboardStickyPageChrome>,
+            desktopChromeRoot,
+          )
+        : null}
       <Outlet context={{ user }} />
     </div>
   );

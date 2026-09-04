@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.68.0  
+**Version:** 1.68.1  
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 

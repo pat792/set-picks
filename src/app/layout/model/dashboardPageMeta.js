@@ -66,6 +66,7 @@ export function getDashboardPageMeta(pathname, search) {
       layoutDesktopHeading: null,
       layoutDetailEyebrow: null,
       desktopHeadingTone: 'default',
+      ownsDesktopStickyChrome: false,
     };
   }
 
@@ -103,12 +104,17 @@ export function getDashboardPageMeta(pathname, search) {
   const showDatePicker =
     !isProfileCluster && !isPoolHub && !isStandingsTourView && !isStatsCluster;
 
-  // Profile cluster + pool details own in-page headings; Standings owns sticky
-  // title + Show/Tour/Pools chrome so layout does not duplicate H1.
+  // Five player tabs own title + tray in the desktop sticky stack. Layout H2
+  // stays only for War Room. Pool details keeps Option C (no cluster title).
+  const ownsDesktopStickyChrome =
+    isPicksCluster ||
+    isStandings ||
+    isStatsCluster ||
+    isPoolsTertiaryPath(normalized) ||
+    isProfileCluster;
+
   const layoutDesktopHeading =
-    !isProfileCluster && !isPoolHub && !isStandings
-      ? contextTitle
-      : null;
+    !ownsDesktopStickyChrome && !isPoolHub ? contextTitle : null;
 
   const layoutDetailEyebrow = isPoolHub ? POOL_DETAILS_LAYOUT_EYEBROW : null;
 
@@ -119,5 +125,6 @@ export function getDashboardPageMeta(pathname, search) {
     layoutDesktopHeading,
     layoutDetailEyebrow,
     desktopHeadingTone: isAdmin ? 'warRoom' : 'default',
+    ownsDesktopStickyChrome,
   };
 }

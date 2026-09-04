@@ -4,7 +4,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useSignOut } from '../../auth';
 import { InstallAppCard, isInstalled } from '../../install';
 import { NotificationPrefsPanel } from '../../notifications';
-import { dashboardPageTitleGradientClasses } from '../../../shared/config/dashboardHeadingTypography';
 import Button from '../../../shared/ui/Button';
 import AccountSecurity from './AccountSecurity';
 import DeleteAccountSection from './DeleteAccountSection';
@@ -52,16 +51,9 @@ export default function AccountPreferencesScreen({ user }) {
 
   return (
     <div>
-      <div className="mb-6 text-left">
-        <h2
-          className={`hidden md:block font-display text-display-page md:text-display-page-lg font-bold ${dashboardPageTitleGradientClasses}`}
-        >
-          Preferences
-        </h2>
-        <p className="mt-1 text-xs font-bold uppercase tracking-widest text-content-secondary">
-          Sign-in · {providerLabel}
-        </p>
-      </div>
+      <p className="mb-6 text-xs font-bold uppercase tracking-widest text-content-secondary">
+        Sign-in · {providerLabel}
+      </p>
 
       <div className="mb-8">
         <AccountSecurity user={user} showHeading={false} />

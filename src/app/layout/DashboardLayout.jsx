@@ -71,6 +71,7 @@ import { usePrefetchDashboardRoutes } from './model/usePrefetchDashboardRoutes';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
+import DashboardStickyChromeStack from './ui/DashboardStickyChromeStack';
 import DashboardTourDateScope from './ui/DashboardTourDateScope';
 import {
   DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID,
@@ -313,30 +314,27 @@ export default function DashboardLayout() {
         ].join(' ')}
       >
         <div className="max-w-xl mx-auto w-full min-w-0 px-4 pt-2 md:p-8">
-          
-          {/* DESKTOP Global Date Picker — sticky first chrome row on every route that shows it. */}
-          {meta.showDatePicker ? (
-            <div className="sticky top-0 z-30 -mx-4 mb-6 hidden bg-brand-bg/90 px-4 pb-3 pt-1 backdrop-blur-md supports-[backdrop-filter]:bg-brand-bg/75 md:-mx-8 md:block md:px-8">
-              <DashboardTourDateScope
-                variant="desktop"
-                selectedDate={selectedDate}
-                onSelectedDateChange={setSelectedDate}
-                showDates={showDates}
-                showDatesByTour={showDatesByTour}
-              />
-            </div>
-          ) : null}
-
-          {/* DESKTOP Tour scope — same sticky slot/treatment as Tour Date on the Standings Tour view. */}
-          {meta.isStandingsTourView ? (
-            <div className="sticky top-0 z-30 -mx-4 mb-6 hidden bg-brand-bg/90 px-4 pb-3 pt-1 backdrop-blur-md supports-[backdrop-filter]:bg-brand-bg/75 md:-mx-8 md:block md:px-8">
-              <StandingsTourScopeSelect
-                variant="desktop"
-                tours={selectableTours}
-                selectedTourKey={selectedTour?.tour ?? null}
-                onSelectTour={setTourKey}
-              />
-            </div>
+          {meta.ownsDesktopStickyChrome ||
+          meta.showDatePicker ||
+          meta.isStandingsTourView ? (
+            <DashboardStickyChromeStack>
+              {meta.showDatePicker ? (
+                <DashboardTourDateScope
+                  variant="desktop"
+                  selectedDate={selectedDate}
+                  onSelectedDateChange={setSelectedDate}
+                  showDates={showDates}
+                  showDatesByTour={showDatesByTour}
+                />
+              ) : meta.isStandingsTourView ? (
+                <StandingsTourScopeSelect
+                  variant="desktop"
+                  tours={selectableTours}
+                  selectedTourKey={selectedTour?.tour ?? null}
+                  onSelectTour={setTourKey}
+                />
+              ) : null}
+            </DashboardStickyChromeStack>
           ) : null}
 
           {showPastShowLock && <PastShowLockBanner />}

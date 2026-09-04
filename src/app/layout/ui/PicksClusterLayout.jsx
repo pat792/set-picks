@@ -9,8 +9,13 @@ import {
   isMakePicksPath,
   normalizeDashboardPathname,
 } from '../../../shared/config/dashboardRoutes';
-import { useDashboardMobileChromePortal } from '../../../shared/hooks/useDashboardMobileChromePortal';
+import {
+  useDashboardDesktopPageChromePortal,
+  useDashboardMobileChromePortal,
+} from '../../../shared/hooks/useDashboardMobileChromePortal';
+import { NAV_LABEL_PICKS } from '../../../shared/config/dashboardVocabulary';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
+import DashboardStickyPageChrome from '../../../shared/ui/DashboardStickyPageChrome';
 import PicksClusterMobileChrome, {
   PICKS_CLUSTER_MOBILE_TOOLS_ROOT_ID,
   buildPicksClusterNavItems,
@@ -20,7 +25,7 @@ import PicksClusterMobileChrome, {
  * Persistent Picks-cluster sub-navigation (Make Picks / Picks Lab / Scorecard).
  * Nested routes render via {@link Outlet}.
  * Mobile: tertiary tray portals under the context bar (Profile cluster pattern).
- * Desktop: in-page tray at this call site — no md:-as-device assumptions in shared chrome.
+ * Desktop: title + tray portaled into the layout sticky stack.
  * Owns `usePicksForm` so Lab “Use” and Make Picks share one card across nested routes.
  *
  * @param {{
@@ -31,6 +36,7 @@ import PicksClusterMobileChrome, {
 export default function PicksClusterLayout({ user, selectedDate }) {
   const location = useLocation();
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const desktopChromeRoot = useDashboardDesktopPageChromePortal();
   const { showDates, showDatesByTour } = useShowCalendar();
   const picksForm = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
   const makePicksTo = isMakePicksPath(location.pathname)
@@ -50,9 +56,14 @@ export default function PicksClusterLayout({ user, selectedDate }) {
           )
         : null}
 
-      <div className="mb-6 hidden md:block">
-        <ChromeSegmentedControl ariaLabel="Picks sections" items={items} />
-      </div>
+      {desktopChromeRoot
+        ? createPortal(
+            <DashboardStickyPageChrome title={NAV_LABEL_PICKS}>
+              <ChromeSegmentedControl ariaLabel="Picks sections" items={items} />
+            </DashboardStickyPageChrome>,
+            desktopChromeRoot,
+          )
+        : null}
       <Outlet context={{ user, selectedDate, picksForm }} />
     </div>
   );

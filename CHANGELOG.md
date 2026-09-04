@@ -20,6 +20,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.68.1] — 2026-09-03
+
+### Changed
+- **Desktop sticky chrome** — Picks, Pools, Standings, Stats, and Account share one scrollport sticky stack (date/tour scope + cluster title + tertiary tray). Lock and install banners sit in the scrolling body below that stack. Mobile chrome is unchanged. #704 landscape/`desk` screens stay follow-on.
+- **Helper copy** — Account Profile (and Messages) descriptions are `InfoTooltip`s via `DashboardActionRow` `hint`. Visible description paragraphs are owner-opt-in only (`summary`).
+
+---
+
 ## [1.68.0] — 2026-09-03
 
 ### Added
