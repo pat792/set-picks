@@ -580,6 +580,48 @@ Abbreviated recap + Standings / invite CTA. Forced to every inbox (no play filte
 
 ---
 
+## 12 — `tour_recap`
+
+| Field | Value |
+|-------|-------|
+| **Status** | `shipped` |
+| **Automation** | `batch` — post-grade fan-out when the tour's **final show** is graded (`rollupScoresForShow` → `deliverTourRecapIfFinalShow`). **Not** War Room on the production happy path. |
+| **Event** | Last date in `show_calendar.showDatesByTour` for that tour is graded |
+| **Channels** | `inApp`, `push`, `email` (abbreviated teaser; optional `emailFull` / in-app long form) |
+| **Audience** | Users with ≥1 graded pick on any show in that tour |
+| **Prefs key** | `results` |
+| **Dedup** | `tour_recap:{tourId}:{uid}` in `fcm_notification_log` + inbox message id |
+| **Priority** | P1 (`results_recap`, W3) |
+| **Implementation** | Thin adapter in `functions/commsEventAdapters.js` → `deliverCommsTrigger`. Edition flavor from `content/comms/tours/<edition>.md` + send-time payload — do not hardcode Sphere as the live catalog trigger. |
+| **Note** | Night `show_recap` ≠ this end-of-tour recap. Do not replace `show_recap` or `tour_rankings_daily`. Sphere ’26 (`sphere-2026-inaugural` / `tour_recap_sphere_2026`) is archive + War Room replay (`deliverSphere2026TourRecapInbox`) only. GitHub #510. |
+
+#### Variables used
+
+`{{handle}}`, `{{rank}}`, `{{points}}`, `{{wins}}`, `{{showsPlayed}}`, `{{participantCount}}`, `{{tour_id}}`, `{{tour_name}}`, `{{show_count}}`, `{{headline}}`, `{{podium}}`
+
+#### Rank branches (personalized)
+
+champion · top 5 · top 10 · full-run outside top 10 · partial attendance · fallback
+
+#### Template — Push
+
+**Title:** `Tour recap is in`  
+**Body:** champion: `You took #1 with {{points}} pts and {{wins}} nightly wins. Open the app for the full wrap-up.` otherwise `You finished #{{rank}} ({{points}} pts, {{wins}} wins). Open the app for your personalized recap.`  
+**Deep link:** inbox / `/dashboard/standings`
+
+#### Template — In-App
+
+**Heading:** `{{headline}}` (edition flavor)
+
+Podium + honorable mentions + personalized rank-branch paragraph. CTA: standings (no “Open the app”).
+
+#### Template — Email (abbreviated)
+
+**Subject:** `{{tour_name}} recap is in`  
+Teaser + champion one-liner + CTA to log in / standings. Full narrative stays in-app.
+
+---
+
 ## System triggers
 
 ### `push_canary`
@@ -601,7 +643,7 @@ These shipped implementations are covered by the v1 trigger set above. Keep the 
 |-------------|--------------|
 | `post_show_win` | `show_recap` (comprehensive) + `score_first_points` / `score_leader` (live) |
 | `post_show_near_miss` | `show_recap` |
-| `tour_recap_sphere_2026` | `show_recap` (generalized) + `tour_rankings_daily` |
+| `tour_recap_sphere_2026` | `tour_recap` (durable personalized end-of-tour). Sphere ’26 remains archive + War Room replay only. |
 | `profile_incomplete_nudge` | `account_welcome` (catch early); add nudge at D+1 if needed |
 | `return_after_14d` | `tour_countdown` + `tour_engagement_reminder` cover re-engagement |
 

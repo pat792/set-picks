@@ -17,7 +17,8 @@ Label rule: **never promise a surface the href does not deliver.** Inbox cards s
 | `tour-rankings-daily` | See standings | `/dashboard/standings#self-recap` | yes | Scrolls to self-recap card |
 | `picks-lock-reminder` | Make your picks / View / Edit picks | `/dashboard/picks` | yes | Prod skips secured users; secured CTA for preview (#509) |
 | `tour-engagement-reminder` | Make picks for next show / View / Edit picks | `/dashboard/picks` | yes | Branches on next-show `picks_secured` (#509) |
-| `sphere-2026-inaugural` | (bespoke) | — | n/a | Legacy Sphere edition |
+| `tour-recap` | (bespoke rich body) | `/dashboard/standings` (email CTA) | yes | Generic end-of-tour recap (#510); preview fixtures are Sample Tour, not Sphere IDs |
+| `sphere-2026-inaugural` | (bespoke) | — | n/a | Historical Sphere edition / War Room replay — not the live catalog trigger |
 
 ## Email (`functions/commsTemplates.js`)
 
@@ -28,6 +29,7 @@ Label rule: **never promise a surface the href does not deliver.** Inbox cards s
 | `picks-confirmed` | `/dashboard` default | Prefer picks in a follow-up if still shipping |
 | `show-recap` | `/dashboard/standings#self-recap` | Rare (email folded into morning send #451) |
 | `tour-rankings_daily` | `/dashboard/picks` | Catalog: “Make picks for next show”; includes invite share block when `invite_url` present (#583) |
+| `tour-recap` | `/dashboard/standings#self-recap` | Abbreviated teaser; full recap in-app (#510) |
 | `summer-tour-2026-launch` | invite `shareUrl` / `invite_url` | Pool `/join/{code}?from={handle}` or site `/invite/{handle}` + UTMs (#583) |
 | `summer-2026-almost-end` | `/dashboard/standings` (invite / check it out) | Players: invite CTA; no-play: Standings CTA + UTMs `summer_2026_almost_end` |
 | `picks-lock-reminder` | `/dashboard/picks` | |

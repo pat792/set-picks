@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { SPHERE_2026_RECAP_ID } from '../tour-recap';
+import { SPHERE_2026_RECAP_ID, TOUR_RECAP_TEMPLATE_ID } from '../tour-recap';
 import {
   getRecapTemplateDefinition,
   recapTemplateSupportsChannel,
@@ -8,22 +8,33 @@ import {
 } from './registry.js';
 
 describe('RECAP_TEMPLATE_REGISTRY', () => {
-  it('registers Sphere 2026 inaugural recap with all four channels', () => {
-    const def = getRecapTemplateDefinition(SPHERE_2026_RECAP_ID);
+  it('registers the live tour_recap template with all four channels', () => {
+    const def = getRecapTemplateDefinition(TOUR_RECAP_TEMPLATE_ID);
     expect(def).toBeDefined();
     expect(def?.kind).toBe('tour');
     expect(def?.supportedChannels).toEqual(
       expect.arrayContaining(['inApp', 'emailAbbreviated', 'emailFull', 'push']),
     );
-    expect(def?.sourceDraftPath).toContain('content/comms');
+    expect(def?.sourceDraftPath).toBe('content/comms/tours/tour-recap.md');
+    expect(def?.implementationModule).toContain('tourRecap.js');
+  });
+
+  it('keeps Sphere 2026 as a historical edition archive, not the live module', () => {
+    const def = getRecapTemplateDefinition(SPHERE_2026_RECAP_ID);
+    expect(def).toBeDefined();
+    expect(def?.kind).toBe('tour');
+    expect(def?.displayName).toMatch(/archive|replay/i);
+    expect(def?.implementationModule).toContain('sphere2026Recap.js');
   });
 
   it('reports channel support', () => {
+    expect(recapTemplateSupportsChannel(TOUR_RECAP_TEMPLATE_ID, 'push')).toBe(true);
     expect(recapTemplateSupportsChannel(SPHERE_2026_RECAP_ID, 'push')).toBe(true);
     expect(recapTemplateSupportsChannel('nonexistent-id', 'push')).toBe(false);
   });
 
-  it('keeps registry keys in sync with SPHERE_2026_RECAP_ID', () => {
+  it('keeps registry keys in sync with live + archive ids', () => {
+    expect(Object.keys(RECAP_TEMPLATE_REGISTRY)).toContain(TOUR_RECAP_TEMPLATE_ID);
     expect(Object.keys(RECAP_TEMPLATE_REGISTRY)).toContain(SPHERE_2026_RECAP_ID);
   });
 });

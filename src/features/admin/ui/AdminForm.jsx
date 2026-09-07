@@ -198,8 +198,8 @@ export default function AdminForm({ user, selectedDate }) {
             </AdminActionToggle>
             <AdminActionToggle
               id="admin-tour-recap-preview"
-              title="Tour recap copy (Sphere '26)"
-              description="Preview in-app recap, teaser email + CTA, optional full narrative, and short FCM lines (#272)."
+              title="Tour recap copy"
+              description="Preview the generic tour_recap template (Sample Tour fixtures). Sphere ’26 delivery below is replay/QA only (#510)."
               open={tourRecapPreviewOpen}
               onOpenChange={setTourRecapPreviewOpen}
             >
