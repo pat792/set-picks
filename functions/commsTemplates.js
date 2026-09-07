@@ -24,6 +24,9 @@ const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
 const PICKS_CTA_URL = `${SITE_URL}/dashboard/picks`;
 const STANDINGS_CTA_URL = `${SITE_URL}/dashboard/standings#self-recap`;
+/** Email tease → Messages inbox (full tour_recap body). In-app CTA closes to Tour standings. */
+const MESSAGES_CTA_URL = `${SITE_URL}/dashboard/profile/notifications`;
+const TOUR_RECAP_EMAIL_CTA_LABEL = "View Recap";
 
 function handleOf(p) {
   const h = p && typeof p.handle === "string" ? p.handle.trim() : "";
@@ -447,9 +450,9 @@ const BUILDERS = {
       [
         `${handle}, ${tourName} is wrapped.`,
         teaser,
-        "The full podium, honorable mentions, and your recap are in the app.",
+        "The full podium, honorable mentions, and your personalized recap are waiting in Messages.",
       ],
-      { ctaUrl: STANDINGS_CTA_URL }
+      { ctaUrl: MESSAGES_CTA_URL }
     );
     return {
       push: {
@@ -460,19 +463,19 @@ const BUILDERS = {
           rank === 1
             ? `You took #1${points != null ? ` with ${points} pts` : ""}${
                 wins != null ? ` and ${wins} nightly wins` : ""
-              }. Open the app for the full wrap-up.`
+              }. Open Messages for the full wrap-up.`
             : rank != null
               ? `You finished #${rank}${points != null ? ` (${points} pts` : ""}${
                   wins != null ? `, ${wins} wins)` : points != null ? ")" : ""
-                }. Open the app for your personalized recap.`
-              : "Your tour recap is in. Open the app to read it.",
+                }. Open Messages for your personalized recap.`
+              : "Your tour recap is in. Open Messages to read it.",
       },
       email: {
         subject: `${tourName} recap is in`,
         text: assembled.text,
         signOff: assembled.signOff,
-        ctaUrl: STANDINGS_CTA_URL,
-        ctaLabel: "See standings",
+        ctaUrl: MESSAGES_CTA_URL,
+        ctaLabel: TOUR_RECAP_EMAIL_CTA_LABEL,
       },
     };
   },

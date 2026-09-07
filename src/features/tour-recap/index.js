@@ -24,6 +24,6 @@ export {
   buildTourRecapPushPayload,
 } from './model/tourRecap.js';
 
-export { default as TourRecapInApp } from './ui/TourRecapInApp.jsx';
+export { default as TourRecapInApp, TOUR_RECAP_INAPP_CTA } from './ui/TourRecapInApp.jsx';
 export { default as Sphere2026TourRecapInApp } from './ui/Sphere2026TourRecapInApp.jsx';
 export { default as AdminTourRecapPreview } from './ui/AdminTourRecapPreview.jsx';

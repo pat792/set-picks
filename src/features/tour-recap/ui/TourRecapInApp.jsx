@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { BarChart3, Globe2, Trophy } from 'lucide-react';
 
 import {
@@ -6,6 +7,12 @@ import {
   interpolateTourRecapCopy,
   resolveTourRecapEdition,
 } from '../model/tourRecap.js';
+
+/** Close the loop after reading the inbox recap — Tour standings view. */
+export const TOUR_RECAP_INAPP_CTA = Object.freeze({
+  label: 'View tour standings',
+  href: '/dashboard/standings?view=tour',
+});
 
 function SectionHeading({ icon: Icon, label, id }) {
   return (
@@ -37,6 +44,7 @@ function SectionHeading({ icon: Icon, label, id }) {
  *   openingParas?: string[],
  *   closingLines?: string[],
  *   edition?: object,
+ *   onCtaClick?: (cta: { label: string, href?: string }) => void,
  * }} props
  */
 export default function TourRecapInApp(props) {
@@ -50,6 +58,7 @@ export default function TourRecapInApp(props) {
     showCount = edition.showCount,
     tourName = edition.tourName,
     podium = edition.podium,
+    onCtaClick,
   } = props;
   const champion = podium?.rows?.[0];
   const personal = getTourRecapPersonalParagraph({
@@ -126,6 +135,15 @@ export default function TourRecapInApp(props) {
             {para}
           </p>
         ))}
+        <div className="pt-2">
+          <Link
+            to={TOUR_RECAP_INAPP_CTA.href}
+            onClick={() => onCtaClick?.(TOUR_RECAP_INAPP_CTA)}
+            className="inline-flex items-center justify-center rounded-lg border border-brand-primary/40 bg-brand-primary/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-brand-primary transition-colors hover:border-brand-primary hover:bg-brand-primary/20"
+          >
+            {TOUR_RECAP_INAPP_CTA.label}
+          </Link>
+        </div>
       </footer>
     </article>
   );

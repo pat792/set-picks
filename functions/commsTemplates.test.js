@@ -112,7 +112,11 @@ test("tour-recap push and email are rank-aware teasers without Sphere live IDs",
   assert.equal(champ.inApp.templateId, "tour-recap");
   assert.match(champ.push.title, /Tour recap is in/);
   assert.match(champ.push.body, /#1/);
+  assert.match(champ.push.body, /Messages/i);
   assert.match(champ.email.subject, /Sample Tour/);
+  assert.equal(champ.email.ctaLabel, "View Recap");
+  assert.match(champ.email.ctaUrl, /\/dashboard\/profile\/notifications/);
+  assert.doesNotMatch(champ.email.ctaUrl, /standings/);
   assert.doesNotMatch(`${champ.push.title} ${champ.push.body} ${champ.email.text}`, /sphere-2026/i);
 
   const mid = await renderCommsTemplate("tour-recap", {
@@ -123,6 +127,7 @@ test("tour-recap push and email are rank-aware teasers without Sphere live IDs",
     tour_name: "Sample Tour",
   });
   assert.match(mid.push.body, /#8/);
+  assert.equal(mid.email.ctaLabel, "View Recap");
 });
 
 test("show-recap push surfaces score + rank when present", async () => {
