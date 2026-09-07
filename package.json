@@ -56,7 +56,8 @@
     "seo:gsc-weekly-snapshot": "node scripts/seo/gsc-weekly-snapshot.mjs",
     "seo:title-h1-scan": "python3 -m crew.scripts.seo_title_h1_scan",
     "emails:build": "npm run build --prefix emails",
-    "emails:preview": "npm run preview --prefix emails"
+    "emails:preview": "npm run preview --prefix emails",
+    "canary:tour-recap": "node scripts/canary-tour-recap.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
