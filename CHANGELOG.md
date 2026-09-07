@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.71.1] — 2026-09-06
+
+### Fixed
+- **Inbox Unopened stay-open on first click** — opening a message no longer sets `readAt` immediately (which moved the row into the collapsed Read section and made the body feel like it disappeared). The body stays in Unopened while expanded; `readAt` is written on first close (Collapse, leave for another row, or collapse Inbox).
+
+### Changed
+- **`commsInbox.readAt` timing** — client sets `readAt` when the user finishes the first open (close / switch-away), not on the open click. Field shape unchanged.
+
+---
+
 ## [1.71.0] — 2026-09-04
 
 ### Added

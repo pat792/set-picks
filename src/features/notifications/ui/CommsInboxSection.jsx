@@ -3,6 +3,7 @@ import { ChevronDown, Inbox } from 'lucide-react';
 
 import { logCommsCtaClick, logCommsDismissed, logCommsOpened } from '../../comms';
 import { useCommsInbox } from '../model/commsInboxContext.jsx';
+import { idsToMarkReadOnInboxToggle } from '../model/commsInboxMarkRead.js';
 import {
   INBOX_HISTORY_PREVIEW_LIMIT,
   partitionCommsInbox,
@@ -268,7 +269,13 @@ export default function CommsInboxSection() {
 
   const handleToggle = useCallback(
     async (id, nextOpen) => {
-      setOpenId(nextOpen ? id : null);
+      const nextOpenId = nextOpen ? id : null;
+      const toMarkRead = idsToMarkReadOnInboxToggle({
+        prevOpenId: openId,
+        nextOpenId,
+        messages,
+      });
+      setOpenId(nextOpenId);
       if (!nextOpen) setConfirmDeleteId(null);
       if (nextOpen) {
         const row = messages.find((m) => m.id === id);
@@ -278,16 +285,18 @@ export default function CommsInboxSection() {
             templateId: row.templateId,
           });
         }
-        if (row && row.readAt == null && row.archivedAt == null) {
-          try {
-            await markRead(id);
-          } catch (e) {
-            console.error('markRead', e);
-          }
+      }
+      // Mark read on first close (or switch-away), not on open — so Unopened
+      // rows stay put while the body is expanded and the user can read them.
+      for (const markId of toMarkRead) {
+        try {
+          await markRead(markId);
+        } catch (e) {
+          console.error('markRead', e);
         }
       }
     },
-    [messages, markRead],
+    [messages, markRead, openId],
   );
 
   const handleArchive = useCallback(
@@ -343,8 +352,11 @@ export default function CommsInboxSection() {
         type="button"
         onClick={() => {
           setIsSectionOpen((prev) => !prev);
-          setOpenId(null);
-          setConfirmDeleteId(null);
+          if (openId) {
+            void handleToggle(openId, false);
+          } else {
+            setConfirmDeleteId(null);
+          }
         }}
         aria-expanded={isSectionOpen}
         aria-controls="comms-inbox-panel"
