@@ -3,7 +3,7 @@
 | Field | Value |
 |--------|--------|
 | **Status** | draft / live runtime in `tourRecap.js` |
-| **Date** | 2026-09-04 |
+| **Date** | 2026-09-07 |
 | **Trigger** | `tour_recap` (#510) |
 | **Template ID** | `tour-recap` |
 | **Implementation** | `src/features/tour-recap/model/tourRecap.js` |
@@ -70,14 +70,20 @@ You finished at #{{rank}}. Thanks for playing—see you on the next run.
 
 ## Email (abbreviated)
 
-Teaser + champion/finish line + CTA to log in. Full narrative stays in-app.
+Teaser + finish line + primary CTA **View Recap** → `/dashboard/profile/notifications` (Messages inbox). Full narrative stays in-app.
 
 ---
 
 ## Push
 
 Title: `Tour recap is in`  
-Body: rank-aware teaser → inbox / standings.
+Body: rank-aware teaser → Messages inbox (FCM default deep link).
+
+---
+
+## In-app CTA
+
+After reading the recap body: **View tour standings** → `/dashboard/standings?view=tour`.
 
 ---
 

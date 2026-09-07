@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.72.1] — 2026-09-07
+
+### Changed
+- **`tour_recap` CTA loop** — email (and push copy) **View Recap** → Messages (`/dashboard/profile/notifications`); in-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour` so the full recap is read before standings.
+
+---
+
 ## [1.72.0] — 2026-09-07
 
 ### Added
