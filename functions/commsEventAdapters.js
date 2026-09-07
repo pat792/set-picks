@@ -37,6 +37,11 @@ const {
 } = require("./commsShowContext");
 const { buildShowRecapEnrichment } = require("./showRecapNarrativeCore");
 const { persistableActualSetlistFromOfficialDoc } = require("./scoringCore");
+const {
+  isFinalShowOfTour,
+  buildTourRecapPodium,
+  buildTourRecapPayload,
+} = require("./tourRecapCore");
 
 const SITE_URL = "https://www.setlistpickem.com";
 
@@ -466,8 +471,94 @@ async function deliverPostRollupComms({
     engagementRecipients.length > 0
       ? await runtime.deliver("tour_engagement_reminder", engagementRecipients)
       : null;
+  const tourRecapSummary = await deliverTourRecapIfFinalShow({
+    db,
+    runtime,
+    showDate,
+    tourKey,
+    showDatesByTour,
+    logger,
+  });
 
-  return { recapSummary, engagementSummary };
+  return { recapSummary, engagementSummary, tourRecapSummary };
+}
+
+/**
+ * End-of-tour `tour_recap` fan-out (#510). Fires only when `showDate` is the
+ * last date in `showDatesByTour` for `tourKey`. Audience: users with ≥1 graded
+ * pick on any show in that tour. Sphere ’26 replay stays on
+ * `deliverSphere2026TourRecapInbox` (War Room / QA only).
+ *
+ * @param {{
+ *   db: import("firebase-admin").firestore.Firestore,
+ *   runtime: { deliver: Function },
+ *   showDate: string,
+ *   tourKey: string | null,
+ *   showDatesByTour: unknown,
+ *   logger?: object,
+ * }} params
+ */
+async function deliverTourRecapIfFinalShow({
+  db,
+  runtime,
+  showDate,
+  tourKey,
+  showDatesByTour,
+  logger,
+}) {
+  if (!tourKey) return null;
+  const tourDates = tourDatesForKey(showDatesByTour, tourKey);
+  if (!isFinalShowOfTour(tourDates, showDate)) return null;
+
+  const picksByDate = await loadPicksByDates(db, tourDates);
+  const leaders = aggregateTourStandings(picksByDate);
+  if (leaders.length === 0) {
+    logger?.info?.("deliverTourRecapIfFinalShow: no eligible players", {
+      tourKey,
+      showDate,
+    });
+    return { skipped: "no_eligible_players", tourId: tourKey };
+  }
+
+  const ranked = assignDisplayRanks(leaders);
+  const podium = buildTourRecapPodium(leaders);
+  const participantCount = leaders.length;
+  const showCount = tourDates.length;
+  const tourName = tourKey;
+
+  /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
+  const recipients = [];
+  for (const row of leaders) {
+    const info = ranked.get(row.uid);
+    const rank = info?.rank ?? recipients.length + 1;
+    // eslint-disable-next-line no-await-in-loop
+    const userSnap = await db.collection("users").doc(row.uid).get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    recipients.push({
+      uid: row.uid,
+      userData,
+      payload: buildTourRecapPayload({
+        handle: row.handle || handleFromUser(userData),
+        rank,
+        points: row.totalPoints,
+        wins: row.wins,
+        showsPlayed: row.shows,
+        participantCount,
+        tourId: tourKey,
+        tourName,
+        showCount,
+        podium,
+      }),
+      vars: { uid: row.uid, tourId: tourKey },
+    });
+  }
+
+  logger?.info?.("deliverTourRecapIfFinalShow: fan-out", {
+    tourKey,
+    showDate,
+    recipients: recipients.length,
+  });
+  return runtime.deliver("tour_recap", recipients);
 }
 
 /**
@@ -861,6 +952,7 @@ module.exports = {
   handleAccountWelcome,
   handlePicksConfirmed,
   deliverPostRollupComms,
+  deliverTourRecapIfFinalShow,
   deliverLiveScoreComms,
   runScheduledTourCountdown,
   runScheduledTourRankingsDaily,
