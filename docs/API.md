@@ -59,7 +59,7 @@ All collections live in the default `(default)` Firestore database for project `
 |-------|------|-------|
 | `templateId` | string | Registry key (e.g. `"account-welcome"`) |
 | `triggerId` | string | Catalog trigger ID |
-| `readAt` | Timestamp? | **v1.71.1+:** Null until the user closes the message after opening it (Collapse, switch to another row, or collapse Inbox). Opening alone does not set `readAt`, so Unopened rows stay expanded while reading. |
+| `readAt` | Timestamp? | **v1.70.2+ (#1015):** Null until the user closes the message after opening it (Collapse, switch to another row, or collapse Inbox). Opening alone does not set `readAt`, so Unopened rows stay expanded while reading. |
 | `archivedAt` | Timestamp? | **v1.67.0+ (#513 / #770)** Set when the owner archives the message. Unread bell count excludes archived. |
 | `createdAt` | Timestamp | |
 | `payload` | map | Template-specific variables |
