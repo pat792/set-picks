@@ -27,7 +27,7 @@ export default function CommsMessageBody({ templateId, payload, onCtaClick }) {
   if (entry?.Component) {
     const Component = entry.Component;
     const props = entry.toComponentProps ? entry.toComponentProps(safePayload) : safePayload;
-    return <Component {...props} />;
+    return <Component {...props} onCtaClick={onCtaClick} />;
   }
 
   return (
