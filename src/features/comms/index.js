@@ -39,5 +39,6 @@ export {
   buildTourRecapEmailPlainText,
   buildTourRecapPushPayload,
   TourRecapInApp,
+  TOUR_RECAP_INAPP_CTA,
   AdminTourRecapPreview,
 } from '../tour-recap/index.js';
