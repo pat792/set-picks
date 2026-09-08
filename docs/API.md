@@ -2,6 +2,7 @@
 
 **Version:** 1.74.0  
 
+
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
 
@@ -138,7 +139,7 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `setlist_highlight` | string? | One-liner for push / Tonight block. Bustout nights: `Bustout: Song - a/an N show gap.` (singular) or `Bustouts: …; ….` (plural, `;`-separated) (#780). |
+| `setlist_highlight` | string? | One-liner bustout/debut sticker. Bustout nights: `Bustout: Song - a/an N show gap.` (singular) or `Bustouts: …; ….` (plural, `;`-separated) (#780). Inbox Tonight / morning night-para prefer composed `narrative_line` (#985). |
 | `set_flow_summary` | string? | Short S1/S2/E structure |
 | `bustout_titles` | string[] | From official setlist bustouts |
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
@@ -400,6 +401,8 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 **v1.72.1:** `tour_recap` is **not** same-tick as the finale `show_recap`. Production fan-out is the 8am PT `scheduledTourRankingsDailyComms` tick after the tour’s last show date (`deliverPendingTourRecaps`). That tick skips `tour_rankings_daily` when yesterday was the finale. Manual `runCommsTrigger` / canary still work.
 
 **v1.71.1:** Email CTA **View Recap** → `/dashboard/profile/notifications`. In-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour`.
+
+**v1.73.0 (#985):** Night `show_recap` (and the morning `tour_rankings_daily` night-para) compose `narrative_line` from set-flow arc + the player’s card + night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight wrappers. Existing payload fields only.
 
 ### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
 
