@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.74.0] — 2026-09-08
+
+### Added
+- **Resend open/click plane (#512 Slice A / #1009)** — `commsResendWebhook` persists `email.opened` / `email.clicked` on `comms_email_engagement/{resendEmailId}` (`uid`, `triggerId`, `campaignId`, `openedAt`, `clickedAt`). Duplicate deliveries are no-ops. `resend.emails.send` stamps matching tags; the delivery log may carry `resendEmailId` + `campaignId`. Ops checklist: `docs/comms-triggers/RESEND_WEBHOOK.md`. No reminder trigger or second-wave send (Slice B remains on #512). Reminted after `v1.72.2` (does not reuse shipped 1.72.0). Merge after #1008 (`1.73.0`).
+
+---
+
 ## [1.73.0] — 2026-09-08
 
 ### Changed

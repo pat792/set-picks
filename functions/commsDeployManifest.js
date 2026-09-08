@@ -64,7 +64,7 @@ const COMMS_DEPLOY_GROUPS = {
       note: "one-shot 2026-08-03 08:00 America/Denver",
       secretExpectation: "resend",
     },
-    { export: "commsResendWebhook", note: "Resend bounce/complaint webhook", secretExpectation: "webhook" },
+    { export: "commsResendWebhook", note: "Resend bounce/complaint + open/click webhook (#512)", secretExpectation: "webhook" },
     { export: "commsEmailUnsubscribe", note: "RFC 8058 one-click unsubscribe", secretExpectation: "none" },
     { export: "getCommsEmailStatus", note: "email prefs status", secretExpectation: "none" },
     { export: "unsubscribeCommsEmail", note: "email prefs unsubscribe", secretExpectation: "none" },
