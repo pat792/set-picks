@@ -38,6 +38,7 @@ Standalone collection (same rationale as `rollup_audit`): do not nest on
 
 - `functions/commsEventAdapters.js` → `showLevelPayloadFields` + `buildShowRecapEnrichment`
 - Templates: `show-recap`, `tour-rankings-daily` (`setlist_highlight` / `narrative_line`)
+- Composer: `functions/showRecapNarrativeCore.js` weaves `set_flow_summary` + card + night rank into `narrative_line` (#985)
 
 ## Related
 

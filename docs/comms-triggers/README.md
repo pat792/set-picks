@@ -14,10 +14,12 @@ This directory is the **canonical home** for triggered, templated communications
 | [CTA_ROUTE_AUDIT.md](./CTA_ROUTE_AUDIT.md) | In-app/email CTA label ↔ destination matrix (#551) |
 | [EXPERIMENT_PLAYBOOK.md](./EXPERIMENT_PLAYBOOK.md) | A/B rules, variant assignment, ship/kill criteria |
 | [OPTIMIZE_AUTONOMY.md](./OPTIMIZE_AUTONOMY.md) | **Optimize autonomy** — cycle order, PM pack template, L2 schedule (#573 / #778) |
+| [SHOW_RECAP_COMPOSER.md](./SHOW_RECAP_COMPOSER.md) | Night `show_recap` composer — arc + your card + relative rank (#985) |
 | [optimize_for.md](./optimize_for.md) | Scheduled goal rotation + override for Optimize kickoffs (#778) |
 
 CLI: `npm run comms:optimize-kickoff` · `npm run comms:show-recap-qa` (#779) · `npm run comms:picks-lock-conversion` (#698)
 | [EMAIL_INBOX_BADGE.md](./EMAIL_INBOX_BADGE.md) | Inbox sender badge (BIMI/DMARC) vs in-body email logo (#498) |
+| [RESEND_WEBHOOK.md](./RESEND_WEBHOOK.md) | Resend dashboard events + open/click persistence (#512 Slice A) |
 | [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md) | Sponsor / affiliate / offer gates (Phase 3) |
 
 ## Related repo paths
@@ -36,6 +38,7 @@ CLI: `npm run comms:optimize-kickoff` · `npm run comms:show-recap-qa` (#779) ·
 | `functions/commsEmailWorker.js` | Email channel worker (Resend, #442) |
 | `comms/emailBranding.cjs` | Shared in-body email logo URL |
 | `fcm_notification_log` | Shared delivery / dedup log |
+| `comms_email_engagement/{resendEmailId}` | Resend open/click plane (#512 Slice A; Admin write only) |
 
 ## Delivery model
 
