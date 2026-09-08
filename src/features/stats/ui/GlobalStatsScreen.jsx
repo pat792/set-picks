@@ -6,6 +6,7 @@ import { useShowCalendar } from '../../show-calendar';
 import { GLOBAL_LEADERBOARD_BOARDS } from '../model/globalLeaderboardRanking';
 import { useGlobalStatsScreen } from '../model/useGlobalStatsScreen';
 import GlobalLeaderboardBoard from './GlobalLeaderboardBoard';
+import StatsQuaternaryChrome from './StatsQuaternaryChrome';
 import StatsScopeToggle from './StatsScopeToggle';
 
 const SCOPE_ITEMS = [
@@ -25,6 +26,7 @@ const BOARD_ITEMS = GLOBAL_LEADERBOARD_BOARDS.map((board) => ({
 
 /**
  * Global Stats (#1004): All-time / This tour tray, then one board at a time.
+ * Quaternary trays stick with the Stats chrome while boards scroll.
  *
  * @param {{ user?: { uid?: string } | null }} props
  */
@@ -46,26 +48,31 @@ export default function GlobalStatsScreen({ user }) {
         </p>
       ) : null}
 
-      <StatsScopeToggle
-        ariaLabel="Global stats scope"
-        value={scope}
-        onChange={setScope}
-        items={SCOPE_ITEMS}
-        hint={
-          scope === 'tour'
-            ? `Leaderboards for ${screen.tourName}. Restamps with the tour picker. Ratio boards need at least 3 shows.`
-            : 'Career rankings across every graded show. The tour picker does not change All-time. Ratio boards need at least 3 shows.'
-        }
-        hintLabel="Global stats scope"
-      />
-
-      <StatsScopeToggle
-        ariaLabel="Global ranking board"
-        value={boardKey}
-        onChange={setBoardKey}
-        items={BOARD_ITEMS}
-        hint={activeBoard.hint}
-        hintLabel={activeBoard.title}
+      <StatsQuaternaryChrome
+        render={() => (
+          <>
+            <StatsScopeToggle
+              ariaLabel="Global stats scope"
+              value={scope}
+              onChange={setScope}
+              items={SCOPE_ITEMS}
+              hint={
+                scope === 'tour'
+                  ? `Leaderboards for ${screen.tourName}. Restamps with the tour picker. Ratio boards need at least 3 shows.`
+                  : 'Career rankings across every graded show. The tour picker does not change All-time. Ratio boards need at least 3 shows.'
+              }
+              hintLabel="Global stats scope"
+            />
+            <StatsScopeToggle
+              ariaLabel="Global ranking board"
+              value={boardKey}
+              onChange={setBoardKey}
+              items={BOARD_ITEMS}
+              hint={activeBoard.hint}
+              hintLabel={activeBoard.title}
+            />
+          </>
+        )}
       />
 
       <div hidden={scope !== 'allTime'}>

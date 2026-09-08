@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { CircleHelp } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 import {
   NAV_LABEL_CREATE_POOL,
@@ -22,7 +22,7 @@ const SUB_NAV = [
 /**
  * Mobile-only Pools tertiary chrome (#768) — fixed under the context bar.
  * Same My Pools / Create Pool / Join Pool tray as the in-page desktop nav.
- * How-pools-work CircleHelp portals into the context-bar trailing slot
+ * How-pools-work BookOpen portals into the context-bar trailing slot
  * (Standings Scale pattern) so it is not a fourth tertiary segment.
  *
  * @param {{ onOpenHowItWorks: () => void }} props
@@ -35,7 +35,7 @@ export default function PoolsMobileFixedChrome({ onOpenHowItWorks }) {
       {trailingRoot
         ? createPortal(
             <ChromeIconButton
-              icon={CircleHelp}
+              icon={BookOpen}
               label="How pools work"
               onClick={onOpenHowItWorks}
               size="sm"

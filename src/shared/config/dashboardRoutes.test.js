@@ -7,10 +7,12 @@ import {
   isMakePicksPath,
   isPicksClusterPath,
   isPersonalStatsPath,
+  isGlobalStatsPath,
   isPoolsClusterPath,
   isPoolsTertiaryPath,
   isProfileClusterPath,
   isStatsClusterPath,
+  isStatsQuaternaryPath,
   isStatsTourScopedPath,
 } from './dashboardRoutes';
 
@@ -107,6 +109,16 @@ describe('isStatsClusterPath (#769)', () => {
     expect(isPersonalStatsPath(STATS_CLUSTER_PATHS.personal)).toBe(true);
     expect(isPersonalStatsPath(STATS_CLUSTER_PATHS.global)).toBe(false);
     expect(isPersonalStatsPath(STATS_CLUSTER_PATHS.band)).toBe(false);
+  });
+
+  it('marks Personal / Global as quaternary filter surfaces (not Band)', () => {
+    expect(isGlobalStatsPath(STATS_CLUSTER_PATHS.global)).toBe(true);
+    expect(isGlobalStatsPath(STATS_CLUSTER_PATHS.personal)).toBe(false);
+    expect(isStatsQuaternaryPath(STATS_CLUSTER_PATHS.root)).toBe(true);
+    expect(isStatsQuaternaryPath(STATS_CLUSTER_PATHS.personal)).toBe(true);
+    expect(isStatsQuaternaryPath(STATS_CLUSTER_PATHS.global)).toBe(true);
+    expect(isStatsQuaternaryPath(STATS_CLUSTER_PATHS.band)).toBe(false);
+    expect(isStatsQuaternaryPath('/dashboard/tour-stats')).toBe(false);
   });
 
   it('scopes the tour picker to every Stats destination plus the legacy hop', () => {

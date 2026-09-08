@@ -45,7 +45,7 @@ Nested routes (not `?view=`). Primary **Picks** tab stays active. Lab segment is
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
 | **Make Picks** | `/dashboard` and `/dashboard/picks` | Existing picks form (lock/edit). `utm_campaign` landed logging stays here. |
-| **Picks Lab** | `/dashboard/picks/lab` | Prediction Lab (`PickPredictionPanel`) when the env flag is `true`; otherwise coming-soon. |
+| **Picks Lab** | `/dashboard/picks/lab` | Prediction Lab (`PickPredictionPanel`) when the env flag is `true`; otherwise coming-soon. Live **Your card** mirrors the shared draft. **Use** does not persist — Lock In / Update Picks still saves. |
 | **Scorecard** | `/dashboard/picks/scorecard` | Global, show-scoped self card + comparison metrics (#767). |
 
 **Scorecard v1 (#767):** Global only (not pool-scoped). Show comes from the existing global date picker. Overlap (“N players also picked this song”) is **post-lock only** (LIVE / PAST or admin-locked NEXT). Pre-lock shows the player’s own card plus locked copy — no overlap. Odds are optional show-wide `playProb` from Storage `pick-recommendations.json` (same artifact as Lab; **`playProbBySong`** when present so every pick on the card has a percent, `<1%` if the title is not in history). Omit all odds if the artifact is missing or for another night. Score / rank reuse the show-scoped standings query already used by `useStandings` / `computeStandingsSelfRecap` — no new collections or unbounded picks scans.
@@ -94,7 +94,7 @@ Page and section **descriptions default to an `InfoTooltip`** (`DashboardActionR
 - Rectangular **equal-width** tray (`flex w-full`, segments `flex-1`) — not auto-width pills
 - Uppercase labels (`uppercase tracking-widest`)
 - Active ring/fill (`tone="chrome"`, default): `bg-brand-primary/15 text-brand-primary ring-1 ring-inset ring-brand-primary/35`
-- In-page filters (`tone="inset"`, Stats All-time / board trays): same equal-width layout, recessed field, neutral selected chip — do not fork tray CSS in features
+- In-page filters (`tone="inset"`, Stats All-time / boards trays): same equal-width layout, recessed field, neutral selected chip — do not fork tray CSS in features. Helper `InfoTooltip`s use a **reserved trailing column** beside the tray (empty spacer when no hint) so stacked quaternary trays keep one width. On Personal / Global, both quaternary rows **stick with the Stats chrome** (desktop sticky stack portal below tertiary; mobile fixed chrome below the Personal/Global/Band tray) so boards/cards scroll underneath.
 - Inactive: `text-content-secondary` + inset hover
 - Icons optional (Standings today; Profile text-only) — do not require icons on every cluster
 
@@ -103,7 +103,7 @@ Page and section **descriptions default to an `InfoTooltip`** (`DashboardActionR
 | Viewport | Pattern |
 |----------|---------|
 | **Mobile** | Fixed under the context bar via `useDashboardMobileChromePortal` (`ProfileMobileFixedChrome`, `StandingsMobileFixedChrome`) |
-| **Desktop** | One sticky stack in `#dashboard-scrollport`: optional Tour Date / Tour scope, then cluster title + tertiary tray (`DashboardStickyPageChrome` portaled into `DashboardStickyChromeStack`). Lock / install banners and page body scroll underneath. Pool details stays Option C (no cluster title). War Room keeps the layout H2. |
+| **Desktop** | One sticky stack in `#dashboard-scrollport`: optional Tour Date / Tour scope, then cluster title + full-width tertiary tray (`DashboardStickyPageChrome` portaled into `DashboardStickyChromeStack`). Optional utilities sit on the **title row** as icon buttons (`ChromeIconButton` — Scale for Scoring rules on Picks/Standings, BookOpen for How pools work), never labeled pills beside the tray — trays stay equal width across clusters. Stats Personal / Global also portal quaternary inset trays into the same sticky stack (below tertiary). Lock / install banners and page body scroll underneath. Pool details stays Option C (no cluster title). War Room keeps the layout H2. |
 
 Visibility (`hidden md:block` vs portal) lives at the **cluster layout call site**, not inside `ChromeSegmentedControl`.
 
@@ -150,7 +150,7 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 | **Join Pool** | `/dashboard/pools/join` | Join-by-code; pending-join / invite retry (`POOL_INVITE_STORAGE_KEY`) |
 | **Pool details** | `/dashboard/pool/:id` | Unchanged Option C chrome; Pools primary stays active (not a tertiary segment) |
 
-Nested routes (not `?view=`). After a successful create or join, navigate to that pool’s details. How-it-works is a **CircleHelp** icon in the mobile context-bar trailing slot and beside the desktop tertiary tray (Standings Scale pattern) — not a fourth tertiary segment or in-flow disclosure. Post-auth `/join/:code` with a pending invite lands on **Join Pool**.
+Nested routes (not `?view=`). After a successful create or join, navigate to that pool’s details. How-it-works is a **BookOpen** icon in the mobile context-bar trailing slot and on the desktop **title row** (guide affordance; Standings/Picks Scale pattern) — not a fourth tertiary segment, not beside the tray, and not an in-flow disclosure. Post-auth `/join/:code` with a pending invite lands on **Join Pool**.
 
 ## Pool details desktop chrome (decision: Option C)
 

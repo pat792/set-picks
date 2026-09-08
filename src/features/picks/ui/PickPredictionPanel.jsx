@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, FlaskConical } from 'lucide-react';
+import { Check, ChevronDown, FlaskConical } from 'lucide-react';
 
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import {
@@ -14,6 +14,7 @@ import {
 } from '../../../shared/ui/dashboardCardClasses';
 import {
   groupRecommendationsByRiskBand,
+  normalizePickTitle,
   selectedTitleKeys,
 } from '../model/groupPickRecommendations';
 import {
@@ -35,6 +36,8 @@ import {
  * @param {Record<string, string>} props.formData
  * @param {boolean} props.isLocked
  * @param {(fieldId: string, value: string) => void} props.onApplySong
+ * @param {string} [props.slotInitKey] — reset the active slot when load settles
+ *   for a new date; do not reset after a Lab Use (that hid the add).
  * @param {string} [props.className]
  */
 export default function PickPredictionPanel({
@@ -45,6 +48,7 @@ export default function PickPredictionPanel({
   formData = {},
   isLocked = false,
   onApplySong,
+  slotInitKey = '',
   className = '',
 }) {
   const targetDate =
@@ -64,10 +68,15 @@ export default function PickPredictionPanel({
     FORM_FIELDS[0].id;
 
   const [activeSlot, setActiveSlot] = useState(firstEmptySlot);
+  const activeSlotSong = String(formData?.[activeSlot] ?? '').trim();
 
   useEffect(() => {
-    setActiveSlot(firstEmptySlot);
-  }, [firstEmptySlot, selectedDate]);
+    if (!slotInitKey || String(slotInitKey).endsWith(':1')) return;
+    setActiveSlot(
+      FORM_FIELDS.find((f) => !String(formData?.[f.id] ?? '').trim())?.id ||
+        FORM_FIELDS[0].id,
+    );
+  }, [slotInitKey]);
 
   const excludeKeys = useMemo(
     () => selectedTitleKeys(formData, activeSlot),
@@ -183,6 +192,7 @@ export default function PickPredictionPanel({
         >
           {FORM_FIELDS.map((field) => {
             const selected = field.id === activeSlot;
+            const filled = Boolean(String(formData?.[field.id] ?? '').trim());
             return (
               <button
                 key={field.id}
@@ -190,12 +200,15 @@ export default function PickPredictionPanel({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => setActiveSlot(field.id)}
-                className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
                   selected
                     ? 'bg-brand-primary/20 text-brand-primary ring-1 ring-brand-primary/40'
                     : 'bg-surface-elevated/40 text-content-secondary hover:text-white'
                 }`}
               >
+                {filled ? (
+                  <Check className="h-3 w-3 shrink-0" strokeWidth={3} aria-hidden />
+                ) : null}
                 {field.label}
               </button>
             );
@@ -224,30 +237,45 @@ export default function PickPredictionPanel({
                   ) : null}
                 </p>
                 <ul className="space-y-1.5">
-                  {group.items.slice(0, 5).map((row) => (
-                    <li
-                      key={`${group.band}-${row.normalizedName || row.name}-${row.rank}`}
-                      className="flex items-start justify-between gap-2 rounded-lg border border-border-subtle/80 bg-surface-elevated/30 px-2.5 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-white">
-                          {row.name}
-                        </p>
-                        {Array.isArray(row.reasons) && row.reasons.length ? (
-                          <p className={`mt-0.5 ${DASHBOARD_CARD_BODY}`}>
-                            {row.reasons.join(' · ')}
-                          </p>
-                        ) : null}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => apply(row)}
-                        className="shrink-0 rounded-md bg-brand-primary/15 px-2 py-1 text-[11px] font-bold text-brand-primary ring-1 ring-brand-primary/35 hover:bg-brand-primary/25"
+                  {group.items.slice(0, 5).map((row) => {
+                    const onCard =
+                      Boolean(activeSlotSong) &&
+                      normalizePickTitle(activeSlotSong) ===
+                        (normalizePickTitle(row.normalizedName) ||
+                          normalizePickTitle(row.name));
+                    return (
+                      <li
+                        key={`${group.band}-${row.normalizedName || row.name}-${row.rank}`}
+                        className={`flex items-start justify-between gap-2 rounded-lg border px-2.5 py-2 ${
+                          onCard
+                            ? 'border-brand-primary/45 bg-brand-primary/10'
+                            : 'border-border-subtle/80 bg-surface-elevated/30'
+                        }`}
                       >
-                        Use
-                      </button>
-                    </li>
-                  ))}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-white">
+                            {row.name}
+                          </p>
+                          {Array.isArray(row.reasons) && row.reasons.length ? (
+                            <p className={`mt-0.5 ${DASHBOARD_CARD_BODY}`}>
+                              {row.reasons.join(' · ')}
+                            </p>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => apply(row)}
+                          className={`shrink-0 rounded-md px-2 py-1 text-[11px] font-bold ring-1 ${
+                            onCard
+                              ? 'bg-brand-primary/20 text-brand-primary ring-brand-primary/40'
+                              : 'bg-brand-primary/15 text-brand-primary ring-brand-primary/35 hover:bg-brand-primary/25'
+                          }`}
+                        >
+                          {onCard ? 'On card' : 'Use'}
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             );
