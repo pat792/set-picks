@@ -48,8 +48,12 @@ import {
   isProfileClusterPath,
   isStatsClusterPath,
 } from '../../shared/config/dashboardRoutes';
-import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
-import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
+import {
+  getShowBeforeDate,
+  getShowStatus,
+  resolveSelectedShowDate,
+  scheduleTodayYmd,
+} from '../../shared/utils/timeLogic.js';
 import {
   showOptionLabelCompact,
 } from '../../shared/utils/showOptionLabel.js';
@@ -117,17 +121,32 @@ export default function DashboardLayout() {
 
   const scrollDirection = useScrollDirection();
 
+  // Same `showDates` as the picker options (Firestore snapshot via
+  // ShowCalendarProvider, emergency FALLBACK only when snapshot missing).
+  // Do not seed from a parallel static import — that drifts when cron
+  // ingests new tour dates into `show_calendar/snapshot`.
   const [selectedDate, setSelectedDate] = useState(() =>
-    getNextShow(FALLBACK_SHOW_DATES).date
+    showDates.length > 0 ? resolveSelectedShowDate(undefined, showDates) : ''
   );
+
+  // Re-resolve when the schedule day rolls (overnight tab) even if the
+  // snapshot document has not changed yet.
+  const [scheduleDay, setScheduleDay] = useState(() => scheduleTodayYmd());
+  useEffect(() => {
+    const tick = () => {
+      const today = scheduleTodayYmd();
+      setScheduleDay((prev) => (prev === today ? prev : today));
+    };
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!showDates.length) return;
-    setSelectedDate((prev) => {
-      if (showDates.some((s) => s.date === prev)) return prev;
-      return getNextShow(showDates).date;
-    });
-  }, [showDates]);
+    // Advance off past selections when next show appears (ingest) or today
+    // advances; keep browsing tonight / future nights.
+    setSelectedDate((prev) => resolveSelectedShowDate(prev, showDates));
+  }, [showDates, scheduleDay]);
 
   const showDateFromStandingsUrl = searchParams.get('showDate');
   useEffect(() => {
