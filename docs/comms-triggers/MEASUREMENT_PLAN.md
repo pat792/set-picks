@@ -83,7 +83,7 @@ Primary metric: **pick submission rate before lock** among reminded users vs hol
 | Channel | Attention / open | Click / land | Notes |
 |---------|------------------|--------------|-------|
 | **inApp** | `comms_opened` | `comms_cta_click` | Default GA “open cliff” lens |
-| **email** | Resend opens ([#512](https://github.com/pat792/set-picks/issues/512)) — missing in GA until landed | Session UTM `source=email` / `medium=comms` (+ `utm_content` / campaign ≈ template) · `comms_email_landed` | **If `comms_cta_click` is 0 for an email-heavy trigger, query UTM sessions before concluding no engagement** |
+| **email** | Resend opens (#512 Slice A) — `comms_email_engagement.openedAt` (not GA `comms_opened`) | Session UTM `source=email` / `medium=comms` (+ `utm_content` / campaign ≈ template) · `comms_email_landed` · `clickedAt` | **If `comms_cta_click` is 0 for an email-heavy trigger, query UTM sessions and `comms_email_engagement` before concluding no engagement** |
 | **push** | `comms_push_tap` / open instrumentation | deep link | Sparse volume; verify wiring before judgment. When a tab is already open, soft-nav via SW `postMessage` (#773 Phase 3) — do not treat tap→interactive TTI like a cold document load |
 
 **Optimize / analyst rule (2026-07-20):** For `picks_lock_reminder`, always report (1) trigger×channel `comms_*` counts **and** (2) UTM email-session `picks_page_interactive` / `submit_picks`. Snapshot recipe: `crew/knowledge/optimize_snapshot_recipe.md`.
@@ -112,7 +112,7 @@ Recap CTA honesty audit: `docs/comms-triggers/CTA_ROUTE_AUDIT.md` (#551). Cadenc
 |--------|-----|
 | GA4 MCP `run_report` | Event counts, cohorts |
 | GA4 MCP `run_realtime_report` | Show-day spikes |
-| Firestore | `fcm_notification_log` delivery counts, `commsInbox` readAt |
+| Firestore | `fcm_notification_log` delivery counts, `commsInbox` readAt, `comms_email_engagement` open/click (#512 Slice A) |
 | Cloud Functions logs | Server-side `comms_delivered` audit (always) |
 | GA4 MP (`comms_delivered`) | Server delivery counts in GA4 (when MP secret bound) |
 

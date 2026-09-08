@@ -678,9 +678,10 @@ exports.runCommsTrigger = onCall(
 );
 
 /**
- * Resend deliverability webhook — hard bounces + spam complaints (#442).
+ * Resend deliverability + engagement webhook (#442 / #512 Slice A).
  * Configure in Resend dashboard → Webhooks → endpoint URL for this function.
- * Events: `email.bounced`, `email.complained`, `email.suppressed`.
+ * Events: `email.bounced`, `email.complained`, `email.suppressed`,
+ * `email.opened`, `email.clicked`. See docs/comms-triggers/RESEND_WEBHOOK.md.
  */
 exports.commsResendWebhook = onRequest(
   {

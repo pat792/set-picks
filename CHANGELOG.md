@@ -20,6 +20,22 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.74.0] — 2026-09-08
+
+Leftover comms train after **v1.72.2**. Reconciled file delta only (no raw `staging` history merge). Includes staging **1.73.0** (#1008 show_recap composer) and **1.74.0** (#1009 Resend open/click). Does **not** include Dependabot.
+
+### Added
+- **Resend open/click plane (#512 Slice A / #1009)** — `commsResendWebhook` persists `email.opened` / `email.clicked` on `comms_email_engagement/{resendEmailId}` (`uid`, `triggerId`, `campaignId`, `openedAt`, `clickedAt`). Duplicate deliveries are no-ops. `resend.emails.send` stamps matching tags; the delivery log may carry `resendEmailId` + `campaignId`. Ops checklist: `docs/comms-triggers/RESEND_WEBHOOK.md`. No reminder trigger or second-wave send (Slice B remains on #512). Reminted after `v1.72.2` (does not reuse shipped 1.72.0).
+
+---
+
+## [1.73.0] — 2026-09-08
+
+### Changed
+- **show_recap composer (#985 / #1008)** — `narrative_line` (inbox Tonight + morning night-para) weaves set-flow arc, which of the player’s slots hit (bustout caught or missed), and night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight + scorecard when context is missing. Existing vars only — no new catalog field. Reminted after `v1.72.2` (does not reuse shipped 1.71.0).
+
+---
+
 ## [1.72.2] — 2026-09-08
 
 ### Fixed

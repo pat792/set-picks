@@ -24,6 +24,9 @@
  * Every send carries both `html` (branded — logo, button, footer links) and
  * `text` (plain-text fallback derived from the same content) parts.
  *
+ * Join tags (#512 Slice A): `uid`, `triggerId`, and optional `campaignId` so
+ * Resend `email.opened` / `email.clicked` webhooks can persist engagement.
+ *
  * `ctx.bypassDailyCap` skips the #453 daily fatigue-cap reservation entirely.
  * Only the admin-only `runCommsTrigger` QA/canary callable ever sets this
  * (never the production event adapters), so a reviewer can preview every
@@ -45,6 +48,7 @@ const {
 } = require("./comms/emailBranding.cjs");
 const { buildEmailTrackedCtaUrl } = require("./comms/emailLinks.cjs");
 const { buildCommsEmailHeaderHtml } = require("./comms/emailCommsHeader.cjs");
+const { buildResendEmailTags } = require("./commsEmailTags");
 
 const DEFAULT_FROM = "Setlist Pick'em <updates@setlistpickem.com>";
 const DEFAULT_SITE_URL = "https://www.setlistpickem.com";
@@ -363,6 +367,7 @@ function buildProductionBrandedEmailShell(opts) {
  *   dryRun?: boolean,
  *   forceResend?: boolean,
  *   bypassDailyCap?: boolean,
+ *   campaignId?: string | null,
  * }) => Promise<{ ok: boolean, skipReason?: string, id?: string }>}
  */
 function createCommsEmailWorker({
@@ -378,7 +383,7 @@ function createCommsEmailWorker({
   const from = fromAddress || DEFAULT_FROM;
 
   return async function deliverCommsEmail(ctx) {
-    const { uid, userData, triggerId, rendered, dedupId, dryRun, forceResend, bypassDailyCap } = ctx;
+    const { uid, userData, triggerId, rendered, dedupId, dryRun, forceResend, bypassDailyCap, campaignId } = ctx;
     const to = userData?.email;
 
     if (!rendered?.email?.subject) {
@@ -456,6 +461,7 @@ function createCommsEmailWorker({
     const idempotencyKey = forceResend
       ? `${triggerId}/${uid}:${dedupId || "default"}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`
       : `${triggerId}/${uid}:${dedupId || "default"}`;
+    const tags = buildResendEmailTags({ uid, triggerId, campaignId });
 
     try {
       const result = await resendClient.emails.send(
@@ -466,6 +472,7 @@ function createCommsEmailWorker({
           text: plainText,
           html,
           headers,
+          ...(tags.length ? { tags } : {}),
         },
         { idempotencyKey }
       );
