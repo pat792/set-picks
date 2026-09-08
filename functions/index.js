@@ -1276,8 +1276,9 @@ exports.scheduledTourCountdownComms = onSchedule(
 );
 
 /**
- * Morning-after tour rankings comms (#440).
- * Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
+ * Morning-after tour rankings comms (#440) + pending `tour_recap` (#510).
+ * Tour recap waits until this 8am PT tick after the finale date (not night-of
+ * rollup). Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
  */
 exports.scheduledTourRankingsDailyComms = onSchedule(
   {

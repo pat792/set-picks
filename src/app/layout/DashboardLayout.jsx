@@ -47,9 +47,14 @@ import {
   isPoolsTertiaryPath,
   isProfileClusterPath,
   isStatsClusterPath,
+  isStatsQuaternaryPath,
 } from '../../shared/config/dashboardRoutes';
-import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
-import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
+import {
+  getShowBeforeDate,
+  getShowStatus,
+  resolveSelectedShowDate,
+  scheduleTodayYmd,
+} from '../../shared/utils/timeLogic.js';
 import {
   showOptionLabelCompact,
 } from '../../shared/utils/showOptionLabel.js';
@@ -117,17 +122,32 @@ export default function DashboardLayout() {
 
   const scrollDirection = useScrollDirection();
 
+  // Same `showDates` as the picker options (Firestore snapshot via
+  // ShowCalendarProvider, emergency FALLBACK only when snapshot missing).
+  // Do not seed from a parallel static import — that drifts when cron
+  // ingests new tour dates into `show_calendar/snapshot`.
   const [selectedDate, setSelectedDate] = useState(() =>
-    getNextShow(FALLBACK_SHOW_DATES).date
+    showDates.length > 0 ? resolveSelectedShowDate(undefined, showDates) : ''
   );
+
+  // Re-resolve when the schedule day rolls (overnight tab) even if the
+  // snapshot document has not changed yet.
+  const [scheduleDay, setScheduleDay] = useState(() => scheduleTodayYmd());
+  useEffect(() => {
+    const tick = () => {
+      const today = scheduleTodayYmd();
+      setScheduleDay((prev) => (prev === today ? prev : today));
+    };
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!showDates.length) return;
-    setSelectedDate((prev) => {
-      if (showDates.some((s) => s.date === prev)) return prev;
-      return getNextShow(showDates).date;
-    });
-  }, [showDates]);
+    // Advance off past selections when next show appears (ingest) or today
+    // advances; keep browsing tonight / future nights.
+    setSelectedDate((prev) => resolveSelectedShowDate(prev, showDates));
+  }, [showDates, scheduleDay]);
 
   const showDateFromStandingsUrl = searchParams.get('showDate');
   useEffect(() => {
@@ -173,6 +193,7 @@ export default function DashboardLayout() {
   const isPoolsTertiary = isPoolsTertiaryPath(location.pathname);
   const isProfileCluster = isProfileClusterPath(location.pathname);
   const isStatsCluster = isStatsClusterPath(location.pathname);
+  const isStatsQuaternary = isStatsQuaternaryPath(location.pathname);
   /** Primary tabs nest controls under the mobile context bar (Standings pattern). */
   const usesMobileFixedChrome =
     isStandingsRoute ||
@@ -306,10 +327,13 @@ export default function DashboardLayout() {
           'flex-1 min-w-0 overflow-y-auto relative',
           'pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8',
           usesMobileFixedChrome
-            ? // Picks cluster: tertiary tray + optional Make Picks tools band.
+            ? // Picks: tertiary + optional Make Picks tools. Stats Personal/Global:
+              // tertiary + up to two quaternary inset trays.
               isPicksCluster
               ? 'pt-[calc(env(safe-area-inset-top,0px)+15.25rem)]'
-              : 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
+              : isStatsQuaternary
+                ? 'pt-[calc(env(safe-area-inset-top,0px)+17.75rem)]'
+                : 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
             : 'pt-[calc(env(safe-area-inset-top,0px)+9rem)]',
         ].join(' ')}
       >

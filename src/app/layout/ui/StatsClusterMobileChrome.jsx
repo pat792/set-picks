@@ -6,12 +6,14 @@ import {
   NAV_LABEL_PERSONAL_STATS,
 } from '../../../shared/config/dashboardVocabulary';
 import { STATS_CLUSTER_PATHS } from '../../../shared/config/dashboardRoutes';
+import { DASHBOARD_MOBILE_QUATERNARY_CHROME_ROOT_ID } from '../../../shared/hooks/useDashboardMobileChromePortal';
 import DashboardMobileChromeBar from '../../../shared/ui/DashboardMobileChromeBar';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
 
 /**
  * Mobile-only Stats cluster chrome (#769) — fixed under the context bar.
- * Same Personal / Global / Band tray as the in-page desktop nav.
+ * Same Personal / Global / Band tray as the in-page desktop nav. Quaternary
+ * filters (Personal / Global) portal into {@link DASHBOARD_MOBILE_QUATERNARY_CHROME_ROOT_ID}.
  *
  * @param {{
  *   items: Array<{
@@ -25,12 +27,15 @@ import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
  */
 export default function StatsClusterMobileChrome({ items }) {
   return (
-    <DashboardMobileChromeBar
-      heading="Stats sections"
-      headingId="stats-cluster-mobile-chrome-heading"
-    >
-      <ChromeSegmentedControl ariaLabel="Stats sections" items={items} />
-    </DashboardMobileChromeBar>
+    <>
+      <DashboardMobileChromeBar
+        heading="Stats sections"
+        headingId="stats-cluster-mobile-chrome-heading"
+      >
+        <ChromeSegmentedControl ariaLabel="Stats sections" items={items} />
+      </DashboardMobileChromeBar>
+      <div id={DASHBOARD_MOBILE_QUATERNARY_CHROME_ROOT_ID} />
+    </>
   );
 }
 

@@ -37,10 +37,27 @@ const {
 } = require("./commsShowContext");
 const { buildShowRecapEnrichment } = require("./showRecapNarrativeCore");
 const { persistableActualSetlistFromOfficialDoc } = require("./scoringCore");
+const {
+  isFinalShowOfTour,
+  buildTourRecapPodium,
+  buildTourRecapPayload,
+} = require("./tourRecapCore");
 
 const SITE_URL = "https://www.setlistpickem.com";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
+
+/**
+ * Morning after a tour finale is `tour_recap` day — skip `tour_rankings_daily`
+ * (all channels, including email) so the wrap is one message.
+ *
+ * @param {string[]} tourDates
+ * @param {string} showDate
+ * @returns {boolean}
+ */
+function shouldSkipTourRankingsOnTourRecapMorning(tourDates, showDate) {
+  return isFinalShowOfTour(tourDates, showDate);
+}
 const COUNTDOWN_DAYS = [10, 5, 3, 1];
 /** Firestore `in` queries allow at most 30 equality values. */
 const FIRESTORE_IN_QUERY_LIMIT = 30;
@@ -466,8 +483,136 @@ async function deliverPostRollupComms({
     engagementRecipients.length > 0
       ? await runtime.deliver("tour_engagement_reminder", engagementRecipients)
       : null;
+  // `tour_recap` waits for the next morning (8am PT cron). Last night of
+  // tour stays a night `show_recap` only — same split as the Summer '26 one-off.
 
   return { recapSummary, engagementSummary };
+}
+
+/**
+ * End-of-tour `tour_recap` fan-out (#510). Fires only when `showDate` is the
+ * last date in `showDatesByTour` for `tourKey`. Audience: users with ≥1 graded
+ * pick on any show in that tour. Production calls this from the morning-after
+ * 8am PT cron (`deliverPendingTourRecaps`), not the night-of rollup.
+ * Sphere ’26 replay stays on `deliverSphere2026TourRecapInbox` (War Room / QA only).
+ *
+ * @param {{
+ *   db: import("firebase-admin").firestore.Firestore,
+ *   runtime: { deliver: Function },
+ *   showDate: string,
+ *   tourKey: string | null,
+ *   showDatesByTour: unknown,
+ *   logger?: object,
+ * }} params
+ */
+async function deliverTourRecapIfFinalShow({
+  db,
+  runtime,
+  showDate,
+  tourKey,
+  showDatesByTour,
+  logger,
+}) {
+  if (!tourKey) return null;
+  const tourDates = tourDatesForKey(showDatesByTour, tourKey);
+  if (!isFinalShowOfTour(tourDates, showDate)) return null;
+
+  const picksByDate = await loadPicksByDates(db, tourDates);
+  const leaders = aggregateTourStandings(picksByDate);
+  if (leaders.length === 0) {
+    logger?.info?.("deliverTourRecapIfFinalShow: no eligible players", {
+      tourKey,
+      showDate,
+    });
+    return { skipped: "no_eligible_players", tourId: tourKey };
+  }
+
+  const ranked = assignDisplayRanks(leaders);
+  const podium = buildTourRecapPodium(leaders);
+  const participantCount = leaders.length;
+  const showCount = tourDates.length;
+  const tourName = tourKey;
+
+  /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
+  const recipients = [];
+  for (const row of leaders) {
+    const info = ranked.get(row.uid);
+    const rank = info?.rank ?? recipients.length + 1;
+    // eslint-disable-next-line no-await-in-loop
+    const userSnap = await db.collection("users").doc(row.uid).get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    recipients.push({
+      uid: row.uid,
+      userData,
+      payload: buildTourRecapPayload({
+        handle: row.handle || handleFromUser(userData),
+        rank,
+        points: row.totalPoints,
+        wins: row.wins,
+        showsPlayed: row.shows,
+        participantCount,
+        tourId: tourKey,
+        tourName,
+        showCount,
+        podium,
+      }),
+      vars: { uid: row.uid, tourId: tourKey },
+    });
+  }
+
+  logger?.info?.("deliverTourRecapIfFinalShow: fan-out", {
+    tourKey,
+    showDate,
+    recipients: recipients.length,
+  });
+  return runtime.deliver("tour_recap", recipients);
+}
+
+/**
+ * Morning-after `tour_recap` for every tour whose final show date is already
+ * in the past (America/Los_Angeles, same tz as the 8am cron). Dedup
+ * `tour_recap:{tourId}:{uid}` makes re-ticks a no-op after the first send.
+ * Late grades still send on the first cron after the finale is scored.
+ *
+ * @param {{
+ *   db: import("firebase-admin").firestore.Firestore,
+ *   runtime: { deliver: Function },
+ *   showDatesByTour: unknown,
+ *   now?: Date,
+ *   logger?: object,
+ * }} params
+ * @returns {Promise<Array<{ tourKey: string, finalDate: string, summary: unknown }>>}
+ */
+async function deliverPendingTourRecaps({
+  db,
+  runtime,
+  showDatesByTour,
+  now = new Date(),
+  logger,
+}) {
+  if (!Array.isArray(showDatesByTour)) return [];
+  const today = ymdInTimeZone(now, DEFAULT_SHOW_TIME_ZONE);
+  /** @type {Array<{ tourKey: string, finalDate: string, summary: unknown }>} */
+  const out = [];
+  for (const group of showDatesByTour) {
+    if (!group || typeof group !== "object") continue;
+    const tourKey = typeof group.tour === "string" ? group.tour.trim() : "";
+    if (!tourKey) continue;
+    const tourDates = tourDatesForKey(showDatesByTour, tourKey);
+    const finalDate = tourDates.length > 0 ? tourDates[tourDates.length - 1] : "";
+    if (!finalDate || finalDate >= today) continue;
+    // eslint-disable-next-line no-await-in-loop
+    const summary = await deliverTourRecapIfFinalShow({
+      db,
+      runtime,
+      showDate: finalDate,
+      tourKey,
+      showDatesByTour,
+      logger,
+    });
+    if (summary) out.push({ tourKey, finalDate, summary });
+  }
+  return out;
 }
 
 /**
@@ -723,19 +868,35 @@ async function runScheduledTourRankingsDaily({
     return s.date === yesterday && today > s.date;
   });
 
-  if (yesterdayCandidates.length === 0) return { processed: 0, delivered: 0 };
-
   const runtime = createCommsAdapterRuntime({ db, admin, resendApiKey, logger });
+  const tourRecapSummaries = await deliverPendingTourRecaps({
+    db,
+    runtime,
+    showDatesByTour,
+    now,
+    logger,
+  });
+
+  if (yesterdayCandidates.length === 0) {
+    return { processed: 0, delivered: 0, tourRecapSummaries };
+  }
   /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
   const recipients = [];
 
   for (const show of yesterdayCandidates) {
     const showDate = show.date;
+    const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
+    const tourDates = tourDatesForKey(showDatesByTour, tourKey);
+    if (shouldSkipTourRankingsOnTourRecapMorning(tourDates, showDate)) {
+      logger?.info?.("runScheduledTourRankingsDaily: skip finale morning (tour_recap day)", {
+        showDate,
+        tourKey,
+      });
+      continue;
+    }
     // eslint-disable-next-line no-await-in-loop
     const picksSnap = await db.collection("picks").where("showDate", "==", showDate).get();
     if (picksSnap.empty) continue;
-    const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
-    const tourDates = tourDatesForKey(showDatesByTour, tourKey);
     const datesThrough = tourDates.length > 0 ? tourDatesThrough(tourDates, showDate) : [showDate];
     const priorDate = priorTourShowDate(tourDates, showDate);
     const nextDate = nextTourShowDate(tourDates, showDate);
@@ -848,19 +1009,23 @@ async function runScheduledTourRankingsDaily({
     }
   }
 
-  return runtime.deliver("tour_rankings_daily", recipients);
+  const rankingsSummary = await runtime.deliver("tour_rankings_daily", recipients);
+  return { ...rankingsSummary, tourRecapSummaries };
 }
 
 module.exports = {
   shouldDeliverAccountWelcome,
   shouldDeliverPicksConfirmed,
   findShowMeta,
+  shouldSkipTourRankingsOnTourRecapMorning,
   computeGlobalRankByUid,
   findTourCountdownTargets,
   loadUserIdsWithPicksForShowDates,
   handleAccountWelcome,
   handlePicksConfirmed,
   deliverPostRollupComms,
+  deliverTourRecapIfFinalShow,
+  deliverPendingTourRecaps,
   deliverLiveScoreComms,
   runScheduledTourCountdown,
   runScheduledTourRankingsDaily,

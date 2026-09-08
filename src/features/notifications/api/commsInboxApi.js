@@ -19,7 +19,7 @@ import { whenFirebaseReady } from '../../../shared/lib/firebaseAppCheck';
  * Cloud Functions; clients may set `readAt` / `archivedAt` or delete own docs.
  *
  * Doc shape:
- * - `templateId` — registry key (e.g. `sphere-2026-inaugural`)
+ * - `templateId` — registry key (e.g. `tour-recap`; historical `sphere-2026-inaugural` still renders)
  * - `payload` — variables for the template renderer (numbers coerced in UI)
  * - `createdAt` — server write time
  * - `readAt` — optional; set when the user acknowledges the message

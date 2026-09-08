@@ -4,6 +4,7 @@ import { ProfileSelfStatsPanel } from '../../profile';
 import { useStandingsTourSelection } from '../../scoring';
 import { TourStatsSelfOverlay, useTourStatsScreen } from '../../tour-stats';
 import { useShowCalendar } from '../../show-calendar';
+import StatsQuaternaryChrome from './StatsQuaternaryChrome';
 import StatsScopeToggle from './StatsScopeToggle';
 
 const SCOPE_ITEMS = [
@@ -18,6 +19,7 @@ const PERSONAL_CARD_ITEMS = [
 
 /**
  * Personal Stats (#1004): All-time / This tour tray. All-time stays mounted.
+ * Quaternary trays stick with the Stats chrome while cards scroll.
  *
  * @param {{ user?: { uid?: string } | null }} props
  */
@@ -34,25 +36,31 @@ export default function PersonalStatsScreen({ user }) {
 
   return (
     <div className="space-y-4">
-      <StatsScopeToggle
-        ariaLabel="Personal stats scope"
-        value={scope}
-        onChange={setScope}
-        items={SCOPE_ITEMS}
-        hint="All-time is every show you've played. This tour uses the picker above."
-        hintLabel="Personal stats scope"
+      <StatsQuaternaryChrome
+        render={() => (
+          <>
+            <StatsScopeToggle
+              ariaLabel="Personal stats scope"
+              value={scope}
+              onChange={setScope}
+              items={SCOPE_ITEMS}
+              hint="All-time is every show you've played. This tour uses the picker above."
+              hintLabel="Personal stats scope"
+            />
+            {scope === 'allTime' ? (
+              <StatsScopeToggle
+                ariaLabel="All-time personal cards"
+                value={personalCard}
+                onChange={setPersonalCard}
+                items={PERSONAL_CARD_ITEMS}
+              />
+            ) : null}
+          </>
+        )}
       />
 
       <div hidden={scope !== 'allTime'}>
-        <StatsScopeToggle
-          ariaLabel="All-time personal cards"
-          value={personalCard}
-          onChange={setPersonalCard}
-          items={PERSONAL_CARD_ITEMS}
-        />
-        <div className="mt-3">
-          <ProfileSelfStatsPanel uid={user?.uid} section={personalCard} />
-        </div>
+        <ProfileSelfStatsPanel uid={user?.uid} section={personalCard} />
       </div>
 
       <div hidden={scope !== 'tour'}>

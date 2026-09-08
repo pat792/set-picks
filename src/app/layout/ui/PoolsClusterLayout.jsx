@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CircleHelp } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 
 import {
@@ -30,8 +30,9 @@ const SUB_NAV = [
  * Persistent Pools-cluster tertiary nav (My Pools / Create Pool / Join Pool).
  * Nested routes render via {@link Outlet}; `user` is passed through outlet context.
  * Mobile: tertiary tray is fixed under the context bar (Profile chrome pattern).
- * How-it-works is a context-bar / tray-adjacent icon (Standings Scale), not a
- * fourth tertiary segment or in-flow disclosure.
+ * How-it-works is a context-bar / title-row BookOpen icon (guide affordance;
+ * Standings/Picks Scale pattern), not a fourth tertiary segment or in-flow
+ * disclosure.
  *
  * @param {{ user: import('firebase/auth').User | null | undefined }} props
  */
@@ -57,7 +58,7 @@ export default function PoolsClusterLayout({ user }) {
               title={NAV_LABEL_POOLS}
               trailing={
                 <ChromeIconButton
-                  icon={CircleHelp}
+                  icon={BookOpen}
                   label="How pools work"
                   onClick={openHowItWorks}
                   size="sm"

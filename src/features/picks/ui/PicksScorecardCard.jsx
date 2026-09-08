@@ -1,38 +1,64 @@
 import React from 'react';
-import { ClipboardList } from 'lucide-react';
+import { Check, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { PICKS_SELF_RECAP_STANDINGS_LINK } from '../../../shared/config/dashboardVocabulary';
+import InfoTooltip, { InfoTooltipProvider } from '../../../shared/ui/InfoTooltip';
+import { SCORE_BREAKDOWN_KIND_LABEL } from '../../../shared/utils/scoring';
 import { formatOverlapLabel } from '../model/computeScorecardOverlap';
+import { scorecardHitChromeSpec } from '../model/mapScorecardSlotGrade';
+import { PICKS_ODDS_HINT } from '../model/picksOddsCopy';
 import { formatOddsPercent } from '../model/selectScorecardOdds';
+import PicksOddsHint from './PicksOddsHint';
 import {
   SCORECARD_BODY,
   SCORECARD_EYEBROW,
   SCORECARD_EYEBROW_ICON,
   SCORECARD_METRIC,
   SCORECARD_SHELL,
+  SCORECARD_SLOT_CHECK,
+  SCORECARD_SLOT_ITEM,
   SCORECARD_SLOT_LABEL,
+  SCORECARD_SLOT_RING,
+  SCORECARD_SLOT_TITLE_TONE,
   SCORECARD_TITLE,
 } from './picksScorecardClasses';
 
 export const SCORECARD_EMPTY_TITLE = 'No picks for this show';
 export const SCORECARD_EMPTY_BODY =
   'Lock a card on Make Picks to see your Scorecard for the selected night.';
-export const SCORECARD_PRE_LOCK_COPY =
-  'Overlap unlocks after picks lock. Your card stays private until showtime.';
+export const SCORECARD_HINT =
+  `${PICKS_ODDS_HINT} At showtime, see how you compare with other pickers and which songs you got right. View Standings for the full leaderboard, live setlist and crowd pulse.`;
 export const SCORECARD_LOCKED_UNGRADED_COPY =
   'Picks are locked. Rank and points land when the official setlist is posted.';
 export const SCORECARD_GRADED_COPY = 'Show results for the selected night.';
 export const SCORECARD_LOADING_LABEL = 'Loading scorecard';
 export const SCORECARD_RANK_PENDING = 'Rank updates after the setlist is posted.';
-export const SCORECARD_ODDS_HINT = 'model odds';
+export const SCORECARD_ODDS_HINT = 'Odds';
 
 function stateCopy(state) {
   if (state === 'empty') return SCORECARD_EMPTY_BODY;
-  if (state === 'pre_lock') return SCORECARD_PRE_LOCK_COPY;
   if (state === 'locked_ungraded') return SCORECARD_LOCKED_UNGRADED_COPY;
   if (state === 'graded') return SCORECARD_GRADED_COPY;
   return '';
+}
+
+function slotItemClass(chrome) {
+  const ring = chrome.ringTone ? SCORECARD_SLOT_RING[chrome.ringTone] : '';
+  return [SCORECARD_SLOT_ITEM, ring].filter(Boolean).join(' ');
+}
+
+function slotTitleClass(chrome) {
+  const base = 'text-sm font-bold leading-snug md:text-base';
+  if (chrome.titleTone === 'default') return `${base} text-white`;
+  const tone = SCORECARD_SLOT_TITLE_TONE[chrome.titleTone];
+  return tone ? `${base} ${tone}` : `${base} text-white`;
+}
+
+function hitStatusLabel(grade) {
+  if (!grade?.hit) return '';
+  const kindLabel = SCORE_BREAKDOWN_KIND_LABEL[grade.kind] || 'Hit';
+  return grade.bustoutBoost ? `${kindLabel}, Bustout Boost` : kindLabel;
 }
 
 /**
@@ -50,6 +76,12 @@ function stateCopy(state) {
  *     alsoPickedCount: number | null,
  *     playProb: number | null,
  *     oddsUnknown?: boolean,
+ *     grade?: {
+ *       kind: string,
+ *       points: number,
+ *       bustoutBoost: boolean,
+ *       hit: boolean,
+ *     } | null,
  *   }>,
  *   showOverlap?: boolean,
  *   showOdds?: boolean,
@@ -81,15 +113,30 @@ export default function PicksScorecardCard({
   const playerWord = recap?.totalPlayers === 1 ? 'player' : 'players';
 
   return (
-    <section
-      className={`${SCORECARD_SHELL} ${className}`}
-      aria-label="Scorecard"
-      aria-busy={isLoading || undefined}
-    >
-      <p className={`inline-flex items-center gap-1.5 ${SCORECARD_EYEBROW}`}>
-        <ClipboardList className={SCORECARD_EYEBROW_ICON} aria-hidden />
-        Scorecard
-      </p>
+    <InfoTooltipProvider>
+      <section
+        className={`${SCORECARD_SHELL} ${className}`}
+        aria-label="Scorecard"
+        aria-busy={isLoading || undefined}
+      >
+      <div className="flex items-start justify-between gap-2">
+        <p className={`inline-flex items-center gap-1.5 ${SCORECARD_EYEBROW}`}>
+          <ClipboardList className={SCORECARD_EYEBROW_ICON} aria-hidden />
+          Scorecard
+        </p>
+        {showOdds ? (
+          <PicksOddsHint
+            definition={SCORECARD_HINT}
+            triggerClassName="text-violet-300/85 hover:text-violet-200"
+          />
+        ) : (
+          <InfoTooltip
+            label="Scorecard"
+            definition={SCORECARD_HINT}
+            triggerClassName="text-violet-300/85 hover:text-violet-200"
+          />
+        )}
+      </div>
 
       {isLoading ? (
         <p className={`mt-2 ${SCORECARD_BODY}`}>{SCORECARD_LOADING_LABEL}…</p>
@@ -152,21 +199,38 @@ export default function PicksScorecardCard({
               const odds = showOdds
                 ? formatOddsPercent(slot.playProb, { unknown: slot.oddsUnknown })
                 : null;
+              const grade = state === 'graded' ? slot.grade : null;
+              const chrome = scorecardHitChromeSpec(grade);
+              const statusLabel = hitStatusLabel(grade);
               return (
                 <li
                   key={slot.fieldId}
-                  className="rounded-lg border border-violet-400/15 bg-surface-panel/40 px-3 py-2"
+                  className={slotItemClass(chrome)}
+                  data-scorecard-hit={grade ? String(Boolean(grade.hit)) : undefined}
+                  data-scorecard-kind={grade?.kind}
                 >
                   <p className={SCORECARD_SLOT_LABEL}>{slot.label}</p>
-                  <p className={`mt-0.5 ${SCORECARD_TITLE}`}>{slot.song}</p>
+                  <p className={`mt-0.5 flex min-w-0 items-start gap-1.5 ${slotTitleClass(chrome)}`}>
+                    {chrome.showCheck ? (
+                      <Check
+                        className={`h-3.5 w-3.5 shrink-0 self-center ${SCORECARD_SLOT_CHECK[chrome.checkTone] || ''}`}
+                        strokeWidth={2.75}
+                        aria-hidden
+                      />
+                    ) : null}
+                    <span className="min-w-0 break-words">{slot.song}</span>
+                    {statusLabel ? <span className="sr-only">{statusLabel}</span> : null}
+                  </p>
                   {showOverlap ? (
                     <p className={`mt-1 ${SCORECARD_METRIC}`}>
                       {formatOverlapLabel(slot.alsoPickedCount ?? 0)}
                     </p>
                   ) : null}
                   {odds ? (
-                    <p className={SCORECARD_METRIC}>
-                      {odds} {SCORECARD_ODDS_HINT}
+                    <p className={`mt-1 ${SCORECARD_METRIC}`}>
+                      <span className="text-content-secondary/80">{SCORECARD_ODDS_HINT}</span>
+                      {' '}
+                      <span className="tabular-nums text-violet-200/90">{odds}</span>
                     </p>
                   ) : null}
                 </li>
@@ -178,5 +242,6 @@ export default function PicksScorecardCard({
         </>
       ) : null}
     </section>
+    </InfoTooltipProvider>
   );
 }

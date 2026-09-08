@@ -1,9 +1,26 @@
 import { describe, expect, it } from 'vitest';
 
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
-import { validatePicksForSave } from './picksCatalogUtils';
+import {
+  isPicksCardDirty,
+  serializePicksCard,
+  validatePicksForSave,
+} from './picksCatalogUtils';
 
 const catalog = [{ name: 'Fee' }, { name: 'Tweezer' }, { name: 'Ghost' }];
+
+describe('serializePicksCard / isPicksCardDirty', () => {
+  it('treats empty and missing slots as the same card', () => {
+    expect(serializePicksCard({})).toBe(serializePicksCard({ s1o: '  ' }));
+    expect(isPicksCardDirty({}, serializePicksCard({}))).toBe(false);
+  });
+
+  it('flags a lab Use that is not on the persisted card', () => {
+    const saved = serializePicksCard({ s1o: 'Fee' });
+    expect(isPicksCardDirty({ s1o: 'Fee', s1c: 'Tweezer' }, saved)).toBe(true);
+    expect(isPicksCardDirty({ s1o: 'Fee' }, saved)).toBe(false);
+  });
+});
 
 describe('validatePicksForSave', () => {
   it('accepts empty picks', () => {
