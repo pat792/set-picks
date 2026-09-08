@@ -8,9 +8,11 @@ const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
+  COMMS_SHOW_CONTEXT_SCHEMA_VERSION,
   buildCommsShowContext,
   composeSetlistHighlight,
   tourDebutTitles,
+  priorDatesForTourDebutLookup,
   groupOfficialSetlistBySet,
 } = require("./commsShowContextCore");
 const {
@@ -41,6 +43,78 @@ describe("tourDebutTitles", () => {
     };
     const prior = [{ officialSetlist: ["YEM", "Bowie"] }];
     assert.deepEqual(tourDebutTitles(tonight, prior), ["Tweezer", "Ghost"]);
+  });
+
+  it("regression: truncated 12-show priors invented Dick's Plasma debuts", () => {
+    // writeCommsShowContext used priorDates.slice(-12). For 2026-09-04 that
+    // dropped 2026-07-07..07-14 (including Plasma on 07-10 and 46 Days earlier),
+    // so highlight became: "4 songs new to this tour — including Plasma."
+    const early = [
+      { officialSetlist: ["Plasma", "Tube"] }, // 2026-07-10
+      { officialSetlist: ["46 Days", "Free"] },
+    ];
+    const recent12 = Array.from({ length: 12 }, (_, i) => ({
+      officialSetlist: [`Recent${i}`, "Character Zero"],
+    }));
+    const dicksN1 = {
+      officialSetlist: [
+        "Plasma",
+        "Ya Mar",
+        "46 Days",
+        "Lonely Trip",
+        "Character Zero",
+      ],
+    };
+    const falseDebuts = tourDebutTitles(dicksN1, recent12);
+    assert.deepEqual(falseDebuts, [
+      "Plasma",
+      "Ya Mar",
+      "46 Days",
+      "Lonely Trip",
+    ]);
+    assert.equal(
+      composeSetlistHighlight({
+        bustoutTitles: [],
+        tourDebuts: falseDebuts,
+        openerTitle: "No Men In No Man's Land",
+        encoreTitle: "Harry Hood",
+      }),
+      "4 songs new to this tour — including Plasma.",
+    );
+    assert.deepEqual(tourDebutTitles(dicksN1, [...early, ...recent12]), [
+      "Ya Mar",
+      "Lonely Trip",
+    ]);
+  });
+});
+
+describe("priorDatesForTourDebutLookup", () => {
+  it("keeps the full prior itinerary (no trailing slice)", () => {
+    const prior = Array.from(
+      { length: 18 },
+      (_, i) => `2026-07-${String(i + 1).padStart(2, "0")}`,
+    );
+    assert.deepEqual(priorDatesForTourDebutLookup(prior), prior);
+    assert.equal(priorDatesForTourDebutLookup(prior).length, 18);
+  });
+
+  it("filters non-string entries", () => {
+    assert.deepEqual(
+      priorDatesForTourDebutLookup(["2026-07-07", null, "  ", 3, "2026-07-08"]),
+      ["2026-07-07", "2026-07-08"],
+    );
+  });
+});
+
+describe("COMMS_SHOW_CONTEXT_SCHEMA_VERSION", () => {
+  it("is 2 so ensureCommsShowContext rebuilds truncated-prior artifacts", () => {
+    assert.equal(COMMS_SHOW_CONTEXT_SCHEMA_VERSION, 2);
+    const ctx = buildCommsShowContext({
+      showDate: "2026-09-04",
+      setlistDoc: { officialSetlist: ["Ya Mar"], setlist: { s1o: "Ya Mar" } },
+      priorTourSetlistDocs: [{ officialSetlist: ["Plasma"] }],
+    });
+    assert.equal(ctx.schemaVersion, 2);
   });
 });
 

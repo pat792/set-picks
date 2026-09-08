@@ -375,13 +375,13 @@ Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the r
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Morning after each show night, 8:00 AM `America/Los_Angeles` (`onSchedule "0 8 * * *"`); only fires on days following a show |
+| **Schedule** | Morning after each show night, 8:00 AM `America/Los_Angeles` (`onSchedule "0 8 * * *"`); only fires on days following a show; **skipped** the morning after a tour finale (`tour_recap` day) |
 | **Channels** | `inApp`, `push`, `email` |
 | **Audience** | Users who have picks in at least one show this tour |
 | **Prefs key** | `results` |
 | **Dedup** | `tour_rank:{uid}:{showDate}` |
 | **Implementation** | `onSchedule` daily; checks if yesterday was a show night; fans out standings update |
-| **Note** | Email absorbs `show_recap`'s "your night" section (#451) — one email per `(uid, showDate)` instead of two. inApp/push are unaffected; those still fire immediately, night-of, from `show_recap`. Tour rank is the **overall tour leaderboard** (not last-night-only). `rank_change` is display-rank delta vs the prior show (`up N` / `down N` / `held`); night-one uses debut copy; mid-tour first appearance uses late-joiner catch-up (#544). |
+| **Note** | Email absorbs `show_recap`'s "your night" section (#451) — one email per `(uid, showDate)` instead of two. inApp/push are unaffected; those still fire immediately, night-of, from `show_recap`. Tour rank is the **overall tour leaderboard** (not last-night-only). `rank_change` is display-rank delta vs the prior show (`up N` / `down N` / `held`); night-one uses debut copy; mid-tour first appearance uses late-joiner catch-up (#544). The morning after a tour finale this trigger is suppressed so `tour_recap` is the only wrap that day. |
 
 #### Variables used
 
@@ -585,15 +585,15 @@ Abbreviated recap + Standings / invite CTA. Forced to every inbox (no play filte
 | Field | Value |
 |-------|-------|
 | **Status** | `shipped` |
-| **Automation** | `batch` — post-grade fan-out when the tour's **final show** is graded (`rollupScoresForShow` → `deliverTourRecapIfFinalShow`). **Not** War Room on the production happy path. |
-| **Event** | Last date in `show_calendar.showDatesByTour` for that tour is graded |
+| **Automation** | `automated` — 8am PT `scheduledTourRankingsDailyComms` → `deliverPendingTourRecaps` after the tour's **final show date** is in the past. **Not** same-tick as night `show_recap`. **Not** War Room on the production happy path. |
+| **Event** | Last date in `show_calendar.showDatesByTour` for that tour is already yesterday-or-earlier (PT); first cron after that date (or after a late grade) sends |
 | **Channels** | `inApp`, `push`, `email` (abbreviated teaser; optional `emailFull` / in-app long form) |
 | **Audience** | Users with ≥1 graded pick on any show in that tour |
 | **Prefs key** | `results` |
 | **Dedup** | `tour_recap:{tourId}:{uid}` in `fcm_notification_log` + inbox message id |
 | **Priority** | P1 (`results_recap`, W3) |
 | **Implementation** | Thin adapter in `functions/commsEventAdapters.js` → `deliverCommsTrigger`. Edition flavor from `content/comms/tours/<edition>.md` + send-time payload — do not hardcode Sphere as the live catalog trigger. |
-| **Note** | Night `show_recap` ≠ this end-of-tour recap. Do not replace `show_recap` or `tour_rankings_daily`. Sphere ’26 (`sphere-2026-inaugural` / `tour_recap_sphere_2026`) is archive + War Room replay (`deliverSphere2026TourRecapInbox`) only. GitHub #510. |
+| **Note** | Night `show_recap` ≠ this end-of-tour recap. Last night of tour is still `show_recap` only; this trigger waits until the next morning and that morning skips `tour_rankings_daily`. Do not replace `show_recap` or `tour_rankings_daily` on mid-tour nights. Sphere ’26 (`sphere-2026-inaugural` / `tour_recap_sphere_2026`) is archive + War Room replay (`deliverSphere2026TourRecapInbox`) only. GitHub #510. |
 
 #### Variables used
 
