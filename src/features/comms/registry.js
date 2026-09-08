@@ -7,7 +7,7 @@
  * modules until a loader is introduced.
  */
 
-import { SPHERE_2026_RECAP_ID } from '../tour-recap';
+import { SPHERE_2026_RECAP_ID, TOUR_RECAP_TEMPLATE_ID } from '../tour-recap';
 import {
   SUMMER_TOUR_2026_LAUNCH_TEMPLATE_ID,
 } from '../marketing-comms/model/summerTour2026Launch.js';
@@ -35,9 +35,17 @@ export const COMMS_CHANNELS = /** @type {const} */ ([
 
 /** @type {Record<string, RecapTemplateDefinition>} */
 export const RECAP_TEMPLATE_REGISTRY = {
+  [TOUR_RECAP_TEMPLATE_ID]: {
+    kind: 'tour',
+    displayName: "Tour recap — personalized end-of-tour wrap-up",
+    sourceDraftPath: 'content/comms/tours/tour-recap.md',
+    implementationModule: 'src/features/tour-recap/model/tourRecap.js',
+    supportedChannels: ['inApp', 'emailAbbreviated', 'emailFull', 'push'],
+  },
+  // Historical edition archive — not the live catalog trigger (#510).
   [SPHERE_2026_RECAP_ID]: {
     kind: 'tour',
-    displayName: "Sphere 2026 — inaugural Setlist Pick'em recap",
+    displayName: "Sphere 2026 — inaugural Setlist Pick'em recap (archive / replay)",
     sourceDraftPath: 'content/comms/tours/sphere-2026-inaugural.md',
     implementationModule: 'src/features/tour-recap/model/sphere2026Recap.js',
     supportedChannels: ['inApp', 'emailAbbreviated', 'emailFull', 'push'],

@@ -1,7 +1,7 @@
 {
   "name": "setlistpickem",
   "private": true,
-  "version": "1.71.0",
+  "version": "1.73.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -47,6 +47,7 @@
     "comms:optimize-kickoff": "node scripts/comms-optimize-kickoff.mjs",
     "comms:show-recap-qa": "node scripts/comms-show-recap-narrative-qa.mjs",
     "comms:picks-lock-conversion": "node scripts/comms-picks-lock-conversion.mjs",
+    "canary:tour-recap": "node scripts/canary-tour-recap.mjs",
     "test:comms-optimize-schedule": "node --test scripts/lib/commsOptimizeSchedule.test.mjs",
     "test:comms-show-recap-qa": "node --test scripts/lib/showRecapNarrativeQa.test.mjs",
     "test:comms-picks-lock-conversion": "node --test scripts/lib/picksLockConversion.test.mjs",

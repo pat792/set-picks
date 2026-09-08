@@ -20,10 +20,88 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.71.0] — 2026-09-04
+## [1.73.0] — 2026-09-08
 
 ### Changed
-- **show_recap composer (#985)** — `narrative_line` (inbox Tonight + morning night-para) weaves set-flow arc, which of the player’s slots hit (bustout caught or missed), and night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight + scorecard when context is missing. Existing vars only — no new catalog field. Assigned after the Sprint 14 / #1004 `1.70.1` promote.
+- **show_recap composer (#985 / #1008)** — `narrative_line` (inbox Tonight + morning night-para) weaves set-flow arc, which of the player’s slots hit (bustout caught or missed), and night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight + scorecard when context is missing. Existing vars only — no new catalog field. Reminted after `v1.72.2` (does not reuse shipped 1.71.0).
+
+---
+
+## [1.72.2] — 2026-09-08
+
+### Fixed
+- **Show-recap tour debuts (#1025)** — `writeCommsShowContext` loads the full prior tour itinerary for `tour_debut_titles` (no 12-show trailing slice). `comms_show_context.schemaVersion` → **2**; `ensureCommsShowContext` rebuilds older docs on the next delivery path.
+
+### Added
+- **`canary:tour-recap`** — Cloud Functions dry-run / admin canary for `tour_recap` (does not auto-send). Summer execute / live-send notes landed as docs.
+
+---
+
+## [1.72.1] — 2026-09-08
+
+### Changed
+- **`tour_recap` timing (#510)** — last night of a tour still sends night `show_recap` only. End-of-tour fan-out waits for the next 8am PT `scheduledTourRankingsDailyComms` tick (`deliverPendingTourRecaps`). That same morning skips `tour_rankings_daily` (email + in-app + push) so the wrap is one message. Dedup unchanged (`tour_recap:{tourId}:{uid}`). Manual `runCommsTrigger` / canary still work.
+
+---
+
+## [1.72.0] — 2026-09-08
+
+Production ship of the leftover Sprint 14 IA polish that stayed on `staging` after the surgical 1.70.x / 1.71.x promotes. Collapses staging 1.70.2 (Lab Use), 1.71.0 (#1013 Scorecard / Make Picks odds), and 1.72.4 (desktop trays + sticky Stats filters) into one MINOR. Does **not** re-ship `tour_recap` or the next-show date default (already live as 1.71.0–1.71.2).
+
+### Added
+- **Scorecard graded hit chrome (#1013)** — on graded nights, each slot uses `getSlotScoreBreakdown`. Hits (`points > 0`) show an A5 check + soft inset ring: brand-primary for `exact_slot` / `encore_exact` / `wildcard_hit`, accent-blue for `in_setlist`, amber overlay when `bustoutBoost`. Misses are slightly muted. Pre-grade cards are unchanged.
+- **Make Picks dropdown model odds (#1013)** — song autocomplete shows a trailing compact `N%` (or `<1%` / mobile `<1` for `playProbBySong` map misses) from the same Storage artifact as Scorecard, only when `targetShow.date` matches the selected night. Total / Gap / Last stay visible. Not live crowd %.
+
+### Changed
+- **Scorecard helper copy (#1013)** — the pre-lock “Overlap unlocks…” footer is now a top-right `InfoTooltip`. Hint copy covers model odds, showtime comparison, and Standings (leaderboard / live setlist / crowd pulse).
+- **Picks odds chrome (#1013)** — when `%` would wrap under the song title, Scorecard and Make Picks show an **Odds** label instead. Card top-right tooltip explains odds in plain language (best guess from recent shows). Dropdown stats use `Odds: N%` beside Total / Gap / Last.
+- **Desktop Scoring rules affordance** — Picks and Standings use the same Scale `ChromeIconButton` on the title row (mobile pattern); removed the Picks in-flow “Scoring rules” GhostPill.
+- **Pools how-it-works icon** — `CircleHelp` → `BookOpen` (desktop title row + mobile context trailing) so the guide control matches Scale-style line icons.
+
+### Fixed
+- **Picks Lab add confirmation** — Lab **Use** still writes the shared draft only (does not persist). The Lab destination now shows a live **Your card**, marks the filled slot, toasts the add, and surfaces Lock In Picks / Update Picks when the card is unsaved. Persist remains the explicit lock/update action.
+- **Scorecard odds on the live night (#1013)** — Picks cluster fetches `pick-recommendations.json` once and shares it with Scorecard and Make Picks. Hits show a trailing `N%` on the song title (plus a “model odds” hint). Storage `getDownloadURL` failures (App Check on preview hosts) retry the public `alt=media` URL so odds load instead of staying blank.
+- **Make Picks Last dates (#1013)** — dropdown Last was falling back to the bundled 2025 catalog (`PHISH_SONGS`) when Storage `getDownloadURL` failed or the tokenized download returned 402. Catalog fetch now retries `alt=media` and normalizes `last` / `last_played` to `YYYY-MM-DD` so Last stays on the live last-played date. Odds `%` no longer clips the Last column.
+- **Desktop tertiary tray width** — Scoring rules / How pools work utilities sit on the cluster title row instead of beside the tray, so Standings and Pools tertiary menus match full-width trays on Picks / Stats / Account.
+- **Stats quaternary tray width** — `StatsScopeToggle` reserves a fixed trailing column for scope/board `InfoTooltip`s (empty when absent) so All-time / This tour and board switches stay aligned across stacked trays.
+- **Stats quaternary sticky chrome** — Personal / Global port All-time / This tour (+ board or Your stats / Top picks) into the desktop sticky stack and mobile fixed chrome below tertiary so both filter rows stay visible while boards scroll.
+
+---
+
+## [1.71.2] — 2026-09-08
+
+### Fixed
+- **Dashboard default show date** — after the Summer Tour finale, the date picker could stick on `2026-09-06` instead of the next available show. Selection now seeds from the same `useShowCalendar().showDates` as the picker (live snapshot; emergency FALLBACK only when snapshot missing), advances past stale past dates when cron ingests newer nights, and re-resolves when the schedule day rolls. Emergency `FALLBACK_SHOW_DATES` includes Fall Tour ’26 (Oct 2–11).
+
+### Changed
+- Seed `show_calendar/tour_overrides` checklist includes Fall Tour dates for Console paste.
+
+---
+
+## [1.71.1] — 2026-09-07
+
+### Changed
+- **`tour_recap` CTA loop** — email (and push copy) **View Recap** → Messages (`/dashboard/profile/notifications`); in-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour` so the full recap is read before standings.
+
+---
+
+## [1.71.0] — 2026-09-07
+
+### Added
+- **`tour_recap` trigger (#510)** — durable personalized end-of-tour recap (`results_recap`, P1). Audience: users with ≥1 graded pick on any show in that tour. Channels: in-app, push, abbreviated email. Prefs: `notificationPrefs.results`. Dedup: `tour_recap:{tourId}:{uid}`. Automated batch fan-out after the tour’s final show is graded (`deliverTourRecapIfFinalShow` → `deliverCommsTrigger`). Rank branches: champion / top 5 / top 10 / full-run outside top 10 / partial attendance / fallback. Edition flavor from `content/comms/tours/<edition>.md` + send-time payload.
+
+### Changed
+- **Sphere ’26 recap** — `sphere-2026-inaugural` / `tour_recap_sphere_2026` is archive + War Room replay (`deliverSphere2026TourRecapInbox`) only. Live catalog template is `tour-recap`. `/comms-preview` samples use a generic Sample Tour fixture (no Sphere live IDs).
+
+---
+
+## [1.70.2] — 2026-09-07
+
+### Fixed
+- **Inbox Unopened stay-open on first click (#1015)** — opening a message no longer sets `readAt` immediately (which moved the row into the collapsed Read section and made the body feel like it disappeared). The body stays in Unopened while expanded; `readAt` is written on first close (Collapse, leave for another row, or collapse Inbox).
+
+### Changed
+- **`commsInbox.readAt` timing** — client sets `readAt` when the user finishes the first open (close / switch-away), not on the open click. Field shape unchanged.
 
 ---
 

@@ -10,8 +10,16 @@ const {
   findTourCountdownTargets,
   loadUserIdsWithPicksForShowDates,
   leaderUidFromScores,
+  deliverTourRecapIfFinalShow,
+  deliverPendingTourRecaps,
+  shouldSkipTourRankingsOnTourRecapMorning,
 } = require("./commsEventAdapters");
 const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
+const {
+  isFinalShowOfTour,
+  buildTourRecapPodium,
+  buildTourRecapPayload,
+} = require("./tourRecapCore");
 
 test("isCommsEventAdaptersEnabled defaults false", () => {
   const prev = process.env.COMMS_EVENT_ADAPTERS_ENABLED;
@@ -201,4 +209,131 @@ test("loadUserIdsWithPicksForShowDates indexes non-empty picks (#509)", async ()
   assert.equal(map.get("2026-07-18").has("u1"), true);
   assert.equal(map.get("2026-07-18").has("u2"), false);
   assert.equal(map.get("2026-07-20").has("u3"), true);
+});
+
+test("isFinalShowOfTour is true only for the last dated show", () => {
+  const dates = ["2026-08-01", "2026-08-03", "2026-08-02"];
+  assert.equal(isFinalShowOfTour(dates, "2026-08-03"), true);
+  assert.equal(isFinalShowOfTour(dates, "2026-08-01"), false);
+  assert.equal(isFinalShowOfTour([], "2026-08-03"), false);
+  assert.equal(isFinalShowOfTour(dates, ""), false);
+});
+
+test("buildTourRecapPodium takes top 3 plus two honorable mentions", () => {
+  const leaders = [
+    { handle: "A", totalPoints: 100, wins: 3, shows: 8 },
+    { handle: "B", totalPoints: 90, wins: 2, shows: 8 },
+    { handle: "C", totalPoints: 80, wins: 1, shows: 8 },
+    { handle: "D", totalPoints: 70, wins: 1, shows: 7 },
+    { handle: "E", totalPoints: 60, wins: 0, shows: 4 },
+    { handle: "F", totalPoints: 50, wins: 0, shows: 3 },
+  ];
+  const podium = buildTourRecapPodium(leaders);
+  assert.equal(podium.rows.length, 3);
+  assert.equal(podium.rows[0].handle, "A");
+  assert.equal(podium.rows[0].points, 100);
+  assert.equal(podium.honorableMentions.length, 2);
+  assert.match(podium.honorableMentions[0].note, /70 pts/);
+  assert.match(podium.honorableMentions[1].note, /4 shows/);
+});
+
+test("buildTourRecapPayload uses tour metadata, not a Sphere live id", () => {
+  const payload = buildTourRecapPayload({
+    handle: "Pat",
+    rank: 2,
+    points: 90,
+    wins: 1,
+    showsPlayed: 8,
+    participantCount: 12,
+    tourId: "Summer Tour 2026",
+    tourName: "Summer Tour 2026",
+    showCount: 8,
+    podium: { rows: [{ handle: "A", points: 100, wins: 3 }], honorableMentions: [] },
+  });
+  assert.equal(payload.tour_id, "Summer Tour 2026");
+  assert.equal(payload.tour_name, "Summer Tour 2026");
+  assert.match(payload.headline, /Summer Tour 2026/);
+  assert.equal(payload.show_count, 8);
+  assert.doesNotMatch(JSON.stringify(payload), /sphere-2026-inaugural/);
+  assert.doesNotMatch(JSON.stringify(payload), /Sphere '26 recap is in/);
+});
+
+function emptyPicksDb() {
+  return {
+    collection() {
+      return {
+        where() {
+          return {
+            async get() {
+              return { empty: true, docs: [] };
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
+test("deliverTourRecapIfFinalShow no-ops without a tour key or when not the final show", async () => {
+  assert.equal(
+    await deliverTourRecapIfFinalShow({
+      db: {},
+      runtime: { deliver: async () => ({ ok: true }) },
+      showDate: "2026-08-01",
+      tourKey: null,
+      showDatesByTour: [],
+    }),
+    null
+  );
+  assert.equal(
+    await deliverTourRecapIfFinalShow({
+      db: {},
+      runtime: { deliver: async () => ({ ok: true }) },
+      showDate: "2026-08-01",
+      tourKey: "Sample Tour",
+      showDatesByTour: [{ tour: "Sample Tour", shows: [{ date: "2026-08-01" }, { date: "2026-08-02" }] }],
+    }),
+    null
+  );
+});
+
+test("deliverPendingTourRecaps skips finales that are still today or upcoming", async () => {
+  const delivered = [];
+  const runtime = { deliver: async (id) => { delivered.push(id); return { ok: true }; } };
+  const showDatesByTour = [
+    { tour: "Fall Tour 2026", shows: [{ date: "2026-10-02" }, { date: "2026-10-11" }] },
+  ];
+  assert.deepEqual(
+    await deliverPendingTourRecaps({
+      db: emptyPicksDb(),
+      runtime,
+      showDatesByTour,
+      now: new Date("2026-10-11T15:00:00-07:00"),
+    }),
+    []
+  );
+  assert.deepEqual(delivered, []);
+});
+
+test("deliverPendingTourRecaps attempts tour_recap the morning after the finale", async () => {
+  const showDatesByTour = [
+    { tour: "Summer Tour 2026", shows: [{ date: "2026-07-11" }, { date: "2026-09-06" }] },
+  ];
+  const summaries = await deliverPendingTourRecaps({
+    db: emptyPicksDb(),
+    runtime: { deliver: async () => ({ ok: true }) },
+    showDatesByTour,
+    now: new Date("2026-09-07T08:00:00-07:00"),
+  });
+  assert.equal(summaries.length, 1);
+  assert.equal(summaries[0].tourKey, "Summer Tour 2026");
+  assert.equal(summaries[0].finalDate, "2026-09-06");
+  assert.equal(summaries[0].summary.skipped, "no_eligible_players");
+});
+
+test("shouldSkipTourRankingsOnTourRecapMorning only on the finale date", () => {
+  const dates = ["2026-07-11", "2026-09-04", "2026-09-06"];
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-09-06"), true);
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-09-04"), false);
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-07-11"), false);
 });

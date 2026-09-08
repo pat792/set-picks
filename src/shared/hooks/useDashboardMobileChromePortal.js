@@ -11,6 +11,14 @@ export const DASHBOARD_SCROLLPORT_ID = 'dashboard-scrollport';
 export const DASHBOARD_DESKTOP_PAGE_CHROME_ROOT_ID =
   'dashboard-desktop-page-chrome-root';
 
+/** Desktop sticky stack slot for Stats quaternary filters (below tertiary). */
+export const DASHBOARD_DESKTOP_QUATERNARY_CHROME_ROOT_ID =
+  'dashboard-desktop-quaternary-chrome-root';
+
+/** Mobile Stats cluster slot for quaternary filters (below tertiary tray). */
+export const DASHBOARD_MOBILE_QUATERNARY_CHROME_ROOT_ID =
+  'dashboard-mobile-quaternary-chrome-root';
+
 /** Trailing slot in the mobile context bar (e.g. Standings Scoring rules). */
 export const DASHBOARD_MOBILE_CONTEXT_TRAILING_ROOT_ID =
   'dashboard-mobile-context-trailing-root';
@@ -41,6 +49,36 @@ export function useDashboardDesktopPageChromePortal() {
 
   useLayoutEffect(() => {
     setRoot(document.getElementById(DASHBOARD_DESKTOP_PAGE_CHROME_ROOT_ID));
+  }, []);
+
+  return root;
+}
+
+/**
+ * Resolves the desktop sticky quaternary filter portal (below tertiary).
+ *
+ * @returns {HTMLElement | null}
+ */
+export function useDashboardDesktopQuaternaryChromePortal() {
+  const [root, setRoot] = useState(null);
+
+  useLayoutEffect(() => {
+    setRoot(document.getElementById(DASHBOARD_DESKTOP_QUATERNARY_CHROME_ROOT_ID));
+  }, []);
+
+  return root;
+}
+
+/**
+ * Resolves the mobile Stats quaternary filter portal (below tertiary tray).
+ *
+ * @returns {HTMLElement | null}
+ */
+export function useDashboardMobileQuaternaryChromePortal() {
+  const [root, setRoot] = useState(null);
+
+  useEffect(() => {
+    setRoot(document.getElementById(DASHBOARD_MOBILE_QUATERNARY_CHROME_ROOT_ID));
   }, []);
 
   return root;

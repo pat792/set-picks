@@ -123,6 +123,30 @@ export function getNextShow(showDates) {
 }
 
 /**
+ * Dashboard date-picker default / calendar-sync reconcile.
+ *
+ * Keeps a prior selection when it is still on the calendar and not before the
+ * next available show (browsing tonight or a future night). Otherwise snaps to
+ * {@link getNextShow} — so a stale fallback last-night (e.g. Dick's finale)
+ * cannot stick after live Fall dates load.
+ *
+ * @param {string | null | undefined} prev
+ * @param {{ date: string }[]} showDates
+ * @returns {string}
+ */
+export function resolveSelectedShowDate(prev, showDates) {
+  const next = getNextShow(showDates).date;
+  if (
+    typeof prev === 'string' &&
+    showDates.some((s) => s.date === prev) &&
+    prev >= next
+  ) {
+    return prev;
+  }
+  return next;
+}
+
+/**
  * NEXT — only date users can enter picks (the upcoming show from each show's local "today", before lock).
  * LIVE — selected show date in local timezone and wall time there is at/after picks lock: picks locked, live standings UX.
  * PAST — calendar date before local "today" in the selected show timezone (show already happened there).

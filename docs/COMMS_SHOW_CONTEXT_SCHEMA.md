@@ -26,7 +26,7 @@ Standalone collection (same rationale as `rollup_audit`): do not nest on
 | `setlist_highlight` | string \| null | One-liner for push / Tonight. Bustouts: `Bustout: Song - a/an N show gap.` or `Bustouts: A - …; B - ….` (#780) |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut`, `multi_encore` |
 | `set_counts` | map | `{ set1, set2, encore }` lengths |
-| `schemaVersion` | number | `1` |
+| `schemaVersion` | number | `2` (was `1`; bump forces rebuild via `ensureCommsShowContext`) |
 | `updatedAt` | timestamp | Server write time |
 
 ## Write hooks
@@ -44,3 +44,11 @@ Standalone collection (same rationale as `rollup_audit`): do not nest on
 
 - [`OFFICIAL_SETLISTS_SCHEMA.md`](./OFFICIAL_SETLISTS_SCHEMA.md)
 - [`docs/comms-triggers/TRIGGER_CATALOG.md`](./comms-triggers/TRIGGER_CATALOG.md) § `show_recap`
+
+## Tour debut priors
+
+`tour_debut_titles` compares tonight’s `officialSetlist` to **all** prior dates on the
+same tour from `show_calendar.showDatesByTour` (exclusive of tonight). Do **not**
+truncate to a trailing window — a 12-show lookback caused Dick’s 2026-09-04 to
+report `4 songs new to this tour — including Plasma.` even though Plasma played
+2026-07-10.

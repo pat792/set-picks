@@ -4,9 +4,8 @@ import { app } from '../../../shared/lib/firebase';
 const FUNCTIONS_REGION = 'us-central1';
 
 /**
- * Admin-only callable: Sphere ’26 inaugural recap → user `commsInbox` docs (#120).
- *
- * Server aggregates picks across fixed Sphere Run dates (same math as tour standings).
+ * Admin-only replay/QA callable: Sphere ’26 inaugural recap → user `commsInbox` docs (#120 / #510).
+ * Not the production `tour_recap` adapter. Server aggregates picks across fixed Sphere Run dates.
  *
  * @param {{ dryRun?: boolean }} data  Omit or `true` = no writes; pass `dryRun: false` to deliver.
  * @returns {Promise<Record<string, unknown>>}
