@@ -189,7 +189,7 @@
       "family": "results_recap",
       "priority": "P1",
       "automation": "automated",
-      "schedule": "8:00 AM America/Los_Angeles (onSchedule \"0 8 * * *\") morning after each show night; skip non-show nights",
+      "schedule": "8:00 AM America/Los_Angeles (onSchedule \"0 8 * * *\") morning after each show night; skip non-show nights; skip the morning after a tour finale (tour_recap day)",
       "audience": "users_with_picks_in_current_tour",
       "channels": ["inApp", "push", "email"],
       "prefKeys": ["results"],
@@ -197,7 +197,7 @@
       "templateId": "tour-rankings-daily",
       "implementationModule": "functions/commsEventAdapters.js",
       "githubIssue": 572,
-      "note": "Email now also carries the prior show's \"your night\" recap section (absorbed from show_recap, #451) alongside tour standings — one email per (uid, showDate) instead of two. Narrative vars from comms_show_context (#572).",
+      "note": "Email now also carries the prior show's \"your night\" recap section (absorbed from show_recap, #451) alongside tour standings — one email per (uid, showDate) instead of two. Narrative vars from comms_show_context (#572). Suppressed the morning after a tour finale so `tour_recap` is the only wrap that day.",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "show_date", "source": "previous show date", "fallback": null },

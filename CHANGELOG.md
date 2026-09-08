@@ -23,7 +23,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.72.1] — 2026-09-08
 
 ### Changed
-- **`tour_recap` timing (#510)** — last night of a tour still sends night `show_recap` only. End-of-tour fan-out waits for the next 8am PT `scheduledTourRankingsDailyComms` tick (`deliverPendingTourRecaps`). Dedup unchanged (`tour_recap:{tourId}:{uid}`). Manual `runCommsTrigger` / canary still work.
+- **`tour_recap` timing (#510)** — last night of a tour still sends night `show_recap` only. End-of-tour fan-out waits for the next 8am PT `scheduledTourRankingsDailyComms` tick (`deliverPendingTourRecaps`). That same morning skips `tour_rankings_daily` (email + in-app + push) so the wrap is one message. Dedup unchanged (`tour_recap:{tourId}:{uid}`). Manual `runCommsTrigger` / canary still work.
 
 ---
 

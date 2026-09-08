@@ -46,6 +46,18 @@ const {
 const SITE_URL = "https://www.setlistpickem.com";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
+
+/**
+ * Morning after a tour finale is `tour_recap` day — skip `tour_rankings_daily`
+ * (all channels, including email) so the wrap is one message.
+ *
+ * @param {string[]} tourDates
+ * @param {string} showDate
+ * @returns {boolean}
+ */
+function shouldSkipTourRankingsOnTourRecapMorning(tourDates, showDate) {
+  return isFinalShowOfTour(tourDates, showDate);
+}
 const COUNTDOWN_DAYS = [10, 5, 3, 1];
 /** Firestore `in` queries allow at most 30 equality values. */
 const FIRESTORE_IN_QUERY_LIMIT = 30;
@@ -873,11 +885,18 @@ async function runScheduledTourRankingsDaily({
 
   for (const show of yesterdayCandidates) {
     const showDate = show.date;
+    const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
+    const tourDates = tourDatesForKey(showDatesByTour, tourKey);
+    if (shouldSkipTourRankingsOnTourRecapMorning(tourDates, showDate)) {
+      logger?.info?.("runScheduledTourRankingsDaily: skip finale morning (tour_recap day)", {
+        showDate,
+        tourKey,
+      });
+      continue;
+    }
     // eslint-disable-next-line no-await-in-loop
     const picksSnap = await db.collection("picks").where("showDate", "==", showDate).get();
     if (picksSnap.empty) continue;
-    const tourKey = resolveTourKeyForDate(showDate, showDatesByTour);
-    const tourDates = tourDatesForKey(showDatesByTour, tourKey);
     const datesThrough = tourDates.length > 0 ? tourDatesThrough(tourDates, showDate) : [showDate];
     const priorDate = priorTourShowDate(tourDates, showDate);
     const nextDate = nextTourShowDate(tourDates, showDate);
@@ -998,6 +1017,7 @@ module.exports = {
   shouldDeliverAccountWelcome,
   shouldDeliverPicksConfirmed,
   findShowMeta,
+  shouldSkipTourRankingsOnTourRecapMorning,
   computeGlobalRankByUid,
   findTourCountdownTargets,
   loadUserIdsWithPicksForShowDates,

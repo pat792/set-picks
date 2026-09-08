@@ -12,6 +12,7 @@ const {
   leaderUidFromScores,
   deliverTourRecapIfFinalShow,
   deliverPendingTourRecaps,
+  shouldSkipTourRankingsOnTourRecapMorning,
 } = require("./commsEventAdapters");
 const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
 const {
@@ -328,4 +329,11 @@ test("deliverPendingTourRecaps attempts tour_recap the morning after the finale"
   assert.equal(summaries[0].tourKey, "Summer Tour 2026");
   assert.equal(summaries[0].finalDate, "2026-09-06");
   assert.equal(summaries[0].summary.skipped, "no_eligible_players");
+});
+
+test("shouldSkipTourRankingsOnTourRecapMorning only on the finale date", () => {
+  const dates = ["2026-07-11", "2026-09-04", "2026-09-06"];
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-09-06"), true);
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-09-04"), false);
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-07-11"), false);
 });
