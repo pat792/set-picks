@@ -155,6 +155,27 @@ export function isPersonalStatsPath(pathname) {
 }
 
 /**
+ * True when pathname is Global Stats (`/dashboard/stats/global`).
+ *
+ * @param {string} pathname
+ * @returns {boolean}
+ */
+export function isGlobalStatsPath(pathname) {
+  return normalizeDashboardPathname(pathname) === STATS_CLUSTER_PATHS.global;
+}
+
+/**
+ * True when Personal or Global Stats quaternary filters mount (sticky / mobile
+ * chrome below tertiary). Band has no quaternary tray.
+ *
+ * @param {string} pathname
+ * @returns {boolean}
+ */
+export function isStatsQuaternaryPath(pathname) {
+  return isPersonalStatsPath(pathname) || isGlobalStatsPath(pathname);
+}
+
+/**
  * True when pathname is any Stats-cluster surface, including the
  * `/dashboard/tour-stats` redirect hop (Stats primary stays active).
  *

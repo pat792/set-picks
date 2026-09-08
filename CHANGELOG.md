@@ -20,6 +20,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.72.4] — 2026-09-08
+
+### Fixed
+- **Desktop tertiary tray width** — Scoring rules / How pools work utilities sit on the cluster title row instead of beside the tray, so Standings and Pools tertiary menus match full-width trays on Picks / Stats / Account.
+- **Desktop Scoring rules affordance** — Picks and Standings use the same Scale `ChromeIconButton` on the title row (mobile pattern); removed the Picks in-flow “Scoring rules” GhostPill.
+- **Pools how-it-works icon** — `CircleHelp` → `BookOpen` (desktop title row + mobile context trailing) so the guide control matches Scale-style line icons.
+- **Stats quaternary tray width** — `StatsScopeToggle` reserves a fixed trailing column for scope/board `InfoTooltip`s (empty when absent) so All-time / This tour and board switches stay aligned across stacked trays.
+- **Stats quaternary sticky chrome** — Personal / Global port All-time / This tour (+ board or Your stats / Top picks) into the desktop sticky stack and mobile fixed chrome below tertiary so both filter rows stay visible while boards scroll.
+
+---
+
 ## [1.72.3] — 2026-09-08
 
 ### Fixed

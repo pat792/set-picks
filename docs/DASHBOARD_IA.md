@@ -94,7 +94,7 @@ Page and section **descriptions default to an `InfoTooltip`** (`DashboardActionR
 - Rectangular **equal-width** tray (`flex w-full`, segments `flex-1`) — not auto-width pills
 - Uppercase labels (`uppercase tracking-widest`)
 - Active ring/fill (`tone="chrome"`, default): `bg-brand-primary/15 text-brand-primary ring-1 ring-inset ring-brand-primary/35`
-- In-page filters (`tone="inset"`, Stats All-time / board trays): same equal-width layout, recessed field, neutral selected chip — do not fork tray CSS in features
+- In-page filters (`tone="inset"`, Stats All-time / boards trays): same equal-width layout, recessed field, neutral selected chip — do not fork tray CSS in features. Helper `InfoTooltip`s use a **reserved trailing column** beside the tray (empty spacer when no hint) so stacked quaternary trays keep one width. On Personal / Global, both quaternary rows **stick with the Stats chrome** (desktop sticky stack portal below tertiary; mobile fixed chrome below the Personal/Global/Band tray) so boards/cards scroll underneath.
 - Inactive: `text-content-secondary` + inset hover
 - Icons optional (Standings today; Profile text-only) — do not require icons on every cluster
 
@@ -103,7 +103,7 @@ Page and section **descriptions default to an `InfoTooltip`** (`DashboardActionR
 | Viewport | Pattern |
 |----------|---------|
 | **Mobile** | Fixed under the context bar via `useDashboardMobileChromePortal` (`ProfileMobileFixedChrome`, `StandingsMobileFixedChrome`) |
-| **Desktop** | One sticky stack in `#dashboard-scrollport`: optional Tour Date / Tour scope, then cluster title + tertiary tray (`DashboardStickyPageChrome` portaled into `DashboardStickyChromeStack`). Lock / install banners and page body scroll underneath. Pool details stays Option C (no cluster title). War Room keeps the layout H2. |
+| **Desktop** | One sticky stack in `#dashboard-scrollport`: optional Tour Date / Tour scope, then cluster title + full-width tertiary tray (`DashboardStickyPageChrome` portaled into `DashboardStickyChromeStack`). Optional utilities sit on the **title row** as icon buttons (`ChromeIconButton` — Scale for Scoring rules on Picks/Standings, BookOpen for How pools work), never labeled pills beside the tray — trays stay equal width across clusters. Stats Personal / Global also portal quaternary inset trays into the same sticky stack (below tertiary). Lock / install banners and page body scroll underneath. Pool details stays Option C (no cluster title). War Room keeps the layout H2. |
 
 Visibility (`hidden md:block` vs portal) lives at the **cluster layout call site**, not inside `ChromeSegmentedControl`.
 
@@ -150,7 +150,7 @@ When you add or rename a tertiary cluster (or a `/dashboard/*` child):
 | **Join Pool** | `/dashboard/pools/join` | Join-by-code; pending-join / invite retry (`POOL_INVITE_STORAGE_KEY`) |
 | **Pool details** | `/dashboard/pool/:id` | Unchanged Option C chrome; Pools primary stays active (not a tertiary segment) |
 
-Nested routes (not `?view=`). After a successful create or join, navigate to that pool’s details. How-it-works is a **CircleHelp** icon in the mobile context-bar trailing slot and beside the desktop tertiary tray (Standings Scale pattern) — not a fourth tertiary segment or in-flow disclosure. Post-auth `/join/:code` with a pending invite lands on **Join Pool**.
+Nested routes (not `?view=`). After a successful create or join, navigate to that pool’s details. How-it-works is a **BookOpen** icon in the mobile context-bar trailing slot and on the desktop **title row** (guide affordance; Standings/Picks Scale pattern) — not a fourth tertiary segment, not beside the tray, and not an in-flow disclosure. Post-auth `/join/:code` with a pending invite lands on **Join Pool**.
 
 ## Pool details desktop chrome (decision: Option C)
 

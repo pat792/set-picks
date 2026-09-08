@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Lock, Scale } from 'lucide-react';
+import { CheckCircle2, Lock } from 'lucide-react';
 
 import { logCommsEmailLanded } from '../../features/comms';
 import {
@@ -19,8 +19,6 @@ import { useScoringRulesModal } from '../../features/scoring';
 import { useDashboardMobileChromePortal } from '../../shared/hooks/useDashboardMobileChromePortal';
 import { showOptionLabelCompact } from '../../shared/utils/showOptionLabel';
 import Card from '../../shared/ui/Card';
-import DashboardActionRow from '../../shared/ui/DashboardActionRow';
-import GhostPill from '../../shared/ui/GhostPill';
 
 export default function PicksPage({ user: userProp, selectedDate: selectedDateProp }) {
   const [searchParams] = useSearchParams();
@@ -114,13 +112,6 @@ export default function PicksPage({ user: userProp, selectedDate: selectedDatePr
         ? createPortal(mobileFixedChrome, mobileToolsRoot)
         : null}
 
-      <div className="hidden md:block">
-        <DashboardActionRow>
-          <GhostPill icon={Scale} onClick={openScoringRules}>
-            Scoring rules
-          </GhostPill>
-        </DashboardActionRow>
-      </div>
       <div className="relative">
         <PicksLockTimingBanner
           key={selectedDate}
