@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.72.1] — 2026-09-08
+
+### Changed
+- **`tour_recap` timing (#510)** — last night of a tour still sends night `show_recap` only. End-of-tour fan-out waits for the next 8am PT `scheduledTourRankingsDailyComms` tick (`deliverPendingTourRecaps`). Dedup unchanged (`tour_recap:{tourId}:{uid}`). Manual `runCommsTrigger` / canary still work.
+
+---
+
 ## [1.72.0] — 2026-09-08
 
 Production ship of the leftover Sprint 14 IA polish that stayed on `staging` after the surgical 1.70.x / 1.71.x promotes. Collapses staging 1.70.2 (Lab Use), 1.71.0 (#1013 Scorecard / Make Picks odds), and 1.72.4 (desktop trays + sticky Stats filters) into one MINOR. Does **not** re-ship `tour_recap` or the next-show date default (already live as 1.71.0–1.71.2).

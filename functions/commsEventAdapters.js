@@ -471,23 +471,18 @@ async function deliverPostRollupComms({
     engagementRecipients.length > 0
       ? await runtime.deliver("tour_engagement_reminder", engagementRecipients)
       : null;
-  const tourRecapSummary = await deliverTourRecapIfFinalShow({
-    db,
-    runtime,
-    showDate,
-    tourKey,
-    showDatesByTour,
-    logger,
-  });
+  // `tour_recap` waits for the next morning (8am PT cron). Last night of
+  // tour stays a night `show_recap` only — same split as the Summer '26 one-off.
 
-  return { recapSummary, engagementSummary, tourRecapSummary };
+  return { recapSummary, engagementSummary };
 }
 
 /**
  * End-of-tour `tour_recap` fan-out (#510). Fires only when `showDate` is the
  * last date in `showDatesByTour` for `tourKey`. Audience: users with ≥1 graded
- * pick on any show in that tour. Sphere ’26 replay stays on
- * `deliverSphere2026TourRecapInbox` (War Room / QA only).
+ * pick on any show in that tour. Production calls this from the morning-after
+ * 8am PT cron (`deliverPendingTourRecaps`), not the night-of rollup.
+ * Sphere ’26 replay stays on `deliverSphere2026TourRecapInbox` (War Room / QA only).
  *
  * @param {{
  *   db: import("firebase-admin").firestore.Firestore,
@@ -559,6 +554,53 @@ async function deliverTourRecapIfFinalShow({
     recipients: recipients.length,
   });
   return runtime.deliver("tour_recap", recipients);
+}
+
+/**
+ * Morning-after `tour_recap` for every tour whose final show date is already
+ * in the past (America/Los_Angeles, same tz as the 8am cron). Dedup
+ * `tour_recap:{tourId}:{uid}` makes re-ticks a no-op after the first send.
+ * Late grades still send on the first cron after the finale is scored.
+ *
+ * @param {{
+ *   db: import("firebase-admin").firestore.Firestore,
+ *   runtime: { deliver: Function },
+ *   showDatesByTour: unknown,
+ *   now?: Date,
+ *   logger?: object,
+ * }} params
+ * @returns {Promise<Array<{ tourKey: string, finalDate: string, summary: unknown }>>}
+ */
+async function deliverPendingTourRecaps({
+  db,
+  runtime,
+  showDatesByTour,
+  now = new Date(),
+  logger,
+}) {
+  if (!Array.isArray(showDatesByTour)) return [];
+  const today = ymdInTimeZone(now, DEFAULT_SHOW_TIME_ZONE);
+  /** @type {Array<{ tourKey: string, finalDate: string, summary: unknown }>} */
+  const out = [];
+  for (const group of showDatesByTour) {
+    if (!group || typeof group !== "object") continue;
+    const tourKey = typeof group.tour === "string" ? group.tour.trim() : "";
+    if (!tourKey) continue;
+    const tourDates = tourDatesForKey(showDatesByTour, tourKey);
+    const finalDate = tourDates.length > 0 ? tourDates[tourDates.length - 1] : "";
+    if (!finalDate || finalDate >= today) continue;
+    // eslint-disable-next-line no-await-in-loop
+    const summary = await deliverTourRecapIfFinalShow({
+      db,
+      runtime,
+      showDate: finalDate,
+      tourKey,
+      showDatesByTour,
+      logger,
+    });
+    if (summary) out.push({ tourKey, finalDate, summary });
+  }
+  return out;
 }
 
 /**
@@ -814,9 +856,18 @@ async function runScheduledTourRankingsDaily({
     return s.date === yesterday && today > s.date;
   });
 
-  if (yesterdayCandidates.length === 0) return { processed: 0, delivered: 0 };
-
   const runtime = createCommsAdapterRuntime({ db, admin, resendApiKey, logger });
+  const tourRecapSummaries = await deliverPendingTourRecaps({
+    db,
+    runtime,
+    showDatesByTour,
+    now,
+    logger,
+  });
+
+  if (yesterdayCandidates.length === 0) {
+    return { processed: 0, delivered: 0, tourRecapSummaries };
+  }
   /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
   const recipients = [];
 
@@ -939,7 +990,8 @@ async function runScheduledTourRankingsDaily({
     }
   }
 
-  return runtime.deliver("tour_rankings_daily", recipients);
+  const rankingsSummary = await runtime.deliver("tour_rankings_daily", recipients);
+  return { ...rankingsSummary, tourRecapSummaries };
 }
 
 module.exports = {
@@ -953,6 +1005,7 @@ module.exports = {
   handlePicksConfirmed,
   deliverPostRollupComms,
   deliverTourRecapIfFinalShow,
+  deliverPendingTourRecaps,
   deliverLiveScoreComms,
   runScheduledTourCountdown,
   runScheduledTourRankingsDaily,
