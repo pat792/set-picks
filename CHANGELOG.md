@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.72.2] — 2026-09-08
+
+### Fixed
+- **Show-recap tour debuts** — `writeCommsShowContext` no longer truncates prior tour setlists to the last 12 shows when computing `tour_debut_titles` / `setlist_highlight`. That lookback made Dick’s 2026-09-04 email say **“4 songs new to this tour — including Plasma.”** even though Plasma played 2026-07-10 (true debuts: Ya Mar, Lonely Trip). `comms_show_context.schemaVersion` → **2**; `ensureCommsShowContext` rebuilds older docs on next delivery path.
+
+---
+
 ## [1.72.1] — 2026-09-07
 
 ### Changed
