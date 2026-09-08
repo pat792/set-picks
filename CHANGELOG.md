@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.71.2] — 2026-09-08
+
+### Fixed
+- **Dashboard default show date** — after the Summer Tour finale, the date picker could stick on `2026-09-06` instead of the next available show. Selection now seeds from the same `useShowCalendar().showDates` as the picker (live snapshot; emergency FALLBACK only when snapshot missing), advances past stale past dates when cron ingests newer nights, and re-resolves when the schedule day rolls. Emergency `FALLBACK_SHOW_DATES` includes Fall Tour ’26 (Oct 2–11).
+
+### Changed
+- Seed `show_calendar/tour_overrides` checklist includes Fall Tour dates for Console paste.
+
+---
+
 ## [1.71.1] — 2026-09-07
 
 ### Changed
