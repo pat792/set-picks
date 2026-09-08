@@ -47,6 +47,7 @@ import {
   isPoolsTertiaryPath,
   isProfileClusterPath,
   isStatsClusterPath,
+  isStatsQuaternaryPath,
 } from '../../shared/config/dashboardRoutes';
 import {
   getShowBeforeDate,
@@ -192,6 +193,7 @@ export default function DashboardLayout() {
   const isPoolsTertiary = isPoolsTertiaryPath(location.pathname);
   const isProfileCluster = isProfileClusterPath(location.pathname);
   const isStatsCluster = isStatsClusterPath(location.pathname);
+  const isStatsQuaternary = isStatsQuaternaryPath(location.pathname);
   /** Primary tabs nest controls under the mobile context bar (Standings pattern). */
   const usesMobileFixedChrome =
     isStandingsRoute ||
@@ -325,10 +327,13 @@ export default function DashboardLayout() {
           'flex-1 min-w-0 overflow-y-auto relative',
           'pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8',
           usesMobileFixedChrome
-            ? // Picks cluster: tertiary tray + optional Make Picks tools band.
+            ? // Picks: tertiary + optional Make Picks tools. Stats Personal/Global:
+              // tertiary + up to two quaternary inset trays.
               isPicksCluster
               ? 'pt-[calc(env(safe-area-inset-top,0px)+15.25rem)]'
-              : 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
+              : isStatsQuaternary
+                ? 'pt-[calc(env(safe-area-inset-top,0px)+17.75rem)]'
+                : 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
             : 'pt-[calc(env(safe-area-inset-top,0px)+9rem)]',
         ].join(' ')}
       >

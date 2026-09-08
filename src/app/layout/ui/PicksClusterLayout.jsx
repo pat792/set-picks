@@ -1,8 +1,10 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { Scale } from 'lucide-react';
 import { Outlet, useLocation } from 'react-router-dom';
 
-import { usePicksForm } from '../../../features/picks';
+import { usePickRecommendations, usePicksForm } from '../../../features/picks';
+import { useScoringRulesModal } from '../../../features/scoring';
 import { useShowCalendar } from '../../../features/show-calendar';
 import {
   PICKS_CLUSTER_PATHS,
@@ -14,6 +16,7 @@ import {
   useDashboardMobileChromePortal,
 } from '../../../shared/hooks/useDashboardMobileChromePortal';
 import { NAV_LABEL_PICKS } from '../../../shared/config/dashboardVocabulary';
+import ChromeIconButton from '../../../shared/ui/ChromeIconButton';
 import ChromeSegmentedControl from '../../../shared/ui/ChromeSegmentedControl';
 import DashboardStickyPageChrome from '../../../shared/ui/DashboardStickyPageChrome';
 import PicksClusterMobileChrome, {
@@ -24,8 +27,9 @@ import PicksClusterMobileChrome, {
 /**
  * Persistent Picks-cluster sub-navigation (Make Picks / Picks Lab / Scorecard).
  * Nested routes render via {@link Outlet}.
- * Mobile: tertiary tray portals under the context bar (Profile cluster pattern).
- * Desktop: title + tray portaled into the layout sticky stack.
+ * Mobile: tertiary tray portals under the context bar (Profile chrome pattern).
+ * Desktop: title + Scoring rules Scale icon + tray in the sticky stack
+ * (Standings / Pools title-row utility pattern).
  * Owns `usePicksForm` so Lab “Use” and Make Picks share one card across nested routes.
  *
  * @param {{
@@ -37,8 +41,12 @@ export default function PicksClusterLayout({ user, selectedDate }) {
   const location = useLocation();
   const mobileChromeRoot = useDashboardMobileChromePortal();
   const desktopChromeRoot = useDashboardDesktopPageChromePortal();
+  const { openScoringRules } = useScoringRulesModal();
   const { showDates, showDatesByTour } = useShowCalendar();
   const picksForm = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
+  const { artifact: pickRecommendationsArtifact } = usePickRecommendations({
+    enabled: true,
+  });
   const makePicksTo = isMakePicksPath(location.pathname)
     ? normalizeDashboardPathname(location.pathname)
     : PICKS_CLUSTER_PATHS.makePicks;
@@ -58,13 +66,25 @@ export default function PicksClusterLayout({ user, selectedDate }) {
 
       {desktopChromeRoot
         ? createPortal(
-            <DashboardStickyPageChrome title={NAV_LABEL_PICKS}>
+            <DashboardStickyPageChrome
+              title={NAV_LABEL_PICKS}
+              trailing={
+                <ChromeIconButton
+                  icon={Scale}
+                  label="Scoring rules"
+                  onClick={openScoringRules}
+                  size="sm"
+                />
+              }
+            >
               <ChromeSegmentedControl ariaLabel="Picks sections" items={items} />
             </DashboardStickyPageChrome>,
             desktopChromeRoot,
           )
         : null}
-      <Outlet context={{ user, selectedDate, picksForm }} />
+      <Outlet
+        context={{ user, selectedDate, picksForm, pickRecommendationsArtifact }}
+      />
     </div>
   );
 }

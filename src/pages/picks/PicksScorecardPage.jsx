@@ -15,6 +15,7 @@ export default function PicksScorecardPage({ user: userProp, selectedDate: selec
     user,
     selectedDate,
     picksForm: outlet.picksForm,
+    artifact: outlet.pickRecommendationsArtifact,
   });
 
   return <PicksScorecardCard {...scorecard} />;
