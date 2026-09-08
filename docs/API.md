@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.72.1  
+**Version:** 1.72.2  
 
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
@@ -143,7 +143,7 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 | `bustout_titles` | string[] | From official setlist bustouts |
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
-| `schemaVersion` | number | `1` |
+| `schemaVersion` | number | `2` (**v1.72.2**; rebuilds when prior lookback / debut math changes) |
 
 ### 1.12 `official_setlists/{showDate}`
 

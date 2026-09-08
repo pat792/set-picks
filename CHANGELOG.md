@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.72.2] — 2026-09-08
+
+### Fixed
+- **Show-recap tour debuts (#1025)** — `writeCommsShowContext` loads the full prior tour itinerary for `tour_debut_titles` (no 12-show trailing slice). `comms_show_context.schemaVersion` → **2**; `ensureCommsShowContext` rebuilds older docs on the next delivery path.
+
+### Added
+- **`canary:tour-recap`** — Cloud Functions dry-run / admin canary for `tour_recap` (does not auto-send). Summer execute / live-send notes landed as docs.
+
+---
+
 ## [1.72.1] — 2026-09-08
 
 ### Changed

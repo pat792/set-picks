@@ -137,6 +137,24 @@ function tourDebutTitles(setlistDoc, priorDocs) {
 }
 
 /**
+ * Prior show dates to load when computing `tour_debut_titles`.
+ * Must be the **full** prior itinerary — truncating to a trailing window
+ * falsely labels early-tour songs as debuts when they return later
+ * (Dick's 2026-09-04: "4 songs new to this tour — including Plasma."
+ * after Plasma on 2026-07-10 fell outside a 12-show lookback).
+ *
+ * @param {string[]} priorDates ascending YYYY-MM-DD exclusive of tonight
+ * @returns {string[]}
+ */
+function priorDatesForTourDebutLookup(priorDates) {
+  if (!Array.isArray(priorDates)) return [];
+  return priorDates.filter((d) => typeof d === "string" && d.trim());
+}
+
+/** Persisted `comms_show_context.schemaVersion` (bump when rebuild-on-read is required). */
+const COMMS_SHOW_CONTEXT_SCHEMA_VERSION = 2;
+
+/**
  * @param {{ set1: string[], set2: string[], encore: string[] }} groups
  * @param {string} opener
  * @param {string} encoreTitle
@@ -362,7 +380,7 @@ function buildCommsShowContext({
       set2: groups.set2.length,
       encore: groups.encore.length,
     },
-    schemaVersion: 1,
+    schemaVersion: COMMS_SHOW_CONTEXT_SCHEMA_VERSION,
   };
 }
 
@@ -393,6 +411,7 @@ function showLevelPayloadFields(context) {
 }
 
 module.exports = {
+  COMMS_SHOW_CONTEXT_SCHEMA_VERSION,
   groupOfficialSetlistBySet,
   bustoutTitlesFromDoc,
   bustoutEntriesFromRows,
@@ -400,6 +419,7 @@ module.exports = {
   tonightTitles,
   priorTourTitleSet,
   tourDebutTitles,
+  priorDatesForTourDebutLookup,
   composeSetFlowSummary,
   composeSetlistHighlight,
   deriveShowMomentTags,
