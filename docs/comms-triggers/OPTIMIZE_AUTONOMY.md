@@ -129,7 +129,7 @@ Agents **open draft PRs and proposal issues only**. They do **not** auto-merge, 
 | Surface | Issue | Trigger / template | When |
 |---------|-------|--------------------|------|
 | **Night show recap** | [#572](https://github.com/pat792/set-picks/issues/572) | `show_recap` (+ morning absorb) | After a single show grades |
-| **End-of-tour recap** | [#510](https://github.com/pat792/set-picks/issues/510) | `tour_recap` (generalize Sphere edition) | When a tour’s final show grades |
+| **End-of-tour recap** | [#510](https://github.com/pat792/set-picks/issues/510) | `tour_recap` (generalize Sphere edition) | Morning after a tour’s final show (8am PT cron; not same-tick as night `show_recap`) |
 
 Do **not** put tour-length narrative into night `show_recap`, or night setlist flow into `tour_recap`. Sphere ’26 is an **edition archive / QA replay**, not the permanent production trigger.
 

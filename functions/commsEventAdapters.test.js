@@ -11,6 +11,8 @@ const {
   loadUserIdsWithPicksForShowDates,
   leaderUidFromScores,
   deliverTourRecapIfFinalShow,
+  deliverPendingTourRecaps,
+  shouldSkipTourRankingsOnTourRecapMorning,
 } = require("./commsEventAdapters");
 const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
 const {
@@ -256,6 +258,22 @@ test("buildTourRecapPayload uses tour metadata, not a Sphere live id", () => {
   assert.doesNotMatch(JSON.stringify(payload), /Sphere '26 recap is in/);
 });
 
+function emptyPicksDb() {
+  return {
+    collection() {
+      return {
+        where() {
+          return {
+            async get() {
+              return { empty: true, docs: [] };
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
 test("deliverTourRecapIfFinalShow no-ops without a tour key or when not the final show", async () => {
   assert.equal(
     await deliverTourRecapIfFinalShow({
@@ -277,4 +295,45 @@ test("deliverTourRecapIfFinalShow no-ops without a tour key or when not the fina
     }),
     null
   );
+});
+
+test("deliverPendingTourRecaps skips finales that are still today or upcoming", async () => {
+  const delivered = [];
+  const runtime = { deliver: async (id) => { delivered.push(id); return { ok: true }; } };
+  const showDatesByTour = [
+    { tour: "Fall Tour 2026", shows: [{ date: "2026-10-02" }, { date: "2026-10-11" }] },
+  ];
+  assert.deepEqual(
+    await deliverPendingTourRecaps({
+      db: emptyPicksDb(),
+      runtime,
+      showDatesByTour,
+      now: new Date("2026-10-11T15:00:00-07:00"),
+    }),
+    []
+  );
+  assert.deepEqual(delivered, []);
+});
+
+test("deliverPendingTourRecaps attempts tour_recap the morning after the finale", async () => {
+  const showDatesByTour = [
+    { tour: "Summer Tour 2026", shows: [{ date: "2026-07-11" }, { date: "2026-09-06" }] },
+  ];
+  const summaries = await deliverPendingTourRecaps({
+    db: emptyPicksDb(),
+    runtime: { deliver: async () => ({ ok: true }) },
+    showDatesByTour,
+    now: new Date("2026-09-07T08:00:00-07:00"),
+  });
+  assert.equal(summaries.length, 1);
+  assert.equal(summaries[0].tourKey, "Summer Tour 2026");
+  assert.equal(summaries[0].finalDate, "2026-09-06");
+  assert.equal(summaries[0].summary.skipped, "no_eligible_players");
+});
+
+test("shouldSkipTourRankingsOnTourRecapMorning only on the finale date", () => {
+  const dates = ["2026-07-11", "2026-09-04", "2026-09-06"];
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-09-06"), true);
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-09-04"), false);
+  assert.equal(shouldSkipTourRankingsOnTourRecapMorning(dates, "2026-07-11"), false);
 });
