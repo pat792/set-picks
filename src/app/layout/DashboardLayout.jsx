@@ -49,7 +49,12 @@ import {
   isStatsClusterPath,
 } from '../../shared/config/dashboardRoutes';
 import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
-import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
+import {
+  getNextShow,
+  getShowBeforeDate,
+  getShowStatus,
+  resolveSelectedShowDate,
+} from '../../shared/utils/timeLogic.js';
 import {
   showOptionLabelCompact,
 } from '../../shared/utils/showOptionLabel.js';
@@ -123,10 +128,10 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     if (!showDates.length) return;
-    setSelectedDate((prev) => {
-      if (showDates.some((s) => s.date === prev)) return prev;
-      return getNextShow(showDates).date;
-    });
+    // Advance off stale past defaults (e.g. FALLBACK last night after Dick's)
+    // once live calendar includes the next available show. Keep browsing of
+    // tonight / future nights across calendar refreshes.
+    setSelectedDate((prev) => resolveSelectedShowDate(prev, showDates));
   }, [showDates]);
 
   const showDateFromStandingsUrl = searchParams.get('showDate');

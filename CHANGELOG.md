@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.72.3] — 2026-09-08
+
+### Fixed
+- **Dashboard default show date** — after the Summer Tour finale, the date picker could stick on `2026-09-06` instead of the next available show. Calendar sync now advances past stale past selections; emergency `FALLBACK_SHOW_DATES` includes Fall Tour ’26 (Oct 2–11).
+
+### Changed
+- Seed `show_calendar/tour_overrides` checklist includes Fall Tour dates for Console paste.
+
+---
+
 ## [1.72.1] — 2026-09-07
 
 ### Changed
