@@ -1,6 +1,6 @@
 # Setlist Pick'em — Public API Declaration
 
-**Version:** 1.72.4  
+**Version:** 1.72.0  
 
 **SemVer:** https://semver.org  
 **Status:** Stable (≥ 1.0.0)
@@ -60,7 +60,7 @@ All collections live in the default `(default)` Firestore database for project `
 |-------|------|-------|
 | `templateId` | string | Registry key (e.g. `"account-welcome"`) |
 | `triggerId` | string | Catalog trigger ID |
-| `readAt` | Timestamp? | **v1.71.1+:** Null until the user closes the message after opening it (Collapse, switch to another row, or collapse Inbox). Opening alone does not set `readAt`, so Unopened rows stay expanded while reading. |
+| `readAt` | Timestamp? | **v1.70.2+ (#1015):** Null until the user closes the message after opening it (Collapse, switch to another row, or collapse Inbox). Opening alone does not set `readAt`, so Unopened rows stay expanded while reading. |
 | `archivedAt` | Timestamp? | **v1.67.0+ (#513 / #770)** Set when the owner archives the message. Unread bell count excludes archived. |
 | `createdAt` | Timestamp | |
 | `payload` | map | Template-specific variables |
@@ -377,9 +377,9 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
 
-**v1.72.0+ (#510):** `tour_recap` is a P1 `results_recap` batch trigger. Audience is users with ≥1 graded pick on any show in that tour. Channels: in-app, push, abbreviated email. Prefs: `notificationPrefs.results`. Dedup: `tour_recap:{tourId}:{uid}`. Night `show_recap` is unchanged. Sphere ’26 (`deliverSphere2026TourRecapInbox`) is replay/QA only.
+**v1.71.0+ (#510):** `tour_recap` is a P1 `results_recap` batch trigger. Audience is users with ≥1 graded pick on any show in that tour. Channels: in-app, push, abbreviated email. Prefs: `notificationPrefs.results`. Dedup: `tour_recap:{tourId}:{uid}`. Night `show_recap` is unchanged. Sphere ’26 (`deliverSphere2026TourRecapInbox`) is replay/QA only.
 
-**v1.72.1:** Email CTA **View Recap** → `/dashboard/profile/notifications`. In-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour`.
+**v1.71.1:** Email CTA **View Recap** → `/dashboard/profile/notifications`. In-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour`.
 
 ### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
 
@@ -441,15 +441,15 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
 
 **Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
 
-**Picks — Scorecard (**v1.65.1 / #767**, full-song odds **v1.68.0**, graded hit chrome **v1.71.0 / #1013**):** global, show-scoped self card at **`/dashboard/picks/scorecard`**. Overlap is post-lock only. Odds are optional show-wide `playProb` from Storage `pick-recommendations.json` (`playProbBySong` when present; else per-slot top-K). When the map exists, every pick shows a percent; titles missing from history show `<1%`. Omit all odds if the artifact is missing or for another night. On graded nights (`locked` + official setlist), each slot uses `getSlotScoreBreakdown`: hits (`points > 0`) show a light A5 check + inset ring (brand-primary for `exact_slot` / `encore_exact` / `wildcard_hit`; accent-blue for `in_setlist`; amber overlay when `bustoutBoost`). Misses are slightly muted. Pre-grade cards are unchanged. Rank/score reuse the existing show-scoped standings query. **GA4 (client):** `scorecard_open` `{ show_date, lock_state }` where `lock_state` is `empty` \| `pre_lock` \| `locked_ungraded` \| `graded`; `scorecard_metric_impression` `{ show_date, metric }` where `metric` is `overlap` \| `odds` \| `rank`.
+**Picks — Scorecard (**v1.65.1 / #767**, full-song odds **v1.68.0**, graded hit chrome **v1.72.0 / #1013**):** global, show-scoped self card at **`/dashboard/picks/scorecard`**. Overlap is post-lock only. Odds are optional show-wide `playProb` from Storage `pick-recommendations.json` (`playProbBySong` when present; else per-slot top-K). When the map exists, every pick shows a percent; titles missing from history show `<1%`. Omit all odds if the artifact is missing or for another night. On graded nights (`locked` + official setlist), each slot uses `getSlotScoreBreakdown`: hits (`points > 0`) show a light A5 check + inset ring (brand-primary for `exact_slot` / `encore_exact` / `wildcard_hit`; accent-blue for `in_setlist`; amber overlay when `bustoutBoost`). Misses are slightly muted. Pre-grade cards are unchanged. Rank/score reuse the existing show-scoped standings query. **GA4 (client):** `scorecard_open` `{ show_date, lock_state }` where `lock_state` is `empty` \| `pre_lock` \| `locked_ungraded` \| `graded`; `scorecard_metric_impression` `{ show_date, metric }` where `metric` is `overlap` \| `odds` \| `rank`.
 
-**Picks — Make Picks song picker (**v1.71.0 / #1013**):** the autocomplete dropdown shows compact model odds as an `Odds: N%` stat (`<1%` / mobile `<1` when the title is missing from `playProbBySong`) from the same Storage artifact as Scorecard, only when `targetShow.date` matches the selected night. Total / Gap / Last stay beside it. The Make Picks card shows an **Odds** label + tooltip (plain-language “best guess from recent shows”). Not live crowd %.
+**Picks — Make Picks song picker (**v1.72.0 / #1013**):** the autocomplete dropdown shows compact model odds as an `Odds: N%` stat (`<1%` / mobile `<1` when the title is missing from `playProbBySong`) from the same Storage artifact as Scorecard, only when `targetShow.date` matches the selected night. Total / Gap / Last stay beside it. The Make Picks card shows an **Odds** label + tooltip (plain-language “best guess from recent shows”). Not live crowd %.
 
 **Pools tertiary (**v1.65.0 / #768**):** nested destinations under Pools — **`/dashboard/pools`** (My Pools), **`/dashboard/pools/create`** (Create Pool), **`/dashboard/pools/join`** (Join Pool). **`/dashboard/pool/:id`** (pool details) is unchanged; Pools primary stays active. Not `?view=`. Post-auth `/join/:code` with a pending invite lands on `/dashboard/pools/join`.
 
 **Standings Show — Crowd pulse (**v1.35.0 / #687**, productized **#694**, preview blur **v1.39.4**):** client-side aggregate of submitted picks for the selected `showDate`. While `showStatus === 'NEXT'`, preview **Song** + **Last** columns blur (pickers / gap stay clear); full deep stats (multi list / gaps / vintage / leaders) stay locked until showtime. **GA4 (client):** `crowd_pulse_view` `{ show_date, deep_stats: locked|open, pickers }`, `crowd_pulse_full_expand` `{ show_date }`, `crowd_pulse_section_open` `{ show_date, section }` where `section` is `top_songs` | `multi_picker` | `highest_gaps` | `vintage` | `leaders`.
 
-**Picks — Prediction Lab (**v1.38.0 / #651**, moved **v1.64.0 / #766**, add confirmation **v1.70.2**):** lives at **`/dashboard/picks/lab`**. Opt-in slot recommendations consuming Storage `pick-recommendations.json` (see §2.3). **Use** fills the shared cluster draft (same card as Make Picks) and does **not** persist — Lock In Picks / Update Picks still writes `picks/{showDate}_{uid}`. Lab shows a live Your card plus that save CTA when the draft is dirty. Manual autocomplete on Make Picks is unchanged. When `VITE_ENABLE_PREDICTION_LAB` is not `true`, the Lab route still renders (coming-soon shell) — the tertiary tab is not hidden. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
+**Picks — Prediction Lab (**v1.38.0 / #651**, moved **v1.64.0 / #766**, add confirmation **v1.72.0**):** lives at **`/dashboard/picks/lab`**. Opt-in slot recommendations consuming Storage `pick-recommendations.json` (see §2.3). **Use** fills the shared cluster draft (same card as Make Picks) and does **not** persist — Lock In Picks / Update Picks still writes `picks/{showDate}_{uid}`. Lab shows a live Your card plus that save CTA when the draft is dirty. Manual autocomplete on Make Picks is unchanged. When `VITE_ENABLE_PREDICTION_LAB` is not `true`, the Lab route still renders (coming-soon shell) — the tertiary tab is not hidden. **GA4 (client):** `prediction_lab_open` `{ show_id, model_version }`, `prediction_lab_impression` `{ show_id, slot, model_version, risk_band, rank }`, `prediction_lab_select` `{ show_id, slot, model_version, risk_band, rank, song_normalized }`.
 
 **Field RUM — web-vitals (**v1.44.0 / #801**, route groups **v1.49.1 / #857**):** production hostnames only. Client emits GA4 `web_vital` for LCP, INP, CLS, TTFB, FCP after idle. Params: `{ metric_name, value, metric_id, metric_rating, route_group, navigation_type }` where `route_group` is `splash` \| `login` \| `marketing` \| `tour_stats` \| `invite_join` \| `invite_site` \| `dashboard` \| `setup` \| `other` and `navigation_type` is `navigate` \| `reload` \| `back_forward` \| `prerender`. Ops: [`docs/WEB_VITALS_RUM.md`](WEB_VITALS_RUM.md).
 
