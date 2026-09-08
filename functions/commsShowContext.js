@@ -7,6 +7,8 @@
 const {
   buildCommsShowContext,
   showLevelPayloadFields,
+  priorDatesForTourDebutLookup,
+  COMMS_SHOW_CONTEXT_SCHEMA_VERSION,
 } = require("./commsShowContextCore");
 const { tourDatesForKey } = require("./tourRankingsDailyCore");
 const { resolveTourKeyForDate } = require("./rollupSeasonAggregates");
@@ -84,8 +86,11 @@ async function writeCommsShowContext({
     }
   }
 
-  const priorDocs = priorDates.length
-    ? await loadPriorSetlistDocs(db, priorDates.slice(-12))
+  // Full prior itinerary — do not trailing-slice (false tour debuts when
+  // early-tour songs return after show 12+; Dick's 2026-09-04 Plasma).
+  const debutPriorDates = priorDatesForTourDebutLookup(priorDates);
+  const priorDocs = debutPriorDates.length
+    ? await loadPriorSetlistDocs(db, debutPriorDates)
     : [];
 
   const context = buildCommsShowContext({
@@ -128,11 +133,16 @@ async function loadCommsShowContext(db, showDate) {
 }
 
 /**
- * Ensure context exists; rebuild if missing.
+ * Ensure context exists; rebuild if missing or schema behind current.
+ * v2 rebuilds truncated-prior tour-debut mistakes (schema 1 / no version).
  */
 async function ensureCommsShowContext(params) {
   const existing = await loadCommsShowContext(params.db, params.showDate);
-  if (existing?.setlist_highlight || existing?.schemaVersion) {
+  const version = Number(existing?.schemaVersion) || 0;
+  if (
+    existing?.setlist_highlight &&
+    version >= COMMS_SHOW_CONTEXT_SCHEMA_VERSION
+  ) {
     return existing;
   }
   return writeCommsShowContext(params);
@@ -143,4 +153,6 @@ module.exports = {
   loadCommsShowContext,
   ensureCommsShowContext,
   showLevelPayloadFields,
+  priorDatesForTourDebutLookup,
+  COMMS_SHOW_CONTEXT_SCHEMA_VERSION,
 };

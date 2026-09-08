@@ -2,7 +2,8 @@
  * Sphere 2026 inaugural tour recap → Firestore `commsInbox` delivery (#120).
  *
  * Replay / QA only (#510). Production end-of-tour fan-out is `tour_recap` via
- * `deliverTourRecapIfFinalShow` → `deliverCommsTrigger`. Do not use this module
+ * `deliverPendingTourRecaps` (8am PT cron) → `deliverTourRecapIfFinalShow` →
+ * `deliverCommsTrigger`. Do not use this module
  * as the live catalog trigger.
  *
  * Aggregation mirrors `src/features/scoring/model/aggregateTourStandings.js` and
