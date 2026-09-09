@@ -2,7 +2,7 @@
 /**
  * Canary / dry-run for durable `tour_recap` (#510) via Cloud Functions only.
  *
- * Does **not** use War Room / AdminSphereTourRecapDelivery (Sphere archive).
+ * Does **not** use the retired Sphere War Room panel (callable is CLI-only).
  * Calls production `runCommsTrigger` over HTTPS after minting an admin ID token.
  *
  * Auth: same as `scripts/canary-comms.mjs` —

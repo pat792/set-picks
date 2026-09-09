@@ -42,10 +42,66 @@ const {
   buildTourRecapPodium,
   buildTourRecapPayload,
 } = require("./tourRecapCore");
+const {
+  readTourRecapState,
+  writeTourRecapState,
+  tourRecapFanoutCompleted,
+} = require("./tourRecapState");
 
 const SITE_URL = "https://www.setlistpickem.com";
 
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
+
+/**
+ * Morning cron may retry `tour_recap` for late grades for this many days after
+ * the finale date (PT calendar days). Older finales must use admin
+ * `runCommsTrigger` / War Room replay — never an unbounded historical fan-out
+ * (#1033: first live tick blasted archive `2026 Sphere`).
+ */
+const MAX_TOUR_RECAP_LOOKBACK_DAYS = 14;
+
+/**
+ * @param {string} a YYYY-MM-DD
+ * @param {string} b YYYY-MM-DD
+ * @returns {number} whole calendar days from a → b (UTC date math)
+ */
+function daysBetweenYmd(a, b) {
+  const [ay, am, ad] = String(a)
+    .split("-")
+    .map((x) => Number.parseInt(x, 10));
+  const [by, bm, bd] = String(b)
+    .split("-")
+    .map((x) => Number.parseInt(x, 10));
+  if (![ay, am, ad, by, bm, bd].every((n) => Number.isFinite(n))) return NaN;
+  const t0 = Date.UTC(ay, am - 1, ad);
+  const t1 = Date.UTC(by, bm - 1, bd);
+  return Math.round((t1 - t0) / 86400000);
+}
+
+/**
+ * Sphere ’26 stays archive / War Room (`deliverSphere2026TourRecapInbox`) only.
+ * Live `tour_recap` must not pick up calendar labels like `2026 Sphere`.
+ *
+ * @param {string} tourKey
+ * @returns {boolean}
+ */
+function isSphereArchiveTourKey(tourKey) {
+  return /\bsphere\b/i.test(String(tourKey || "").trim());
+}
+
+/**
+ * Whether the 8am PT pending scanner should attempt `tour_recap` for this tour.
+ *
+ * @param {{ tourKey: string, finalDate: string, today: string }} params
+ * @returns {boolean}
+ */
+function shouldAttemptPendingTourRecap({ tourKey, finalDate, today }) {
+  if (isSphereArchiveTourKey(tourKey)) return false;
+  if (!finalDate || !today || finalDate >= today) return false;
+  const age = daysBetweenYmd(finalDate, today);
+  if (!Number.isFinite(age)) return false;
+  return age >= 1 && age <= MAX_TOUR_RECAP_LOOKBACK_DAYS;
+}
 
 /**
  * Morning after a tour finale is `tour_recap` day — skip `tour_rankings_daily`
@@ -571,13 +627,19 @@ async function deliverTourRecapIfFinalShow({
 }
 
 /**
- * Morning-after `tour_recap` for every tour whose final show date is already
- * in the past (America/Los_Angeles, same tz as the 8am cron). Dedup
- * `tour_recap:{tourId}:{uid}` makes re-ticks a no-op after the first send.
- * Late grades still send on the first cron after the finale is scored.
+ * Morning-after `tour_recap` for tours whose final show date is already past
+ * (America/Los_Angeles, same tz as the 8am cron), within
+ * {@link MAX_TOUR_RECAP_LOOKBACK_DAYS}.
+ *
+ * Once-ever gate: after a successful fan-out (or archive skip), writes
+ * `comms_tour_recap_state/{tourId}` and hard-skips that tour forever on later
+ * ticks (#1033). Per-uid `fcm_notification_log` dedup remains for channel
+ * idempotency; the tour doc is the durable process so each tour only gets one
+ * automatic end-of-tour send.
  *
  * @param {{
  *   db: import("firebase-admin").firestore.Firestore,
+ *   admin?: typeof import("firebase-admin"),
  *   runtime: { deliver: Function },
  *   showDatesByTour: unknown,
  *   now?: Date,
@@ -587,6 +649,7 @@ async function deliverTourRecapIfFinalShow({
  */
 async function deliverPendingTourRecaps({
   db,
+  admin,
   runtime,
   showDatesByTour,
   now = new Date(),
@@ -602,7 +665,55 @@ async function deliverPendingTourRecaps({
     if (!tourKey) continue;
     const tourDates = tourDatesForKey(showDatesByTour, tourKey);
     const finalDate = tourDates.length > 0 ? tourDates[tourDates.length - 1] : "";
-    if (!finalDate || finalDate >= today) continue;
+
+    // eslint-disable-next-line no-await-in-loop
+    const state = await readTourRecapState({ db, tourKey });
+    if (state.terminal) {
+      logger?.info?.("deliverPendingTourRecaps: skip tour (state terminal)", {
+        tourKey,
+        finalDate,
+        status: state.data?.status,
+      });
+      continue;
+    }
+
+    if (isSphereArchiveTourKey(tourKey)) {
+      if (admin) {
+        // eslint-disable-next-line no-await-in-loop
+        await writeTourRecapState({
+          db,
+          admin,
+          tourKey,
+          status: "skipped_archive",
+          finalDate: finalDate || null,
+          source: "cron",
+        });
+      }
+      logger?.info?.("deliverPendingTourRecaps: skip Sphere archive tour", {
+        tourKey,
+        finalDate,
+      });
+      continue;
+    }
+
+    if (
+      !shouldAttemptPendingTourRecap({
+        tourKey,
+        finalDate,
+        today,
+      })
+    ) {
+      if (finalDate && finalDate < today) {
+        logger?.info?.("deliverPendingTourRecaps: skip tour", {
+          tourKey,
+          finalDate,
+          today,
+          lookbackDays: MAX_TOUR_RECAP_LOOKBACK_DAYS,
+        });
+      }
+      continue;
+    }
+
     // eslint-disable-next-line no-await-in-loop
     const summary = await deliverTourRecapIfFinalShow({
       db,
@@ -613,6 +724,27 @@ async function deliverPendingTourRecaps({
       logger,
     });
     if (summary) out.push({ tourKey, finalDate, summary });
+
+    if (admin && tourRecapFanoutCompleted(summary)) {
+      // eslint-disable-next-line no-await-in-loop
+      await writeTourRecapState({
+        db,
+        admin,
+        tourKey,
+        status: "sent",
+        finalDate,
+        source: "cron",
+        extra: {
+          delivered: Number(summary.delivered) || 0,
+          processed: Number(summary.processed) || 0,
+        },
+      });
+      logger?.info?.("deliverPendingTourRecaps: marked tour sent", {
+        tourKey,
+        finalDate,
+        delivered: summary.delivered,
+      });
+    }
   }
   return out;
 }
@@ -873,6 +1005,7 @@ async function runScheduledTourRankingsDaily({
   const runtime = createCommsAdapterRuntime({ db, admin, resendApiKey, logger });
   const tourRecapSummaries = await deliverPendingTourRecaps({
     db,
+    admin,
     runtime,
     showDatesByTour,
     now,
@@ -1022,6 +1155,10 @@ module.exports = {
   shouldDeliverPicksConfirmed,
   findShowMeta,
   shouldSkipTourRankingsOnTourRecapMorning,
+  MAX_TOUR_RECAP_LOOKBACK_DAYS,
+  daysBetweenYmd,
+  isSphereArchiveTourKey,
+  shouldAttemptPendingTourRecap,
   computeGlobalRankByUid,
   findTourCountdownTargets,
   loadUserIdsWithPicksForShowDates,
