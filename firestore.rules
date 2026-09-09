@@ -223,6 +223,15 @@ service cloud.firestore {
     }
 
     /**
+     * Tour-level once-ever gate for production `tour_recap` (#1033).
+     * Written only by Cloud Functions Admin SDK after end-of-tour fan-out
+     * (or archive skip / ops seed). Clients must not read or tamper.
+     */
+    match /comms_tour_recap_state/{tourId} {
+      allow read, write: if false;
+    }
+
+    /**
      * Email suppression list for comms deliverability (#442). Written only by
      * Cloud Functions (webhooks + unsubscribe endpoint); clients must not access.
      */

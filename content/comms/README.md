@@ -44,7 +44,7 @@ Use when changing wording for a recap that already has code + registry entry (e.
 | 2 | Dev or agent | Copy the final strings into the **`implementationModule`** (e.g. `src/features/tour-recap/model/sphere2026Recap.js`) so runtime matches the doc. Update in-app or email builder functions as needed. |
 | 3 | Dev or agent | Run **`npm run lint`** and **`npm test`** (at least tests for the owning feature). |
 | 4 | Dev | Open a PR with **base branch `staging`** (per `.cursorrules`), normal review, merge. |
-| 5 | Optional | Use **War Room → Tour recap copy** (or the relevant admin preview) to eyeball the result before/after merge. |
+| 5 | Optional | Use **`/comms-preview`** (or the relevant admin preview) to eyeball the result before/after merge. Recap execute is not in War Room. |
 
 **One-PR rule:** Prefer the Markdown edit and the JS sync in the **same** PR so `content/comms` and `src/features/.../model` never diverge for long.
 
