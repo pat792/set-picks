@@ -258,7 +258,7 @@ All callables are in region `us-central1`. Requests must be authenticated Fireba
 
 ### 2.1 `deliverSphere2026TourRecapInbox` (admin-only, replay / QA)
 
-Historical Sphere ’26 inbox + push fan-out. **Not** the production `tour_recap` path (#510). Use War Room dry-run / execute or `functions/scripts/deliverSphere2026TourRecapInbox.js` for backfill and incident replay only. Live end-of-tour recaps fire from the post-rollup adapter (`deliverTourRecapIfFinalShow` → `deliverCommsTrigger`).
+Historical Sphere ’26 inbox + push fan-out. **Not** the production `tour_recap` path (#510). **Not** in War Room (removed 1.74.2 / #1035). CLI `functions/scripts/deliverSphere2026TourRecapInbox.js` remains for archive replay only. Prefer `runCommsTrigger` (§2.2) for catalog canary. Live end-of-tour recaps fire from the morning cron (`deliverPendingTourRecaps` → `deliverCommsTrigger`).
 
 **Request:**
 ```json

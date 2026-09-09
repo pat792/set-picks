@@ -10,8 +10,8 @@ import {
 import TourRecapInApp from './TourRecapInApp.jsx';
 
 /**
- * Admin-only utility: preview generic tour_recap copy (not a live tour edition).
- * Sphere ’26 replay lives in the War Room delivery panel below this preview.
+ * Preview utility for generic tour_recap copy (not a live tour edition).
+ * Not mounted in War Room — use `/comms-preview` or import this component.
  */
 export default function AdminTourRecapPreview() {
   const edition = PREVIEW_TOUR_EDITION;

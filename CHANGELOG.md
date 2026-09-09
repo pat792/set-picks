@@ -28,6 +28,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ### Changed
 - **`deliverPendingTourRecaps`** — checks tour state before lookback/Sphere filters; writes `sent` after a successful fan-out and `skipped_archive` for Sphere calendar labels.
 
+### Removed
+- **War Room tour recap panel (#1035)** — `/dashboard/admin` no longer previews or executes recap delivery. Live wraps stay on `scheduledTourRankingsDailyComms`. Canary/replay is `runCommsTrigger` or CLI only; the Sphere-only callable is not exposed in the UI.
+
 ---
 
 ## [1.74.1] — 2026-09-09
