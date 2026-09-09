@@ -20,6 +20,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.74.1] — 2026-09-09
+
+### Fixed
+- **`tour_recap` pending cron (#1033)** — `deliverPendingTourRecaps` no longer fans out for every historical calendar tour. Finales must be within a **14-day** lookback (late grades), and Sphere archive labels (`/\bsphere\b/i`, e.g. `2026 Sphere`) are hard-skipped so they stay on War Room / `deliverSphere2026TourRecapInbox`. Incident note: `docs/comms-triggers/INCIDENT_2026-09-09_SPHERE_TOUR_RECAP.md`.
+
+---
+
 ## [1.74.0] — 2026-09-08
 
 Leftover comms train after **v1.72.2**. Reconciled file delta only (no raw `staging` history merge). Includes staging **1.73.0** (#1008 show_recap composer) and **1.74.0** (#1009 Resend open/click). Does **not** include Dependabot.

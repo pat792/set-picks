@@ -13,6 +13,9 @@ const {
   deliverTourRecapIfFinalShow,
   deliverPendingTourRecaps,
   shouldSkipTourRankingsOnTourRecapMorning,
+  isSphereArchiveTourKey,
+  shouldAttemptPendingTourRecap,
+  MAX_TOUR_RECAP_LOOKBACK_DAYS,
 } = require("./commsEventAdapters");
 const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
 const {
@@ -329,6 +332,91 @@ test("deliverPendingTourRecaps attempts tour_recap the morning after the finale"
   assert.equal(summaries[0].tourKey, "Summer Tour 2026");
   assert.equal(summaries[0].finalDate, "2026-09-06");
   assert.equal(summaries[0].summary.skipped, "no_eligible_players");
+});
+
+test("isSphereArchiveTourKey matches calendar Sphere labels (#1033)", () => {
+  assert.equal(isSphereArchiveTourKey("2026 Sphere"), true);
+  assert.equal(isSphereArchiveTourKey("Sphere Run"), true);
+  assert.equal(isSphereArchiveTourKey("Sphere '26"), true);
+  assert.equal(isSphereArchiveTourKey("2026 Summer Tour"), false);
+  assert.equal(isSphereArchiveTourKey("Fall Tour 2026"), false);
+});
+
+test("shouldAttemptPendingTourRecap enforces lookback and Sphere skip (#1033)", () => {
+  assert.equal(MAX_TOUR_RECAP_LOOKBACK_DAYS, 14);
+  assert.equal(
+    shouldAttemptPendingTourRecap({
+      tourKey: "2026 Summer Tour",
+      finalDate: "2026-09-06",
+      today: "2026-09-07",
+    }),
+    true
+  );
+  assert.equal(
+    shouldAttemptPendingTourRecap({
+      tourKey: "2026 Summer Tour",
+      finalDate: "2026-09-06",
+      today: "2026-09-20",
+    }),
+    true
+  );
+  assert.equal(
+    shouldAttemptPendingTourRecap({
+      tourKey: "2026 Summer Tour",
+      finalDate: "2026-09-06",
+      today: "2026-09-21",
+    }),
+    false
+  );
+  assert.equal(
+    shouldAttemptPendingTourRecap({
+      tourKey: "2026 Sphere",
+      finalDate: "2026-05-02",
+      today: "2026-09-09",
+    }),
+    false
+  );
+  assert.equal(
+    shouldAttemptPendingTourRecap({
+      tourKey: "2026 Sphere",
+      finalDate: "2026-05-02",
+      today: "2026-05-03",
+    }),
+    false
+  );
+});
+
+test("deliverPendingTourRecaps skips archive Sphere and finales outside lookback (#1033)", async () => {
+  const delivered = [];
+  const runtime = {
+    deliver: async (id) => {
+      delivered.push(id);
+      return { ok: true };
+    },
+  };
+  const showDatesByTour = [
+    {
+      tour: "2026 Sphere",
+      shows: [{ date: "2026-04-16" }, { date: "2026-05-02" }],
+    },
+    {
+      tour: "Ancient Tour",
+      shows: [{ date: "2026-01-01" }, { date: "2026-01-15" }],
+    },
+    {
+      tour: "2026 Summer Tour",
+      shows: [{ date: "2026-07-11" }, { date: "2026-09-06" }],
+    },
+  ];
+  const summaries = await deliverPendingTourRecaps({
+    db: emptyPicksDb(),
+    runtime,
+    showDatesByTour,
+    now: new Date("2026-09-09T08:00:00-07:00"),
+  });
+  assert.equal(summaries.length, 1);
+  assert.equal(summaries[0].tourKey, "2026 Summer Tour");
+  assert.deepEqual(delivered, []);
 });
 
 test("shouldSkipTourRankingsOnTourRecapMorning only on the finale date", () => {
