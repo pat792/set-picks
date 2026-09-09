@@ -51,11 +51,13 @@ Also check in-app `commsInbox` rows and FCM for the same cohort (channels share 
 
 ## Fix
 
-1. **14-day lookback** on pending finales (late grades only).
-2. **Hard-skip** tour keys matching `/\bsphere\b/i`.
-3. **Deploy** `scheduledTourRankingsDailyComms` (+ adapter hosts) to prod before the next 8am PT tick.
+1. **14-day lookback** on pending finales (late grades before first send).
+2. **Hard-skip** tour keys matching `/\bsphere\b/i` (+ write `skipped_archive`).
+3. **Once-ever tour state** — `comms_tour_recap_state/{tourId}` (`sent` / `skipped_archive` / `closed`) so **every** tour is hard-skipped after the single end-of-tour send (not Sphere-only).
+4. Seed Summer `sent` + Sphere `skipped_archive` via `node functions/scripts/seedTourRecapState.js --confirm`.
+5. **Deploy** `scheduledTourRankingsDailyComms` (+ adapter hosts) and Firestore rules to prod before the next 8am PT tick.
 
-Already-delivered uids are mostly protected by `tour_recap:2026 Sphere:{uid}` dedup; the code fix stops prefs-off / other historical tours from being retried forever.
+Already-delivered uids are mostly protected by `tour_recap:2026 Sphere:{uid}` dedup; tour state stops prefs-off / other historical tours from being retried forever.
 
 ## Follow-ups (human)
 
