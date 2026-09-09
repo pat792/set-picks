@@ -263,12 +263,33 @@ test("buildTourRecapPayload uses tour metadata, not a Sphere live id", () => {
 
 function emptyPicksDb() {
   return {
-    collection() {
+    collection(name) {
+      if (name === "comms_tour_recap_state") {
+        return {
+          doc() {
+            return {
+              async get() {
+                return { exists: false, data: () => null };
+              },
+              async set() {
+                /* no-op unless a test overrides */
+              },
+            };
+          },
+        };
+      }
       return {
         where() {
           return {
             async get() {
               return { empty: true, docs: [] };
+            },
+          };
+        },
+        doc() {
+          return {
+            async get() {
+              return { exists: false, data: () => ({}) };
             },
           };
         },
@@ -388,6 +409,33 @@ test("shouldAttemptPendingTourRecap enforces lookback and Sphere skip (#1033)", 
 
 test("deliverPendingTourRecaps skips archive Sphere and finales outside lookback (#1033)", async () => {
   const delivered = [];
+  /** @type {Map<string, object>} */
+  const stateDocs = new Map();
+  const db = {
+    ...emptyPicksDb(),
+    collection(name) {
+      if (name === "comms_tour_recap_state") {
+        return {
+          doc(id) {
+            return {
+              async get() {
+                const data = stateDocs.get(id);
+                return { exists: Boolean(data), data: () => data };
+              },
+              async set(payload, opts) {
+                assert.equal(opts?.merge, true);
+                stateDocs.set(id, { ...(stateDocs.get(id) || {}), ...payload });
+              },
+            };
+          },
+        };
+      }
+      return emptyPicksDb().collection(name);
+    },
+  };
+  const admin = {
+    firestore: { FieldValue: { serverTimestamp: () => "TS" } },
+  };
   const runtime = {
     deliver: async (id) => {
       delivered.push(id);
@@ -409,7 +457,8 @@ test("deliverPendingTourRecaps skips archive Sphere and finales outside lookback
     },
   ];
   const summaries = await deliverPendingTourRecaps({
-    db: emptyPicksDb(),
+    db,
+    admin,
     runtime,
     showDatesByTour,
     now: new Date("2026-09-09T08:00:00-07:00"),
@@ -417,6 +466,134 @@ test("deliverPendingTourRecaps skips archive Sphere and finales outside lookback
   assert.equal(summaries.length, 1);
   assert.equal(summaries[0].tourKey, "2026 Summer Tour");
   assert.deepEqual(delivered, []);
+  assert.equal(stateDocs.get("2026 Sphere")?.status, "skipped_archive");
+});
+
+test("deliverPendingTourRecaps hard-skips tours with terminal state (#1033 once-ever)", async () => {
+  const delivered = [];
+  /** @type {Map<string, object>} */
+  const stateDocs = new Map([
+    ["2026 Summer Tour", { status: "sent", finalDate: "2026-09-06" }],
+  ]);
+  const db = {
+    collection(name) {
+      if (name === "comms_tour_recap_state") {
+        return {
+          doc(id) {
+            return {
+              async get() {
+                const data = stateDocs.get(id);
+                return { exists: Boolean(data), data: () => data };
+              },
+              async set() {
+                assert.fail("should not rewrite terminal state");
+              },
+            };
+          },
+        };
+      }
+      return emptyPicksDb().collection(name);
+    },
+  };
+  const summaries = await deliverPendingTourRecaps({
+    db,
+    admin: { firestore: { FieldValue: { serverTimestamp: () => "TS" } } },
+    runtime: {
+      deliver: async (id) => {
+        delivered.push(id);
+        return { ok: true, delivered: 5 };
+      },
+    },
+    showDatesByTour: [
+      {
+        tour: "2026 Summer Tour",
+        shows: [{ date: "2026-07-11" }, { date: "2026-09-06" }],
+      },
+    ],
+    now: new Date("2026-09-09T08:00:00-07:00"),
+  });
+  assert.deepEqual(summaries, []);
+  assert.deepEqual(delivered, []);
+});
+
+test("deliverPendingTourRecaps marks tour sent after successful fan-out", async () => {
+  /** @type {Map<string, object>} */
+  const stateDocs = new Map();
+  const picks = [
+    {
+      id: "p1",
+      data: () => ({
+        userId: "u1",
+        showDate: "2026-09-08",
+        handle: "A",
+        picks: { s1o: "Song" },
+        score: 10,
+        isGraded: true,
+        isWinner: false,
+      }),
+    },
+  ];
+  const db = {
+    collection(name) {
+      if (name === "comms_tour_recap_state") {
+        return {
+          doc(id) {
+            return {
+              async get() {
+                const data = stateDocs.get(id);
+                return { exists: Boolean(data), data: () => data };
+              },
+              async set(payload, opts) {
+                assert.equal(opts?.merge, true);
+                stateDocs.set(id, { ...(stateDocs.get(id) || {}), ...payload });
+              },
+            };
+          },
+        };
+      }
+      if (name === "picks") {
+        return {
+          where() {
+            return {
+              async get() {
+                return { empty: picks.length === 0, docs: picks };
+              },
+            };
+          },
+        };
+      }
+      if (name === "users") {
+        return {
+          doc() {
+            return {
+              async get() {
+                return { exists: true, data: () => ({ handle: "A" }) };
+              },
+            };
+          },
+        };
+      }
+      return emptyPicksDb().collection(name);
+    },
+  };
+  const summaries = await deliverPendingTourRecaps({
+    db,
+    admin: { firestore: { FieldValue: { serverTimestamp: () => "TS" } } },
+    runtime: {
+      deliver: async () => ({ ok: true, delivered: 1, processed: 1, byChannel: { inApp: 1 } }),
+    },
+    showDatesByTour: [
+      {
+        tour: "Fall Warmup",
+        shows: [{ date: "2026-09-01" }, { date: "2026-09-08" }],
+      },
+    ],
+    now: new Date("2026-09-09T08:00:00-07:00"),
+  });
+  assert.equal(summaries.length, 1);
+  assert.equal(summaries[0].summary.delivered, 1);
+  assert.equal(stateDocs.get("Fall Warmup")?.status, "sent");
+  assert.equal(stateDocs.get("Fall Warmup")?.finalDate, "2026-09-08");
 });
 
 test("shouldSkipTourRankingsOnTourRecapMorning only on the finale date", () => {

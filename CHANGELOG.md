@@ -20,6 +20,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.74.2] — 2026-09-09
+
+### Added
+- **Tour recap once-ever state (#1033)** — `comms_tour_recap_state/{tourId}` (`sent` / `skipped_archive` / `closed`) hard-skips each tour after the single end-of-tour fan-out (or archive close). Seed script: `functions/scripts/seedTourRecapState.js`. Server-only Firestore rules.
+
+### Changed
+- **`deliverPendingTourRecaps`** — checks tour state before lookback/Sphere filters; writes `sent` after a successful fan-out and `skipped_archive` for Sphere calendar labels.
+
+---
+
 ## [1.74.1] — 2026-09-09
 
 ### Fixed

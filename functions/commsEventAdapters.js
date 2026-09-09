@@ -42,6 +42,11 @@ const {
   buildTourRecapPodium,
   buildTourRecapPayload,
 } = require("./tourRecapCore");
+const {
+  readTourRecapState,
+  writeTourRecapState,
+  tourRecapFanoutCompleted,
+} = require("./tourRecapState");
 
 const SITE_URL = "https://www.setlistpickem.com";
 
@@ -624,13 +629,17 @@ async function deliverTourRecapIfFinalShow({
 /**
  * Morning-after `tour_recap` for tours whose final show date is already past
  * (America/Los_Angeles, same tz as the 8am cron), within
- * {@link MAX_TOUR_RECAP_LOOKBACK_DAYS}. Dedup `tour_recap:{tourId}:{uid}` makes
- * re-ticks a no-op after the first send. Late grades still send on the first
- * cron after the finale is scored (while inside the lookback). Sphere archive
- * labels are hard-skipped (#1033).
+ * {@link MAX_TOUR_RECAP_LOOKBACK_DAYS}.
+ *
+ * Once-ever gate: after a successful fan-out (or archive skip), writes
+ * `comms_tour_recap_state/{tourId}` and hard-skips that tour forever on later
+ * ticks (#1033). Per-uid `fcm_notification_log` dedup remains for channel
+ * idempotency; the tour doc is the durable process so each tour only gets one
+ * automatic end-of-tour send.
  *
  * @param {{
  *   db: import("firebase-admin").firestore.Firestore,
+ *   admin?: typeof import("firebase-admin"),
  *   runtime: { deliver: Function },
  *   showDatesByTour: unknown,
  *   now?: Date,
@@ -640,6 +649,7 @@ async function deliverTourRecapIfFinalShow({
  */
 async function deliverPendingTourRecaps({
   db,
+  admin,
   runtime,
   showDatesByTour,
   now = new Date(),
@@ -655,6 +665,37 @@ async function deliverPendingTourRecaps({
     if (!tourKey) continue;
     const tourDates = tourDatesForKey(showDatesByTour, tourKey);
     const finalDate = tourDates.length > 0 ? tourDates[tourDates.length - 1] : "";
+
+    // eslint-disable-next-line no-await-in-loop
+    const state = await readTourRecapState({ db, tourKey });
+    if (state.terminal) {
+      logger?.info?.("deliverPendingTourRecaps: skip tour (state terminal)", {
+        tourKey,
+        finalDate,
+        status: state.data?.status,
+      });
+      continue;
+    }
+
+    if (isSphereArchiveTourKey(tourKey)) {
+      if (admin) {
+        // eslint-disable-next-line no-await-in-loop
+        await writeTourRecapState({
+          db,
+          admin,
+          tourKey,
+          status: "skipped_archive",
+          finalDate: finalDate || null,
+          source: "cron",
+        });
+      }
+      logger?.info?.("deliverPendingTourRecaps: skip Sphere archive tour", {
+        tourKey,
+        finalDate,
+      });
+      continue;
+    }
+
     if (
       !shouldAttemptPendingTourRecap({
         tourKey,
@@ -667,12 +708,12 @@ async function deliverPendingTourRecaps({
           tourKey,
           finalDate,
           today,
-          sphereArchive: isSphereArchiveTourKey(tourKey),
           lookbackDays: MAX_TOUR_RECAP_LOOKBACK_DAYS,
         });
       }
       continue;
     }
+
     // eslint-disable-next-line no-await-in-loop
     const summary = await deliverTourRecapIfFinalShow({
       db,
@@ -683,6 +724,27 @@ async function deliverPendingTourRecaps({
       logger,
     });
     if (summary) out.push({ tourKey, finalDate, summary });
+
+    if (admin && tourRecapFanoutCompleted(summary)) {
+      // eslint-disable-next-line no-await-in-loop
+      await writeTourRecapState({
+        db,
+        admin,
+        tourKey,
+        status: "sent",
+        finalDate,
+        source: "cron",
+        extra: {
+          delivered: Number(summary.delivered) || 0,
+          processed: Number(summary.processed) || 0,
+        },
+      });
+      logger?.info?.("deliverPendingTourRecaps: marked tour sent", {
+        tourKey,
+        finalDate,
+        delivered: summary.delivered,
+      });
+    }
   }
   return out;
 }
@@ -943,6 +1005,7 @@ async function runScheduledTourRankingsDaily({
   const runtime = createCommsAdapterRuntime({ db, admin, resendApiKey, logger });
   const tourRecapSummaries = await deliverPendingTourRecaps({
     db,
+    admin,
     runtime,
     showDatesByTour,
     now,
