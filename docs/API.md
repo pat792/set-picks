@@ -96,6 +96,20 @@ Deduplication log shared by all comms channels. Document ID is the `dedupKey` fr
 
 Also hosts the per-user daily email fatigue cap (#453): doc ID `email_cap:{uid}:{day}` (`day` = `YYYY-MM-DD` in `America/Los_Angeles`), `{ kind: "email_daily_cap", count, cap, lastTriggerId, lastEmailSentAt }`. Written transactionally by `commsEmailDailyCap.js`. `account_welcome` is exempt and never creates one of these docs. Not a new collection — same server-only rules entry as the dedup docs above.
 
+### 1.7.1 `comms_tour_recap_state/{tourId}` (**v1.74.2 / #1033**)
+
+Tour-level once-ever gate for production `tour_recap`. Document ID is the calendar tour key (e.g. `2026 Summer Tour`). Written only by Admin SDK (`deliverPendingTourRecaps` or `functions/scripts/seedTourRecapState.js`). Clients have no access.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `tourId` | string | Same as doc id |
+| `status` | string | `sent` \| `skipped_archive` \| `closed` — any of these permanently blocks the 8am pending scanner for this tour |
+| `finalDate` | string? | Tour finale `YYYY-MM-DD` when known |
+| `completedAt` | timestamp | Server time when the terminal status was written |
+| `source` | string | `cron` \| `manual` \| `seed` \| `incident` |
+
+Per-uid channel idempotency remains `fcm_notification_log` (`tour_recap:{tourId}:{uid}`). The tour doc is the durable process so each tour only gets **one** automatic end-of-tour send.
+
 ### 1.8 `show_calendar` (singleton or subcollection — see `docs/SHOW_CALENDAR_TOUR_LABELS.md`)
 
 Tour and show date metadata. Read by `resolveCurrentTour` and `resolveSelectableTours`.
@@ -244,7 +258,7 @@ All callables are in region `us-central1`. Requests must be authenticated Fireba
 
 ### 2.1 `deliverSphere2026TourRecapInbox` (admin-only, replay / QA)
 
-Historical Sphere ’26 inbox + push fan-out. **Not** the production `tour_recap` path (#510). Use War Room dry-run / execute or `functions/scripts/deliverSphere2026TourRecapInbox.js` for backfill and incident replay only. Live end-of-tour recaps fire from the post-rollup adapter (`deliverTourRecapIfFinalShow` → `deliverCommsTrigger`).
+Historical Sphere ’26 inbox + push fan-out. **Not** the production `tour_recap` path (#510). **Not** in War Room (removed 1.74.2 / #1035). CLI `functions/scripts/deliverSphere2026TourRecapInbox.js` remains for archive replay only. Prefer `runCommsTrigger` (§2.2) for catalog canary. Live end-of-tour recaps fire from the morning cron (`deliverPendingTourRecaps` → `deliverCommsTrigger`).
 
 **Request:**
 ```json
@@ -391,7 +405,7 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | Post-rollup hook | `show_recap`, `tour_engagement_reminder` | `rollupScoresForShow` completion. Last night of a tour is still night `show_recap` only. |
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
 | `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
-| `scheduledTourRankingsDailyComms` | `tour_rankings_daily`, `tour_recap` | Daily 8am PT cron. Rankings = morning-after show, **skipped** when that show is a tour finale (`tour_recap` day). `tour_recap` = first tick after that tour’s final show date (dedup `tour_recap:{tourId}:{uid}`). |
+| `scheduledTourRankingsDailyComms` | `tour_rankings_daily`, `tour_recap` | Daily 8am PT cron. Rankings = morning-after show, **skipped** when that show is a tour finale (`tour_recap` day). `tour_recap` = first tick after that tour’s final show date while inside a **14-day lookback** and `comms_tour_recap_state/{tourId}` is not terminal (dedup `tour_recap:{tourId}:{uid}`); successful fan-out writes `status: sent` (once-ever). Sphere calendar labels (`/\bsphere\b/i`) write `skipped_archive` (#1033). |
 | `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (window tracks per-show lock from ticket-time+20 or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
@@ -399,6 +413,8 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 **v1.71.0+ (#510):** `tour_recap` is a P1 `results_recap` batch trigger. Audience is users with ≥1 graded pick on any show in that tour. Channels: in-app, push, abbreviated email. Prefs: `notificationPrefs.results`. Dedup: `tour_recap:{tourId}:{uid}`. Night `show_recap` is unchanged. Sphere ’26 (`deliverSphere2026TourRecapInbox`) is replay/QA only.
 
 **v1.72.1:** `tour_recap` is **not** same-tick as the finale `show_recap`. Production fan-out is the 8am PT `scheduledTourRankingsDailyComms` tick after the tour’s last show date (`deliverPendingTourRecaps`). That tick skips `tour_rankings_daily` when yesterday was the finale. Manual `runCommsTrigger` / canary still work.
+
+**v1.74.1 / v1.74.2 (#1033):** `deliverPendingTourRecaps` only attempts finales within **14 days** (late-grade window before first send), **hard-skips** Sphere archive tour keys, and persists **`comms_tour_recap_state/{tourId}`** (`sent` / `skipped_archive` / `closed`) so each tour is once-ever after the end-of-tour send. Seed existing tours with `functions/scripts/seedTourRecapState.js`.
 
 **v1.71.1:** Email CTA **View Recap** → `/dashboard/profile/notifications`. In-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour`.
 

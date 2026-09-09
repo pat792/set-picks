@@ -16,8 +16,6 @@ import AdminOfficialSetlistBuilder from './AdminOfficialSetlistBuilder';
 import AdminFinalizeAndSave from './AdminFinalizeAndSave';
 import AdminWarRoomShowDate from './AdminWarRoomShowDate';
 import AdminClaimBootstrap from './AdminClaimBootstrap';
-import { AdminTourRecapPreview } from '../../tour-recap';
-import AdminSphereTourRecapDelivery from './AdminSphereTourRecapDelivery';
 import ConfirmationModal from '../../../shared/ui/ConfirmationModal/ConfirmationModal';
 
 function normalizeDashboardShowDate(value) {
@@ -34,7 +32,6 @@ export default function AdminForm({ user, selectedDate }) {
   const [liveAutomationOpen, setLiveAutomationOpen] = useState(true);
   const [picksLockOpen, setPicksLockOpen] = useState(true);
   const [songCatalogActionsOpen, setSongCatalogActionsOpen] = useState(false);
-  const [tourRecapPreviewOpen, setTourRecapPreviewOpen] = useState(false);
   const [revertModalOpen, setRevertModalOpen] = useState(false);
   const [isReverting, setIsReverting] = useState(false);
   const [revertError, setRevertError] = useState('');
@@ -195,21 +192,6 @@ export default function AdminForm({ user, selectedDate }) {
                 onLockNow={handleLockNow}
                 disabled={isSaving}
               />
-            </AdminActionToggle>
-            <AdminActionToggle
-              id="admin-tour-recap-preview"
-              title="Tour recap copy"
-              description="Preview the generic tour_recap template (Sample Tour fixtures). Sphere ’26 delivery below is replay/QA only (#510)."
-              open={tourRecapPreviewOpen}
-              onOpenChange={setTourRecapPreviewOpen}
-            >
-              <AdminTourRecapPreview />
-              <div className="mt-6 border-t border-border-muted pt-6">
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-content-secondary">
-                  Deliver recap to user inboxes
-                </p>
-                <AdminSphereTourRecapDelivery />
-              </div>
             </AdminActionToggle>
           </div>
         </div>
