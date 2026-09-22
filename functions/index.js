@@ -68,6 +68,7 @@ const {
   verifyResendWebhookPayload,
   handleResendWebhookEvent,
 } = require("./commsResendWebhook");
+const { handleResendInboundEvent } = require("./commsResendInboundWebhook");
 const {
   processOneClickUnsubscribe,
   verifyOneClickUnsubscribeToken,
@@ -93,6 +94,8 @@ const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 const resendApiKey = defineSecret("RESEND_API_KEY");
 // Resend webhook signing secret (Svix) for bounce/complaint suppression (#442).
 const resendWebhookSecret = defineSecret("RESEND_WEBHOOK_SECRET");
+// Separate Svix secret for the inbound receiving webhook (one secret per Resend endpoint).
+const resendInboundWebhookSecret = defineSecret("RESEND_INBOUND_WEBHOOK_SECRET");
 // GA4 Measurement Protocol (#461). Measurement id is public (same as VITE_GA_MEASUREMENT_ID);
 // API secret is created in GA4 Admin → Data streams → Measurement Protocol API secrets.
 // Both surface as process.env for `commsGa4Measurement.js`. Unset → no-op send.
@@ -681,7 +684,8 @@ exports.runCommsTrigger = onCall(
  * Resend deliverability + engagement webhook (#442 / #512 Slice A).
  * Configure in Resend dashboard → Webhooks → endpoint URL for this function.
  * Events: `email.bounced`, `email.complained`, `email.suppressed`,
- * `email.opened`, `email.clicked`. See docs/comms-triggers/RESEND_WEBHOOK.md.
+ * `email.opened`, `email.clicked`. Do **not** subscribe `email.received` here.
+ * See docs/comms-triggers/RESEND_WEBHOOK.md.
  */
 exports.commsResendWebhook = onRequest(
   {
@@ -719,6 +723,67 @@ exports.commsResendWebhook = onRequest(
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       logger.warn("commsResendWebhook rejected", { msg });
+      res.status(400).send("Invalid webhook");
+    }
+  }
+);
+
+/**
+ * Resend inbound receiving webhook. Allowlist `updates@` / `unsubscribe@`
+ * then `emails.receiving.forward` to `support@road2media.com`. Other local-parts
+ * return 200 without forwarding so Resend does not retry catch-all spam.
+ * Subscribe **only** `email.received` on this URL.
+ * See docs/comms-triggers/INBOUND_FORWARDING.md.
+ */
+exports.commsResendInboundWebhook = onRequest(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendApiKey, resendInboundWebhookSecret],
+    invoker: "public",
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+    const rawBody =
+      typeof req.rawBody === "string"
+        ? req.rawBody
+        : req.rawBody instanceof Buffer
+          ? req.rawBody.toString("utf8")
+          : JSON.stringify(req.body || {});
+    try {
+      const event = verifyResendWebhookPayload(
+        rawBody,
+        req.headers,
+        process.env.RESEND_INBOUND_WEBHOOK_SECRET
+      );
+      const eventId = req.headers["svix-id"] ? String(req.headers["svix-id"]) : null;
+      const resend = buildResendClient(process.env.RESEND_API_KEY, logger);
+      const result = await handleResendInboundEvent({
+        event,
+        eventId,
+        resend,
+        logger,
+      });
+      logger.info("commsResendInboundWebhook processed", {
+        type: event?.type,
+        ...result,
+      });
+      res.status(200).json({ ok: true });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const code = error && typeof error === "object" ? error.code : null;
+      const retryable =
+        code === "inbound_forward_failed" ||
+        code === "missing_resend_client" ||
+        code === "resend_receiving_forward_unavailable";
+      if (retryable) {
+        logger.error("commsResendInboundWebhook forward failed", { msg, code });
+        res.status(500).send("Inbound forward failed");
+        return;
+      }
+      logger.warn("commsResendInboundWebhook rejected", { msg });
       res.status(400).send("Invalid webhook");
     }
   }

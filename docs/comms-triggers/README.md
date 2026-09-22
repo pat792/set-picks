@@ -20,6 +20,7 @@ This directory is the **canonical home** for triggered, templated communications
 CLI: `npm run comms:optimize-kickoff` · `npm run comms:show-recap-qa` (#779) · `npm run comms:picks-lock-conversion` (#698)
 | [EMAIL_INBOX_BADGE.md](./EMAIL_INBOX_BADGE.md) | Inbox sender badge (BIMI/DMARC) vs in-body email logo (#498) |
 | [RESEND_WEBHOOK.md](./RESEND_WEBHOOK.md) | Resend dashboard events + open/click persistence (#512 Slice A) |
+| [INBOUND_FORWARDING.md](./INBOUND_FORWARDING.md) | Inbound `email.received` allowlist + Workspace forward (`commsResendInboundWebhook`) |
 | [COMMERCIAL_PHASE3.md](./COMMERCIAL_PHASE3.md) | Sponsor / affiliate / offer gates (Phase 3) |
 
 ## Related repo paths

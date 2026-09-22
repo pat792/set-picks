@@ -42,11 +42,15 @@ function validateEntry(entry) {
     block.includes("resendApiKey") || block.includes("commsDeliverySecrets");
   const hasWebhook =
     block.includes("resendWebhookSecret") || block.includes("commsDeliverySecrets");
+  const hasInbound = block.includes("resendInboundWebhookSecret");
   if (exp === "resend" && !hasResend) {
     return `${entry.export}: expected secrets: [resendApiKey, …] or commsDeliverySecrets in index.js`;
   }
   if (exp === "webhook" && !hasWebhook) {
     return `${entry.export}: expected resendWebhookSecret or commsDeliverySecrets in index.js`;
+  }
+  if (exp === "inbound" && (!hasResend || !hasInbound)) {
+    return `${entry.export}: expected secrets: [resendApiKey, resendInboundWebhookSecret] in index.js`;
   }
   if (exp === "none" && hasResend) {
     return `${entry.export}: secretExpectation is 'none' but index.js binds resendApiKey (update manifest or export)`;
