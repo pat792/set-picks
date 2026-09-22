@@ -13,8 +13,12 @@ const { normalizeEmail } = require("./commsEmailSuppression");
 const INBOUND_DOMAIN = "setlistpickem.com";
 const INBOUND_FORWARD_TO = "support@road2media.com";
 const INBOUND_ENVELOPE_FROM = "updates@setlistpickem.com";
-/** `help@` stays off until something public publishes that address. */
-const INBOUND_ALLOWLIST_LOCAL_PARTS = Object.freeze(["updates", "unsubscribe"]);
+/** `help@` stays off — public contact is `support@`. */
+const INBOUND_ALLOWLIST_LOCAL_PARTS = Object.freeze([
+  "updates",
+  "unsubscribe",
+  "support",
+]);
 
 /**
  * @param {unknown} entry

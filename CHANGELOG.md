@@ -11,7 +11,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.75.0] — 2026-09-22
 
 ### Added
-- **Inbound Resend receiving webhook (#1037)** — new `commsResendInboundWebhook` allowlists `updates@` / `unsubscribe@setlistpickem.com` and `emails.receiving.forward`s to `support@road2media.com` (Privacy/Terms mailbox). Other local-parts return HTTP 200 without a forward. Separate Svix secret `RESEND_INBOUND_WEBHOOK_SECRET`. `help@` is not forwarded until something public uses it. Ops: [`docs/comms-triggers/INBOUND_FORWARDING.md`](docs/comms-triggers/INBOUND_FORWARDING.md).
+- **Inbound Resend receiving webhook (#1037)** — new `commsResendInboundWebhook` allowlists `updates@` / `unsubscribe@` / `support@setlistpickem.com` and `emails.receiving.forward`s to `support@road2media.com`. Other local-parts return HTTP 200 without a forward. Separate Svix secret `RESEND_INBOUND_WEBHOOK_SECRET`. Public contact is `support@setlistpickem.com` (Preferences, Privacy, Terms, marketing legal footer). `help@` is not forwarded. Ops: [`docs/comms-triggers/INBOUND_FORWARDING.md`](docs/comms-triggers/INBOUND_FORWARDING.md).
 
 ### Changed
 - **`resend` SDK in `functions/`** — `^4.8.0` → `^6.28.1` so `emails.receiving.forward` exists (passthrough + idempotency key). Outbound `emails.send` path unchanged.

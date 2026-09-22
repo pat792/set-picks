@@ -37,9 +37,10 @@ test("extractInboundRecipients reads to + cc and display names", () => {
   );
 });
 
-test("allowlist is updates + unsubscribe only", () => {
+test("allowlist is updates + unsubscribe + support", () => {
   assert.equal(isAllowlistedInbound("updates@setlistpickem.com"), true);
   assert.equal(isAllowlistedInbound("unsubscribe@setlistpickem.com"), true);
+  assert.equal(isAllowlistedInbound("support@setlistpickem.com"), true);
   assert.equal(isAllowlistedInbound("help@setlistpickem.com"), false);
   assert.equal(isAllowlistedInbound("spam@setlistpickem.com"), false);
   assert.equal(isAllowlistedInbound("updates@example.com"), false);
@@ -87,7 +88,7 @@ test("allowlisted inbound forwards with passthrough envelope and idempotency key
   assert.equal(logs[0].msg, "comms_inbound_forwarded");
 });
 
-test("unsubscribe@ is allowlisted and help@ is not", async () => {
+test("unsubscribe@ and support@ are allowlisted; help@ is not", async () => {
   const captured = [];
   const unsub = await handleResendInboundEvent({
     event: {
@@ -98,6 +99,15 @@ test("unsubscribe@ is allowlisted and help@ is not", async () => {
   });
   assert.equal(unsub.forwarded, true);
 
+  const support = await handleResendInboundEvent({
+    event: {
+      type: "email.received",
+      data: { email_id: "in_support", to: ["support@setlistpickem.com"] },
+    },
+    resend: fakeResend(captured),
+  });
+  assert.equal(support.forwarded, true);
+
   const help = await handleResendInboundEvent({
     event: {
       type: "email.received",
@@ -107,7 +117,7 @@ test("unsubscribe@ is allowlisted and help@ is not", async () => {
   });
   assert.equal(help.forwarded, false);
   assert.equal(help.reason, "not_allowlisted");
-  assert.equal(captured.length, 1);
+  assert.equal(captured.length, 2);
 });
 
 test("random local-part is dropped with HTTP-safe 200 payload (no forward)", async () => {

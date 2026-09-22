@@ -3,7 +3,7 @@
 **Status:** live — `updates@` canary forwarded 2026-09-22 23:46Z (`comms_inbound_forwarded`)
 **Date:** 2026-09-22  
 **Version:** v1.75.0  
-**Related:** #1037 (this work), #442 (outbound Resend), #498 (sender badge — not inbound), #770 / `docs/DASHBOARD_IA.md` (Contact us hidden until an inbound address exists)
+**Related:** #1037 (this work), #442 (outbound Resend), #498 (sender badge — not inbound), #770 / `docs/DASHBOARD_IA.md` (Contact us → `support@setlistpickem.com`)
 
 Apex receiving is a catch-all: mail to any `@setlistpickem.com` local-part arrives at Resend. We forward an allowlist only.
 
@@ -13,11 +13,12 @@ Apex receiving is a catch-all: mail to any `@setlistpickem.com` local-part arriv
 |---------|-------------|-------|
 | `updates@setlistpickem.com` | `support@road2media.com` | Reply target (From on every Resend send) |
 | `unsubscribe@setlistpickem.com` | same mailbox | mailto clients that ignore one-click. Label it in Gmail so it does not sit in the support queue |
-| `help@setlistpickem.com` | **not forwarded** | Only after something public uses that address |
+| `support@setlistpickem.com` | same mailbox | Public contact — Preferences, Privacy, Terms, marketing footer |
+| `help@setlistpickem.com` | **not forwarded** | Do not publish. Public contact is `support@` |
 
 Everything else returns HTTP 200 with no forward so Resend does not retry spam to random local-parts.
 
-Destination matches Privacy and Terms: `support@road2media.com`. One licensed road2 user. No new seat.
+Public address is `support@setlistpickem.com`. Workspace destination stays `support@road2media.com` (Privacy/Terms used to publish that mailbox). One licensed road2 user. No new seat.
 
 ## Code
 
@@ -54,7 +55,7 @@ Function URL `https://us-central1-set-picks.cloudfunctions.net/commsResendInboun
 
 ## After it works
 
-Only then consider showing Contact us on Preferences (`docs/DASHBOARD_IA.md` currently hides it because there is no inbound address) and adding `help@` to the allowlist.
+Contact us is live on Preferences, Privacy, Terms, and the marketing legal footer. Do not add `help@` unless we publish that local-part. Owned-social contact button (when used) should be `support@setlistpickem.com`, not `social@` or `updates@`.
 
 Firebase Auth stays on `noreply@set-picks.firebaseapp.com`. After forwarding works, set that template’s Reply-to (Console → Authentication → Templates) to `updates@setlistpickem.com`. See `docs/FIREBASE_AUTH_EMAIL_TEMPLATES.md`.
 

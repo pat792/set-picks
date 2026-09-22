@@ -729,8 +729,8 @@ exports.commsResendWebhook = onRequest(
 );
 
 /**
- * Resend inbound receiving webhook. Allowlist `updates@` / `unsubscribe@`
- * then `emails.receiving.forward` to `support@road2media.com`. Other local-parts
+ * Resend inbound receiving webhook. Allowlist `updates@` / `unsubscribe@` /
+ * `support@` then `emails.receiving.forward` to `support@road2media.com`. Other local-parts
  * return 200 without forwarding so Resend does not retry catch-all spam.
  * Subscribe **only** `email.received` on this URL.
  * See docs/comms-triggers/INBOUND_FORWARDING.md.

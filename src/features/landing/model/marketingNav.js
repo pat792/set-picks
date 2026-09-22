@@ -1,3 +1,8 @@
+import {
+  PUBLIC_SUPPORT_LABEL,
+  PUBLIC_SUPPORT_MAILTO,
+} from '../../../shared/config/supportContact';
+
 /**
  * Public marketing routes for header/footer internal linking (#663).
  * Keep in sync with `App.jsx` public routes + `seoRoutes` prerender list.
@@ -19,4 +24,5 @@ export const MARKETING_PRIMARY_NAV = [
 export const MARKETING_LEGAL_NAV = [
   { to: '/privacy', label: 'Privacy Policy', hard: true },
   { to: '/terms', label: 'Terms of Service', hard: true },
+  { to: PUBLIC_SUPPORT_MAILTO, label: PUBLIC_SUPPORT_LABEL, hard: true },
 ];
