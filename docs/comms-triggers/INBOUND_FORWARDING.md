@@ -1,6 +1,6 @@
 # Inbound mail: setlistpickem.com → road2media Workspace
 
-**Status:** implemented (code) — webhook + secret live; waiting on function deploy  
+**Status:** live — `updates@` canary forwarded 2026-09-22 23:46Z (`comms_inbound_forwarded`)
 **Date:** 2026-09-22  
 **Version:** v1.75.0  
 **Related:** #1037 (this work), #442 (outbound Resend), #498 (sender badge — not inbound), #770 / `docs/DASHBOARD_IA.md` (Contact us hidden until an inbound address exists)
@@ -42,15 +42,13 @@ await resend.emails.receiving.forward({
 
 Do **not** subscribe `email.received` on `commsResendWebhook`. That handler returns `ignored_event_type` and never forwards.
 
-## Remaining ops (before the first real reply lands)
+## Remaining ops
 
-Resend webhook **`9871d42f-55dd-4419-973e-02ced0c2b02e`** is enabled with **only** `email.received`, pointed at `https://us-central1-set-picks.cloudfunctions.net/commsResendInboundWebhook`. `RESEND_INBOUND_WEBHOOK_SECRET` is version 1 in Secret Manager. The engagement webhook is unchanged.
+Function URL `https://us-central1-set-picks.cloudfunctions.net/commsResendInboundWebhook` is live (revision `commsresendinboundwebhook-00001-vud`). Resend webhook **`9871d42f-55dd-4419-973e-02ced0c2b02e`** is `email.received` only. `RESEND_INBOUND_WEBHOOK_SECRET` v1 is bound.
 
-1. Deploy `commsResendInboundWebhook` so that URL stops 404ing (`npm run comms:deploy -- --confirm --group infra` after merge, or `firebase deploy --only functions:commsResendInboundWebhook`). The secret already exists; the first revision will bind it.
-2. Gmail filter: `to:unsubscribe@setlistpickem.com` → label, skip inbox (or archive).
-3. Send from an outside account to `updates@setlistpickem.com`. Confirm it appears in the road2 inbox and that Reply addresses the outside sender.
-4. Reply to a real triggered mail (or one-uid canary). Same check.
-5. Mail a random local-part (`not-a-mailbox@setlistpickem.com`). Confirm it does **not** land in Workspace.
+1. Gmail filter: `to:unsubscribe@setlistpickem.com` → label, skip inbox (or archive).
+2. Optional: reply to a real triggered mail and confirm Workspace Reply reaches the original sender.
+3. Optional: mail a random local-part and confirm it does **not** land.
 
 `send.setlistpickem.com` MX (bounce return-path) stays untouched.
 
@@ -77,8 +75,8 @@ Replying from Gmail still sends as `support@road2media.com` unless Send-as `upda
 - [x] `emails.receiving.forward` exists on the installed `resend` SDK (`^6.28.1`)
 - [x] Unit: allowlist forward, drop random local-part, ignore `help@`, engagement webhook still ignores `email.received`
 - [x] Resend webhook + inbound signing secret
-- [ ] Deploy `commsResendInboundWebhook`
-- [ ] Mail to `updates@` arrives at the Workspace mailbox
+- [x] Deploy `commsResendInboundWebhook`
+- [x] Mail to `updates@` arrives at the Workspace mailbox (2026-09-22 23:46Z, inbound `24f03e75-…` → forward `01a0cb83-…`)
 - [ ] Mail to a random local-part does not
 - [ ] Mailto to `unsubscribe@` arrives labeled, and one-click unsubscribe still opts out without that mailbox
 - [ ] Reply from Workspace reaches the original sender
