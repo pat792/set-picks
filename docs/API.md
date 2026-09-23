@@ -425,7 +425,7 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 | Export | Method | Auth | Description |
 |--------|--------|------|-------------|
 | `commsResendWebhook` | POST | Svix signature (`RESEND_WEBHOOK_SECRET`) | Bounce/complaint/suppression → `email_suppression`. **v1.74.0 / #512 Slice A:** `email.opened` / `email.clicked` → `comms_email_engagement`. Dashboard events: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md). Do **not** subscribe `email.received` here. |
-| `commsResendInboundWebhook` | POST | Svix signature (`RESEND_INBOUND_WEBHOOK_SECRET`) | **v1.75.0:** `email.received` allowlist (`updates@`, `unsubscribe@`, `support@`) → `resend.emails.receiving.forward` to `support@road2media.com`. Other local-parts 200 no-op. Public contact is `support@setlistpickem.com`. [`INBOUND_FORWARDING.md`](./comms-triggers/INBOUND_FORWARDING.md). |
+| `commsResendInboundWebhook` | POST | Svix signature (`RESEND_INBOUND_WEBHOOK_SECRET`) | **v1.75.0:** `email.received` allowlist (`updates@`, `unsubscribe@`, `support@`) → wrap + `emails.send` to `support@road2media.com` (original From in display name + body + Reply-To). `unsubscribe@` only: empty/one-word mailto auto-suppresses (`mailto_unsubscribe`) and is not forwarded; prose still opts out and forwards. Other local-parts 200 no-op. Public contact is `support@setlistpickem.com`. [`INBOUND_FORWARDING.md`](./comms-triggers/INBOUND_FORWARDING.md). |
 | `commsEmailUnsubscribe` | GET/POST | HMAC query params (`uid`, `email`, `sig`) | RFC 8058 one-click unsubscribe; opts user out of lifecycle email |
 
 Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` HTTPS endpoint and enable bounce, complaint, suppressed, opened, and clicked events. Signing secret: `firebase functions:secrets:set RESEND_WEBHOOK_SECRET`. Checklist: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md).
@@ -447,7 +447,7 @@ Authenticated callables backing the Preferences email section (`/dashboard/profi
 |--------|------|-------------|
 | `getCommsEmailStatus` | Signed-in user | Returns `{ hasEmail, suppressed, reason, canResubscribe, message, lifecycleEnabled }` for the caller's account email |
 | `unsubscribeCommsEmail` | Signed-in user | Writes `email_suppression` with `reason: user_preferences` and opts out `notificationPrefs.lifecycle` |
-| `resubscribeCommsEmail` | Signed-in user | Clears self-serve suppressions (`one_click_unsubscribe`, `user_preferences`) and re-enables `notificationPrefs.lifecycle`; hard bounces and spam complaints are rejected |
+| `resubscribeCommsEmail` | Signed-in user | Clears self-serve suppressions (`one_click_unsubscribe`, `mailto_unsubscribe`, `user_preferences`) and re-enables `notificationPrefs.lifecycle`; hard bounces and spam complaints are rejected |
 
 ---
 

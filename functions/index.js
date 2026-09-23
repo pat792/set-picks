@@ -730,7 +730,8 @@ exports.commsResendWebhook = onRequest(
 
 /**
  * Resend inbound receiving webhook. Allowlist `updates@` / `unsubscribe@` /
- * `support@` then `emails.receiving.forward` to `support@road2media.com`. Other local-parts
+ * `support@` then wrap + `emails.send` to `support@road2media.com` (original
+ * From + Reply-To). Other local-parts
  * return 200 without forwarding so Resend does not retry catch-all spam.
  * Subscribe **only** `email.received` on this URL.
  * See docs/comms-triggers/INBOUND_FORWARDING.md.
@@ -764,6 +765,8 @@ exports.commsResendInboundWebhook = onRequest(
         event,
         eventId,
         resend,
+        db,
+        admin,
         logger,
       });
       logger.info("commsResendInboundWebhook processed", {
@@ -777,7 +780,8 @@ exports.commsResendInboundWebhook = onRequest(
       const retryable =
         code === "inbound_forward_failed" ||
         code === "missing_resend_client" ||
-        code === "resend_receiving_forward_unavailable";
+        code === "resend_receiving_get_unavailable" ||
+        code === "resend_send_unavailable";
       if (retryable) {
         logger.error("commsResendInboundWebhook forward failed", { msg, code });
         res.status(500).send("Inbound forward failed");
