@@ -61,6 +61,6 @@ Already-delivered uids are mostly protected by `tour_recap:2026 Sphere:{uid}` de
 
 ## Follow-ups (human)
 
-- [ ] Optional clarification / apology email (PM call — do not auto-send)
+- [x] Clarification email sent (2026-09-10 09:00 ET, 21 recipients). Copy: `content/comms/lifecycle/1033-sphere-recap-correction.md`.
 - [ ] Confirm no further Sphere subjects appear in Resend after deploy
 - [ ] Spot-check Messages inbox for mistaken `tour-recap` Sphere payloads vs archive `sphere-2026-inaugural`
