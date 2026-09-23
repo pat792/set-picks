@@ -14,6 +14,10 @@ import { fileURLToPath } from 'node:url';
 
 import { SEO_CONFIG } from '../src/shared/config/seo.js';
 import {
+  PUBLIC_SUPPORT_LABEL,
+  PUBLIC_SUPPORT_MAILTO,
+} from '../src/shared/config/supportContact.js';
+import {
   SEO_FAVICON_VERSION,
   getPrerenderRoute,
 } from '../src/shared/config/seoRoutes.js';
@@ -270,6 +274,7 @@ export function buildLegalBootShellMarkup(opts) {
     `<p class="lbs-legal-footer-links">`,
     `<a href="/privacy">Privacy Policy</a>`,
     `<a href="/terms">Terms of Service</a>`,
+    `<a href="${PUBLIC_SUPPORT_MAILTO}">${PUBLIC_SUPPORT_LABEL}</a>`,
     `</p>`,
     `</footer>`,
     `</div>`,

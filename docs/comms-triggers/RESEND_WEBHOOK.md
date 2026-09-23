@@ -30,7 +30,32 @@ In Resend → Webhooks → the `commsResendWebhook` endpoint, enable **all** of:
 | `email.opened` | first-open stamp | `comms_email_engagement/{email_id}` `openedAt` |
 | `email.clicked` | first-click stamp (also sets `openedAt` if missing) | `comms_email_engagement/{email_id}` `clickedAt` |
 
-Account/domain **open and click tracking** must stay on in Resend, or `email.opened` / `email.clicked` never fire. Temporary bounces are ignored (no suppress).
+Do **not** enable `email.received` on this webhook. Inbound mail is `commsResendInboundWebhook` ([INBOUND_FORWARDING.md](./INBOUND_FORWARDING.md)).
+
+These are **two different Resend switches**. The webhook can subscribe to `email.clicked` and still receive nothing.
+
+| Setting | Where | Required | What it does |
+|---------|--------|----------|--------------|
+| Webhook event `email.clicked` | Resend → Webhooks → `commsResendWebhook` | On | If a click happens, POST it here |
+| Domain **Click tracking** | Resend → Domains → `setlistpickem.com` | **On** | Rewrite every body `<a href>` to `links.setlistpickem.com` so a tap creates `email.clicked` |
+| Domain **Open tracking** | same domain page | On | Pixel → `email.opened` |
+
+**Keep domain Click tracking on.** It sits *in front of* first-party `click.setlistpickem.com`; it does not replace it.
+
+```text
+Inbox tap
+  → links.setlistpickem.com     (Resend wrap → email.clicked → comms_email_engagement.clickedAt)
+  → click.setlistpickem.com     (ours → 302 + UTMs)
+  → www.setlistpickem.com/...   (GA4 land)
+```
+
+Resend 302s to the original href with `tid` / `tpl` / `cta` intact. Treat `clickedAt` (tap) and GA4 UTM land (arrival) as different KPIs.
+
+**History:** 2026-07-07 Click tracking was turned **off** so the inbox showed `click.setlistpickem.com` directly (“they conflict — you only want ours”). That left no tap signal when `click.` NXDOMAIN’d after the Cloudflare NS import (Fall Tour T-10, 2026-09-22). **Re-enabled 2026-09-22.** Do not turn it off again to “avoid a double hop.”
+
+Wrapping applies only to **new** sends. Mail already in inboxes keeps its original hrefs.
+
+Temporary bounces are ignored (no suppress).
 
 Re-deliveries of the same event are no-ops (first `openedAt` / `clickedAt` wins). Webhooks are at-least-once and can arrive out of order.
 

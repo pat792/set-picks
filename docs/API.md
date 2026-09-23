@@ -424,10 +424,13 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 
 | Export | Method | Auth | Description |
 |--------|--------|------|-------------|
-| `commsResendWebhook` | POST | Svix signature (`RESEND_WEBHOOK_SECRET`) | Bounce/complaint/suppression → `email_suppression`. **v1.74.0 / #512 Slice A:** `email.opened` / `email.clicked` → `comms_email_engagement`. Dashboard events: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md). |
+| `commsResendWebhook` | POST | Svix signature (`RESEND_WEBHOOK_SECRET`) | Bounce/complaint/suppression → `email_suppression`. **v1.74.0 / #512 Slice A:** `email.opened` / `email.clicked` → `comms_email_engagement`. Dashboard events: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md). Do **not** subscribe `email.received` here. |
+| `commsResendInboundWebhook` | POST | Svix signature (`RESEND_INBOUND_WEBHOOK_SECRET`) | **v1.75.0:** `email.received` allowlist (`updates@`, `unsubscribe@`, `support@`) → wrap + `emails.send` to `support@road2media.com` (original From in display name + body + Reply-To). `unsubscribe@` only: empty/one-word mailto auto-suppresses (`mailto_unsubscribe`) and is not forwarded; prose still opts out and forwards. Other local-parts 200 no-op. Public contact is `support@setlistpickem.com`. [`INBOUND_FORWARDING.md`](./comms-triggers/INBOUND_FORWARDING.md). |
 | `commsEmailUnsubscribe` | GET/POST | HMAC query params (`uid`, `email`, `sig`) | RFC 8058 one-click unsubscribe; opts user out of lifecycle email |
 
 Configure the Resend dashboard webhook URL to the deployed `commsResendWebhook` HTTPS endpoint and enable bounce, complaint, suppressed, opened, and clicked events. Signing secret: `firebase functions:secrets:set RESEND_WEBHOOK_SECRET`. Checklist: [`docs/comms-triggers/RESEND_WEBHOOK.md`](./comms-triggers/RESEND_WEBHOOK.md).
+
+**v1.75.0 inbound:** create a **second** Resend webhook pointed at `commsResendInboundWebhook` with **only** `email.received`. Each Resend endpoint has its own `whsec_`. Set `firebase functions:secrets:set RESEND_INBOUND_WEBHOOK_SECRET`. Do not add `email.received` to the engagement webhook — that path ignores it.
 
 **`commsEmailUnsubscribe` method gating (v1.9.0+, #456):** the two HTTP methods behave differently by design —
 - **POST** with a valid signature (the real RFC 8058 one-click action; mail clients issue this automatically via `List-Unsubscribe-Post`) suppresses immediately and returns a success page.
@@ -444,7 +447,7 @@ Authenticated callables backing the Preferences email section (`/dashboard/profi
 |--------|------|-------------|
 | `getCommsEmailStatus` | Signed-in user | Returns `{ hasEmail, suppressed, reason, canResubscribe, message, lifecycleEnabled }` for the caller's account email |
 | `unsubscribeCommsEmail` | Signed-in user | Writes `email_suppression` with `reason: user_preferences` and opts out `notificationPrefs.lifecycle` |
-| `resubscribeCommsEmail` | Signed-in user | Clears self-serve suppressions (`one_click_unsubscribe`, `user_preferences`) and re-enables `notificationPrefs.lifecycle`; hard bounces and spam complaints are rejected |
+| `resubscribeCommsEmail` | Signed-in user | Clears self-serve suppressions (`one_click_unsubscribe`, `mailto_unsubscribe`, `user_preferences`) and re-enables `notificationPrefs.lifecycle`; hard bounces and spam complaints are rejected |
 
 ---
 
@@ -502,7 +505,7 @@ Service comms email bodies expose **one** tracked CTA link (the teal button). Th
 |-------------|---------|-------------|
 | `https://click.setlistpickem.com/{path}` | Vercel `api/email-click/[[...path]].js` (host rewrite in `vercel.json`) | 302 redirect to `https://www.setlistpickem.com/{path}` with `utm_source=email`, `utm_medium=comms`, and trigger metadata (`utm_campaign` ← `tid`, `utm_content` ← `tpl`, `utm_term` ← `cta`) |
 
-URL builder: `comms/emailLinks.cjs` (`buildEmailTrackedCtaUrl`). Applied at send time in `commsEmailWorker.js`. Ops: add `click.setlistpickem.com` as a Vercel project domain (same deployment as www).
+URL builder: `comms/emailLinks.cjs` (`buildEmailTrackedCtaUrl`). Applied at send time in `commsEmailWorker.js`. Resend domain **Click tracking** stays **on** (`links.setlistpickem.com` wrap → our host → www). That wrap does not strip UTM/trigger query params. Webhook `email.clicked` is not sufficient without the domain toggle — see [`docs/comms-triggers/RESEND_WEBHOOK.md`](comms-triggers/RESEND_WEBHOOK.md). Cloudflare DNS: CNAME `click` → same Vercel target as `www`.
 
 ### 3.2 HTTP security headers (Vercel)
 
@@ -566,6 +569,7 @@ Set in Firebase Functions config or Cloud Secret Manager. Adding one is a MINOR 
 |----------|----------|-------------|
 | `RESEND_API_KEY` | For email channel | Resend API key (Secret Manager); bound to `runCommsTrigger`, `deliverMarketingSummerTour2026Launch`, `deliverMarketingSummer2026AlmostEnd`, `scheduledMarketingSummer2026AlmostEnd`, and comms adapters |
 | `RESEND_WEBHOOK_SECRET` | For email deliverability | Resend/Svix webhook signing secret (`whsec_…`); also signs one-click unsubscribe URLs |
+| `RESEND_INBOUND_WEBHOOK_SECRET` | For inbound receiving | **v1.75.0:** Svix secret for `commsResendInboundWebhook` only (`whsec_…` from the `email.received` Resend webhook) |
 | `GA4_MEASUREMENT_ID` | For server `comms_delivered` MP | Same `G-…` id as `VITE_GA_MEASUREMENT_ID`; Functions `defineString` / `.env.set-picks` |
 | `GA4_MP_API_SECRET` | For server `comms_delivered` MP | GA4 Measurement Protocol API secret (Secret Manager); bound on all `deliverCommsTrigger` hosts; unset → no-op |
 | `COMMS_EVENT_ADAPTERS_ENABLED` | No | Must be `"true"` for v1 event adapters to fire; default off |

@@ -123,6 +123,7 @@ EVENT (Firestore onCreate/onUpdate · scheduler cron · post-grade hook · live-
 - **Domain:** `from` uses the verified setlistpickem.com sender (SPF/DKIM/DMARC); fail closed if unverified.
 - **Compliance:** lifecycle/marketing mail sets `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) wired to `notificationPrefs`; `emailClass: transactional` triggers (e.g. `picks_lock_reminder`) omit marketing unsubscribe headers but still respect `email_suppression`.
 - **Reputation:** Resend webhook handler — `email.bounced` (Permanent) → hard-suppress; `email.complained` → unsubscribe + flag; `email.opened` / `email.clicked` → `comms_email_engagement` (#512 Slice A). Idempotent (webhooks are at-least-once, possibly out of order). Dashboard event checklist: [RESEND_WEBHOOK.md](./RESEND_WEBHOOK.md).
+- **Inbound (v1.75.0):** `commsResendInboundWebhook` handles `email.received` on a **separate** URL. Allowlist `updates@` / `unsubscribe@` / `support@` → wrap + `emails.send` to `support@road2media.com` (original From + Reply-To). Catch-all other local-parts return 200. [INBOUND_FORWARDING.md](./INBOUND_FORWARDING.md).
 - **Agent tooling:** the official **Resend MCP** (`npx -y resend-mcp`) lets agents draft, send, and manage broadcasts/domains/webhooks directly; see [comms-architect skill](../../.cursor/skills/comms-architect/SKILL.md).
 
 ### Implementation types

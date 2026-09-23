@@ -5,12 +5,16 @@ import { useSignOut } from '../../auth';
 import { InstallAppCard, isInstalled } from '../../install';
 import { NotificationPrefsPanel } from '../../notifications';
 import Button from '../../../shared/ui/Button';
+import {
+  PUBLIC_SUPPORT_LABEL,
+  PUBLIC_SUPPORT_MAILTO,
+} from '../../../shared/config/supportContact';
 import AccountSecurity from './AccountSecurity';
 import DeleteAccountSection from './DeleteAccountSection';
 
 /**
  * Preferences tertiary — sign-in, logout, notification prefs, install/PWA, legal.
- * Delete account is demoted; Contact us stays hidden (no inbound address).
+ * Contact us is `support@setlistpickem.com` (inbound allowlist → Workspace).
  *
  * @param {{ user: import('firebase/auth').User | null | undefined }} props
  */
@@ -108,6 +112,13 @@ export default function AccountPreferencesScreen({ user }) {
             >
               Terms
             </Link>
+            <span aria-hidden>&middot;</span>
+            <a
+              href={PUBLIC_SUPPORT_MAILTO}
+              className="underline decoration-border-muted underline-offset-2 transition-colors hover:text-white"
+            >
+              {PUBLIC_SUPPORT_LABEL}
+            </a>
           </span>
         </footer>
       ) : null}
