@@ -64,6 +64,7 @@ const fakeAdmin = {
 
 test("userFacingSuppressionLabel maps known reasons", () => {
   assert.match(userFacingSuppressionLabel("one_click_unsubscribe"), /unsubscribed/i);
+  assert.match(userFacingSuppressionLabel("mailto_unsubscribe"), /unsubscribed/i);
   assert.match(userFacingSuppressionLabel("hard_bounce"), /delivered/i);
 });
 

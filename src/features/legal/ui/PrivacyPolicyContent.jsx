@@ -8,7 +8,7 @@ export default function PrivacyPolicyContent({ resumeKind = null }) {
   return (
     <LegalPageLayout
       title="Privacy Policy"
-      lastUpdated="May 8, 2026"
+      lastUpdated="September 22, 2026"
       resumeKind={resumeKind}
     >
       <LegalMarkdownRenderer content={privacyMd} />

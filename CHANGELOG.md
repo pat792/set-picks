@@ -8,6 +8,18 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.75.0] — 2026-09-22
+
+### Added
+- **Inbound Resend receiving webhook (#1037 / #1039)** — `commsResendInboundWebhook` allowlists `updates@` / `unsubscribe@` / `support@setlistpickem.com`. Other local-parts return HTTP 200 without a forward. Separate Svix secret `RESEND_INBOUND_WEBHOOK_SECRET`. Public contact is `support@setlistpickem.com` (Preferences, Privacy, Terms, marketing legal footer). `help@` is not forwarded. Ops: [`docs/comms-triggers/INBOUND_FORWARDING.md`](docs/comms-triggers/INBOUND_FORWARDING.md).
+- **Mailto auto-unsubscribe (#1039)** — empty / one-word mail to `unsubscribe@` writes `email_suppression` (`mailto_unsubscribe`, resubscribable) and opts out lifecycle prefs with no Workspace forward. Prose still opts out and forwards for a human reply.
+
+### Changed
+- **`resend` SDK in `functions/`** — `^4.8.0` → `^6.28.1` so `emails.receiving.get` / `forward` exist. Outbound `emails.send` path unchanged.
+- **Inbound wrap (#1039)** — production path is `receiving.get` + `emails.send`, not passthrough `forward`. Display From is `{sender} via Setlist Pick'em <mailbox@…>`; Reply-To is the original From; body starts with `---------- Forwarded message ----------`.
+
+---
+
 ## [Unreleased]
 
 ### Added

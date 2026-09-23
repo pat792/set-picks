@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** May 8, 2026
+**Last updated:** September 22, 2026
 
 Setlist Pick 'Em ("the App") is operated by Road2 Media, LLC ("we," "us," or "our"). This policy explains what information we collect, why we collect it, and how you can manage it.
 
@@ -51,4 +51,4 @@ You may request access to, correction of, or deletion of your personal data by c
 We may update this policy from time to time. When we make material changes we will update the "Last updated" date at the top of this page. Continued use of the App after a change constitutes acceptance of the updated policy.
 
 ## Contact
-Questions or requests about your privacy? Email us at [support@road2media.com](mailto:support@road2media.com).
+Questions or requests about your privacy? Email us at [support@setlistpickem.com](mailto:support@setlistpickem.com).
