@@ -19,6 +19,8 @@ const INBOUND_ALLOWLIST_LOCAL_PARTS = Object.freeze([
   "unsubscribe",
   "support",
 ]);
+/** Prefer the public mailbox when more than one allowlisted address is on the message. */
+const INBOUND_ENVELOPE_PRIORITY = Object.freeze(["support", "updates", "unsubscribe"]);
 
 /**
  * @param {unknown} entry
@@ -89,6 +91,22 @@ function isAllowlistedInbound(email) {
 }
 
 /**
+ * Envelope `from` must be on the verified domain. Use the allowlisted
+ * local-part that received the mail so Gmail does not show every forward
+ * as `updates@`.
+ *
+ * @param {string[]} matched
+ * @returns {string}
+ */
+function resolveInboundEnvelopeFrom(matched) {
+  const locals = new Set(matched.map((email) => splitEmail(email).local));
+  for (const local of INBOUND_ENVELOPE_PRIORITY) {
+    if (locals.has(local)) return `${local}@${INBOUND_DOMAIN}`;
+  }
+  return INBOUND_ENVELOPE_FROM;
+}
+
+/**
  * @param {object | null | undefined} resend
  */
 function assertReceivingForwardAvailable(resend) {
@@ -115,7 +133,7 @@ async function handleResendInboundEvent({
   resend,
   logger,
   forwardTo = INBOUND_FORWARD_TO,
-  envelopeFrom = INBOUND_ENVELOPE_FROM,
+  envelopeFrom = null,
 }) {
   const type = event?.type;
   if (type !== "email.received") {
@@ -157,6 +175,7 @@ async function handleResendInboundEvent({
   }
   assertReceivingForwardAvailable(resend);
 
+  const from = envelopeFrom || resolveInboundEnvelopeFrom(matched);
   const requestOptions = eventId
     ? { idempotencyKey: `inbound-fwd:${eventId}` }
     : undefined;
@@ -164,7 +183,7 @@ async function handleResendInboundEvent({
     {
       emailId,
       to: forwardTo,
-      from: envelopeFrom,
+      from,
     },
     requestOptions
   );
@@ -188,6 +207,7 @@ async function handleResendInboundEvent({
     emailId,
     localParts,
     dest: forwardTo,
+    envelopeFrom: from,
     forwardedId: result?.data?.id || null,
     type,
   };
@@ -198,6 +218,7 @@ module.exports = {
   INBOUND_FORWARD_TO,
   INBOUND_ENVELOPE_FROM,
   INBOUND_ALLOWLIST_LOCAL_PARTS,
+  resolveInboundEnvelopeFrom,
   extractInboundRecipients,
   isAllowlistedInbound,
   handleResendInboundEvent,

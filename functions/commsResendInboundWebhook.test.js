@@ -7,6 +7,7 @@ const {
   extractInboundRecipients,
   isAllowlistedInbound,
   handleResendInboundEvent,
+  resolveInboundEnvelopeFrom,
   INBOUND_FORWARD_TO,
   INBOUND_ENVELOPE_FROM,
 } = require("./commsResendInboundWebhook");
@@ -34,6 +35,24 @@ test("extractInboundRecipients reads to + cc and display names", () => {
       },
     }),
     ["updates@setlistpickem.com", "unsubscribe@setlistpickem.com"]
+  );
+});
+
+test("envelope from follows the allowlisted inbox that was addressed", () => {
+  assert.equal(
+    resolveInboundEnvelopeFrom(["support@setlistpickem.com"]),
+    "support@setlistpickem.com"
+  );
+  assert.equal(
+    resolveInboundEnvelopeFrom(["updates@setlistpickem.com"]),
+    "updates@setlistpickem.com"
+  );
+  assert.equal(
+    resolveInboundEnvelopeFrom([
+      "updates@setlistpickem.com",
+      "support@setlistpickem.com",
+    ]),
+    "support@setlistpickem.com"
   );
 });
 
@@ -107,6 +126,8 @@ test("unsubscribe@ and support@ are allowlisted; help@ is not", async () => {
     resend: fakeResend(captured),
   });
   assert.equal(support.forwarded, true);
+  assert.equal(captured[1].payload.from, "support@setlistpickem.com");
+  assert.equal(captured[0].payload.from, "unsubscribe@setlistpickem.com");
 
   const help = await handleResendInboundEvent({
     event: {

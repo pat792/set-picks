@@ -29,7 +29,7 @@ Public address is `support@setlistpickem.com`. Workspace destination stays `supp
 | Auth | Svix (`svix-id`, `svix-timestamp`, `svix-signature`) — same helper as `commsResendWebhook` |
 | Secret | `RESEND_INBOUND_WEBHOOK_SECRET` (own `whsec_`; Resend issues one per webhook URL) |
 | API | `RESEND_API_KEY` + `resend.emails.receiving.forward` (SDK `^6.28.1`) |
-| Envelope `from` | `updates@setlistpickem.com` — Resend send-as, not a rewrite of the fan’s From |
+| Envelope `from` | The allowlisted local-part that received the mail (`support@` / `updates@` / `unsubscribe@`). Resend can only send as the verified domain — this is not a rewrite of the fan’s From. |
 | Passthrough | default (omit `passthrough: false`) so body, attachments, and original sender are preserved |
 | Idempotency | `inbound-fwd:{svix-id}` so webhook retries do not double-forward |
 
@@ -37,7 +37,7 @@ Public address is `support@setlistpickem.com`. Workspace destination stays `supp
 await resend.emails.receiving.forward({
   emailId: event.data.email_id,
   to: "support@road2media.com",
-  from: "updates@setlistpickem.com",
+  from: "support@setlistpickem.com", // or updates@ / unsubscribe@ — whichever was addressed
 });
 ```
 
