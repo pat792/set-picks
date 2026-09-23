@@ -12,6 +12,8 @@
  *     # tour-countdown T-1 sample through the same production shell
  *   node scripts/send-local-email-preview.mjs --picks-lock-reminder --send pat@you.com
  *     # show-day lock reminder for users with no picks (#524)
+ *   node scripts/send-local-email-preview.mjs --sphere-recap-correction --send pat@you.com
+ *     # #1033 incident correction canary (no product CTA; real subject)
  *   node scripts/send-local-email-preview.mjs --browser-only
  *     # optional: also write a data:-URI file that renders in Chrome (NOT send fidelity)
  *
@@ -65,8 +67,10 @@ const sendTo = args.includes('--send') ? args[args.indexOf('--send') + 1] : null
 const serviceOnly = args.includes('--service');
 const tourCountdown = args.includes('--tour-countdown');
 const picksLockReminder = args.includes('--picks-lock-reminder');
+const sphereRecapCorrection = args.includes('--sphere-recap-correction');
 const browserOnly = args.includes('--browser-only');
-const marketing = !serviceOnly && !tourCountdown && !picksLockReminder;
+const marketing =
+  !serviceOnly && !tourCountdown && !picksLockReminder && !sphereRecapCorrection;
 
 const outDir = resolve(root, 'emails/preview');
 mkdirSync(outDir, { recursive: true });
@@ -108,7 +112,7 @@ if (marketing) {
   });
 }
 
-if (serviceOnly || (!marketing && !tourCountdown && !picksLockReminder)) {
+if (serviceOnly || (!marketing && !tourCountdown && !picksLockReminder && !sphereRecapCorrection)) {
   const shell = buildProductionBrandedEmailShell({
     siteUrl,
     bodyText: [
@@ -161,6 +165,56 @@ if (tourCountdown) {
     subject: rendered.email.subject,
     html: shell.html,
     text: rendered.email.text,
+    resendTags: [
+      { name: 'uid', value: 'dtMsIfu3KIWjitn1nsbjQhX4Tzv2' },
+      { name: 'triggerId', value: 'tour_countdown' },
+      { name: 'preview', value: 'true' },
+    ],
+  });
+}
+
+if (sphereRecapCorrection) {
+  const handle = 'ArmenianMan';
+  const greeting = handle ? `Hey ${handle},` : 'Hey,';
+  const bodyText = [
+    greeting,
+    '',
+    "After the Summer recap we got a little excited and sent a Sphere Recap Reprise. That one wasn't on the setlist.",
+    '',
+    'Our bad.',
+  ].join('\n');
+  const signOff = 'See you on Fall Tour!';
+  const settingsUrlCorrection = `${siteUrl}/dashboard/profile/account`;
+  const shell = buildProductionBrandedEmailShell({
+    siteUrl,
+    bodyText,
+    ctaUrl: siteUrl,
+    settingsUrl: settingsUrlCorrection,
+    signOff,
+  });
+  const preheader =
+    "Yesterday's Sphere wrap was a reprise we didn't mean to play.";
+  const html = shell.html
+    .replace(
+      '<body style="margin:0;padding:0;background-color:#0b0b14;-webkit-text-size-adjust:100%;">',
+      `<body style="margin:0;padding:0;background-color:#0b0b14;-webkit-text-size-adjust:100%;"><div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</div>`,
+    )
+    .replace(
+      /<a href="[^"]*" style="display:inline-block;margin-top:8px;[\s\S]*?<\/a>\n/,
+      '',
+    );
+  variants.push({
+    label: 'Service — #1033 Sphere recap correction (no CTA)',
+    file: 'local-sphere-recap-correction.html',
+    subject: 'Encore? Not quite.',
+    html,
+    text: `${bodyText}\n\n${signOff}\n`,
+    skipPreviewSubjectPrefix: true,
+    resendTags: [
+      { name: 'campaignId', value: 'sphere-recap-correction-2026-09' },
+      { name: 'preview', value: 'true' },
+      { name: 'uid', value: 'dtMsIfu3KIWjitn1nsbjQhX4Tzv2' },
+    ],
   });
 }
 
@@ -249,9 +303,14 @@ if (sendTo) {
     body: JSON.stringify({
       from: "Setlist Pick'em <updates@setlistpickem.com>",
       to: [sendTo],
-      subject: `[LOCAL PREVIEW] ${pick.subject}`,
+      subject: pick.skipPreviewSubjectPrefix
+        ? pick.subject
+        : `[LOCAL PREVIEW] ${pick.subject}`,
       html: pick.html,
       text: pick.text,
+      ...(Array.isArray(pick.resendTags) && pick.resendTags.length
+        ? { tags: pick.resendTags }
+        : {}),
     }),
   });
   const json = await res.json().catch(() => ({}));
