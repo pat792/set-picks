@@ -73,7 +73,7 @@ A human must click **+ Add to brand** on the color row, then **Add fonts** (Spac
 | Brand primary / kicker | `#2DD4BF` | design.md + `--brand-primary` `45 212 191` |
 | Brand strong | `#14B8A6` | design.md + `--brand-primary-strong` `20 184 166` |
 | Venue bg (docs table) | `#0F172A` | design.md `brand-bg`; same channel as `--surface-field` |
-| Venue deep (docs table) | `#020617` | design.md `brand-bg-deep` — **used on these masters** |
+| Venue deep (docs table) | `#020617` | design.md `brand-bg-deep` — **used on `line` ground** |
 | Venue bg (runtime CSS) | `#1E1B4B` | `--brand-bg` `30 27 75` (indigo-950 / Kuroda) |
 | Venue deep (runtime CSS) | `#0F0A2E` | `--brand-bg-deep` `15 10 46` |
 | Wordmark gradient start | `#EF4444` | design.md `brand-accent-red` |
@@ -94,9 +94,17 @@ A human must click **+ Add to brand** on the color row, then **Add fonts** (Spac
 | `public/favicon/web-app-manifest-512x512.png` | PWA icon | `MAHWI9rs1ys` |
 | `public/branding/og-card-1200x630.png` | Marketing OG card | `MAHWI3l7xuo` |
 
-Applied onto `score` / `stat` / `line`: vinyl `MAHWI9qNlyI` (not the wordmark — menu says one mark). Emphasis `#2DD4BF`. Supporting lines `#CBD5E1`. Ground stays `#020617`. Wordmark / app icons / OG stay in Uploads for a human to drop into kit `kAHJGQBYBxc` in the Canva Brand Kit UI.
+Applied onto the unpublished masters (one mark per frame — never both at full size):
 
-**2026-09-24 restyle:** those three unpublished masters only. `slot-card` and older designs were not edited. Nothing published or shared.
+| Layout | Ground (Uploads) | Mark |
+|--------|------------------|------|
+| `score` | venue glass `MAHWJh1UZOI` | circular vinyl `MAHWI9qNlyI` |
+| `stat` | indigo glass `MAHWJjMOPP8` | horizontal wordmark `MAHWIyP7KCM` |
+| `line` | deep glass band `MAHWJhfP71k` | horizontal wordmark `MAHWIyP7KCM` |
+
+Emphasis `#2DD4BF`. Supporting lines `#CBD5E1`. Wordmark / app icons / OG stay in Uploads for a human to drop into kit `kAHJGQBYBxc` in the Canva Brand Kit UI.
+
+**2026-09-24 glass + mark mix:** those three unpublished masters only. `slot-card` (`DAHWEIn-uPI`) and older designs were not edited. Nothing published or shared.
 
 ### Existing designs left untouched
 
@@ -110,13 +118,13 @@ Applied onto `score` / `stat` / `line`: vinyl `MAHWI9qNlyI` (not the wordmark �
 
 ### Masters created 2026-09-24 (draft, unpublished)
 
-Copied from `DAHWEIn-uPI`. Titles match the menu ids. Ground replaced with a clean `brand-bg-deep` `#020617` fill so flattened slot names from the `slot-card` background do not ghost through.
+Copied from `DAHWEIn-uPI`. Titles match the menu ids. Flat `#020617` grounds from the first pass were replaced with three distinct venue/glass treatments (see table). Flattened slot names from the `slot-card` background do not ghost through.
 
-| Id | Title | Canvas | Swappable line | Footer path | Repo PNG | Edit (current session) |
-|----|-------|--------|----------------|-------------|----------|------------------------|
-| `score` | `score` | 1080×1350 | `+20` + `30+ show gap` | `/how-scoring-works` | [`974-score-master.png`](./974-score-master.png) | https://www.canva.com/d/bnp8etxfYH_HA01 |
-| `stat` | `stat` | 1080×1350 | figure + label | `/tour-stats` | [`974-stat-master.png`](./974-stat-master.png) | https://www.canva.com/d/BtRjEYVw0BtOAt0 |
-| `line` | `line` | 1080×1350 | the `/about` sentence only | `/about` | [`974-line-master.png`](./974-line-master.png) | https://www.canva.com/d/iHB2w0iNeAOzbkT |
+| Id | Title | Background | Mark | Swappable line | Footer path | Repo PNG | Edit (current session) |
+|----|-------|------------|------|----------------|-------------|----------|------------------------|
+| `score` | `score` | Venue glass: Kuroda indigo → deep slate, teal-edged glass card (`MAHWJh1UZOI`) | Circular vinyl `MAHWI9qNlyI` | `+20` + `30+ show gap` | `/how-scoring-works` | [`974-score-master.png`](./974-score-master.png) | https://www.canva.com/d/OEKObpOYMbFdy45 |
+| `stat` | `stat` | Indigo glass: CSS `--brand-bg` `#1E1B4B`, lifted slate glass card (`MAHWJjMOPP8`) | Horizontal wordmark `MAHWIyP7KCM` | figure + label | `/tour-stats` | [`974-stat-master.png`](./974-stat-master.png) | https://www.canva.com/d/Sd_4Xvh5TIF735K |
+| `line` | `line` | Deep glass band: docs `#020617` + center indigo wash + horizontal glass band (`MAHWJhfP71k`) | Horizontal wordmark `MAHWIyP7KCM` | the `/about` sentence only | `/about` | [`974-line-master.png`](./974-line-master.png) | https://www.canva.com/d/XPbK9-va7zDLaZL |
 
 Stable keys are the **titles** and design ids:
 
@@ -128,11 +136,12 @@ MCP `edit_url` values rotate. Search the Canva account by title if a short link 
 
 Shared system (same as the menu / `docs/design.md`):
 
-- Ground `#020617` (design.md `brand-bg-deep`). No full-bleed wordmark gradient.
+- **Three grounds, one system.** Not a flat `#000` / `#020617` field on every layout. Tokens from `docs/design.md` §1–2 + `src/index.css` (`--brand-bg` `#1E1B4B`, `--brand-bg-deep` `#0F0A2E`, docs table `#020617`, `surface-panel` / `surface-panel-strong`, teal hairline).
+- **Glass is approximated.** Canva MCP `perform-editing-operations` has no blur, backdrop-filter, or glass fill. Grounds are pre-composited 1080×1350 PNGs (token panels + hairline + soft wash), then `update_fill` on the page. Live CSS `backdrop-blur-md` / `variant="venue"` blur was **not** applied in-editor.
 - One teal `#2DD4BF` emphasis per frame.
 - Supporting copy `#CBD5E1` (`content-secondary`).
-- Vinyl mark at the bottom: repo `splash-vinyl-mark.webp` as Canva `MAHWI9qNlyI`. Do not redraw it. Do not pair it with the gradient wordmark on the same frame.
-- Headline face on these copies is still **HK Grotesk Pro** (`format_text` cannot set Space Grotesk). Slot/body face is Inter.
+- **Mark mix:** vinyl on `score` only; horizontal gradient wordmark on `stat` and `line`. Do not pair both marks at full size on the same frame (`docs/design.md` §7).
+- Headline face on these copies is still **HK Grotesk Pro** (`format_text` cannot set Space Grotesk). Slot/body face is Inter. The `line` quote may still render in the `slot-card` headline caps/tracking style.
 - Forbidden on the image: song lists, predicted setlists, full-night recaps, a second layout invented in chat.
 
 ---
