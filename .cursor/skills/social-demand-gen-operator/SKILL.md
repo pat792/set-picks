@@ -29,8 +29,13 @@ Publish lands in `crew/output/demand_gen/social/published/` (manual network post
 
 Draft-only until approve + `CREW_SOCIAL_PUBLISH_ENABLED`. No production Resend. Living org — adapt via doc Changelog + #695.
 
+## Social loop
+
+Step 3 of [`content/marketing/974-social-post-loop.md`](../../../content/marketing/974-social-post-loop.md). Write the caption to the brand skill. A first post invites a new person to make picks, in the present tense. Do not approve or publish inside the loop.
+
 ## Read first
 
 1. `docs/LEADERSHIP_CREW.md`
 2. `crew/README.md` (L2 section)
 3. `content/comms/README.md` for brand voice alignment
+4. `.cursor/skills/brand-systems-partner/SKILL.md` — Phish fan voice, including the social pith rules. Write the caption to that standard.
