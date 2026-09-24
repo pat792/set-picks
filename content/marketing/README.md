@@ -11,6 +11,7 @@ Editable reference copy for public marketing / SEO surfaces (not lifecycle comms
 | [`974-execution-next-2026-09-11.md`](./974-execution-next-2026-09-11.md) | #974 · epic #972 · #695 | **Draft** (updated 2026-09-23) — IG/Threads/FB live; X deferred; remaining AC is kit, EiC brief, first L2 post |
 | [`974-social-creative-path.md`](./974-social-creative-path.md) | #974 · epic #972 · #695 | **Draft** (2026-09-23) — Canva remote MCP + locked templates; Brand Systems owns the frame, Demand Gen still owns copy |
 | [`974-social-template-menu.md`](./974-social-template-menu.md) | #974 · epic #972 · #695 | **Draft** (2026-09-23) — Brand Systems menu of five layouts from `docs/design.md`; first build is `slot-card` |
+| [`974-social-template-masters-2026-09-24.md`](./974-social-template-masters-2026-09-24.md) | #974 · #1046 · epic #972 | **Draft** (2026-09-24) — Canva masters `score` / `stat` / `line` copied from `slot-card`; PNGs beside this brief. Sibling of PR #1047. Not posted |
 | [`974-social-post-loop.md`](./974-social-post-loop.md) | #974 · epic #972 · #695 | **Draft** (2026-09-23) — “run the social loop”: Social → Brand Systems → Demand Gen → EiC. No live post. |
 | [`974-social-phase1-calendar.md`](./974-social-phase1-calendar.md) | #974 · epic #972 | **Draft** (2026-09-23) — Phase 1 paste calendar, Sep 25–Oct 14. No autonomy. |
 | [`973-c6-c7-keyword-bridge.md`](./973-c6-c7-keyword-bridge.md) | #973 · epic #972 | EiC-facing — C6/C7 title/H1/FAQ on `/phish-setlist-prediction-game` (v1.62.2) |
