@@ -4,7 +4,7 @@
 **Date:** 2026-09-24  
 **Issue:** [#974](https://github.com/pat792/set-picks/issues/974) · follow-on [#1046](https://github.com/pat792/set-picks/issues/1046) · epic [#972](https://github.com/pat792/set-picks/issues/972) · crew [#695](https://github.com/pat792/set-picks/issues/695)  
 **Sibling:** [PR #1047](https://github.com/pat792/set-picks/pull/1047) (`feat/1046-social-phase1-loop`) owns the loop, calendar, and template menu. This pack fills the next menu rows that PR left unbuilt.  
-**Does not:** authorize a live post, publish or share Canva designs, create Brand Templates, or close #974 / #1046.
+**Does not:** authorize a live post, publish or share Canva designs, write the Brand Kit (API cannot), create a Brand Template (API cannot), or close #974 / #1046.
 
 ---
 
@@ -37,7 +37,41 @@ This pack builds those three masters by **copying `slot-card`**, not by running 
 | Setlist Pick 'Em | `kAHJGQBYBxc` | Use this kit. Do not invent a second kit. |
 | (unnamed) | `kAGpVKCjmvY` | Ignore for this program. |
 
-**Brand Templates:** none in this account (`search-brand-templates` returned empty, including when scoped to the Setlist Pick 'Em kit). Autofill is Enterprise-only. These masters are ordinary designs with locked layout — search by **title**.
+**Brand Templates:** none. `search-brand-templates` (all + scoped to `kAHJGQBYBxc`) is still empty. The Canva MCP has **no write API** for Brand Kits or Brand Templates (`list-brand-kits` and `search-brand-templates` are read-only; `create-design-from-brand-template` needs a `BTM*` id we do not have). Autofill is Enterprise-only.
+
+#### Intended kit (repo source of truth — not written onto the kit)
+
+`docs/design.md` §2 plus the CSS vars it points at in `src/index.css` / `tailwind.config.js`. Do not invent a second palette.
+
+| Role | Hex | Source |
+|------|-----|--------|
+| Brand primary / kicker | `#2DD4BF` | design.md + `--brand-primary` `45 212 191` |
+| Brand strong | `#14B8A6` | design.md + `--brand-primary-strong` `20 184 166` |
+| Venue bg (docs table) | `#0F172A` | design.md `brand-bg`; same channel as `--surface-field` |
+| Venue deep (docs table) | `#020617` | design.md `brand-bg-deep` — **used on these masters** |
+| Venue bg (runtime CSS) | `#1E1B4B` | `--brand-bg` `30 27 75` (indigo-950 / Kuroda) |
+| Venue deep (runtime CSS) | `#0F0A2E` | `--brand-bg-deep` `15 10 46` |
+| Wordmark gradient start | `#EF4444` | design.md `brand-accent-red` |
+| Wordmark gradient end | `#3B82F6` | design.md `brand-accent-blue` |
+| Content secondary | `#CBD5E1` | `--content-secondary` `203 213 225` |
+| Rank gold | `#D97706` | design.md; not used on these frames |
+| White | `#FFFFFF` | primary type |
+
+**Fonts (repo):** Space Grotesk (`public/fonts/space-grotesk/SpaceGrotesk-VariableFont_wght.woff2`) for headlines; Inter (`public/fonts/inter/InterVariable.woff2`) for body. `format_text` cannot set `font_family`. These masters still use HK Grotesk Pro + Inter as selected in the Canva editor on `slot-card`.
+
+**Images / icons uploaded to the account library (not attachable to the kit via API):**
+
+| Repo file | Role | Canva `mediaId` |
+|-----------|------|-----------------|
+| `public/branding/splash-vinyl-mark.webp` | App chrome / social mark | `MAHWI9qNlyI` |
+| `public/branding/email-gradient-wordmark.png` | Gradient lockup | `MAHWIyP7KCM` |
+| `public/favicon/apple-touch-icon.png` | Apple app icon | `MAHWI5ixnaw` |
+| `public/favicon/web-app-manifest-512x512.png` | PWA icon | `MAHWI9rs1ys` |
+| `public/branding/og-card-1200x630.png` | Marketing OG card | `MAHWI3l7xuo` |
+
+Applied onto `score` / `stat` / `line`: vinyl `MAHWI9qNlyI` (not the wordmark — menu says one mark). Emphasis `#2DD4BF`. Supporting lines `#CBD5E1`. Ground stays `#020617`. Wordmark / app icons / OG stay in Uploads for a human to drop into kit `kAHJGQBYBxc` in the Canva Brand Kit UI.
+
+**2026-09-24 restyle:** those three unpublished masters only. `slot-card` and older designs were not edited. Nothing published or shared.
 
 ### Existing designs left untouched
 
@@ -69,10 +103,11 @@ MCP `edit_url` values rotate. Search the Canva account by title if a short link 
 
 Shared system (same as the menu / `docs/design.md`):
 
-- Ground `#020617`. No full-bleed wordmark gradient.
-- One teal `#2dd4bf` emphasis per frame.
-- Vinyl mark at the bottom (`public/branding/splash-vinyl-mark.webp`). Do not redraw it.
-- Headline face on these copies is still **HK Grotesk Pro** (Space Grotesk is not in this Canva font list). Slot/body face is Inter.
+- Ground `#020617` (design.md `brand-bg-deep`). No full-bleed wordmark gradient.
+- One teal `#2DD4BF` emphasis per frame.
+- Supporting copy `#CBD5E1` (`content-secondary`).
+- Vinyl mark at the bottom: repo `splash-vinyl-mark.webp` as Canva `MAHWI9qNlyI`. Do not redraw it. Do not pair it with the gradient wordmark on the same frame.
+- Headline face on these copies is still **HK Grotesk Pro** (`format_text` cannot set Space Grotesk). Slot/body face is Inter.
 - Forbidden on the image: song lists, predicted setlists, full-night recaps, a second layout invented in chat.
 
 ---
