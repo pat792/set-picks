@@ -11,7 +11,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.75.1] — 2026-09-23
 
 ### Fixed
-- **Make Picks on iOS Chrome (#1041)** — while a pick field is focused, hide the mobile primary nav and collapse the tertiary tray without tucking the first field under the date bar. Song suggestions portal onto the visual viewport so the list does not scroll Update Picks up with the form.
+- **Make Picks on iOS Chrome (#1041)** — while a pick field is focused, hide the mobile primary nav. Tertiary chrome, scrollport padding, and the in-flow suggestion list stay as they are so Safari focus and spacing do not jump.
 
 ---
 

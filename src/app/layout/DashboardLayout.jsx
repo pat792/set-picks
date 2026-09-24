@@ -4,7 +4,6 @@ import { useAuth } from '../../features/auth';
 import { usePendingPoolJoin } from '../../features/pool-invite';
 import { useShowCalendar } from '../../features/show-calendar';
 import { useScrollDirection } from '../../shared/hooks/useScrollDirection';
-import useVirtualKeyboardOpen from '../../shared/hooks/useVirtualKeyboardOpen';
 import RouteSuspenseFallback from '../../shared/ui/RouteSuspenseFallback';
 import {
   DASHBOARD_NAV_PRELOAD_BY_PATH,
@@ -122,7 +121,6 @@ export default function DashboardLayout() {
   usePrefetchDashboardRoutes(location.pathname);
 
   const scrollDirection = useScrollDirection();
-  useVirtualKeyboardOpen();
 
   // Same `showDates` as the picker options (Firestore snapshot via
   // ShowCalendarProvider, emergency FALLBACK only when snapshot missing).

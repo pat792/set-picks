@@ -1,9 +1,7 @@
 // src/components/SongAutocomplete.jsx
 
-import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { PHISH_SONGS } from '../data/phishSongs.js';
-import { placeAutocompleteMenu } from '../lib/keyboardViewport.js';
 import { rankCatalogSongMatches } from '../lib/rankCatalogSongMatches.js';
 import { resolveCatalogSongTitle } from '../lib/resolveCatalogSongTitle.js';
 import Input from './Input';
@@ -80,9 +78,7 @@ export default function SongAutocomplete({
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
-  const menuRef = useRef(null);
   const blurCloseTimeoutRef = useRef(null);
-  const [menuBox, setMenuBox] = useState(null);
 
   const clearBlurCloseTimeout = () => {
     if (blurCloseTimeoutRef.current != null) {
@@ -93,51 +89,13 @@ export default function SongAutocomplete({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const target = event.target;
-      if (wrapperRef.current?.contains(target)) return;
-      if (menuRef.current?.contains(target)) return;
-      setIsOpen(false);
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const syncMenuBox = useCallback(() => {
-    const input = inputRef.current;
-    if (!input) return;
-    const rect = input.getBoundingClientRect();
-    const vv = window.visualViewport;
-    setMenuBox(
-      placeAutocompleteMenu({
-        anchorTop: rect.top,
-        anchorBottom: rect.bottom,
-        anchorLeft: rect.left,
-        anchorWidth: rect.width,
-        visualTop: vv?.offsetTop ?? 0,
-        visualLeft: vv?.offsetLeft ?? 0,
-        visualHeight: vv?.height ?? window.innerHeight,
-      }),
-    );
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!isOpen) {
-      setMenuBox(null);
-      return undefined;
-    }
-    syncMenuBox();
-    const vv = window.visualViewport;
-    vv?.addEventListener('resize', syncMenuBox);
-    vv?.addEventListener('scroll', syncMenuBox);
-    window.addEventListener('resize', syncMenuBox);
-    window.addEventListener('scroll', syncMenuBox, true);
-    return () => {
-      vv?.removeEventListener('resize', syncMenuBox);
-      vv?.removeEventListener('scroll', syncMenuBox);
-      window.removeEventListener('resize', syncMenuBox);
-      window.removeEventListener('scroll', syncMenuBox, true);
-    };
-  }, [isOpen, filteredSongs, syncMenuBox]);
 
   useEffect(() => {
     return () => clearBlurCloseTimeout();
@@ -248,20 +206,10 @@ export default function SongAutocomplete({
         className="bg-[rgb(var(--surface-field)_/_1)] read-only:!opacity-100"
       />
       
-      {isOpen && filteredSongs.length > 0 && menuBox
-        ? createPortal(
+      {isOpen && filteredSongs.length > 0 && (
         <ul
-          ref={menuRef}
           role="listbox"
-          style={{
-            position: 'fixed',
-            top: menuBox.top,
-            left: menuBox.left,
-            width: menuBox.width,
-            maxHeight: menuBox.maxHeight,
-            zIndex: 70,
-          }}
-          className="overflow-y-auto overflow-x-hidden rounded-xl border-2 border-border-subtle bg-[rgb(var(--surface-field)_/_1)] shadow-inset-glass ring-1 ring-border-glass/30"
+          className="absolute z-50 mt-2 max-h-64 w-full overflow-y-auto overflow-x-hidden rounded-xl border-2 border-border-subtle bg-[rgb(var(--surface-field)_/_1)] shadow-inset-glass ring-1 ring-border-glass/30"
         >
           {filteredSongs.map((song, index) => {
             const songName = typeof song === 'string' ? song : song.name;
@@ -325,10 +273,8 @@ export default function SongAutocomplete({
               </li>
             );
           })}
-        </ul>,
-          document.body,
-        )
-        : null}
+        </ul>
+      )}
     </div>
   );
 }

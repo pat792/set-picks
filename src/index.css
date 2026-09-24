@@ -121,28 +121,12 @@
 }
 
 /*
- * #1041 — while the on-screen keyboard is open, drop the primary nav out of
- * the typing band. While a Make Picks field is focused, also drop tertiary
- * and status chrome so the field keeps a Safari-sized band on iOS Chrome.
- * Unlayered so these beat the Tailwind padding utilities on the scrollport.
+ * #1041 — hide only the fixed primary nav while a Make Picks field is focused.
+ * Do not change scrollport padding or tertiary chrome: that shift eats the
+ * first tap on Safari and jams the field under the date bar.
  */
 @media (max-width: 767px) {
-  html[data-keyboard-open] [data-mobile-primary-nav],
   html[data-picks-entry-focus] [data-mobile-primary-nav] {
     display: none !important;
-  }
-
-  html[data-keyboard-open] #dashboard-scrollport,
-  html[data-picks-entry-focus] #dashboard-scrollport {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem) !important;
-  }
-
-  html[data-picks-entry-focus] #dashboard-mobile-fixed-chrome-root {
-    display: none !important;
-  }
-
-  /* Brand + context only. 9rem tucked the first field under the date bar. */
-  html[data-picks-entry-focus] #dashboard-scrollport {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 11.75rem) !important;
   }
 }
