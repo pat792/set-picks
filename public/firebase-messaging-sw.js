@@ -2,8 +2,8 @@
 
 // FCM background service worker shell (issue #273).
 // Uses compat in SW for broad browser support.
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.17.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: 'AIzaSyAJskQFM62Fyr-EjxlGJD3svAhf9gp9CHI',
