@@ -124,7 +124,8 @@ export default function DashboardLayout() {
 
   const scrollDirection = useScrollDirection();
   const primaryNavRef = useRef(null);
-  useHideMobilePrimaryNavForKeyboard(primaryNavRef);
+  const topChromeRef = useRef(null);
+  useHideMobilePrimaryNavForKeyboard(primaryNavRef, topChromeRef);
 
   // Same `showDates` as the picker options (Firestore snapshot via
   // ShowCalendarProvider, emergency FALLBACK only when snapshot missing).
@@ -286,7 +287,11 @@ export default function DashboardLayout() {
       </nav>
 
       {/* MOBILE TOP HEADERS — safe area + context (+ page chrome) under brand */}
-      <div className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]">
+      <div
+        ref={topChromeRef}
+        data-mobile-top-chrome
+        className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]"
+      >
         <div className="relative">
           <DashboardMobileBrandBar user={user} />
           {/*

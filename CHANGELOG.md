@@ -11,7 +11,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [1.75.1] — 2026-09-23
 
 ### Fixed
-- **Make Picks keyboard crush on iOS Chrome (#1041)** — After the virtual keyboard settles, hide only the primary bottom nav when it still sits inside the visual viewport (`navInVisual`). Safari already pans that nav off-screen, so it is a no-op there. Does not change scrollport padding, the tertiary tray, or the suggestion list.
+- **Make Picks keyboard crush on iOS Chrome (#1041)** — After the virtual keyboard settles, hide a fixed band only when it still sits inside the visual viewport. That covers the bottom nav and the mobile top stack (brand, date, Make Picks). Safari already pans those bands off-screen, so this is a no-op there. Top scrollport padding is released only while that top stack is hidden. Does not run on the tap, and does not move the suggestion list.
 
 ---
 

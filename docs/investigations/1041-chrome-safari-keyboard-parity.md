@@ -53,4 +53,6 @@ Chrome has shrunk the layout viewport to the visible screen (`client` = `vv` = `
 | NO | NO | The nav is not the crush. Repeat the probe on the brand bar, date bar, and tertiary tray. Hide only the bands whose rects are inside the visual viewport on Chrome and outside it on Safari. Same timing rule. |
 | YES | YES | Unexpected. Safari would be showing the nav, which the earlier screenshots do not. Recheck that the keyboard was fully up. |
 
-Measured pair is **NO / YES** → hide only the primary nav after the keyboard settles, when `navInVisual` is true. Implemented on `feat/1041-mobile-keyboard-chrome`. `?kbProbe=1` stays a readout.
+Measured pair is **NO / YES** → hide the primary nav after the keyboard settles, when `navInVisual` is true.
+
+Device check on that build: Chrome bottom nav hides, and the field is still short because the brand, date, and Make Picks bars stay in the visual viewport. Safari pans that top stack out as well. Same rule, second band: after settle, if the top stack’s rect is inside the visual viewport, hide it and release the scrollport’s reserved top padding. Do not run this on the tap. Safari’s top stack is already outside the visual viewport, so it does not enter this branch.
