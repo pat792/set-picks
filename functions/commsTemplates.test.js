@@ -14,7 +14,7 @@ test("every catalog template renders push + email + inApp payloads", async () =>
             greetingName: "RiverTranced",
             audienceSegment: "sphere_alum",
             siteUrl: "https://www.setlistpickem.com",
-            settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+            settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
           }
         : spec.templateId === "summer-2026-almost-end"
           ? {
@@ -101,10 +101,59 @@ test("unknown template falls back to a generic payload", async () => {
   assert.equal(hasTemplate("does-not-exist"), false);
 });
 
+test("tour-recap push and email are rank-aware teasers without Sphere live IDs", async () => {
+  const champ = await renderCommsTemplate("tour-recap", {
+    handle: "Pat",
+    rank: 1,
+    points: 180,
+    wins: 3,
+    tour_name: "Sample Tour",
+  });
+  assert.equal(champ.inApp.templateId, "tour-recap");
+  assert.match(champ.push.title, /Tour recap is in/);
+  assert.match(champ.push.body, /#1/);
+  assert.match(champ.push.body, /Messages/i);
+  assert.match(champ.email.subject, /Sample Tour/);
+  assert.equal(champ.email.ctaLabel, "View Recap");
+  assert.match(champ.email.ctaUrl, /\/dashboard\/profile\/notifications/);
+  assert.doesNotMatch(champ.email.ctaUrl, /standings/);
+  assert.doesNotMatch(`${champ.push.title} ${champ.push.body} ${champ.email.text}`, /sphere-2026/i);
+
+  const mid = await renderCommsTemplate("tour-recap", {
+    handle: "Pat",
+    rank: 8,
+    points: 110,
+    wins: 1,
+    tour_name: "Sample Tour",
+  });
+  assert.match(mid.push.body, /#8/);
+  assert.equal(mid.email.ctaLabel, "View Recap");
+});
+
 test("show-recap push surfaces score + rank when present", async () => {
   const out = await renderCommsTemplate("show-recap", { show_score: 70, global_rank: 4 });
   assert.match(out.push.body, /70/);
   assert.match(out.push.body, /#4/);
+  assert.doesNotMatch(out.push.body, /Set 1 opened/);
+});
+
+test("show-recap email omits trailing rank dump when composer weaves it (#985)", async () => {
+  const out = await renderCommsTemplate("show-recap", {
+    handle: "Pat",
+    show_date: "2026-09-04",
+    venue_name: "Dick's Sporting Goods Park",
+    show_score: 12,
+    global_rank: 184,
+    global_total_pickers: 210,
+    correct_picks_count: 1,
+    total_picks_count: 6,
+    narrative_line:
+      "Set 1 opened with Carini (8 songs); encore closed on Tweeprise. Tough board — you hit the opener (1 of 6). That lands you #184 of 210 globally.",
+  });
+  assert.match(out.email.text, /Set 1 opened with Carini/);
+  assert.match(out.email.text, /That lands you #184 of 210 globally/);
+  assert.equal((out.email.text.match(/#184/g) || []).length, 1);
+  assert.doesNotMatch(out.email.text, /are now ranked #184/);
 });
 
 test("tour-rankings-daily email folds in show_recap's night-of content (#451)", async () => {
@@ -227,3 +276,7 @@ test("tour-rankings-daily email degrades gracefully with only tour fields (no re
   assert.match(out.email.text, /#3/);
   assert.doesNotMatch(out.email.text, /Show score/);
 });
+
+// Pull #572 / #985 narrative tests into the listed suite (package.json test
+// script is an explicit file list and cannot be edited here).
+require("./commsShowContextCore.test.js");

@@ -98,18 +98,21 @@ service cloud.firestore {
       }
 
       /**
-       * In-app comms inbox (issue #120 / epic #272): recap + editorial messages.
-       * Clients read; Admin SDK / Cloud Functions create. Owners may set `readAt` only.
+       * In-app comms inbox (issue #120 / epic #272 / #513): recap + editorial messages.
+       * Clients read; Admin SDK / Cloud Functions create. Owners may set `readAt` /
+       * `archivedAt` and may hard-delete their own docs. Payload stays server-owned.
        */
       match /commsInbox/{messageId} {
         allow read: if signedIn() && request.auth.uid == userId;
-        allow create, delete: if false;
+        allow create: if false;
+        allow delete: if signedIn() && request.auth.uid == userId;
         allow update: if signedIn()
           && request.auth.uid == userId
           && request.resource.data.templateId == resource.data.templateId
           && request.resource.data.payload == resource.data.payload
           && request.resource.data.createdAt == resource.data.createdAt
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']);
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['readAt', 'archivedAt']);
       }
     }
 
@@ -186,6 +189,16 @@ service cloud.firestore {
     }
 
     /**
+     * Global Stats leaderboards (#1004). Written by Cloud Functions Admin SDK
+     * from `users` career / seasonStats fields. Authenticated clients may read
+     * the top-50 boards; no client writes.
+     */
+    match /global_stats_leaderboards/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    /**
      * Aggregate-only public tour stats for SEO (#665). Written by Cloud Functions
      * Admin SDK from official_setlists; never contains full per-show setlists.
      * Doc `_index` lists tours for the public picker. Clients may read; no writes.
@@ -210,10 +223,28 @@ service cloud.firestore {
     }
 
     /**
+     * Tour-level once-ever gate for production `tour_recap` (#1033).
+     * Written only by Cloud Functions Admin SDK after end-of-tour fan-out
+     * (or archive skip / ops seed). Clients must not read or tamper.
+     */
+    match /comms_tour_recap_state/{tourId} {
+      allow read, write: if false;
+    }
+
+    /**
      * Email suppression list for comms deliverability (#442). Written only by
      * Cloud Functions (webhooks + unsubscribe endpoint); clients must not access.
      */
     match /email_suppression/{docId} {
+      allow read, write: if false;
+    }
+
+    /**
+     * Resend email open/click plane (#512 Slice A). Written only by
+     * `commsResendWebhook` (Admin SDK). Clients have no access — Slice B
+     * reminder audience resolution is server-side.
+     */
+    match /comms_email_engagement/{resendEmailId} {
       allow read, write: if false;
     }
 

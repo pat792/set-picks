@@ -31,6 +31,10 @@ test("resolveDedupKey builds the per-trigger idempotency id", () => {
     resolveDedupKey("picks_lock_reminder", { uid: "u1", showYmd: "2026-07-18" }),
     "reminder_2026-07-18_u1"
   );
+  assert.equal(
+    resolveDedupKey("tour_recap", { uid: "u1", tourId: "Summer Tour 2026" }),
+    "tour_recap:Summer Tour 2026:u1"
+  );
 });
 
 test("TRIGGER_SPECS stays in sync with docs/comms-triggers/catalog.json", () => {

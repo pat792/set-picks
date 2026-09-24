@@ -6,14 +6,14 @@ import { buildStandingsViewPath } from './standingsViewPath';
 import { DEFAULT_STANDINGS_VIEW, STANDINGS_VIEWS } from './useStandingsView';
 
 /**
- * Cross-route Standings IA toggle (#555).
+ * Cross-route Standings IA toggle (#255 / #769).
  *
  * Show / Tour / Pools stay on `/dashboard/standings` (delegating to the
- * in-page `setPathView` when already there — that path owns GA4). Stats
- * navigates to `/dashboard/tour-stats`. Preserves `?tour=` across Tour ↔ Stats.
+ * in-page `setPathView` when already there — that path owns GA4).
+ * Preserves `?tour=` on Tour.
  *
  * @param {{
- *   view: 'show' | 'tour' | 'pools' | 'stats',
+ *   view: 'show' | 'tour' | 'pools',
  *   setPathView?: (next: 'show' | 'tour' | 'pools') => void,
  * }} options
  */
@@ -31,18 +31,6 @@ export function useStandingsViewChange({ view, setPathView }) {
 
       const tourKey = searchParams.get('tour') || '';
       const poolId = searchParams.get('pool') || '';
-
-      if (normalized === 'stats' || view === 'stats') {
-        ga4Event('standings_view_change', { from: view, to: normalized });
-        navigate(
-          buildStandingsViewPath(normalized, {
-            tourKey:
-              normalized === 'tour' || normalized === 'stats' ? tourKey : '',
-            poolId: normalized === 'pools' ? poolId : '',
-          }),
-        );
-        return;
-      }
 
       if (typeof setPathView === 'function') {
         setPathView(normalized);

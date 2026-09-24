@@ -14,8 +14,9 @@ import {
   NAV_LABEL_PICKS,
   NAV_LABEL_POOL_DETAILS,
   NAV_LABEL_POOLS,
-  NAV_LABEL_PROFILE,
+  NAV_LABEL_PREFERENCES,
   NAV_LABEL_STANDINGS,
+  NAV_LABEL_STATS,
   POOL_DETAILS_LAYOUT_EYEBROW,
 } from '../src/shared/config/dashboardVocabulary.js';
 
@@ -25,7 +26,8 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_PICKS,
       showDatePicker: true,
-      layoutDesktopHeading: NAV_LABEL_PICKS,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -34,7 +36,41 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_PICKS,
       showDatePicker: true,
-      layoutDesktopHeading: NAV_LABEL_PICKS,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #766: Make Picks alias — same cluster meta as /dashboard.
+    path: '/dashboard/picks',
+    expect: {
+      contextTitle: NAV_LABEL_PICKS,
+      showDatePicker: true,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #766: Picks Lab — primary Picks tab + date picker stay on.
+    path: '/dashboard/picks/lab',
+    expect: {
+      contextTitle: NAV_LABEL_PICKS,
+      showDatePicker: true,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #766 / #767: Scorecard — primary Picks tab + date picker stay on.
+    path: '/dashboard/picks/scorecard',
+    expect: {
+      contextTitle: NAV_LABEL_PICKS,
+      showDatePicker: true,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -44,6 +80,7 @@ const CASES = [
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: true,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -54,6 +91,7 @@ const CASES = [
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: true,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -64,6 +102,7 @@ const CASES = [
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: true,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -75,17 +114,73 @@ const CASES = [
       contextTitle: NAV_LABEL_STANDINGS,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
+      isStandingsTourView: true,
+      showTourScopePicker: true,
     },
   },
   {
-    // #555: Tour stats — peer Standings view; tour scope picker, no date picker.
+    // #1004: legacy hop — Stats primary stays active; tour picker; redirects to Band.
     path: '/dashboard/tour-stats',
     expect: {
-      contextTitle: NAV_LABEL_STANDINGS,
+      contextTitle: NAV_LABEL_STATS,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
+    },
+  },
+  {
+    // #1004: Personal Stats — tour picker scopes the rollup only; no date picker.
+    path: '/dashboard/stats',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
+    },
+  },
+  {
+    path: '/dashboard/stats/personal',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
+    },
+  },
+  {
+    // #1004: Global Stats — tour picker stays (Phase 2 boards may be tour-scoped).
+    path: '/dashboard/stats/global',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
+    },
+  },
+  {
+    path: '/dashboard/stats/band',
+    expect: {
+      contextTitle: NAV_LABEL_STATS,
+      showDatePicker: false,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+      isStandingsTourView: false,
+      showTourScopePicker: true,
     },
   },
   {
@@ -93,7 +188,30 @@ const CASES = [
     expect: {
       contextTitle: NAV_LABEL_POOLS,
       showDatePicker: true,
-      layoutDesktopHeading: NAV_LABEL_POOLS,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #768: Create Pool tertiary — same Pools context as My Pools.
+    path: '/dashboard/pools/create',
+    expect: {
+      contextTitle: NAV_LABEL_POOLS,
+      showDatePicker: true,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
+      layoutDetailEyebrow: null,
+    },
+  },
+  {
+    // #768: Join Pool tertiary — same Pools context as My Pools.
+    path: '/dashboard/pools/join',
+    expect: {
+      contextTitle: NAV_LABEL_POOLS,
+      showDatePicker: true,
+      layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -103,15 +221,17 @@ const CASES = [
       contextTitle: NAV_LABEL_POOL_DETAILS,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: false,
       layoutDetailEyebrow: POOL_DETAILS_LAYOUT_EYEBROW,
     },
   },
   {
     path: '/dashboard/profile',
     expect: {
-      contextTitle: NAV_LABEL_PROFILE,
+      contextTitle: NAV_LABEL_ACCOUNT,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -121,15 +241,17 @@ const CASES = [
       contextTitle: NAV_LABEL_MESSAGES,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
   {
     path: '/dashboard/profile/account',
     expect: {
-      contextTitle: NAV_LABEL_ACCOUNT,
+      contextTitle: NAV_LABEL_PREFERENCES,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -137,9 +259,10 @@ const CASES = [
   {
     path: '/dashboard/account-security',
     expect: {
-      contextTitle: NAV_LABEL_ACCOUNT,
+      contextTitle: NAV_LABEL_PREFERENCES,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -149,6 +272,7 @@ const CASES = [
       contextTitle: NAV_LABEL_MESSAGES,
       showDatePicker: false,
       layoutDesktopHeading: null,
+      ownsDesktopStickyChrome: true,
       layoutDetailEyebrow: null,
     },
   },
@@ -158,6 +282,7 @@ const CASES = [
       contextTitle: 'War Room',
       showDatePicker: true,
       layoutDesktopHeading: 'War Room',
+      ownsDesktopStickyChrome: false,
       layoutDetailEyebrow: null,
       desktopHeadingTone: 'warRoom',
     },

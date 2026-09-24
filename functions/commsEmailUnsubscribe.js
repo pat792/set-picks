@@ -37,7 +37,7 @@ function buildOneClickUnsubscribeUrl(siteUrl, { uid, email, signingSecret, baseU
   const secret = signingSecret;
   if (!uid || !email || !secret) {
     const settings = (siteUrl || "https://www.setlistpickem.com").replace(/\/+$/, "");
-    return `${settings}/dashboard/profile/notifications`;
+    return `${settings}/dashboard/profile/account`;
   }
   const sig = signUnsubscribeToken(uid, email, secret);
   const endpoint = resolveUnsubscribeBaseUrl(baseUrl);

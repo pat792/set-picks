@@ -3,6 +3,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+require("./commsEmailTags.test.js");
+
 const {
   handleResendWebhookEvent,
   extractRecipientEmails,
@@ -131,4 +133,148 @@ test("spam complaint suppresses and opts user out", async () => {
   const { isEmailSuppressed } = require("./commsEmailSuppression");
   assert.equal(await isEmailSuppressed(db, "spam@example.com"), true);
   assert.equal(db._users.get("u1")["notificationPrefs.lifecycle"], false);
+});
+
+test("email.opened persists engagement from tags; duplicate delivery is a no-op", async () => {
+  const db = fakeDb();
+  const opened = {
+    type: "email.opened",
+    data: {
+      email_id: "re_open_1",
+      to: ["picker@example.com"],
+      tags: {
+        uid: "u42",
+        triggerId: "marketing_summer_tour_2026_launch",
+        campaignId: "summer_tour_2026",
+      },
+    },
+  };
+
+  const first = await handleResendWebhookEvent({
+    db,
+    admin: fakeAdmin,
+    eventId: "svix_open_1",
+    event: opened,
+  });
+  assert.equal(first.handled, true);
+  assert.equal(first.applied, true);
+  assert.equal(first.uid, "u42");
+  assert.equal(first.triggerId, "marketing_summer_tour_2026_launch");
+  assert.equal(first.campaignId, "summer_tour_2026");
+
+  const stored = db._docs.get("comms_email_engagement/re_open_1");
+  assert.equal(stored.uid, "u42");
+  assert.equal(stored.triggerId, "marketing_summer_tour_2026_launch");
+  assert.equal(stored.campaignId, "summer_tour_2026");
+  assert.deepEqual(stored.openedAt, { __ts: true });
+  assert.equal(stored.clickedAt, undefined);
+
+  const dup = await handleResendWebhookEvent({
+    db,
+    admin: fakeAdmin,
+    eventId: "svix_open_1_retry",
+    event: opened,
+  });
+  assert.equal(dup.handled, true);
+  assert.equal(dup.applied, false);
+  assert.equal(dup.reason, "duplicate_event");
+  assert.equal(db._docs.get("comms_email_engagement/re_open_1").openedEventId, "svix_open_1");
+});
+
+test("email.clicked after open stamps clickedAt; duplicate click is a no-op", async () => {
+  const db = fakeDb();
+  const tags = {
+    uid: "u9",
+    triggerId: "show_recap",
+    campaignId: "summer_tour_2026",
+  };
+  const opened = await handleResendWebhookEvent({
+    db,
+    admin: fakeAdmin,
+    eventId: "svix_o",
+    event: {
+      type: "email.opened",
+      data: { email_id: "re_click_1", to: ["fan@example.com"], tags },
+    },
+  });
+  assert.equal(opened.applied, true);
+
+  const clicked = await handleResendWebhookEvent({
+    db,
+    admin: fakeAdmin,
+    eventId: "svix_c",
+    event: {
+      type: "email.clicked",
+      data: { email_id: "re_click_1", to: ["fan@example.com"], tags },
+    },
+  });
+  assert.equal(clicked.applied, true);
+  assert.equal(clicked.type, "email.clicked");
+
+  const stored = db._docs.get("comms_email_engagement/re_click_1");
+  assert.deepEqual(stored.openedAt, { __ts: true });
+  assert.deepEqual(stored.clickedAt, { __ts: true });
+  assert.equal(stored.clickedEventId, "svix_c");
+
+  const dupClick = await handleResendWebhookEvent({
+    db,
+    admin: fakeAdmin,
+    eventId: "svix_c_retry",
+    event: {
+      type: "email.clicked",
+      data: { email_id: "re_click_1", to: ["fan@example.com"], tags },
+    },
+  });
+  assert.equal(dupClick.applied, false);
+  assert.equal(dupClick.reason, "duplicate_event");
+  assert.equal(db._docs.get("comms_email_engagement/re_click_1").clickedEventId, "svix_c");
+});
+
+test("email.clicked before open still stamps openedAt (out-of-order webhook)", async () => {
+  const db = fakeDb();
+  const result = await handleResendWebhookEvent({
+    db,
+    admin: fakeAdmin,
+    eventId: "svix_click_first",
+    event: {
+      type: "email.clicked",
+      data: {
+        email_id: "re_ooo",
+        to: ["fan@example.com"],
+        tags: [{ name: "uid", value: "u7" }, { name: "triggerId", value: "show_recap" }],
+      },
+    },
+  });
+  assert.equal(result.applied, true);
+  const stored = db._docs.get("comms_email_engagement/re_ooo");
+  assert.equal(stored.uid, "u7");
+  assert.deepEqual(stored.openedAt, { __ts: true });
+  assert.deepEqual(stored.clickedAt, { __ts: true });
+});
+
+test("open without tags falls back to a unique user email match", async () => {
+  const db = fakeDb();
+  db._users.set("legacy_uid", { email: "legacy@example.com" });
+  const result = await handleResendWebhookEvent({
+    db,
+    admin: fakeAdmin,
+    eventId: "svix_legacy",
+    event: {
+      type: "email.opened",
+      data: { email_id: "re_legacy", to: ["legacy@example.com"] },
+    },
+  });
+  assert.equal(result.applied, true);
+  assert.equal(result.uid, "legacy_uid");
+  assert.equal(db._docs.get("comms_email_engagement/re_legacy").uid, "legacy_uid");
+});
+
+test("engagement event without email_id is ignored", async () => {
+  const result = await handleResendWebhookEvent({
+    db: fakeDb(),
+    admin: fakeAdmin,
+    event: { type: "email.opened", data: { to: ["x@example.com"], tags: { uid: "u1" } } },
+  });
+  assert.equal(result.handled, false);
+  assert.equal(result.reason, "missing_email_id");
 });

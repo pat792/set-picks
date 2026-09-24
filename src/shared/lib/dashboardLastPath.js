@@ -6,15 +6,24 @@
  * remembering that route would send them back to Profile after every login.
  *
  * Pending pool invite (`phish_pool_pending_invite`) overrides remembered tab so
- * post-auth lands on Pools for honest joining chrome (#728).
+ * post-auth lands on Join Pool (`/dashboard/pools/join`) for honest joining
+ * chrome (#728 / #768).
  */
 
-import { isProfileClusterPath } from '../config/dashboardRoutes';
+import {
+  POOLS_CLUSTER_PATHS,
+  isPicksClusterPath,
+  isPoolsTertiaryPath,
+  isProfileClusterPath,
+  isStatsClusterPath,
+} from '../config/dashboardRoutes';
 import { POOL_INVITE_STORAGE_KEY } from '../config/poolInvite';
 import { getLocalStorageItem, setLocalStorageItem } from './local-storage';
+import { resolvePendingPoolJoinLandingPath } from './pendingPoolJoinLanding';
 
 export const DASHBOARD_LAST_PATH_STORAGE_KEY = 'setpicks_dash_last_loc_v1';
-export const DASHBOARD_POOLS_HREF = '/dashboard/pools';
+export const DASHBOARD_POOLS_HREF = POOLS_CLUSTER_PATHS.list;
+export const DASHBOARD_POOLS_JOIN_HREF = POOLS_CLUSTER_PATHS.join;
 
 /** Query string must be empty or ?key=value&... with safe characters only. */
 function isSafeDashboardSearch(search) {
@@ -46,9 +55,9 @@ export function isRestorableDashboardPath(pathname, search = '', opts = {}) {
     return false;
   }
 
-  if (path === '/dashboard') return true;
-  if (path === '/dashboard/picks') return true;
-  if (path === '/dashboard/pools') return true;
+  if (isPicksClusterPath(path)) return true;
+  if (isPoolsTertiaryPath(path)) return true;
+  if (isStatsClusterPath(path)) return true;
   if (path === '/dashboard/standings') return true;
   if (path === '/dashboard/scoring') return true;
   if (path === '/dashboard/admin') return isAdminUser;
@@ -70,10 +79,10 @@ export function shouldPersistDashboardPath(pathname, search = '', opts = {}) {
  * @returns {string} path + search for <Navigate to={...} /> or location.assign
  */
 export function getDashboardEntryHref(opts = {}) {
-  // Invite join: skip remembered last-tab so Pools shows "Joining…" instead of
-  // a stale Standings/Picks flash while usePendingPoolJoin runs (#728).
+  // Invite join: skip remembered last-tab so Join Pool shows "Joining…" instead
+  // of a stale Standings/Picks flash while usePendingPoolJoin runs (#728 / #768).
   if (getLocalStorageItem(POOL_INVITE_STORAGE_KEY)?.trim()) {
-    return DASHBOARD_POOLS_HREF;
+    return resolvePendingPoolJoinLandingPath({ hasPendingInviteCode: true });
   }
 
   const raw = getLocalStorageItem(DASHBOARD_LAST_PATH_STORAGE_KEY);

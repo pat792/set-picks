@@ -88,7 +88,7 @@ describe('buildSphere2026EmailPlainText', () => {
     });
     expect(body).toContain('THE PODIUM');
     expect(body).toContain('Rivertranced');
-    expect(body).toContain('YOUR FINAL SPHERE 26 RESULT');
+    expect(body).toContain("YOUR FINAL SPHERE '26 RESULT");
     expect(body).toContain('Top 5');
   });
 });

@@ -6,6 +6,28 @@ import { rankCatalogSongMatches } from '../lib/rankCatalogSongMatches.js';
 import { resolveCatalogSongTitle } from '../lib/resolveCatalogSongTitle.js';
 import Input from './Input';
 
+/**
+ * @param {string | { label?: string, compactLabel?: string } | null | undefined} raw
+ * @returns {{ label: string, compactLabel?: string } | null}
+ */
+function normalizeOddsLabel(raw) {
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    const label = raw.trim();
+    return label ? { label } : null;
+  }
+  if (typeof raw === 'object' && typeof raw.label === 'string') {
+    const label = raw.label.trim();
+    if (!label) return null;
+    const compact =
+      typeof raw.compactLabel === 'string' && raw.compactLabel.trim()
+        ? raw.compactLabel.trim()
+        : undefined;
+    return { label, compactLabel: compact };
+  }
+  return null;
+}
+
 export default function SongAutocomplete({
   value,
   onChange,
@@ -24,6 +46,13 @@ export default function SongAutocomplete({
   excludeTitles = [],
   /** @type {{ name: string, total?: string, gap?: string, last?: string }[] | undefined} */
   songs: songsProp,
+  /**
+   * Optional presentational odds lookup. Parent owns IO (FSD: no fetch here).
+   * Return a string, or `{ label, compactLabel }` for a shorter mobile form.
+   * Rendered as an `Odds:` stat next to Total / Gap / Last (not after the title).
+   * @type {((songName: string) => (string | { label: string, compactLabel?: string } | null | undefined)) | undefined}
+   */
+  getOddsLabel,
 }) {
   const songs = songsProp ?? PHISH_SONGS;
   const excludedLower = useMemo(
@@ -191,6 +220,7 @@ export default function SongAutocomplete({
                 ? song.total
                 : 'N/A';
             const isKeyboardActive = index === activeIndex;
+            const odds = normalizeOddsLabel(getOddsLabel?.(songName));
             return (
               <li 
                 key={index}
@@ -200,27 +230,44 @@ export default function SongAutocomplete({
                   e.preventDefault();
                   handleSelect(songName);
                 }}
-                className={`flex cursor-pointer flex-col gap-1 border-b border-border-muted/50 p-3 transition-colors last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
+                className={`flex cursor-pointer flex-col gap-1 border-b border-border-muted/50 p-3 transition-colors last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4 sm:gap-y-1 ${
                   isKeyboardActive
                     ? 'bg-[#1e293b] ring-1 ring-inset ring-brand/50'
                     : 'md:hover:bg-[#1e293b]'
                 }`}
               >
-                <div className="text-base font-bold text-slate-200 whitespace-normal break-words text-left">
+                <div className="min-w-0 flex-1 break-words text-left text-base font-bold text-slate-200">
                   {songName}
                 </div>
                 
-                {typeof song !== 'string' && (
-                  <div className="inline-flex flex-wrap items-baseline justify-start sm:justify-end gap-x-1.5 gap-y-0.5 text-xs sm:text-sm font-medium text-slate-400 tabular-nums text-left sm:text-right">
-                    <span className="whitespace-nowrap">
-                      <span className="text-slate-500">Total:</span> {songTotal}
-                    </span>
-                    <span className="whitespace-nowrap">
-                      <span className="text-slate-500">Gap:</span> {songGap}
-                    </span>
-                    <span className="whitespace-nowrap">
-                      <span className="text-slate-500">Last:</span> {songLast}
-                    </span>
+                {(odds || typeof song !== 'string') && (
+                  <div className="inline-flex shrink-0 flex-wrap items-baseline justify-start gap-x-1.5 gap-y-0.5 text-left text-xs font-medium tabular-nums text-slate-400 sm:justify-end sm:text-right sm:text-sm">
+                    {odds ? (
+                      <span className="whitespace-nowrap">
+                        <span className="text-slate-500">Odds:</span>{' '}
+                        {odds.compactLabel ? (
+                          <>
+                            <span className="sm:hidden">{odds.compactLabel}</span>
+                            <span className="hidden sm:inline">{odds.label}</span>
+                          </>
+                        ) : (
+                          odds.label
+                        )}
+                      </span>
+                    ) : null}
+                    {typeof song !== 'string' ? (
+                      <>
+                        <span className="whitespace-nowrap">
+                          <span className="text-slate-500">Total:</span> {songTotal}
+                        </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-slate-500">Gap:</span> {songGap}
+                        </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-slate-500">Last:</span> {songLast}
+                        </span>
+                      </>
+                    ) : null}
                   </div>
                 )}
               </li>

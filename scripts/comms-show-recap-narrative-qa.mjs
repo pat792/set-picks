@@ -190,6 +190,7 @@ function renderSamples(ctx) {
   const fixtures = branchScorecardFixtures(bustoutTitle);
   const showLevel = {
     setlist_highlight: ctx.setlist_highlight,
+    set_flow_summary: ctx.set_flow_summary,
     bustout_titles: ctx.bustout_titles || [],
     bustout_entries: ctx.bustout_entries || [],
     tour_debut_titles: ctx.tour_debut_titles || [],
@@ -207,6 +208,8 @@ function renderSamples(ctx) {
       userPicks: fix.userPicks,
       actualSetlist: fix.actualSetlist,
       show_score: fix.show_score,
+      global_rank: 6,
+      global_total_pickers: 11,
     });
     // Force branch for sample matrix display when scorecard might not land there
     // (e.g. bustout_hero needs the hit). Use enrichment branch when it matches.
@@ -291,7 +294,9 @@ async function main() {
 
   for (const s of samples) {
     checks.push(
-      ...runNarrativeLineChecklist(s.narrative_line, ctx, s.branch).map(
+      ...runNarrativeLineChecklist(s.narrative_line, ctx, s.branch, {
+        requireComposerBeats: true,
+      }).map(
         (c) => ({
           ...c,
           id: `${s.branch}_${c.id}`,

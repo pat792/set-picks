@@ -24,6 +24,9 @@ const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
 const PICKS_CTA_URL = `${SITE_URL}/dashboard/picks`;
 const STANDINGS_CTA_URL = `${SITE_URL}/dashboard/standings#self-recap`;
+/** Email tease → Messages inbox (full tour_recap body). In-app CTA closes to Tour standings. */
+const MESSAGES_CTA_URL = `${SITE_URL}/dashboard/profile/notifications`;
+const TOUR_RECAP_EMAIL_CTA_LABEL = "View Recap";
 
 function handleOf(p) {
   const h = p && typeof p.handle === "string" ? p.handle.trim() : "";
@@ -39,16 +42,42 @@ function handleOf(p) {
  * @param {{ rankScope?: string, rankTense?: "present" | "past" }} [opts]
  * @returns {string} Full sentence including trailing period, or "" if nothing to say.
  */
+/**
+ * True when narrative_line already weaves `#N` rank (#985) — skip the
+ * trailing scorecard rank dump.
+ * @param {Record<string, unknown>} p
+ * @returns {boolean}
+ */
+function narrativeWeavesRank(p) {
+  const n = typeof p.narrative_line === "string" ? p.narrative_line : "";
+  return /#\d+/.test(n);
+}
+
+/**
+ * Omit the scorecard sentence when the composer already covered card + rank.
+ * @param {Record<string, unknown>} p
+ * @returns {boolean}
+ */
+function shouldOmitScorecardAfterNarrative(p) {
+  const n = typeof p.narrative_line === "string" ? p.narrative_line.trim() : "";
+  if (!n) return false;
+  const sentences = n.split(/(?<=[.!?])\s+/).filter(Boolean);
+  return sentences.length >= 2 && narrativeWeavesRank(p);
+}
+
 function buildShowScorecardSentence(
   p,
   { rankScope = "globally", rankTense = "present" } = {}
 ) {
+  if (shouldOmitScorecardAfterNarrative(p)) return "";
+
   /** @type {string[]} */
   const lead = [];
   if (p.show_score != null) {
     lead.push(`scored ${p.show_score} points`);
   }
-  if (p.global_rank != null) {
+  // Rank stays in the composer paragraph when narrative_line already weaves it.
+  if (p.global_rank != null && !narrativeWeavesRank(p)) {
     const of =
       p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : "";
     // Morning `tour_rankings_daily` looks back at last night → past tense.
@@ -310,13 +339,13 @@ const BUILDERS = {
       .filter(Boolean)
       .join(" ");
     const assembled = assembleServiceEmail([para], { ctaUrl: STANDINGS_CTA_URL });
+    // Push stays a short tease — full arc/card/rank lives in inbox + email.
     const pushBodyBits = [
-      narrative,
       p.show_score != null ? `You scored ${p.show_score} points.` : "",
       p.global_rank != null
-        ? `You're now ranked #${p.global_rank}${
+        ? `You're #${p.global_rank}${
             p.global_total_pickers != null ? ` of ${p.global_total_pickers}` : ""
-          } globally.`
+          }.`
         : "",
       "Open for the full breakdown.",
     ].filter(Boolean);
@@ -422,6 +451,57 @@ const BUILDERS = {
         signOff: assembled.signOff,
         ctaUrl,
         ctaLabel: "Make Your Picks",
+      },
+    };
+  },
+
+  "tour-recap": (p) => {
+    const handle = handleOf(p);
+    const tourName =
+      (typeof p.tour_name === "string" && p.tour_name.trim()) || "the tour";
+    const rank = p.rank != null ? Number(p.rank) : null;
+    const points = p.points != null ? Number(p.points) : null;
+    const wins = p.wins != null ? Number(p.wins) : null;
+    const teaser =
+      rank === 1
+        ? `You took #1 overall${points != null ? ` with ${points} points` : ""}${
+            wins != null ? ` and ${wins} nightly wins` : ""
+          }.`
+        : rank != null
+          ? `You finished #${rank}${points != null ? ` with ${points} points` : ""}${
+              wins != null ? ` and ${wins} nightly wins` : ""
+            }.`
+          : "Your personalized tour recap is ready.";
+    const assembled = assembleServiceEmail(
+      [
+        `${handle}, ${tourName} is wrapped.`,
+        teaser,
+        "The full podium, honorable mentions, and your personalized recap are waiting in Messages.",
+      ],
+      { ctaUrl: MESSAGES_CTA_URL }
+    );
+    return {
+      push: {
+        title: typeof p.push_title === "string" && p.push_title.trim()
+          ? p.push_title.trim()
+          : "Tour recap is in",
+        body:
+          rank === 1
+            ? `You took #1${points != null ? ` with ${points} pts` : ""}${
+                wins != null ? ` and ${wins} nightly wins` : ""
+              }. Open Messages for the full wrap-up.`
+            : rank != null
+              ? `You finished #${rank}${points != null ? ` (${points} pts` : ""}${
+                  wins != null ? `, ${wins} wins)` : points != null ? ")" : ""
+                }. Open Messages for your personalized recap.`
+              : "Your tour recap is in. Open Messages to read it.",
+      },
+      email: {
+        subject: `${tourName} recap is in`,
+        text: assembled.text,
+        signOff: assembled.signOff,
+        ctaUrl: MESSAGES_CTA_URL,
+        ctaLabel: TOUR_RECAP_EMAIL_CTA_LABEL,
       },
     };
   },

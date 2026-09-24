@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { resolvePickRecommendationsFetchUrl } from '../api/pickRecommendationsUrl.js';
+import { fetchFirstOkJson } from '../../../shared/lib/fetchFirstOkJson.js';
+import { resolvePickRecommendationsFetchUrls } from '../api/pickRecommendationsUrl.js';
 import { isPredictionLabEnabled } from './isPredictionLabEnabled.js';
 import {
   PICK_RECOMMENDATIONS_CACHE_KEY,
@@ -47,11 +48,29 @@ function writeCache(entry) {
   }
 }
 
+/** Same-tab memory so Make Picks / Scorecard / Lab share one artifact. */
+let memoryRec = /** @type {{ artifact: object, fetchedAt: number } | null} */ (null);
+
+function readMemory() {
+  if (!memoryRec) return null;
+  if (Date.now() - memoryRec.fetchedAt >= PICK_RECOMMENDATIONS_CACHE_MAX_AGE_MS) {
+    return null;
+  }
+  return memoryRec;
+}
+
+function writeMemory(artifact) {
+  if (!artifact) return;
+  memoryRec = { artifact, fetchedAt: Date.now() };
+}
+
 /**
  * Loads versioned pick recommendations from Storage with TTL + stale fallback (#650).
  * Returns null artifact when unavailable (Lab / Predictive Mode stay dark).
- * No-ops when `VITE_ENABLE_PREDICTION_LAB` is not exactly `'true'` (prod default).
+ * Defaults to no-op when `VITE_ENABLE_PREDICTION_LAB` is not exactly `'true'`.
+ * Pass `{ enabled: true }` to fetch for Scorecard odds even when Lab UI is off.
  *
+ * @param {{ enabled?: boolean }} [options]
  * @returns {{
  *   artifact: object | null,
  *   loadError: Error | null,
@@ -59,11 +78,15 @@ function writeCache(entry) {
  *   loadedFromCache: boolean,
  * }}
  */
-export function usePickRecommendations() {
-  const enabled = isPredictionLabEnabled();
-  const [artifact, setArtifact] = useState(/** @type {object | null} */ (null));
+export function usePickRecommendations(options = {}) {
+  const enabled = options.enabled ?? isPredictionLabEnabled();
+  const [artifact, setArtifact] = useState(
+    () => readMemory()?.artifact ?? null,
+  );
   const [loadError, setLoadError] = useState(/** @type {Error | null} */ (null));
-  const [resolved, setResolved] = useState(!enabled);
+  const [resolved, setResolved] = useState(
+    () => !enabled || Boolean(readMemory()?.artifact),
+  );
   const [loadedFromCache, setLoadedFromCache] = useState(false);
 
   useEffect(() => {
@@ -86,6 +109,7 @@ export function usePickRecommendations() {
         now - cached.fetchedAt < PICK_RECOMMENDATIONS_CACHE_MAX_AGE_MS
       ) {
         if (!cancelled) {
+          writeMemory(cached.artifact);
           setArtifact(cached.artifact);
           setLoadedFromCache(true);
           setResolved(true);
@@ -93,12 +117,13 @@ export function usePickRecommendations() {
         return;
       }
 
-      let url;
+      let urls;
       try {
-        url = await resolvePickRecommendationsFetchUrl();
+        urls = await resolvePickRecommendationsFetchUrls();
       } catch (e) {
         if (ac.signal.aborted || cancelled) return;
         if (cachedOk) {
+          writeMemory(cached.artifact);
           setArtifact(cached.artifact);
           setResolved(true);
           return;
@@ -110,19 +135,13 @@ export function usePickRecommendations() {
       }
 
       try {
-        const res = await fetch(url, {
-          signal: ac.signal,
-          headers: { Accept: 'application/json' },
-        });
-        if (!res.ok) {
-          throw new Error(`Pick recommendations HTTP ${res.status}`);
-        }
-        const body = await res.json();
+        const body = await fetchFirstOkJson(urls, { signal: ac.signal });
         const selected = selectPickRecommendations(body);
         if (!selected) {
           throw new Error('Pick recommendations JSON failed validation.');
         }
         writeCache({ fetchedAt: Date.now(), artifact: selected });
+        writeMemory(selected);
         if (!cancelled) {
           setArtifact(selected);
           setResolved(true);
@@ -130,6 +149,7 @@ export function usePickRecommendations() {
       } catch (e) {
         if (ac.signal.aborted || cancelled) return;
         if (cachedOk) {
+          writeMemory(cached.artifact);
           setArtifact(cached.artifact);
           setLoadError(null);
           setResolved(true);

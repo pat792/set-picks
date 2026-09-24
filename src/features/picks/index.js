@@ -4,6 +4,10 @@ export { default as PastShowLockBanner } from './ui/PastShowLockBanner';
 export { default as TooEarlyBanner } from './ui/TooEarlyBanner';
 export { default as PicksFieldsForm } from './ui/PicksFieldsForm';
 export { default as PickPredictionPanel } from './ui/PickPredictionPanel';
+export { default as PicksLabPanel } from './ui/PicksLabPanel';
+export { default as PicksLabComingSoon } from './ui/PicksLabComingSoon';
+export { default as PicksScorecardCard } from './ui/PicksScorecardCard';
+export { usePicksScorecard } from './model/usePicksScorecard';
 export { default as PicksMobileFixedChrome } from './ui/PicksMobileFixedChrome';
 export { default as PicksLockTimingBanner } from './ui/PicksLockTimingBanner';
 export { default as PicksSubmitButton } from './ui/PicksSubmitButton';
@@ -24,4 +28,6 @@ export {
   trackPredictionLabOpen,
   trackPredictionLabImpression,
   trackPredictionLabSelect,
+  trackScorecardOpen,
+  trackScorecardMetricImpression,
 } from './model/picksAnalytics';

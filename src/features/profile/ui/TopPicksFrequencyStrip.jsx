@@ -17,6 +17,7 @@ import { Loader2 } from 'lucide-react';
  *   loading?: boolean,
  *   showsAggregated?: number,
  *   showsAvailable?: number,
+ *   flushTop?: boolean,
  * }} props
  */
 export default function TopPicksFrequencyStrip({
@@ -24,6 +25,7 @@ export default function TopPicksFrequencyStrip({
   loading = false,
   showsAggregated = 0,
   showsAvailable = 0,
+  flushTop = false,
 }) {
   const maxPicked = rows.reduce(
     (m, r) => Math.max(m, typeof r.pickedCount === 'number' ? r.pickedCount : 0),
@@ -31,7 +33,9 @@ export default function TopPicksFrequencyStrip({
   );
 
   return (
-    <section className="mt-6 rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
+    <section
+      className={`${flushTop ? '' : 'mt-6 '}rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass`}
+    >
       <h2 className="mb-1 text-xs font-black uppercase tracking-widest text-content-secondary">
         Top picks
       </h2>

@@ -92,8 +92,9 @@ EVENT (Firestore onCreate/onUpdate · scheduler cron · post-grade hook · live-
    |--------------|-----------|
    | Firestore `onCreate users/{uid}` | `account_welcome` |
    | Firestore `onUpdate picks/{pickId}` (lock) | `picks_confirmed` |
-   | `onSchedule` cron | `tour_countdown`, `tour_rankings_daily` |
-   | post-grade hook after `rollupScoresForShow` | `show_recap`, `tour_engagement_reminder` |
+   | `onSchedule` cron | `tour_countdown`, `tour_rankings_daily`, `tour_recap` (morning after finale) |
+   | post-grade hook after `rollupScoresForShow` | `show_recap`, `tour_engagement_reminder` (last night of tour is still night `show_recap` only) |
+   | 8am PT `scheduledTourRankingsDailyComms` | `tour_rankings_daily` (morning-after show, skipped on finale morning); `tour_recap` (first tick after a tour’s final show date) |
    | live-scoring hook | `score_first_points`, `score_leader` |
 
 3. **Pluggable, idempotent channel workers** — each returns `{ ok, skipReason }` and shares one delivery-log contract so re-ticks / retries never double-send:
@@ -121,7 +122,8 @@ EVENT (Firestore onCreate/onUpdate · scheduler cron · post-grade hook · live-
 - **Send:** `resend.emails.send({...}, { idempotencyKey })`; fan-out via `resend.batch.send([...], { idempotencyKey })` (≤100/call) with exponential backoff on 429/500.
 - **Domain:** `from` uses the verified setlistpickem.com sender (SPF/DKIM/DMARC); fail closed if unverified.
 - **Compliance:** lifecycle/marketing mail sets `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) wired to `notificationPrefs`; `emailClass: transactional` triggers (e.g. `picks_lock_reminder`) omit marketing unsubscribe headers but still respect `email_suppression`.
-- **Reputation:** Resend webhook handler — `email.bounced` (Permanent) → hard-suppress; `email.complained` → unsubscribe + flag; optionally `email.delivered/opened/clicked` → measurement. Idempotent (webhooks are at-least-once, possibly out of order).
+- **Reputation:** Resend webhook handler — `email.bounced` (Permanent) → hard-suppress; `email.complained` → unsubscribe + flag; `email.opened` / `email.clicked` → `comms_email_engagement` (#512 Slice A). Idempotent (webhooks are at-least-once, possibly out of order). Dashboard event checklist: [RESEND_WEBHOOK.md](./RESEND_WEBHOOK.md).
+- **Inbound (v1.75.0):** `commsResendInboundWebhook` handles `email.received` on a **separate** URL. Allowlist `updates@` / `unsubscribe@` / `support@` → wrap + `emails.send` to `support@road2media.com` (original From + Reply-To). Catch-all other local-parts return 200. [INBOUND_FORWARDING.md](./INBOUND_FORWARDING.md).
 - **Agent tooling:** the official **Resend MCP** (`npx -y resend-mcp`) lets agents draft, send, and manage broadcasts/domains/webhooks directly; see [comms-architect skill](../../.cursor/skills/comms-architect/SKILL.md).
 
 ### Implementation types

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Button from '../../../shared/ui/Button';
+import PendingPoolJoinBanner from './PendingPoolJoinBanner';
 import PoolCard from './PoolCard';
 
 /**
@@ -13,6 +13,7 @@ import PoolCard from './PoolCard';
  *   pendingJoinErrorKind?: 'timeout' | 'generic' | 'invalid-code' | 'pool-full' | 'pool-archived' | null,
  *   onRetryPendingJoin?: (() => void) | null,
  *   retryPendingJoinLoading?: boolean,
+ *   emptyAction?: React.ReactNode,
  * }} props
  */
 export default function UserPoolsSection({
@@ -24,10 +25,10 @@ export default function UserPoolsSection({
   pendingJoinErrorKind = null,
   onRetryPendingJoin = null,
   retryPendingJoinLoading = false,
+  emptyAction = null,
 }) {
-  const isJoining = pendingJoinState === 'joining';
-  const isJoinFailed = pendingJoinState === 'failed';
-  const showJoiningChrome = isJoining || isJoinFailed;
+  const showJoiningChrome =
+    pendingJoinState === 'joining' || pendingJoinState === 'failed';
   const showEmpty =
     !showJoiningChrome && !listLoading && pools.length === 0;
   const showListLoading = listLoading && pools.length === 0 && !showJoiningChrome;
@@ -35,29 +36,12 @@ export default function UserPoolsSection({
   return (
     <section className="space-y-4">
       {showJoiningChrome ? (
-        <div className="rounded-3xl border border-dashed border-brand-primary/40 bg-brand-primary/5 p-8 text-center shadow-inset-glass">
-          <p className="font-bold text-brand-primary">
-            {isJoining ? 'Joining your pool…' : "Couldn't finish joining"}
-          </p>
-          <p className="mt-1 text-sm text-content-secondary/90">
-            {isJoining
-              ? 'Hang tight — we’re adding you now.'
-              : pendingJoinErrorKind === 'timeout'
-                ? 'That took too long. Your invite is still saved — retry below.'
-                : 'Your invite is still saved — retry below, or paste the code in Join Pool.'}
-          </p>
-          {isJoinFailed && typeof onRetryPendingJoin === 'function' ? (
-            <Button
-              variant="primary"
-              type="button"
-              className="mt-4 uppercase tracking-widest"
-              disabled={retryPendingJoinLoading}
-              onClick={onRetryPendingJoin}
-            >
-              {retryPendingJoinLoading ? 'Retrying…' : 'Retry join'}
-            </Button>
-          ) : null}
-        </div>
+        <PendingPoolJoinBanner
+          pendingJoinState={pendingJoinState}
+          pendingJoinErrorKind={pendingJoinErrorKind}
+          onRetryPendingJoin={onRetryPendingJoin}
+          retryPendingJoinLoading={retryPendingJoinLoading}
+        />
       ) : null}
 
       {showListLoading ? (
@@ -70,7 +54,14 @@ export default function UserPoolsSection({
         <div className="rounded-3xl border border-dashed border-border-muted bg-surface-glass p-8 text-center shadow-inset-glass">
           <p className="font-bold text-content-secondary">You are not in any pools yet.</p>
           <p className="mt-1 text-sm text-content-secondary/90">
-            Join with a code or create a pool below, then lock picks on the Picks tab.
+            {emptyAction ? (
+              <>
+                {emptyAction}
+                {', then lock picks on the Picks tab.'}
+              </>
+            ) : (
+              'Join with a code or create a pool, then lock picks on the Picks tab.'
+            )}
           </p>
         </div>
       ) : null}

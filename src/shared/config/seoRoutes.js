@@ -2,8 +2,10 @@
  * Public marketing SEO route registry — Helmet pages + build-time prerender (#659).
  *
  * Post-build `scripts/prerender-seo.mjs` writes crawler-visible HTML into `dist/`.
- * Public tour-stats (#665 / #927): `/tour-stats` (+ Sphere + Summer 2026 slugs
- * for SEO); other tours hydrate in the browser from public tour-stats docs.
+ * Public tour-stats (#665 / #927 / #959): `/tour-stats` (+ Sphere + Summer 2026
+ * static opt-in slugs). Additional `/tour-stats/{slug}` pages auto-expand at
+ * prerender when `public_tour_stats` meets the thin-page gate — do not hand-edit
+ * this registry for each new tour (`scripts/lib/tourStatsSeoAutoExpand.mjs`).
  *
  * Do not list `/dashboard/*`, `/invite/*`, or `/join/*`.
  *
@@ -195,7 +197,10 @@ const TOUR_STATS_SUMMER_TITLE =
 const TOUR_STATS_SUMMER_DESCRIPTION =
   "2026 Summer Tour Phish setlist statistics—most-played songs, unique songs, summer tour bustouts, and gap highlights. Updated every night the band plays live. Play Setlist Pick'Em to unlock personal stats.";
 const TOUR_STATS_SUMMER_URL = `${SEO_CONFIG.siteUrl}/tour-stats/2026-summer-tour`;
-/** Opt-in: prerender fetches `public_tour_stats/{slug}` for crawler facts (#928). */
+/**
+ * Static opt-in slugs that always prerender facts (#928).
+ * #959 auto-expand adds further slugs at build time without editing this list.
+ */
 export const TOUR_STATS_SEO_FACT_SLUGS = Object.freeze([
   '2026-sphere',
   '2026-summer-tour',

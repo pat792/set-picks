@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 import AppBackground from '../../../shared/ui/AppBackground';
+import {
+  PUBLIC_SUPPORT_LABEL,
+  PUBLIC_SUPPORT_MAILTO,
+} from '../../../shared/config/supportContact';
 import { resolveLegalBackNav } from '../model/legalBackNav';
 
 /**
@@ -75,6 +79,12 @@ export default function LegalPageLayout({
               >
                 Terms of Service
               </Link>
+              <a
+                href={PUBLIC_SUPPORT_MAILTO}
+                className="text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-slate-200"
+              >
+                {PUBLIC_SUPPORT_LABEL}
+              </a>
             </p>
           </footer>
         </div>

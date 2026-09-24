@@ -1,12 +1,14 @@
 # SEO query registry + weekly log
 
-**Epic:** #926 · **E0:** #931 · **E1:** #932  
+**Epic:** #926 · **E0:** #931 · **E1:** #932 · **E3:** #934  
 **Ops playbook:** [`docs/SEO_GEO_PLAYBOOK.md`](../SEO_GEO_PLAYBOOK.md) §4  
+**Scored tune loop:** [`docs/SEO_OPTIMIZE_AUTONOMY.md`](../SEO_OPTIMIZE_AUTONOMY.md)  
 **Canonical host:** `https://www.setlistpickem.com`
 
 Machine-readable fan-intent IDs live in **[`query-registry.json`](./query-registry.json)**. Optimize packs and GSC pulls must key off those IDs — do not invent parallel Markdown tables.
 
-**#932 (E1)** automates last-7d GSC + GA4 organic → a `[SKIP-PRD]` SEO Optimize pack on #926.
+**#932 (E1)** automates last-7d GSC + GA4 organic → a `[SKIP-PRD]` SEO Optimize **facts** pack on #926.  
+**#934 (E3)** is the agent-driven scored loop on top of that pack (`DRAFT_PR` / `REQUEST_INDEX` / `OFFSITE_SHARE` / `WAIT_EVIDENCE` / `NOOP`). Copy-paste prompt + template: [`docs/SEO_OPTIMIZE_AUTONOMY.md`](../SEO_OPTIMIZE_AUTONOMY.md). No weekly Action opens PRs.
 
 ```bash
 # Fixture / dry-run (no network, no #926 comment)
@@ -89,7 +91,7 @@ See [`weekly-log.example.json`](./weekly-log.example.json). Required keys: `week
 ## What not to do
 
 - Do not commit `crew/output/seo/**`.
-- Do not scrape SERPs or competitor HTML here (competitor title/H1 briefs are #933, allowlist only).
+- Do not scrape SERPs or competitor HTML here. Competitor title/H1 briefs are #933 — allowlist + refuse in `crew/knowledge/allowlists/domains.md`; scanner `python3 -m crew.scripts.seo_title_h1_scan`; durable brief `content/marketing/933-competitor-title-h1-gap-brief.md`.
 - Do not treat empty playbook §4 cells as the registry — this JSON is the source of IDs.
 - Do not claim a Vercel preview “works” from curl (401). Do not claim Safari/WebKit verified without human evidence.
 

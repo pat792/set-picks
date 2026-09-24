@@ -8,13 +8,277 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.75.1] — 2026-09-23
+
+### Fixed
+- **Make Picks keyboard crush on iOS Chrome (#1041)** — iOS Chrome frames its web view to the keyboard-free screen, so the layout viewport shrinks and every fixed band stays on screen; Safari keeps the layout viewport tall and pans it. After the keyboard settles, when `documentElement.clientHeight` has dropped (Chrome only), hide the mobile top stack and bottom nav, release the scrollport's reserved padding, and hold the focused field in place. Safari never enters this branch. Nothing runs on the tap; the suggestion list is unchanged.
+
+---
+
+## [1.75.0] — 2026-09-22
+
+### Added
+- **Inbound Resend receiving webhook (#1037 / #1039)** — `commsResendInboundWebhook` allowlists `updates@` / `unsubscribe@` / `support@setlistpickem.com`. Other local-parts return HTTP 200 without a forward. Separate Svix secret `RESEND_INBOUND_WEBHOOK_SECRET`. Public contact is `support@setlistpickem.com` (Preferences, Privacy, Terms, marketing legal footer). `help@` is not forwarded. Ops: [`docs/comms-triggers/INBOUND_FORWARDING.md`](docs/comms-triggers/INBOUND_FORWARDING.md).
+- **Mailto auto-unsubscribe (#1039)** — empty / one-word mail to `unsubscribe@` writes `email_suppression` (`mailto_unsubscribe`, resubscribable) and opts out lifecycle prefs with no Workspace forward. Prose still opts out and forwards for a human reply.
+
+### Changed
+- **`resend` SDK in `functions/`** — `^4.8.0` → `^6.28.1` so `emails.receiving.get` / `forward` exist. Outbound `emails.send` path unchanged.
+- **Inbound wrap (#1039)** — production path is `receiving.get` + `emails.send`, not passthrough `forward`. Display From is `{sender} via Setlist Pick'em <mailbox@…>`; Reply-To is the original From; body starts with `---------- Forwarded message ----------`.
+
+---
+
 ## [Unreleased]
 
 ### Added
 - **SEO query registry (#931 / epic #926)** — `docs/seo/query-registry.json` seeds B1–B3, C1–C7, S1–S7 (including #931 fan strings). Weekly append-only GSC log procedure is in `docs/seo/README.md`; snapshots stay under gitignored `crew/output/seo/`.
+- **SEO competitor title/H1 scan (#933 / epic #926)** — PR-gated allowlist adds `phishpicks.net` / `phish.jampicks.com` (homepage GET only). `crew/scripts/seo_title_h1_scan.py` extracts title + H1–H3 and diffs `docs/seo/query-registry.json`. Durable brief: `content/marketing/933-competitor-title-h1-gap-brief.md`. Callingit.live / ihoz / Phantasy Tour omitted (ToS or unverifiable). No `/phish-picks`. No version bump (docs + crew scripts).
+- **SEO Optimize autonomy (#934 / epic #926)** — `docs/SEO_OPTIMIZE_AUTONOMY.md` is the draft-only scored tune loop (`stats_impressions` \| `query_coverage` \| `geo_citations` \| `crawl_regressions`). Weekly E1 facts packs stay comment-only; agents may open a **draft** PR to `staging` only when scored `DRAFT_PR`. Docs only after **1.63.0** (#991 / #993); no PATCH bump. Packs ingest the #933 competitor brief when present.
 
 ### Changed
 - **Pick'em search plan (#970)** — EiC-approved SERP/GEO plan + playbook C6/C7 / SERP snapshot. Docs only; no declared API change and no version bump.
+
+---
+
+## [1.74.2] — 2026-09-09
+
+### Added
+- **Tour recap once-ever state (#1033)** — `comms_tour_recap_state/{tourId}` (`sent` / `skipped_archive` / `closed`) hard-skips each tour after the single end-of-tour fan-out (or archive close). Seed script: `functions/scripts/seedTourRecapState.js`. Server-only Firestore rules.
+
+### Changed
+- **`deliverPendingTourRecaps`** — checks tour state before lookback/Sphere filters; writes `sent` after a successful fan-out and `skipped_archive` for Sphere calendar labels.
+
+### Removed
+- **War Room tour recap panel (#1035)** — `/dashboard/admin` no longer previews or executes recap delivery. Live wraps stay on `scheduledTourRankingsDailyComms`. Canary/replay is `runCommsTrigger` or CLI only; the Sphere-only callable is not exposed in the UI.
+
+---
+
+## [1.74.1] — 2026-09-09
+
+### Fixed
+- **`tour_recap` pending cron (#1033)** — `deliverPendingTourRecaps` no longer fans out for every historical calendar tour. Finales must be within a **14-day** lookback (late grades), and Sphere archive labels (`/\bsphere\b/i`, e.g. `2026 Sphere`) are hard-skipped so they stay on War Room / `deliverSphere2026TourRecapInbox`. Incident note: `docs/comms-triggers/INCIDENT_2026-09-09_SPHERE_TOUR_RECAP.md`.
+
+---
+
+## [1.74.0] — 2026-09-08
+
+Leftover comms train after **v1.72.2**. Reconciled file delta only (no raw `staging` history merge). Includes staging **1.73.0** (#1008 show_recap composer) and **1.74.0** (#1009 Resend open/click). Does **not** include Dependabot.
+
+### Added
+- **Resend open/click plane (#512 Slice A / #1009)** — `commsResendWebhook` persists `email.opened` / `email.clicked` on `comms_email_engagement/{resendEmailId}` (`uid`, `triggerId`, `campaignId`, `openedAt`, `clickedAt`). Duplicate deliveries are no-ops. `resend.emails.send` stamps matching tags; the delivery log may carry `resendEmailId` + `campaignId`. Ops checklist: `docs/comms-triggers/RESEND_WEBHOOK.md`. No reminder trigger or second-wave send (Slice B remains on #512). Reminted after `v1.72.2` (does not reuse shipped 1.72.0).
+
+---
+
+## [1.73.0] — 2026-09-08
+
+### Changed
+- **show_recap composer (#985 / #1008)** — `narrative_line` (inbox Tonight + morning night-para) weaves set-flow arc, which of the player’s slots hit (bustout caught or missed), and night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight + scorecard when context is missing. Existing vars only — no new catalog field. Reminted after `v1.72.2` (does not reuse shipped 1.71.0).
+
+---
+
+## [1.72.2] — 2026-09-08
+
+### Fixed
+- **Show-recap tour debuts (#1025)** — `writeCommsShowContext` loads the full prior tour itinerary for `tour_debut_titles` (no 12-show trailing slice). `comms_show_context.schemaVersion` → **2**; `ensureCommsShowContext` rebuilds older docs on the next delivery path.
+
+### Added
+- **`canary:tour-recap`** — Cloud Functions dry-run / admin canary for `tour_recap` (does not auto-send). Summer execute / live-send notes landed as docs.
+
+---
+
+## [1.72.1] — 2026-09-08
+
+### Changed
+- **`tour_recap` timing (#510)** — last night of a tour still sends night `show_recap` only. End-of-tour fan-out waits for the next 8am PT `scheduledTourRankingsDailyComms` tick (`deliverPendingTourRecaps`). That same morning skips `tour_rankings_daily` (email + in-app + push) so the wrap is one message. Dedup unchanged (`tour_recap:{tourId}:{uid}`). Manual `runCommsTrigger` / canary still work.
+
+---
+
+## [1.72.0] — 2026-09-08
+
+Production ship of the leftover Sprint 14 IA polish that stayed on `staging` after the surgical 1.70.x / 1.71.x promotes. Collapses staging 1.70.2 (Lab Use), 1.71.0 (#1013 Scorecard / Make Picks odds), and 1.72.4 (desktop trays + sticky Stats filters) into one MINOR. Does **not** re-ship `tour_recap` or the next-show date default (already live as 1.71.0–1.71.2).
+
+### Added
+- **Scorecard graded hit chrome (#1013)** — on graded nights, each slot uses `getSlotScoreBreakdown`. Hits (`points > 0`) show an A5 check + soft inset ring: brand-primary for `exact_slot` / `encore_exact` / `wildcard_hit`, accent-blue for `in_setlist`, amber overlay when `bustoutBoost`. Misses are slightly muted. Pre-grade cards are unchanged.
+- **Make Picks dropdown model odds (#1013)** — song autocomplete shows a trailing compact `N%` (or `<1%` / mobile `<1` for `playProbBySong` map misses) from the same Storage artifact as Scorecard, only when `targetShow.date` matches the selected night. Total / Gap / Last stay visible. Not live crowd %.
+
+### Changed
+- **Scorecard helper copy (#1013)** — the pre-lock “Overlap unlocks…” footer is now a top-right `InfoTooltip`. Hint copy covers model odds, showtime comparison, and Standings (leaderboard / live setlist / crowd pulse).
+- **Picks odds chrome (#1013)** — when `%` would wrap under the song title, Scorecard and Make Picks show an **Odds** label instead. Card top-right tooltip explains odds in plain language (best guess from recent shows). Dropdown stats use `Odds: N%` beside Total / Gap / Last.
+- **Desktop Scoring rules affordance** — Picks and Standings use the same Scale `ChromeIconButton` on the title row (mobile pattern); removed the Picks in-flow “Scoring rules” GhostPill.
+- **Pools how-it-works icon** — `CircleHelp` → `BookOpen` (desktop title row + mobile context trailing) so the guide control matches Scale-style line icons.
+
+### Fixed
+- **Picks Lab add confirmation** — Lab **Use** still writes the shared draft only (does not persist). The Lab destination now shows a live **Your card**, marks the filled slot, toasts the add, and surfaces Lock In Picks / Update Picks when the card is unsaved. Persist remains the explicit lock/update action.
+- **Scorecard odds on the live night (#1013)** — Picks cluster fetches `pick-recommendations.json` once and shares it with Scorecard and Make Picks. Hits show a trailing `N%` on the song title (plus a “model odds” hint). Storage `getDownloadURL` failures (App Check on preview hosts) retry the public `alt=media` URL so odds load instead of staying blank.
+- **Make Picks Last dates (#1013)** — dropdown Last was falling back to the bundled 2025 catalog (`PHISH_SONGS`) when Storage `getDownloadURL` failed or the tokenized download returned 402. Catalog fetch now retries `alt=media` and normalizes `last` / `last_played` to `YYYY-MM-DD` so Last stays on the live last-played date. Odds `%` no longer clips the Last column.
+- **Desktop tertiary tray width** — Scoring rules / How pools work utilities sit on the cluster title row instead of beside the tray, so Standings and Pools tertiary menus match full-width trays on Picks / Stats / Account.
+- **Stats quaternary tray width** — `StatsScopeToggle` reserves a fixed trailing column for scope/board `InfoTooltip`s (empty when absent) so All-time / This tour and board switches stay aligned across stacked trays.
+- **Stats quaternary sticky chrome** — Personal / Global port All-time / This tour (+ board or Your stats / Top picks) into the desktop sticky stack and mobile fixed chrome below tertiary so both filter rows stay visible while boards scroll.
+
+---
+
+## [1.71.2] — 2026-09-08
+
+### Fixed
+- **Dashboard default show date** — after the Summer Tour finale, the date picker could stick on `2026-09-06` instead of the next available show. Selection now seeds from the same `useShowCalendar().showDates` as the picker (live snapshot; emergency FALLBACK only when snapshot missing), advances past stale past dates when cron ingests newer nights, and re-resolves when the schedule day rolls. Emergency `FALLBACK_SHOW_DATES` includes Fall Tour ’26 (Oct 2–11).
+
+### Changed
+- Seed `show_calendar/tour_overrides` checklist includes Fall Tour dates for Console paste.
+
+---
+
+## [1.71.1] — 2026-09-07
+
+### Changed
+- **`tour_recap` CTA loop** — email (and push copy) **View Recap** → Messages (`/dashboard/profile/notifications`); in-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour` so the full recap is read before standings.
+
+---
+
+## [1.71.0] — 2026-09-07
+
+### Added
+- **`tour_recap` trigger (#510)** — durable personalized end-of-tour recap (`results_recap`, P1). Audience: users with ≥1 graded pick on any show in that tour. Channels: in-app, push, abbreviated email. Prefs: `notificationPrefs.results`. Dedup: `tour_recap:{tourId}:{uid}`. Automated batch fan-out after the tour’s final show is graded (`deliverTourRecapIfFinalShow` → `deliverCommsTrigger`). Rank branches: champion / top 5 / top 10 / full-run outside top 10 / partial attendance / fallback. Edition flavor from `content/comms/tours/<edition>.md` + send-time payload.
+
+### Changed
+- **Sphere ’26 recap** — `sphere-2026-inaugural` / `tour_recap_sphere_2026` is archive + War Room replay (`deliverSphere2026TourRecapInbox`) only. Live catalog template is `tour-recap`. `/comms-preview` samples use a generic Sample Tour fixture (no Sphere live IDs).
+
+---
+
+## [1.70.2] — 2026-09-07
+
+### Fixed
+- **Inbox Unopened stay-open on first click (#1015)** — opening a message no longer sets `readAt` immediately (which moved the row into the collapsed Read section and made the body feel like it disappeared). The body stays in Unopened while expanded; `readAt` is written on first close (Collapse, leave for another row, or collapse Inbox).
+
+### Changed
+- **`commsInbox.readAt` timing** — client sets `readAt` when the user finishes the first open (close / switch-away), not on the open click. Field shape unchanged.
+
+---
+
+## [1.70.1] — 2026-09-04
+
+### Changed
+- **Personal / Global Stats display (#1004)** — All-time | This tour trays replace stacked expandables (All-time default). Personal All-time switches Your stats | Top picks; Global switches PPS | Picking Avg | Shows. Global boards page the top 50 at 10 rows and pin the you-row when it is off-page. In-page trays use `ChromeSegmentedControl` `tone="inset"` so they do not clone tertiary chrome.
+
+---
+
+## [1.70.0] — 2026-09-04
+
+### Added
+- **Global Stats leaderboards (#1004 Phase 2)** — `/dashboard/stats/global` replaces the rankings-coming shell with expandable **All-time** and **This tour** boards (same IA as Personal): Points per show, Picking average, Shows. Top 50 per board plus a highlighted you-row from the signed-in `users/{uid}` doc. Ratio boards require `showsPlayed >= 3` (documented; Shows has no gate). Functions-owned `global_stats_leaderboards/{allTime|tour:{tourKey}}` rebuild after rollup/revert, nightly at 08:00 ET, and via admin `refreshGlobalStatsLeaderboards`. Client reads those docs + own user doc only.
+
+### Changed
+- **Firestore rules** — authenticated read of `global_stats_leaderboards`; Admin SDK / Functions write only.
+
+---
+
+## [1.69.0] — 2026-09-03
+
+### Added
+- **Stats content remap (#1004)** — Personal owns every *your* stat (expandable all-time above expandable “Your picks this tour”). Band mounts the #555 song explorer. Global is an honest rankings-coming shell until Phase 2 leaderboards.
+
+### Changed
+- **`/dashboard/tour-stats`** — redirects to `/dashboard/stats/band` (preserve `?tour=`). Feature-discovery marker `tour-stats` moves to the Band segment.
+- **Tour picker** — `showTourScopePicker` is a real meta flag. Personal gains the same chrome picker as Standings Tour / Band; all-time stats stay tour-agnostic.
+
+---
+
+## [1.68.1] — 2026-09-03
+
+### Changed
+- **Desktop sticky chrome** — Picks, Pools, Standings, Stats, and Account share one scrollport sticky stack (date/tour scope + cluster title + tertiary tray). Lock and install banners sit in the scrolling body below that stack. Mobile chrome is unchanged. #704 landscape/`desk` screens stay follow-on.
+- **Helper copy** — Account Profile (and Messages) descriptions are `InfoTooltip`s via `DashboardActionRow` `hint`. Visible description paragraphs are owner-opt-in only (`summary`).
+
+---
+
+## [1.68.0] — 2026-09-03
+
+### Added
+- **Scorecard full-song model odds (#767)** — `pick-recommendations.json` now includes `playProbBySong` (normalized title → show-wide `playProb`) for every song in the history window. Scorecard looks up each pick; titles missing from the map show `<1% model odds`. Older artifacts without the map still use per-slot top-K rows. Odds stay omitted when the artifact is missing or for another night.
+
+---
+
+## [1.67.0] — 2026-09-03
+
+### Added
+- **Account Preferences hub (#770 / #513)** — tertiary **Preferences** at `/dashboard/profile/account` composes sign-in, logout, legal, install/PWA status, and notification prefs (same `notificationPrefs` keys). Cosmetic Push / Email grouping only.
+- **Inbox archive + delete (#513 Phase 2)** — Messages sections **Unopened / Read / Archived**. Owners may set `commsInbox.archivedAt` and hard-delete their own inbox docs. Unread bell count excludes archived.
+
+### Changed
+- **Primary nav (#770)** — last player tab label is **Account** (path prefix stays `/dashboard/profile/*`). Tertiary is **Profile / Messages / Preferences**. Context titles: Account primary, Preferences tertiary.
+- **Messages** — inbox only. Preferences accordion removed. Inbox card keeps the existing expand/collapse header. **Read** and **Archived** start collapsed (count on the row); empty Archived/Read are hidden; history previews 8 newest with Show older. `?openPush=1` and `DashboardInstallEngageBanner` land on Preferences. Legacy `/dashboard/notifications` and `/dashboard/account-security` still preserve query.
+- **Profile identity** — callout + prominent **View public profile** CTA. Quiet **View personal stats** link kept. Install card moves to Preferences.
+- **Delete account** — demoted to a text-link disclosure (existing #388 confirm flow). Contact us stays hidden.
+
+### Removed / Deprecated
+- Preferences accordion on Messages (`NotificationsPrototypeScreen`).
+
+---
+
+## [1.66.1] — 2026-09-03
+
+### Changed
+- **Stats tertiary chips** — tray labels are **Personal / Global / Band** (drop the redundant “Stats” suffix) so three uppercase equal-width segments fit on mobile. Destination names and page copy stay Personal / Global / Band Stats.
+
+---
+
+## [1.66.0] — 2026-09-03
+
+### Added
+- **Stats primary (#769)** — fifth player tab (`BarChart3`) with nested **Personal Stats** (`/dashboard/stats` and `/dashboard/stats/personal`), **Global Stats** (`/dashboard/stats/global`), and **Band Stats** (`/dashboard/stats/band`). `ChromeSegmentedControl` tray at the cluster call site. Bottom nav is 5 columns for players, 6 when Admin is present.
+
+### Changed
+- **Standings tertiary (#769)** — chrome is exactly **Show / Tour / Pools**. Feature-discovery marker `tour-stats` moves to the Stats **Global** segment. Personal stats (season averages + heatmap) move off Profile onto Personal Stats; Profile keeps a quiet **View personal stats** link.
+- **`/dashboard/tour-stats` (#769)** — redirects to `/dashboard/stats/global` and preserves `?tour=`. Stats primary stays active on the hop. Public marketing `/tour-stats` is unchanged.
+
+### Removed
+- Standings **Stats** segment from `StandingsViewToggle` / `useStandingsView` / mobile Standings chrome (legacy path kept as a redirect).
+
+---
+
+## [1.65.2] — 2026-09-03
+
+### Changed
+- **Pools how-it-works chrome** — “How pools work” is a context-bar / tray-adjacent CircleHelp icon (Standings Scale pattern) that opens a modal. Removes the in-flow disclosure under the Pools tertiary tray.
+
+---
+
+## [1.65.1] — 2026-09-03
+
+### Added
+- **Picks Scorecard (#767)** — `/dashboard/picks/scorecard` replaces the coming-soon shell with a global, show-scoped self card. Post-lock overlap (“N players also picked this”), optional model odds from Storage `pick-recommendations.json`, and rank/score from the existing show-scoped standings query. Pre-lock shows the player’s own card only. **GA4:** `scorecard_open` `{ show_date, lock_state }`, `scorecard_metric_impression` `{ show_date, metric }` (`overlap` \| `odds` \| `rank`).
+
+---
+
+## [1.65.0] — 2026-09-03
+
+### Added
+- **Pools tertiary (#768)** — nested destinations **My Pools** (`/dashboard/pools`), **Create Pool** (`/dashboard/pools/create`), and **Join Pool** (`/dashboard/pools/join`) with the standard `ChromeSegmentedControl` tray. How-it-works stays a disclosure. `/dashboard/pool/:id` is unchanged (Pools primary stays active). Post-auth `/join/:code` with a pending invite lands on Join Pool.
+
+---
+
+## [1.64.0] — 2026-09-03
+
+### Added
+- **Picks tertiary cluster (#766)** — Make Picks / Picks Lab / Scorecard nested under the primary Picks tab: `/dashboard` and `/dashboard/picks` (form), `/dashboard/picks/lab`, `/dashboard/picks/scorecard`. Mobile portal + desktop in-page tray use `ChromeSegmentedControl`. Lab tab stays visible when `VITE_ENABLE_PREDICTION_LAB` is off (coming-soon shell). Scorecard is an empty shell. Date picker stays on all three destinations.
+
+### Changed
+- **Prediction Lab destination (#766)** — `PickPredictionPanel` moves off the Make Picks scroll to `/dashboard/picks/lab`. Make Picks keeps lock/edit, scoring/lock-status tools, and `utm_campaign` landed logging.
+
+---
+
+## [1.63.1] — 2026-09-03
+
+### Added
+- **Tertiary chrome contract (#765)** — `docs/DASHBOARD_IA.md` documents the rectangular equal-width tray (`ChromeSegmentedControl`), mobile portal vs desktop in-page placement, snap-to-top, primary-tab `isActive`, and the cluster checklist (`dashboardPageMeta` / `verify-dashboard-meta` / vocabulary). `NAV_LABEL_STATS` stub only; Profile primary label unchanged.
+
+### Changed
+- **Profile desktop cluster nav + Standings desktop toggle (#765)** — both use `ChromeSegmentedControl` (no duplicated tray classes; desktop Standings drops auto-width pills). Standings still has Show / Tour / Stats / Pools.
+
+---
+
+## [1.63.0] — 2026-09-03
+
+### Added
+- **Tour-stats SEO auto-expand (#959 / epic #926)** — when `public_tour_stats` meets the thin-page gate (`showsWithSetlist ≥ 4`, `uniqueSongs ≥ 20`, `lastShowDate` in the current year), the next production build prerenders `/tour-stats/{slug}` (facts HTML + FAQ/ItemList), and appends sitemap + `llms.txt` from the same registry — no hand edit of `seoRoutes.js`. Kill-switch: `TOUR_STATS_SEO_AUTO_EXPAND=0`. Optional `TOUR_STATS_SEO_ALLOWLIST` / `TOUR_STATS_SEO_DENYLIST`. Aggregates only; GSC Request indexing stays human.
 
 ---
 

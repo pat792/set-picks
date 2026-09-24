@@ -62,9 +62,13 @@ const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorke
 const { getTriggerSpec } = require("./commsCatalog");
 const { refreshPublicTourStats } = require("./publicTourStats");
 const {
+  rebuildGlobalStatsLeaderboards,
+} = require("./globalStatsLeaderboards");
+const {
   verifyResendWebhookPayload,
   handleResendWebhookEvent,
 } = require("./commsResendWebhook");
+const { handleResendInboundEvent } = require("./commsResendInboundWebhook");
 const {
   processOneClickUnsubscribe,
   verifyOneClickUnsubscribeToken,
@@ -90,6 +94,8 @@ const phishnetApiKey = defineSecret("PHISHNET_API_KEY");
 const resendApiKey = defineSecret("RESEND_API_KEY");
 // Resend webhook signing secret (Svix) for bounce/complaint suppression (#442).
 const resendWebhookSecret = defineSecret("RESEND_WEBHOOK_SECRET");
+// Separate Svix secret for the inbound receiving webhook (one secret per Resend endpoint).
+const resendInboundWebhookSecret = defineSecret("RESEND_INBOUND_WEBHOOK_SECRET");
 // GA4 Measurement Protocol (#461). Measurement id is public (same as VITE_GA_MEASUREMENT_ID);
 // API secret is created in GA4 Admin → Data streams → Measurement Protocol API secrets.
 // Both surface as process.env for `commsGa4Measurement.js`. Unset → no-op send.
@@ -675,9 +681,11 @@ exports.runCommsTrigger = onCall(
 );
 
 /**
- * Resend deliverability webhook — hard bounces + spam complaints (#442).
+ * Resend deliverability + engagement webhook (#442 / #512 Slice A).
  * Configure in Resend dashboard → Webhooks → endpoint URL for this function.
- * Events: `email.bounced`, `email.complained`, `email.suppressed`.
+ * Events: `email.bounced`, `email.complained`, `email.suppressed`,
+ * `email.opened`, `email.clicked`. Do **not** subscribe `email.received` here.
+ * See docs/comms-triggers/RESEND_WEBHOOK.md.
  */
 exports.commsResendWebhook = onRequest(
   {
@@ -715,6 +723,71 @@ exports.commsResendWebhook = onRequest(
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       logger.warn("commsResendWebhook rejected", { msg });
+      res.status(400).send("Invalid webhook");
+    }
+  }
+);
+
+/**
+ * Resend inbound receiving webhook. Allowlist `updates@` / `unsubscribe@` /
+ * `support@` then wrap + `emails.send` to `support@road2media.com` (original
+ * From + Reply-To). Other local-parts
+ * return 200 without forwarding so Resend does not retry catch-all spam.
+ * Subscribe **only** `email.received` on this URL.
+ * See docs/comms-triggers/INBOUND_FORWARDING.md.
+ */
+exports.commsResendInboundWebhook = onRequest(
+  {
+    region: PHISHNET_FUNCTIONS_REGION,
+    secrets: [resendApiKey, resendInboundWebhookSecret],
+    invoker: "public",
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+    const rawBody =
+      typeof req.rawBody === "string"
+        ? req.rawBody
+        : req.rawBody instanceof Buffer
+          ? req.rawBody.toString("utf8")
+          : JSON.stringify(req.body || {});
+    try {
+      const event = verifyResendWebhookPayload(
+        rawBody,
+        req.headers,
+        process.env.RESEND_INBOUND_WEBHOOK_SECRET
+      );
+      const eventId = req.headers["svix-id"] ? String(req.headers["svix-id"]) : null;
+      const resend = buildResendClient(process.env.RESEND_API_KEY, logger);
+      const result = await handleResendInboundEvent({
+        event,
+        eventId,
+        resend,
+        db,
+        admin,
+        logger,
+      });
+      logger.info("commsResendInboundWebhook processed", {
+        type: event?.type,
+        ...result,
+      });
+      res.status(200).json({ ok: true });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const code = error && typeof error === "object" ? error.code : null;
+      const retryable =
+        code === "inbound_forward_failed" ||
+        code === "missing_resend_client" ||
+        code === "resend_receiving_get_unavailable" ||
+        code === "resend_send_unavailable";
+      if (retryable) {
+        logger.error("commsResendInboundWebhook forward failed", { msg, code });
+        res.status(500).send("Inbound forward failed");
+        return;
+      }
+      logger.warn("commsResendInboundWebhook rejected", { msg });
       res.status(400).send("Invalid webhook");
     }
   }
@@ -1272,8 +1345,9 @@ exports.scheduledTourCountdownComms = onSchedule(
 );
 
 /**
- * Morning-after tour rankings comms (#440).
- * Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
+ * Morning-after tour rankings comms (#440) + pending `tour_recap` (#510).
+ * Tour recap waits until this 8am PT tick after the finale date (not night-of
+ * rollup). Gated by `COMMS_EVENT_ADAPTERS_ENABLED=true`.
  */
 exports.scheduledTourRankingsDailyComms = onSchedule(
   {
@@ -1746,6 +1820,64 @@ exports.refreshPhishnetShowCalendar = onCall(
       throw new HttpsError(
         "failed-precondition",
         `refreshPhishnetShowCalendar failed: ${msg}`
+      );
+    }
+  }
+);
+
+/**
+ * Nightly rebuild of Global Stats leaderboard aggregates (#1004).
+ * Catch-up for rollup-hook misses; Admin SDK scan of `users` only.
+ */
+exports.scheduledGlobalStatsLeaderboardsRefresh = onSchedule(
+  {
+    schedule: "0 8 * * *",
+    timeZone: "America/New_York",
+    region: PHISHNET_FUNCTIONS_REGION, // pragma: allowlist secret
+    timeoutSeconds: 300,
+    memory: "512MiB",
+  },
+  async () => {
+    await rebuildGlobalStatsLeaderboards({
+      db,
+      admin,
+      allTours: true,
+      trigger: "scheduled",
+      logger,
+    });
+    return null;
+  }
+);
+
+/**
+ * Admin-only on-demand rebuild of Global Stats leaderboards (#1004).
+ */
+exports.refreshGlobalStatsLeaderboards = onCall(
+  {
+    region: PHISHNET_FUNCTIONS_REGION, // pragma: allowlist secret
+    invoker: "public",
+    enforceAppCheck: false,
+    timeoutSeconds: 300,
+    memory: "512MiB",
+  },
+  async (request) => {
+    try {
+      assertAdminClaim(request);
+      const result = await rebuildGlobalStatsLeaderboards({
+        db,
+        admin,
+        allTours: true,
+        trigger: "admin",
+        logger,
+      });
+      return { ok: true, ...result };
+    } catch (e) {
+      if (e instanceof HttpsError) throw e;
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error("refreshGlobalStatsLeaderboards unexpected error", msg, e);
+      throw new HttpsError(
+        "failed-precondition",
+        `refreshGlobalStatsLeaderboards failed: ${msg}`
       );
     }
   }

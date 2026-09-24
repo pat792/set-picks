@@ -17,6 +17,9 @@ const {
   computePerPickRollup,
   resolveTourKeyForDate,
 } = require("./rollupSeasonAggregates");
+const {
+  rebuildGlobalStatsLeaderboardsSafe,
+} = require("./globalStatsLeaderboards");
 
 const MAX_FIRESTORE_BATCH_WRITES = 500;
 
@@ -237,6 +240,15 @@ async function applyRevertRollupForShow({
     revertedPicks: gradedRows.length,
     callerUid,
   });
+
+  await rebuildGlobalStatsLeaderboardsSafe({
+    db,
+    admin,
+    tourKey,
+    trigger: "revert",
+    logger,
+  });
+
   return { ok: true, revertedPicks: gradedRows.length };
 }
 

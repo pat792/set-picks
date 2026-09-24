@@ -11,13 +11,17 @@ import {
   StandingsTourView,
   useStandingsScreen,
 } from '../../features/scoring';
-import { useDashboardMobileChromePortal } from '../../shared/hooks/useDashboardMobileChromePortal';
+import {
+  useDashboardDesktopPageChromePortal,
+  useDashboardMobileChromePortal,
+} from '../../shared/hooks/useDashboardMobileChromePortal';
 import { SponsorSlot } from '../../shared/ui';
 
 export default function StandingsPage({ selectedDate, onSelectShowDate }) {
   const screen = useStandingsScreen(selectedDate, { onSelectShowDate });
   const invite = screen.inviteChooser;
   const mobileChromeRoot = useDashboardMobileChromePortal();
+  const desktopChromeRoot = useDashboardDesktopPageChromePortal();
 
   const mobileFixedChrome = (
     <StandingsMobileFixedChrome
@@ -33,15 +37,16 @@ export default function StandingsPage({ selectedDate, onSelectShowDate }) {
         ? createPortal(mobileFixedChrome, mobileChromeRoot)
         : null}
 
-      {/* Desktop sticky chrome — mobile Views live in the fixed header stack. */}
-      <StandingsStickyChrome
-        view={screen.view}
-        onChange={screen.setView}
-        onOpenScoringRules={screen.openScoringRules}
-        pinBelowDesktopDatePicker={
-          screen.view !== 'tour' || (screen.selectableTours?.length ?? 0) > 0
-        }
-      />
+      {desktopChromeRoot
+        ? createPortal(
+            <StandingsStickyChrome
+              view={screen.view}
+              onChange={screen.setView}
+              onOpenScoringRules={screen.openScoringRules}
+            />,
+            desktopChromeRoot,
+          )
+        : null}
 
       <InviteChooserSheet
         open={invite.open}

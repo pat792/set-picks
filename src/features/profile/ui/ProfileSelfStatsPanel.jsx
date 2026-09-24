@@ -21,9 +21,9 @@ import TopPicksFrequencyStrip from './TopPicksFrequencyStrip';
  * Self-Profile stats: season averages + top-picks frequency strip (#553 / #554).
  * Heatmap is self-only (live-compute); public profile stays on the lighter strip.
  *
- * @param {{ uid?: string }} props
+ * @param {{ uid?: string, section?: 'all' | 'stats' | 'picks' }} props
  */
-export default function ProfileSelfStatsPanel({ uid }) {
+export default function ProfileSelfStatsPanel({ uid, section = 'all' }) {
   const { stats, loading: statsLoading } = useUserSeasonStats(uid);
   const heatmap = useProfilePickHeatmap(uid, { enabled: Boolean(uid) });
   const { songs } = useSongCatalog();
@@ -73,9 +73,15 @@ export default function ProfileSelfStatsPanel({ uid }) {
 
   if (!uid) return null;
 
+  const showStats = section === 'all' || section === 'stats';
+  const showPicks = section === 'all' || section === 'picks';
+
   return (
-    <div className="mb-8">
-      <section className="rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass">
+    <div className={section === 'all' ? 'mb-8' : undefined}>
+      <section
+        hidden={!showStats}
+        className="rounded-3xl border border-border-subtle bg-surface-panel p-6 shadow-inset-glass"
+      >
         <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-content-secondary">
           Your stats
         </h2>
@@ -100,12 +106,15 @@ export default function ProfileSelfStatsPanel({ uid }) {
         </InfoTooltipProvider>
       </section>
 
-      <TopPicksFrequencyStrip
-        rows={heatmap.rows}
-        loading={heatmap.loading}
-        showsAggregated={heatmap.showsAggregated}
-        showsAvailable={heatmap.showsAvailable}
-      />
+      <div hidden={!showPicks}>
+        <TopPicksFrequencyStrip
+          rows={heatmap.rows}
+          loading={heatmap.loading}
+          showsAggregated={heatmap.showsAggregated}
+          showsAvailable={heatmap.showsAvailable}
+          flushTop={section !== 'all'}
+        />
+      </div>
     </div>
   );
 }

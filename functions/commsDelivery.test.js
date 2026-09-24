@@ -107,6 +107,32 @@ test("bypassDailyCap defaults to false when not passed", async () => {
   assert.equal(email.calls[0].bypassDailyCap, false);
 });
 
+test("campaignId from recipient.vars threads to the email worker and stamps the dedup doc", async () => {
+  const db = makeFakeDb();
+  const email = recordingWorker("email", { ok: true, id: "re_abc" });
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "account_welcome",
+    recipients: [
+      {
+        uid: "u1",
+        userData: { email: "u1@example.com" },
+        vars: { campaignId: "summer_tour_2026" },
+      },
+    ],
+    workers: { email },
+    dryRun: false,
+    sendGa4Delivered: async () => ({ sent: true }),
+  });
+
+  assert.equal(email.calls[0].campaignId, "summer_tour_2026");
+  const stamped = db._dedup.get("welcome:u1");
+  assert.equal(stamped.resendEmailId, "re_abc");
+  assert.equal(stamped.campaignId, "summer_tour_2026");
+});
+
 test("forceResend threads through to the channel worker ctx (so email can vary its Resend idempotency key)", async () => {
   const db = makeFakeDb();
   const email = recordingWorker("email", { ok: true });
@@ -299,6 +325,68 @@ test("fatigue cap limits sends per user per run", async () => {
   });
   assert.equal(summary.delivered, 2);
   assert.equal(summary.skips.fatigue_cap, 1);
+});
+
+test("tour_recap dry-run does not write and reports would_deliver (#510)", async () => {
+  const db = makeFakeDb();
+  const inApp = recordingWorker("inApp", { ok: true, skipReason: "dry_run" });
+  const summary = await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "tour_recap",
+    recipients: [
+      {
+        uid: "u1",
+        userData: {},
+        payload: { rank: 2, points: 90, wins: 1, tour_name: "Sample Tour" },
+        vars: { tourId: "Sample Tour" },
+      },
+    ],
+    workers: { inApp },
+    dryRun: true,
+  });
+  assert.equal(summary.ok, true);
+  assert.equal(summary.templateId, "tour-recap");
+  assert.equal(summary.dryRun, true);
+  assert.equal(summary.delivered, 1);
+  assert.equal(summary.results[0].status, "would_deliver");
+  assert.equal(summary.results[0].dedupId, "tour_recap:Sample Tour:u1");
+  assert.equal(inApp.calls.length, 1);
+  assert.equal(db._writes.length, 0);
+});
+
+test("tour_recap prefs_off and existing dedup skip send (#510)", async () => {
+  const prefsDb = makeFakeDb();
+  const inApp = recordingWorker("inApp");
+  const prefsOff = await deliverCommsTrigger({
+    db: prefsDb,
+    admin: fakeAdmin,
+    triggerId: "tour_recap",
+    recipients: [
+      {
+        uid: "u1",
+        userData: { notificationPrefs: { results: false } },
+        vars: { tourId: "Sample Tour" },
+      },
+    ],
+    workers: { inApp },
+    dryRun: false,
+  });
+  assert.equal(prefsOff.delivered, 0);
+  assert.equal(prefsOff.skips.no_channel_delivered, 1);
+  assert.equal(inApp.calls.length, 0);
+
+  const dedupDb = makeFakeDb({ "tour_recap:Sample Tour:u1": { delivered: true } });
+  const deduped = await deliverCommsTrigger({
+    db: dedupDb,
+    admin: fakeAdmin,
+    triggerId: "tour_recap",
+    recipients: [{ uid: "u1", userData: {}, vars: { tourId: "Sample Tour" } }],
+    workers: { inApp },
+    dryRun: false,
+  });
+  assert.equal(deduped.skips.deduped, 1);
+  assert.equal(inApp.calls.length, 0);
 });
 
 test("unknown trigger returns an error summary", async () => {

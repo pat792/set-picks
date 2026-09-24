@@ -101,7 +101,7 @@ export function usePendingPoolJoin(showDates = []) {
         poolId: null,
         errorKind: 'timeout',
       });
-      showErrorToast('Still joining — tap Retry on the Pools tab.');
+      showErrorToast('Still joining — tap Retry on Join Pool.');
     }, PENDING_POOL_JOIN_TIMEOUT_MS);
 
     (async () => {
@@ -176,7 +176,7 @@ export function usePendingPoolJoin(showDates = []) {
           poolId: null,
           errorKind: 'generic',
         });
-        showErrorToast('Could not join the pool. Try again from the Pools tab.');
+        showErrorToast('Could not join the pool. Try again from Join Pool.');
       } finally {
         if (!timedOut) {
           clearPendingPoolJoinInFlight();

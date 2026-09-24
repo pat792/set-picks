@@ -333,7 +333,7 @@ Scores update live during the show. Check back tonight.
 | **Prefs key** | `results` |
 | **Dedup** | `show_recap:{uid}:{showDate}` in `commsInbox` + `fcm_notification_log` |
 | **Implementation** | Batch fan-out triggered after `rollupScoresForShow` completes |
-| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. Narrative vars from `comms_show_context` (#572). |
+| **Note** | Email folded into `tour_rankings_daily`'s next-morning send (#451) — the two triggers fired for the same `(uid, showDate)` on every single-tour-night, the dominant same-day email fatigue collision. inApp/push keep the immediate night-of tease + inbox card unchanged. Narrative vars from `comms_show_context` (#572). `narrative_line` composer (#985) weaves arc + card + relative rank; push stays a short tease. |
 
 #### Variables used
 
@@ -359,7 +359,7 @@ Scores update live during the show. Check back tonight.
 - Encore: {{encore_result}}
 - Wildcard: {{wildcard_result}}{{#if bustout_bonus}} (+{{bustout_bonus}} Bustout Boost){{/if}}
 
-**Tonight:** {{setlist_highlight}}
+**Tonight:** {{narrative_line}} *(composer: arc + your card + relative rank — #985; soft-fails to `{{setlist_highlight}}`)*
 
 Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the room.
 
@@ -375,13 +375,13 @@ Tonight's top score was {{top_score}} points — {{top_scorer_handle}} led the r
 |-------|-------|
 | **Status** | `shipped` |
 | **Automation** | `automated` |
-| **Schedule** | Morning after each show night, 8:00 AM `America/Los_Angeles` (`onSchedule "0 8 * * *"`); only fires on days following a show |
+| **Schedule** | Morning after each show night, 8:00 AM `America/Los_Angeles` (`onSchedule "0 8 * * *"`); only fires on days following a show; **skipped** the morning after a tour finale (`tour_recap` day) |
 | **Channels** | `inApp`, `push`, `email` |
 | **Audience** | Users who have picks in at least one show this tour |
 | **Prefs key** | `results` |
 | **Dedup** | `tour_rank:{uid}:{showDate}` |
 | **Implementation** | `onSchedule` daily; checks if yesterday was a show night; fans out standings update |
-| **Note** | Email absorbs `show_recap`'s "your night" section (#451) — one email per `(uid, showDate)` instead of two. inApp/push are unaffected; those still fire immediately, night-of, from `show_recap`. Tour rank is the **overall tour leaderboard** (not last-night-only). `rank_change` is display-rank delta vs the prior show (`up N` / `down N` / `held`); night-one uses debut copy; mid-tour first appearance uses late-joiner catch-up (#544). |
+| **Note** | Email absorbs `show_recap`'s "your night" section (#451) — one email per `(uid, showDate)` instead of two. inApp/push are unaffected; those still fire immediately, night-of, from `show_recap`. Tour rank is the **overall tour leaderboard** (not last-night-only). `rank_change` is display-rank delta vs the prior show (`up N` / `down N` / `held`); night-one uses debut copy; mid-tour first appearance uses late-joiner catch-up (#544). The morning after a tour finale this trigger is suppressed so `tour_recap` is the only wrap that day. |
 
 #### Variables used
 
@@ -410,9 +410,9 @@ Up next: {{next_show_venue}} on {{next_show_date}}. Picks open now.
 **Preview:** `{{correct_picks_count}} of {{total_picks_count}} correct last night. Now #{{tour_rank}} on tour ({{rank_change}}).`
 
 **Body sections:**
-1. **Your night** *(absorbed from `show_recap`, #451)* — score, rank (global + pool if applicable), correct picks count.
+1. **Your night** *(absorbed from `show_recap`, #451 / #985)* — `{{narrative_line}}` weaves set-flow arc, which of *their* slots hit (bustout caught or missed), and night rank (global + pool when present). Tour `rank_change` stays in the tour paragraph below.
 2. **Pick-by-pick** — opener, closer, encore, wildcard results with song names. Bustout Boost called out if earned.
-3. **Setlist context** — `{{setlist_highlight}}` (e.g., `Bustout: Melt the Guns - a 2051 show gap.` or `Bustouts: Song A - an 87 show gap; Song B - a 40 show gap.`).
+3. **Setlist context** — `{{setlist_highlight}}` (e.g., `Bustout: Melt the Guns - a 2051 show gap.` or `Bustouts: Song A - an 87 show gap; Song B - a 40 show gap.`). Folded into `{{narrative_line}}` when the composer has facts.
 4. **Your tour position** — rank, points, shows played, rank change vs yesterday.
 5. **Pool standing** — `{{pool_tour_rank}}` in `{{pool_name}}` (if applicable).
 6. **Next show** — {{next_show_venue}}, {{next_show_date}}. Picks are open.
@@ -580,6 +580,48 @@ Abbreviated recap + Standings / invite CTA. Forced to every inbox (no play filte
 
 ---
 
+## 12 — `tour_recap`
+
+| Field | Value |
+|-------|-------|
+| **Status** | `shipped` |
+| **Automation** | `automated` — 8am PT `scheduledTourRankingsDailyComms` → `deliverPendingTourRecaps` after the tour's **final show date** is in the past **and within a 14-day lookback**. **Not** same-tick as night `show_recap`. **Not** War Room on the production happy path. |
+| **Event** | Last date in `show_calendar.showDatesByTour` for that tour is already yesterday-or-earlier (PT) and ≤14 days old **and** `comms_tour_recap_state/{tourId}` is not terminal. First successful fan-out writes `status: sent` and hard-skips forever (once-ever). Older / never-sent finales outside lookback: admin `runCommsTrigger` only. |
+| **Channels** | `inApp`, `push`, `email` (abbreviated teaser; optional `emailFull` / in-app long form) |
+| **Audience** | Users with ≥1 graded pick on any show in that tour |
+| **Prefs key** | `results` |
+| **Dedup** | `tour_recap:{tourId}:{uid}` in `fcm_notification_log` + inbox message id |
+| **Priority** | P1 (`results_recap`, W3) |
+| **Implementation** | Thin adapter in `functions/commsEventAdapters.js` → `deliverCommsTrigger`. Edition flavor from `content/comms/tours/<edition>.md` + send-time payload — do not hardcode Sphere as the live catalog trigger. |
+| **Note** | Night `show_recap` ≠ this end-of-tour recap. Last night of tour is still `show_recap` only; this trigger waits until the next morning and that morning skips `tour_rankings_daily`. Do not replace `show_recap` or `tour_rankings_daily` on mid-tour nights. Sphere ’26 (`sphere-2026-inaugural` / `tour_recap_sphere_2026`) and any calendar tour key matching `/\bsphere\b/i` (e.g. `2026 Sphere`) are archive + War Room replay (`deliverSphere2026TourRecapInbox`) only — cron writes `comms_tour_recap_state` `skipped_archive` (#1033). Per-uid dedup remains; tour-level state is the durable once-ever process for every tour. GitHub #510 / #1033. |
+
+#### Variables used
+
+`{{handle}}`, `{{rank}}`, `{{points}}`, `{{wins}}`, `{{showsPlayed}}`, `{{participantCount}}`, `{{tour_id}}`, `{{tour_name}}`, `{{show_count}}`, `{{headline}}`, `{{podium}}`
+
+#### Rank branches (personalized)
+
+champion · top 5 · top 10 · full-run outside top 10 · partial attendance · fallback
+
+#### Template — Push
+
+**Title:** `Tour recap is in`  
+**Body:** champion: `You took #1 with {{points}} pts and {{wins}} nightly wins. Open the app for the full wrap-up.` otherwise `You finished #{{rank}} ({{points}} pts, {{wins}} wins). Open the app for your personalized recap.`  
+**Deep link:** inbox / `/dashboard/standings`
+
+#### Template — In-App
+
+**Heading:** `{{headline}}` (edition flavor)
+
+Podium + honorable mentions + personalized rank-branch paragraph. CTA: standings (no “Open the app”).
+
+#### Template — Email (abbreviated)
+
+**Subject:** `{{tour_name}} recap is in`  
+Teaser + champion one-liner + CTA to log in / standings. Full narrative stays in-app.
+
+---
+
 ## System triggers
 
 ### `push_canary`
@@ -601,7 +643,7 @@ These shipped implementations are covered by the v1 trigger set above. Keep the 
 |-------------|--------------|
 | `post_show_win` | `show_recap` (comprehensive) + `score_first_points` / `score_leader` (live) |
 | `post_show_near_miss` | `show_recap` |
-| `tour_recap_sphere_2026` | `show_recap` (generalized) + `tour_rankings_daily` |
+| `tour_recap_sphere_2026` | `tour_recap` (durable personalized end-of-tour). Sphere ’26 remains archive + War Room replay only. |
 | `profile_incomplete_nudge` | `account_welcome` (catch early); add nudge at D+1 if needed |
 | `return_after_14d` | `tour_countdown` + `tour_engagement_reminder` cover re-engagement |
 

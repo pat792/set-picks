@@ -86,8 +86,9 @@ Bridges (dotted): Chief of Staff · Growth Program Manager · RevOps Lead · Bra
 | Sponsor BD plan | CRO | Sponsor BD, Lead Gen | Monetization Strategist, EiC |
 | Affiliate e2e proposal | RevOps (coherence) | Affiliate Program Manager | Integrations, Data Architect, CCO |
 | Market intel sweep | CDO | Market Intelligence Operator | Insights, Marketing |
+| SEO Optimize scored pack (#926 / #934) | Growth Program Manager | Marketing Specialist | EiC (public SEO copy), CDO (GSC/GA4/`public_tour_stats` facts) |
 
-**Guardrails:** draft-only default; PR base `staging`; never merge/deploy from agents; no ad-hoc Resend; no live social/BD without L2 approval; commercial/affiliate in-product only after Phase 3; night `show_recap` ≠ tour `tour_recap`; scrape allowlist only; facts-only setlists.
+**Guardrails:** draft-only default; PR base `staging`; never merge/deploy from agents; no ad-hoc Resend; no live social/BD without L2 approval; commercial/affiliate in-product only after Phase 3; night `show_recap` ≠ tour `tour_recap`; scrape allowlist only; facts-only setlists. SEO scored loop: [`docs/SEO_OPTIMIZE_AUTONOMY.md`](./SEO_OPTIMIZE_AUTONOMY.md).
 
 ### Draft artifacts (required)
 
@@ -169,6 +170,8 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 
 | Date | Change |
 |------|--------|
+| 2026-09-03 | SEO Optimize scored pack RACI (#934 / epic #926): GPM accountable, Marketing Specialist responsible, EiC + CDO consulted. Playbook: `docs/SEO_OPTIMIZE_AUTONOMY.md` |
+| 2026-09-03 | #933 E2: allowlisted SEO title/H1 scan (`seo_title_h1_scan`) + refuse list; brief `content/marketing/933-competitor-title-h1-gap-brief.md` |
 | 2026-08-08 | Draft artifacts required on disk (`content/marketing/`, `content/comms/`, `crew/output/`); Cursor rule `crew-draft-artifacts.mdc` |
 | 2026-07-20 | L0 scaffold: doc, `crew/`, Cursor skills, epic #695 — flexibility/learning principles documented |
 | 2026-07-20 | L1: allowlisted HTTP fetch + `market_intel_sweep` script; tests; status promoted for research only |

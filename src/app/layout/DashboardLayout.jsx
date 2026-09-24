@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { Link, Navigate, useLocation, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth';
 import { usePendingPoolJoin } from '../../features/pool-invite';
@@ -10,30 +10,51 @@ import {
   dashboardLazyRouteImport,
   prefetchDashboardRoutes,
 } from './model/dashboardRouteModules';
+import PicksClusterLayout from './ui/PicksClusterLayout';
 import ProfileClusterLayout from './ui/ProfileClusterLayout';
+import PoolsClusterLayout from './ui/PoolsClusterLayout';
+import StatsClusterLayout from './ui/StatsClusterLayout';
 
 import PicksPage from '../../pages/picks/PicksPage';
+import PicksLabPage from '../../pages/picks/PicksLabPage';
+import PicksScorecardPage from '../../pages/picks/PicksScorecardPage';
+import PoolCreatePage from '../../pages/pools/PoolCreatePage';
+import PoolJoinPage from '../../pages/pools/PoolJoinPage';
 import PoolsPage from '../../pages/pools/PoolsPage';
 import StandingsPage from '../../pages/standings/StandingsPage';
 import ProfilePage from '../../pages/profile/ProfilePage';
+import PersonalStatsPage from '../../pages/stats/PersonalStatsPage';
+import GlobalStatsPage from '../../pages/stats/GlobalStatsPage';
+import BandStatsPage from '../../pages/stats/BandStatsPage';
 import {
   ScoringRulesModalProvider,
   StandingsTourScopeSelect,
   useStandingsTourSelection,
 } from '../../features/scoring';
 import {
+  NAV_LABEL_ACCOUNT,
   NAV_LABEL_ADMIN,
   NAV_LABEL_PICKS,
   NAV_LABEL_POOLS,
-  NAV_LABEL_PROFILE,
   NAV_LABEL_STANDINGS,
+  NAV_LABEL_STATS,
 } from '../../shared/config/dashboardVocabulary';
 import {
   PROFILE_CLUSTER_PATHS,
+  STATS_CLUSTER_PATHS,
+  isPicksClusterPath,
+  isPoolsClusterPath,
+  isPoolsTertiaryPath,
   isProfileClusterPath,
+  isStatsClusterPath,
+  isStatsQuaternaryPath,
 } from '../../shared/config/dashboardRoutes';
-import { FALLBACK_SHOW_DATES } from '../../shared/data/showDates.js';
-import { getNextShow, getShowBeforeDate, getShowStatus } from '../../shared/utils/timeLogic.js';
+import {
+  getShowBeforeDate,
+  getShowStatus,
+  resolveSelectedShowDate,
+  scheduleTodayYmd,
+} from '../../shared/utils/timeLogic.js';
 import {
   showOptionLabelCompact,
 } from '../../shared/utils/showOptionLabel.js';
@@ -52,16 +73,19 @@ import {
 } from '../../shared/config/branding';
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import { usePrefetchDashboardRoutes } from './model/usePrefetchDashboardRoutes';
+import { useHideMobilePrimaryNavForKeyboard } from './model/useHideMobilePrimaryNavForKeyboard';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
+import MobileKeyboardProbe from './ui/MobileKeyboardProbe';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
+import DashboardStickyChromeStack from './ui/DashboardStickyChromeStack';
 import DashboardTourDateScope from './ui/DashboardTourDateScope';
 import {
   DASHBOARD_MOBILE_FIXED_CHROME_ROOT_ID,
   DASHBOARD_SCROLLPORT_ID,
 } from '../../shared/hooks/useDashboardMobileChromePortal';
 
-import { ListMusic, Users, Medal, User as UserIcon, Settings } from 'lucide-react';
+import { ListMusic, Users, Medal, BarChart3, User as UserIcon, Settings } from 'lucide-react';
 
 // Primary nav tabs are static imports so tab switches never hit Suspense
 // (lazy + single boundary unmounts the old route before the new chunk resolves).
@@ -70,7 +94,6 @@ const AdminPage = lazy(dashboardLazyRouteImport.admin);
 const AccountPage = lazy(dashboardLazyRouteImport.account);
 const PoolHubPage = lazy(dashboardLazyRouteImport.poolHub);
 const NotificationsPage = lazy(dashboardLazyRouteImport.notifications);
-const TourStatsPage = lazy(dashboardLazyRouteImport.tourStats);
 
 function LazyDashboardRoute({ children }) {
   return <Suspense fallback={<RouteSuspenseFallback />}>{children}</Suspense>;
@@ -100,18 +123,36 @@ export default function DashboardLayout() {
   usePrefetchDashboardRoutes(location.pathname);
 
   const scrollDirection = useScrollDirection();
+  const primaryNavRef = useRef(null);
+  const topChromeRef = useRef(null);
+  useHideMobilePrimaryNavForKeyboard(primaryNavRef, topChromeRef);
 
+  // Same `showDates` as the picker options (Firestore snapshot via
+  // ShowCalendarProvider, emergency FALLBACK only when snapshot missing).
+  // Do not seed from a parallel static import — that drifts when cron
+  // ingests new tour dates into `show_calendar/snapshot`.
   const [selectedDate, setSelectedDate] = useState(() =>
-    getNextShow(FALLBACK_SHOW_DATES).date
+    showDates.length > 0 ? resolveSelectedShowDate(undefined, showDates) : ''
   );
+
+  // Re-resolve when the schedule day rolls (overnight tab) even if the
+  // snapshot document has not changed yet.
+  const [scheduleDay, setScheduleDay] = useState(() => scheduleTodayYmd());
+  useEffect(() => {
+    const tick = () => {
+      const today = scheduleTodayYmd();
+      setScheduleDay((prev) => (prev === today ? prev : today));
+    };
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!showDates.length) return;
-    setSelectedDate((prev) => {
-      if (showDates.some((s) => s.date === prev)) return prev;
-      return getNextShow(showDates).date;
-    });
-  }, [showDates]);
+    // Advance off past selections when next show appears (ingest) or today
+    // advances; keep browsing tonight / future nights.
+    setSelectedDate((prev) => resolveSelectedShowDate(prev, showDates));
+  }, [showDates, scheduleDay]);
 
   const showDateFromStandingsUrl = searchParams.get('showDate');
   useEffect(() => {
@@ -131,7 +172,8 @@ export default function DashboardLayout() {
     { name: NAV_LABEL_PICKS, path: '/dashboard', icon: ListMusic },
     { name: NAV_LABEL_POOLS, path: '/dashboard/pools', icon: Users },
     { name: NAV_LABEL_STANDINGS, path: '/dashboard/standings', icon: Medal },
-    { name: NAV_LABEL_PROFILE, path: '/dashboard/profile', icon: UserIcon },
+    { name: NAV_LABEL_STATS, path: STATS_CLUSTER_PATHS.root, icon: BarChart3 },
+    { name: NAV_LABEL_ACCOUNT, path: '/dashboard/profile', icon: UserIcon },
   ];
 
   if (isAdmin) {
@@ -151,21 +193,19 @@ export default function DashboardLayout() {
   const isWarRoomRoute = meta.desktopHeadingTone === 'warRoom';
   const isStandingsRoute =
     location.pathname === '/dashboard/standings' ||
-    location.pathname === '/dashboard/standings/' ||
-    location.pathname === '/dashboard/tour-stats' ||
-    location.pathname === '/dashboard/tour-stats/';
-  const isPicksRoute =
-    location.pathname === '/dashboard' ||
-    location.pathname === '/dashboard/' ||
-    location.pathname === '/dashboard/picks' ||
-    location.pathname === '/dashboard/picks/';
-  const isPoolsListRoute =
-    location.pathname === '/dashboard/pools' ||
-    location.pathname === '/dashboard/pools/';
+    location.pathname === '/dashboard/standings/';
+  const isPicksCluster = isPicksClusterPath(location.pathname);
+  const isPoolsTertiary = isPoolsTertiaryPath(location.pathname);
   const isProfileCluster = isProfileClusterPath(location.pathname);
+  const isStatsCluster = isStatsClusterPath(location.pathname);
+  const isStatsQuaternary = isStatsQuaternaryPath(location.pathname);
   /** Primary tabs nest controls under the mobile context bar (Standings pattern). */
   const usesMobileFixedChrome =
-    isStandingsRoute || isPicksRoute || isPoolsListRoute || isProfileCluster;
+    isStandingsRoute ||
+    isPicksCluster ||
+    isPoolsTertiary ||
+    isProfileCluster ||
+    isStatsCluster;
 
   return (
     <ScoringRulesModalProvider>
@@ -201,26 +241,32 @@ export default function DashboardLayout() {
         <div className="flex flex-col gap-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
+            const isPicksSection =
+              item.path === '/dashboard' && isPicksClusterPath(location.pathname);
             const isProfileSection =
               item.path === PROFILE_CLUSTER_PATHS.profile &&
               isProfileClusterPath(location.pathname);
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
-              (location.pathname === '/dashboard/pools' ||
-                location.pathname.startsWith('/dashboard/pool/'));
+              isPoolsClusterPath(location.pathname);
             const isStandingsSection =
               item.path === '/dashboard/standings' &&
               (location.pathname === '/dashboard/standings' ||
-                location.pathname === '/dashboard/standings/' ||
-                location.pathname === '/dashboard/tour-stats' ||
-                location.pathname === '/dashboard/tour-stats/');
+                location.pathname === '/dashboard/standings/');
+            const isStatsSection =
+              item.path === STATS_CLUSTER_PATHS.root &&
+              isStatsClusterPath(location.pathname);
             const isActive =
+              isPicksSection ||
               isProfileSection ||
               isPoolsSection ||
               isStandingsSection ||
-              (!isProfileSection &&
+              isStatsSection ||
+              (!isPicksSection &&
+                !isProfileSection &&
                 !isPoolsSection &&
                 !isStandingsSection &&
+                !isStatsSection &&
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (
@@ -241,13 +287,17 @@ export default function DashboardLayout() {
       </nav>
 
       {/* MOBILE TOP HEADERS — safe area + context (+ page chrome) under brand */}
-      <div className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]">
+      <div
+        ref={topChromeRef}
+        data-mobile-top-chrome
+        className="md:hidden fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top,0px)]"
+      >
         <div className="relative">
           <DashboardMobileBrandBar user={user} />
           {/*
             Context + optional page chrome share one absolute stack under the
             brand bar so scroll-hide moves them together. Pages portal into
-            #dashboard-mobile-fixed-chrome-root (Standings / Picks / Pools / Profile).
+            #dashboard-mobile-fixed-chrome-root (Standings / Picks / Pools / Stats / Profile).
           */}
           <div
             className={`absolute top-full left-0 z-10 w-full transition-transform duration-300 ease-in-out ${
@@ -263,7 +313,7 @@ export default function DashboardLayout() {
               showDates={showDates}
               showDatesByTour={showDatesByTour}
               tourScope={
-                meta.isStandingsTourView
+                meta.showTourScopePicker
                   ? {
                       tours: selectableTours,
                       selectedTourKey: selectedTour?.tour ?? null,
@@ -286,35 +336,38 @@ export default function DashboardLayout() {
           'flex-1 min-w-0 overflow-y-auto relative',
           'pb-[calc(4rem+env(safe-area-inset-bottom,0px)+0.5rem)] md:pt-8 md:pb-8',
           usesMobileFixedChrome
-            ? 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
+            ? // Picks: tertiary + optional Make Picks tools. Stats Personal/Global:
+              // tertiary + up to two quaternary inset trays.
+              isPicksCluster
+              ? 'pt-[calc(env(safe-area-inset-top,0px)+15.25rem)]'
+              : isStatsQuaternary
+                ? 'pt-[calc(env(safe-area-inset-top,0px)+17.75rem)]'
+                : 'pt-[calc(env(safe-area-inset-top,0px)+11.75rem)]'
             : 'pt-[calc(env(safe-area-inset-top,0px)+9rem)]',
         ].join(' ')}
       >
         <div className="max-w-xl mx-auto w-full min-w-0 px-4 pt-2 md:p-8">
-          
-          {/* DESKTOP Global Date Picker — sticky first chrome row on every route that shows it. */}
-          {meta.showDatePicker ? (
-            <div className="sticky top-0 z-30 -mx-4 mb-6 hidden bg-brand-bg/90 px-4 pb-3 pt-1 backdrop-blur-md supports-[backdrop-filter]:bg-brand-bg/75 md:-mx-8 md:block md:px-8">
-              <DashboardTourDateScope
-                variant="desktop"
-                selectedDate={selectedDate}
-                onSelectedDateChange={setSelectedDate}
-                showDates={showDates}
-                showDatesByTour={showDatesByTour}
-              />
-            </div>
-          ) : null}
-
-          {/* DESKTOP Tour scope — same sticky slot/treatment as Tour Date on the Standings Tour view. */}
-          {meta.isStandingsTourView ? (
-            <div className="sticky top-0 z-30 -mx-4 mb-6 hidden bg-brand-bg/90 px-4 pb-3 pt-1 backdrop-blur-md supports-[backdrop-filter]:bg-brand-bg/75 md:-mx-8 md:block md:px-8">
-              <StandingsTourScopeSelect
-                variant="desktop"
-                tours={selectableTours}
-                selectedTourKey={selectedTour?.tour ?? null}
-                onSelectTour={setTourKey}
-              />
-            </div>
+          {meta.ownsDesktopStickyChrome ||
+          meta.showDatePicker ||
+          meta.showTourScopePicker ? (
+            <DashboardStickyChromeStack>
+              {meta.showDatePicker ? (
+                <DashboardTourDateScope
+                  variant="desktop"
+                  selectedDate={selectedDate}
+                  onSelectedDateChange={setSelectedDate}
+                  showDates={showDates}
+                  showDatesByTour={showDatesByTour}
+                />
+              ) : meta.showTourScopePicker ? (
+                <StandingsTourScopeSelect
+                  variant="desktop"
+                  tours={selectableTours}
+                  selectedTourKey={selectedTour?.tour ?? null}
+                  onSelectTour={setTourKey}
+                />
+              ) : null}
+            </DashboardStickyChromeStack>
           ) : null}
 
           {showPastShowLock && <PastShowLockBanner />}
@@ -335,11 +388,24 @@ export default function DashboardLayout() {
           )}
 
           <Routes>
-            <Route index element={<PicksPage user={user} selectedDate={selectedDate} />} />
-            <Route
-              path="picks"
-              element={<PicksPage user={user} selectedDate={selectedDate} />}
-            />
+            <Route element={<PicksClusterLayout user={user} selectedDate={selectedDate} />}>
+              <Route
+                index
+                element={<PicksPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route
+                path="picks"
+                element={<PicksPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route
+                path="picks/lab"
+                element={<PicksLabPage user={user} selectedDate={selectedDate} />}
+              />
+              <Route
+                path="picks/scorecard"
+                element={<PicksScorecardPage />}
+              />
+            </Route>
             <Route
               path="scoring"
               element={<Navigate to="/dashboard?scoringRules=1" replace />}
@@ -356,11 +422,18 @@ export default function DashboardLayout() {
             <Route
               path="tour-stats"
               element={
-                <LazyDashboardRoute>
-                  <TourStatsPage />
-                </LazyDashboardRoute>
+                <Navigate
+                  to={`${STATS_CLUSTER_PATHS.band}${location.search}`}
+                  replace
+                />
               }
             />
+            <Route path="stats" element={<StatsClusterLayout user={user} />}>
+              <Route index element={<PersonalStatsPage />} />
+              <Route path="personal" element={<PersonalStatsPage />} />
+              <Route path="global" element={<GlobalStatsPage />} />
+              <Route path="band" element={<BandStatsPage />} />
+            </Route>
             <Route
               path="admin"
               element={
@@ -406,7 +479,11 @@ export default function DashboardLayout() {
                 />
               }
             />
-            <Route path="pools" element={<PoolsPage user={user} />} />
+            <Route path="pools" element={<PoolsClusterLayout user={user} />}>
+              <Route index element={<PoolsPage />} />
+              <Route path="create" element={<PoolCreatePage />} />
+              <Route path="join" element={<PoolJoinPage />} />
+            </Route>
             <Route
               path="pool/:poolId"
               element={
@@ -420,30 +497,41 @@ export default function DashboardLayout() {
       </main>
 
       {/* MOBILE BOTTOM BAR — translucent tint + heavy blur (real glass); active pill keeps teal legible over scrolling content */}
-      <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-[linear-gradient(to_top,rgb(var(--brand-bg-deep)_/_0.76),rgb(var(--brand-bg)_/_0.60))] pb-[env(safe-area-inset-bottom,0px)] shadow-[inset_0_1px_0_0_rgb(var(--brand-primary)/0.12),0_-10px_28px_-14px_rgba(15,10,46,0.85)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150">
-        <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} items-center gap-0.5 px-1.5 h-16`}>
+      {searchParams.get('kbProbe') === '1' ? <MobileKeyboardProbe /> : null}
+      <nav
+        ref={primaryNavRef}
+        data-mobile-primary-nav
+        className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-[linear-gradient(to_top,rgb(var(--brand-bg-deep)_/_0.76),rgb(var(--brand-bg)_/_0.60))] pb-[env(safe-area-inset-bottom,0px)] shadow-[inset_0_1px_0_0_rgb(var(--brand-primary)/0.12),0_-10px_28px_-14px_rgba(15,10,46,0.85)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150"
+      >
+        <div className={`grid ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'} items-center gap-0.5 px-1.5 h-16`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
+            const isPicksSection =
+              item.path === '/dashboard' && isPicksClusterPath(location.pathname);
             const isProfileSection =
               item.path === PROFILE_CLUSTER_PATHS.profile &&
               isProfileClusterPath(location.pathname);
             const isPoolsSection =
               item.path === '/dashboard/pools' &&
-              (location.pathname === '/dashboard/pools' ||
-                location.pathname.startsWith('/dashboard/pool/'));
+              isPoolsClusterPath(location.pathname);
             const isStandingsSection =
               item.path === '/dashboard/standings' &&
               (location.pathname === '/dashboard/standings' ||
-                location.pathname === '/dashboard/standings/' ||
-                location.pathname === '/dashboard/tour-stats' ||
-                location.pathname === '/dashboard/tour-stats/');
+                location.pathname === '/dashboard/standings/');
+            const isStatsSection =
+              item.path === STATS_CLUSTER_PATHS.root &&
+              isStatsClusterPath(location.pathname);
             const isActive =
+              isPicksSection ||
               isProfileSection ||
               isPoolsSection ||
               isStandingsSection ||
-              (!isProfileSection &&
+              isStatsSection ||
+              (!isPicksSection &&
+                !isProfileSection &&
                 !isPoolsSection &&
                 !isStandingsSection &&
+                !isStatsSection &&
                 (location.pathname === item.path ||
                   (item.path === '/dashboard' && location.pathname === '/dashboard/')));
             return (

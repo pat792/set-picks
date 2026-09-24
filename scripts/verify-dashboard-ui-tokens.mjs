@@ -14,6 +14,7 @@ const SCAN_DIRS = [
   path.join(ROOT, 'src/features/scoring/ui'),
   path.join(ROOT, 'src/features/pools/ui'),
   path.join(ROOT, 'src/features/picks/ui'),
+  path.join(ROOT, 'src/features/stats/ui'),
 ];
 
 const EXTRA_FILES = [

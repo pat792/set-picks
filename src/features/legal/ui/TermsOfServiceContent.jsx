@@ -8,7 +8,7 @@ export default function TermsOfServiceContent({ resumeKind = null }) {
   return (
     <LegalPageLayout
       title="Terms of Service"
-      lastUpdated="May 8, 2026"
+      lastUpdated="September 22, 2026"
       resumeKind={resumeKind}
     >
       <LegalMarkdownRenderer content={termsMd} />

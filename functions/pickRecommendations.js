@@ -240,6 +240,18 @@ function buildPickRecommendationsArtifact(args) {
   const wildRanked = rankCombinedPlayOnly(priors, targetDate);
   slots.wild = serializeRanked(wildRanked, priors, topK);
 
+  /** Show-wide playProb for every history song (Scorecard lookup; not top-K). */
+  /** @type {Record<string, number>} */
+  const playProbBySong = {};
+  for (const row of wildRanked) {
+    const key = typeof row.songKey === "string" ? row.songKey : "";
+    const playProb = row.playProb ?? row.score;
+    if (!key || typeof playProb !== "number" || !Number.isFinite(playProb)) {
+      continue;
+    }
+    playProbBySong[key] = Number(playProb.toFixed(6));
+  }
+
   return {
     skipped: false,
     artifact: {
@@ -257,6 +269,7 @@ function buildPickRecommendationsArtifact(args) {
       historySource,
       topK,
       slots,
+      playProbBySong,
     },
   };
 }

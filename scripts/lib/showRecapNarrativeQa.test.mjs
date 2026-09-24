@@ -54,6 +54,25 @@ describe("showRecapNarrativeQa", () => {
     assert.equal(summarizeChecks(checks).pass, true);
   });
 
+  it("requires composer beats when asked (#985)", () => {
+    const weak = runNarrativeLineChecklist(
+      "Tough board. Still a night to remember: Bustout: Melt the Guns - a 2051 show gap.",
+      FIXTURE_FENWAY_LABELED,
+      "cold",
+      { requireComposerBeats: true },
+    );
+    assert.ok(weak.some((c) => c.id === "arc_flow" && !c.ok));
+    assert.ok(weak.some((c) => c.id === "relative_rank" && !c.ok));
+
+    const full = runNarrativeLineChecklist(
+      "Set 1 opened with Carini (10 songs); Set 2 added 8; encore closed on A Life Beyond The Dream. Tough board — none of your six landed; still a night to remember: Bustout: Melt the Guns - a 2051 show gap. That lands you #6 of 11 globally.",
+      FIXTURE_FENWAY_LABELED,
+      "cold",
+      { requireComposerBeats: true },
+    );
+    assert.equal(summarizeChecks(full).pass, true);
+  });
+
   it("rejects stale Reba catalog example", () => {
     const stale = runCatalogExampleCheck(
       '3. **Setlist context** — `{{setlist_highlight}}` (e.g., "It was the first time Reba opened a show in 6 years").',

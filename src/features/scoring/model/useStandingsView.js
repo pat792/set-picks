@@ -10,13 +10,9 @@ import { ga4Event } from '../../../shared/lib/ga4';
 export const STANDINGS_PATH_VIEWS = Object.freeze(['show', 'tour', 'pools']);
 
 /**
- * Full Standings IA toggle (#555 adds Stats). Stats lives on
- * `/dashboard/tour-stats` — see {@link buildStandingsViewPath}.
+ * Standings chrome views (#769). Stats moved to the Stats primary.
  */
-export const STANDINGS_VIEWS = Object.freeze([
-  ...STANDINGS_PATH_VIEWS,
-  'stats',
-]);
+export const STANDINGS_VIEWS = STANDINGS_PATH_VIEWS;
 
 /** Default view when the URL has no `?view` query. */
 export const DEFAULT_STANDINGS_VIEW = 'show';

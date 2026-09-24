@@ -4,6 +4,7 @@ import {
   getNextShow,
   getShowStatus,
   isPastPicksLock,
+  resolveSelectedShowDate,
   scheduleTodayYmd,
   shouldRedactOpponentPicksPreLock,
 } from './timeLogic';
@@ -113,5 +114,68 @@ describe('venue-local lock + status (#278)', () => {
 
     expect(scheduleTodayYmd('America/New_York', beforeFallback)).toBe('2026-11-01');
     expect(scheduleTodayYmd('America/New_York', afterFallback)).toBe('2026-11-01');
+  });
+});
+
+describe('resolveSelectedShowDate (dashboard default)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('advances off a past sticky date once the next show is on the calendar', () => {
+    vi.useFakeTimers();
+    // After Dick's finale (2026-09-06), before Fall opener (2026-10-02).
+    vi.setSystemTime(new Date('2026-09-08T18:00:00.000Z'));
+
+    const shows = [
+      {
+        date: '2026-09-06',
+        venue: "Dick's Sporting Goods Park, Commerce City, CO",
+        timeZone: 'America/Denver',
+      },
+      {
+        date: '2026-10-02',
+        venue: 'Jim Whelan Boardwalk Hall, Atlantic City, NJ',
+        timeZone: 'America/New_York',
+      },
+    ];
+
+    // Regression: old sync kept prev whenever it existed in showDates.
+    expect(resolveSelectedShowDate('2026-09-06', shows)).toBe('2026-10-02');
+  });
+
+  it('keeps browsing a future show across calendar refreshes', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-08T18:00:00.000Z'));
+
+    const shows = [
+      {
+        date: '2026-10-02',
+        venue: 'Jim Whelan Boardwalk Hall, Atlantic City, NJ',
+        timeZone: 'America/New_York',
+      },
+      {
+        date: '2026-10-03',
+        venue: 'Jim Whelan Boardwalk Hall, Atlantic City, NJ',
+        timeZone: 'America/New_York',
+      },
+    ];
+
+    expect(resolveSelectedShowDate('2026-10-03', shows)).toBe('2026-10-03');
+  });
+
+  it('snaps to next when prev is missing from the calendar', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-08T18:00:00.000Z'));
+
+    const shows = [
+      {
+        date: '2026-10-02',
+        venue: 'Jim Whelan Boardwalk Hall, Atlantic City, NJ',
+        timeZone: 'America/New_York',
+      },
+    ];
+
+    expect(resolveSelectedShowDate('2099-01-01', shows)).toBe('2026-10-02');
   });
 });

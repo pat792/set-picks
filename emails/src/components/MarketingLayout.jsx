@@ -103,7 +103,7 @@ export function MarketingLayout({
   children,
 }) {
   const base = siteUrl.replace(/\/+$/, "");
-  const prefsUrl = settingsUrl || `${base}/dashboard/profile/notifications`;
+  const prefsUrl = settingsUrl || `${base}/dashboard/profile/account`;
   const wordmarkHeroHtml = buildEmailWordmarkHeroHtml(base);
   const nonce =
     typeof messageNonce === "string" && messageNonce.trim()

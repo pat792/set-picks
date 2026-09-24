@@ -270,3 +270,6 @@ test("computePerPickRollup: missing correctSlotsCredited on re-grade treats old 
   });
   assert.equal(plan.correctSlotsDiff, 2);
 });
+
+// Keep #1004 writer tests on the functions `npm test` file list.
+require("./globalStatsLeaderboards.test");

@@ -1,20 +1,49 @@
 import React from 'react';
 
+import InfoTooltip, { InfoTooltipProvider } from './InfoTooltip';
+
 /**
- * Consistent dashboard top band: optional short context (left / below on narrow screens)
- * and primary actions (right, or first on mobile when both exist so CTAs stay thumb-friendly).
+ * Dashboard top band: primary actions plus optional helper copy.
+ *
+ * **Default:** helper copy is an {@link InfoTooltip} via `hint`. Do not add a
+ * visible description paragraph unless the repo owner explicitly asks — then
+ * use `summary`.
+ *
+ * @param {{
+ *   hint?: string | null,
+ *   hintLabel?: string,
+ *   summary?: React.ReactNode,
+ *   children?: React.ReactNode,
+ *   className?: string,
+ * }} props
  */
 export default function DashboardActionRow({
+  hint = null,
+  hintLabel = 'this section',
   summary = null,
   children,
   className = '',
 }) {
+  const hasHint = typeof hint === 'string' && hint.trim().length > 0;
   const hasSummary = summary != null && summary !== false;
+  const hasActions = children != null && children !== false;
 
-  return (
+  const actions = hasHint || hasActions ? (
     <div
       className={[
-        'mb-4 flex flex-col gap-2 sm:mb-5 sm:flex-row sm:items-start sm:justify-between sm:gap-3',
+        'flex flex-wrap items-center gap-2',
+        hasSummary ? 'order-1 justify-start sm:order-2 sm:justify-end' : 'w-full justify-end',
+      ].join(' ')}
+    >
+      {hasHint ? <InfoTooltip label={hintLabel} definition={hint} /> : null}
+      {children}
+    </div>
+  ) : null;
+
+  const body = (
+    <div
+      className={[
+        'mb-4 flex flex-col gap-2 sm:mb-5 sm:flex-row sm:items-center sm:justify-between sm:gap-3',
         className,
       ]
         .filter(Boolean)
@@ -25,14 +54,10 @@ export default function DashboardActionRow({
           {summary}
         </div>
       ) : null}
-      <div
-        className={[
-          'flex flex-wrap items-center gap-2',
-          hasSummary ? 'order-1 justify-start sm:order-2 sm:justify-end' : 'w-full justify-end',
-        ].join(' ')}
-      >
-        {children}
-      </div>
+      {actions}
     </div>
   );
+
+  if (!hasHint) return body;
+  return <InfoTooltipProvider>{body}</InfoTooltipProvider>;
 }

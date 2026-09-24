@@ -15,6 +15,9 @@ class AllowlistTests(unittest.TestCase):
         hosts = load_allowlist()
         self.assertIn("www.setlistpickem.com", hosts)
         self.assertIn("github.com", hosts)
+        self.assertIn("phishpicks.net", hosts)
+        self.assertIn("phish.jampicks.com", hosts)
+        self.assertNotIn("callingit.live", hosts)
 
     def test_subdomain_match(self):
         allowed = {"github.com"}

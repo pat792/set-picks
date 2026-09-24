@@ -257,6 +257,85 @@ test("commsInbox: owner may set readAt only (preserves payload)", async () => {
   );
 });
 
+test("commsInbox: owner may set archivedAt", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      archivedAt: Timestamp.now(),
+    })
+  );
+});
+
+test("commsInbox: owner may set readAt and archivedAt together", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      readAt: Timestamp.now(),
+      archivedAt: Timestamp.now(),
+    })
+  );
+});
+
+test("commsInbox: owner may delete own inbox doc", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(deleteDoc(doc(db, "users", "alice", "commsInbox", "msg1")));
+});
+
+test("commsInbox: non-owner cannot delete another user's inbox doc", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "bob", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(deleteDoc(doc(db, "users", "bob", "commsInbox", "msg1")));
+});
+
+test("commsInbox: owner cannot rewrite payload when archiving", async () => {
+  const ts = Timestamp.fromMillis(1_700_000_000_000);
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "users", "alice", "commsInbox", "msg1"), {
+      templateId: "sphere-2026-inaugural",
+      payload: { rank: 3 },
+      createdAt: ts,
+    });
+  });
+  const db = signedInAs("alice");
+  await assertFails(
+    updateDoc(doc(db, "users", "alice", "commsInbox", "msg1"), {
+      payload: { rank: 99 },
+      archivedAt: Timestamp.now(),
+    })
+  );
+});
+
 test("commsInbox: owner cannot rewrite templateId", async () => {
   const ts = Timestamp.fromMillis(1_700_000_000_000);
   await seed(async (adminDb) => {
@@ -481,6 +560,55 @@ test("rollup_audit: client writes always rejected (even admin)", async () => {
   const db = signedInAs("mod", { admin: true });
   await assertFails(
     setDoc(doc(db, "rollup_audit", "2026-04-23"), { processedPicks: 1 })
+  );
+});
+
+// ─── global_stats_leaderboards/{docId} (#1004) ───────────────────────────────
+
+test("global_stats_leaderboards: signed-in user may read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "global_stats_leaderboards", "allTime"), {
+      schemaVersion: 1,
+      boards: { shows: [] },
+    });
+  });
+  const db = signedInAs("alice");
+  await assertSucceeds(getDoc(doc(db, "global_stats_leaderboards", "allTime")));
+});
+
+test("global_stats_leaderboards: anon cannot read", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "global_stats_leaderboards", "allTime"), {
+      schemaVersion: 1,
+    });
+  });
+  await assertFails(
+    getDoc(doc(anon(), "global_stats_leaderboards", "allTime"))
+  );
+});
+
+test("global_stats_leaderboards: client writes always rejected (even admin)", async () => {
+  const db = signedInAs("mod", { admin: true });
+  await assertFails(
+    setDoc(doc(db, "global_stats_leaderboards", "allTime"), {
+      boards: { shows: [] },
+    })
+  );
+});
+
+// ─── comms_email_engagement/{resendEmailId} ──────────────────────────────────
+
+test("comms_email_engagement: no client read or write (even admin claim)", async () => {
+  await seed(async (adminDb) => {
+    await setDoc(doc(adminDb, "comms_email_engagement", "email_1"), {
+      uid: "alice",
+      triggerId: "marketing_summer_tour_2026_launch",
+    });
+  });
+  const db = signedInAs("mod", { admin: true });
+  await assertFails(getDoc(doc(db, "comms_email_engagement", "email_1")));
+  await assertFails(
+    setDoc(doc(db, "comms_email_engagement", "email_2"), { uid: "bob" })
   );
 });
 

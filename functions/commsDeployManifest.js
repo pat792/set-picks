@@ -9,7 +9,7 @@
  * Read by: `scripts/deploy-comms-functions.mjs`, `scripts/comms-deploy-validate.mjs`,
  *          `functions/commsDeployManifest.test.js`.
  *
- * @typedef {'resend'|'webhook'|'none'} SecretExpectation
+ * @typedef {'resend'|'webhook'|'inbound'|'none'} SecretExpectation
  * @typedef {{ export: string, triggerId?: string, commsPath?: string, note?: string, secretExpectation?: SecretExpectation, gated?: boolean }} ManifestEntry
  */
 
@@ -22,7 +22,7 @@ const COMMS_DEPLOY_GROUPS = {
     { export: "commsOnUserProfileWrite", triggerId: "account_welcome", gated: true, secretExpectation: "resend" },
     { export: "commsOnPickWrite", triggerId: "picks_confirmed", gated: true, secretExpectation: "resend" },
     { export: "scheduledTourCountdownComms", triggerId: "tour_countdown", gated: true, secretExpectation: "resend" },
-    { export: "scheduledTourRankingsDailyComms", triggerId: "tour_rankings_daily", gated: true, secretExpectation: "resend" },
+    { export: "scheduledTourRankingsDailyComms", triggerId: "tour_rankings_daily", note: "also deliverPendingTourRecaps (tour_recap)", gated: true, secretExpectation: "resend" },
     { export: "scheduledPicksLockReminder", triggerId: "picks_lock_reminder", gated: false, secretExpectation: "resend" },
   ],
 
@@ -64,7 +64,12 @@ const COMMS_DEPLOY_GROUPS = {
       note: "one-shot 2026-08-03 08:00 America/Denver",
       secretExpectation: "resend",
     },
-    { export: "commsResendWebhook", note: "Resend bounce/complaint webhook", secretExpectation: "webhook" },
+    { export: "commsResendWebhook", note: "Resend bounce/complaint + open/click webhook (#512)", secretExpectation: "webhook" },
+    {
+      export: "commsResendInboundWebhook",
+      note: "Resend email.received allowlist + Workspace forward",
+      secretExpectation: "inbound",
+    },
     { export: "commsEmailUnsubscribe", note: "RFC 8058 one-click unsubscribe", secretExpectation: "none" },
     { export: "getCommsEmailStatus", note: "email prefs status", secretExpectation: "none" },
     { export: "unsubscribeCommsEmail", note: "email prefs unsubscribe", secretExpectation: "none" },

@@ -2,7 +2,7 @@
  * Signed-in email subscription status + self-serve subscribe/unsubscribe (#455).
  *
  * Clients cannot read `email_suppression` directly (server-only collection).
- * These helpers back authenticated callables used by `/dashboard/profile/notifications`.
+ * These helpers back authenticated callables used by `/dashboard/profile/account`.
  */
 
 "use strict";
@@ -16,7 +16,11 @@ const {
 } = require("./commsEmailSuppression");
 
 /** Reasons a user may clear via the Notifications screen (not deliverability blocks). */
-const RESUBSCRIBABLE_REASONS = new Set(["one_click_unsubscribe", "user_preferences"]);
+const RESUBSCRIBABLE_REASONS = new Set([
+  "one_click_unsubscribe",
+  "mailto_unsubscribe",
+  "user_preferences",
+]);
 
 /**
  * @param {string | null | undefined} reason
@@ -25,6 +29,7 @@ const RESUBSCRIBABLE_REASONS = new Set(["one_click_unsubscribe", "user_preferenc
 function userFacingSuppressionLabel(reason) {
   switch (reason) {
     case "one_click_unsubscribe":
+    case "mailto_unsubscribe":
     case "user_preferences":
       return "You unsubscribed from email updates.";
     case "hard_bounce":

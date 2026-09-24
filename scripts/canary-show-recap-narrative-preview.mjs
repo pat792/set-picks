@@ -88,7 +88,7 @@ const BRANCHES = [
       narrative_branch: "cold",
       setlist_highlight: "Bustout: Melt the Guns - a 2051 show gap.",
       narrative_line:
-        "Tough board. Still a night to remember: Bustout: Melt the Guns - a 2051 show gap.",
+        "Set 1 opened with Carini (10 songs); Set 2 added 8; encore closed on A Life Beyond The Dream. Tough board — you hit the opener (1 of 6); still a night to remember: Bustout: Melt the Guns - a 2051 show gap. You sit #6 of 11 globally.",
       ...baseTour,
     },
   },
@@ -108,7 +108,7 @@ const BRANCHES = [
       narrative_branch: "bustout_hero",
       setlist_highlight: "Bustout: Melt the Guns - a 2051 show gap.",
       narrative_line:
-        "You caught a bustout — Melt the Guns - a 2051 show gap.",
+        "Set 1 opened with Carini (10 songs); Set 2 added 8; encore closed on A Life Beyond The Dream. You caught a bustout — Melt the Guns - a 2051 show gap on your wildcard (2 of 6). That puts you #2 of 11 globally.",
       ...baseTour,
       tour_rank: 2,
       tour_points: 80,
@@ -130,7 +130,7 @@ const BRANCHES = [
       narrative_branch: "hot_night",
       setlist_highlight: "Bustout: Wolfman's Brother - an 87 show gap.",
       narrative_line:
-        "Strong night. Bustout: Wolfman's Brother - an 87 show gap.",
+        "Set 1 opened with YEM (8 songs); Set 2 added 7; encore closed on Slave. Strong night — you hit all six; Bustout: Wolfman's Brother - an 87 show gap stayed off your board. That puts you #4 of 200 globally.",
       ...baseTour,
       tour_rank: 4,
       total_tour_pickers: 312,
@@ -157,7 +157,7 @@ const BRANCHES = [
       setlist_highlight:
         "Bustouts: Curtain With - a 142 show gap; Fluffhead - an 87 show gap.",
       narrative_line:
-        "Bustouts: Curtain With - a 142 show gap; Fluffhead - an 87 show gap.",
+        "Set 1 opened with YEM (6 songs); encore closed on Slave. You hit the opener and closer (2 of 6); Bustouts: Curtain With - a 142 show gap; Fluffhead - an 87 show gap stayed off your board. You sit #18 of 80 globally.",
       ...baseTour,
       tour_rank: 22,
       total_tour_pickers: 90,
@@ -183,7 +183,7 @@ const BRANCHES = [
       narrative_branch: "cold",
       setlist_highlight: "Carini opened; Slave closed the night.",
       narrative_line:
-        "Tough board. Still a night to remember: Carini opened; Slave closed the night.",
+        "Carini opened; Slave closed the night. Tough board — none of your six landed. That lands you #40 of 200 globally.",
       ...baseTour,
       tour_rank: 30,
       total_tour_pickers: 200,

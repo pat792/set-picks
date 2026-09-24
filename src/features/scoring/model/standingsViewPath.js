@@ -1,11 +1,11 @@
 /**
- * Path helpers for Standings IA views (#255 / #555).
+ * Path helpers for Standings IA views (#255 / #769).
  *
- * Stats lives on `/dashboard/tour-stats` (dedicated route); Show / Tour / Pools
- * stay on `/dashboard/standings` with `?view=`. Tour scope (`?tour=`) is shared.
+ * Show / Tour / Pools stay on `/dashboard/standings` with `?view=`.
+ * Stats lives on the Stats primary (`/dashboard/stats/*`).
  */
 
-/** @typedef {'show' | 'tour' | 'pools' | 'stats'} StandingsViewId */
+/** @typedef {'show' | 'tour' | 'pools'} StandingsViewId */
 
 /**
  * @param {StandingsViewId} view
@@ -24,13 +24,6 @@ export function buildStandingsViewPath(view, opts = {}) {
     typeof opts.poolId === 'string' && opts.poolId.trim()
       ? opts.poolId.trim()
       : '';
-
-  if (view === 'stats') {
-    const params = new URLSearchParams();
-    if (tourKey) params.set('tour', tourKey);
-    const q = params.toString();
-    return q ? `/dashboard/tour-stats?${q}` : '/dashboard/tour-stats';
-  }
 
   const params = new URLSearchParams();
   if (view === 'tour') {

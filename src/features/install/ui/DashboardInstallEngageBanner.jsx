@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { Bell, Download, Share2 } from 'lucide-react';
 
 import {
-  PROFILE_CLUSTER_PATHS,
+  PROFILE_PREFERENCES_OPEN_PUSH_HREF,
+  isMakePicksPath,
+  isPoolsTertiaryPath,
   isProfileClusterPath,
 } from '../../../shared/config/dashboardRoutes';
 import { ga4Event } from '../../../shared/lib/ga4';
@@ -27,16 +29,15 @@ export function dashboardRouteShowsInstallEngage(pathname) {
   }
   if (n.startsWith('/dashboard/pool/')) return false;
   return (
-    n === '/dashboard' ||
-    n === '/dashboard/picks' ||
+    isMakePicksPath(n) ||
     n === '/dashboard/standings' ||
-    n === '/dashboard/pools'
+    isPoolsTertiaryPath(n)
   );
 }
 
 /**
  * Inner component: only mounts on routes where the banner may show, so
- * `useInstallPrompt` is not duplicated with `InstallAppCard` on Profile (#334).
+ * `useInstallPrompt` is not duplicated with `InstallAppCard` on Preferences (#334 / #770).
  *
  * @param {{ userId: string | null | undefined }} props
  */
@@ -168,7 +169,7 @@ function DashboardInstallEngageBannerLoaded({ userId }) {
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Link
-              to={`${PROFILE_CLUSTER_PATHS.notifications}?openPush=1`}
+              to={PROFILE_PREFERENCES_OPEN_PUSH_HREF}
               onClick={() => {
                 ga4Event('push_nudge_cta_clicked', { surface: 'dashboard' });
                 push.clearSessionInstallFlag();

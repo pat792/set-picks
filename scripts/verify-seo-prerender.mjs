@@ -44,6 +44,12 @@ import {
   injectTourStatsBootModulepreloads,
   prerenderOutputRelPath,
 } from './seo-prerender-lib.mjs';
+import {
+  appendLlmsTourStatsLinks,
+  appendSitemapTourStatsUrls,
+  resolveAutoExpandTourStatsRoutes,
+  tourStatsDiscoveryFromRoutes,
+} from './lib/tourStatsSeoAutoExpand.mjs';
 import { TOUR_STATS_SEO_FACT_SLUGS } from '../src/shared/config/seoRoutes.js';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
@@ -235,6 +241,136 @@ assert(
     summerEnriched.includes('"@type": "ItemList"'),
   'summer facts fixture: missing ItemList JSON-LD',
 );
+
+// #959: auto-expand from an offline `_index` mock (no Firestore in CI).
+const autoIndexFixture = {
+  tours: [
+    {
+      tourSlug: '2026-fall-tour',
+      tourLabel: '2026 Fall Tour',
+      lastShowDate: '2026-10-15',
+    },
+    {
+      tourSlug: 'thin-empty-night',
+      tourLabel: 'Thin Empty Night',
+      lastShowDate: '2026-09-01',
+    },
+    {
+      tourSlug: '2025-nye-run',
+      tourLabel: '2025 NYE',
+      lastShowDate: '2025-12-31',
+    },
+  ],
+};
+const autoDocsFixture = {
+  '2026-fall-tour': {
+    tourLabel: '2026 Fall Tour',
+    uniqueSongs: 64,
+    showsWithSetlist: 6,
+    tourShowCount: 12,
+    lastShowDate: '2026-10-15',
+    bustouts: [{ title: 'Foam', gap: 90, showDate: '2026-10-15' }],
+    topSongs: [{ title: 'Tweezer', timesPlayed: 4 }],
+  },
+  'thin-empty-night': {
+    tourLabel: 'Thin Empty Night',
+    uniqueSongs: 0,
+    showsWithSetlist: 0,
+    lastShowDate: '2026-09-01',
+  },
+  '2025-nye-run': {
+    tourLabel: '2025 NYE',
+    uniqueSongs: 80,
+    showsWithSetlist: 12,
+    lastShowDate: '2025-12-31',
+  },
+};
+const autoNow = new Date('2026-09-03T12:00:00Z');
+const autoRoutes = await resolveAutoExpandTourStatsRoutes({
+  indexDoc: autoIndexFixture,
+  loadDoc: async (slug) => autoDocsFixture[slug] || null,
+  existingSlugs: TOUR_STATS_SEO_FACT_SLUGS,
+  now: autoNow,
+  env: {},
+});
+assert(
+  autoRoutes.length === 1 && autoRoutes[0].tourStatsSeoSlug === '2026-fall-tour',
+  'auto-expand fixture: only the current-year tour that clears the gate',
+);
+assert(
+  !autoRoutes.some((r) => r.tourStatsSeoSlug === 'thin-empty-night'),
+  'auto-expand fixture: must not expand the first empty night',
+);
+assert(
+  !autoRoutes.some((r) => r.tourStatsSeoSlug === '2025-nye-run'),
+  'auto-expand fixture: first-wave year allowlist must skip prior-year tours',
+);
+
+const autoRoute = autoRoutes[0];
+const autoFacts = normalizeTourStatsFacts(autoDocsFixture['2026-fall-tour']);
+const autoEnriched = injectPrerenderHtml(shell, autoRoute, {
+  factsHtml: buildTourStatsFactsHtml(autoFacts),
+  jsonLd: mergeTourStatsFactsJsonLd(
+    autoRoute.buildJsonLd(),
+    autoFacts,
+    autoRoute.canonicalUrl,
+  ),
+});
+assertRouteHtml(autoEnriched, autoRoute, 'auto-expand fall facts fixture');
+assert(
+  autoEnriched.includes('Foam'),
+  'auto-expand fixture: must include bustout title from generated facts',
+);
+assert(
+  autoEnriched.includes('data-seo-tour-stats-facts="bustouts"'),
+  'auto-expand fixture: missing bustouts list marker',
+);
+assert(
+  autoEnriched.includes('"@type":"FAQPage"') ||
+    autoEnriched.includes('"@type": "FAQPage"'),
+  'auto-expand fixture: missing FAQPage JSON-LD',
+);
+
+const autoDiscovery = tourStatsDiscoveryFromRoutes([
+  ...PRERENDER_ROUTES,
+  ...autoRoutes,
+]);
+const autoSitemap = appendSitemapTourStatsUrls(
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.setlistpickem.com/tour-stats/2026-summer-tour</loc></url>
+</urlset>
+`,
+  autoDiscovery.locs,
+);
+assert(
+  autoSitemap.includes('https://www.setlistpickem.com/tour-stats/2026-fall-tour'),
+  'auto-expand sitemap fixture: missing generated loc',
+);
+assert(
+  !autoSitemap.includes('thin-empty-night'),
+  'auto-expand sitemap fixture: must not list the thin tour',
+);
+const autoLlms = appendLlmsTourStatsLinks(
+  `## Links
+- 2026 Summer Tour setlist statistics: https://www.setlistpickem.com/tour-stats/2026-summer-tour
+- About: https://www.setlistpickem.com/about
+`,
+  autoDiscovery.llms,
+);
+assert(
+  autoLlms.includes('https://www.setlistpickem.com/tour-stats/2026-fall-tour'),
+  'auto-expand llms fixture: missing generated URL',
+);
+
+const autoOff = await resolveAutoExpandTourStatsRoutes({
+  indexDoc: autoIndexFixture,
+  loadDoc: async (slug) => autoDocsFixture[slug] || null,
+  existingSlugs: TOUR_STATS_SEO_FACT_SLUGS,
+  now: autoNow,
+  env: { TOUR_STATS_SEO_AUTO_EXPAND: '0' },
+});
+assert(autoOff.length === 0, 'auto-expand kill-switch must emit zero extra routes');
 
 // Fixture: branded dashboard boot shell (#773) — no SEO body, marker present.
 const dirtyShell =
@@ -516,6 +652,20 @@ if (existsSync(distIndex) && existsSync(distHowItWorks)) {
     assert(
       Array.isArray(cdnIndexJson.tours),
       'tour-stats-data/_index.json must include tours[]',
+    );
+    const distSitemap = join(root, 'dist', 'sitemap.xml');
+    const distLlms = join(root, 'dist', 'llms.txt');
+    assert(existsSync(distSitemap), 'dist missing sitemap.xml');
+    assert(existsSync(distLlms), 'dist missing llms.txt');
+    const sitemapXml = readFileSync(distSitemap, 'utf8');
+    const llmsTxt = readFileSync(distLlms, 'utf8');
+    assert(
+      sitemapXml.includes('https://www.setlistpickem.com/tour-stats/2026-summer-tour'),
+      'dist sitemap must keep the static summer SEO loc',
+    );
+    assert(
+      llmsTxt.includes('https://www.setlistpickem.com/tour-stats/2026-summer-tour'),
+      'dist llms.txt must keep the static summer SEO URL',
     );
   }
   const howItWorksHtml = readFileSync(distHowItWorks, 'utf8');

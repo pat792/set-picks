@@ -18,6 +18,7 @@ const EXPECTED_TEMPLATE_IDS = [
   'tour-rankings-daily',
   'picks-lock-reminder',
   'tour-engagement-reminder',
+  'tour-recap',
   'sphere-2026-inaugural',
   'summer-2026-almost-end',
 ];
@@ -136,6 +137,23 @@ describe('comms template registry', () => {
     expect(entry.build({ picks_secured: true }).cta.label).toBe('View / Edit picks');
   });
 
+  it('show_recap Tonight uses narrative_line, not highlight-only (#985)', () => {
+    const entry = getCommsTemplateEntry('show-recap');
+    const built = entry.build({
+      handle: 'Pat',
+      venue_name: "Dick's Sporting Goods Park",
+      narrative_line:
+        'Set 1 opened with Carini (8 songs); encore closed on Tweeprise. Tough board — none of your six landed. That lands you #184 of 210 globally.',
+      setlist_highlight: 'Bustout: Foo - a 40 show gap.',
+      bustout_bonus: 20,
+    });
+    const text = built.paragraphs.join(' ');
+    expect(text).toContain('Set 1 opened with Carini');
+    expect(text).toContain('#184 of 210');
+    expect(text).not.toContain('Tonight: Bustout: Foo');
+    expect(text).not.toContain('Bustout bonus:');
+  });
+
   it('show_recap CTA is honest about standings destination (#551)', () => {
     const entry = getCommsTemplateEntry('show-recap');
     expect(entry.build({}).cta).toEqual({
@@ -180,11 +198,33 @@ describe('comms template registry', () => {
   it('maps templateId → catalog triggerId', () => {
     expect(triggerIdForTemplate('show-recap')).toBe('show_recap');
     expect(triggerIdForTemplate('account-welcome')).toBe('account_welcome');
+    expect(triggerIdForTemplate('tour-recap')).toBe('tour_recap');
     expect(triggerIdForTemplate('nope')).toBeUndefined();
   });
 
-  it('sphere recap uses a bespoke component with coerced props', () => {
+  it('tour-recap preview samples use generic fixtures, not Sphere live IDs', () => {
+    const entry = getCommsTemplateEntry('tour-recap');
+    expect(entry.Component).toBeTypeOf('function');
+    expect(entry.samples.map((s) => s.name)).toEqual(['Champion', 'Top 10', 'Partial attendance']);
+    for (const sample of entry.samples) {
+      expect(JSON.stringify(sample.payload)).not.toMatch(/sphere-2026-inaugural/i);
+      expect(sample.payload.tour_name).toBe('Sample Tour');
+    }
+    const props = entry.toComponentProps({
+      rank: '3',
+      points: '120',
+      wins: '2',
+      showsPlayed: '8',
+      tour_name: 'Sample Tour',
+      show_count: 8,
+    });
+    expect(props).toMatchObject({ rank: 3, points: 120, wins: 2, showsPlayed: 8, tourName: 'Sample Tour' });
+  });
+
+  it('sphere recap remains an archive renderer for historical inbox docs', () => {
     const entry = getCommsTemplateEntry('sphere-2026-inaugural');
+    expect(entry.triggerId).toBe('tour_recap_sphere_2026');
+    expect(entry.displayName).toMatch(/archive/i);
     expect(entry.Component).toBeTypeOf('function');
     const props = entry.toComponentProps({ rank: '3', points: '120', wins: '2', showsPlayed: '9' });
     expect(props).toMatchObject({ rank: 3, points: 120, wins: 2, showsPlayed: 9 });

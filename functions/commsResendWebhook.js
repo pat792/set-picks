@@ -1,8 +1,12 @@
 /**
- * Resend deliverability webhooks for comms email (#442).
+ * Resend deliverability + engagement webhooks for comms email (#442 / #512).
  *
- * Handles `email.bounced` (permanent) and `email.complained` — writes
- * `email_suppression` and opts users out of lifecycle email prefs on complaint.
+ * Deliverability: `email.bounced` (permanent), `email.complained`, `email.suppressed`
+ * → `email_suppression` (complaint also opts users out of lifecycle email prefs).
+ *
+ * Engagement (#512 Slice A): `email.opened` / `email.clicked` →
+ * `comms_email_engagement/{resendEmailId}`. Idempotent (at-least-once webhooks).
+ * Join keys come from Resend tags stamped on send (`uid`, `triggerId`, `campaignId`).
  */
 
 "use strict";
@@ -14,6 +18,7 @@ const {
   findUserDocsByEmail,
   optOutUserEmailPrefs,
 } = require("./commsEmailSuppression");
+const { persistResendEmailEngagement } = require("./commsEmailEngagement");
 
 /**
  * @param {string} rawBody
@@ -60,6 +65,10 @@ function extractRecipientEmails(event) {
  */
 async function handleResendWebhookEvent({ db, admin, event, eventId, logger }) {
   const type = event?.type;
+  if (type === "email.opened" || type === "email.clicked") {
+    return persistResendEmailEngagement({ db, admin, event, eventId, logger });
+  }
+
   const emails = extractRecipientEmails(event);
   if (emails.length === 0) {
     return { ok: true, handled: false, reason: "no_recipients" };
