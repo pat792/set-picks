@@ -47,7 +47,7 @@ const QA_TEST_PASSWORD_PLACEHOLDER = 'YOUR_QA_TEST_PASSWORD';
 
 /**
  * SPA-navigate to `path` via pushState + popstate. See file header for
- * why this works against react-router-dom v6.
+ * why this works against react-router-dom v7 (same History API as v6).
  *
  * @param {import('playwright').Page} page
  * @param {string} path

@@ -23,7 +23,7 @@
  *     route lands.
  *   - SPA navigation uses pushState + popstate (same as
  *     firestore-cache.mjs). See that file's header for why this
- *     works against react-router-dom v6.
+ *     works against react-router-dom v7 (same History API as v6).
  */
 
 import { chromium } from 'playwright';
