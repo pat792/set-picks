@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.75.1] — 2026-09-23
+
+### Fixed
+- **Make Picks on iOS Chrome (#1041)** — while the keyboard is open, hide the mobile primary nav. While a pick field is focused, collapse the tertiary tray and status band and portal song suggestions so the list flips into the visual viewport. Safari’s usable typing band stays the acceptance baseline.
+
+---
+
 ## [1.75.0] — 2026-09-22
 
 ### Added

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
 import SongAutocomplete from '../../../shared/ui/SongAutocomplete';
 import { useSongCatalog } from '../../song-catalog';
 import { artifactTargetsDate } from '../model/selectScorecardOdds';
 import { useMakePicksOdds } from '../model/useMakePicksOdds';
+import usePicksEntryFocus from '../model/usePicksEntryFocus';
 import PicksOddsHint from './PicksOddsHint';
 
 export default function PicksFieldsForm({
@@ -24,9 +25,27 @@ export default function PicksFieldsForm({
     pickRecommendationsArtifact,
     selectedDate,
   );
+  const entryLocked = Boolean(isLocked || disabled);
+  const [entryFocus, setEntryFocus] = useState(false);
+  usePicksEntryFocus(entryFocus && !entryLocked);
 
   return (
-    <>
+    <div
+      onFocus={(event) => {
+        if (entryLocked) return;
+        setEntryFocus(true);
+        const target = event.target;
+        if (target instanceof HTMLElement) {
+          requestAnimationFrame(() => {
+            target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          });
+        }
+      }}
+      onBlur={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget)) return;
+        setEntryFocus(false);
+      }}
+    >
       {showOddsChrome ? (
         <div className="-mt-1 mb-1 flex justify-end">
           <PicksOddsHint />
@@ -52,6 +71,6 @@ export default function PicksFieldsForm({
           />
         </div>
       ))}
-    </>
+    </div>
   );
 }
