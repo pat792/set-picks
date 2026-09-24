@@ -33,8 +33,9 @@ export function isVirtualKeyboardOpen({
 }
 
 /**
- * Place a portaled listbox in layout-viewport coordinates (`position: fixed`
- * on iOS is layout-anchored; `getBoundingClientRect` is visual).
+ * Place a portaled listbox using the input's visual rect (`getBoundingClientRect`).
+ * `position: fixed` on iOS Chrome tracks that same visual viewport, so do not
+ * add `visualViewport.offsetTop` or the menu detaches and the form scrolls.
  *
  * @param {{
  *   anchorTop: number,
@@ -61,14 +62,12 @@ export function placeAutocompleteMenu({
   maxMenuPx = AUTOCOMPLETE_MENU_MAX_PX,
   gapPx = 8,
 }) {
-  const spaceBelow = visualTop + visualHeight - anchorBottom - gapPx;
+  const spaceBelow = visualHeight - anchorBottom - gapPx;
   const spaceAbove = anchorTop - visualTop - gapPx;
   const openUp = spaceBelow < minMenuPx && spaceAbove > spaceBelow;
   const available = Math.max(0, openUp ? spaceAbove : spaceBelow);
   const maxHeight = Math.max(48, Math.min(maxMenuPx, available || maxMenuPx));
-  const top = openUp
-    ? anchorTop + visualTop - gapPx - maxHeight
-    : anchorBottom + visualTop + gapPx;
+  const top = openUp ? anchorTop - gapPx - maxHeight : anchorBottom + gapPx;
   return {
     top,
     left: anchorLeft + visualLeft,

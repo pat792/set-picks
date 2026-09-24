@@ -31,15 +31,9 @@ export default function PicksFieldsForm({
 
   return (
     <div
-      onFocus={(event) => {
+      onFocus={() => {
         if (entryLocked) return;
         setEntryFocus(true);
-        const target = event.target;
-        if (target instanceof HTMLElement) {
-          requestAnimationFrame(() => {
-            target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-          });
-        }
       }}
       onBlur={(event) => {
         if (event.currentTarget.contains(event.relatedTarget)) return;

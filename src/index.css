@@ -127,11 +127,13 @@
  * Unlayered so these beat the Tailwind padding utilities on the scrollport.
  */
 @media (max-width: 767px) {
-  html[data-keyboard-open] [data-mobile-primary-nav] {
+  html[data-keyboard-open] [data-mobile-primary-nav],
+  html[data-picks-entry-focus] [data-mobile-primary-nav] {
     display: none !important;
   }
 
-  html[data-keyboard-open] #dashboard-scrollport {
+  html[data-keyboard-open] #dashboard-scrollport,
+  html[data-picks-entry-focus] #dashboard-scrollport {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem) !important;
   }
 
@@ -139,7 +141,8 @@
     display: none !important;
   }
 
+  /* Brand + context only. 9rem tucked the first field under the date bar. */
   html[data-picks-entry-focus] #dashboard-scrollport {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 9rem) !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 11.75rem) !important;
   }
 }
