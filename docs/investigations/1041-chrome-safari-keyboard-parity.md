@@ -45,7 +45,7 @@ On **Safari** and **Chrome**, same phone, same show:
 
 Chrome has shrunk the layout viewport to the visible screen (`client` = `vv` = `inner` = 352), so the overlap gate stays 0 while the nav is still inside that screen. The field bottom (361) is past the visual bottom (352). Safari keeps a tall layout (714) and pans, so the nav falls outside the 377px visual viewport and the field sits at 162–214.
 
-## What the pair of screenshots decides
+## What the pair of screenshots decides (superseded by Decision below)
 
 | Safari `navInVisual` | Chrome `navInVisual` | The fix |
 |----------------------|----------------------|---------|

@@ -69,16 +69,25 @@ export function useHideMobilePrimaryNavForKeyboard(navRef, topChromeRef) {
       compact = next;
     };
 
+    // A frame shrink with no text entry focused (iPad split view, Slide
+    // Over) is not a keyboard. Only compact while something can type.
+    const textEntryFocused = () => {
+      const el = document.activeElement;
+      if (!el || el === document.body) return false;
+      if (el.isContentEditable) return true;
+      const tag = el.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    };
+
     const apply = () => {
       const visualHeight = vv.height;
       const clientHeight = document.documentElement.clientHeight;
       restingVisualHeight = Math.max(restingVisualHeight, visualHeight);
       restingClientHeight = Math.max(restingClientHeight, clientHeight);
 
-      const layoutShrunk = isLayoutViewportShrunk({
-        clientHeight,
-        restingClientHeight,
-      });
+      const layoutShrunk =
+        isLayoutViewportShrunk({ clientHeight, restingClientHeight }) &&
+        textEntryFocused();
 
       setCompact(layoutShrunk);
 
