@@ -44,7 +44,7 @@ const rootEl = document.getElementById('root')
 const root = createRoot(rootEl)
 root.render(
   <React.StrictMode>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <AuthProvider>
         <LoginApp />
       </AuthProvider>
