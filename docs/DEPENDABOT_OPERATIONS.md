@@ -26,7 +26,7 @@ This is **not** recurring weekly noise — it was a **one-time enablement avalan
 |---------|-------|-----|
 | Groups | **minor/patch only** (`*-safe` groups) | One breaking major must never block a week of safe updates (July 2026 wave: #518/#519/#624 sat open ~3 weeks) |
 | Majors | **Individual PRs**, one dependency each | Each major gets its own migration + QA; see "Major upgrades" below |
-| `firebase-admin` majors in `/functions` | **Ignored** | `firebase-functions-test` peer-supports admin ≤13; admin 14 PRs always fail `npm ci` (#624). Remove the ignore when upstream catches up |
+| `firebase-admin` majors in `/functions` | **Ignored** | `firebase-functions-test@3.5.0` (latest as of 2026-09-24) still peers `firebase-admin` `^8`–`^13` only; admin 14 fails `npm ci` with ERESOLVE (#624, #799). `firebase-functions@7.4.0` now peers admin `^14`, but do not ship admin 14 until the test harness catches up. Remove the ignore when `firebase-functions-test` allows `firebase-admin ^14`. |
 | CI `build` job | Runs on any PR touching `package.json` / `package-lock.json` / build config | `verify` doesn't run the production build and qa-runners skip lockfile-only diffs, so Tailwind-4-class breaks were only visible on Vercel (#519) |
 | `open-pull-requests-limit` | **5** root/functions, **3** actions (re-enabled 2026-07-05, #504) | Was **0** during ops reset; triage max 1–2 merges/week |
 | SemVer gate | Skips `dependabot/*` + `skip-version-bump` label | Deps PRs never bump `package.json` |
@@ -60,7 +60,7 @@ Known pending majors (from the closed July 2026 group PRs — tracked in #744):
 | firebase 12 | High | QA WebChannel + App Check flows (see pr-qa traps.md) |
 | @firebase/rules-unit-testing 5 | Medium | Pair with `npm run test:rules` |
 | resend 6 (`/functions`) | Medium | Comms email worker QA + `functions` job |
-| firebase-admin 14 (`/functions`) | **Blocked** | Wait for firebase-functions-test peer support; ignore rule in `dependabot.yml` |
+| firebase-admin 14 (`/functions`) | **Blocked** (re-checked 2026-09-24) | Latest `firebase-functions-test` is still **3.5.0**; its `firebase-admin` peer is `^8`–`^13` (no `^14`). `firebase-functions@7.4.0` now allows admin 14, but functions unit tests cannot `npm ci` on that combo. Keep root + functions on admin 13. Leave Dependabot [#799](https://github.com/pat792/set-picks/pull/799) open; do not rebase-merge it. |
 
 ### Re-enabling Dependabot (human step)
 

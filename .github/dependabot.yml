@@ -38,9 +38,10 @@ updates:
       - dependencies
       - skip-version-bump
     ignore:
-      # firebase-functions-test (even latest) peer-supports firebase-admin <=13,
-      # so admin 14 PRs always fail `npm ci` with ERESOLVE (#624, #744).
-      # Remove once firebase-functions-test allows firebase-admin ^14.
+      # Re-checked 2026-09-24: firebase-functions-test@3.5.0 (latest) still
+      # peers firebase-admin ^8–^13 only. firebase-functions@7.4.0 now peers
+      # admin ^14, but functions `npm ci` still ERESOLVE on the test harness
+      # (#624, #744, #799). Remove once firebase-functions-test allows ^14.
       - dependency-name: "firebase-admin"
         update-types: ["version-update:semver-major"]
     groups:
