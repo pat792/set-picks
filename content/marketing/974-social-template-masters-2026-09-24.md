@@ -37,7 +37,32 @@ This pack builds those three masters by **copying `slot-card`**, not by running 
 | Setlist Pick 'Em | `kAHJGQBYBxc` | Use this kit. Do not invent a second kit. |
 | (unnamed) | `kAGpVKCjmvY` | Ignore for this program. |
 
-**Brand Templates:** none. `search-brand-templates` (all + scoped to `kAHJGQBYBxc`) is still empty. The Canva MCP has **no write API** for Brand Kits or Brand Templates (`list-brand-kits` and `search-brand-templates` are read-only; `create-design-from-brand-template` needs a `BTM*` id we do not have). Autofill is Enterprise-only.
+**Brand Templates:** none. `search-brand-templates` (all + scoped to `kAHJGQBYBxc`) is still empty.
+
+#### 2026-09-24 kit UI vs API (screenshot)
+
+The Brand Kit screen title **Get started with colors** plus **+ Add to brand** means the teal / red / white / grey / black / gradient dots are **suggestions**, not saved kit colors. Fonts, Brand voice, Photos, Components, Graphics, and Icons still show **Add fonts / Add a brand voice / Add brand assets**.
+
+`user-canva` and `plugin-canva-canva` (authenticated this pass) expose the same official brand tools as [Canva MCP tools](https://www.canva.dev/docs/mcp/tools/): `list-brand-kits`, `search-brand-templates`, `create-design-from-brand-template`, `get-brand-template-dataset`. There is no add-color / add-font / add-asset / add-voice / update-kit tool.
+
+| Attempt | Exact result |
+|---------|--------------|
+| `update-brand-kit` (`user-canva`) | Tool `user-canva-update-brand-kit` was not found. |
+| `add-brand-color` (`plugin-canva-canva`) | Tool `plugin-canva-canva-add-brand-color` was not found. |
+| `add-brand-font` (`user-canva`) | Tool `user-canva-add-brand-font` was not found. |
+| `add-brand-asset` (`user-canva`) | Tool `user-canva-add-brand-asset` was not found. |
+| `add-brand-voice` (`plugin-canva-canva`) | Tool `plugin-canva-canva-add-brand-voice` was not found. |
+| `create-brand-template` (`user-canva`) | Tool `user-canva-create-brand-template` was not found. |
+| `move-item-to-folder` vinyl `MAHWI9qNlyI` → `kAHJGQBYBxc` | `The folder id \`kAHJGQBYBxc\` is invalid` (Request ID: `a40436a6b83bf961-IAD`) |
+| `create-folder` parent `kAHJGQBYBxc` | `Parent folder not found` (Request ID: `a40436edfed3f961-DEN`) |
+| `list-folder-items` `kAHJGQBYBxc` | `Folder not found` (Request ID: `a40436ee1ee7f961-DEN`) |
+| `create-design-from-brand-template` id `kAHJGQBYBxc` | `Brand template with id 'kAHJGQBYBxc' not found` (Request ID: `a40436f27b39f961-IAD`) |
+| `get-brand-template-dataset` id `kAHJGQBYBxc` | `Brand template with id 'kAHJGQBYBxc' not found` (Request ID: `a40436ee2e1490d2-IAD`) |
+| `upload-asset-from-url` + extra `brand_kit_id` | Succeeded as a **library** upload (`MAHWIybt5HU`), not a kit Photos/Graphics/Icons item. Extra field is not in the schema. |
+
+**Kit sections with real saved items after this pass:** none (Colors still unsaved suggestions; Fonts / Brand voice / Photos / Components / Graphics / Icons still empty).
+
+A human must click **+ Add to brand** on the color row, then **Add fonts** (Space Grotesk, Inter) and **Add brand assets** in Photos / Graphics / Icons using the Uploads listed below. Do not treat the social folder `FAHWEqhXQeI` (`Setlist Pick 'Em Social`) as the kit.
 
 #### Intended kit (repo source of truth — not written onto the kit)
 
