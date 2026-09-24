@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   keyboardParityDecision,
   readKeyboardParitySnapshot,
+  shouldHidePrimaryNavAfterKeyboardSettle,
 } from './keyboardParityProbe.js';
 
 describe('readKeyboardParitySnapshot', () => {
@@ -42,5 +43,53 @@ describe('keyboardParityDecision', () => {
     expect(
       keyboardParityDecision({ navInVisual: false }, { navInVisual: false }),
     ).toBe('measure-top-chrome');
+  });
+});
+
+describe('shouldHidePrimaryNavAfterKeyboardSettle', () => {
+  it('gates on navInVisual, including Chrome overlap 0 with the nav on screen', () => {
+    const chrome = readKeyboardParitySnapshot({
+      clientHeight: 352,
+      visualHeight: 352,
+      offsetTop: 0,
+      navTop: 288,
+      navBottom: 352,
+    });
+    expect(chrome.overlap).toBe(0);
+    expect(chrome.navInVisual).toBe(true);
+    expect(
+      shouldHidePrimaryNavAfterKeyboardSettle({
+        navInVisual: chrome.navInVisual,
+        visualHeight: 352,
+        restingVisualHeight: 714,
+      }),
+    ).toBe(true);
+
+    const safari = readKeyboardParitySnapshot({
+      clientHeight: 714,
+      visualHeight: 377,
+      offsetTop: 25,
+      navTop: 650,
+      navBottom: 714,
+    });
+    expect(safari.overlap).toBe(312);
+    expect(safari.navInVisual).toBe(false);
+    expect(
+      shouldHidePrimaryNavAfterKeyboardSettle({
+        navInVisual: safari.navInVisual,
+        visualHeight: 377,
+        restingVisualHeight: 714,
+      }),
+    ).toBe(false);
+  });
+
+  it('does not hide at rest when the nav is on screen but the keyboard is down', () => {
+    expect(
+      shouldHidePrimaryNavAfterKeyboardSettle({
+        navInVisual: true,
+        visualHeight: 714,
+        restingVisualHeight: 714,
+      }),
+    ).toBe(false);
   });
 });

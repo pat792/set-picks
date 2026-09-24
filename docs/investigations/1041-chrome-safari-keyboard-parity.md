@@ -1,7 +1,6 @@
 # #1041 — Chrome / Safari keyboard parity measurement
 
-**Status:** measurement only. No layout change unless the probe says so.  
-**Date:** 2026-09-23  
+**Status:** measured 2026-09-23 on iPhone, feature preview `set-picks-m9ti5wq0z`. Decision below.  
 **Do not merge** the `?kbProbe=1` readout as the fix.
 
 ## What is already proven
@@ -34,6 +33,18 @@ On **Safari** and **Chrome**, same phone, same show:
 | `vv / off / scale` | Visual viewport height, `offsetTop`, pinch scale. |
 | `input` | Focused field top and bottom. |
 
+## Measured (keyboard fully up, Set 1 Opener focused)
+
+| | Safari | Chrome |
+|--|--------|--------|
+| `navInVisual` | NO (nav not in the band; line was clipped, photo shows no nav) | **YES** |
+| `overlap` | 312 | **0** |
+| visual height / offsetTop | 377 / 25 | 352 / 0 |
+| `clientHeight` / `innerHeight` | 714 / 689 | 352 / 352 |
+| input top–bottom | 162–214 | 309–361 |
+
+Chrome has shrunk the layout viewport to the visible screen (`client` = `vv` = `inner` = 352), so the overlap gate stays 0 while the nav is still inside that screen. The field bottom (361) is past the visual bottom (352). Safari keeps a tall layout (714) and pans, so the nav falls outside the 377px visual viewport and the field sits at 162–214.
+
 ## What the pair of screenshots decides
 
 | Safari `navInVisual` | Chrome `navInVisual` | The fix |
@@ -42,4 +53,4 @@ On **Safari** and **Chrome**, same phone, same show:
 | NO | NO | The nav is not the crush. Repeat the probe on the brand bar, date bar, and tertiary tray. Hide only the bands whose rects are inside the visual viewport on Chrome and outside it on Safari. Same timing rule. |
 | YES | YES | Unexpected. Safari would be showing the nav, which the earlier screenshots do not. Recheck that the keyboard was fully up. |
 
-Until those two screenshots exist, there is no further code change to Make Picks.
+Measured pair is **NO / YES** → hide only the primary nav after the keyboard settles, when `navInVisual` is true. Implemented on `feat/1041-mobile-keyboard-chrome`. `?kbProbe=1` stays a readout.
