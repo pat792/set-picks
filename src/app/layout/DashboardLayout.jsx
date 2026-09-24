@@ -74,6 +74,7 @@ import {
 import { getDashboardPageMeta } from './model/dashboardPageMeta';
 import { usePrefetchDashboardRoutes } from './model/usePrefetchDashboardRoutes';
 import DashboardMobileBrandBar from './ui/DashboardMobileBrandBar';
+import MobileKeyboardProbe from './ui/MobileKeyboardProbe';
 import DashboardMobileContextBar from './ui/DashboardMobileContextBar';
 import DashboardPageHeading from './ui/DashboardPageHeading';
 import DashboardStickyChromeStack from './ui/DashboardStickyChromeStack';
@@ -488,7 +489,8 @@ export default function DashboardLayout() {
       </main>
 
       {/* MOBILE BOTTOM BAR — translucent tint + heavy blur (real glass); active pill keeps teal legible over scrolling content */}
-      <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-[linear-gradient(to_top,rgb(var(--brand-bg-deep)_/_0.76),rgb(var(--brand-bg)_/_0.60))] pb-[env(safe-area-inset-bottom,0px)] shadow-[inset_0_1px_0_0_rgb(var(--brand-primary)/0.12),0_-10px_28px_-14px_rgba(15,10,46,0.85)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150">
+      {searchParams.get('kbProbe') === '1' ? <MobileKeyboardProbe /> : null}
+      <nav data-mobile-primary-nav className="md:hidden fixed inset-x-0 bottom-0 z-50 w-full border-t border-border-subtle/35 bg-[linear-gradient(to_top,rgb(var(--brand-bg-deep)_/_0.76),rgb(var(--brand-bg)_/_0.60))] pb-[env(safe-area-inset-bottom,0px)] shadow-[inset_0_1px_0_0_rgb(var(--brand-primary)/0.12),0_-10px_28px_-14px_rgba(15,10,46,0.85)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150">
         <div className={`grid ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'} items-center gap-0.5 px-1.5 h-16`}>
           {navItems.map((item) => {
             const Icon = item.icon; // Extract the icon component
