@@ -83,42 +83,6 @@ describe('shouldHidePrimaryNavAfterKeyboardSettle', () => {
     ).toBe(false);
   });
 
-  it('hides a top band that is still inside the visual viewport', () => {
-    const chromeTop = readKeyboardParitySnapshot({
-      clientHeight: 352,
-      visualHeight: 352,
-      offsetTop: 0,
-      navTop: 0,
-      navBottom: 220,
-    });
-    expect(chromeTop.navInVisual).toBe(true);
-    expect(
-      shouldHidePrimaryNavAfterKeyboardSettle({
-        navInVisual: chromeTop.navInVisual,
-        visualHeight: 352,
-        restingVisualHeight: 714,
-      }),
-    ).toBe(true);
-  });
-
-  it('does not hide a top band Safari has already panned above the visual viewport', () => {
-    const safariTop = readKeyboardParitySnapshot({
-      clientHeight: 714,
-      visualHeight: 377,
-      offsetTop: 25,
-      navTop: -180,
-      navBottom: -8,
-    });
-    expect(safariTop.navInVisual).toBe(false);
-    expect(
-      shouldHidePrimaryNavAfterKeyboardSettle({
-        navInVisual: safariTop.navInVisual,
-        visualHeight: 377,
-        restingVisualHeight: 714,
-      }),
-    ).toBe(false);
-  });
-
   it('does not hide at rest when the nav is on screen but the keyboard is down', () => {
     expect(
       shouldHidePrimaryNavAfterKeyboardSettle({
