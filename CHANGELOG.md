@@ -45,6 +45,7 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 - **SEO Optimize autonomy (#934 / epic #926)** — `docs/SEO_OPTIMIZE_AUTONOMY.md` is the draft-only scored tune loop (`stats_impressions` \| `query_coverage` \| `geo_citations` \| `crawl_regressions`). Weekly E1 facts packs stay comment-only; agents may open a **draft** PR to `staging` only when scored `DRAFT_PR`. Docs only after **1.63.0** (#991 / #993); no PATCH bump. Packs ingest the #933 competitor brief when present.
 
 ### Changed
+- **Owned-social masters glass + mark mix (#974)** — `score` uses venue glass + circular vinyl; `stat` uses indigo glass + horizontal wordmark; `line` uses a deep glass band + horizontal wordmark. Canva cannot apply live blur; grounds are token-composited PNGs. Still draft / unpublished.
 - **Pick'em search plan (#970)** — EiC-approved SERP/GEO plan + playbook C6/C7 / SERP snapshot. Docs only; no declared API change and no version bump.
 
 ---
