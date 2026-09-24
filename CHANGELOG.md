@@ -8,13 +8,6 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.75.1] — 2026-09-23
-
-### Fixed
-- **Make Picks on iOS Chrome (#1041)** — while a pick field is focused, hide the mobile primary nav. Tertiary chrome, scrollport padding, and the in-flow suggestion list stay as they are so Safari focus and spacing do not jump.
-
----
-
 ## [1.75.0] — 2026-09-22
 
 ### Added

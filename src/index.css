@@ -119,14 +119,3 @@
     white-space: nowrap;
   }
 }
-
-/*
- * #1041 — hide only the fixed primary nav while a Make Picks field is focused.
- * Do not change scrollport padding or tertiary chrome: that shift eats the
- * first tap on Safari and jams the field under the date bar.
- */
-@media (max-width: 767px) {
-  html[data-picks-entry-focus] [data-mobile-primary-nav] {
-    display: none !important;
-  }
-}
