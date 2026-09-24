@@ -60,6 +60,18 @@ export function isVisualKeyboardOpen({
 }
 
 /**
+ * Layout-viewport shrink. iOS Chrome frames its web view to the visible
+ * screen when the keyboard opens, so `documentElement.clientHeight` drops
+ * with it. Safari keeps the layout viewport and pans (clientHeight stays),
+ * so this never fires there.
+ *
+ * @param {{ clientHeight: number, restingClientHeight: number }} metrics
+ */
+export function isLayoutViewportShrunk({ clientHeight, restingClientHeight }) {
+  return restingClientHeight - clientHeight >= KEYBOARD_VISUAL_DROP_PX;
+}
+
+/**
  * Hide gate after the keyboard has settled. Overlap is ignored.
  * Chrome (overlap 0, nav still on screen) hides; Safari (nav already
  * panned out of the visual viewport) does not.

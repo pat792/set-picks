@@ -53,4 +53,29 @@ Chrome has shrunk the layout viewport to the visible screen (`client` = `vv` = `
 | NO | NO | The nav is not the crush. Repeat the probe on the brand bar, date bar, and tertiary tray. Hide only the bands whose rects are inside the visual viewport on Chrome and outside it on Safari. Same timing rule. |
 | YES | YES | Unexpected. Safari would be showing the nav, which the earlier screenshots do not. Recheck that the keyboard was fully up. |
 
-Measured pair is **NO / YES** → hide only the primary nav after the keyboard settles, when `navInVisual` is true. Implemented on `feat/1041-mobile-keyboard-chrome`. `?kbProbe=1` stays a readout.
+Measured pair is **NO / YES** → hide the primary nav after the keyboard settles, when `navInVisual` is true.
+
+Device check on that build: bottom nav hides on most taps, sometimes stays; top stack never leaves; form still short. Safari drops both.
+
+## Why Chrome and Safari differ (research, 2026-09-23)
+
+Both are WebKit. Shipping Chrome for iOS 153 (Sept 2026) is still WKWebView; the Blink port is a prototype, not what users run. The difference is how each app frames the web view when the keyboard is up.
+
+- **Safari**: keeps the layout viewport at full height and pans it. Our probe: `clientHeight` 714, visual 377, `offsetTop` 25. Fixed top stack and bottom nav are anchored to the tall layout viewport, so the pan carries them out of the visible band. This is the "resize visual, offset layout" model in Chrome's own viewport blog.
+- **Chrome iOS**: sizes its web view to the keyboard-free screen. Our probe: `clientHeight` 352 = visual 352, `offsetTop` 0. That is the "resize both viewports" model. Every `position: fixed` band stays on screen, `100dvh` shrinks to 352, and the scrollport keeps its reserved padding (15.25rem top + ~4.5rem bottom ≈ 316px), leaving the form a few dozen pixels.
+
+The published claim that Chrome iOS matches Safari is about Chrome 108 on Android; it does not describe the iPhone shell we measured. `interactive-widget` does not exist in WebKit (bug 259770), so no meta tag changes this. The pre-tertiary shell reserved 9rem instead of 15.25rem, which is why the same Chrome model was survivable before the nav changes and is not now.
+
+## Decision
+
+Gate on the thing only Chrome does: `documentElement.clientHeight` dropping ≥150px from its resting value. Safari never trips it. When it trips (after settle, never on the tap):
+
+1. Hide the top stack and the bottom nav.
+2. Release the scrollport's reserved top/bottom padding.
+3. Hold the focused field where it was by shifting `scrollTop` by the same delta.
+
+When `clientHeight` returns, restore all three. The bottom nav keeps the rect gate as a fallback.
+
+Withdrawn today: gating the top stack on its rect. Safari's pan leaves that rect partly inside the visual viewport, so the top stack was hidden and the padding dropped while the finger was down. That was the frozen first tap.
+
+`?kbProbe=1` stays a readout.

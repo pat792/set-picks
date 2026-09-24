@@ -1,10 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  isLayoutViewportShrunk,
   keyboardParityDecision,
   readKeyboardParitySnapshot,
   shouldHidePrimaryNavAfterKeyboardSettle,
 } from './keyboardParityProbe.js';
+
+describe('isLayoutViewportShrunk', () => {
+  it('fires for iOS Chrome, whose layout viewport drops to the visible screen', () => {
+    expect(
+      isLayoutViewportShrunk({ clientHeight: 352, restingClientHeight: 714 }),
+    ).toBe(true);
+  });
+
+  it('stays off for Safari, whose layout viewport keeps its height and pans', () => {
+    expect(
+      isLayoutViewportShrunk({ clientHeight: 714, restingClientHeight: 714 }),
+    ).toBe(false);
+  });
+
+  it('ignores the URL bar collapsing', () => {
+    expect(
+      isLayoutViewportShrunk({ clientHeight: 689, restingClientHeight: 714 }),
+    ).toBe(false);
+  });
+});
 
 describe('readKeyboardParitySnapshot', () => {
   it('treats a nav above the visual bottom as inside the typing band', () => {
