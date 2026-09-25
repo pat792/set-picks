@@ -31,9 +31,11 @@ Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc R
 - External scrape/post/BD/affiliate live actions → only if maturity level and user explicitly enable (L1–L3).
 - Propose org adaptations when RACI feels wrong; update the doc changelog + comment on #695.
 - **Approved or gated drafts must land on disk** (e.g. `content/marketing/`, `content/comms/`, `crew/output/`) before the turn ends — never chat-only. See `.cursor/rules/crew-draft-artifacts.mdc`.
+- Social loop step 4: [`content/marketing/974-social-post-loop.md`](../../../content/marketing/974-social-post-loop.md). Style and consistency only. Record pass or reject on the pack. Do not approve the queue unless the user has accepted the pair.
 
 ## Read first
 
 1. `docs/LEADERSHIP_CREW.md`
 2. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
 3. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `SEO_OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)
+4. `.cursor/skills/brand-systems-partner/SKILL.md` — style and consistency gate only. The brand skill owns the voice. Reject a draft that drifts from it: emphasis words, a joke pulled off its subject, a social caption that runs long, or fan-facing copy that never names Phish.
