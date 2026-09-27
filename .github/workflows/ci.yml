@@ -94,6 +94,9 @@ jobs:
       - name: SEO string sync (description mirrors)
         run: npm run verify:seo-strings
 
+      - name: Marketing voice (em dash / banned phrase guard)
+        run: npm run verify:marketing-voice
+
       - name: Client tests (vitest)
         run: npm test
 

@@ -14,12 +14,13 @@ You draft and ship editorial copy for triggered communications.
 ## Read first
 
 1. `content/comms/README.md` — authoritative edit/ship workflow
-2. `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` — draft-only Optimize + PM pack (#573)
-3. `docs/comms-triggers/TRIGGER_CATALOG.md` — which templateId you are writing for
-4. `src/features/comms/registry.js` — channels and paths
-5. Existing reference: `content/comms/tours/sphere-2026-inaugural.md` (tour edition archive; production path is #510 `tour_recap`)
-6. Night narrative facts: `docs/COMMS_SHOW_CONTEXT_SCHEMA.md` + `docs/OFFICIAL_SETLISTS_SCHEMA.md` (#572) — deterministic `setlist_highlight`; no LLM v1
-7. `.cursor/skills/brand-systems-partner/SKILL.md` — Phish fan voice for anything a fan will read. Emails and push stay in that speech. They are not cut down to a social caption.
+2. `content/marketing/voice-guide.md` — shared prose rules (em dashes, banned product verbs, fan-press calibration); applies to inApp and email body copy
+3. `docs/comms-triggers/OPTIMIZE_AUTONOMY.md` — draft-only Optimize + PM pack (#573)
+4. `docs/comms-triggers/TRIGGER_CATALOG.md` — which templateId you are writing for
+5. `src/features/comms/registry.js` — channels and paths
+6. Existing reference: `content/comms/tours/sphere-2026-inaugural.md` (tour edition archive; production path is #510 `tour_recap`)
+7. Night narrative facts: `docs/COMMS_SHOW_CONTEXT_SCHEMA.md` + `docs/OFFICIAL_SETLISTS_SCHEMA.md` (#572) — deterministic `setlist_highlight`; no LLM v1
+8. `.cursor/skills/brand-systems-partner/SKILL.md` — social-caption pith. Emails and push stay in fan speech. They are not cut down to a social caption.
 
 ## Channel copy rules
 
@@ -38,7 +39,7 @@ You draft and ship editorial copy for triggered communications.
 - **CTA** — action-specific label when possible (`Make Your Picks` → `/dashboard/picks`); **teal** fill (`#2dd4bf`) + dark text per `design.md`; plain-text part keeps `Open the app: <url>`.
 - **Shell** — gradient wordmark via **hosted PNG** (`/branding/email-gradient-wordmark.png`, same pattern as marketing favicon URL). Deploy `public/branding/` before sends. No CID attachments (Gmail exposes those as downloadable files).
 - **Email QA (required before batch send)** — `node scripts/send-local-email-preview.mjs --tour-countdown --send <your-email>` after the PNG is on production; confirm wordmark in a real inbox (not browser HTML alone).
-- **Voice** — direct, fan-to-fan, show-night energy; avoid corporate boilerplate and triple-stacked branding.
+- **Voice** — direct, fan-to-fan, show-night energy; avoid corporate boilerplate and triple-stacked branding. Full rules in `content/marketing/voice-guide.md` (em dashes are not the default joint; no "unlock" / "elevate" / "seamless").
 
 **Pattern:** push teases, inbox delivers depth (Sphere model).
 

@@ -33,7 +33,8 @@ Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc R
 
 ## Read first
 
-1. `docs/LEADERSHIP_CREW.md`
-2. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
-3. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `SEO_OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)
-4. `.cursor/skills/brand-systems-partner/SKILL.md` — Phish fan voice. Follow it for any fan-facing page or campaign line.
+1. `content/marketing/voice-guide.md` (write page copy to this; keyword phrases go in sentences a fan would say)
+2. `.cursor/skills/brand-systems-partner/SKILL.md` — social-caption pith for any fan-facing campaign line.
+3. `docs/LEADERSHIP_CREW.md`
+4. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
+5. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `SEO_OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)

@@ -13,7 +13,7 @@ description: >-
 
 ## Mandate
 
-Shared visual/voice system between Product Design and Marketing/Social.
+Shared visual/voice system between Product Design and Marketing/Social. The voice half of that system is `content/marketing/voice-guide.md`; it sits alongside `social-brand-approach.md` (visual) and both are yours to keep consistent.
 
 ## Stance
 
@@ -23,24 +23,30 @@ Consistency for email wordmark, landing, social kits. Draft standards; no prod d
 
 Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc Resend; no live social/BD without L2 approval; commercial/affiliate in-product only after Phase 3; night show_recap != tour tour_recap; scrape allowlist only; facts-only setlists. Living org — propose adaptations via docs/LEADERSHIP_CREW.md and epic #695.
 
+## Visual production
+
+Social kits are slot card, gradient question, stat, score, and line in `content/marketing/social-brand-approach.md`. Require a copy of one of those. Stage light is a ground, not a new type system. Reject `generate-design` output and any file that file lists as off the copy list.
+
 ## When executing
 
 - Stay in leadership/brief mode unless the user asks for implementation.
 - Comms delivery work → hand off via **comms-orchestration-lead** to existing squad skills.
 - External scrape/post/BD/affiliate live actions → only if maturity level and user explicitly enable (L1–L3).
 - Propose org adaptations when RACI feels wrong; update the doc changelog + comment on #695.
-- Social loop step 2: [`content/marketing/974-social-post-loop.md`](../../../content/marketing/974-social-post-loop.md). Pick a template-menu layout. The caption is step 3, written to the voice section below.
+- Social loop step 2: [`content/marketing/974-social-post-loop.md`](../../../content/marketing/974-social-post-loop.md). Pick a template-menu layout. The caption is step 3, written to the Phish fan voice section below and `content/marketing/voice-guide.md`.
 
 ## Read first
 
-1. `docs/LEADERSHIP_CREW.md`
-2. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
-3. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)
-4. `docs/design.md` for visual tokens. Caption voice is the section below, not the design doc.
+1. `content/marketing/voice-guide.md` (page, editorial, and comms prose)
+2. `content/marketing/social-brand-approach.md`
+3. `docs/design.md` §1 and §7
+4. `docs/LEADERSHIP_CREW.md`
+5. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
+6. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)
 
 ## Phish fan voice
 
-This is the writing standard for fan-facing copy: social, marketing pages, bios, and lifecycle comms. Other writing skills follow this section. The editor-in-chief checks style and consistency against it and does not keep a second voice.
+Page and comms prose follows `content/marketing/voice-guide.md`. This section is the social-caption standard. Other writing skills follow both. The editor-in-chief checks style and consistency against them and does not keep a third voice.
 
 Before any public line, read how fans write on public threads (r/phish, show-discussion boards, and other public social). Match that speech. Do not invent product slang.
 
