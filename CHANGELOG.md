@@ -8,6 +8,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.75.3] — 2026-09-28
+
+### Changed
+- **Marketing voice pass (epic #972)** — public page prose rewritten so it reads like fan writing: em dashes out of body copy, no "unlock" / "plays live" / label-dash lists. Surfaces: splash, `/how-it-works`, `/how-scoring-works`, `/about`, `/tour-stats`, `/phish-setlist-prediction-game`, plus matching prerender paragraphs and FAQ/HowTo JSON-LD. SERP titles and meta descriptions are unchanged. Review: `content/marketing/marketing-voice-pass-2026-09.md`.
+
+### Added
+- **Voice guide + CI guard** — `content/marketing/voice-guide.md` is the Do / Do-not for marketing, editorial, and comms body copy. `npm run verify:marketing-voice` fails the `verify` job above 6 em dashes in rendered prose, on banned phrases, or on label-dash list items.
+
+---
+
 ## [1.75.2] — 2026-09-28
 
 ### Fixed

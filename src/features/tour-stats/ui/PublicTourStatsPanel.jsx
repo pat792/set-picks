@@ -53,8 +53,8 @@ export default function PublicTourStatsPanel({
         </h1>
         <p className="text-base leading-snug text-slate-300">
           Phish tour setlist statistics: most-played songs, song frequency,
-          bustouts by tour, and gap highlights that help you stay sharp between
-          shows—updated every night the band plays live.
+          bustouts by tour, and gap highlights that keep you sharp between
+          shows. Updated every night the band plays.
         </p>
         {isHub ? (
           <p className="text-sm leading-snug text-slate-400">
@@ -139,8 +139,8 @@ export default function PublicTourStatsPanel({
       />
 
       <p className="mt-8 text-center text-sm leading-snug text-slate-400 sm:text-left">
-        Tour-wide trends only—not a night-by-night archive. Playing unlocks
-        personal stats.{' '}
+        Tour-wide trends only, not a night-by-night archive. Play and your
+        personal stats start counting.{' '}
         <Link to="/how-it-works" className={LINK_ON_DARK}>
           How it works
         </Link>

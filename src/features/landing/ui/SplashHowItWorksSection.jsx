@@ -54,7 +54,7 @@ export default function SplashHowItWorksSection({
             </div>
             <h3 className="mb-3 text-xl font-bold text-slate-900">Lock It In</h3>
             <p className={`${MARKETING_EDITORIAL_TYPE_BODY} leading-relaxed text-slate-600`}>
-              Pick openers, closers, encore and wildcard before showtime. Earn points for correct picks, higher points for exact slot picks, plus a Bustout Boost™ for calling longshots.
+              Pick openers, closers, encore, and wildcard before showtime. Correct picks earn points, exact slots earn more, and a Bustout Boost™ pays out when you call a longshot.
             </p>
             <Link
               to="/how-scoring-works"
@@ -71,7 +71,7 @@ export default function SplashHowItWorksSection({
             </div>
             <h3 className="mb-3 text-xl font-bold text-slate-900">Watch It Unfold</h3>
             <p className={`${MARKETING_EDITORIAL_TYPE_BODY} leading-relaxed text-slate-600`}>
-              Live scores and standings update as songs are played. See your picks—and your friends&apos;—light up the leaderboard.
+              Live scores and standings update as songs are played. Watch your picks and your friends&apos; picks light up the leaderboard.
             </p>
           </div>
 
@@ -81,7 +81,7 @@ export default function SplashHowItWorksSection({
             </div>
             <h3 className="mb-3 text-xl font-bold text-slate-900">Claim the Crown</h3>
             <p className={`${MARKETING_EDITORIAL_TYPE_BODY} leading-relaxed text-slate-600`}>
-              Challenge friends in private pools and compete in global standings. Your personal stats grow with every show you play—across the tour and beyond.
+              Challenge friends in private pools and compete in global standings. Your personal stats grow with every show you play.
             </p>
           </div>
         </div>

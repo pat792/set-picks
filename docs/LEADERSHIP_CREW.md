@@ -170,6 +170,7 @@ Do **not** wait for a perfect org before shipping L1 research tools.
 
 | Date | Change |
 |------|--------|
+| 2026-09-25 | Social art is copy-and-replace from named Canva sources. Skills read `content/marketing/social-brand-approach.md` before any Canva call. `generate-design` is not a social layout tool. |
 | 2026-09-03 | SEO Optimize scored pack RACI (#934 / epic #926): GPM accountable, Marketing Specialist responsible, EiC + CDO consulted. Playbook: `docs/SEO_OPTIMIZE_AUTONOMY.md` |
 | 2026-09-03 | #933 E2: allowlisted SEO title/H1 scan (`seo_title_h1_scan`) + refuse list; brief `content/marketing/933-competitor-title-h1-gap-brief.md` |
 | 2026-08-08 | Draft artifacts required on disk (`content/marketing/`, `content/comms/`, `crew/output/`); Cursor rule `crew-draft-artifacts.mdc` |

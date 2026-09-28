@@ -13,7 +13,7 @@ description: >-
 
 ## Mandate
 
-Editorial gate for voice, Optimize packs, and social/BD outbound drafts before any L2 publish.
+Editorial gate for voice, Optimize packs, and social/BD outbound drafts before any L2 publish. Reject any pack, page copy, or comms draft that fails the Do-not list in `content/marketing/voice-guide.md` before it reaches L2 or a PR; `npm run verify:marketing-voice` must pass on marketing copy diffs.
 
 ## Stance
 
@@ -35,7 +35,8 @@ Guardrails: draft-only default; PR base staging; never merge/deploy; no ad-hoc R
 
 ## Read first
 
-1. `docs/LEADERSHIP_CREW.md`
-2. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
-3. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `SEO_OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)
-4. `.cursor/skills/brand-systems-partner/SKILL.md` — style and consistency gate only. The brand skill owns the voice. Reject a draft that drifts from it: emphasis words, a joke pulled off its subject, a social caption that runs long, or fan-facing copy that never names Phish.
+1. `content/marketing/voice-guide.md` (Do / Do-not; em dash and banned-phrase rules)
+2. `.cursor/skills/brand-systems-partner/SKILL.md` — social-caption pith. Reject a draft that drifts from it: emphasis words, a joke pulled off its subject, a social caption that runs long, or fan-facing copy that never names Phish.
+3. `docs/LEADERSHIP_CREW.md`
+4. `docs/comms-triggers/FRAMEWORK.md` (TTDMOM)
+5. Relevant Phase docs (`OPTIMIZE_AUTONOMY.md`, `SEO_OPTIMIZE_AUTONOMY.md`, `COMMERCIAL_PHASE3.md`, `MEASUREMENT_PLAN.md`, `SEO_GEO_PLAYBOOK.md`)

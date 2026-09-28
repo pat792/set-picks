@@ -39,8 +39,9 @@ export default function SplashAboutSection({
 
           <div className="lg:col-span-7 text-slate-300 font-normal leading-relaxed space-y-6 text-base md:text-lg">
             <p>
-              Born on Phish tour in 2001—from paper picks to spreadsheets to a live setlist
-              prediction game for friends and crews. Phish first; more bands soon.
+              Born on Phish tour in 2001. Paper picks became a spreadsheet, and the spreadsheet
+              became a live setlist prediction game for friends and crews. Phish first; more bands
+              soon.
             </p>
             <p>
               <Link to="/about" className={LINK_ON_DARK}>

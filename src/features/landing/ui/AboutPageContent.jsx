@@ -31,13 +31,14 @@ export default function AboutPageContent() {
 
         <div className={`space-y-6 ${MARKETING_EDITORIAL_BODY}`}>
           <p>
-            In <strong className="font-semibold text-slate-900">2001</strong>, on{' '}
-            <strong className="font-semibold text-slate-900">Phish tour</strong> that summer,{' '}
-            <strong className="font-semibold text-slate-900">Ryan M</strong>—known to friends as{' '}
-            <strong className="font-semibold text-teal-700">Beaver</strong>—cooked up a game to pass
-            the miles between shows. <strong className="font-semibold text-slate-900">Glu</strong>{' '}
-            and <strong className="font-semibold text-slate-900">Andy F</strong> rolled with him on
-            the road; in those heady years the three of them shaped the ritual—debating picks,
+            On <strong className="font-semibold text-slate-900">Phish summer tour</strong> in{' '}
+            <strong className="font-semibold text-slate-900">2001</strong>,{' '}
+            <strong className="font-semibold text-slate-900">Ryan M</strong> (
+            <strong className="font-semibold text-teal-700">Beaver</strong> to his friends) cooked
+            up a game to pass the miles between shows.{' '}
+            <strong className="font-semibold text-slate-900">Glu</strong> and{' '}
+            <strong className="font-semibold text-slate-900">Andy F</strong> rolled with him on the
+            road, and over those years the three of them shaped the ritual: debating picks,
             refining the format, and keeping the crew laughing until the lights went down.
           </p>
           <p>
@@ -46,7 +47,7 @@ export default function AboutPageContent() {
             <strong className="font-semibold text-slate-900">second-set opener and closer</strong>,
             plus <strong className="font-semibold text-slate-900">encore</strong> and a{' '}
             <strong className="font-semibold text-slate-900">wildcard</strong>. Suddenly every
-            placement mattered—friendly competition, a little glory, and a reason to care where the
+            placement mattered. Friendly competition, a little glory, and a reason to care where the
             next song might land.
           </p>
           <p>
@@ -55,7 +56,7 @@ export default function AboutPageContent() {
             together; Pat was a fan of the game from the start. In the{' '}
             <strong className="font-semibold text-slate-900">2010s</strong>, Pat moved it from{' '}
             <strong className="font-semibold text-slate-900">paper to a spreadsheet</strong> so
-            friends could play from different shows and cities—portable, easy to update, and a
+            friends could play from different shows and cities. Portable, easy to update, and a
             little more dynamic on the road.
           </p>
           <p>
@@ -68,7 +69,7 @@ export default function AboutPageContent() {
             <Link to="/tour-stats" className={LINK_ON_LIGHT}>
               tour stats
             </Link>
-            , and fun with friends. Live with Phish today—building toward more bands soon.
+            , and fun with friends. Live with Phish today, with more bands on the way.
           </p>
           <p>
             New here? Start with{' '}

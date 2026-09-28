@@ -35,11 +35,10 @@ export default function PhishSetlistPredictionGamePageContent() {
           The free Phish setlist prediction game
         </h1>
         <p className={MARKETING_EDITORIAL_LEDE}>
-          Setlist Pick&apos;Em is a free live{' '}
-          <strong className="font-semibold text-slate-800">setlist picks game</strong> for fans who
-          love predicting setlists—built first for Phish, designed as a home for more bands soon.
-          Lock six Phish setlist picks—openers, closers, encore, and a wildcard—before showtime;
-          score as the night unfolds.
+          Setlist Pick&apos;Em is a free, live game for fans who love calling the show. Lock six{' '}
+          <strong className="font-semibold text-slate-800">Phish setlist picks</strong> before
+          showtime: openers, closers, encore, and a wildcard. Then watch your score move as the
+          night unfolds. Phish is up first; more bands are on the way.
         </p>
 
         <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
@@ -48,31 +47,30 @@ export default function PhishSetlistPredictionGamePageContent() {
           </h2>
           <p>
             A{' '}
-            <strong className="font-semibold text-slate-800">setlist prediction game</strong>
-            —sometimes called a{' '}
-            <strong className="font-semibold text-slate-800">fantasy setlist</strong> game—asks you
-            to call songs and where they land in the setlist before the show. You compete in private
-            pools and on the global leaderboard while scores update live.
+            <strong className="font-semibold text-slate-800">setlist prediction game</strong>{' '}
+            (some fans call it a{' '}
+            <strong className="font-semibold text-slate-800">fantasy setlist</strong> game) asks
+            you to call which songs get played, and where they land, before the show starts. Then
+            you compete in private pools and on the global leaderboard as scores update live.
           </p>
           <MarketingIphoneFigure
             className="pt-2"
             src={STANDINGS_SAMPLE_SRC}
             alt="iPhone showing Setlist Pick 'Em show standings with Crowd Pulse and a ranked leaderboard. Player names and player counts are blurred."
-            caption="Compete on show and tour boards. Live setlist and standings during the show, and archived history so you never miss a tour moment."
+            caption="Show and tour leaderboards: live setlist and standings during the show, full history after."
           />
           <p>Use the app to:</p>
           <ul className="list-disc space-y-2 pl-5">
-            <li>Call slots (openers, closers, encore, wildcard)</li>
-            <li>Score live as songs are played</li>
+            <li>Call your slots: openers, closers, encore, and a wildcard</li>
+            <li>Score live as each song is played</li>
             <li>
-              Climb show and tour boards with friends, and everyone playing the game on the global
+              Climb show and tour boards against your friends, and everyone else on the global
               leaderboard
             </li>
           </ul>
           <p>
             Fans have called the set on paper and in group chats for years. Setlist Pick&apos;Em
-            turns that ritual into a live game. We&apos;re live with Phish today and building toward
-            more bands soon.
+            turns that ritual into a live game with a scoreboard.
           </p>
         </section>
 
@@ -81,10 +79,11 @@ export default function PhishSetlistPredictionGamePageContent() {
             What are Phish setlist picks?
           </h2>
           <p>
-            Phish setlist picks are the six calls you lock in Setlist Pick&apos;Em before showtime:
-            Set 1 opener and closer, Set 2 opener and closer, encore, and a wildcard. They are your
-            card in this live prediction game—not a predicted full-night setlist or a tip sheet.
-            Score as songs land, and compete in private pools or on the global board.
+            Your Phish setlist picks are the six calls you lock before the lights go down: the Set 1
+            opener and closer, the Set 2 opener and closer, the encore, and one wildcard.
+            That&apos;s the whole game. You&apos;re not writing out a full predicted setlist or
+            following a tip sheet. When a song lands in one of your slots, you score, and your pool
+            and the global leaderboard update in real time.
           </p>
         </section>
 
@@ -93,8 +92,9 @@ export default function PhishSetlistPredictionGamePageContent() {
             Fantasy setlists, without the spreadsheet
           </h2>
           <p>
-            We track points for slot hits, wildcards, and Bustout Boost™ longshots automatically.
-            Full values:{' '}
+            Points for slot hits, wildcards, and Bustout Boost™ longshots are tallied
+            automatically. No spreadsheet, no arguing over who&apos;s keeping score. The full point
+            values are on{' '}
             <Link to="/how-scoring-works" className={LINK_ON_LIGHT}>
               how scoring works
             </Link>
@@ -102,14 +102,14 @@ export default function PhishSetlistPredictionGamePageContent() {
           </p>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              <strong className="text-slate-900">Before:</strong> lock picks before showtime
+              <strong className="text-slate-900">Before:</strong> lock your picks before showtime
             </li>
             <li>
-              <strong className="text-slate-900">During:</strong> live scoring and standings—at the
-              venue or on couch tour
+              <strong className="text-slate-900">During:</strong> live scoring and standings, at
+              the venue or on couch tour
             </li>
             <li>
-              <strong className="text-slate-900">After:</strong> final grades, tour standings,
+              <strong className="text-slate-900">After:</strong> final grades, tour standings, and
               personal stats that grow every night you play
             </li>
           </ul>
@@ -117,20 +117,21 @@ export default function PhishSetlistPredictionGamePageContent() {
             <Link to="/tour-stats" className={LINK_ON_LIGHT}>
               Tour stats
             </Link>{' '}
-            (frequency, bustouts, gaps) refresh every night the band plays live. Playing unlocks
-            personal stats—picking average, Bustout Boost™ hits, and your pick heatmap.
+            (song frequency, bustouts, gaps) update every night the band plays. Once you play, you
+            get your own numbers too: picking average, Bustout Boost™ hits, and a heatmap of your
+            most frequent picks.
           </p>
         </section>
 
         <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>How to play</h2>
           <ol className="list-decimal space-y-3 pl-5">
-            <li>Create a free account—tonight&apos;s setlist card opens.</li>
+            <li>Create a free account and open the card for the next show.</li>
             <li>
-              Pick Set 1 opener/closer, Set 2 opener/closer, encore, and wildcard.
+              Pick your Set 1 opener and closer, Set 2 opener and closer, encore, and wildcard.
             </li>
             <li>
-              Watch scores update live; climb boards or invite a private pool.
+              Watch scores update live, climb the boards, or start a private pool with friends.
             </li>
           </ol>
           <p className="flex flex-wrap gap-x-4 gap-y-2">

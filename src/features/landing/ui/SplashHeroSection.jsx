@@ -24,13 +24,13 @@ export default function SplashHeroSection({ onPlayNowClick, onAuthCtaIntent }) {
         >
           <SplashHeroWordmark />
           <span className="sr-only">
-            Setlist Pick &apos;Em &mdash; the free Phish setlist prediction game
+            Setlist Pick &apos;Em: the free Phish setlist prediction game
           </span>
         </h1>
 
         <div className="mx-auto mt-6 max-w-2xl shrink-0 sm:mt-2 md:mt-3">
           <p className="mb-3 text-lg font-bold tracking-wide text-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.5)] sm:mb-4 md:text-xl">
-            The free Phish setlist prediction game — live on tour.
+            The free Phish setlist prediction game. Live on tour.
           </p>
 
           <p className="text-base font-normal leading-relaxed text-slate-300 md:text-lg md:leading-relaxed">
@@ -39,12 +39,12 @@ export default function SplashHeroSection({ onPlayNowClick, onAuthCtaIntent }) {
           </p>
 
           <p className="mt-4 text-base font-normal leading-relaxed text-slate-300 sm:mt-5 md:text-lg md:leading-relaxed">
-            What started as a game on paper 25 years ago is now a live setlist game to play at
-            the show and on couch tour. Invite your friends, track{' '}
+            What started as a game on paper 25 years ago is now a live setlist game you can play
+            from the venue or from couch tour. Invite your friends and keep an eye on{' '}
             <Link to="/tour-stats" className={LINK_ON_DARK}>
               tour stats
             </Link>
-            , and make every show count. New here? See{' '}
+            . New here? See{' '}
             <Link to="/how-it-works" className={LINK_ON_DARK}>
               how it works
             </Link>
