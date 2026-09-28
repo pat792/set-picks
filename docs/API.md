@@ -538,6 +538,22 @@ Copy mirrors `src/shared/lib/inviteKit.js` (`buildSiteInviteShareTitle`, `buildP
 
 **Tests:** `api/inviteOgHelpers.test.js` (pure helpers; no Vercel runtime).
 
+### 3.4 Owned-social short links (`/ig/*`, `/th/*`)
+
+Temporary (307) redirects in `vercel.json`. The caption shows the short path. The landing URL carries `utm_medium=social`, `utm_campaign=seo_geo`, `utm_source` (`instagram` or `threads`), and `utm_content` from the beat. No wildcard. No trailing slash. These paths are not pages and are not in the sitemap.
+
+| Caption path | Lands on | `utm_content` |
+|--------------|----------|----------------|
+| `/ig/how`, `/th/how` | `/how-it-works` | `how-it-works` |
+| `/ig/card`, `/th/card` | `/phish-setlist-prediction-game` | `card-open` |
+| `/ig/score`, `/th/score` | `/how-scoring-works` | `how-scoring-works` |
+| `/ig/about`, `/th/about` | `/about` | `about` |
+| `/ig/stats`, `/th/stats` | `/tour-stats` | `tour-stats` |
+
+The profile link stays the long `utm_content=link-in-bio` URL. Local Vite does not apply `vercel.json`, so `/ig/how` on `localhost` still falls through to the app shell.
+
+**Tests:** `src/shared/config/socialShortLinks.test.js`.
+
 ---
 
 ## 4. Environment Variable Interface

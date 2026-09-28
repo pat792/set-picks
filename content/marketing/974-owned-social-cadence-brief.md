@@ -79,6 +79,18 @@ https://www.setlistpickem.com/phish-setlist-prediction-game?utm_source=instagram
 
 One campaign string for the whole owned program so GA4 / GSC referring-domain notes stay comparable month to month.
 
+**Caption URL (v1.76.0).** Paste the short path, not the query string. `vercel.json` 307s it onto the worked example above. Instagram uses `/ig/`, Threads uses `/th/`. No trailing slash. The bio link stays the long URL in the profile pack.
+
+| Caption | Beat |
+|---------|------|
+| `https://www.setlistpickem.com/ig/how` | how-it-works |
+| `https://www.setlistpickem.com/ig/card` | card-open |
+| `https://www.setlistpickem.com/ig/score` | how-scoring-works |
+| `https://www.setlistpickem.com/ig/about` | about |
+| `https://www.setlistpickem.com/ig/stats` | tour-stats |
+
+Swap `ig` for `th` on Threads. Do not paste a short link until production returns **307** for that path. Until the release is on `www`, the long URL is the one that works.
+
 ---
 
 ## Show weeks — 2–4 posts / week

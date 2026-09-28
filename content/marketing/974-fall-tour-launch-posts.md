@@ -41,7 +41,7 @@ No other five-post lineup is in `content/` or `docs/`.
    - Always: `#phish` `#phishtour` `#phishfalltour`
    - Fourth tag is the place: `#atlanticcity` on the AC posts, `#richmond` / `#jacksonville` / `#huntsville` when the run moves.
 4. **Location tag** on Instagram for the venue or city. That is a second discovery surface hashtags do not cover.
-5. **One link, playbook UTMs.** `utm_medium=social`, `utm_campaign=seo_geo`, `utm_source` = network, `utm_content` from the parent brief.
+5. **One short link.** Instagram captions use `https://www.setlistpickem.com/ig/how` or `/ig/card`. Threads swaps in `/th/`. The redirect adds `utm_medium=social`, `utm_campaign=seo_geo`, `utm_source`, and `utm_content`. Do not paste the short link until `www` returns 307 for that path.
 6. **Same idea on Threads the same day** (swap `utm_source`). X only after the IG caption is locked, and shorter. Do not invent a fifth *idea* just to fill X.
 
 ---
@@ -66,32 +66,34 @@ Post 5 does not use `/tour-stats/2026-summer-tour`. Fall aggregates are not the 
 
 ## Captions (Instagram)
 
-Hashtags on every post: `#phish` `#phishtour` `#phishfalltour` plus the fourth tag in the table. Threads uses the same caption with `utm_source=threads`.
+Hashtags on every post: `#phish` `#phishtour` `#phishfalltour` plus the fourth tag in the table. Threads uses the same words with `/th/how` or `/th/card`.
+
+These short links 307 only after v1.76.0 is on production. Until `curl -sI https://www.setlistpickem.com/ig/how` shows `location:` pointing at `/how-it-works` with the UTMs, keep the long URL.
 
 **1 — Sat–Sun 9/26–9/27**
 
 > Phish Fall Tour opens Friday at Boardwalk Hall. Got setlist predictions? Six guesses with your friends before they walk on.
-> https://www.setlistpickem.com/how-it-works?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=how-it-works
+> https://www.setlistpickem.com/ig/how
 
 **2 — Mon 9/29**
 
 > Six guesses before they walk on: set 1 opener and closer, set 2 opener and closer, encore, and a wildcard. You call them. We do not list songs.
-> https://www.setlistpickem.com/how-it-works?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=how-it-works
+> https://www.setlistpickem.com/ig/how
 
 **3 — Wed 9/30**
 
 > The group chat already argues openers. Put Fall Tour in a private pool and play it with your crew.
-> https://www.setlistpickem.com/how-it-works?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=how-it-works
+> https://www.setlistpickem.com/ig/how
 
 **4 — Thu 10/1, only if the Friday card is open**
 
 > Card is open for Friday at Boardwalk Hall. Lock before they walk on.
-> https://www.setlistpickem.com/phish-setlist-prediction-game?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=card-open
+> https://www.setlistpickem.com/ig/card
 
 **5 — Fri 10/2, afternoon**
 
 > Boardwalk Hall. Tonight. Lock before they walk on.
-> https://www.setlistpickem.com/phish-setlist-prediction-game?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=card-open
+> https://www.setlistpickem.com/ig/card
 
 Fourth hashtag on 5 is `#boardwalkhall`. Location-tag Atlantic City on 1–4 and Boardwalk Hall on 5.
 

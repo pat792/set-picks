@@ -154,7 +154,7 @@ Link this Page to the IG Business account before any scheduler / Graph work.
 
 - Song lists, predicted setlists, or “tonight’s picks”
 - Full-night recaps or phish.net setlists
-- Bare `setlistpickem.com` (UTMs are the contract)
+- Bare `setlistpickem.com` with no redirect behind it (UTMs are the contract). Caption short paths `/ig/` and `/th/` are allowed because `vercel.json` adds the UTMs. The bio link stays the long URL.
 - `utm_campaign` other than `seo_geo`
 - Personal handle, personal face as the default avatar, or “fan account” in the bio
 - A fifth highlight or extra bio line “for SEO”
