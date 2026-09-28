@@ -8,6 +8,8 @@
  * Usage (from `functions/`):
  *   node scripts/backfillSongGaps.js --missing
  *   node scripts/backfillSongGaps.js --missing --apply
+ *   node scripts/backfillSongGaps.js --existing
+ *   node scripts/backfillSongGaps.js --existing --apply
  *   node scripts/backfillSongGaps.js --showDates=2026-07-04,2026-07-05 --apply
  *
  * Auth: GOOGLE_APPLICATION_CREDENTIALS or ADC.
@@ -49,10 +51,12 @@ function usageAndExit(msg) {
     [
       "Usage:",
       "  node scripts/backfillSongGaps.js --missing [--apply]",
+      "  node scripts/backfillSongGaps.js --existing [--apply]",
       "  node scripts/backfillSongGaps.js --showDates=YYYY-MM-DD[,...] [--apply]",
       "",
       "  --missing     Scan official_setlists for docs without songGaps.",
-      "  --apply       Write. Default is dry-run.",
+      "  --existing    Scan official_setlists for docs that already have songGaps.",
+      "  --apply       Write songGaps only. Default is dry-run. Never writes bustouts.",
       "",
     ].join("\n"),
   );
@@ -81,22 +85,54 @@ function loadEnv() {
 }
 
 /**
- * @param {import("firebase-admin").firestore.Firestore} db
- * @returns {Promise<string[]>}
+ * @param {unknown} data
+ * @returns {boolean}
  */
-async function scanShowsMissingSongGaps(db) {
-  const snap = await db.collection("official_setlists").get();
-  /** @type {string[]} */
+function hasSongGapsMap(data) {
+  const gaps = data && typeof data === "object" ? data.songGaps : null;
+  return Boolean(
+    gaps && typeof gaps === "object" && !Array.isArray(gaps) && Object.keys(gaps).length > 0,
+  );
+}
+
+/**
+ * Firestore patch for a song-gap backfill. `bustouts` is intentionally absent
+ * so a merge write cannot rebuild or clear the scoring snapshot (#1062).
+ *
+ * @param {Record<string, number>} songGaps
+ * @returns {{ songGaps: Record<string, number>, updatedBy: string }}
+ */
+function songGapsBackfillPatch(songGaps) {
+  return {
+    songGaps,
+    updatedBy: "backfill-song-gaps",
+  };
+}
+
+/**
+ * @param {Array<{ id: string, data?: object }>} docs
+ * @param {"missing" | "existing"} mode
+ * @returns {string[]}
+ */
+function selectShowDatesForSongGapBackfill(docs, mode) {
   const out = [];
-  for (const d of snap.docs) {
-    const data = d.data() || {};
-    const gaps = data.songGaps;
-    if (!gaps || typeof gaps !== "object" || Array.isArray(gaps) || Object.keys(gaps).length === 0) {
-      out.push(d.id);
-    }
+  for (const doc of docs) {
+    const has = hasSongGapsMap(doc?.data);
+    if (mode === "existing" ? has : !has) out.push(doc.id);
   }
   out.sort();
   return out;
+}
+
+/**
+ * @param {import("firebase-admin").firestore.Firestore} db
+ * @param {"missing" | "existing"} mode
+ * @returns {Promise<string[]>}
+ */
+async function scanShowsForSongGapBackfill(db, mode) {
+  const snap = await db.collection("official_setlists").get();
+  const docs = snap.docs.map((d) => ({ id: d.id, data: d.data() || {} }));
+  return selectShowDatesForSongGapBackfill(docs, mode);
 }
 
 async function main() {
@@ -129,9 +165,11 @@ async function main() {
       if (!SHOW_DATE_RE.test(d)) usageAndExit(`Invalid showDate: ${d}`);
     }
   } else if (args.missing === true) {
-    targets = await scanShowsMissingSongGaps(db);
+    targets = await scanShowsForSongGapBackfill(db, "missing");
+  } else if (args.existing === true) {
+    targets = await scanShowsForSongGapBackfill(db, "existing");
   } else {
-    usageAndExit("Pass --missing or --showDates=...");
+    usageAndExit("Pass --missing, --existing, or --showDates=...");
   }
 
   console.log(`\nbackfill-song-gaps (#587 Phase B)`);
@@ -144,15 +182,17 @@ async function main() {
   }
   console.log(`  ${targets.slice(0, 8).join(", ")}${targets.length > 8 ? `, … +${targets.length - 8} more` : ""}`);
 
-  if (!apply) {
-    console.log("\nDry-run complete. Re-run with --apply to write.");
-    return;
-  }
   if (!apiKey.trim()) {
+    if (!apply) {
+      console.log("\nDry-run listed targets only (no PHISHNET_API_KEY to diff).");
+      console.log("Re-run with --apply to write, or set PHISHNET_API_KEY to preview diffs.");
+      return;
+    }
     usageAndExit("PHISHNET_API_KEY required for --apply (env or repo-root .env).");
   }
 
   let written = 0;
+  let unchanged = 0;
   let failed = 0;
   for (const showDate of targets) {
     const ref = db.collection("official_setlists").doc(showDate);
@@ -165,16 +205,42 @@ async function main() {
       const payload = await fetchPhishnetSetlistForDate(showDate, apiKey);
       const rows = normalizeSetlistRows(payload);
       const songGaps = deriveSongGapsFromRows(rows);
+      const prior = snap.data() || {};
+      const priorGaps =
+        prior.songGaps && typeof prior.songGaps === "object" && !Array.isArray(prior.songGaps)
+          ? prior.songGaps
+          : {};
+      const changedKeys = [
+        ...Object.keys(songGaps).filter((k) => priorGaps[k] !== songGaps[k]),
+        ...Object.keys(priorGaps).filter((k) => !Object.prototype.hasOwnProperty.call(songGaps, k)),
+      ];
+      const spotlight = ["melt the guns", "walk away", "seven below", "no men in no man's land"]
+        .filter((k) => k in songGaps || k in priorGaps)
+        .map((k) => `${k} ${priorGaps[k] ?? "∅"}→${songGaps[k] ?? "∅"}`);
+      const patch = songGapsBackfillPatch(songGaps);
+      if (Object.prototype.hasOwnProperty.call(patch, "bustouts")) {
+        throw new Error("songGaps backfill patch must not include bustouts");
+      }
+      const bustoutCount = Array.isArray(prior.bustouts) ? prior.bustouts.length : 0;
+      const summary = `${showDate}: ${changedKeys.length} gap${changedKeys.length === 1 ? "" : "s"} differ (${Object.keys(songGaps).length} in feed, bustouts untouched: ${bustoutCount})${spotlight.length ? ` [${spotlight.join("; ")}]` : ""}`;
+      if (!apply) {
+        console.log(`  would update ${summary}`);
+        continue;
+      }
+      if (changedKeys.length === 0) {
+        unchanged += 1;
+        console.log(`  unchanged ${summary}`);
+        continue;
+      }
       await ref.set(
         {
-          songGaps,
+          ...patch,
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedBy: "backfill-song-gaps",
         },
         { merge: true },
       );
       written += 1;
-      console.log(`  ${showDate}: wrote ${Object.keys(songGaps).length} gaps`);
+      console.log(`  wrote ${summary}`);
     } catch (e) {
       failed += 1;
       const msg = e instanceof Error ? e.message : String(e);
@@ -182,11 +248,23 @@ async function main() {
     }
   }
 
-  console.log(`\nBackfill complete. Written: ${written}. Failed: ${failed}.`);
+  if (!apply) {
+    console.log("\nDry-run complete. Re-run with --apply to write songGaps only.");
+    return;
+  }
+  console.log(`\nBackfill complete. Written: ${written}. Unchanged: ${unchanged}. Failed: ${failed}.`);
 }
 
-main().catch((e) => {
-  console.error("\nbackfillSongGaps.js failed:");
-  console.error(e instanceof Error ? e.stack || e.message : e);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    console.error("\nbackfillSongGaps.js failed:");
+    console.error(e instanceof Error ? e.stack || e.message : e);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  hasSongGapsMap,
+  selectShowDatesForSongGapBackfill,
+  songGapsBackfillPatch,
+};

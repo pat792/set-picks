@@ -119,7 +119,7 @@ The live Storage `song-catalog.json` and the bundled fallbacks (`src/shared/data
 
 ### Partial-feed safety
 
-Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows` merges the prior `bustouts` with the newly-derived set so a bustout captured in an earlier poll is never shrunk away by a partial later one. `songGaps` is merged the same way (`mergeSongGaps`, prior value wins for stability — pre-show gap is fixed for a given show).
+Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows` merges the prior `bustouts` with the newly-derived set so a bustout captured in an earlier poll is never shrunk away by a partial later one. `songGaps` keeps a stored gap only when that song is absent from the current poll (partial set 1 must not wipe set 2). A song present in the poll stores that poll's Phish.net row `gap` (`mergeSongGaps`, #1062) — the first poll is often one show low, before tonight is in the show index, and a later poll replaces it. Do not add 1 in code. Same-show repeats stay at the first row's gap.
 
 ### Per-song gap snapshot — display (#587 Phase B)
 
@@ -132,7 +132,7 @@ Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows
 
 **Display:** `src/features/scoring/model/groupOfficialSetlistBySet.js` (`buildSongGapMap` / `getOfficialSetlistGap`) → `src/features/scoring/ui/StandingsOfficialSetlistCard.jsx` (4-col invisible grid: # / title / gap / bustout; every frozen gap including 0). Client read passes through `normalizeOfficialSetlistDocData` (`sanitizeSongGaps`). Not used for scoring — `songGaps` is in `NON_SONG_SETLIST_KEYS` on both the client and Cloud Function scoring paths.
 
-**Backfill:** `functions/scripts/backfillSongGaps.js` (`npm run backfill:song-gaps -- --missing --apply` from `functions/`). Re-fetches Phish.net rows and merge-writes `songGaps` only — no score reconcile. Shows saved before Phase B omit the chip until backfilled; re-saving a past show from admin (Phish.net ingest) also freezes the snapshot.
+**Backfill:** `functions/scripts/backfillSongGaps.js` (`npm run backfill:song-gaps -- --missing --apply` or `--existing --apply` from `functions/`). Re-fetches Phish.net rows and merge-writes `songGaps` only — no score reconcile, and the patch does not include `bustouts`. `--existing` refreshes shows that already have a map (the #1062 off-by-one correction). Shows saved before Phase B omit the chip until backfilled; re-saving a past show from admin (Phish.net ingest) also freezes the snapshot.
 
 ### Backfill
 
