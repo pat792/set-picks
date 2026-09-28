@@ -169,7 +169,7 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 | `setlist` | Record<string,string> | Slot answers keyed by `FORM_FIELDS` id (`s1o`, `s1c`, …). |
 | `officialSetlist` | string[] | Ordered full-show song list. |
 | `bustouts` | string[] | Per-show bustout snapshot (pre-show gap ≥ 30). Scoring source of truth (#214). |
-| `songGaps` | Record<string,number> | **v1.29.0 (#587 Phase B)** — frozen pre-show gap per dated row, keyed by normalized title. Display-only (Standings “Gap N” signal); not read by scoring. Absent on pre-Phase-B shows. |
+| `songGaps` | Record<string,number> | **v1.29.0 (#587 Phase B)** — frozen pre-show gap per dated row, keyed by normalized title. Display-only (Standings “Gap N” signal); not read by scoring. Absent on pre-Phase-B shows. **v1.75.2 (#1062)** — a later live poll replaces the stored gap for songs in that poll; songs absent from a partial poll keep their stored gap. |
 
 ### 1.13 `public_tour_stats/{tourSlug}` (**v1.33.0 / #665**)
 

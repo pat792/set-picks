@@ -447,7 +447,7 @@ test("deriveSongGapsFromRows keeps first occurrence for a repeated normalized ti
   assert.deepEqual(deriveSongGapsFromRows(rows), { tweezer: 12 });
 });
 
-test("buildSetlistDocFromRows emits songGaps and merges prior as a superset", () => {
+test("buildSetlistDocFromRows emits songGaps and keeps songs absent from this poll", () => {
   const rows = normalizeSetlistRows({
     error: false,
     data: [
@@ -463,6 +463,28 @@ test("buildSetlistDocFromRows emits songGaps and merges prior as a superset", ()
     "colonel forbin's ascent": 98,
     "bathtub gin": 14,
   });
+});
+
+test("buildSetlistDocFromRows replaces a provisional gap and keeps songs absent from this poll (#1062)", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "1", idx: 1, song: "Melt the Guns", gap: 2052 },
+      { set: "1", idx: 2, song: "AC/DC Bag", gap: 9 },
+    ],
+  });
+  const out = buildSetlistDocFromRows(rows, {
+    songGaps: {
+      "melt the guns": 2051,
+      "ac/dc bag": 8,
+      "bathtub gin": 14,
+    },
+    bustouts: ["Melt the Guns"],
+  });
+  assert.equal(out.songGaps["melt the guns"], 2052);
+  assert.equal(out.songGaps["ac/dc bag"], 9);
+  assert.equal(out.songGaps["bathtub gin"], 14);
+  assert.deepEqual(out.bustouts, ["Melt the Guns"]);
 });
 
 test("buildSetlistDocFromRows emits bustouts from per-row gap", () => {
@@ -523,6 +545,26 @@ test("setlistPayloadEqual: absent bustouts on both sides still compares equal", 
   };
   const b = { ...a };
   assert.equal(setlistPayloadEqual(a, b), true);
+});
+
+test("setlistPayloadEqual detects a songGaps correction with an unchanged setlist (#1062)", () => {
+  const base = {
+    setlist: { s1o: "Melt the Guns", s1c: "", s2o: "", s2c: "", enc: "" },
+    officialSetlist: ["Melt the Guns"],
+    encoreSongs: [],
+    bustouts: ["Melt the Guns"],
+    songGaps: { "melt the guns": 2051 },
+  };
+  const corrected = {
+    ...base,
+    songGaps: { "melt the guns": 2052 },
+  };
+  const reorderedKeys = {
+    ...base,
+    songGaps: { "melt the guns": 2051 },
+  };
+  assert.equal(setlistPayloadEqual(base, corrected), false);
+  assert.equal(setlistPayloadEqual(base, reorderedKeys), true);
 });
 
 // ---------- #264 time-gated set 1 closer ----------

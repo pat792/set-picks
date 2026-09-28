@@ -593,8 +593,9 @@ function buildSetlistDocFromRows(rows, existingDoc = {}, timing = null) {
   // Frozen per-song pre-show gap snapshot (#587 Phase B). Same provenance as
   // `bustouts` (Phish.net row `gap`), but retains the number for every dated
   // row so standings can show the "why this song mattered" signal below the
-  // bustout threshold too. Merged across polls so a partial feed never drops a
-  // gap captured earlier.
+  // bustout threshold too. A song in this poll takes this poll's gap (#1062);
+  // a stored gap is kept only when the song is absent (partial set 1 must
+  // not wipe set 2).
   const songGaps = mergeSongGaps(existingDoc?.songGaps, deriveSongGapsFromRows(rows));
 
   return {
@@ -654,8 +655,15 @@ function deriveSongGapsFromRows(rows) {
 }
 
 /**
- * Merge two `songGaps` maps, preferring `prev` so a value captured on an
- * earlier poll stays stable (pre-show gap is fixed for a given show).
+ * Merge two `songGaps` maps (#1062).
+ *
+ * A song present in `next` (this poll) stores that poll's gap. The first
+ * live poll often sees the gap before tonight is in the Phish.net show
+ * index, which is one low; a later poll must replace it. Do not add 1 here.
+ *
+ * A stored gap is kept only when the song is absent from `next`, so a
+ * partial set 1 does not wipe set 2. Same-show repeats stay at the first
+ * row's gap because `deriveSongGapsFromRows` already drops later rows.
  *
  * @param {unknown} prev
  * @param {unknown} next
@@ -664,9 +672,19 @@ function deriveSongGapsFromRows(rows) {
 function mergeSongGaps(prev, next) {
   /** @type {Record<string, number>} */
   const out = {};
-  for (const src of [next, prev]) {
-    if (!src || typeof src !== "object") continue;
-    for (const [k, v] of Object.entries(src)) {
+  /** @type {Record<string, number>} */
+  const fromNext = {};
+  if (next && typeof next === "object" && !Array.isArray(next)) {
+    for (const [k, v] of Object.entries(next)) {
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) {
+        fromNext[k] = v;
+        out[k] = v;
+      }
+    }
+  }
+  if (prev && typeof prev === "object" && !Array.isArray(prev)) {
+    for (const [k, v] of Object.entries(prev)) {
+      if (Object.prototype.hasOwnProperty.call(fromNext, k)) continue;
       if (typeof v === "number" && Number.isFinite(v) && v >= 0) out[k] = v;
     }
   }
@@ -749,7 +767,34 @@ function setlistPayloadEqual(a, b) {
   const bBust = Array.isArray(b?.bustouts) ? b.bustouts : [];
   const aNorm = [...new Set(aBust.map((t) => normalizeSongTitle(t)).filter(Boolean))].sort();
   const bNorm = [...new Set(bBust.map((t) => normalizeSongTitle(t)).filter(Boolean))].sort();
-  return JSON.stringify(aNorm) === JSON.stringify(bNorm);
+  if (JSON.stringify(aNorm) !== JSON.stringify(bNorm)) return false;
+  // Gap-only corrections must persist. Signature ignores `gap`, so a later
+  // poll with the same songs would otherwise skip the write (#1062).
+  return songGapsMapsEqual(a?.songGaps, b?.songGaps);
+}
+
+/**
+ * @param {unknown} a
+ * @param {unknown} b
+ * @returns {boolean}
+ */
+function songGapsMapsEqual(a, b) {
+  const norm = (src) => {
+    /** @type {Record<string, number>} */
+    const out = {};
+    if (!src || typeof src !== "object" || Array.isArray(src)) return out;
+    for (const [k, v] of Object.entries(src)) {
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) out[k] = v;
+    }
+    return out;
+  };
+  const left = norm(a);
+  const right = norm(b);
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  for (const key of keys) {
+    if (left[key] !== right[key]) return false;
+  }
+  return true;
 }
 
 function nextBackoffMinutes(failureCount) {
