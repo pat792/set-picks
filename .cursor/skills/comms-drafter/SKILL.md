@@ -19,6 +19,7 @@ You draft and ship editorial copy for triggered communications.
 4. `src/features/comms/registry.js` — channels and paths
 5. Existing reference: `content/comms/tours/sphere-2026-inaugural.md` (tour edition archive; production path is #510 `tour_recap`)
 6. Night narrative facts: `docs/COMMS_SHOW_CONTEXT_SCHEMA.md` + `docs/OFFICIAL_SETLISTS_SCHEMA.md` (#572) — deterministic `setlist_highlight`; no LLM v1
+7. `.cursor/skills/brand-systems-partner/SKILL.md` — Phish fan voice for anything a fan will read. Emails and push stay in that speech. They are not cut down to a social caption.
 
 ## Channel copy rules
 
