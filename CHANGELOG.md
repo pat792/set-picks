@@ -8,6 +8,23 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.76.0] — 2026-09-28
+
+### Added
+- **Owned-social short links** — `/ig/how`, `/ig/card`, `/ig/score`, `/ig/about`, `/ig/stats` and the `/th/` twins 307 to the existing marketing page with `utm_campaign=seo_geo`. Captions paste the short path. The profile link stays the long bio URL. Exact paths only; existing routes are unchanged.
+
+---
+
+## [1.75.3] — 2026-09-28
+
+### Changed
+- **Marketing voice pass (epic #972)** — public page prose rewritten so it reads like fan writing: em dashes out of body copy, no "unlock" / "plays live" / label-dash lists. Surfaces: splash, `/how-it-works`, `/how-scoring-works`, `/about`, `/tour-stats`, `/phish-setlist-prediction-game`, plus matching prerender paragraphs and FAQ/HowTo JSON-LD. SERP titles and meta descriptions are unchanged. Review: `content/marketing/marketing-voice-pass-2026-09.md`.
+
+### Added
+- **Voice guide + CI guard** — `content/marketing/voice-guide.md` is the Do / Do-not for marketing, editorial, and comms body copy. `npm run verify:marketing-voice` fails the `verify` job above 6 em dashes in rendered prose, on banned phrases, or on label-dash list items.
+
+---
+
 ## [1.75.2] — 2026-09-28
 
 ### Fixed
@@ -37,11 +54,15 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ## [Unreleased]
 
 ### Added
+- **Mobile Chrome keyboard / Make Picks chrome investigation (#1041)** — `docs/investigations/mobile-chrome-keyboard-picks-chrome.md` diagnoses iOS Chrome letterboxing vs usable Safari (evidence under `docs/investigations/evidence/`), cites Chrome/WebKit/`visualViewport` research, and ranks fix options against dashboard chrome principles. Docs only; no version bump.
+- **Owned social loop and Phase 1 calendar (#974 / #1046)** — `content/marketing/974-social-post-loop.md` is the “run the social loop” order (Social → Brand Systems → Demand Gen → EiC). Phase 1 paste dates through 2026-10-14 are in `content/marketing/974-social-phase1-calendar.md`. Fan-facing voice lives in the brand skill. No live post, no declared API change, no version bump.
+- **Owned-social Canva masters (#974 / #1046)** — draft `score`, `stat`, and `line` feed frames plus `content/marketing/974-social-template-masters-2026-09-24.md`. Repo vinyl + token colors applied on those three designs; Brand Kit / Brand Template writes are not available via Canva MCP. Docs and PNG exports only; no version bump.
 - **SEO query registry (#931 / epic #926)** — `docs/seo/query-registry.json` seeds B1–B3, C1–C7, S1–S7 (including #931 fan strings). Weekly append-only GSC log procedure is in `docs/seo/README.md`; snapshots stay under gitignored `crew/output/seo/`.
 - **SEO competitor title/H1 scan (#933 / epic #926)** — PR-gated allowlist adds `phishpicks.net` / `phish.jampicks.com` (homepage GET only). `crew/scripts/seo_title_h1_scan.py` extracts title + H1–H3 and diffs `docs/seo/query-registry.json`. Durable brief: `content/marketing/933-competitor-title-h1-gap-brief.md`. Callingit.live / ihoz / Phantasy Tour omitted (ToS or unverifiable). No `/phish-picks`. No version bump (docs + crew scripts).
 - **SEO Optimize autonomy (#934 / epic #926)** — `docs/SEO_OPTIMIZE_AUTONOMY.md` is the draft-only scored tune loop (`stats_impressions` \| `query_coverage` \| `geo_citations` \| `crawl_regressions`). Weekly E1 facts packs stay comment-only; agents may open a **draft** PR to `staging` only when scored `DRAFT_PR`. Docs only after **1.63.0** (#991 / #993); no PATCH bump. Packs ingest the #933 competitor brief when present.
 
 ### Changed
+- **Owned-social masters glass + mark mix (#974)** — `score` uses venue glass + circular vinyl; `stat` uses indigo glass + horizontal wordmark; `line` uses a deep glass band + horizontal wordmark. Canva cannot apply live blur; grounds are token-composited PNGs. Still draft / unpublished.
 - **Pick'em search plan (#970)** — EiC-approved SERP/GEO plan + playbook C6/C7 / SERP snapshot. Docs only; no declared API change and no version bump.
 
 ---

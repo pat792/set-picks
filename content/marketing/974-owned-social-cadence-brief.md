@@ -1,7 +1,7 @@
 # #974 — Owned IG/X cadence brief (show-week + always-on)
 
-**Status:** draft (EiC-facing — not approved)  
-**Date:** 2026-09-03  
+**Status:** EiC-approved (2026-09-23)  
+**Date:** 2026-09-03 (approved 2026-09-23)  
 **Epic:** #972 (Pick'em Search)  
 **Issue:** #974  
 **Plan:** `content/marketing/pickem-search-plan-2026-08.md` § W4 / Phase 3  
@@ -49,6 +49,8 @@ Owned-social sources are not in the playbook’s community list (`reddit`, `disc
 | `utm_campaign` | **`seo_geo`** (required — do not swap to `seo_657` / `seo_926` on owned posts) |
 | `utm_content` | Short slug from the table below |
 
+**Profile strings (EiC-approved 2026-09-08):** paste-ready name, handle, bio, category, and highlights live in [`974-owned-social-profile-pack.md`](./974-owned-social-profile-pack.md). Do not invent a bio in the native app.
+
 **Link-in-bio (canonical):**
 
 `https://www.setlistpickem.com/?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=link-in-bio`
@@ -76,6 +78,18 @@ https://www.setlistpickem.com/phish-setlist-prediction-game?utm_source=instagram
 ```
 
 One campaign string for the whole owned program so GA4 / GSC referring-domain notes stay comparable month to month.
+
+**Caption URL (v1.76.0).** Paste the short path, not the query string. `vercel.json` 307s it onto the worked example above. Instagram uses `/ig/`, Threads uses `/th/`. No trailing slash. The bio link stays the long URL in the profile pack.
+
+| Caption | Beat |
+|---------|------|
+| `https://www.setlistpickem.com/ig/how` | how-it-works |
+| `https://www.setlistpickem.com/ig/card` | card-open |
+| `https://www.setlistpickem.com/ig/score` | how-scoring-works |
+| `https://www.setlistpickem.com/ig/about` | about |
+| `https://www.setlistpickem.com/ig/stats` | tour-stats |
+
+Swap `ig` for `th` on Threads. Do not paste a short link until production returns **307** for that path. Until the release is on `www`, the long URL is the one that works.
 
 ---
 
@@ -218,9 +232,9 @@ Complete before claiming #974 acceptance. Agents must not create network account
 
 - [ ] Create **Instagram Business or Creator** for Setlist Pick'Em (handle + display name aligned with Brand Systems).
 - [ ] Optional: **X** and/or **Threads** with the same display name.
-- [ ] **Bio** + link-in-bio → `https://www.setlistpickem.com/?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=link-in-bio` (swap `utm_source` on X/Threads).
+- [ ] **Bio** + link-in-bio from [`974-owned-social-profile-pack.md`](./974-owned-social-profile-pack.md) (UTM URL in that pack; swap `utm_source` on X/Threads).
 - [ ] **Brand Systems kit**: avatar, cover, highlight covers, wordmark, caption voice — Brand Systems Partner + this brief; no one-off Canva drift.
-- [ ] EiC **approves this cadence brief** (show-week **and** always-on).
+- [x] EiC **approves this cadence brief** (show-week **and** always-on). Approved 2026-09-23.
 - [ ] ≥1 full L2 cycle: `draft` → `approve` → `published/` queue → **posted on the network**.
 - [ ] Monthly: note referring-domain / UTM (`utm_campaign=seo_geo`) trend in GSC or a comment on #972 / #974.
 
@@ -251,8 +265,8 @@ Complete before claiming #974 acceptance. Agents must not create network account
 
 | AC | Owner | This PR |
 |----|--------|---------|
-| Cadence brief on disk (show-week + always-on, UTMs, CLI) | Demand Gen / Marketing | **Yes — draft** |
-| EiC approval of the brief | EiC | No |
+| Cadence brief on disk (show-week + always-on, UTMs, CLI) | Demand Gen / Marketing | **Yes** |
+| EiC approval of the brief | EiC | **Yes — 2026-09-23** |
 | Accounts live + bio UTMs + Brand Systems kit | Human + Brand Systems | No |
 | ≥1 posted L2 cycle | Human after approve | No |
 | Monthly GSC / UTM note | Reporting / GPM | No |

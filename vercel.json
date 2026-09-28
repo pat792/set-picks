@@ -10,6 +10,56 @@
       "source": "/tour-stats/summer-tour-2026",
       "destination": "/tour-stats/2026-summer-tour",
       "permanent": true
+    },
+    {
+      "source": "/ig/how",
+      "destination": "/how-it-works?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=how-it-works",
+      "permanent": false
+    },
+    {
+      "source": "/ig/card",
+      "destination": "/phish-setlist-prediction-game?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=card-open",
+      "permanent": false
+    },
+    {
+      "source": "/ig/score",
+      "destination": "/how-scoring-works?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=how-scoring-works",
+      "permanent": false
+    },
+    {
+      "source": "/ig/about",
+      "destination": "/about?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=about",
+      "permanent": false
+    },
+    {
+      "source": "/ig/stats",
+      "destination": "/tour-stats?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=tour-stats",
+      "permanent": false
+    },
+    {
+      "source": "/th/how",
+      "destination": "/how-it-works?utm_source=threads&utm_medium=social&utm_campaign=seo_geo&utm_content=how-it-works",
+      "permanent": false
+    },
+    {
+      "source": "/th/card",
+      "destination": "/phish-setlist-prediction-game?utm_source=threads&utm_medium=social&utm_campaign=seo_geo&utm_content=card-open",
+      "permanent": false
+    },
+    {
+      "source": "/th/score",
+      "destination": "/how-scoring-works?utm_source=threads&utm_medium=social&utm_campaign=seo_geo&utm_content=how-scoring-works",
+      "permanent": false
+    },
+    {
+      "source": "/th/about",
+      "destination": "/about?utm_source=threads&utm_medium=social&utm_campaign=seo_geo&utm_content=about",
+      "permanent": false
+    },
+    {
+      "source": "/th/stats",
+      "destination": "/tour-stats?utm_source=threads&utm_medium=social&utm_campaign=seo_geo&utm_content=tour-stats",
+      "permanent": false
     }
   ],
   "rewrites": [

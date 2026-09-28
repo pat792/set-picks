@@ -59,8 +59,8 @@ export default function HowScoringWorksPage() {
             <MarketingIphoneFigure
               className="mt-12"
               src={SCORING_SAMPLE_SRC}
-              alt="iPhone showing a Setlist Pick 'Em standings card with scored picks — In setlist, Bustout Boost, Wildcard hit, and points. Player handle blurred."
-              caption="Sample standings card after the show — exact slots, in-setlist hits, Wildcard, and Bustout Boost™ stacking into the night’s score."
+              alt="iPhone showing a Setlist Pick 'Em standings card with scored picks: In setlist, Bustout Boost, Wildcard hit, and points. Player handle blurred."
+              caption="Sample standings card after the show: exact slots, in-setlist hits, Wildcard, and Bustout Boost™ stacking into the night’s score."
             />
             <p className={`mt-10 text-center ${MARKETING_EDITORIAL_META}`}>
               Next:{' '}

@@ -23,6 +23,7 @@ This org **learns**. If ownership is wrong, propose a minimal change (merge role
 |--------|------------|
 | Optimize oversight | `growth-program-manager` → `chief-customer-officer` → `editor-in-chief` |
 | Campaign / demand gen | `marketing-specialist` + `social-demand-gen-operator` → `editor-in-chief` |
+| Social loop (“run the social loop”, next owned post) | [`974-social-post-loop.md`](../../../content/marketing/974-social-post-loop.md): Social → Brand Systems → Demand Gen → Editor in Chief. No live post. |
 | Revenue / Phase 3 frame | `chief-revenue-officer` + `revops-lead` |
 | Sponsor BD | `sponsor-bd-orchestrator` + `lead-gen-specialist` |
 | Affiliate e2e proposal | `affiliate-program-manager` + `integrations-architect` |

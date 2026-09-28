@@ -29,8 +29,19 @@ Publish lands in `crew/output/demand_gen/social/published/` (manual network post
 
 Draft-only until approve + `CREW_SOCIAL_PUBLISH_ENABLED`. No production Resend. Living org — adapt via doc Changelog + #695.
 
+## Social loop
+
+Step 3 of [`content/marketing/974-social-post-loop.md`](../../../content/marketing/974-social-post-loop.md). Write the caption to the brand skill and `content/marketing/voice-guide.md`. A first post invites a new person to make picks, in the present tense. Do not approve or publish inside the loop.
+
+## Visual production
+
+Packaging a post does not include a new layout. Art is a copy of slot card, gradient question, stat, score, or line from `content/marketing/social-brand-approach.md`. Type and color stay with that source. Stage light may be the ground only as that file allows. Do not call `generate-design`.
+
 ## Read first
 
-1. `docs/LEADERSHIP_CREW.md`
-2. `crew/README.md` (L2 section)
-3. `content/comms/README.md` for brand voice alignment
+1. `content/marketing/social-brand-approach.md`
+2. `content/marketing/voice-guide.md`
+3. `.cursor/skills/brand-systems-partner/SKILL.md` — social pith. Write the caption to that standard.
+4. `docs/LEADERSHIP_CREW.md`
+5. `crew/README.md` (L2 section)
+6. `content/comms/README.md` for brand voice alignment

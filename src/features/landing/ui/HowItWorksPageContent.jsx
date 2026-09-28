@@ -19,12 +19,12 @@ const SETLIST_CARD_SLIDES = [
   {
     src: '/images/marketing/picks-setlist-card-iphone-sample.png',
     alt: "iPhone showing the Setlist Pick 'Em Picks screen with six empty setlist card slots and a Lock In Picks button.",
-    caption: 'Your setlist card before lock — six slots, then Lock In Picks.',
+    caption: 'Your setlist card before lock: six slots, then Lock In Picks.',
   },
   {
     src: '/images/marketing/picks-song-search-iphone-sample.png',
     alt: "iPhone showing song search autocomplete on Set 1 Opener with catalog stats for Total, Gap, and Last played.",
-    caption: 'Search any slot — type a few letters, pick from the catalog with Total / Gap / Last.',
+    caption: 'Search any slot. Type a few letters and pick from the catalog, with Total, Gap, and Last played on every song.',
   },
 ];
 
@@ -42,11 +42,11 @@ export default function HowItWorksPageContent() {
           How to Play Setlist Pick&apos;Em
         </h1>
         <p className={MARKETING_EDITORIAL_LEDE}>
-          Setlist Pick&apos;Em is a free live{' '}
+          Setlist Pick&apos;Em is a free, live{' '}
           <Link to="/phish-setlist-prediction-game" className={LINK_ON_LIGHT}>
             setlist prediction game
           </Link>{' '}
-          for Phish fans—and a home for more bands soon. Here&apos;s the show-night
+          for Phish fans, with more bands on the way. Here&apos;s the show-night
           walkthrough: what you lock, how scoring moves, and where your crew ranks.
         </p>
 
@@ -67,8 +67,8 @@ export default function HowItWorksPageContent() {
             slides={SETLIST_CARD_SLIDES}
           />
           <p>
-            Correct picks earn points; exact slot hits score more. Call rare songs
-            and you can trigger a Bustout Boost™. For a full breakdown, check out{' '}
+            Correct picks earn points, and exact slot hits score more. Call a rare
+            song and you can trigger a Bustout Boost™. The full breakdown is on{' '}
             <Link to="/how-scoring-works" className={LINK_ON_LIGHT}>
               how scoring works
             </Link>
@@ -82,23 +82,23 @@ export default function HowItWorksPageContent() {
           </h2>
           <ol className="list-decimal space-y-4 pl-5">
             <li>
-              <strong className="text-slate-900">Before the show</strong> — Open
-              tonight&apos;s card, lock picks before showtime. Peek at{' '}
+              <strong className="text-slate-900">Before the show.</strong> Open the
+              card and lock your picks before showtime. Want an edge? Check{' '}
               <Link to="/tour-stats" className={LINK_ON_LIGHT}>
                 tour stats
               </Link>{' '}
-              (song frequency, bustouts, gap highlights) that refresh every night
-              the band plays live.
+              first (song frequency, bustouts, gap highlights). They update every
+              night the band plays.
             </li>
             <li>
-              <strong className="text-slate-900">During the show</strong> — Scores
-              and standings update as songs land. Follow the live setlist in the
-              app, whether you&apos;re at the venue or on couch tour.
+              <strong className="text-slate-900">During the show.</strong> Scores
+              and standings move as songs land. Follow the live setlist in the app
+              from the venue or from couch tour.
             </li>
             <li>
-              <strong className="text-slate-900">After the show</strong> — Final
-              grades post for the night. Tour standings move. Personal stats grow
-              every night you play.
+              <strong className="text-slate-900">After the show.</strong> Final
+              grades post for the night, tour standings move, and your personal
+              stats pick up another show.
             </li>
           </ol>
         </section>
@@ -110,29 +110,28 @@ export default function HowItWorksPageContent() {
           <p>Play two ways at once:</p>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              <strong className="text-slate-900">Private pools</strong> — Invite
+              <strong className="text-slate-900">Private pools.</strong> Invite
               friends for crew-only standings.
             </li>
             <li>
-              <strong className="text-slate-900">Global standings</strong> —
-              Compete with everyone on the board for the show and the tour.
+              <strong className="text-slate-900">Global standings.</strong>{' '}
+              Everyone who played, ranked for the show and for the tour.
             </li>
           </ul>
-          <p>Same picks. Different rivalries.</p>
+          <p>Same six picks, two scoreboards.</p>
         </section>
 
         <section className={`mb-12 space-y-4 ${MARKETING_EDITORIAL_BODY}`}>
           <h2 className={MARKETING_EDITORIAL_H2}>
-            Personal stats unlock when you play
+            Personal stats build as you play
           </h2>
           <p>
             Tour trends on{' '}
             <Link to="/tour-stats" className={LINK_ON_LIGHT}>
               tour stats
             </Link>{' '}
-            are open to everyone. Your personal story—picking average, Bustout
-            Boost™ hits, pick heatmaps—unlocks as you earn points and climb the
-            board.
+            are open to everyone. Your own numbers (picking average, Bustout
+            Boost™ hits, pick heatmap) start building the first night you play.
           </p>
         </section>
 

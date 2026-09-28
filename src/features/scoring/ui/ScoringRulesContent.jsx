@@ -122,7 +122,7 @@ export default function ScoringRulesContent({
           <div>
             <h2 className={t.ruleTitle}>Exact slot</h2>
             <p className={t.ruleBody}>
-              Your pick lands on the exact slot you chose &mdash; Set 1 opener or closer,
+              Your pick lands in the exact slot you called: Set 1 opener or closer,
               or Set 2 opener or closer.
             </p>
           </div>
@@ -157,8 +157,8 @@ export default function ScoringRulesContent({
             <p className={t.ruleBody}>
               Correct picks on songs with a{' '}
               <span className={t.ruleBodyEmph}>{BUSTOUT_MIN_GAP}+ show gap</span> earn a bonus{' '}
-              <span className={t.ruleBodyEmph}>{BUSTOUT_BOOST} points</span> on top of base points
-              &mdash; rewarding strategic picks over heavy rotation.
+              <span className={t.ruleBodyEmph}>{BUSTOUT_BOOST} points</span> on top of base points.
+              That&apos;s the reward for digging past the heavy rotation.
               <a
                 href="#scoring-rules-footnote"
                 aria-describedby="scoring-rules-footnote"
