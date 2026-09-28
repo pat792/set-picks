@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.75.2] — 2026-09-28
+
+### Fixed
+- **Historical song gaps one below Phish.net (#1062)** — a later live poll now stores that poll's gap for songs in the feed, and keeps a stored gap only when the song is absent (partial set 1). The first poll is often one show low, before the night is in the Phish.net show index. `npm run backfill:song-gaps -- --existing` rewrites maps that were frozen one low and does not touch `bustouts`.
+
+---
+
 ## [1.75.1] — 2026-09-23
 
 ### Fixed
