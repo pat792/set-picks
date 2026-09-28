@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.76.0] — 2026-09-28
+
+### Added
+- **Owned-social short links** — `/ig/how`, `/ig/card`, `/ig/score`, `/ig/about`, `/ig/stats` and the `/th/` twins 307 to the existing marketing page with `utm_campaign=seo_geo`. Captions paste the short path. The profile link stays the long bio URL. Exact paths only; existing routes are unchanged.
+
+---
+
 ## [1.75.3] — 2026-09-28
 
 ### Changed

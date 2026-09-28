@@ -22,7 +22,7 @@
 Unsaved Canva copy `DAHWPWrCSxM`. Edit: https://www.canva.com/d/01tRE-UkRr_SRMe  
 Editing transaction `8747633410042410481` is open. Say **save** to commit it. Do not paste `DAHWPBo9aZg`.
 
-The image is the question plus the wordmark. The tracked URL stays in the caption.
+The image is the question plus the wordmark. The caption uses the short path. Do not paste it until production 307s `/ig/how` and `/th/how`.
 
 ## Instagram caption
 
@@ -30,7 +30,7 @@ Draft `instagram-2d517aa544`
 
 ```
 Phish Fall Tour opens Friday at Boardwalk Hall. Got setlist predictions? Six guesses with your friends before they walk on.
-https://www.setlistpickem.com/how-it-works?utm_source=instagram&utm_medium=social&utm_campaign=seo_geo&utm_content=how-it-works
+https://www.setlistpickem.com/ig/how
 #phish #phishtour #phishfalltour #atlanticcity
 ```
 
@@ -40,7 +40,7 @@ Draft `threads-32a0d3b730`
 
 ```
 Phish Fall Tour opens Friday at Boardwalk Hall. Got setlist predictions? Six guesses with your friends before they walk on.
-https://www.setlistpickem.com/how-it-works?utm_source=threads&utm_medium=social&utm_campaign=seo_geo&utm_content=how-it-works
+https://www.setlistpickem.com/th/how
 #phish #phishtour #phishfalltour #atlanticcity
 ```
 
