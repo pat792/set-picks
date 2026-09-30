@@ -1,6 +1,6 @@
 # Investigation: T-5 tour reminder sent to pickers, duplicate handle, blank picks card
 
-**Status:** draft investigation (no product code in this change)
+**Status:** historical record of the 2026-09-27 send (duplicate handle, blank card). Send policy and copy are locked in `content/comms/lifecycle/tour-countdown.md` (2026-09-30). Option B below is not the decision: pickers are not emailed.
 **Date:** 2026-09-27
 **Trigger:** `tour_countdown` T-5 (Fall Tour first show `2026-10-02`, Boardwalk Hall)
 **Reporter handles:** `CaesarTweezer1` (picks already in) and `CaesarTweezer` (thought deleted), same inbox
@@ -96,9 +96,7 @@ In-app is cheap and already switches the button. The inbox is what felt wrong. B
 - Do not write `email_suppression` because picks exist. That blocks the whole address, including the account that should keep mail.
 - Do not rely on `lifecycle: false` as the picks rule. That opts the person out of welcome and other lifecycle mail too.
 
-**Recommendation:** B for `tour_countdown` T-5/T-3/T-1, plus a one-time check (and deletion if intended) of the `CaesarTweezer` user doc. Optionally also dedupe countdown email by normalized address so two uids cannot double-send, and implement or correct the catalog’s 60-day audience and the 500-doc cap. Leave `picks_lock_reminder` as a hard exclude: that one is “you have not picked,” and a secured picker should not get it.
-
-T-10 can stay the exploratory “picks open soon” note for everyone. Secured picks that early are rare, and the copy does not claim the card is empty.
+**Superseded 2026-09-30.** The menu above is what was considered. The locked contract emails an empty card at T-5 and T-1 only, and does not email pickers. Push and in-app still fire on every beat. The one-time check of the `CaesarTweezer` user doc, email dedupe across two uids, the 60-day audience, and the 500-doc cap are still open and are not part of that contract. `picks_lock_reminder` stays a hard exclude.
 
 ---
 

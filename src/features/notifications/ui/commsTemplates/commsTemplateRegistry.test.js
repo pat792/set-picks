@@ -117,6 +117,32 @@ describe('comms template registry', () => {
     const text = [result.title, ...result.paragraphs].join(' ');
     expect(text).not.toContain('7:30 PM');
     expect(text).not.toMatch(/picks lock/i);
+    expect(text).toContain('Have your card filled before they walk on');
+    expect(text).not.toMatch(/first downbeat/i);
+  });
+
+  it('tour countdown closer branches on picks and days remaining', () => {
+    const entry = getCommsTemplateEntry('tour-countdown');
+    const closers = [10, 5, 3, 1].map(
+      (days) => entry.build({ days_remaining: days, first_show_date: '2026-10-02' }).paragraphs.at(-1),
+    );
+    expect(new Set(closers).size).toBe(4);
+    expect(closers[0]).toMatch(/Gear up for the tour opener/);
+    expect(
+      entry.build({ days_remaining: 10, picks_secured: true, first_show_date: '2026-10-02' }).paragraphs.at(-1),
+    ).toBe(closers[0]);
+    expect(
+      entry.build({ days_remaining: 5, picks_secured: true, first_show_date: '2026-10-02' }).paragraphs.at(-1),
+    ).toMatch(/edit them up to showtime on 2026-10-02/);
+    expect(
+      entry.build({ days_remaining: 3, picks_secured: true, first_show_date: '2026-10-02' }).paragraphs.at(-1),
+    ).toMatch(/already in/);
+    expect(
+      entry.build({ days_remaining: 1, picks_secured: true }).paragraphs.at(-1),
+    ).toMatch(/up to showtime\./);
+    expect(
+      entry.build({ days_remaining: 1, picks_secured: true, lock_time_local: '7:30 PM' }).paragraphs.join(' '),
+    ).not.toMatch(/7:30 PM|picks lock/i);
   });
 
   it('tour engagement reminder uses in-app picks CTA (not "Open the app")', () => {
