@@ -3,7 +3,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { renderCommsTemplate, hasTemplate } = require("./commsTemplates");
+const {
+  renderCommsTemplate,
+  hasTemplate,
+  tourCountdownIncludesEmail,
+  tourCountdownDeliveryPlan,
+} = require("./commsTemplates");
 const { TRIGGER_SPECS } = require("./commsCatalog");
 
 test("every catalog template renders push + email + inApp payloads", async () => {
@@ -83,6 +88,96 @@ test("tour countdown does not repeat an absolute picks cutoff (#522)", async () 
   });
   const rendered = `${out.push.title} ${out.push.body} ${out.email.subject} ${out.email.text}`;
   assert.doesNotMatch(rendered, /7:30 PM|picks lock/i);
+  assert.match(out.email.text, /Have your card filled before they walk on/);
+  assert.doesNotMatch(rendered, /first downbeat/i);
+});
+
+test("tour countdown closer and CTA branch on picks and days remaining", async () => {
+  const base = {
+    handle: "ArmenianMan",
+    tour_name: "Fall Tour",
+    first_show_date: "2026-10-02",
+    first_show_venue: "Jim Whelan Boardwalk Hall",
+    first_show_city: "Atlantic City, NJ",
+  };
+  const open = {
+    10: "Gear up for the tour opener. Worth sketching your six calls now.",
+    5: "Show 1 picks are open. Lock your six slots when you have them.",
+    3: "There's still time to fill your card for show 1.",
+    1: "Have your card filled before they walk on.",
+  };
+  const secured = {
+    5: "Your opener picks are in. You can edit them up to showtime on 2026-10-02.",
+    3: "Your card for show 1 is already in. Edit it any time before showtime on 2026-10-02.",
+    1: "You're locked in for the opener. You can still change your card up to showtime on 2026-10-02.",
+  };
+  const seen = new Set();
+  for (const [days, closer] of Object.entries(open)) {
+    const out = await renderCommsTemplate("tour-countdown", { ...base, days_remaining: Number(days) });
+    assert.match(out.email.text, new RegExp(closer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.equal(out.push.body, closer);
+    assert.equal(out.email.ctaLabel, "Make Your Picks");
+    assert.equal(seen.has(closer), false);
+    seen.add(closer);
+  }
+  const t10Secured = await renderCommsTemplate("tour-countdown", {
+    ...base,
+    days_remaining: 10,
+    picks_secured: true,
+  });
+  assert.match(t10Secured.email.text, /Gear up for the tour opener/);
+  assert.equal(t10Secured.email.ctaLabel, "Make Your Picks");
+  for (const [days, closer] of Object.entries(secured)) {
+    const out = await renderCommsTemplate("tour-countdown", {
+      ...base,
+      days_remaining: Number(days),
+      picks_secured: true,
+    });
+    assert.equal(out.push.body, closer);
+    assert.match(out.email.text, new RegExp(closer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.equal(out.email.ctaLabel, "View / Edit picks");
+    assert.doesNotMatch(out.email.text, /7:30 PM|picks lock/i);
+    assert.equal(seen.has(closer), false);
+    seen.add(closer);
+  }
+});
+
+test("tour countdown email is T-5 and T-1 only, and only when the card is empty", () => {
+  const empty = (days) => ({ days_remaining: days, picks_secured: false });
+  const secured = (days) => ({ days_remaining: days, picks_secured: true });
+  assert.equal(tourCountdownIncludesEmail(empty(10)), false);
+  assert.equal(tourCountdownIncludesEmail(empty(5)), true);
+  assert.equal(tourCountdownIncludesEmail(empty(3)), false);
+  assert.equal(tourCountdownIncludesEmail(empty(1)), true);
+  assert.equal(tourCountdownIncludesEmail(secured(5)), false);
+  assert.equal(tourCountdownIncludesEmail(secured(1)), false);
+  assert.equal(tourCountdownIncludesEmail({ days_remaining: 1, picks_secured: "true" }), false);
+  assert.equal(
+    tourCountdownIncludesEmail({ days_remaining: 1, picks_secured: false, first_show_date: "2026-10-02" }),
+    false
+  );
+  assert.equal(
+    tourCountdownIncludesEmail({ days_remaining: 1, picks_secured: true, first_show_date: "2026-10-02" }),
+    false
+  );
+
+  const plan = tourCountdownDeliveryPlan([
+    { uid: "empty-t5", payload: empty(5) },
+    { uid: "empty-t1", payload: empty(1) },
+    { uid: "empty-t10", payload: empty(10) },
+    { uid: "picked-t1", payload: secured(1) },
+    { uid: "fall-2026-t1", payload: { ...empty(1), first_show_date: "2026-10-02" } },
+  ]);
+  assert.deepEqual(
+    plan.map((batch) => ({
+      channels: batch.channels,
+      uids: batch.recipients.map((r) => r.uid),
+    })),
+    [
+      { channels: ["inApp", "push", "email"], uids: ["empty-t5", "empty-t1"] },
+      { channels: ["inApp", "push"], uids: ["empty-t10", "picked-t1", "fall-2026-t1"] },
+    ]
+  );
 });
 
 test("picks-lock-reminder email CTA omits showDate for display labels", async () => {

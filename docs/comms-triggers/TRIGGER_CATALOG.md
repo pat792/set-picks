@@ -142,7 +142,7 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | **Status** | `shipped` |
 | **Automation** | `automated` |
 | **Schedule** | Daily cron; fires when a tour's first show is exactly 10, 5, 3, or 1 day(s) away |
-| **Channels** | `inApp`, `push`, `email` |
+| **Channels** | `inApp` and `push` on every beat. `email` on T-5 and T-1 only, and only when `picks_secured` is false. |
 | **Audience** | All users who have logged in within the last 60 days |
 | **Prefs key** | `lifecycle` |
 | **Dedup** | `tour_countdown:{tourId}:{uid}:{days_remaining}` |
@@ -160,58 +160,20 @@ Every template draws from this shared set. Each trigger declares the subset it u
 | `5` / `3` | `Make picks for show 1` | `View / Edit picks` |
 | `1` | `Lock in your picks` | `View / Edit picks` |
 
-#### Template variants by `{{days_remaining}}`
+#### Email
 
-| Days | Push title | Push body |
-|------|-----------|-----------|
-| `10` | `{{tour_name}} starts in 10 days` | `Picks open soon. Start thinking about your openers, {{handle}}.` |
-| `5` | `5 days until {{tour_name}}` | `Picks are open for the first show. Lock in early, {{handle}}.` |
-| `3` | `3 days until {{tour_name}}` | `First show is {{first_show_date}}. Get your picks in before the weekend, {{handle}}.` |
-| `1` | `{{tour_name}} starts tomorrow` | `{{first_show_city}} — {{first_show_date}}. Have you picked your opener?` |
+| Days | Empty card | `picks_secured === true` |
+|------|------------|--------------------------|
+| `10` / `3` | No email | No email |
+| `5` / `1` | Email | No email |
+
+Show-day `picks_lock_reminder` is a separate trigger. It still emails only an empty card.
+
+Fall Tour 2026 (`first_show_date` `2026-10-02`) skips the T-1 email for everyone. Push and in-app still fire. The table above starts with the next tour.
+
+**Copy and cadence contract:** `content/comms/lifecycle/tour-countdown.md`
 
 **Deep link:** `/dashboard/picks`
-
-#### Template — In-App (T-10)
-
-**Heading:** `{{tour_name}} is 10 days away`
-
-**Body:** The countdown is on, {{handle}}. {{tour_name}} kicks off at {{first_show_venue}} on {{first_show_date}}. Picks will be open before each show — the earlier you get familiar with the lineup, the better your chances.
-
-**CTA:** `View upcoming shows →`
-
-#### Template — In-App (T-5)
-
-**Heading:** `5 days — {{tour_name}}`
-
-**Body:** Picks are open for the first show at {{first_show_venue}}. Get your opener, closer, encore, and wildcard locked in before the deadline. Every show counts toward the tour standings.
-
-**CTA:** `Make picks for show 1 →`
-
-#### Template — In-App (T-3)
-
-**Heading:** `3 days — {{tour_name}}`
-
-**Body:** {{first_show_venue}}, {{first_show_city}} — show 1 is in three days. If you haven't locked picks yet, now's the time before the weekend rush.
-
-**CTA:** `Make picks for show 1 →`
-
-#### Template — In-App (T-1)
-
-**Heading:** `{{tour_name}} is tomorrow, {{handle}}`
-
-**Body:** {{first_show_venue}}, {{first_show_city}} — tomorrow night. Get your picks ready before the first downbeat.
-
-**CTA:** `Lock in your picks →`
-
-#### Template — Email (T-1 only; T-10 and T-5 optional)
-
-**Subject (T-1):** `Last call — {{tour_name}} starts tomorrow`  
-**Preview:** `{{first_show_venue}}, {{first_show_city}} — get your picks ready.`
-
-**Body sections:**
-1. Tomorrow is show 1 — set the scene (venue, city, date).
-2. Get picks ready before the first downbeat.
-3. CTA button: `Make your picks`
 
 ---
 

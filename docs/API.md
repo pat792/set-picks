@@ -404,7 +404,7 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | `commsOnPickWrite` | `picks_confirmed` | `picks/{pickId}` create with non-empty picks |
 | Post-rollup hook | `show_recap`, `tour_engagement_reminder` | `rollupScoresForShow` completion. Last night of a tour is still night `show_recap` only. |
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
-| `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1) |
+| `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1). Push and in-app on every beat. Email on T-5 and T-1 only, and only when the opener card is empty (`picks_secured` false). Fall Tour 2026 (`first_show_date` `2026-10-02`) skips the T-1 email for everyone. |
 | `scheduledTourRankingsDailyComms` | `tour_rankings_daily`, `tour_recap` | Daily 8am PT cron. Rankings = morning-after show, **skipped** when that show is a tour finale (`tour_recap` day). `tour_recap` = first tick after that tour’s final show date while inside a **14-day lookback** and `comms_tour_recap_state/{tourId}` is not terminal (dedup `tour_recap:{tourId}:{uid}`); successful fan-out writes `status: sent` (once-ever). Sphere calendar labels (`/\bsphere\b/i`) write `skipped_archive` (#1033). |
 | `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (window tracks per-show lock from ticket-time+20 or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
 

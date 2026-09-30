@@ -47,6 +47,8 @@ const {
   writeTourRecapState,
   tourRecapFanoutCompleted,
 } = require("./tourRecapState");
+const { tourCountdownDeliveryPlan } = require("./commsTemplates");
+const { mergeCommsDeliverySummaries } = require("./commsDelivery");
 
 const SITE_URL = "https://www.setlistpickem.com";
 
@@ -934,7 +936,15 @@ async function runScheduledTourCountdown({ db, admin, resendApiKey, logger, now 
     }
   }
 
-  return runtime.deliver("tour_countdown", recipients);
+  const parts = [];
+  for (const batch of tourCountdownDeliveryPlan(recipients)) {
+    // eslint-disable-next-line no-await-in-loop
+    parts.push(
+      await runtime.deliver("tour_countdown", batch.recipients, { channels: batch.channels })
+    );
+  }
+  if (parts.length === 0) return { processed: 0, delivered: 0, skipped: 0, results: [] };
+  return mergeCommsDeliverySummaries(parts);
 }
 
 /**

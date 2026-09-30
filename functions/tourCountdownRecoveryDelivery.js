@@ -3,15 +3,17 @@
  * missed a window (e.g. #514 flat showDates bug).
  *
  * Resolves tour metadata from `show_calendar/snapshot.showDatesByTour`, fans out
- * to users with a non-empty handle, and calls `deliverCommsTrigger` (all channels).
+ * to users with a non-empty handle, and calls `deliverCommsTrigger`.
+ * Email follows `tourCountdownDeliveryPlan` (T-5 and T-1, empty card only).
  */
 
 "use strict";
 
-const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
+const { deliverCommsTrigger, buildDefaultWorkers, mergeCommsDeliverySummaries } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { ymdInTimeZone } = require("./phishnetLiveSetlistAutomation");
 const { hasNonEmptyPicksObject } = require("./rollupSeasonAggregates");
+const { tourCountdownDeliveryPlan, tourCountdownIncludesEmail } = require("./commsTemplates");
 
 const TRIGGER_ID = "tour_countdown";
 const DEFAULT_SHOW_TIME_ZONE = "America/Los_Angeles";
@@ -238,6 +240,7 @@ async function deliverTourCountdownRecovery({
       typeof r.userData?.email === "string" && r.userData.email.includes("@")
         ? r.userData.email.trim()
         : null,
+    includeEmail: tourCountdownIncludesEmail(r.payload),
   }));
 
   if (dryRun) {
@@ -261,17 +264,25 @@ async function deliverTourCountdownRecovery({
     logger,
   });
 
-  const delivery = await deliverCommsTrigger({
-    db,
-    admin,
-    triggerId: TRIGGER_ID,
-    recipients,
-    workers: buildDefaultWorkers({ emailWorker }),
-    dryRun: false,
-    forceResend,
-    bypassDailyCap: true,
-    logger,
-  });
+  const parts = [];
+  for (const batch of tourCountdownDeliveryPlan(recipients)) {
+    // eslint-disable-next-line no-await-in-loop
+    parts.push(
+      await deliverCommsTrigger({
+        db,
+        admin,
+        triggerId: TRIGGER_ID,
+        recipients: batch.recipients,
+        workers: buildDefaultWorkers({ emailWorker }),
+        dryRun: false,
+        forceResend,
+        bypassDailyCap: true,
+        channels: batch.channels,
+        logger,
+      })
+    );
+  }
+  const delivery = mergeCommsDeliverySummaries(parts);
 
   return {
     ok: delivery.ok !== false,
