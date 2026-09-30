@@ -57,9 +57,10 @@ const {
 const { evaluateManualFinalizeTimingGate } = require("./showFinalizationGate");
 const { applyLockPicksForShowNow } = require("./picksLockOverride");
 const { runAccountDeletionForCaller } = require("./accountDelete");
-const { deliverCommsTrigger, buildDefaultWorkers } = require("./commsDelivery");
+const { deliverCommsTrigger, buildDefaultWorkers, mergeCommsDeliverySummaries } = require("./commsDelivery");
 const { createCommsEmailWorker, buildResendClient } = require("./commsEmailWorker");
 const { getTriggerSpec } = require("./commsCatalog");
+const { tourCountdownDeliveryPlan } = require("./commsTemplates");
 const { refreshPublicTourStats } = require("./publicTourStats");
 const {
   rebuildGlobalStatsLeaderboards,
@@ -665,18 +666,28 @@ exports.runCommsTrigger = onCall(
     }
 
     const emailWorker = buildCommsEmailWorkerInstance();
-
-    return deliverCommsTrigger({
-      db,
-      admin,
-      triggerId,
-      recipients,
-      workers: buildDefaultWorkers({ emailWorker }),
-      dryRun,
-      forceResend,
-      bypassDailyCap,
-      logger,
-    });
+    const workers = buildDefaultWorkers({ emailWorker });
+    const batches =
+      triggerId === "tour_countdown" ? tourCountdownDeliveryPlan(recipients) : [{ recipients, channels: undefined }];
+    const parts = [];
+    for (const batch of batches) {
+      // eslint-disable-next-line no-await-in-loop
+      parts.push(
+        await deliverCommsTrigger({
+          db,
+          admin,
+          triggerId,
+          recipients: batch.recipients,
+          workers,
+          dryRun,
+          forceResend,
+          bypassDailyCap,
+          channels: batch.channels,
+          logger,
+        })
+      );
+    }
+    return parts.length === 1 ? parts[0] : mergeCommsDeliverySummaries(parts);
   }
 );
 

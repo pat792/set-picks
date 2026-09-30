@@ -43,7 +43,7 @@ function createCommsAdapterRuntime({ db, admin, resendApiKey, resendWebhookSecre
   /**
    * @param {string} triggerId
    * @param {Array<{ uid: string, userData?: object, payload?: object, vars?: object }>} recipients
-   * @param {{ dryRun?: boolean, forceResend?: boolean }} [opts]
+   * @param {{ dryRun?: boolean, forceResend?: boolean, channels?: string[] }} [opts]
    */
   async function deliver(triggerId, recipients, opts = {}) {
     if (!Array.isArray(recipients) || recipients.length === 0) {
@@ -68,6 +68,7 @@ function createCommsAdapterRuntime({ db, admin, resendApiKey, resendWebhookSecre
       workers,
       dryRun: opts.dryRun === true,
       forceResend: opts.forceResend === true,
+      channels: opts.channels,
       logger,
     });
   }

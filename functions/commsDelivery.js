@@ -282,6 +282,41 @@ async function deliverCommsTrigger({
 }
 
 /**
+ * Combine two countdown fan-outs (with email, and without) into one summary.
+ * @param {Array<Record<string, any>>} parts
+ */
+function mergeCommsDeliverySummaries(parts) {
+  const first = (parts || []).find(Boolean) || {};
+  const summary = {
+    ok: true,
+    triggerId: first.triggerId,
+    templateId: first.templateId,
+    dryRun: first.dryRun,
+    processed: 0,
+    delivered: 0,
+    skipped: 0,
+    byChannel: { inApp: 0, push: 0, email: 0 },
+    skips: {},
+    results: [],
+  };
+  for (const part of parts) {
+    if (!part) continue;
+    if (part.ok === false) summary.ok = false;
+    summary.processed += part.processed || 0;
+    summary.delivered += part.delivered || 0;
+    summary.skipped += part.skipped || 0;
+    for (const [channel, count] of Object.entries(part.byChannel || {})) {
+      summary.byChannel[channel] = (summary.byChannel[channel] || 0) + count;
+    }
+    for (const [reason, count] of Object.entries(part.skips || {})) {
+      summary.skips[reason] = (summary.skips[reason] || 0) + count;
+    }
+    if (Array.isArray(part.results)) summary.results.push(...part.results);
+  }
+  return summary;
+}
+
+/**
  * Build the default production channel workers. The email worker is created from
  * a Resend client (which may be `null` if the secret is unset → email skips
  * gracefully).
@@ -298,6 +333,7 @@ function buildDefaultWorkers({ emailWorker } = {}) {
 
 module.exports = {
   deliverCommsTrigger,
+  mergeCommsDeliverySummaries,
   buildDefaultWorkers,
   prefAllows,
   recipientAllowsTrigger,

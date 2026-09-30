@@ -158,6 +158,76 @@ function venueLine(payload, { dateKey = "show_date", venueKey = "venue_name", ci
 const DEFAULT_EMAIL_SIGN_OFF = "See you on tour!";
 
 /**
+ * T-5/T-3/T-1 confirmation when the opener card is already in.
+ * T-10 stays one line for everyone. Copy and email cadence:
+ * content/comms/lifecycle/tour-countdown.md
+ * @param {Record<string, any>} p
+ */
+function tourCountdownIsConfirmation(p) {
+  const days = Number(p?.days_remaining);
+  const secured = p?.picks_secured === true || p?.picks_secured === "true";
+  return secured && (days === 5 || days === 3 || days === 1);
+}
+
+/**
+ * Email only on T-5 and T-1, and only when the opener card is empty.
+ * Fall Tour 2026 (first show 2026-10-02) skips the T-1 email: T-10, T-5, and T-3 already mailed.
+ * @param {Record<string, any>} p
+ */
+function tourCountdownIncludesEmail(p) {
+  const days = Number(p?.days_remaining);
+  const secured = p?.picks_secured === true || p?.picks_secured === "true";
+  const firstShow = typeof p?.first_show_date === "string" ? p.first_show_date.trim() : "";
+  if (days === 1 && firstShow === "2026-10-02") return false;
+  return !secured && (days === 5 || days === 1);
+}
+
+/**
+ * Split a countdown fan-out into the two channel sets in the cadence contract.
+ * @param {Array<{ payload?: Record<string, any> }>} recipients
+ * @returns {Array<{ recipients: Array<{ payload?: Record<string, any> }>, channels: string[] }>}
+ */
+function tourCountdownDeliveryPlan(recipients) {
+  const withEmail = [];
+  const withoutEmail = [];
+  for (const recipient of Array.isArray(recipients) ? recipients : []) {
+    if (tourCountdownIncludesEmail(recipient?.payload)) withEmail.push(recipient);
+    else withoutEmail.push(recipient);
+  }
+  return [
+    withEmail.length ? { recipients: withEmail, channels: ["inApp", "push", "email"] } : null,
+    withoutEmail.length ? { recipients: withoutEmail, channels: ["inApp", "push"] } : null,
+  ].filter(Boolean);
+}
+
+/**
+ * Closing line. Distinct per days_remaining, and a second set when picks are in.
+ * @param {Record<string, any>} p
+ */
+function tourCountdownCloser(p) {
+  const days = Number(p?.days_remaining);
+  const date = typeof p?.first_show_date === "string" ? p.first_show_date.trim() : "";
+  const showtime = date ? `showtime on ${date}` : "showtime";
+  if (tourCountdownIsConfirmation(p)) {
+    if (days === 5) return `Your opener picks are in. You can edit them up to ${showtime}.`;
+    if (days === 3) {
+      return `Your card for show 1 is already in. Edit it any time before ${showtime}.`;
+    }
+    return `You're locked in for the opener. You can still change your card up to ${showtime}.`;
+  }
+  if (days === 10) return "Gear up for the tour opener. Worth sketching your six calls now.";
+  if (days === 5) return "Show 1 picks are open. Lock your six slots when you have them.";
+  if (days === 3) return "There's still time to fill your card for show 1.";
+  if (days === 1) return "Have your card filled before they walk on.";
+  return "Have your card filled before they walk on.";
+}
+
+/** @param {Record<string, any>} p */
+function tourCountdownEmailCtaLabel(p) {
+  return tourCountdownIsConfirmation(p) ? "View / Edit picks" : "Make Your Picks";
+}
+
+/**
  * Service comms email copy contract:
  * - Body = personalized message only (no prefs/legal/sign-off boilerplate).
  * - Plain-text part appends `Open the app:` (no HTML button in text clients).
@@ -224,31 +294,35 @@ const BUILDERS = {
 
   "tour-countdown": (p) => {
     const days = Number(p.days_remaining);
-    const when = days === 0 ? "today" : days === 1 ? "tomorrow" : `in ${days} days`;
+    const when =
+      days === 0 ? "today" : days === 1 ? "tomorrow" : Number.isFinite(days) ? `in ${days} days` : "soon";
     const firstShow = venueLine(p, {
       dateKey: "first_show_date",
       venueKey: "first_show_venue",
       cityKey: "first_show_city",
     });
+    const closer = tourCountdownCloser(p);
     const assembled = assembleServiceEmail(
       [
         `${handleOf(p)}, the run kicks off ${when}.`,
         firstShow ? `First show: ${firstShow}.` : "",
-        "Get your picks ready before the first downbeat.",
+        "",
+        closer,
       ],
       { ctaUrl: PICKS_CTA_URL }
     );
+    const tourName = p.tour_name || "The tour";
     return {
       push: {
-        title: `${p.tour_name || "The tour"} starts ${when}`,
-        body: "Get your picks ready for the first show.",
+        title: `${tourName} starts ${when}`,
+        body: closer,
       },
       email: {
-        subject: `${p.tour_name || "The tour"} starts ${when}`,
+        subject: `${tourName} starts ${when}`,
         text: assembled.text,
         signOff: assembled.signOff,
         ctaUrl: PICKS_CTA_URL,
-        ctaLabel: "Make Your Picks",
+        ctaLabel: tourCountdownEmailCtaLabel(p),
       },
     };
   },
@@ -592,6 +666,8 @@ function hasTemplate(templateId) {
 module.exports = {
   renderCommsTemplate,
   hasTemplate,
+  tourCountdownIncludesEmail,
+  tourCountdownDeliveryPlan,
   APP_CTA_URL,
   SITE_URL,
 };

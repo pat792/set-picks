@@ -45,7 +45,7 @@
       "githubIssue": null,
       "variants": ["t10", "t5", "t3", "t1"],
       "inAppDeepLink": "/dashboard/picks",
-      "note": "In-app CTA label varies by days_remaining; T-5/T-3/T-1 switch to View / Edit picks when picks_secured (#509). Countdown copy does not state an absolute cutoff; the show-day lock reminder owns relative cutoff messaging.",
+      "note": "Push and in-app on T-10, T-5, T-3, and T-1 for everyone. Email on T-5 and T-1 only when picks_secured is false. Fall Tour 2026 (first_show_date 2026-10-02) skips the T-1 email for everyone. In-app CTA varies by days_remaining; T-5/T-3/T-1 switch to View / Edit picks when picks_secured (#509). T-10 close is shared. T-5/T-3/T-1 closes branch. No absolute lock clock. Contract: content/comms/lifecycle/tour-countdown.md.",
       "variables": [
         { "name": "handle", "source": "users/{uid}.handle", "fallback": "Picker" },
         { "name": "tour_name", "source": "tour metadata", "fallback": null },

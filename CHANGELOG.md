@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.76.1] — 2026-09-30
+
+### Changed
+- **Tour countdown** — Push and in-app still fire on T-10, T-5, T-3, and T-1. Email fires on T-5 and T-1 only, and only when the opener card is empty. Fall Tour 2026 skips the Oct 1 T-1 email for everyone (T-10, T-5, and T-3 already mailed). T-5, T-3, and T-1 use a confirmation close when `picks_secured` is true (editable up to showtime on the first show date, no lock clock). T-10 is one shared line: gear up for the tour opener. Contract: `content/comms/lifecycle/tour-countdown.md`.
+
+---
+
 ## [1.76.0] — 2026-09-28
 
 ### Added

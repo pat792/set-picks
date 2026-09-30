@@ -90,6 +90,39 @@ function isPicksSecured(p) {
 }
 
 /**
+ * T-5/T-3/T-1 confirmation when the opener card is already in.
+ * T-10 stays one shared line. Copy contract: content/comms/lifecycle/tour-countdown.md
+ * @param {Record<string, unknown>} p
+ */
+function tourCountdownIsConfirmation(p) {
+  const days = Number(p?.days_remaining);
+  return isPicksSecured(p) && (days === 5 || days === 3 || days === 1);
+}
+
+/**
+ * Closing line. Distinct per days_remaining, and a second set when picks are in.
+ * Keep in sync with tourCountdownCloser in functions/commsTemplates.js.
+ * @param {Record<string, unknown>} p
+ */
+function tourCountdownCloser(p) {
+  const days = Number(p?.days_remaining);
+  const date = typeof p?.first_show_date === 'string' ? p.first_show_date.trim() : '';
+  const showtime = date ? `showtime on ${date}` : 'showtime';
+  if (tourCountdownIsConfirmation(p)) {
+    if (days === 5) return `Your opener picks are in. You can edit them up to ${showtime}.`;
+    if (days === 3) {
+      return `Your card for show 1 is already in. Edit it any time before ${showtime}.`;
+    }
+    return `You're locked in for the opener. You can still change your card up to ${showtime}.`;
+  }
+  if (days === 10) return 'Gear up for the tour opener. Worth sketching your six calls now.';
+  if (days === 5) return 'Show 1 picks are open. Lock your six slots when you have them.';
+  if (days === 3) return "There's still time to fill your card for show 1.";
+  if (days === 1) return 'Have your card filled before they walk on.';
+  return 'Have your card filled before they walk on.';
+}
+
+/**
  * In-app CTA for tour countdown — varies by `days_remaining` (TRIGGER_CATALOG.md §2).
  * When `picks_secured`, T-5/T-3/T-1 switch to View / Edit picks (#509). T-10 stays exploratory.
  * Push/email may use "open the app" phrasing; in-app users are already in the app.
@@ -176,7 +209,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })
             ? `First show: ${venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })}.`
             : 'The first show is coming up.',
-          'Get your picks ready before the first downbeat.',
+          tourCountdownCloser(p),
         ],
         cta: tourCountdownInAppCta(p),
       };
@@ -204,6 +237,18 @@ export const COMMS_TEMPLATE_REGISTRY = {
           first_show_venue: 'MSG',
           first_show_city: 'New York, NY',
           lock_time_local: '7:30 PM',
+        },
+      },
+      {
+        name: 'T-5 picks secured',
+        payload: {
+          handle: 'ArmenianMan',
+          tour_name: 'Summer Tour 2026',
+          days_remaining: 5,
+          first_show_date: 'Jul 18',
+          first_show_venue: 'MSG',
+          first_show_city: 'New York, NY',
+          picks_secured: true,
         },
       },
       {
