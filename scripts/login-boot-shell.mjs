@@ -134,6 +134,47 @@ html, body {
   font-weight: 500;
   color: rgb(148 163 184);
 }
+.lbs-eyebrow.is-signup {
+  margin-bottom: 0;
+}
+.lbs-benefit {
+  display: none;
+  width: 100%;
+  max-width: 24rem;
+  margin: 0.75rem 0 1.5rem;
+  text-align: left;
+}
+.lbs-benefit.is-on {
+  display: block;
+}
+.lbs-benefit-lead {
+  margin: 0;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(203 213 225);
+}
+.lbs-benefit ul {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.lbs-benefit li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: rgb(203 213 225);
+}
+.lbs-benefit-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  color: rgb(45 212 191);
+}
 .lbs-panel {
   width: 100%;
   max-width: 28rem;
@@ -296,11 +337,16 @@ function loginModeBootScript() {
     var signin = document.getElementById('lbs-signin');
     var signupEl = document.getElementById('lbs-signup');
     var eyebrow = document.getElementById('lbs-eyebrow');
+    var benefit = document.getElementById('lbs-benefit');
     if (!signin || !signupEl) return;
     if (signup) {
       signin.hidden = true;
       signupEl.hidden = false;
-      if (eyebrow) eyebrow.textContent = 'Create your free account';
+      if (eyebrow) {
+        eyebrow.textContent = 'Create your free account';
+        eyebrow.classList.add('is-signup');
+      }
+      if (benefit) benefit.classList.add('is-on');
     } else {
       signin.hidden = false;
       signupEl.hidden = true;
@@ -373,6 +419,15 @@ export function buildLoginBootShellMarkup() {
     `<main class="lbs-main">`,
     `<div class="lbs-stack">`,
     `<p id="lbs-eyebrow" class="lbs-eyebrow">Sign in to make picks</p>`,
+    `<div id="lbs-benefit" class="lbs-benefit">`,
+    `<p class="lbs-benefit-lead">When you create an account, you get</p>`,
+    `<ul>`,
+    `<li><svg class="lbs-benefit-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19.1"/></svg>Real-time setlist updates</li>`,
+    `<li><svg class="lbs-benefit-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>Scoring and ranking</li>`,
+    `<li><svg class="lbs-benefit-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Picks history</li>`,
+    `<li><svg class="lbs-benefit-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Stats for every show you play</li>`,
+    `</ul>`,
+    `</div>`,
 
     // Sign-in panel (default)
     `<section id="lbs-signin" class="lbs-panel" aria-label="Sign in">`,
