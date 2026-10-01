@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
 
 import {
   BRAND_SPLASH_HEADER_VINYL_MARK_SRC,
@@ -7,9 +6,9 @@ import {
   brandWordmarkSplashHeaderLeadingClassNames,
 } from '../../../shared/config/branding';
 import BrandWordmarkBarRow from '../../../shared/ui/BrandWordmarkBarRow';
-import Button from '../../../shared/ui/Button';
 import { MARKETING_HEADER_HEIGHT } from '../../../shared/ui/marketingEditorialChrome';
-import { MarketingHeaderNav, MarketingMobileMenu } from './MarketingSiteNav';
+import MarketingHeaderAuthCluster from './MarketingHeaderAuthCluster';
+import { MarketingHeaderNav } from './MarketingSiteNav';
 
 export default function SplashHeader({
   onPlayNowClick,
@@ -38,36 +37,12 @@ export default function SplashHeader({
             />
           </button>
 
-          <div className="flex min-w-0 items-center justify-self-end gap-3 sm:justify-self-auto sm:gap-3 lg:gap-3">
-            {/* Equal-width CTA pair */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <Button
-                variant="text"
-                size="none"
-                onClick={onSignInClick}
-                onPointerEnter={onAuthCtaIntent}
-                onFocus={onAuthCtaIntent}
-                onPointerDown={onAuthCtaIntent}
-                className="h-10 w-full whitespace-nowrap rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-slate-100 hover:bg-white/10 hover:text-white sm:text-sm"
-              >
-                Sign In
-              </Button>
-
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={onPlayNowClick}
-                onPointerEnter={onAuthCtaIntent}
-                onFocus={onAuthCtaIntent}
-                onPointerDown={onAuthCtaIntent}
-                className="h-10 w-full gap-1.5 px-3 py-0"
-              >
-                Join
-                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-              </Button>
-            </div>
-
-            <MarketingMobileMenu />
+          <div className="flex min-w-0 items-center justify-self-end sm:justify-self-auto">
+            <MarketingHeaderAuthCluster
+              onSignIn={onSignInClick}
+              onJoin={onPlayNowClick}
+              onAuthCtaIntent={onAuthCtaIntent}
+            />
           </div>
         </BrandWordmarkBarRow>
 

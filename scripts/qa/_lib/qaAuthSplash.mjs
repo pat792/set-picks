@@ -19,8 +19,16 @@ export async function signInViaSplashEmailPassword(page, origin, email, password
 
   // #834: `/login` is a full-page form (no dialog). Invite VIP still uses modals.
   // #909: credential fields start readOnly until focus (Safari Keychain guard).
+  // The HTML-first shell and the suspense fallback are `method="get"`. Their
+  // email field is visible immediately; submitting that shell reloads `/login`
+  // with the credentials in the query and never reaches the dashboard.
   const emailField = page.locator('#si-email');
   const passField = page.locator('#si-pass');
+  await emailField.waitFor({ state: 'visible', timeout: 30_000 });
+  await page.locator('[data-login-form-shell]').waitFor({
+    state: 'detached',
+    timeout: 45_000,
+  });
   await emailField.waitFor({ state: 'visible', timeout: 30_000 });
   await emailField.click();
   await emailField.fill(email);

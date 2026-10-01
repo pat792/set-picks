@@ -22,6 +22,7 @@ import {
   SIGNUP_EMAIL_CTA_NEEDS_LEGAL,
   SIGNUP_LEGAL_GATE_HINT,
 } from '../model/signupLegalCopy';
+import SignupAccountBenefits from './SignupAccountBenefits';
 import { warmLoginAuthSurface } from '../model/warmLoginAuthSurface';
 import { stashSplashResumeAuthModal } from '../utils/splashAuthResumeStorage';
 
@@ -62,9 +63,14 @@ export default function LoginAuthScreen({
   return (
     <div className="relative mx-auto flex w-full max-w-md flex-col items-center px-4 py-10 text-white sm:px-6 lg:px-8">
       <OpenInBrowserBanner />
-      <p className="mb-6 text-center text-sm font-medium text-slate-400">
+      <p
+        className={`text-center text-sm font-medium text-slate-400 ${
+          isSignup ? '' : 'mb-6'
+        }`}
+      >
         {isSignup ? 'Create your free account' : 'Sign in to make picks'}
       </p>
+      {isSignup ? <SignupAccountBenefits /> : null}
       {isSignup ? (
         <LoginSignUpPanel
           onClose={onClose}
