@@ -12,3 +12,17 @@ export const SIGNUP_LEGAL_REQUIRED_ERROR =
 
 /** Disabled email CTA label while consent is unchecked. */
 export const SIGNUP_EMAIL_CTA_NEEDS_LEGAL = 'Accept terms to continue';
+
+/**
+ * Checklist under the create-account eyebrow.
+ * Ranking is listed once. Tour stats (bustouts, song counts, gaps) stay off —
+ * those pages are public. Keep `scripts/login-boot-shell.mjs` in sync.
+ */
+export const SIGNUP_ACCOUNT_BENEFIT_LEAD = 'When you create an account, you get';
+
+export const SIGNUP_ACCOUNT_BENEFITS = [
+  'Real-time setlist updates',
+  'Scoring and ranking',
+  'Picks history',
+  'Stats for every show you play',
+];

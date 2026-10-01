@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.76.3] — 2026-10-01
+
+### Added
+- **Create-account benefits** — `/login?mode=signup` lists what an account keeps: real-time setlist updates, scoring and ranking, picks history, and stats for every show you play. The first-paint login shell matches.
+
+---
+
 ## [1.76.2] — 2026-10-01
 
 ### Changed

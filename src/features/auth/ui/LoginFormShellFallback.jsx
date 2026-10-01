@@ -4,6 +4,7 @@ import {
   scheduleNeutralLoginFocus,
   useDeferPasswordManagerAutofill,
 } from '../model/deferPasswordManagerAutofill';
+import SignupAccountBenefits from './SignupAccountBenefits';
 
 /**
  * Suspense / leave-document fallback for the auth door (#892).
@@ -50,9 +51,14 @@ export default function LoginFormShellFallback() {
       </header>
       <main className="relative z-10 flex w-full flex-1 justify-center px-4 pb-8 pt-10">
         <div className="flex w-full max-w-md flex-col items-center">
-          <p className="mb-6 text-center text-sm font-medium text-slate-400">
+          <p
+            className={`text-center text-sm font-medium text-slate-400 ${
+              signup ? '' : 'mb-6'
+            }`}
+          >
             {signup ? 'Create your free account' : 'Sign in to make picks'}
           </p>
+          {signup ? <SignupAccountBenefits /> : null}
           {signup ? <SignupPanelStatic /> : <SigninPanelStatic />}
         </div>
       </main>
