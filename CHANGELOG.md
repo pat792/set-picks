@@ -8,10 +8,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.76.2] — 2026-09-30
+## [1.76.3] — 2026-10-01
 
 ### Added
 - **Create-account benefits** — `/login?mode=signup` lists what an account keeps: real-time setlist updates, scoring and ranking, picks history, and stats for every show you play. The first-paint login shell matches.
+
+---
+
+## [1.76.2] — 2026-10-01
+
+### Changed
+- **Marketing headers** — How it works, Scoring, The game, About, and Tour stats use the same Sign In and Join controls as the home page, including on a phone. The vinyl mark still returns home. Short links and nav destinations are unchanged.
 
 ---
 

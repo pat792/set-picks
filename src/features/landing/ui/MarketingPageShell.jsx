@@ -1,5 +1,4 @@
 import React from 'react';
-import { ChevronLeft } from 'lucide-react';
 
 import {
   BRAND_SPLASH_HEADER_VINYL_MARK_SRC,
@@ -9,26 +8,30 @@ import {
   MARKETING_HEADER_HEIGHT,
   MARKETING_PAGE_GUTTER_X,
 } from '../../../shared/ui/marketingEditorialChrome';
-import {
-  MarketingFooterNav,
-  MarketingHeaderNav,
-  MarketingMobileMenu,
-} from './MarketingSiteNav';
+import useMarketingAuthLeave from '../model/useMarketingAuthLeave';
+import MarketingAuthLeaveOverlay from './MarketingAuthLeaveOverlay';
+import MarketingHeaderAuthCluster from './MarketingHeaderAuthCluster';
+import { MarketingFooterNav, MarketingHeaderNav } from './MarketingSiteNav';
 
 /**
  * Shell for standalone marketing / educational pages.
- * Sticky header: home + primary marketing nav (#663 / #706); footer is legal chrome (#948).
+ * Sticky header: vinyl home mark, primary nav, Sign In + Join (#663 / #706).
+ * Footer is legal chrome (#948).
  *
- * Home uses a real `<a href="/">` (not React Router `<Link>`) so returning from
- * app-document surfaces (`/login`, invite VIP) always reloads the marketing
+ * The vinyl uses a real `<a href="/">` (not React Router `<Link>`) so returning
+ * from app-document surfaces (`/login`, invite VIP) always reloads the marketing
  * entry (`index.html`) instead of soft-navigating to app-shell splash.
+ * Sign In / Join hard-navigate to `/login`, same as the splash header.
  * Public `/tour-stats*` is marketing (#853) — soft Links are fine there.
  */
 export default function MarketingPageShell({ children }) {
+  const { leaving, leaveMessage, openSignUp, openSignIn, onAuthCtaIntent } =
+    useMarketingAuthLeave();
+
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-transparent text-white">
       <header className={`sticky top-0 z-50 flex items-center border-b border-white/5 bg-brand-bg/80 backdrop-blur-lg ${MARKETING_HEADER_HEIGHT}`}>
-        <div className={`relative mx-auto flex w-full max-w-5xl items-center justify-between gap-3 sm:gap-4 ${MARKETING_PAGE_GUTTER_X}`}>
+        <div className={`relative mx-auto flex w-full max-w-7xl items-center justify-between gap-3 sm:gap-4 ${MARKETING_PAGE_GUTTER_X}`}>
           <a
             href="/"
             aria-label="Setlist Pick 'Em — back to home"
@@ -42,27 +45,22 @@ export default function MarketingPageShell({ children }) {
               decoding="async"
               className={brandSplashHeaderVinylMarkImgClassNames}
             />
-            <span className="hidden font-display text-base font-bold tracking-tight text-white sm:block">
+            <span className="hidden font-display text-base font-bold tracking-tight text-white lg:block">
               Setlist Pick&nbsp;&apos;Em
             </span>
           </a>
 
-          {/* Desktop: nav near center (slight right bias); Home stays right. */}
+          {/* Desktop: nav near center (slight right bias); Sign In + Join stay right. */}
           <MarketingHeaderNav className="pointer-events-auto absolute left-[52%] top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:flex" />
 
-          {/* Mobile: logo already goes home — hamburger alone on the far right (#706). */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <a
-              href="/"
-              className="hidden items-center gap-1 rounded-sm text-sm font-semibold text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-blue sm:inline-flex"
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden />
-              <span>Home</span>
-            </a>
-            <MarketingMobileMenu />
-          </div>
+          <MarketingHeaderAuthCluster
+            onSignIn={openSignIn}
+            onJoin={openSignUp}
+            onAuthCtaIntent={onAuthCtaIntent}
+          />
         </div>
       </header>
+      {leaving ? <MarketingAuthLeaveOverlay message={leaveMessage} /> : null}
       <main className="w-full flex-1">{children}</main>
 
       <div className={`relative z-10 pb-4 pt-10 ${MARKETING_PAGE_GUTTER_X}`}>
