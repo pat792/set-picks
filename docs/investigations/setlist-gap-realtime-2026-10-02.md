@@ -143,6 +143,22 @@ Honest display: blank instead of 0 unless the title is a same-show reprise or th
 
 If A is unavailable for a night, the 4am cutoff still strands both `songGaps` and `bustouts` on whatever the last in-window poll stored. A single next-morning poll (or the existing `--existing` backfill extended to recompute `bustouts` and reconcile graded scores) repairs tour stats and the archive. It does not put the badge up during the show. Worth doing as a backstop even if A and B ship, because settled rows are still the source of truth once Phish.net fills them, and gap-only updates do not reconcile `totalPoints` today.
 
+## Would reverting the old freeze fix it?
+
+No. The old merge and the reconciliation the tour pages need are the same switch, pointed opposite ways.
+
+Before v1.75.2, a gap already stored won over every later poll. The first number Phish.net sent for that song was kept for the life of the show doc. A later poll could add a song that was not in the feed yet. It could not change a number already stored.
+
+That is why summer setlist gaps looked stable, and why they could not catch up when Phish.net published the settled gap (usually one higher). Tour stats stayed one low because the code threw the corrected poll away. #1062 exists to stop throwing it away.
+
+Phish.net is not sending “provisional, then the real gap” as a single step up. On this show the row `gap` did three different things:
+
+- Most songs arrived as 0. Under the old freeze those 0s would stick, including after a later poll carries the real gap (Slave 9, Pillow Jets 17, and so on).
+- Ghost arrived as 1, the settled value, then a later fetch put it back to 0. The old freeze would have kept the 1, which is the one song tonight it would have saved. The current merge stored the later 0, so a revert from here on would keep that 0 too.
+- The settled number shows up on the same row after the show is indexed. The old freeze ignores that update. The current merge accepts it, and also accepts the 0s in between.
+
+A revert tonight would lock the zeros already written and would turn reconciliation back off. The behavior that matches both goals is narrower than either version: ignore a drop to 0 when a positive gap is already stored, and still accept a later poll when it moves the gap up to the settled number.
+
 ## Recommendation
 
 Decouple the live Gap column and the live bustout decision from the raw setlist-row `gap`. Compute option A, protect it with option B, and keep option F so a morning fill-in still repairs anything the index lookup missed. Leave settled-show backfill as a straight copy of the row `gap`. Do not consult `songs.gap`.
