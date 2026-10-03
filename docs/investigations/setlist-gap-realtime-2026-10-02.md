@@ -159,6 +159,12 @@ Phish.net is not sending “provisional, then the real gap” as a single step u
 
 A revert tonight would lock the zeros already written and would turn reconciliation back off. The behavior that matches both goals is narrower than either version: ignore a drop to 0 when a positive gap is already stored, and still accept a later poll when it moves the gap up to the settled number.
 
+## Death Don't Hurt Very Long (set 2)
+
+Around 10:50pm ET the row gap was 100, the bustout badge appeared, and a later poll put the row gap back to 0. The badge stayed. Checked against the Phish show index: previous Phish performance was 2024-08-07, and the settled gap through 2026-10-02 is 100. The 100 was the real pre-show gap. The 0 is the same live placeholder as the rest of the set. The songs catalog also reads gap 0 and last played tonight.
+
+The badge stays because bustouts are a union. A later gap of 0 does not remove a title already captured at or above 30. The Gap column is a different field, and v1.75.2 overwrites it with the latest poll. Scoring still reads the bustout list, so the boost remains. The column showing 0 next to that badge is the bad write.
+
 ## Recommendation
 
 Decouple the live Gap column and the live bustout decision from the raw setlist-row `gap`. Compute option A, protect it with option B, and keep option F so a morning fill-in still repairs anything the index lookup missed. Leave settled-show backfill as a straight copy of the row `gap`. Do not consult `songs.gap`.
