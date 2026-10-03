@@ -465,26 +465,47 @@ test("buildSetlistDocFromRows emits songGaps and keeps songs absent from this po
   });
 });
 
-test("buildSetlistDocFromRows replaces a provisional gap and keeps songs absent from this poll (#1062)", () => {
+test("buildSetlistDocFromRows keeps the first positive gap and ignores a live 0", () => {
   const rows = normalizeSetlistRows({
     error: false,
     data: [
       { set: "1", idx: 1, song: "Melt the Guns", gap: 2052 },
-      { set: "1", idx: 2, song: "AC/DC Bag", gap: 9 },
+      { set: "1", idx: 2, song: "AC/DC Bag", gap: 0 },
+      { set: "2", idx: 1, song: "Oblivion", gap: 0 },
+      { set: "2", idx: 2, song: "Down with Disease", gap: 4 },
     ],
   });
   const out = buildSetlistDocFromRows(rows, {
     songGaps: {
       "melt the guns": 2051,
       "ac/dc bag": 8,
+      oblivion: 3,
       "bathtub gin": 14,
+      ghost: 0,
     },
     bustouts: ["Melt the Guns"],
   });
-  assert.equal(out.songGaps["melt the guns"], 2052);
-  assert.equal(out.songGaps["ac/dc bag"], 9);
+  assert.equal(out.songGaps["melt the guns"], 2051);
+  assert.equal(out.songGaps["ac/dc bag"], 8);
+  assert.equal(out.songGaps.oblivion, 3);
   assert.equal(out.songGaps["bathtub gin"], 14);
+  assert.equal(out.songGaps["down with disease"], 4);
+  assert.equal(out.songGaps.ghost, undefined);
   assert.deepEqual(out.bustouts, ["Melt the Guns"]);
+});
+
+test("buildSetlistDocFromRows records a positive gap over a stored placeholder 0", () => {
+  const rows = normalizeSetlistRows({
+    error: false,
+    data: [
+      { set: "2", idx: 1, song: "Oblivion", gap: 3 },
+      { set: "1", idx: 1, song: "Fuego", gap: 0 },
+    ],
+  });
+  const out = buildSetlistDocFromRows(rows, {
+    songGaps: { oblivion: 0, fuego: 0 },
+  });
+  assert.deepEqual(out.songGaps, { oblivion: 3 });
 });
 
 test("buildSetlistDocFromRows emits bustouts from per-row gap", () => {
