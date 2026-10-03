@@ -1,6 +1,6 @@
 # Investigation: live setlist gaps of 0
 
-**Status:** draft investigation — options only; no code ship yet  
+**Status:** decision recorded — live poller keeps the first positive gap and does not store a live 0 (v1.76.4). Index-distance calculation was not shipped.  
 **Date:** 2026-10-03 (observation window 2026-10-02, Atlantic City N1, set 1 in progress)  
 **Surfaces:** Standings setlist Gap column, bustout badge, tour-stats Bustouts / High gaps  
 **Related:** #587 Phase B (freeze `songGaps`), #1062 / v1.75.2 (later poll replaces the frozen gap), #214 (bustouts from the same row `gap`)
