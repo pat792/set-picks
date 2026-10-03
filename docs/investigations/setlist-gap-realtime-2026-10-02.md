@@ -148,3 +148,22 @@ If A is unavailable for a night, the 4am cutoff still strands both `songGaps` an
 Decouple the live Gap column and the live bustout decision from the raw setlist-row `gap`. Compute option A, protect it with option B, and keep option F so a morning fill-in still repairs anything the index lookup missed. Leave settled-show backfill as a straight copy of the row `gap`. Do not consult `songs.gap`.
 
 The live API is not generally reporting the correct gap while songs are being added. It sometimes is (Ghost, this set). It often reports 0 for a song whose settled gap is nowhere near 0. Treating that 0 as data, which v1.75.2 now does, is what the standings column is showing.
+
+## Mid-show deploy risk (2026-10-02, ~9:24pm ET)
+
+A second fetch at 2026-10-03 01:24 UTC still showed the same six set-1 songs, and **all six row gaps were 0**, including Ghost, which had been the correct 1 about thirty minutes earlier. The live field is unstable, not just empty at first write.
+
+Pushing the recommendation to production means a Cloud Functions deploy of the live poller while it is the only writer of tonight’s setlist. The client does not need a release. Standings will show whatever the next poll writes.
+
+**Full recommendation, including bustout eligibility, shipped onto the hot poll path tonight: high.**
+
+- Bustout Boost is +20 points on every matching slot. The poller writes `bustouts` from gap, and `gradePicksOnSetlistWrite` recomputes `pick.score` on that write. A computed gap that misses a recent play (wrong artist, skipped `exclude_from_stats`, slug pointing at an older performance) inflates the gap. At or above 30 that is a false bustout.
+- Option B keeps a gap when the new value is lower. An inflated computed gap then sticks after Phish.net publishes the real smaller number. That is the scoring failure mode.
+- A debut has no previous Phish play. Treating “no prior” as a huge gap would bustout a debut. Missing history has to stay unknown.
+- The scheduled poller sets no `timeoutSeconds` (platform default 60s). History lookups and a show-index fetch inside the same `try` as the nightly song fetch can 429 or time out. Any throw backs the **whole** poll off for 1, 2, 4, … up to 30 minutes. Songs stop landing. That is worse than a wrong Gap column.
+- There is no soak. The first run is the live show. Firestore already holds 0 for these six titles, so the first new poll rewrites `songGaps` immediately.
+- Finalize is still later (encore idle 25 minutes, or the 4.5 hour cap). A bad bustout list can be corrected before rollup if someone is watching. After `autoFinalizedAt`, a gap-only or bustout-only write still updates `pick.score` and does not reconcile `users.totalPoints`, because that reconcile keys off the song-list signature.
+
+**Display-only computed gaps, lookup failures isolated, `bustouts` still taken from the raw row gap: moderate-low.**
+
+Worst case is a wrong Gap number, or a few minutes of poll delay if the isolation is wrong. Scores and bustout badges stay on today’s behavior (no live bustouts while the row is 0). That is the only cut that is reasonable to deploy during this show. The bustout half waits until the formula has been checked against a finished show and a miss-the-previous-play case, and until a later non-zero row gap is allowed to replace a computed gap even when it is lower.
