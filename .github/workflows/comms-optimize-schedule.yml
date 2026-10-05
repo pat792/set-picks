@@ -3,6 +3,9 @@
 #   - yesterday was a show date (post_show → show_recap_uniqueness), or
 #   - today is Monday America/Denver and there was no post-show (weekly rotation).
 #
+# Post-show kickoffs attach live narrative QA when GCP_CLIENT_EMAIL and
+# GCP_PRIVATE_KEY are set. A failed live read skips that section.
+# The Fenway fixture is not posted from this workflow.
 # Does NOT run the full Leadership/Cursor squad (needs GA4 MCP + LLM).
 # A Cloud Agent / Cursor Automation / human picks up the kickoff comment.
 # Agents never merge or comms:deploy from this workflow.
@@ -48,6 +51,8 @@ jobs:
       - name: Resolve + post kickoff on #573
         env:
           GH_TOKEN: ${{ github.token }}
+          GCP_CLIENT_EMAIL: ${{ secrets.GCP_CLIENT_EMAIL }}
+          GCP_PRIVATE_KEY: ${{ secrets.GCP_PRIVATE_KEY }}
           MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'auto' }}
           SHOW_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.show_date || '' }}
         run: |
