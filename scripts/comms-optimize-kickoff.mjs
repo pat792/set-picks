@@ -97,40 +97,29 @@ function main() {
     runDate: todayYmd,
   });
 
-  // Post-show: attach deterministic narrative QA (#779). Prefer live Firestore
-  // context; fall back to labeled fixture smoke when credentials are missing.
+  // Post-show: attach live narrative QA (#779). A failed live read skips the
+  // section. The Fenway fixture stays a local/CI smoke test and is never posted.
   if (resolved.mode === "post_show" && resolved.showDate) {
     const qaScript = path.join(root, "scripts/comms-show-recap-narrative-qa.mjs");
-    let qa = spawnSync(
+    const qa = spawnSync(
       process.execPath,
       [qaScript, "--show-date", resolved.showDate, "--live"],
       { cwd: root, encoding: "utf8" },
     );
-    let qaNote = "";
-    if (qa.status !== 0 && qa.status !== 2) {
-      qaNote =
-        "_Live `comms_show_context` unavailable — fixture smoke (`fenway_labeled`)._\n\n";
-      qa = spawnSync(
-        process.execPath,
-        [
-          qaScript,
-          "--fixture",
-          "fenway_labeled",
-          "--show-date",
-          resolved.showDate,
-        ],
-        { cwd: root, encoding: "utf8" },
-      );
-    }
     if (qa.status === 0 || qa.status === 2) {
       const qaBody = String(qa.stdout || "")
         .replace(/^\[SKIP-PRD\]\s*/i, "")
         .trim();
-      body = `${body.trim()}\n\n---\n\n${qaNote}${qaBody}\n`;
+      body = `${body.trim()}\n\n---\n\n${qaBody}\n`;
     } else {
-      body = `${body.trim()}\n\n---\n\n### Show-recap uniqueness QA\n\n_QA script failed_ (exit ${qa.status}): ${
-        (qa.stderr || "").split("\n").filter(Boolean)[0] || "unknown"
-      }\n`;
+      const raw = String(qa.stderr || "")
+        .split("\n")
+        .map((s) => s.trim())
+        .find(Boolean) || "live read failed";
+      const line = /PRIVATE KEY|BEGIN /i.test(raw)
+        ? "live read failed"
+        : raw.slice(0, 240);
+      body = `${body.trim()}\n\n---\n\n### Show-recap uniqueness QA — ${resolved.showDate}\n\n**Status:** skipped\n\nLive \`comms_show_context/${resolved.showDate}\` was not read. This kickoff has no sample narrative.\n\n_${line}_\n`;
     }
   }
 

@@ -68,7 +68,7 @@ Swap `picks_lock` / window as needed. First L1 pack: [comment on #573](https://g
 
 ### Show-recap uniqueness QA (#779)
 
-Post-show kickoffs attach a **Show-recap uniqueness QA** section (or run standalone):
+Post-show kickoffs attach a **Show-recap uniqueness QA** section from live `comms_show_context/{showDate}`. The scheduled workflow passes `GCP_CLIENT_EMAIL` and `GCP_PRIVATE_KEY`. If that live read fails, the kickoff says QA was **skipped** and includes no sample narrative. `fenway_labeled` is a local/CI smoke fixture and is not posted from the schedule. Standalone:
 
 ```bash
 # Fixture smoke (CI / no Firestore)
@@ -92,7 +92,7 @@ Checklist (fail → scored `DRAFT_PR`): `Bustout:` / `Bustouts:` labels, trailin
 | Resolve goal + window from calendar + rotation | Run GA4 MCP / CrewAI / Cursor squad itself |
 | Post agent prompt on #573 | Open draft PRs or deploy |
 | Prefer post-show over weekly when both apply | Invent metrics |
-| Attach narrative QA on post_show (#779) | Send Resend canaries (optional separate script) |
+| Attach live narrative QA on post_show (#779) when Firestore credentials are present | Attach the Fenway fixture, or send Resend canaries |
 
 **Human / Cloud Agent step after each kickoff:** run the embedded prompt (or Leadership `crew` optimize → `SQUAD_KICKOFF` → squad). Post the finished **PM review pack** as a follow-up comment on #573. L2 exit criteria (two consecutive packs without chat kickoff) count when those pack comments land from the scheduled kickoffs.
 
