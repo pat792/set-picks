@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { DASHBOARD_CARD_L1_MIN_H } from './dashboardCardClasses';
+import DashboardJobShell from './DashboardJobShell';
 
 /**
  * Reserved, clearly-labeled promo/sponsor placement (domain-agnostic).
@@ -48,14 +49,12 @@ export default function SponsorSlot({
       data-sponsor-slot={slotId}
       className={['w-full', className].filter(Boolean).join(' ')}
     >
-      <div
-        className={`flex w-full flex-col rounded-xl border border-border-subtle/60 bg-surface-panel/40 px-3.5 pb-3.5 pt-2 md:px-4 ${minHeight}`}
-      >
+      <DashboardJobShell tone="none" pad="label" className={`flex w-full flex-col ${minHeight}`}>
         <span className="mb-1.5 self-end text-[9px] font-semibold uppercase tracking-widest text-content-secondary/70">
           Sponsored
         </span>
         {children ?? <PlaceholderCreative slotId={slotId} variant={variant} />}
-      </div>
+      </DashboardJobShell>
     </aside>
   );
 }

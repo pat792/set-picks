@@ -21,6 +21,7 @@ const APP_DOCUMENT_PATH_PREFIXES = [
   '/join',
   '/invite/',
   '/comms-preview',
+  '/card-shell-preview',
 ];
 
 function isAppDocumentPath(pathname) {

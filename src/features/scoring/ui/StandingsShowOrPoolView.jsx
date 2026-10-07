@@ -3,8 +3,7 @@ import { Inbox, Loader2, Music } from 'lucide-react';
 
 import { StatsRatesDidYouKnow } from '../../feature-discovery';
 import { PicksLockTimingBanner } from '../../picks';
-import Card from '../../../shared/ui/Card';
-import PageTitle from '../../../shared/ui/PageTitle';
+import DashboardJobShell from '../../../shared/ui/DashboardJobShell';
 import StandingsSelfRecapCard from './StandingsSelfRecapCard';
 import StandingsOfficialSetlistCard from './StandingsOfficialSetlistCard';
 import Leaderboard from './Leaderboard';
@@ -15,7 +14,7 @@ import StandingsPoolPicker from './StandingsPoolPicker';
 import StandingsWinnerOfTheNightBanner from './StandingsWinnerOfTheNightBanner';
 import {
   STANDINGS_BOX_BODY,
-  STANDINGS_CARD_SHELL,
+  STANDINGS_BOX_TITLE,
 } from './standingsSurfaceClasses';
 
 /**
@@ -190,15 +189,13 @@ export default function StandingsShowOrPoolView({ screen }) {
             onChange={setPoolId}
           />
         ) : null}
-        <Card variant="default" padding="none" className={`${STANDINGS_CARD_SHELL} text-center`}>
-          <PageTitle as="h2" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
-            Results aren&apos;t up yet
-          </PageTitle>
-          <p className={`mx-auto max-w-sm ${STANDINGS_BOX_BODY}`}>
+        <DashboardJobShell tone="none" pad="row" className="text-center">
+          <p className={STANDINGS_BOX_TITLE}>Results aren&apos;t up yet</p>
+          <p className={`mx-auto mt-1 max-w-sm ${STANDINGS_BOX_BODY}`}>
             This date hasn&apos;t happened yet. Lock your picks on Picks, then check
             Standings after the show for scores and rankings.
           </p>
-        </Card>
+        </DashboardJobShell>
       </>
     );
   }
@@ -289,10 +286,10 @@ export default function StandingsShowOrPoolView({ screen }) {
       ) : null}
 
       {displayedPicks.length === 0 ? (
-        <Card
-          variant="default"
-          padding="none"
-          className={`mt-8 flex flex-col items-center justify-center text-center ${STANDINGS_CARD_SHELL}`}
+        <DashboardJobShell
+          tone="none"
+          pad="row"
+          className="mt-8 flex flex-col items-center justify-center text-center"
         >
           {showStatus === 'PAST' ? (
             <>
@@ -301,9 +298,7 @@ export default function StandingsShowOrPoolView({ screen }) {
                 strokeWidth={1.5}
                 aria-hidden
               />
-              <PageTitle as="h3" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
-                No picks for this show
-              </PageTitle>
+              <p className={`mb-1 ${STANDINGS_BOX_TITLE}`}>No picks for this show</p>
               <p className={`max-w-sm ${STANDINGS_BOX_BODY}`}>
                 {isPoolsView
                   ? 'Nobody in this pool submitted picks for this date.'
@@ -317,9 +312,7 @@ export default function StandingsShowOrPoolView({ screen }) {
                 strokeWidth={1.5}
                 aria-hidden
               />
-              <PageTitle as="h3" variant="section" className={`mb-2 !text-sm !font-bold md:!text-base`}>
-                No picks yet
-              </PageTitle>
+              <p className={`mb-1 ${STANDINGS_BOX_TITLE}`}>No picks yet</p>
               <p className={`max-w-sm ${STANDINGS_BOX_BODY}`}>
                 {isPoolsView ? (
                   <>
@@ -339,7 +332,7 @@ export default function StandingsShowOrPoolView({ screen }) {
               </p>
             </>
           )}
-        </Card>
+        </DashboardJobShell>
       ) : (
         <Leaderboard
           poolPicks={displayedPicks}

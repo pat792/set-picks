@@ -6,14 +6,13 @@ import {
   lastShowWinnerHeading,
   tonightsWinnerHeading,
 } from '../../../shared/config/dashboardVocabulary';
+import DashboardJobShell, { DASHBOARD_JOB_ICON } from '../../../shared/ui/DashboardJobShell';
 import DashboardRowPill from '../../../shared/ui/DashboardRowPill';
 import PlayerHandleLink from '../../../shared/ui/PlayerHandleLink';
 import {
   STANDINGS_BOX_EYEBROW,
-  STANDINGS_BOX_EYEBROW_ICON,
   STANDINGS_BOX_L2_MIN_H,
-  STANDINGS_BOX_PAD,
-  STANDINGS_BOX_RADIUS,
+  STANDINGS_BOX_TITLE,
 } from './standingsSurfaceClasses';
 
 /**
@@ -75,14 +74,12 @@ export default function StandingsWinnerOfTheNightBanner({
     (showViewResultsLink ? viewResults.showDate : '');
 
   return (
-    <div
+    <DashboardJobShell
+      tone="teal"
+      pad="row"
       role="region"
       aria-label={`${heading}: ${handlesLabel} — ${max} points`}
-      className={
-        compact
-          ? `relative mx-0.5 mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_BOX_RADIUS} border border-amber-500/35 bg-gradient-to-br from-amber-500/[0.1] via-amber-500/[0.05] to-brand-primary/[0.06] ${STANDINGS_BOX_PAD} shadow-inset-glass`
-          : `relative mx-0.5 mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_BOX_RADIUS} border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.12] via-amber-500/[0.06] to-brand-primary/[0.08] ${STANDINGS_BOX_PAD} shadow-inset-glass`
-      }
+      className={`mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center`}
     >
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         {/*
@@ -90,10 +87,10 @@ export default function StandingsWinnerOfTheNightBanner({
           keep the link above in the hit-test order.
         */}
         <p
-          className={`relative z-0 inline-flex min-w-0 items-center gap-1.5 ${STANDINGS_BOX_EYEBROW} text-amber-300`}
+          className={`relative z-0 inline-flex min-w-0 items-center gap-1.5 ${STANDINGS_BOX_EYEBROW} text-brand-primary`}
         >
           <Trophy
-            className={`${STANDINGS_BOX_EYEBROW_ICON} text-amber-300`}
+            className={`${DASHBOARD_JOB_ICON} text-brand-primary`}
             aria-hidden
           />
           {heading}
@@ -113,7 +110,7 @@ export default function StandingsWinnerOfTheNightBanner({
                 ? `View full standings for ${viewResultsHint}`
                 : 'View full standings for this show'
             }
-            className="relative z-10 shrink-0 !border-amber-400/45 !bg-amber-950/35 !text-amber-100 !shadow-none hover:!border-amber-300/55 hover:!bg-amber-500/20 hover:!text-amber-50 focus-visible:!ring-amber-300/70"
+            className="relative z-10 shrink-0"
             onClick={() => {
               const d = viewResults.showDate;
               // Layout `selectedDate` can differ from URL (picker does not write
@@ -134,8 +131,8 @@ export default function StandingsWinnerOfTheNightBanner({
       <p
         className={
           compact
-            ? 'mt-0.5 line-clamp-2 text-sm font-bold leading-snug text-slate-100 md:text-base sm:line-clamp-none'
-            : 'mt-0.5 text-sm font-bold leading-snug text-slate-100 md:text-base'
+            ? `mt-0.5 line-clamp-2 sm:line-clamp-none ${STANDINGS_BOX_TITLE}`
+            : `mt-0.5 ${STANDINGS_BOX_TITLE}`
         }
       >
         {winners.map((w, idx) => {
@@ -145,12 +142,16 @@ export default function StandingsWinnerOfTheNightBanner({
           return (
             <Fragment key={playerUserId || `${handle}-${idx}`}>
               {separator}
-              <PlayerHandleLink userId={playerUserId} handle={handle} />
+              <PlayerHandleLink
+                userId={playerUserId}
+                handle={handle}
+                className="!text-white hover:!text-white"
+              />
             </Fragment>
           );
         })}
-        {' — '}
-        <span className="tabular-nums text-white">{max}</span>
+        <span className="font-bold text-content-secondary"> — </span>
+        <span className="tabular-nums text-brand-primary">{max}</span>
         <span className="font-semibold text-content-secondary"> pts</span>
         {beats > 0 && !compact ? (
           <span className="ml-1.5 text-xs font-semibold text-content-secondary">
@@ -158,6 +159,6 @@ export default function StandingsWinnerOfTheNightBanner({
           </span>
         ) : null}
       </p>
-    </div>
+    </DashboardJobShell>
   );
 }

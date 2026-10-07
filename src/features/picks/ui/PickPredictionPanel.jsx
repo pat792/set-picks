@@ -6,12 +6,10 @@ import {
   DASHBOARD_CARD_BODY,
   DASHBOARD_CARD_CHEVRON,
   DASHBOARD_CARD_EYEBROW,
-  DASHBOARD_CARD_EYEBROW_ICON,
   DASHBOARD_CARD_L2_MIN_H,
-  DASHBOARD_CARD_PAD,
-  DASHBOARD_CARD_RADIUS,
   DASHBOARD_CARD_TITLE,
 } from '../../../shared/ui/dashboardCardClasses';
+import DashboardJobShell, { DASHBOARD_JOB_ICON } from '../../../shared/ui/DashboardJobShell';
 import {
   groupRecommendationsByRiskBand,
   normalizePickTitle,
@@ -133,30 +131,36 @@ export default function PickPredictionPanel({
     });
   };
 
-  const shellClass = `flex flex-col ${DASHBOARD_CARD_RADIUS} border border-border-subtle bg-surface-panel/60 ${DASHBOARD_CARD_PAD} ${className}`;
+  const shellClass = `mb-4 flex flex-col ${className}`;
 
   if (isLoading && !artifact) {
     return (
-      <section
-        className={`mb-4 ${shellClass} ${DASHBOARD_CARD_L2_MIN_H} justify-center`}
+      <DashboardJobShell
+        as="section"
+        tone="teal"
+        pad="label"
+        className={`${shellClass} ${DASHBOARD_CARD_L2_MIN_H} justify-center`}
         aria-label="Prediction Lab"
       >
         <p
           className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-primary`}
         >
-          <FlaskConical className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
+          <FlaskConical className={DASHBOARD_JOB_ICON} aria-hidden />
           Prediction Lab
         </p>
         <p className={`mt-1 ${DASHBOARD_CARD_BODY}`}>Loading recommendations…</p>
-      </section>
+      </DashboardJobShell>
     );
   }
 
   if (!dateMatches || !artifact) return null;
 
   return (
-    <details
-      className={`group/lab mb-4 ${shellClass}`}
+    <DashboardJobShell
+      as="details"
+      tone="teal"
+      pad="label"
+      className={`group/lab ${shellClass}`}
       onToggle={onToggle}
     >
       <summary
@@ -166,7 +170,7 @@ export default function PickPredictionPanel({
           <p
             className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-primary`}
           >
-            <FlaskConical className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
+            <FlaskConical className={DASHBOARD_JOB_ICON} aria-hidden />
             Prediction Lab
           </p>
           <p className={`mt-0.5 ${DASHBOARD_CARD_TITLE}`}>
@@ -282,6 +286,6 @@ export default function PickPredictionPanel({
           })
         )}
       </div>
-    </details>
+    </DashboardJobShell>
   );
 }

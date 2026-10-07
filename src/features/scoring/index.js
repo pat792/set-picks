@@ -47,6 +47,7 @@ export { default as StandingsViewToggle } from './ui/StandingsViewToggle';
 export { default as StandingsStickyChrome } from './ui/StandingsStickyChrome';
 export { default as StandingsMobileFixedChrome } from './ui/StandingsMobileFixedChrome';
 export { default as StandingsInvitePromo } from './ui/StandingsInvitePromo';
+export { default as Phase1CardShellPreview } from './ui/Phase1CardShellPreview';
 export { default as StandingsSponsorPreview } from './ui/StandingsSponsorPreview';
 export { default as StandingsWinnerOfTheNightBanner } from './ui/StandingsWinnerOfTheNightBanner';
 export { default as TourStandingsSection } from './ui/TourStandingsSection';
