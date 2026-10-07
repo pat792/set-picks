@@ -52,7 +52,10 @@ function loadEnv() {
       if (m) envVars[m[1].trim()] = m[2].trim().replace(/^"|"$/g, "");
     }
   } catch {
-    // optional
+    // optional — Actions supplies the same keys via the environment
+  }
+  for (const key of ["GCP_CLIENT_EMAIL", "GCP_PRIVATE_KEY"]) {
+    if (process.env[key]) envVars[key] = process.env[key];
   }
   return envVars;
 }
@@ -90,7 +93,9 @@ function initAdmin(envVars) {
   if (!admin.apps.length) {
     const privateKey = envVars.GCP_PRIVATE_KEY?.replace(/\\n/g, "\n");
     if (!envVars.GCP_CLIENT_EMAIL || !privateKey) {
-      throw new Error("Missing GCP_CLIENT_EMAIL / GCP_PRIVATE_KEY in .env for --live");
+      throw new Error(
+        "Missing GCP_CLIENT_EMAIL / GCP_PRIVATE_KEY (.env or environment) for --live",
+      );
     }
     admin.initializeApp({
       credential: admin.credential.cert({
