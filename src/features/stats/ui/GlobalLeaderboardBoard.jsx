@@ -23,7 +23,7 @@ const rankBadgeClass = (rank, outsideTop) => {
 /**
  * @param {{
  *   title: string,
- *   boardKey: 'pointsPerShow' | 'pickingAverage' | 'shows',
+ *   boardKey: 'pointsPerShow' | 'pickingAverage' | 'sluggingPercentage',
  *   rows: Array<{
  *     uid: string,
  *     handle: string,
@@ -32,6 +32,7 @@ const rankBadgeClass = (rank, outsideTop) => {
  *     rank: number | null,
  *     isSelf?: boolean,
  *     outsideTop?: boolean,
+ *     belowMinimum?: boolean,
  *   }>,
  * }} props
  */
@@ -106,11 +107,13 @@ export default function GlobalLeaderboardBoard({ title, boardKey, rows }) {
 }
 
 function LeaderboardRow({ row, boardKey }) {
-  const rankLabel = row.outsideTop
-    ? '50+'
-    : row.rank != null
-      ? String(row.rank)
-      : '—';
+  const rankLabel = row.belowMinimum
+    ? '—'
+    : row.outsideTop
+      ? '50+'
+      : row.rank != null
+        ? String(row.rank)
+        : '—';
 
   return (
     <li
@@ -126,7 +129,13 @@ function LeaderboardRow({ row, boardKey }) {
             row.rank,
             row.outsideTop,
           )}`}
-          aria-label={row.outsideTop ? 'Outside top 50' : `Rank ${rankLabel}`}
+          aria-label={
+            row.belowMinimum
+              ? 'Not enough shows to rank'
+              : row.outsideTop
+                ? 'Outside top 50'
+                : `Rank ${rankLabel}`
+          }
         >
           {rankLabel}
         </span>

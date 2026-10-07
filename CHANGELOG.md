@@ -8,6 +8,27 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.77.0] — 2026-10-07
+
+### Added
+- **Stats rates tip** — a dismissible “Did you know?” under the Standings self-recap (also Scorecard, and Make Picks on a phone) points at Personal and Global for picking average, points per show, and slugging. One dismissal per player. Expires 2026-12-31.
+- **Global Stats slugging percentage** — `/dashboard/stats/global` replaces the Shows tray with **SLG**. Slugging percentage is total points ÷ (shows × 30) (`totalPoints / (showsPlayed × 30)` on the career; `seasonStats.{tour}.totalPoints / (shows × 30)` on a tour). 30 is one show of in-setlist hits, so that night is 1.000. All-time rankings need at least 15 shows. This tour keeps the 3-show gate used by PPS and Picking Avg. The next rollup, nightly refresh, or admin `refreshGlobalStatsLeaderboards` writes `boards.sluggingPercentage` on `global_stats_leaderboards` (`schemaVersion` 2). Until that rebuild, the signed-in you-row still shows the ratio from the user doc.
+
+### Changed
+- **Global Stats Shows tray** — no longer rendered. Show count stays on each row, and inside PPS and Picking Avg. `boards.shows` is still written for older clients.
+
+### Fixed
+- **Stats trays on a phone** — All-time / This tour and the board tray attach after the mobile chrome mounts, so they stay on screen under Personal / Global / Band.
+
+---
+
+## [1.76.4] — 2026-10-03
+
+### Fixed
+- **Live setlist gaps** — the first positive Phish.net row gap is kept again. A live gap of 0 is not stored and does not replace a gap already captured. A stored 0 is dropped so a later positive poll can record the actual. Bustout membership is unchanged.
+
+---
+
 ## [1.76.3] — 2026-10-01
 
 ### Added

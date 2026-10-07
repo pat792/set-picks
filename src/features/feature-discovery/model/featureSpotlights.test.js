@@ -46,6 +46,7 @@ describe('featureSpotlights', () => {
     expect(FEATURE_SPOTLIGHTS.map((s) => s.id).sort()).toEqual([
       'live-setlist',
       'profile-identity',
+      'stats-rates',
       'tour-stats',
     ]);
   });

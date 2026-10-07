@@ -169,7 +169,7 @@ Per-show official results. Document ID is the show date (`YYYY-MM-DD`). Full sch
 | `setlist` | Record<string,string> | Slot answers keyed by `FORM_FIELDS` id (`s1o`, `s1c`, …). |
 | `officialSetlist` | string[] | Ordered full-show song list. |
 | `bustouts` | string[] | Per-show bustout snapshot (pre-show gap ≥ 30). Scoring source of truth (#214). |
-| `songGaps` | Record<string,number> | **v1.29.0 (#587 Phase B)** — frozen pre-show gap per dated row, keyed by normalized title. Display-only (Standings “Gap N” signal); not read by scoring. Absent on pre-Phase-B shows. **v1.75.2 (#1062)** — a later live poll replaces the stored gap for songs in that poll; songs absent from a partial poll keep their stored gap. |
+| `songGaps` | Record<string,number> | **v1.29.0 (#587 Phase B)** — frozen pre-show gap per dated row, keyed by normalized title. Display-only (Standings “Gap N” signal); not read by scoring. Absent on pre-Phase-B shows. **v1.76.4** — the first positive gap sticks. A live row gap of 0 is not stored and does not replace a positive gap. Songs absent from a partial poll keep their stored gap. |
 
 ### 1.13 `public_tour_stats/{tourSlug}` (**v1.33.0 / #665**)
 
@@ -205,24 +205,27 @@ Document ID is a kebab-case slug from the calendar tour label (`2026 Sphere` →
 
 Tour labels are ingested via **`scheduledPhishnetShowCalendar`** (daily 06:00 ET) from Phish.net as new dates publish; public stats rebuild after calendar sync and again at **07:30 ET** (`scheduledPublicTourStatsRefresh`).
 
-### 1.14 `global_stats_leaderboards/{docId}` (**v1.70.0 / #1004**)
+### 1.14 `global_stats_leaderboards/{docId}` (**v1.70.0 / #1004**, slugging **v1.77.0**)
 
-Functions-owned Global Stats leaderboards for **`/dashboard/stats/global`**. Written by Cloud Functions Admin SDK from materialized `users` fields (`totalPoints`, `showsPlayed`, `careerCorrectSlots`, `seasonStats.{tourKey}`). **Clients `getDoc` these docs + the signed-in `users/{uid}` only — no `users` collection query/scan.**
+Functions-owned Global Stats leaderboards for **`/dashboard/stats/global`**. Written by Cloud Functions Admin SDK from materialized `users` fields (`totalPoints`, `showsPlayed`, `careerCorrectSlots`, `seasonStats.{tourKey}`). **Clients `getDoc` these docs + the signed-in `users/{uid}` only — no `users` collection query/scan.** Slugging percentage is not a stored user field. It is derived at rebuild as total points ÷ (shows × 30).
 
 Doc IDs: **`allTime`** (career) and **`tour:{tourKey}`** (same tour key as `seasonStats` / chrome `?tour=`).
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `schemaVersion` | number | `1` |
-| `minShows` | number | Ratio-board gate. Default **3** (`showsPlayed` / tour `shows`). Documented so one-show spikes do not own Points per show or Picking average. The Shows board has **no** ratio gate. |
+| `schemaVersion` | number | `2` (**v1.77.0**). `1` was PPS / Picking average / Shows only. |
+| `minShows` | number | Ratio-board gate for Points per show, Picking average, and **tour** slugging. Default **3** (`showsPlayed` / tour `shows`). |
+| `sluggingMinShows` | number | Gate applied to `boards.sluggingPercentage` on this doc. **15** when `scope === 'allTime'`, **3** when `scope === 'tour'`. |
+| `sluggingMinShowsAllTime` | number | Constant **15**. Present on every doc so operators can see the all-time floor without reading a tour doc. |
 | `slotsPerShow` | number | `6` — same as `PROFILE_SLOTS_PER_SHOW` / `FORM_FIELDS.length` |
 | `topN` | number | `50` |
 | `scope` | `'allTime' \| 'tour'` | |
 | `tourKey` | string \| null | Calendar tour label when `scope === 'tour'` |
 | `playerCount` | number | Eligible players scanned for that scope (before top-N slice) |
-| `boards.pointsPerShow` | `{ uid, handle, value, shows, rank }[]` | `totalPoints / shows`. Competition rank. |
-| `boards.pickingAverage` | `{ uid, handle, value, shows, rank }[]` | `correctSlots / (shows * 6)` |
-| `boards.shows` | `{ uid, handle, value, shows, rank }[]` | Show count; no min-shows gate |
+| `boards.pointsPerShow` | `{ uid, handle, value, shows, rank }[]` | `totalPoints / shows`. Competition rank. Minimum 3 shows. |
+| `boards.pickingAverage` | `{ uid, handle, value, shows, rank }[]` | `correctSlots / (shows * 6)`. Minimum 3 shows. |
+| `boards.sluggingPercentage` | `{ uid, handle, value, shows, rank }[]` | **v1.77.0.** `totalPoints / (shows × 30)`. 30 is one show of 5-point in-setlist hits (SLG 1.000). All-time minimum **15** shows. Tour minimum **3**. |
+| `boards.shows` | `{ uid, handle, value, shows, rank }[]` | Show count; no min-shows gate. **Deprecated in v1.77.0** — still written, no longer rendered. Show count remains the `shows` field on every row. |
 | `trigger` | `'rollup' \| 'scheduled' \| 'admin' \| 'revert'` | Last rebuild source |
 | `rebuiltAt` | Timestamp | Server write time |
 
@@ -479,7 +482,7 @@ Dashboard sub-routes are documented in `docs/DASHBOARD_IA.md`.
 
 **Account primary (**v1.67.0 / #770**):** last player-tab label is **Account** (was Profile). Path prefix stays **`/dashboard/profile/*`** (no new `/dashboard/account` family). Tertiary: **Profile** (`/dashboard/profile`) · **Messages** (`/dashboard/profile/notifications`, inbox only) · **Preferences** (`/dashboard/profile/account` — security, logout, legal, install/PWA, notification prefs). `?openPush=1` and the dashboard install push nudge land on Preferences. Avatar shortcut → Preferences; bell → Messages. **#513 Phase 2:** inbox sections Unopened / Read / Archived; owner `archivedAt` + hard delete. Phase 3 per-channel pref keys are deferred (same `notificationPrefs` keys; cosmetic Push / Email grouping only).
 
-**Stats primary (**v1.66.0 / #769** chrome, **v1.69.0 / #1004** remap, **v1.70.0 / #1004** Global boards, **v1.70.1** trays):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal — All-time | This tour tray; All-time inner Your stats | Top picks; This tour self overlay), **`/dashboard/stats/global`** (All-time | This tour tray, then PPS | Picking Avg | Shows; top 50 paginated 10/page + you-row; Functions-owned `global_stats_leaderboards`), **`/dashboard/stats/band`** (private tour song explorer from **v1.30.0 / #555** — frequency / bustouts / high gaps). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/band` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Every Stats destination uses the chrome tour picker (`showTourScopePicker`); Personal and Global all-time do not restamp with `?tour=`. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — Band’s marketing twin; aggregates only, no self overlay, not under `/dashboard/`. Unchanged in v1.70.1.
+**Stats primary (**v1.66.0 / #769** chrome, **v1.69.0 / #1004** remap, **v1.70.0 / #1004** Global boards, **v1.70.1** trays):** fifth player tab. Nested destinations (not `?view=`): **`/dashboard/stats`** and **`/dashboard/stats/personal`** (Personal — All-time | This tour tray; All-time inner Your stats | Top picks; This tour self overlay), **`/dashboard/stats/global`** (All-time | This tour tray, then PPS | Picking Avg | SLG; top 50 paginated 10/page + you-row; Functions-owned `global_stats_leaderboards`; **v1.77.0** slugging = total points ÷ (shows × 30), all-time minimum 15 shows), **`/dashboard/stats/band`** (private tour song explorer from **v1.30.0 / #555** — frequency / bustouts / high gaps). **`/dashboard/tour-stats`** redirects to `/dashboard/stats/band` and preserves `?tour=`. Stats tab stays active on all `/dashboard/stats/*` and on the redirect hop. Every Stats destination uses the chrome tour picker (`showTourScopePicker`); Personal and Global all-time do not restamp with `?tour=`. **Public** counterpart: **`/tour-stats`** (**v1.33.0 / #665**) — Band’s marketing twin; aggregates only, no self overlay, not under `/dashboard/`. Unchanged in v1.70.1.
 
 **Picks cluster (**v1.64.0 / #766**):** nested destinations under the primary **Picks** tab (not `?view=`). **`/dashboard`** and **`/dashboard/picks`** are Make Picks (existing form). **`/dashboard/picks/lab`** is Picks Lab. **`/dashboard/picks/scorecard`** is Scorecard. The Picks tab stays active on all three. Global date picker stays on. The Lab segment is always visible.
 
