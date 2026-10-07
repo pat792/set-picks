@@ -10,7 +10,9 @@
  *   subcopy + right meta/chevron. Examples: Your rank, Setlist, Crowd pulse,
  *   Winner banner.
  *
- * Colors stay per-surface; only shape, size, and fonts are shared.
+ * Shape, size, and fonts are shared. The Standings / Picks column colors
+ * its jobs through `DashboardJobShell` (you / the night / quiet). Other
+ * surfaces still set their own color.
  */
 
 /** Outer radius for every dashboard content card/banner. */

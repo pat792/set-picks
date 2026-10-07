@@ -72,13 +72,31 @@ export function useDashboardDesktopQuaternaryChromePortal() {
 /**
  * Resolves the mobile Stats quaternary filter portal (below tertiary tray).
  *
+ * The mount node is created when Stats cluster chrome portals in, which is
+ * one commit after this hook's first effect. Watch until that node exists so
+ * All-time / board trays are not stuck in a hidden desktop slot on a phone.
+ *
  * @returns {HTMLElement | null}
  */
 export function useDashboardMobileQuaternaryChromePortal() {
   const [root, setRoot] = useState(null);
 
   useEffect(() => {
-    setRoot(document.getElementById(DASHBOARD_MOBILE_QUATERNARY_CHROME_ROOT_ID));
+    const id = DASHBOARD_MOBILE_QUATERNARY_CHROME_ROOT_ID;
+    const existing = document.getElementById(id);
+    if (existing) {
+      setRoot(existing);
+      return undefined;
+    }
+
+    const observer = new MutationObserver(() => {
+      const node = document.getElementById(id);
+      if (!node) return;
+      setRoot(node);
+      observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, []);
 
   return root;

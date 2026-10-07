@@ -127,6 +127,18 @@ As each **menu tab** (Standings, Picks, Pools, Profile, etc.) gains more **card 
 
 Legacy copy for quiet cards: **Background** `bg-surface-panel`, **Border** `border-border-subtle`, **Radius** `rounded-xl` / `rounded-2xl`, **Depth** `shadow-inset-glass`.
 
+### Standings column and free-standing Picks notices (#1088)
+
+These are one family. The box is the sponsor card (`DashboardJobShell`): `rounded-xl`, `border-border-subtle/60`, `bg-surface-panel/40`, no ring, no glass, no glow. A ~6% wash sits on a second layer.
+
+| Job | Wash | Label | Cards |
+|-----|------|-------|-------|
+| **You** | `bg-amber-200/[0.06]` | `text-amber-200/90` | Your rank, scorecard |
+| **The night** | `bg-brand-primary/[0.06]` | `text-brand-primary` | Tonight's show, winner, official setlist, crowd pulse, Picks Lab |
+| **Quiet** | none | `text-content-secondary/70` when a label exists | Sponsor, invite, empty states, waiting, too early, picks lock reminder, picks locked, the stats tip |
+
+Scores stay teal on every card. The Invite button stays teal; the invite box does not. The dev gallery at `/card-shell-preview` is the visual spec (production redirects home). The picks form and the one-line lock note inside it stay the heavier hero and do not use this shell. Tonight's show on Standings uses the night shell.
+
 ## 5. Depth & Elevation (Glows over Shadows)
 
 Because the app uses a dark theme, traditional black drop-shadows do not work. Depth is achieved through inset borders and neon glows.
@@ -138,7 +150,7 @@ Because the app uses a dark theme, traditional black drop-shadows do not work. D
 ### Do
 - Use `font-display` exclusively for large headings, keeping `font-sans` for dense UI to ensure readability.
 - Rely on `surface-panel` with opacity for cards so the underlying `brand-bg` bleeds through slightly.
-- Use `brand-primary` for scores and ranks to draw the user's eye immediately to the gamification elements.
+- Use `brand-primary` for scores. On the Standings column, rank numbers stay white.
 - Use **tertiary** accents (see **§2 Tertiary+ accents**) for dense dashboard **slices**—recaps, anchors, tab-specific modules—when teal would over-compete or meta gray would under-differentiate.
 - Strictly adhere to the shape rules: `rounded-xl` for CTAs and inputs, `rounded-full` for chips and filters.
 

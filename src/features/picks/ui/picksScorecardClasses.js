@@ -1,44 +1,30 @@
 import {
   DASHBOARD_CARD_BODY,
   DASHBOARD_CARD_EYEBROW,
-  DASHBOARD_CARD_EYEBROW_ICON,
-  DASHBOARD_CARD_PAD,
-  DASHBOARD_CARD_RADIUS,
   DASHBOARD_CARD_TITLE,
 } from '../../../shared/ui/dashboardCardClasses';
 
 /**
- * Scorecard chrome (#767) — related to StandingsSelfRecapCard geometry
- * (shared dashboard card tokens) but distinguished: stronger elevation,
- * thicker border, violet tertiary accent — not a teal recap clone.
+ * Scorecard type (#1088). The box is `DashboardJobShell` tone `amber`
+ * (you). Slot hit rings stay semantic; they are not a violet card border.
  */
-export const SCORECARD_SHELL = [
-  'flex flex-col',
-  DASHBOARD_CARD_RADIUS,
-  'border-2 border-violet-400/35',
-  'bg-surface-panel-strong',
-  DASHBOARD_CARD_PAD,
-  'shadow-lg shadow-black/30',
-  'ring-1 ring-violet-400/25',
-].join(' ');
+export const SCORECARD_EYEBROW = `${DASHBOARD_CARD_EYEBROW} text-amber-200/90`;
 
-export const SCORECARD_EYEBROW = `${DASHBOARD_CARD_EYEBROW} text-violet-300/90`;
-
-export const SCORECARD_EYEBROW_ICON = `${DASHBOARD_CARD_EYEBROW_ICON} text-violet-300/90`;
+export const SCORECARD_EYEBROW_ICON = 'h-3.5 w-3.5 shrink-0 text-amber-200/90';
 
 export const SCORECARD_TITLE = DASHBOARD_CARD_TITLE;
 
 export const SCORECARD_BODY = DASHBOARD_CARD_BODY;
 
 export const SCORECARD_SLOT_LABEL =
-  'text-[10px] font-black uppercase tracking-widest text-violet-300/75';
+  'text-[10px] font-black uppercase tracking-widest text-content-secondary/70';
 
 export const SCORECARD_METRIC =
   'text-[11px] font-semibold leading-snug text-content-secondary md:text-xs';
 
 /** Default slot tile — used pre-grade and as the base under A5 rings. */
 export const SCORECARD_SLOT_ITEM =
-  'rounded-lg border border-violet-400/15 bg-surface-panel/40 px-3 py-2';
+  'rounded-lg border border-border-subtle/60 bg-surface-panel/40 px-3 py-2';
 
 /** Soft A5 inset rings — lighter than Standings `ScoreBreakdownGrid` fills. */
 export const SCORECARD_SLOT_RING = {

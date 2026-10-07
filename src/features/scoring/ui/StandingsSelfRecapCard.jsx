@@ -7,14 +7,12 @@ import {
   STANDINGS_SELF_RECAP_JUMP_LINK,
   STANDINGS_SHARE_AFTER_FINALIZE_INLINE,
 } from '../../../shared/config/dashboardVocabulary';
+import DashboardJobShell, { DASHBOARD_JOB_ICON } from '../../../shared/ui/DashboardJobShell';
 import GradedPicksShareBar from './GradedPicksShareBar';
 import {
   STANDINGS_BOX_CHEVRON,
   STANDINGS_BOX_EYEBROW,
-  STANDINGS_BOX_EYEBROW_ICON,
   STANDINGS_BOX_L2_MIN_H,
-  STANDINGS_BOX_PAD,
-  STANDINGS_BOX_RADIUS,
 } from './standingsSurfaceClasses';
 
 /**
@@ -121,7 +119,7 @@ export default function StandingsSelfRecapCard({
           className={`inline-flex shrink-0 items-center gap-1.5 ${STANDINGS_BOX_EYEBROW} text-amber-200/90`}
         >
           <ChartNoAxesCombined
-            className={`${STANDINGS_BOX_EYEBROW_ICON} text-amber-200/90`}
+            className={`${DASHBOARD_JOB_ICON} text-amber-200/90`}
             aria-hidden
           />
           {STANDINGS_SELF_RECAP_EYEBROW}
@@ -218,13 +216,27 @@ export default function StandingsSelfRecapCard({
       </p>
     ) : null;
 
-  const shellClass = `flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_BOX_RADIUS} border border-border-subtle/55 bg-surface-panel/55 ${STANDINGS_BOX_PAD} shadow-inset-glass ring-1 ring-brand-primary/15 ${className}`;
+  const shellClass = `group flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${className}`;
+
+  if (bodyOnly) {
+    return (
+      <div className={className}>
+        {metaBlock}
+        {jumpBlock}
+        {shareAllowedBlock}
+        {shareBlockedMessage}
+      </div>
+    );
+  }
 
   if (useCollapsible) {
     return (
-      <details
+      <DashboardJobShell
+        as="details"
+        tone="amber"
+        pad="row"
         id="self-recap"
-        className={`group ${shellClass}`}
+        className={shellClass}
         defaultOpen
         aria-label="Your rank and score. Expand for show details, jump link, and share."
       >
@@ -238,24 +250,22 @@ export default function StandingsSelfRecapCard({
           {shareAllowedBlock}
           {shareBlockedMessage}
         </div>
-      </details>
+      </DashboardJobShell>
     );
   }
 
   return (
-    <div id={bodyOnly ? undefined : 'self-recap'} className={shellClass}>
-      {!bodyOnly ? (
-        <>
-          {primaryRow}
-          {metaBlock}
-        </>
-      ) : (
-        metaBlock
-      )}
-
+    <DashboardJobShell
+      tone="amber"
+      pad="row"
+      id="self-recap"
+      className={shellClass}
+    >
+      {primaryRow}
+      {metaBlock}
       {jumpBlock}
       {shareAllowedBlock}
       {shareBlockedMessage}
-    </div>
+    </DashboardJobShell>
   );
 }

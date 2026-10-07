@@ -38,6 +38,7 @@ const OCCUPIED_PREFIXES = [
   '/api',
   '/__',
   '/comms-preview',
+  '/card-shell-preview',
   '/password-reset-complete',
 ];
 

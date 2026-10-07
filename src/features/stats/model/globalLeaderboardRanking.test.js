@@ -4,12 +4,18 @@ import {
   GLOBAL_LEADERBOARD_MIN_SHOWS,
   GLOBAL_LEADERBOARD_PAGE_SIZE,
   GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
+  GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS,
+  GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   GLOBAL_LEADERBOARD_TOP_N,
-  leaderboardPageWindow,
   computePickingAverage,
   computePointsPerShow,
+  computeSluggingPercentage,
   formatPickingAverage,
   formatPointsPerShow,
+  formatSluggingPercentage,
+  leaderboardBoardHint,
+  leaderboardPageWindow,
+  mergeAllBoards,
   mergeYouRow,
   rankBoard,
   viewerMetricsFromUserDoc,
@@ -20,6 +26,17 @@ describe('global leaderboard ratios (#1004)', () => {
     expect(computePointsPerShow(30, 3)).toBe(10);
     expect(computePointsPerShow(7, 2)).toBe(3.5);
     expect(computePointsPerShow(10, 0)).toBeNull();
+  });
+
+  it('slugging percentage is totalPoints / (shows * 30)', () => {
+    expect(GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS).toBe(30);
+    expect(GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME).toBe(15);
+    expect(computeSluggingPercentage(300, 20)).toBe(0.5);
+    expect(computeSluggingPercentage(90, 3)).toBe(1);
+    expect(computeSluggingPercentage(10, 0)).toBeNull();
+    expect(computeSluggingPercentage(undefined, 15)).toBeNull();
+    expect(formatSluggingPercentage(0.5)).toBe('.500');
+    expect(formatSluggingPercentage(1)).toBe('1.000');
   });
 
   it('picking average uses PROFILE_SLOTS_PER_SHOW = 6', () => {
@@ -42,6 +59,18 @@ describe('rankBoard min-shows gate', () => {
     expect(ranked.map((r) => r.uid)).toEqual(['steady', 'mid']);
     expect(ranked[0].rank).toBe(1);
     expect(ranked[1].rank).toBe(2);
+  });
+
+  it('all-time slugging gate drops players under 15 shows', () => {
+    const ranked = rankBoard(
+      [
+        { uid: 'short', handle: 'Short', value: 3, shows: 14 },
+        { uid: 'vet', handle: 'Vet', value: 0.75, shows: 20 },
+        { uid: 'edge', handle: 'Edge', value: 1, shows: 15 },
+      ],
+      { minShows: GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME }
+    );
+    expect(ranked.map((r) => r.uid)).toEqual(['edge', 'vet']);
   });
 
   it('shows-count board has no ratio gate', () => {
@@ -114,7 +143,8 @@ describe('viewerMetricsFromUserDoc', () => {
     });
     expect(viewer.values.pointsPerShow).toBe(10);
     expect(viewer.values.pickingAverage).toBe(0.5);
-    expect(viewer.values.shows).toBe(4);
+    expect(viewer.values.sluggingPercentage).toBeCloseTo(40 / 120);
+    expect(viewer.shows).toBe(4);
   });
 
   it('reads seasonStats.{tourKey} for this-tour boards', () => {
@@ -125,7 +155,57 @@ describe('viewerMetricsFromUserDoc', () => {
     });
     expect(viewer.values.pointsPerShow).toBe(5);
     expect(viewer.values.pickingAverage).toBe(1 / 3);
-    expect(viewer.values.shows).toBe(3);
+    expect(viewer.values.sluggingPercentage).toBeCloseTo(15 / 90);
+    expect(viewer.shows).toBe(3);
+  });
+});
+
+describe('mergeAllBoards slugging minimum', () => {
+  it('marks an all-time you-row under 15 shows as not ranked', () => {
+    const merged = mergeAllBoards(
+      { boards: { sluggingPercentage: [] } },
+      {
+        uid: 'me',
+        handle: 'Me',
+        shows: 8,
+        values: { sluggingPercentage: 1.25, pointsPerShow: 10, pickingAverage: 0.4 },
+      },
+      'allTime'
+    );
+    expect(merged.sluggingPercentage[0]).toMatchObject({
+      uid: 'me',
+      belowMinimum: true,
+      outsideTop: true,
+      value: 1.25,
+    });
+  });
+
+  it('keeps a 15-show all-time you-row eligible for a rank label', () => {
+    const merged = mergeAllBoards(
+      { boards: { sluggingPercentage: [] } },
+      {
+        uid: 'me',
+        handle: 'Me',
+        shows: 15,
+        values: { sluggingPercentage: 0.8, pointsPerShow: 12, pickingAverage: 0.4 },
+      },
+      'allTime'
+    );
+    expect(merged.sluggingPercentage[0].belowMinimum).toBeUndefined();
+    expect(merged.sluggingPercentage[0].outsideTop).toBe(true);
+  });
+});
+
+describe('leaderboardBoardHint', () => {
+  it('uses the 15-show copy for all-time slugging and the tour copy otherwise', () => {
+    const slugging = {
+      key: 'sluggingPercentage',
+      hint: 'tour hint',
+      allTimeHint: 'all-time hint',
+    };
+    expect(leaderboardBoardHint(slugging, 'allTime')).toBe('all-time hint');
+    expect(leaderboardBoardHint(slugging, 'tour')).toBe('tour hint');
+    expect(leaderboardBoardHint({ hint: 'pps' }, 'allTime')).toBe('pps');
   });
 });
 

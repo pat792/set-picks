@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Clock3, X } from 'lucide-react';
 
+import { DASHBOARD_CARD_BODY } from '../../../shared/ui/dashboardCardClasses';
+import DashboardJobShell from '../../../shared/ui/DashboardJobShell';
 import {
   PICKS_LOCK_AFTER_START_MIN,
   formatLockTimeLocalLabel,
@@ -91,20 +93,24 @@ export default function PicksLockTimingBanner({ show, showStatus }) {
   };
 
   return (
-    <div
-      className="mb-4 flex items-start gap-2.5 rounded-md border border-sky-400/30 bg-sky-400/10 p-3 text-sm text-sky-100/90"
+    <DashboardJobShell
+      tone="none"
+      pad="row"
+      className="mb-4 flex items-start gap-3"
       role="status"
     >
-      <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" aria-hidden />
-      <span className="min-w-0 flex-1">{buildPicksLockTimingMessage(show)}</span>
+      <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-content-secondary" aria-hidden />
+      <p className={`min-w-0 flex-1 ${DASHBOARD_CARD_BODY}`}>
+        {buildPicksLockTimingMessage(show)}
+      </p>
       <button
         type="button"
         onClick={dismiss}
-        className="-mr-1 -mt-1 rounded-md p-1 text-sky-200/70 transition hover:bg-sky-300/10 hover:text-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70"
+        className="-mr-1 -mt-0.5 rounded-md p-1 text-content-secondary transition hover:bg-surface-inset hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         aria-label="Dismiss picks lock timing"
       >
-        <X className="h-4 w-4" aria-hidden />
+        <X className="h-3.5 w-3.5" aria-hidden />
       </button>
-    </div>
+    </DashboardJobShell>
   );
 }

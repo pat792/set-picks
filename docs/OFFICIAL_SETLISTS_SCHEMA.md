@@ -119,7 +119,7 @@ The live Storage `song-catalog.json` and the bundled fallbacks (`src/shared/data
 
 ### Partial-feed safety
 
-Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows` merges the prior `bustouts` with the newly-derived set so a bustout captured in an earlier poll is never shrunk away by a partial later one. `songGaps` keeps a stored gap only when that song is absent from the current poll (partial set 1 must not wipe set 2). A song present in the poll stores that poll's Phish.net row `gap` (`mergeSongGaps`, #1062) — the first poll is often one show low, before tonight is in the show index, and a later poll replaces it. Do not add 1 in code. Same-show repeats stay at the first row's gap.
+Mid-show polls may carry a subset of the eventual rows. `buildSetlistDocFromRows` merges the prior `bustouts` with the newly-derived set so a bustout captured in an earlier poll is never shrunk away by a partial later one. `songGaps` keeps the first positive gap (`mergeSongGaps`). A live row `gap` of 0 is not stored and must not replace a positive gap already captured. A stored 0 is dropped so a later positive poll can record the actual. Songs absent from this poll keep their stored gap (partial set 1 must not wipe set 2). Same-show repeats stay at the first row's gap. A later poll does not replace a positive gap, including the +1 once tonight is in the Phish.net show index. Settled historical maps can still be rewritten with `npm run backfill:song-gaps -- --existing`.
 
 ### Per-song gap snapshot — display (#587 Phase B)
 
