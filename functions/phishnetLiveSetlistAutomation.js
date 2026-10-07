@@ -591,11 +591,9 @@ function buildSetlistDocFromRows(rows, existingDoc = {}, timing = null) {
   const bustouts = mergeBustouts(prevBustouts, bustoutsFromRows);
 
   // Frozen per-song pre-show gap snapshot (#587 Phase B). Same provenance as
-  // `bustouts` (Phish.net row `gap`), but retains the number for every dated
-  // row so standings can show the "why this song mattered" signal below the
-  // bustout threshold too. A song in this poll takes this poll's gap (#1062);
-  // a stored gap is kept only when the song is absent (partial set 1 must
-  // not wipe set 2).
+  // `bustouts` (Phish.net row `gap`). The first positive gap sticks. A live
+  // 0 is a placeholder and is not stored, and it must not wipe a gap already
+  // captured. Songs absent from this poll keep their stored gap.
   const songGaps = mergeSongGaps(existingDoc?.songGaps, deriveSongGapsFromRows(rows));
 
   return {
@@ -655,13 +653,18 @@ function deriveSongGapsFromRows(rows) {
 }
 
 /**
- * Merge two `songGaps` maps (#1062).
+ * Merge two `songGaps` maps.
  *
- * A song present in `next` (this poll) stores that poll's gap. The first
- * live poll often sees the gap before tonight is in the Phish.net show
- * index, which is one low; a later poll must replace it. Do not add 1 here.
+ * The first positive gap for a song sticks, which is the pre-#1062 rule.
+ * A later poll must not replace it, including the +1 correction once tonight
+ * is in the Phish.net show index.
  *
- * A stored gap is kept only when the song is absent from `next`, so a
+ * A gap of 0 from the live setlist feed is not stored. During a show that 0
+ * is a placeholder (and a correct gap can flip back to 0). It must not wipe
+ * a positive gap already captured. A stored 0 is dropped so the next positive
+ * poll can record the actual.
+ *
+ * A stored positive gap is kept when the song is absent from `next`, so a
  * partial set 1 does not wipe set 2. Same-show repeats stay at the first
  * row's gap because `deriveSongGapsFromRows` already drops later rows.
  *
@@ -672,22 +675,17 @@ function deriveSongGapsFromRows(rows) {
 function mergeSongGaps(prev, next) {
   /** @type {Record<string, number>} */
   const out = {};
-  /** @type {Record<string, number>} */
-  const fromNext = {};
-  if (next && typeof next === "object" && !Array.isArray(next)) {
-    for (const [k, v] of Object.entries(next)) {
-      if (typeof v === "number" && Number.isFinite(v) && v >= 0) {
-        fromNext[k] = v;
+  const keepPositive = (src) => {
+    if (!src || typeof src !== "object" || Array.isArray(src)) return;
+    for (const [k, v] of Object.entries(src)) {
+      if (typeof v === "number" && Number.isFinite(v) && v > 0 && out[k] == null) {
         out[k] = v;
       }
     }
-  }
-  if (prev && typeof prev === "object" && !Array.isArray(prev)) {
-    for (const [k, v] of Object.entries(prev)) {
-      if (Object.prototype.hasOwnProperty.call(fromNext, k)) continue;
-      if (typeof v === "number" && Number.isFinite(v) && v >= 0) out[k] = v;
-    }
-  }
+  };
+  // Stored positives win. Incoming positives fill songs we have not captured.
+  keepPositive(prev);
+  keepPositive(next);
   return out;
 }
 

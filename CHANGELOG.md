@@ -22,6 +22,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.76.4] — 2026-10-03
+
+### Fixed
+- **Live setlist gaps** — the first positive Phish.net row gap is kept again. A live gap of 0 is not stored and does not replace a gap already captured. A stored 0 is dropped so a later positive poll can record the actual. Bustout membership is unchanged.
+
+---
+
 ## [1.76.3] — 2026-10-01
 
 ### Added
