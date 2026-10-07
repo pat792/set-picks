@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { StatsRatesDidYouKnow } from '../../feature-discovery';
 import { PICKS_SELF_RECAP_STANDINGS_LINK } from '../../../shared/config/dashboardVocabulary';
 import InfoTooltip, { InfoTooltipProvider } from '../../../shared/ui/InfoTooltip';
 import { SCORE_BREAKDOWN_KIND_LABEL } from '../../../shared/utils/scoring';
@@ -193,6 +194,8 @@ export default function PicksScorecardCard({
               </Link>
             </div>
           ) : null}
+
+          <StatsRatesDidYouKnow className="mt-3" />
 
           <ul className="mt-3 space-y-2.5">
             {slots.map((slot) => {

@@ -12,6 +12,8 @@
 
 "use strict";
 
+const { SCORING_RULES } = require("./scoringCore");
+
 const GLOBAL_STATS_LEADERBOARDS_COLLECTION = "global_stats_leaderboards";
 const ALL_TIME_DOC_ID = "allTime";
 const GLOBAL_LEADERBOARD_TOP_N = 50;
@@ -19,6 +21,13 @@ const GLOBAL_LEADERBOARD_MIN_SHOWS = 3;
 /** All-time slugging only. Tour slugging keeps `GLOBAL_LEADERBOARD_MIN_SHOWS`. */
 const GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME = 15;
 const GLOBAL_LEADERBOARD_SLOTS_PER_SHOW = 6;
+/**
+ * One show of in-setlist hits: 6 picks × the 5-point single
+ * (`SCORING_RULES.IN_SETLIST`). SLG 1.000. Encore, wildcard, and bustout
+ * upside stay in the points scored.
+ */
+const GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS =
+  GLOBAL_LEADERBOARD_SLOTS_PER_SHOW * SCORING_RULES.IN_SETLIST;
 const GLOBAL_LEADERBOARD_SCHEMA_VERSION = 2;
 const USER_SCAN_PAGE_SIZE = 500;
 
@@ -72,23 +81,21 @@ function computePickingAverage(correctSlots, shows) {
 }
 
 /**
- * Slugging percentage = points per show / shows played.
+ * Slugging percentage = total points / (shows × 30).
  *
- * Both inputs already exist: PPS is `totalPoints / shows`, and shows is
- * `users.showsPlayed` (or tour `seasonStats.shows`). Combined that is
- * `totalPoints / shows²`. Equal PPS therefore ranks higher with fewer shows,
- * so all-time eligibility is 15 shows. This is not baseball slugging
- * (total bases / at-bats), which would be `totalPoints / (shows * 6)`.
+ * 30 is one show of in-setlist hits (6 picks × 5 points), so that night is
+ * 1.000. The same points-per-show rate does not fall as show count grows.
+ * All-time eligibility stays 15 shows so a short hot streak cannot lead.
  *
  * @param {unknown} totalPoints
  * @param {unknown} shows
  * @returns {number | null}
  */
 function computeSluggingPercentage(totalPoints, shows) {
-  const pps = computePointsPerShow(totalPoints, shows);
+  const pts = finiteNumber(totalPoints);
   const n = finiteNumber(shows);
-  if (pps == null || n == null || n <= 0) return null;
-  return pps / n;
+  if (pts == null || n == null || n <= 0) return null;
+  return pts / (n * GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS);
 }
 
 /**
@@ -435,6 +442,7 @@ module.exports = {
   GLOBAL_LEADERBOARD_MIN_SHOWS,
   GLOBAL_LEADERBOARD_SCHEMA_VERSION,
   GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
+  GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS,
   GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   GLOBAL_LEADERBOARD_TOP_N,
   GLOBAL_STATS_LEADERBOARDS_COLLECTION,

@@ -15,3 +15,4 @@ export {
 } from './model/featureSpotlights';
 export { useFeatureSpotlight } from './model/useFeatureSpotlight';
 export { default as FeatureNewBadge } from './ui/FeatureNewBadge';
+export { default as StatsRatesDidYouKnow } from './ui/StatsRatesDidYouKnow';

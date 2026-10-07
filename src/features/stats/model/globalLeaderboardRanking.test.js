@@ -4,6 +4,7 @@ import {
   GLOBAL_LEADERBOARD_MIN_SHOWS,
   GLOBAL_LEADERBOARD_PAGE_SIZE,
   GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
+  GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS,
   GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   GLOBAL_LEADERBOARD_TOP_N,
   computePickingAverage,
@@ -27,14 +28,15 @@ describe('global leaderboard ratios (#1004)', () => {
     expect(computePointsPerShow(10, 0)).toBeNull();
   });
 
-  it('slugging percentage is points per show / shows played', () => {
+  it('slugging percentage is totalPoints / (shows * 30)', () => {
+    expect(GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS).toBe(30);
     expect(GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME).toBe(15);
-    expect(computeSluggingPercentage(300, 20)).toBe(0.75);
-    expect(computeSluggingPercentage(40, 4)).toBe(2.5);
+    expect(computeSluggingPercentage(300, 20)).toBe(0.5);
+    expect(computeSluggingPercentage(90, 3)).toBe(1);
     expect(computeSluggingPercentage(10, 0)).toBeNull();
     expect(computeSluggingPercentage(undefined, 15)).toBeNull();
-    expect(formatSluggingPercentage(0.75)).toBe('.750');
-    expect(formatSluggingPercentage(2.5)).toBe('2.500');
+    expect(formatSluggingPercentage(0.5)).toBe('.500');
+    expect(formatSluggingPercentage(1)).toBe('1.000');
   });
 
   it('picking average uses PROFILE_SLOTS_PER_SHOW = 6', () => {
@@ -141,7 +143,7 @@ describe('viewerMetricsFromUserDoc', () => {
     });
     expect(viewer.values.pointsPerShow).toBe(10);
     expect(viewer.values.pickingAverage).toBe(0.5);
-    expect(viewer.values.sluggingPercentage).toBe(2.5);
+    expect(viewer.values.sluggingPercentage).toBeCloseTo(40 / 120);
     expect(viewer.shows).toBe(4);
   });
 
@@ -153,7 +155,7 @@ describe('viewerMetricsFromUserDoc', () => {
     });
     expect(viewer.values.pointsPerShow).toBe(5);
     expect(viewer.values.pickingAverage).toBe(1 / 3);
-    expect(viewer.values.sluggingPercentage).toBeCloseTo(5 / 3);
+    expect(viewer.values.sluggingPercentage).toBeCloseTo(15 / 90);
     expect(viewer.shows).toBe(3);
   });
 });

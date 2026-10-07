@@ -5,6 +5,7 @@ const {
   ALL_TIME_DOC_ID,
   GLOBAL_LEADERBOARD_MIN_SHOWS,
   GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
+  GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS,
   GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   GLOBAL_LEADERBOARD_TOP_N,
   buildLeaderboardPayloads,
@@ -23,10 +24,11 @@ describe("global stats ratios (#1004)", () => {
     assert.equal(computePointsPerShow(undefined, 4), null);
   });
 
-  it("slugging percentage is PPS / shows played", () => {
+  it("slugging percentage is totalPoints / (shows * 30)", () => {
+    assert.equal(GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS, 30);
     assert.equal(GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME, 15);
-    assert.equal(computeSluggingPercentage(300, 20), 0.75);
-    assert.equal(computeSluggingPercentage(40, 4), 2.5);
+    assert.equal(computeSluggingPercentage(300, 20), 0.5);
+    assert.equal(computeSluggingPercentage(90, 3), 1);
     assert.equal(computeSluggingPercentage(10, 0), null);
     assert.equal(computeSluggingPercentage(undefined, 16), null);
   });
@@ -172,8 +174,8 @@ describe("buildLeaderboardPayloads", () => {
       payloads[0].boards.sluggingPercentage.map((r) => r.uid),
       ["vet", "iron"]
     );
-    assert.equal(payloads[0].boards.sluggingPercentage[0].value, 0.5);
-    assert.equal(payloads[0].boards.sluggingPercentage[1].value, 0.384);
+    assert.equal(payloads[0].boards.sluggingPercentage[0].value, 200 / 600);
+    assert.equal(payloads[0].boards.sluggingPercentage[1].value, 240 / 750);
     assert.equal(
       payloads[1].boards.pointsPerShow.some((r) => r.uid === "alice"),
       false

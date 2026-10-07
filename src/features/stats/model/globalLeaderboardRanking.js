@@ -1,4 +1,5 @@
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+import { SCORING_RULES } from '../../../shared/utils/scoring';
 
 /** Must match `functions/globalStatsLeaderboards.js`. */
 export const GLOBAL_LEADERBOARD_TOP_N = 50;
@@ -8,6 +9,12 @@ export const GLOBAL_LEADERBOARD_MIN_SHOWS = 3;
 /** Must match `GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME` in Functions. */
 export const GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME = 15;
 export const GLOBAL_LEADERBOARD_SLOTS_PER_SHOW = FORM_FIELDS.length;
+/**
+ * One show of in-setlist hits (6 × 5). SLG 1.000.
+ * Must match `GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS` in Functions.
+ */
+export const GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS =
+  GLOBAL_LEADERBOARD_SLOTS_PER_SHOW * SCORING_RULES.IN_SETLIST;
 export const ALL_TIME_LEADERBOARD_DOC_ID = 'allTime';
 
 export const GLOBAL_LEADERBOARD_BOARDS = [
@@ -29,9 +36,9 @@ export const GLOBAL_LEADERBOARD_BOARDS = [
     key: 'sluggingPercentage',
     title: 'Slugging percentage',
     shortLabel: 'SLG',
-    hint: 'Points per show ÷ shows played. This tour needs at least 3 shows.',
+    hint: 'Power picking. 30 points is a show of singles (1.000); exact hits, wildcards, and bustouts add bases. At least 3 shows to rank.',
     allTimeHint:
-      'Points per show ÷ shows played. All-time rankings need at least 15 shows.',
+      'Power picking. 30 points is a show of singles (1.000); exact hits, wildcards, and bustouts add bases. At least 15 shows to rank.',
     minShows: GLOBAL_LEADERBOARD_MIN_SHOWS,
     allTimeMinShows: GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   },
@@ -70,18 +77,18 @@ export function computePickingAverage(correctSlots, shows) {
 }
 
 /**
- * Slugging percentage = points per show ÷ shows played
- * (`totalPoints / shows²`). Must match Functions `computeSluggingPercentage`.
+ * Slugging percentage = total points / (shows × 30).
+ * Must match Functions `computeSluggingPercentage`.
  *
  * @param {unknown} totalPoints
  * @param {unknown} shows
  * @returns {number | null}
  */
 export function computeSluggingPercentage(totalPoints, shows) {
-  const pps = computePointsPerShow(totalPoints, shows);
+  const pts = finiteNumber(totalPoints);
   const n = finiteNumber(shows);
-  if (pps == null || n == null || n <= 0) return null;
-  return pps / n;
+  if (pts == null || n == null || n <= 0) return null;
+  return pts / (n * GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS);
 }
 
 /**
