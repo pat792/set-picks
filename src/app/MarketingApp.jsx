@@ -39,6 +39,7 @@ function isLeaveMarketingDocumentPath(pathname) {
     '/password-reset-complete',
     '/join',
     '/comms-preview',
+    '/card-shell-preview',
   ];
   if (prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return true;

@@ -50,6 +50,7 @@ const SetupRoute = lazy(loadSetupRoute);
 const DashboardRoute = lazy(loadDashboardRoute);
 // Dev-only comms template gallery (redirects home in production builds).
 const CommsPreviewPage = lazy(() => import('../pages/dev/CommsPreviewPage'));
+const CardShellPreviewPage = lazy(() => import('../pages/dev/CardShellPreviewPage'));
 
 function App() {
   return (
@@ -93,6 +94,7 @@ function App() {
 
         {/* Dev-only: comms template preview gallery (no auth; prod redirects home) */}
         <Route path="/comms-preview" element={<CommsPreviewPage />} />
+        <Route path="/card-shell-preview" element={<CardShellPreviewPage />} />
 
         <Route path="/setup" element={<SetupRoute />} />
 
