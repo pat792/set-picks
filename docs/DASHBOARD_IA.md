@@ -21,7 +21,7 @@ Nested routes (not `?view=`). Icon: `BarChart3`. Every Stats destination uses th
 | Sub-nav | Path | Responsibility |
 |---------|------|----------------|
 | **Personal Stats** | `/dashboard/stats` and `/dashboard/stats/personal` | Every *your* stat. **All-time \| This tour** tray (All-time default). All-time inner tray: **Your stats \| Top picks**. This tour is the “Your picks this tour” self overlay (no inner tray). Profile may keep a quiet **View personal stats** link. |
-| **Global Stats** | `/dashboard/stats/global` | Leaderboards of those same individual stats (best → worst). **v1.70.1 / #1004:** **All-time \| This tour** tray, then **PPS \| Picking Avg \| Shows**. Top 50 paginated (10/page) + you-row (pinned when off-page). No song explorer. No self overlay. |
+| **Global Stats** | `/dashboard/stats/global` | Leaderboards of those same individual stats (best → worst). **v1.77.0:** **All-time \| This tour** tray, then **PPS \| Picking Avg \| SLG**. SLG is total points ÷ (shows × 30); a show of in-setlist hits is 1.000. All-time SLG needs 15 shows; other ratio boards (and tour SLG) need 3. Top 50 paginated (10/page) + you-row (pinned when off-page). No song explorer. No self overlay. |
 | **Band Stats** | `/dashboard/stats/band` | Band/song datasets now: #555 `TourStatsView` frequency / bustouts / high gaps. `#300` adds more bands later — it does not gate this slot. |
 
 **Legacy redirect:** `/dashboard/tour-stats` → `/dashboard/stats/band` (preserve `?tour=`). Stats primary stays active on the hop.
@@ -35,6 +35,7 @@ Soft **New** labels (not coachmarks) may appear temporarily on:
 - Stats chrome **Band** segment → clears after visiting `/dashboard/stats/band` (compact corner **dot**, not a “New” text label — keeps the Band Stats word readable). Same `tour-stats` feature id as the retired Standings Stats pill.
 - Official setlist card on Standings → clears when the card is toggled open/closed
 - Profile **Avatar** / **Badges** headings → clears after picking an avatar
+- **Did you know?** under the Standings self-recap (and the same note on Scorecard, and on the phone Make Picks recap) → picking average, points per show, and slugging on Personal and Global. Dismisses on the X. Expires **2026-12-31** (`stats-rates`).
 
 Markers auto-expire by catalog `until` date and persist dismissals in `localStorage` per signed-in uid. Support can tell users: clear site data for the origin if a marker is stuck; otherwise ignore — they vanish by end of the window.
 

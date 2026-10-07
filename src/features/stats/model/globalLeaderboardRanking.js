@@ -1,31 +1,46 @@
 import { FORM_FIELDS } from '../../../shared/data/gameConfig';
+import { SCORING_RULES } from '../../../shared/utils/scoring';
 
 /** Must match `functions/globalStatsLeaderboards.js`. */
 export const GLOBAL_LEADERBOARD_TOP_N = 50;
 /** Client pager over the Functions top-50 — does not fetch beyond 50. */
 export const GLOBAL_LEADERBOARD_PAGE_SIZE = 10;
 export const GLOBAL_LEADERBOARD_MIN_SHOWS = 3;
+/** Must match `GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME` in Functions. */
+export const GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME = 15;
 export const GLOBAL_LEADERBOARD_SLOTS_PER_SHOW = FORM_FIELDS.length;
+/**
+ * One show of in-setlist hits (6 × 5). SLG 1.000.
+ * Must match `GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS` in Functions.
+ */
+export const GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS =
+  GLOBAL_LEADERBOARD_SLOTS_PER_SHOW * SCORING_RULES.IN_SETLIST;
 export const ALL_TIME_LEADERBOARD_DOC_ID = 'allTime';
 
 export const GLOBAL_LEADERBOARD_BOARDS = [
   {
     key: 'pointsPerShow',
     title: 'Points per show',
+    shortLabel: 'PPS',
     hint: 'Mean points per graded show. Players need at least 3 shows to rank.',
     minShows: GLOBAL_LEADERBOARD_MIN_SHOWS,
   },
   {
     key: 'pickingAverage',
     title: 'Picking average',
+    shortLabel: 'Picking Avg',
     hint: `Correct picks ÷ total picks (${GLOBAL_LEADERBOARD_SLOTS_PER_SHOW} per show). Players need at least 3 shows to rank.`,
     minShows: GLOBAL_LEADERBOARD_MIN_SHOWS,
   },
   {
-    key: 'shows',
-    title: 'Shows',
-    hint: 'Finalized shows with graded picks. No minimum-shows gate.',
-    minShows: 0,
+    key: 'sluggingPercentage',
+    title: 'Slugging percentage',
+    shortLabel: 'SLG',
+    hint: 'Power picking. 30 points is a show of singles (1.000); exact hits, wildcards, and bustouts add bases. At least 3 shows to rank.',
+    allTimeHint:
+      'Power picking. 30 points is a show of singles (1.000); exact hits, wildcards, and bustouts add bases. At least 15 shows to rank.',
+    minShows: GLOBAL_LEADERBOARD_MIN_SHOWS,
+    allTimeMinShows: GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   },
 ];
 
@@ -62,6 +77,21 @@ export function computePickingAverage(correctSlots, shows) {
 }
 
 /**
+ * Slugging percentage = total points / (shows × 30).
+ * Must match Functions `computeSluggingPercentage`.
+ *
+ * @param {unknown} totalPoints
+ * @param {unknown} shows
+ * @returns {number | null}
+ */
+export function computeSluggingPercentage(totalPoints, shows) {
+  const pts = finiteNumber(totalPoints);
+  const n = finiteNumber(shows);
+  if (pts == null || n == null || n <= 0) return null;
+  return pts / (n * GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS);
+}
+
+/**
  * @param {unknown} avg
  * @returns {string}
  */
@@ -93,14 +123,38 @@ export function formatShowsCount(value) {
 }
 
 /**
- * @param {'pointsPerShow' | 'pickingAverage' | 'shows'} boardKey
+ * Three-decimal slugging, same convention as picking average (".750", "2.500").
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function formatSluggingPercentage(value) {
+  return formatPickingAverage(value);
+}
+
+/**
+ * @param {'pointsPerShow' | 'pickingAverage' | 'sluggingPercentage' | 'shows'} boardKey
  * @param {unknown} value
  * @returns {string}
  */
 export function formatBoardValue(boardKey, value) {
-  if (boardKey === 'pickingAverage') return formatPickingAverage(value);
+  if (boardKey === 'pickingAverage' || boardKey === 'sluggingPercentage') {
+    return formatPickingAverage(value);
+  }
   if (boardKey === 'shows') return formatShowsCount(value);
   return formatPointsPerShow(value);
+}
+
+/**
+ * @param {{ key: string, hint: string, allTimeHint?: string }} board
+ * @param {'allTime' | 'tour'} scope
+ * @returns {string}
+ */
+export function leaderboardBoardHint(board, scope) {
+  if (scope === 'allTime' && typeof board?.allTimeHint === 'string') {
+    return board.allTimeHint;
+  }
+  return board?.hint ?? '';
 }
 
 /**
@@ -192,7 +246,11 @@ export function rankBoard(candidates, opts = {}) {
  *   uid: string,
  *   handle: string,
  *   shows: number,
- *   values: { pointsPerShow: number | null, pickingAverage: number | null, shows: number | null },
+ *   values: {
+ *     pointsPerShow: number | null,
+ *     pickingAverage: number | null,
+ *     sluggingPercentage: number | null,
+ *   },
  * } | null}
  */
 export function viewerMetricsFromUserDoc(userDoc, { uid, tourKey, scope }) {
@@ -218,7 +276,7 @@ export function viewerMetricsFromUserDoc(userDoc, { uid, tourKey, scope }) {
       values: {
         pointsPerShow: computePointsPerShow(season?.totalPoints, shows),
         pickingAverage: computePickingAverage(season?.correctSlots, shows),
-        shows: shows > 0 ? shows : finiteNumber(season?.shows),
+        sluggingPercentage: computeSluggingPercentage(season?.totalPoints, shows),
       },
     };
   }
@@ -231,7 +289,7 @@ export function viewerMetricsFromUserDoc(userDoc, { uid, tourKey, scope }) {
     values: {
       pointsPerShow: computePointsPerShow(userDoc.totalPoints, shows),
       pickingAverage: computePickingAverage(userDoc.careerCorrectSlots, shows),
-      shows: shows > 0 ? shows : finiteNumber(userDoc.showsPlayed),
+      sluggingPercentage: computeSluggingPercentage(userDoc.totalPoints, shows),
     },
   };
 }
@@ -299,26 +357,46 @@ export function mergeYouRow(boardRows, viewer) {
 /**
  * @param {Record<string, unknown> | null | undefined} aggregateDoc
  * @param {ReturnType<typeof viewerMetricsFromUserDoc>} viewer
+ * @param {'allTime' | 'tour'} [scope]
  * @returns {Record<string, ReturnType<typeof mergeYouRow>>}
  */
-export function mergeAllBoards(aggregateDoc, viewer) {
+export function mergeAllBoards(aggregateDoc, viewer, scope = 'tour') {
   const boards =
     aggregateDoc?.boards && typeof aggregateDoc.boards === 'object'
       ? aggregateDoc.boards
       : {};
   /** @type {Record<string, ReturnType<typeof mergeYouRow>>} */
   const merged = {};
-  for (const { key } of GLOBAL_LEADERBOARD_BOARDS) {
-    const rows = Array.isArray(boards[key]) ? boards[key] : [];
+  for (const board of GLOBAL_LEADERBOARD_BOARDS) {
+    const rows = Array.isArray(boards[board.key]) ? boards[board.key] : [];
     const you = viewer
       ? {
           uid: viewer.uid,
           handle: viewer.handle,
           shows: viewer.shows,
-          value: viewer.values[key] ?? null,
+          value: viewer.values[board.key] ?? null,
         }
       : null;
-    merged[key] = mergeYouRow(rows, you);
+    const minShows =
+      scope === 'allTime' && Number.isFinite(board.allTimeMinShows)
+        ? board.allTimeMinShows
+        : board.minShows;
+    merged[board.key] = markBelowMinimum(mergeYouRow(rows, you), minShows);
   }
   return merged;
+}
+
+/**
+ * Players under the board's show floor are unranked, not "50+".
+ *
+ * @param {ReturnType<typeof mergeYouRow>} rows
+ * @param {number} minShows
+ * @returns {ReturnType<typeof mergeYouRow>}
+ */
+function markBelowMinimum(rows, minShows) {
+  if (!(minShows > 0)) return rows;
+  return rows.map((row) => {
+    if (!row.isSelf || !row.outsideTop || row.shows >= minShows) return row;
+    return { ...row, belowMinimum: true };
+  });
 }

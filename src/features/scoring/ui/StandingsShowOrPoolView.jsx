@@ -1,6 +1,7 @@
 import React from 'react';
 import { Inbox, Loader2, Music } from 'lucide-react';
 
+import { StatsRatesDidYouKnow } from '../../feature-discovery';
 import { PicksLockTimingBanner } from '../../picks';
 import Card from '../../../shared/ui/Card';
 import PageTitle from '../../../shared/ui/PageTitle';
@@ -149,16 +150,18 @@ export default function StandingsShowOrPoolView({ screen }) {
               />
             ) : null}
             {selfStandingsRecap ? (
-              <StandingsSelfRecapCard
-                recap={selfStandingsRecap}
-                showLabel={showLabel}
-                poolLabel={isPoolsView ? activePoolName : null}
-                userPicks={selfUserPicks}
-                actualSetlist={actualSetlist}
-                shareGradedRecapAllowed={shareGradedRecapAllowed}
-                collapsible
-                className="mb-3"
-              />
+              <div className="mb-3">
+                <StandingsSelfRecapCard
+                  recap={selfStandingsRecap}
+                  showLabel={showLabel}
+                  poolLabel={isPoolsView ? activePoolName : null}
+                  userPicks={selfUserPicks}
+                  actualSetlist={actualSetlist}
+                  shareGradedRecapAllowed={shareGradedRecapAllowed}
+                  collapsible
+                />
+                <StatsRatesDidYouKnow className="mt-2" />
+              </div>
             ) : null}
             <Leaderboard
               poolPicks={displayedPicks}
@@ -247,16 +250,18 @@ export default function StandingsShowOrPoolView({ screen }) {
       ) : null}
 
       {selfStandingsRecap ? (
-        <StandingsSelfRecapCard
-          recap={selfStandingsRecap}
-          showLabel={showLabel}
-          poolLabel={isPoolsView ? activePoolName : null}
-          userPicks={selfUserPicks}
-          actualSetlist={actualSetlist}
-          shareGradedRecapAllowed={shareGradedRecapAllowed}
-          collapsible
-          className="mb-3"
-        />
+        <div className="mb-3">
+          <StandingsSelfRecapCard
+            recap={selfStandingsRecap}
+            showLabel={showLabel}
+            poolLabel={isPoolsView ? activePoolName : null}
+            userPicks={selfUserPicks}
+            actualSetlist={actualSetlist}
+            shareGradedRecapAllowed={shareGradedRecapAllowed}
+            collapsible
+          />
+          <StatsRatesDidYouKnow className="mt-2" />
+        </div>
       ) : null}
 
       {!actualSetlist && picks.length > 0 ? (

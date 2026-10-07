@@ -36,6 +36,13 @@ export const FEATURE_SPOTLIGHTS = Object.freeze([
     surfaces: ['profile-avatar', 'profile-badges'],
     path: '/dashboard/profile',
   },
+  {
+    id: 'stats-rates',
+    since: '2026-10-07',
+    until: '2026-12-31',
+    surfaces: ['standings-self-recap', 'picks-self-recap', 'scorecard'],
+    path: '/dashboard/stats',
+  },
 ]);
 
 const BY_ID = new Map(FEATURE_SPOTLIGHTS.map((s) => [s.id, s]));
