@@ -3,7 +3,11 @@ import { Loader2 } from 'lucide-react';
 
 import { useStandingsTourSelection } from '../../scoring';
 import { useShowCalendar } from '../../show-calendar';
-import { GLOBAL_LEADERBOARD_BOARDS } from '../model/globalLeaderboardRanking';
+import {
+  GLOBAL_LEADERBOARD_BOARDS,
+  GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
+  leaderboardBoardHint,
+} from '../model/globalLeaderboardRanking';
 import { useGlobalStatsScreen } from '../model/useGlobalStatsScreen';
 import GlobalLeaderboardBoard from './GlobalLeaderboardBoard';
 import StatsQuaternaryChrome from './StatsQuaternaryChrome';
@@ -16,12 +20,7 @@ const SCOPE_ITEMS = [
 
 const BOARD_ITEMS = GLOBAL_LEADERBOARD_BOARDS.map((board) => ({
   id: board.key,
-  label:
-    board.key === 'pointsPerShow'
-      ? 'PPS'
-      : board.key === 'pickingAverage'
-        ? 'Picking Avg'
-        : 'Shows',
+  label: board.shortLabel,
 }));
 
 /**
@@ -39,6 +38,7 @@ export default function GlobalStatsScreen({ user }) {
   const activeBoard =
     GLOBAL_LEADERBOARD_BOARDS.find((board) => board.key === boardKey) ??
     GLOBAL_LEADERBOARD_BOARDS[0];
+  const activeHint = leaderboardBoardHint(activeBoard, scope);
 
   return (
     <div className="space-y-4">
@@ -59,7 +59,7 @@ export default function GlobalStatsScreen({ user }) {
               hint={
                 scope === 'tour'
                   ? `Leaderboards for ${screen.tourName}. Restamps with the tour picker. Ratio boards need at least 3 shows.`
-                  : 'Career rankings across every graded show. The tour picker does not change All-time. Ratio boards need at least 3 shows.'
+                  : `Career rankings across every graded show. The tour picker does not change All-time. PPS and Picking Avg need at least 3 shows. Slugging needs at least ${GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME}.`
               }
               hintLabel="Global stats scope"
             />
@@ -68,7 +68,7 @@ export default function GlobalStatsScreen({ user }) {
               value={boardKey}
               onChange={setBoardKey}
               items={BOARD_ITEMS}
-              hint={activeBoard.hint}
+              hint={activeHint}
               hintLabel={activeBoard.title}
             />
           </>

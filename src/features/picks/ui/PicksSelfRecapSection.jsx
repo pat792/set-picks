@@ -5,6 +5,7 @@ import {
   PICKS_SELF_RECAP_STANDINGS_LINK,
   STANDINGS_SELF_RECAP_EYEBROW,
 } from '../../../shared/config/dashboardVocabulary';
+import { StatsRatesDidYouKnow } from '../../feature-discovery';
 import { StandingsSelfRecapCard } from '../../scoring';
 
 /** Compact stats for `<details>` summary: `#n/total · pts` with full phrase in `aria-label`. */
@@ -110,6 +111,7 @@ export default function PicksSelfRecapSection({
           />
         </div>
       </details>
+      <StatsRatesDidYouKnow className="mt-2" />
     </div>
   );
 }

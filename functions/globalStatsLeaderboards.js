@@ -2,8 +2,9 @@
  * Functions-owned Global Stats leaderboards (#1004 Phase 2).
  *
  * Scans `users` on the server, ranks Points per show / Picking average /
- * Shows (all-time + per-tour), and writes top-50 boards to
+ * Slugging percentage (all-time + per-tour), and writes top-50 boards to
  * `global_stats_leaderboards/{allTime|tour:{tourKey}}`.
+ * The Shows board is still written for older clients and is not rendered.
  *
  * Clients must `getDoc` those docs + the signed-in `users/{uid}` only —
  * never query/scan `users`.
@@ -11,17 +12,29 @@
 
 "use strict";
 
+const { SCORING_RULES } = require("./scoringCore");
+
 const GLOBAL_STATS_LEADERBOARDS_COLLECTION = "global_stats_leaderboards";
 const ALL_TIME_DOC_ID = "allTime";
 const GLOBAL_LEADERBOARD_TOP_N = 50;
 const GLOBAL_LEADERBOARD_MIN_SHOWS = 3;
+/** All-time slugging only. Tour slugging keeps `GLOBAL_LEADERBOARD_MIN_SHOWS`. */
+const GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME = 15;
 const GLOBAL_LEADERBOARD_SLOTS_PER_SHOW = 6;
-const GLOBAL_LEADERBOARD_SCHEMA_VERSION = 1;
+/**
+ * One show of in-setlist hits: 6 picks × the 5-point single
+ * (`SCORING_RULES.IN_SETLIST`). SLG 1.000. Encore, wildcard, and bustout
+ * upside stay in the points scored.
+ */
+const GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS =
+  GLOBAL_LEADERBOARD_SLOTS_PER_SHOW * SCORING_RULES.IN_SETLIST;
+const GLOBAL_LEADERBOARD_SCHEMA_VERSION = 2;
 const USER_SCAN_PAGE_SIZE = 500;
 
 const BOARD_KEYS = Object.freeze([
   "pointsPerShow",
   "pickingAverage",
+  "sluggingPercentage",
   "shows",
 ]);
 
@@ -65,6 +78,34 @@ function computePickingAverage(correctSlots, shows) {
   const n = finiteNumber(shows);
   if (correct == null || n == null || n <= 0) return null;
   return correct / (n * GLOBAL_LEADERBOARD_SLOTS_PER_SHOW);
+}
+
+/**
+ * Slugging percentage = total points / (shows × 30).
+ *
+ * 30 is one show of in-setlist hits (6 picks × 5 points), so that night is
+ * 1.000. The same points-per-show rate does not fall as show count grows.
+ * All-time eligibility stays 15 shows so a short hot streak cannot lead.
+ *
+ * @param {unknown} totalPoints
+ * @param {unknown} shows
+ * @returns {number | null}
+ */
+function computeSluggingPercentage(totalPoints, shows) {
+  const pts = finiteNumber(totalPoints);
+  const n = finiteNumber(shows);
+  if (pts == null || n == null || n <= 0) return null;
+  return pts / (n * GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS);
+}
+
+/**
+ * @param {"allTime" | "tour"} scope
+ * @returns {number}
+ */
+function sluggingMinShowsForScope(scope) {
+  return scope === "allTime"
+    ? GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME
+    : GLOBAL_LEADERBOARD_MIN_SHOWS;
 }
 
 /**
@@ -134,14 +175,14 @@ function rankBoard(candidates, opts = {}) {
  *   seasonStats?: Record<string, { totalPoints?: unknown, shows?: unknown, correctSlots?: unknown }>
  * }>} users
  * @returns {{
- *   allTime: Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null }>,
- *   byTour: Map<string, Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null }>>
+ *   allTime: Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null, sluggingPercentage: number | null }>,
+ *   byTour: Map<string, Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null, sluggingPercentage: number | null }>>
  * }}
  */
 function collectCandidatesFromUsers(users) {
-  /** @type {Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null }>} */
+  /** @type {Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null, sluggingPercentage: number | null }>} */
   const allTime = [];
-  /** @type {Map<string, Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null }>>} */
+  /** @type {Map<string, Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null, sluggingPercentage: number | null }>>} */
   const byTour = new Map();
 
   for (const user of users || []) {
@@ -156,6 +197,10 @@ function collectCandidatesFromUsers(users) {
         pointsPerShow: computePointsPerShow(user.totalPoints, showsPlayed),
         pickingAverage: computePickingAverage(
           user.careerCorrectSlots,
+          showsPlayed
+        ),
+        sluggingPercentage: computeSluggingPercentage(
+          user.totalPoints,
           showsPlayed
         ),
       });
@@ -176,6 +221,7 @@ function collectCandidatesFromUsers(users) {
         shows,
         pointsPerShow: computePointsPerShow(stats.totalPoints, shows),
         pickingAverage: computePickingAverage(stats.correctSlots, shows),
+        sluggingPercentage: computeSluggingPercentage(stats.totalPoints, shows),
       });
     }
   }
@@ -184,14 +230,16 @@ function collectCandidatesFromUsers(users) {
 }
 
 /**
- * @param {Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null }>} rows
+ * @param {Array<{ uid: string, handle: string, shows: number, pointsPerShow: number | null, pickingAverage: number | null, sluggingPercentage: number | null }>} rows
+ * @param {"allTime" | "tour"} [scope]
  * @returns {{
  *   pointsPerShow: ReturnType<typeof rankBoard>,
  *   pickingAverage: ReturnType<typeof rankBoard>,
+ *   sluggingPercentage: ReturnType<typeof rankBoard>,
  *   shows: ReturnType<typeof rankBoard>,
  * }}
  */
-function boardsFromCandidates(rows) {
+function boardsFromCandidates(rows, scope = "tour") {
   return {
     pointsPerShow: rankBoard(
       rows.map((r) => ({
@@ -211,6 +259,17 @@ function boardsFromCandidates(rows) {
       })),
       { minShows: GLOBAL_LEADERBOARD_MIN_SHOWS }
     ),
+    sluggingPercentage: rankBoard(
+      rows.map((r) => ({
+        uid: r.uid,
+        handle: r.handle,
+        value: r.sluggingPercentage,
+        shows: r.shows,
+      })),
+      { minShows: sluggingMinShowsForScope(scope) }
+    ),
+    // Deprecated. Global Stats no longer renders this board. Kept so a
+    // client that still reads `boards.shows` does not see the key disappear.
     shows: rankBoard(
       rows.map((r) => ({
         uid: r.uid,
@@ -244,7 +303,7 @@ function buildLeaderboardPayloads({
       scope: "allTime",
       tourKey: null,
       playerCount: allTime.length,
-      boards: boardsFromCandidates(allTime),
+      boards: boardsFromCandidates(allTime, "allTime"),
     },
   ];
 
@@ -263,7 +322,7 @@ function buildLeaderboardPayloads({
       scope: "tour",
       tourKey: key,
       playerCount: rows.length,
-      boards: boardsFromCandidates(rows),
+      boards: boardsFromCandidates(rows, "tour"),
     });
   }
 
@@ -326,6 +385,8 @@ async function rebuildGlobalStatsLeaderboards({
       .set({
         schemaVersion: GLOBAL_LEADERBOARD_SCHEMA_VERSION,
         minShows: GLOBAL_LEADERBOARD_MIN_SHOWS,
+        sluggingMinShows: sluggingMinShowsForScope(payload.scope),
+        sluggingMinShowsAllTime: GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
         slotsPerShow: GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
         topN: GLOBAL_LEADERBOARD_TOP_N,
         scope: payload.scope,
@@ -381,6 +442,8 @@ module.exports = {
   GLOBAL_LEADERBOARD_MIN_SHOWS,
   GLOBAL_LEADERBOARD_SCHEMA_VERSION,
   GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
+  GLOBAL_LEADERBOARD_SLUGGING_BASE_POINTS,
+  GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   GLOBAL_LEADERBOARD_TOP_N,
   GLOBAL_STATS_LEADERBOARDS_COLLECTION,
   boardsFromCandidates,
@@ -388,6 +451,7 @@ module.exports = {
   collectCandidatesFromUsers,
   computePickingAverage,
   computePointsPerShow,
+  computeSluggingPercentage,
   rankBoard,
   rebuildGlobalStatsLeaderboards,
   rebuildGlobalStatsLeaderboardsSafe,

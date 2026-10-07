@@ -60,8 +60,8 @@ export function useGlobalStatsScreen({ user, selectedTour } = {}) {
     tourKey,
     tourName: tourKey || 'This tour',
     minShows: GLOBAL_LEADERBOARD_MIN_SHOWS,
-    allTimeBoards: mergeAllBoards(allTimeQuery.data, allTimeViewer),
-    tourBoards: mergeAllBoards(tourQuery.data, tourViewer),
+    allTimeBoards: mergeAllBoards(allTimeQuery.data, allTimeViewer, 'allTime'),
+    tourBoards: mergeAllBoards(tourQuery.data, tourViewer, 'tour'),
     loading:
       allTimeQuery.isLoading ||
       (Boolean(tourKey) && tourQuery.isLoading) ||
