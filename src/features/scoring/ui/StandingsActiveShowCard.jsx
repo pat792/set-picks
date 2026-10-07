@@ -3,13 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ListMusic, Loader2, Pencil, Ticket } from 'lucide-react';
 
 import Button from '../../../shared/ui/Button';
-import Card from '../../../shared/ui/Card';
+import DashboardJobShell, { DASHBOARD_JOB_ICON } from '../../../shared/ui/DashboardJobShell';
 import {
   STANDINGS_BOX_BODY,
   STANDINGS_BOX_EYEBROW,
-  STANDINGS_BOX_EYEBROW_ICON,
   STANDINGS_BOX_TITLE,
-  STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
 
 /**
@@ -56,22 +54,20 @@ export default function StandingsActiveShowCard({
   }
 
   return (
-    <Card as="section" variant="venue" padding="none" className={STANDINGS_CARD_SHELL}>
+    <DashboardJobShell as="section" tone="teal" pad="label">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
           <p
             className={`inline-flex items-center gap-1.5 ${STANDINGS_BOX_EYEBROW} text-brand-primary`}
           >
             <Ticket
-              className={`${STANDINGS_BOX_EYEBROW_ICON} text-brand-primary`}
+              className={`${DASHBOARD_JOB_ICON} text-brand-primary`}
               aria-hidden
             />
             {eyebrow}
           </p>
           {showLabel ? (
-            <p className={`break-words ${STANDINGS_BOX_TITLE}`}>
-              <span className="text-brand-primary">{showLabel}</span>
-            </p>
+            <p className={`break-words ${STANDINGS_BOX_TITLE}`}>{showLabel}</p>
           ) : null}
           {picksStatusLoading ? (
             <p className={`flex items-center gap-2 ${STANDINGS_BOX_BODY}`}>
@@ -120,6 +116,6 @@ export default function StandingsActiveShowCard({
           )}
         </div>
       </div>
-    </Card>
+    </DashboardJobShell>
   );
 }

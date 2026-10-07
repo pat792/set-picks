@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import {
   PICKS_SELF_RECAP_STANDINGS_LINK,
@@ -7,9 +8,11 @@ import {
 } from '../../../shared/config/dashboardVocabulary';
 import { StatsRatesDidYouKnow } from '../../feature-discovery';
 import { StandingsSelfRecapCard } from '../../scoring';
+import { DASHBOARD_CARD_EYEBROW } from '../../../shared/ui/dashboardCardClasses';
+import DashboardJobShell from '../../../shared/ui/DashboardJobShell';
 
 /** Compact stats for `<details>` summary: `#n/total · pts` with full phrase in `aria-label`. */
-function recapSummaryCompactStats(recap) {
+function recapSummaryCompactStats(recap, standingsTo) {
   const playerWord = recap.totalPlayers === 1 ? 'player' : 'players';
 
   if (recap.displayRank != null) {
@@ -18,35 +21,51 @@ function recapSummaryCompactStats(recap) {
       score === '—' ? 'points pending' : `${score} points`
     }`;
     return (
-      <p
-        className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 text-sm font-semibold tabular-nums leading-snug sm:text-base"
-        aria-label={ariaLabel}
+      <Link
+        to={standingsTo}
+        aria-label={PICKS_SELF_RECAP_STANDINGS_LINK}
+        title={PICKS_SELF_RECAP_STANDINGS_LINK}
+        onClick={(event) => event.stopPropagation()}
+        className="mt-0.5 inline-flex rounded underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
       >
-        <span className="font-bold text-white">#{recap.displayRank}</span>
-        <span className="text-content-secondary" aria-hidden>
-          /
-        </span>
-        <span className="font-bold text-white">{recap.totalPlayers}</span>
-        <span className="font-bold text-content-secondary">·</span>
-        <span className="font-bold text-brand-primary">{score}</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-content-secondary">
-          pts
-        </span>
-      </p>
+        <p
+          className="flex flex-wrap items-baseline gap-x-1.5 text-sm font-semibold tabular-nums leading-snug sm:text-base"
+          aria-label={ariaLabel}
+        >
+          <span className="font-bold text-white">#{recap.displayRank}</span>
+          <span className="text-content-secondary" aria-hidden>
+            /
+          </span>
+          <span className="font-bold text-white">{recap.totalPlayers}</span>
+          <span className="font-bold text-content-secondary">·</span>
+          <span className="font-bold text-brand-primary">{score}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-content-secondary">
+            pts
+          </span>
+        </p>
+      </Link>
     );
   }
 
   const score = recap.totalScore != null ? recap.totalScore : '—';
   return (
-    <p
-      className="mt-0.5 text-sm font-bold leading-snug text-content-secondary"
-      aria-label="Rank updates after the setlist is posted. Current points if any."
+    <Link
+      to={standingsTo}
+      aria-label={PICKS_SELF_RECAP_STANDINGS_LINK}
+      title={PICKS_SELF_RECAP_STANDINGS_LINK}
+      onClick={(event) => event.stopPropagation()}
+      className="mt-0.5 inline-flex rounded underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
     >
-      <span className="text-brand-primary">You</span>
-      <span className="mx-1 font-semibold">·</span>
-      <span className="tabular-nums text-brand-primary">{score}</span>
-      <span className="ml-1 text-[10px] font-bold uppercase tracking-widest">pts</span>
-    </p>
+      <p
+        className="text-sm font-bold leading-snug text-content-secondary"
+        aria-label="Rank updates after the setlist is posted. Current points if any."
+      >
+        <span className="text-brand-primary">You</span>
+        <span className="mx-1 font-semibold">·</span>
+        <span className="tabular-nums text-brand-primary">{score}</span>
+        <span className="ml-1 text-[10px] font-bold uppercase tracking-widest">pts</span>
+      </p>
+    </Link>
   );
 }
 
@@ -83,10 +102,15 @@ export default function PicksSelfRecapSection({
         <StandingsSelfRecapCard {...cardProps} showEyebrow />
       </div>
 
-      <details className="group rounded-xl border border-border-subtle/55 bg-surface-panel/55 shadow-inset-glass ring-1 ring-brand-primary/15 md:hidden">
-        <summary className="flex list-none cursor-pointer items-center gap-2 px-3 py-2.5 text-left [&::-webkit-details-marker]:hidden">
+      <DashboardJobShell
+        as="details"
+        tone="amber"
+        pad="row"
+        className="group md:hidden"
+      >
+        <summary className="flex list-none cursor-pointer items-center gap-2 text-left [&::-webkit-details-marker]:hidden">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black uppercase tracking-widest text-amber-200/90">
+            <p className={`${DASHBOARD_CARD_EYEBROW} text-amber-200/90`}>
               {STANDINGS_SELF_RECAP_EYEBROW}
             </p>
             <p
@@ -95,22 +119,21 @@ export default function PicksSelfRecapSection({
             >
               {recap.handle}
             </p>
-            {recapSummaryCompactStats(recap)}
+            {recapSummaryCompactStats(recap, standingsTo)}
           </div>
           <ChevronDown
             className="h-4 w-4 shrink-0 text-content-secondary opacity-80 transition-transform duration-200 ease-out group-open:rotate-180"
             aria-hidden
           />
         </summary>
-        <div className="border-t border-border-subtle/40 px-3 pb-3 pt-1">
+        <div className="mt-2 border-t border-border-subtle/40 pt-2">
           <StandingsSelfRecapCard
             {...cardProps}
             bodyOnly
             showEyebrow={false}
-            className="border-0 bg-transparent p-0 shadow-none ring-0"
           />
         </div>
-      </details>
+      </DashboardJobShell>
       <StatsRatesDidYouKnow className="mt-2" />
     </div>
   );

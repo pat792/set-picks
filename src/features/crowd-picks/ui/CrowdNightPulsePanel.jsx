@@ -5,11 +5,9 @@ import {
   DASHBOARD_CARD_BODY,
   DASHBOARD_CARD_CHEVRON,
   DASHBOARD_CARD_EYEBROW,
-  DASHBOARD_CARD_EYEBROW_ICON,
   DASHBOARD_CARD_L2_MIN_H,
-  DASHBOARD_CARD_PAD,
-  DASHBOARD_CARD_RADIUS,
 } from '../../../shared/ui/dashboardCardClasses';
+import DashboardJobShell, { DASHBOARD_JOB_ICON } from '../../../shared/ui/DashboardJobShell';
 import {
   trackCrowdPulseFullExpand,
   trackCrowdPulseSectionOpen,
@@ -68,20 +66,23 @@ export default function CrowdNightPulsePanel({
 
   if (!card || !night || night.pickers === 0) {
     return (
-      <section
-        className={`flex ${DASHBOARD_CARD_L2_MIN_H} flex-col justify-center ${DASHBOARD_CARD_RADIUS} border border-border-subtle bg-surface-panel/60 ${DASHBOARD_CARD_PAD} ${className}`}
+      <DashboardJobShell
+        as="section"
+        tone="teal"
+        pad="label"
+        className={`flex ${DASHBOARD_CARD_L2_MIN_H} flex-col justify-center ${className}`}
         aria-label="Crowd pulse"
       >
         <p
-          className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-accent-red`}
+          className={`inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-primary`}
         >
-          <Radio className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
+          <Radio className={DASHBOARD_JOB_ICON} aria-hidden />
           Crowd pulse
         </p>
         <p className={`mt-1 ${DASHBOARD_CARD_BODY}`}>
           No submitted picks for this show yet.
         </p>
-      </section>
+      </DashboardJobShell>
     );
   }
 
@@ -122,17 +123,20 @@ export default function CrowdNightPulsePanel({
   const topSong = card.topMulti[0] || null;
 
   return (
-    <section
-      className={`flex ${DASHBOARD_CARD_L2_MIN_H} flex-col justify-center ${DASHBOARD_CARD_RADIUS} border border-border-subtle bg-surface-panel/60 ${DASHBOARD_CARD_PAD} ${className}`}
+    <DashboardJobShell
+      as="section"
+      tone="teal"
+      pad="label"
+      className={`flex ${DASHBOARD_CARD_L2_MIN_H} flex-col justify-center ${className}`}
       aria-label="Crowd pulse"
     >
       <details className="group/pulse" onToggle={onPanelToggle}>
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
           <div className="flex items-center justify-between gap-2">
             <p
-              className={`inline-flex shrink-0 items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-accent-red transition-colors group-hover/pulse:text-red-400`}
+              className={`inline-flex shrink-0 items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW} text-brand-primary`}
             >
-              <Radio className={DASHBOARD_CARD_EYEBROW_ICON} aria-hidden />
+              <Radio className={DASHBOARD_JOB_ICON} aria-hidden />
               Crowd pulse
             </p>
             <p className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-semibold text-content-secondary">
@@ -187,7 +191,7 @@ export default function CrowdNightPulsePanel({
           className="group mt-3 border-t border-border-subtle pt-2"
           onToggle={onFullToggle}
         >
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-brand-accent-red transition-colors hover:text-red-400 [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[10px] font-black uppercase tracking-widest text-brand-primary [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-1.5">
               Full crowd stats
               {blurDeepStats ? (
@@ -344,7 +348,7 @@ export default function CrowdNightPulsePanel({
           </div>
         </details>
       </details>
-    </section>
+    </DashboardJobShell>
   );
 }
 
@@ -551,7 +555,7 @@ function keepHeaderAtViewportY(headerEl, anchorY) {
  */
 function BlurredSongTitle({ title, blur = false, tone = 'red' }) {
   const toneClass =
-    tone === 'blue' ? 'text-brand-accent-blue' : 'text-brand-accent-red';
+    tone === 'blue' ? 'text-brand-accent-blue' : 'text-white';
   return (
     <>
       <span

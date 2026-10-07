@@ -2,16 +2,19 @@ import React from 'react';
 import {
   ChartNoAxesCombined,
   FlaskConical,
+  Clock3,
   Hourglass,
   ListMusic,
   Lock,
   Radio,
+  Ticket,
   Trophy,
   UserPlus,
 } from 'lucide-react';
 
 import { BRAND_APP_CHROME_MARK_SRC } from '../../../shared/config/branding';
 import Button from '../../../shared/ui/Button';
+import DashboardJobShell from '../../../shared/ui/DashboardJobShell';
 import {
   DASHBOARD_CARD_BODY,
   DASHBOARD_CARD_EYEBROW,
@@ -24,11 +27,11 @@ import {
  * quiet (no accent). Scores stay teal.
  */
 
-const FRAME = 'relative overflow-hidden rounded-xl border border-border-subtle/60';
-const PAD_LABEL = 'px-3.5 pb-3.5 pt-2 md:px-4';
-const PAD_ROW = 'px-3.5 py-3.5 md:px-4 md:py-4';
+const PAD_LABEL = 'label';
+const PAD_ROW = 'row';
 const TITLE = DASHBOARD_CARD_TITLE;
 const BODY = DASHBOARD_CARD_BODY;
+const NOTICE_TITLE = 'text-[11px] font-bold leading-snug text-white md:text-xs';
 const LABEL = `inline-flex items-center gap-1.5 ${DASHBOARD_CARD_EYEBROW}`;
 const VALUE = 'text-sm font-bold tabular-nums leading-snug text-brand-primary md:text-base';
 
@@ -38,21 +41,11 @@ const ACCENT = {
   none: 'text-content-secondary/70',
 };
 
-/** Faint job wash over the sponsor panel. Quiet stays untinted. */
-const WASH = {
-  amber: 'bg-amber-200/[0.06]',
-  teal: 'bg-brand-primary/[0.06]',
-  none: '',
-};
-
 function Shell({ tone = 'none', pad, className = '', children }) {
-  const wash = WASH[tone] ?? '';
   return (
-    <div className={FRAME}>
-      <div className="absolute inset-0 bg-surface-panel/40" aria-hidden />
-      {wash ? <div className={`absolute inset-0 ${wash}`} aria-hidden /> : null}
-      <div className={`relative ${pad} ${className}`}>{children}</div>
-    </div>
+    <DashboardJobShell tone={tone} pad={pad} className={className}>
+      {children}
+    </DashboardJobShell>
   );
 }
 
@@ -87,12 +80,12 @@ function RowCard({ children }) {
   );
 }
 
-function Notice({ icon: Icon, title, body }) {
+function Notice({ icon: Icon, title, body, titleClass = TITLE }) {
   return (
     <Shell tone="none" pad={PAD_ROW} className="flex items-start gap-3">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-content-secondary" aria-hidden />
       <div className="min-w-0">
-        <p className={TITLE}>{title}</p>
+        <p className={titleClass}>{title}</p>
         <p className={`mt-0.5 ${BODY}`}>{body}</p>
       </div>
     </Shell>
@@ -167,6 +160,11 @@ export default function Phase1CardShellPreview() {
             <p className={`mt-0.5 ${BODY}`}>Most picked opener · 64 players</p>
           </LabeledCard>
 
+          <LabeledCard accent="teal" icon={Ticket} label="Tonight's show">
+            <p className={TITLE}>2026-10-07 — Allianz Amphitheater</p>
+            <p className={`mt-0.5 ${BODY}`}>You haven&apos;t locked in picks for tonight&apos;s show yet.</p>
+          </LabeledCard>
+
           <LabeledCard accent="teal" icon={FlaskConical} label="Picks lab">
             <p className={TITLE}>Suggestions for this show</p>
             <p className={`mt-0.5 ${BODY}`}>Three openers the model likes tonight</p>
@@ -224,16 +222,24 @@ export default function Phase1CardShellPreview() {
           <Notice
             icon={Hourglass}
             title="Waiting for the setlist"
-            body="Scores land when the official setlist is posted."
+            body="Follow the live setlist here when the show starts."
           />
           <Notice
             icon={Hourglass}
             title="Too early"
+            titleClass={NOTICE_TITLE}
             body="Picks open after Sphere N1 ends."
           />
+          <Shell tone="none" pad={PAD_ROW} className="flex items-start gap-3">
+            <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-content-secondary" aria-hidden />
+            <p className={`min-w-0 flex-1 ${BODY}`}>
+              Picks lock at 7:20 PM — 20 minutes after tonight’s published ticket time.
+            </p>
+          </Shell>
           <Notice
             icon={Lock}
             title="Picks locked"
+            titleClass={NOTICE_TITLE}
             body="This show is in the past — picks can’t be changed for this date."
           />
           <Shell tone="none" pad={PAD_ROW}>

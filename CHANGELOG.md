@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.77.1] — 2026-10-07
+
+### Changed
+- **Standings and Picks cards** — the column and the free-standing notices share the sponsor shell. Amber wash is you (your rank, scorecard). Teal wash is the night (tonight's show, winner, setlist, crowd pulse, Picks Lab). Quiet cards stay the plain sponsor fill, including the pre-lock picks reminder. Scores stay teal. The picks form stays the heavier hero. Local spec: `/card-shell-preview`.
+
+---
+
 ## [1.77.0] — 2026-10-07
 
 ### Added

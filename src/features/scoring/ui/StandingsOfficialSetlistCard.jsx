@@ -5,7 +5,7 @@ import {
   FeatureNewBadge,
   useFeatureSpotlight,
 } from '../../feature-discovery';
-import Card from '../../../shared/ui/Card';
+import DashboardJobShell, { DASHBOARD_JOB_ICON } from '../../../shared/ui/DashboardJobShell';
 import { SCORING_RULES } from '../../../shared/utils/scoring';
 import { buildPhishNetSetlistUrl } from '../model/buildPhishNetSetlistUrl';
 import {
@@ -24,10 +24,8 @@ import {
   STANDINGS_BOX_BODY,
   STANDINGS_BOX_CHEVRON,
   STANDINGS_BOX_EYEBROW,
-  STANDINGS_BOX_EYEBROW_ICON,
   STANDINGS_BOX_L2_MIN_H,
   STANDINGS_BOX_TITLE,
-  STANDINGS_CARD_SHELL,
 } from './standingsSurfaceClasses';
 
 const { BUSTOUT_MIN_GAP } = SCORING_RULES;
@@ -155,11 +153,11 @@ export default function StandingsOfficialSetlistCard({
   };
 
   return (
-    <Card
+    <DashboardJobShell
       as="section"
-      variant="default"
-      padding="none"
-      className={`mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${STANDINGS_CARD_SHELL} ${className}`.trim()}
+      tone="teal"
+      pad="label"
+      className={`mb-3 flex ${STANDINGS_BOX_L2_MIN_H} flex-col justify-center ${className}`.trim()}
     >
       <details
         className="group"
@@ -170,7 +168,7 @@ export default function StandingsOfficialSetlistCard({
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <ListMusic
-                className={`${STANDINGS_BOX_EYEBROW_ICON} text-brand-primary`}
+                className={`${DASHBOARD_JOB_ICON} text-brand-primary`}
                 aria-hidden
               />
               <p className={`${STANDINGS_BOX_EYEBROW} text-brand-primary`}>
@@ -255,6 +253,6 @@ export default function StandingsOfficialSetlistCard({
           </p>
         </div>
       </details>
-    </Card>
+    </DashboardJobShell>
   );
 }

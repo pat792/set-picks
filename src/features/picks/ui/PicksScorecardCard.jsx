@@ -11,12 +11,12 @@ import { scorecardHitChromeSpec } from '../model/mapScorecardSlotGrade';
 import { PICKS_ODDS_HINT } from '../model/picksOddsCopy';
 import { formatOddsPercent } from '../model/selectScorecardOdds';
 import PicksOddsHint from './PicksOddsHint';
+import DashboardJobShell from '../../../shared/ui/DashboardJobShell';
 import {
   SCORECARD_BODY,
   SCORECARD_EYEBROW,
   SCORECARD_EYEBROW_ICON,
   SCORECARD_METRIC,
-  SCORECARD_SHELL,
   SCORECARD_SLOT_CHECK,
   SCORECARD_SLOT_ITEM,
   SCORECARD_SLOT_LABEL,
@@ -115,8 +115,11 @@ export default function PicksScorecardCard({
 
   return (
     <InfoTooltipProvider>
-      <section
-        className={`${SCORECARD_SHELL} ${className}`}
+      <DashboardJobShell
+        as="section"
+        tone="amber"
+        pad="label"
+        className={`flex flex-col ${className}`}
         aria-label="Scorecard"
         aria-busy={isLoading || undefined}
       >
@@ -128,13 +131,13 @@ export default function PicksScorecardCard({
         {showOdds ? (
           <PicksOddsHint
             definition={SCORECARD_HINT}
-            triggerClassName="text-violet-300/85 hover:text-violet-200"
+            triggerClassName="text-content-secondary hover:text-white"
           />
         ) : (
           <InfoTooltip
             label="Scorecard"
             definition={SCORECARD_HINT}
-            triggerClassName="text-violet-300/85 hover:text-violet-200"
+            triggerClassName="text-content-secondary hover:text-white"
           />
         )}
       </div>
@@ -149,7 +152,7 @@ export default function PicksScorecardCard({
           <p className={`mt-1 ${SCORECARD_BODY}`}>{SCORECARD_EMPTY_BODY}</p>
           <Link
             to={makePicksTo}
-            className="mt-3 inline-flex text-sm font-bold text-violet-200 underline-offset-2 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+            className="mt-3 inline-flex text-sm font-bold text-brand-primary underline-offset-2 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
           >
             Go to Make Picks
           </Link>
@@ -163,7 +166,7 @@ export default function PicksScorecardCard({
           ) : null}
 
           {showRank ? (
-            <div className="mt-3 border-t border-violet-400/20 pt-3">
+            <div className="mt-3 border-t border-border-subtle/35 pt-3">
               {recap?.displayRank != null ? (
                 <p
                   className={SCORECARD_TITLE}
@@ -176,7 +179,7 @@ export default function PicksScorecardCard({
                   <span className="tabular-nums">{recap.totalPlayers}</span>
                   <span className="font-bold text-content-secondary"> {playerWord}</span>
                   <span className="mx-1.5 text-content-secondary">·</span>
-                  <span className="tabular-nums text-violet-200">
+                  <span className="tabular-nums text-brand-primary">
                     {recap.totalScore != null ? recap.totalScore : '—'}
                   </span>
                   <span className="ml-1 text-[10px] font-bold uppercase tracking-widest text-content-secondary">
@@ -188,7 +191,7 @@ export default function PicksScorecardCard({
               )}
               <Link
                 to={standingsTo}
-                className="mt-1.5 inline-flex text-xs font-bold text-violet-200 underline-offset-2 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+                className="mt-1.5 inline-flex text-xs font-bold text-brand-primary underline-offset-2 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
               >
                 {PICKS_SELF_RECAP_STANDINGS_LINK}
               </Link>
@@ -233,7 +236,7 @@ export default function PicksScorecardCard({
                     <p className={`mt-1 ${SCORECARD_METRIC}`}>
                       <span className="text-content-secondary/80">{SCORECARD_ODDS_HINT}</span>
                       {' '}
-                      <span className="tabular-nums text-violet-200/90">{odds}</span>
+                      <span className="tabular-nums text-brand-primary">{odds}</span>
                     </p>
                   ) : null}
                 </li>
@@ -244,7 +247,7 @@ export default function PicksScorecardCard({
           {copy ? <p className={`mt-3 ${SCORECARD_BODY}`}>{copy}</p> : null}
         </>
       ) : null}
-    </section>
+    </DashboardJobShell>
     </InfoTooltipProvider>
   );
 }
