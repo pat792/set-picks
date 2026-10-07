@@ -8,6 +8,16 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.77.0] — 2026-10-07
+
+### Added
+- **Global Stats slugging percentage** — `/dashboard/stats/global` replaces the Shows tray with **SLG**. Slugging percentage is points per show ÷ shows played (`totalPoints / shows²` on the career; `seasonStats.{tour}.totalPoints / shows²` on a tour). All-time rankings need at least 15 shows. This tour keeps the 3-show gate used by PPS and Picking Avg. The next rollup, nightly refresh, or admin `refreshGlobalStatsLeaderboards` writes `boards.sluggingPercentage` on `global_stats_leaderboards` (`schemaVersion` 2). Until that rebuild, the signed-in you-row still shows the ratio from the user doc.
+
+### Changed
+- **Global Stats Shows tray** — no longer rendered. Show count stays on each row, and inside PPS and Picking Avg. `boards.shows` is still written for older clients.
+
+---
+
 ## [1.76.3] — 2026-10-01
 
 ### Added

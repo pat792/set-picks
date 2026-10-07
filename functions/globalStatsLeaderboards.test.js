@@ -5,10 +5,12 @@ const {
   ALL_TIME_DOC_ID,
   GLOBAL_LEADERBOARD_MIN_SHOWS,
   GLOBAL_LEADERBOARD_SLOTS_PER_SHOW,
+  GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME,
   GLOBAL_LEADERBOARD_TOP_N,
   buildLeaderboardPayloads,
   computePickingAverage,
   computePointsPerShow,
+  computeSluggingPercentage,
   rankBoard,
   tourLeaderboardDocId,
 } = require("./globalStatsLeaderboards");
@@ -19,6 +21,14 @@ describe("global stats ratios (#1004)", () => {
     assert.equal(computePointsPerShow(7, 2), 3.5);
     assert.equal(computePointsPerShow(10, 0), null);
     assert.equal(computePointsPerShow(undefined, 4), null);
+  });
+
+  it("slugging percentage is PPS / shows played", () => {
+    assert.equal(GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME, 15);
+    assert.equal(computeSluggingPercentage(300, 20), 0.75);
+    assert.equal(computeSluggingPercentage(40, 4), 2.5);
+    assert.equal(computeSluggingPercentage(10, 0), null);
+    assert.equal(computeSluggingPercentage(undefined, 16), null);
   });
 
   it("picking average is correctSlots / (shows * 6)", () => {
@@ -118,6 +128,26 @@ describe("buildLeaderboardPayloads", () => {
         "2026 Summer Tour": { totalPoints: 40, shows: 1, correctSlots: 6 },
       },
     },
+    {
+      uid: "vet",
+      handle: "Vet",
+      totalPoints: 200,
+      showsPlayed: 20,
+      careerCorrectSlots: 60,
+      seasonStats: {
+        "2026 Summer Tour": { totalPoints: 80, shows: 10, correctSlots: 30 },
+      },
+    },
+    {
+      uid: "iron",
+      handle: "Iron",
+      totalPoints: 240,
+      showsPlayed: 25,
+      careerCorrectSlots: 75,
+      seasonStats: {
+        "2026 Summer Tour": { totalPoints: 90, shows: 10, correctSlots: 30 },
+      },
+    },
   ];
 
   it("writes all-time plus the requested tour only", () => {
@@ -135,11 +165,30 @@ describe("buildLeaderboardPayloads", () => {
     assert.equal(payloads[0].boards.pointsPerShow[0].uid, "bob");
     assert.equal(payloads[0].boards.shows.some((r) => r.uid === "oneShow"), true);
     assert.equal(
+      payloads[0].boards.sluggingPercentage.some((r) => r.uid === "bob"),
+      false
+    );
+    assert.deepEqual(
+      payloads[0].boards.sluggingPercentage.map((r) => r.uid),
+      ["vet", "iron"]
+    );
+    assert.equal(payloads[0].boards.sluggingPercentage[0].value, 0.5);
+    assert.equal(payloads[0].boards.sluggingPercentage[1].value, 0.384);
+    assert.equal(
       payloads[1].boards.pointsPerShow.some((r) => r.uid === "alice"),
       false
     );
     assert.equal(payloads[1].boards.pointsPerShow[0].uid, "bob");
-    assert.equal(payloads[1].boards.shows.length, 3);
+    assert.equal(payloads[1].boards.shows.length, 5);
+    assert.equal(payloads[1].boards.sluggingPercentage[0].uid, "bob");
+    assert.equal(
+      payloads[1].boards.sluggingPercentage.some((r) => r.uid === "oneShow"),
+      false
+    );
+    assert.equal(
+      payloads[1].boards.sluggingPercentage.some((r) => r.uid === "vet"),
+      true
+    );
   });
 
   it("allTours emits every seasonStats tour plus all-time", () => {
@@ -228,7 +277,11 @@ describe("rebuildGlobalStatsLeaderboards writer", () => {
     assert.equal(written[0].id, ALL_TIME_DOC_ID);
     assert.equal(written[1].id, tourLeaderboardDocId("2026 Summer Tour"));
     assert.equal(written[0].data.trigger, "rollup");
+    assert.equal(written[0].data.schemaVersion, 2);
     assert.equal(written[0].data.minShows, 3);
+    assert.equal(written[0].data.sluggingMinShows, 15);
+    assert.equal(written[0].data.sluggingMinShowsAllTime, 15);
+    assert.equal(written[1].data.sluggingMinShows, 3);
     assert.equal(written[0].data.slotsPerShow, 6);
     assert.equal(written[0].data.boards.pointsPerShow[0].uid, "alice");
   });

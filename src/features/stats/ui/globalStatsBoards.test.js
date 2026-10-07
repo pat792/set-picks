@@ -11,7 +11,12 @@ describe('Global Stats boards (#1004 Phase 2)', () => {
     expect(GLOBAL_LEADERBOARD_BOARDS.map((b) => b.title)).toEqual([
       'Points per show',
       'Picking average',
-      'Shows',
+      'Slugging percentage',
+    ]);
+    expect(GLOBAL_LEADERBOARD_BOARDS.map((b) => b.shortLabel)).toEqual([
+      'PPS',
+      'Picking Avg',
+      'SLG',
     ]);
     expect(GLOBAL_LEADERBOARD_MIN_SHOWS).toBe(3);
     expect(GLOBAL_LEADERBOARD_PAGE_SIZE).toBe(10);

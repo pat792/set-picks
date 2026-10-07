@@ -75,7 +75,7 @@ reads_per_view = 1                          // global_stats_leaderboards/allTime
                + 0 or 1                     // users/{uid} only if Auth profile is not already live
 ```
 
-Ratio boards (Points per show, Picking average) require **`showsPlayed >= 3`** (tour boards: `seasonStats.{tourKey}.shows >= 3`) so a one-show spike cannot own the list. The Shows board has no ratio gate. Constants live in `functions/globalStatsLeaderboards.js` and `src/features/stats/model/globalLeaderboardRanking.js` (`GLOBAL_LEADERBOARD_MIN_SHOWS`).
+Ratio boards (Points per show, Picking average, and tour Slugging percentage) require **`showsPlayed >= 3`** (tour boards: `seasonStats.{tourKey}.shows >= 3`) so a one-show spike cannot own the list. All-time slugging requires **`showsPlayed >= 15`** because the ratio divides points per show by shows played. The deprecated Shows board has no ratio gate and is no longer rendered. Constants live in `functions/globalStatsLeaderboards.js` and `src/features/stats/model/globalLeaderboardRanking.js` (`GLOBAL_LEADERBOARD_MIN_SHOWS`, `GLOBAL_LEADERBOARD_SLUGGING_MIN_SHOWS_ALL_TIME`).
 
 Rebuild is Functions-owned (`rollupScoresForShow`, nightly schedule, admin callable) from materialized `users` fields. See `docs/API.md` §1.14.
 
