@@ -16,6 +16,9 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 ### Changed
 - **Global Stats Shows tray** — no longer rendered. Show count stays on each row, and inside PPS and Picking Avg. `boards.shows` is still written for older clients.
 
+### Fixed
+- **Stats trays on a phone** — All-time / This tour and the board tray attach after the mobile chrome mounts, so they stay on screen under Personal / Global / Band.
+
 ---
 
 ## [1.76.3] — 2026-10-01
