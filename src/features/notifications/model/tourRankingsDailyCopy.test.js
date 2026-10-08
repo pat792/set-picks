@@ -47,6 +47,27 @@ describe('buildTourRankingsDailyParagraphs', () => {
     expect(paras.join(' ')).toMatch(/ranked #15 of 40 on tour with 8 points/);
   });
 
+  it('says climbed into, still in, or fell out from yesterday’s band', () => {
+    const line = (tour_rank, rank_change) =>
+      buildTourRankingsDailyParagraphs({
+        handle: 'Pat',
+        venue_city: 'Richmond, VA',
+        total_tour_pickers: 17,
+        tour_points: 50,
+        tour_rank,
+        rank_change,
+      }).join(' ');
+
+    expect(line(5, 'up 3')).toMatch(/You climbed into the top 5 — ranked #5 of 17 with 50 points/);
+    expect(line(5, 'up 3')).not.toMatch(/Still in the top 5/);
+    expect(line(3, 'up 2')).toMatch(/Still in the top 5 — ranked #3/);
+    expect(line(7, 'down 2')).toMatch(/You fell out of the top 5 — ranked #7/);
+    expect(line(1, 'up 4')).toMatch(/You took the lead with 50 points/);
+    expect(line(2, 'down 1')).toMatch(/Out of the lead, still in the top 5/);
+    expect(line(9, 'up 1')).toMatch(/You're ranked #9 of 17 on tour with 50 points/);
+    expect(line(9, 'up 1')).not.toMatch(/top 5/);
+  });
+
   it('null rank_change does not default to held', () => {
     const paras = buildTourRankingsDailyParagraphs({
       handle: 'Picker',

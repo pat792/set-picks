@@ -47,7 +47,7 @@ A player’s place in a rank band (leading, top 5) or a pool is a personal or ga
 | Bustout this player caught or missed, and the slot | Picks plus bustout list | “You caught a bustout” or “stayed off your board” |
 | Tour rank, tour points, shows played, tied | Morning payload | The standings paragraph of the morning email |
 | Night rank and pool rank | The send | Night paragraph |
-| Rank band: leading, top 5, or the rest | `tour_tier` | “You’re leading” / “Still in the top 5” in the morning standings paragraph |
+| Rank band: lead, top 5, or the field | Today’s tour rank, and yesterday’s rank recovered from the spot count | The morning standings paragraph. The standings map says entered, stayed, left, took the lead, or lost it. |
 | Tied with others at that rank | `tour_rank_tied`, `tour_tied_count` | “Tied for #3” |
 | Pool name, pool rank that night, pool rank on tour, pool size | Pool fields on the send | Night rank can name the pool. Tour pool rank is on the morning payload. |
 | Career points, shows graded, average points per show, correct slots over a career | Profile / `users` career fields | Not in recap messages. On the profile. |
