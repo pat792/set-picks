@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.79.0] — 2026-10-08
+
+### Changed
+- **Night recap paragraph** — the show recap and the morning email’s night paragraph speak one sentence per set (length, then the rarest song in that set and when it was last played, then every encore title) and one player line. Stock “tough board / strong night” wording is used only when no player fact exists. A bustout is spoken only when that exact title is in the official setlist, and only once. A missing fact drops its clause. The send still goes. The tour-standings paragraph is unchanged. (#1083)
+
+---
+
 ## [1.78.0] — 2026-10-08
 
 ### Added

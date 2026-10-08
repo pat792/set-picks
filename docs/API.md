@@ -154,11 +154,15 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 | Field | Type | Notes |
 |-------|------|-------|
 | `setlist_highlight` | string? | One-liner bustout/debut sticker. Bustout nights: `Bustout: Song - a/an N show gap.` (singular) or `Bustouts: …; ….` (plural, `;`-separated) (#780). Inbox Tonight / morning night-para prefer composed `narrative_line` (#985). |
-| `set_flow_summary` | string? | Short S1/S2/E structure |
-| `bustout_titles` | string[] | From official setlist bustouts |
+| `set_flow_summary` | string? | One sentence per set: length, then the highlight, then every encore title |
+| `bustout_titles` | string[] | Bustout titles that are also in that night’s official setlist |
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
+| `tour_debuts_trusted` | boolean | False on the first show of a tour (**v1.79.0**) |
+| `set_songs` | map | `{ set1, set2, encore }` title lists (**v1.79.0**) |
+| `song_gaps` | map | Pre-show gap by normalized title (**v1.79.0**) |
+| `last_played` | map | Title → `YYYY-MM-DD` from the public tour table for this night (**v1.79.0**) |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
-| `schemaVersion` | number | `2` (**v1.72.2**; rebuilds when prior lookback / debut math changes) |
+| `schemaVersion` | number | `3` (**v1.79.0**; rebuilds the night paragraph). Was `2` in v1.72.2. |
 
 ### 1.12 `official_setlists/{showDate}`
 
