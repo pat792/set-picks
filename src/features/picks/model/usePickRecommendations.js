@@ -7,6 +7,7 @@ import {
   PICK_RECOMMENDATIONS_CACHE_KEY,
   PICK_RECOMMENDATIONS_CACHE_MAX_AGE_MS,
 } from './pickRecommendationsConstants.js';
+import { artifactTargetsDate } from './selectScorecardOdds.js';
 import { selectPickRecommendations } from './selectPickRecommendations.js';
 
 /**
@@ -65,12 +66,36 @@ function writeMemory(artifact) {
 }
 
 /**
+ * A cached file is reusable only inside the TTL, and only when it targets the
+ * night on screen. After the publisher moves `pick-recommendations.json` to
+ * the next show, a PWA restart still has the previous night in localStorage.
+ * Odds (and Lab) hide whenever that date does not match, so the open card
+ * must refetch instead of waiting out the TTL.
+ *
+ * An empty `selectedDate` keeps the TTL rule — the picker has not resolved yet.
+ *
+ * @param {{ fetchedAt?: number, artifact?: object } | null | undefined} cached
+ * @param {number} now
+ * @param {string | null | undefined} [selectedDate]
+ * @returns {boolean}
+ */
+export function cachedPickRecommendationsAreCurrent(cached, now, selectedDate) {
+  if (!cached || typeof cached.fetchedAt !== 'number') return false;
+  if (!(now - cached.fetchedAt < PICK_RECOMMENDATIONS_CACHE_MAX_AGE_MS)) return false;
+  if (!selectPickRecommendations(cached.artifact)) return false;
+  const selection = typeof selectedDate === 'string' ? selectedDate.trim() : '';
+  if (!selection) return true;
+  return artifactTargetsDate(cached.artifact, selection);
+}
+
+/**
  * Loads versioned pick recommendations from Storage with TTL + stale fallback (#650).
  * Returns null artifact when unavailable (Lab / Predictive Mode stay dark).
  * Defaults to no-op when `VITE_ENABLE_PREDICTION_LAB` is not exactly `'true'`.
  * Pass `{ enabled: true }` to fetch for Scorecard odds even when Lab UI is off.
+ * Pass `selectedDate` so a cached file for another night is refetched.
  *
- * @param {{ enabled?: boolean }} [options]
+ * @param {{ enabled?: boolean, selectedDate?: string | null }} [options]
  * @returns {{
  *   artifact: object | null,
  *   loadError: Error | null,
@@ -80,13 +105,19 @@ function writeMemory(artifact) {
  */
 export function usePickRecommendations(options = {}) {
   const enabled = options.enabled ?? isPredictionLabEnabled();
-  const [artifact, setArtifact] = useState(
-    () => readMemory()?.artifact ?? null,
-  );
+  const selectedDate = options.selectedDate;
+  const [artifact, setArtifact] = useState(() => {
+    const memory = readMemory();
+    return cachedPickRecommendationsAreCurrent(memory, Date.now(), selectedDate)
+      ? memory.artifact
+      : null;
+  });
   const [loadError, setLoadError] = useState(/** @type {Error | null} */ (null));
-  const [resolved, setResolved] = useState(
-    () => !enabled || Boolean(readMemory()?.artifact),
-  );
+  const [resolved, setResolved] = useState(() => {
+    if (!enabled) return true;
+    const memory = readMemory();
+    return cachedPickRecommendationsAreCurrent(memory, Date.now(), selectedDate);
+  });
   const [loadedFromCache, setLoadedFromCache] = useState(false);
 
   useEffect(() => {
@@ -101,13 +132,9 @@ export function usePickRecommendations(options = {}) {
 
       const now = Date.now();
       const cached = readCache();
-      const cachedOk =
-        cached && selectPickRecommendations(cached.artifact);
+      const cachedOk = Boolean(cached && selectPickRecommendations(cached.artifact));
 
-      if (
-        cachedOk &&
-        now - cached.fetchedAt < PICK_RECOMMENDATIONS_CACHE_MAX_AGE_MS
-      ) {
+      if (cachedPickRecommendationsAreCurrent(cached, now, selectedDate)) {
         if (!cancelled) {
           writeMemory(cached.artifact);
           setArtifact(cached.artifact);
@@ -166,7 +193,7 @@ export function usePickRecommendations(options = {}) {
       cancelled = true;
       ac.abort();
     };
-  }, [enabled]);
+  }, [enabled, selectedDate]);
 
   return {
     artifact,

@@ -46,6 +46,7 @@ export default function PicksClusterLayout({ user, selectedDate }) {
   const picksForm = usePicksForm({ user, selectedDate, showDates, showDatesByTour });
   const { artifact: pickRecommendationsArtifact } = usePickRecommendations({
     enabled: true,
+    selectedDate,
   });
   const makePicksTo = isMakePicksPath(location.pathname)
     ? normalizeDashboardPathname(location.pathname)
