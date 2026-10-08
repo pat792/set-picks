@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.77.2] — 2026-10-08
+
+### Fixed
+- **Make Picks and Scorecard odds on the open night** — closing and reopening the app kept the previous show’s `pick-recommendations.json` for up to 6 hours. The song menu and scorecard only draw odds when that file’s date is the night in the picker, so 2026-10-09 showed no percent on any song while the cache still said 2026-10-07. A cached file for another night is refetched.
+
+---
+
 ## [1.77.1] — 2026-10-07
 
 ### Changed

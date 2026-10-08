@@ -60,6 +60,7 @@ export function usePicksScorecard({
   );
   const { artifact: fetchedArtifact } = usePickRecommendations({
     enabled: artifactProp === undefined,
+    selectedDate,
   });
   const artifact = artifactProp !== undefined ? artifactProp : fetchedArtifact;
 

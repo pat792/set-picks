@@ -50,7 +50,7 @@ export default function PicksLabPanel({ user, selectedDate, picksForm: picksForm
     artifact: pickRecsArtifact,
     isLoading: pickRecsLoading,
     loadError: pickRecsError,
-  } = usePickRecommendations();
+  } = usePickRecommendations({ selectedDate });
   const cardRef = useRef(null);
   const [justAppliedSlotId, setJustAppliedSlotId] = useState(null);
   const justAppliedTimerRef = useRef(0);
