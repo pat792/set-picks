@@ -83,7 +83,9 @@ Pick the first one that is true. The stock “tough board / strong night / still
 | Bustout they missed | “{Song} ({gap} show gap) stayed off your board.” |
 | Tour debut they caught or missed | “{Song} was new to the tour, and it was your set 2 opener.” |
 
-One bustout sticker stays. It does not also appear as the set highlight and the player line in the same paragraph. Prefer the player line when they picked it. Otherwise the set that contained it.
+One bustout sticker stays. It does not also appear as the set highlight and the player line in the same paragraph. When they picked a bustout that was played, that player line wins over named slots and the wrong-slot line, and the set highlight skips that song. Otherwise the set that contained it speaks the highlight.
+
+Two rare songs in one set: the bustout with the longest gap, then the high gap (10–29) with the longest gap. The first show of a tour does not call its songs tour debuts. A gap under 10 keeps the count and drops the date.
 
 ## Slot ids
 
@@ -111,13 +113,7 @@ Not a catalog of every fact in the app. Held off this paragraph on purpose:
 - Tour rank change (“climbed / slipped”). That stays in the other paragraph of the morning email.
 - The song-picker last-played date. It can already be last night.
 
-A bustout counts only when its title is in that night’s official setlist. `official_setlists.bustouts` does not drop a title after Phish.net renames the row, so the sticker can outlive the played song. Richmond, 2026-10-07: the bustout list is “The Curtain” (197 shows) and the set contains “The Curtain With” (11 shows). The paragraph must not say The Curtain. This is an acceptance fixture on [#1083](https://github.com/pat792/set-picks/issues/1083). The live-poll union that keeps bustouts from shrinking mid-show stays as it is. The filter belongs on the paragraph, once the setlist is final.
-
-Still open inside this paragraph:
-
-- Two rare songs in one set. The highlight slot does not say which one wins. Use the bustout with the longest gap, then the high gap with the longest gap.
-- First show of a tour. `tour_debut_titles` lists up to eight songs because nothing has been played yet. Do not call those tour debuts.
-- A last-played date for a gap under 10. The count is on `songGaps`. The date is stored only on bustout and high-gap rows (gap 10 or more). Drop the date.
+A bustout counts only when its title is in that night’s official setlist. `official_setlists.bustouts` does not drop a title after Phish.net renames the row, so the sticker can outlive the played song. Richmond, 2026-10-07: the bustout list is “The Curtain” (197 shows) and the set contains “The Curtain With” (11 shows). The paragraph must not say The Curtain. The live-poll union that keeps bustouts from shrinking mid-show stays as it is. Cleaning the stored list is [#626](https://github.com/pat792/set-picks/issues/626).
 
 ## Out of scope
 

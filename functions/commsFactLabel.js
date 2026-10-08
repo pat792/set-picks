@@ -120,8 +120,8 @@ function keepTourId(value) {
 }
 
 /**
- * Player slot today's card sentence actually speaks. At most one.
- * Flow slots (length, highlight, encore titles) are not spoken yet.
+ * Player slot the card sentence speaks. At most one.
+ * Flow slots are passed in explicitly by the night composer.
  *
  * @param {string | null | undefined} branch
  * @param {string} card
@@ -129,11 +129,14 @@ function keepTourId(value) {
  */
 function nightPlayerSlot(branch, card) {
   const text = typeof card === "string" ? card : "";
-  if (branch === "bustout_hero") return "bustout_caught";
   if (/you hit all six/i.test(text)) return "all_six";
   if (/none of your six landed/i.test(text)) return "none_hit";
+  if (/you caught /i.test(text) || /caught a bustout/i.test(text)) return "bustout_caught";
   if (/you hit /i.test(text)) return "named_slots";
+  if (/was in the show, just not your/i.test(text)) return "wrong_slot";
   if (/stayed off your board/i.test(text)) return "bustout_missed";
+  if (/was new to the tour|were new to the tour/i.test(text)) return "tour_debut";
+  if (branch === "bustout_hero") return "bustout_caught";
   return null;
 }
 
@@ -143,17 +146,22 @@ function nightPlayerSlot(branch, card) {
  *   card?: string,
  *   rankSentence?: string,
  *   showDate?: string | null,
+ *   slots?: string[],
  * }} input
  */
 function buildShowRecapFactLabel(input = {}) {
   const branch = keepBranch(input.branch, NIGHT_BRANCHES);
-  const player = nightPlayerSlot(branch, input.card || "");
-  /** @type {string[]} */
-  const slots = [];
-  if (player) slots.push(player);
-  if (typeof input.rankSentence === "string" && input.rankSentence.trim()) {
-    slots.push("night_rank");
-  }
+  const slots = Array.isArray(input.slots)
+    ? keepSlots(input.slots, NIGHT_SLOTS)
+    : keepSlots(
+        [
+          nightPlayerSlot(branch, input.card || ""),
+          typeof input.rankSentence === "string" && input.rankSentence.trim()
+            ? "night_rank"
+            : null,
+        ],
+        NIGHT_SLOTS,
+      );
   const showDate = keepShowDate(input.showDate);
   return {
     map: "show_recap",

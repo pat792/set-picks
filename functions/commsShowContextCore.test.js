@@ -108,14 +108,14 @@ describe("priorDatesForTourDebutLookup", () => {
 });
 
 describe("COMMS_SHOW_CONTEXT_SCHEMA_VERSION", () => {
-  it("is 2 so ensureCommsShowContext rebuilds truncated-prior artifacts", () => {
-    assert.equal(COMMS_SHOW_CONTEXT_SCHEMA_VERSION, 2);
+  it("is 3 so ensureCommsShowContext rebuilds the night-map flow", () => {
+    assert.equal(COMMS_SHOW_CONTEXT_SCHEMA_VERSION, 3);
     const ctx = buildCommsShowContext({
       showDate: "2026-09-04",
       setlistDoc: { officialSetlist: ["Ya Mar"], setlist: { s1o: "Ya Mar" } },
       priorTourSetlistDocs: [{ officialSetlist: ["Plasma"] }],
     });
-    assert.equal(ctx.schemaVersion, 2);
+    assert.equal(ctx.schemaVersion, 3);
   });
 });
 
@@ -171,7 +171,12 @@ describe("buildCommsShowContext", () => {
       ],
     });
     assert.equal(ctx.setlist_highlight, "Bustout: Wolfman's - an 87 show gap.");
-    assert.match(ctx.set_flow_summary, /Set 1 opened with YEM/);
+    assert.match(
+      ctx.set_flow_summary,
+      /A 2-song first set, highlighted by Wolfman's, an 87 show gap/,
+    );
+    assert.match(ctx.set_flow_summary, /highlighted by Tweezer, new to this tour/);
+    assert.match(ctx.set_flow_summary, /A 1-song encore featured Slave/);
     assert.ok(ctx.show_moment_tags.includes("bustout"));
     assert.ok(ctx.tour_debut_titles.includes("Wolfman's"));
     assert.equal(ctx.bustout_entries[0].gap, 87);
@@ -245,7 +250,7 @@ describe("buildShowRecapEnrichment", () => {
     assert.equal(enriched.narrative_branch, "bustout_hero");
     assert.equal(
       enriched.narrative_line,
-      "You caught a bustout — Wolfman's - an 87 show gap on your opener (1 of 6).",
+      "You caught Wolfman's — an 87 show gap — on your opener.",
     );
     assert.equal(enriched.slot_hits, undefined);
   });
@@ -300,8 +305,8 @@ describe("show_recap composer (#985)", () => {
     });
     assert.equal(enriched.narrative_branch, "cold");
     assert.match(enriched.narrative_line, /Set 1 opened with Carini/);
-    assert.match(enriched.narrative_line, /none of your six landed/);
-    assert.match(enriched.narrative_line, /Bustout: Melt the Guns - a 2051 show gap/);
+    assert.match(enriched.narrative_line, /None of your six landed/);
+    assert.doesNotMatch(enriched.narrative_line, /Tough board/);
     assert.match(enriched.narrative_line, /That lands you #184 of 210 globally/);
     assert.doesNotMatch(enriched.narrative_line, /Wrong One|Wrong Two/);
     assert.deepEqual(enriched.fact_label, {
@@ -325,8 +330,8 @@ describe("show_recap composer (#985)", () => {
     });
     assert.equal(enriched.narrative_branch, "mixed");
     assert.match(enriched.narrative_line, /Set 1 opened with Carini/);
-    assert.match(enriched.narrative_line, /you hit the opener and closer \(2 of 6\)/i);
-    assert.match(enriched.narrative_line, /Bustout: Melt the Guns - a 2051 show gap stayed off your board/);
+    assert.match(enriched.narrative_line, /You hit the opener and the closer/);
+    assert.doesNotMatch(enriched.narrative_line, /stayed off your board/);
     assert.match(enriched.narrative_line, /You sit #18 of 80 globally and #3 of 12 in Couch Tour/);
     assert.deepEqual(enriched.fact_label.slots, ["named_slots", "night_rank"]);
   });
@@ -349,8 +354,8 @@ describe("show_recap composer (#985)", () => {
     });
     assert.equal(enriched.narrative_branch, "hot_night");
     assert.match(enriched.narrative_line, /Set 1 opened with Carini/);
-    assert.match(enriched.narrative_line, /Strong night — you hit all six/);
-    assert.match(enriched.narrative_line, /Bustout: Melt the Guns - a 2051 show gap stayed off your board/);
+    assert.match(enriched.narrative_line, /You hit all six/);
+    assert.doesNotMatch(enriched.narrative_line, /Strong night/);
     assert.match(enriched.narrative_line, /That puts you #4 of 200 globally/);
     assert.deepEqual(enriched.fact_label.slots, ["all_six", "night_rank"]);
   });
@@ -369,7 +374,7 @@ describe("show_recap composer (#985)", () => {
     assert.match(enriched.narrative_line, /Set 1 opened with Carini/);
     assert.match(
       enriched.narrative_line,
-      /You caught a bustout — Melt the Guns - a 2051 show gap on your wildcard \(1 of 6\)/,
+      /You caught Melt the Guns — a 2051 show gap — on your wildcard/,
     );
     assert.match(enriched.narrative_line, /That puts you #1 of 11 globally/);
     assert.doesNotMatch(enriched.narrative_line, /Wrong One/);
@@ -407,7 +412,85 @@ describe("show_recap composer (#985)", () => {
       global_total_pickers: 100,
     });
     assert.match(line, /Carini opened; Tweeprise closed the night/);
-    assert.match(line, /you hit the opener and closer \(2 of 6\)/i);
+    assert.match(line, /You hit the opener and the closer/);
     assert.match(line, /You sit #40 of 100 globally/);
+  });
+
+  it("drops a bustout title that was not in the official setlist", () => {
+    const ctx = buildCommsShowContext({
+      showDate: "2026-10-07",
+      tourKey: "2026 Fall Tour",
+      setlistDoc: {
+        officialSetlist: [
+          "Gumbo",
+          "The Curtain With",
+          "Hey Stranger",
+          "Kill Devil Falls",
+          "The Lizards",
+          "Julius",
+        ],
+        s2o: "Kill Devil Falls",
+        encoreSongs: ["The Lizards", "Julius"],
+        bustouts: ["The Curtain"],
+        songGaps: {
+          "the curtain": 197,
+          "the curtain with": 11,
+          "hey stranger": 23,
+        },
+        setlist: { s1o: "Gumbo", enc: "The Lizards" },
+      },
+      priorTourSetlistDocs: [{ officialSetlist: ["Bathtub Gin"] }],
+      lastPlayedByTitle: { "hey stranger": "2026-07-10" },
+    });
+    assert.deepEqual(ctx.bustout_titles, []);
+    assert.doesNotMatch(ctx.set_flow_summary, /The Curtain(?! With)/);
+    assert.match(
+      ctx.set_flow_summary,
+      /A 3-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10/,
+    );
+    assert.match(ctx.set_flow_summary, /A 2-song encore featured The Lizards and Julius/);
+  });
+
+  it("leaves a caught bustout out of the set highlight", () => {
+    const enriched = buildShowRecapEnrichment({
+      showLevel: {
+        set_songs: {
+          set1: ["Carini"],
+          set2: ["Melt the Guns"],
+          encore: ["A Life Beyond The Dream"],
+        },
+        song_gaps: { "melt the guns": 2051 },
+        bustout_titles: ["Melt the Guns"],
+        bustout_entries: [{ title: "Melt the Guns", gap: 2051 }],
+        opener_title: "Carini",
+        encore_title: "A Life Beyond The Dream",
+      },
+      userPicks: { ...EMPTY_BOARD, wild: "Melt the Guns" },
+      actualSetlist: COMPOSER_ACTUAL,
+      show_score: 30,
+      global_rank: 1,
+      global_total_pickers: 11,
+    });
+    assert.match(
+      enriched.narrative_line,
+      /You caught Melt the Guns — a 2051 show gap — on your wildcard/,
+    );
+    assert.doesNotMatch(enriched.narrative_line, /highlighted by Melt the Guns/);
+    assert.ok(enriched.fact_label.slots.includes("bustout_caught"));
+    assert.ok(enriched.fact_label.slots.includes("set2_length"));
+    assert.ok(!enriched.fact_label.slots.includes("set2_highlight"));
+  });
+
+  it("names a song that was in the show but not the guessed slot", () => {
+    const enriched = buildShowRecapEnrichment({
+      showLevel: COMPOSER_SHOW,
+      userPicks: { ...EMPTY_BOARD, s2c: "Fuego" },
+      actualSetlist: COMPOSER_ACTUAL,
+      show_score: 5,
+      global_rank: 8,
+      global_total_pickers: 13,
+    });
+    assert.match(enriched.narrative_line, /Fuego was in the show, just not your closer/);
+    assert.deepEqual(enriched.fact_label.slots, ["wrong_slot", "night_rank"]);
   });
 });

@@ -1,13 +1,13 @@
 # Sample night paragraph — Richmond, 2026-10-07
 
-**Status:** read-only preview. Nothing was sent.
+**Status:** writer check. Nothing was sent.
 **Date:** 2026-10-08
 **Show:** Allianz Amphitheater at Riverfront, Richmond, VA. 2026 Fall Tour.
 **Map:** [SHOW_RECAP_FACT_INVENTORY.md](./SHOW_RECAP_FACT_INVENTORY.md)
 
-The live email is what the morning job writes today. The inventory paragraph is the same night’s facts, spoken with the map’s rules. That second version is not wired into the send.
+The live lines below are what went out before this change. The writer lines are what the night map produces from the same facts. The morning job does not read this page. After the change is deployed, it fills those sentences from the stored facts and sends.
 
-The standings paragraph (“you climbed,” “next up”) is the same in both. The night map does not rewrite it.
+The standings lines below follow the standings map. The night map does not rewrite them.
 
 ## What the show facts were
 
@@ -34,11 +34,11 @@ Live email, night paragraph:
 
 > I have the book, here's how last night at 2026-10-07 — Allianz Amphitheater at Riverfront, Richmond, VA went. Set 1 opened with Gumbo (8 songs); Set 2 added 6; encore closed on The Lizards. Tough board — none of your six landed; still a night to remember: Bustout: The Curtain. That lands you #10 of 13 globally.
 
-Inventory paragraph from the same facts:
+Writer paragraph from the same facts:
 
-> An 8-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set, highlighted by Meatstick, an 18 show gap, last played on 2026-07-17. The encore featured The Lizards and Julius. None of your six landed. You finished #10 of 13.
+> An 8-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set, highlighted by Meatstick, an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. None of your six landed. That lands you #10 of 13 globally.
 
-What changed: the parenthesized set-1 count and the bare “Set 2 added 6” became one shape per set. Both encore songs are named. “Tough board / still a night to remember” dropped because “none of your six landed” is a real player fact. The bustout sticker did not move into set 1, because its title is not a song in that set.
+What changed: each set is one sentence, with its length and its rarest song. Both encore songs are named, with the encore length. “Tough board / still a night to remember” dropped because “none of your six landed” is a real player fact. The bustout sticker did not move into set 1, because its title is not a song in that set.
 
 Standings paragraph. They were #2 and slipped to #3, so they were already in the top 5:
 
@@ -52,9 +52,9 @@ Live email, night paragraph:
 
 Their card: Kill Devil Falls was the set 2 opener (exact). Loving Cup was the wildcard (exact). Ruby Waves was picked as the closer and was in the show in a different slot (5 points, not an exact slot).
 
-Inventory paragraph from the same facts:
+Writer paragraph from the same facts:
 
-> An 8-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set, highlighted by Meatstick, an 18 show gap, last played on 2026-07-17. The encore featured The Lizards and Julius. You hit the set 2 opener and the wildcard. You finished #1 of 13.
+> An 8-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set, highlighted by Meatstick, an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. You hit the set 2 opener and the wildcard. That puts you #1 of 13 globally.
 
 The map’s player rule keeps the first true fact. Exact slots are ahead of a wrong-slot song, so Ruby Waves is not spoken. The live line calls that closer a hit.
 

@@ -8,10 +8,17 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.79.0] — 2026-10-08
+## [1.80.0] — 2026-10-08
 
 ### Changed
 - **Morning standings paragraph** — the line after the spot count says whether this player took the lead, stayed in the lead, climbed into the top 5, was already in the top 5, lost the lead but stayed in the top 5, or fell out of the top 5. A move that stays outside the top 5 keeps the rank sentence. A missing yesterday rank does not claim a crossing. (#1102)
+
+---
+
+## [1.79.0] — 2026-10-08
+
+### Changed
+- **Night recap paragraph** — the show recap and the morning email’s night paragraph speak one sentence per set (length, then the rarest song in that set and when it was last played, then every encore title) and one player line. Stock “tough board / strong night” wording is used only when no player fact exists. A bustout is spoken only when that exact title is in the official setlist, and only once. A missing fact drops its clause. The send still goes. The tour-standings paragraph is unchanged. (#1083)
 
 ---
 
