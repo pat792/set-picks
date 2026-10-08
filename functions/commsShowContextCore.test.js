@@ -304,6 +304,11 @@ describe("show_recap composer (#985)", () => {
     assert.match(enriched.narrative_line, /Bustout: Melt the Guns - a 2051 show gap/);
     assert.match(enriched.narrative_line, /That lands you #184 of 210 globally/);
     assert.doesNotMatch(enriched.narrative_line, /Wrong One|Wrong Two/);
+    assert.deepEqual(enriched.fact_label, {
+      map: "show_recap",
+      branch: "cold",
+      slots: ["none_hit", "night_rank"],
+    });
   });
 
   it("mixed weaves arc + which slots hit + rank and pool", () => {
@@ -323,6 +328,7 @@ describe("show_recap composer (#985)", () => {
     assert.match(enriched.narrative_line, /you hit the opener and closer \(2 of 6\)/i);
     assert.match(enriched.narrative_line, /Bustout: Melt the Guns - a 2051 show gap stayed off your board/);
     assert.match(enriched.narrative_line, /You sit #18 of 80 globally and #3 of 12 in Couch Tour/);
+    assert.deepEqual(enriched.fact_label.slots, ["named_slots", "night_rank"]);
   });
 
   it("hot_night weaves arc + all-six card + top-band rank", () => {
@@ -346,6 +352,7 @@ describe("show_recap composer (#985)", () => {
     assert.match(enriched.narrative_line, /Strong night — you hit all six/);
     assert.match(enriched.narrative_line, /Bustout: Melt the Guns - a 2051 show gap stayed off your board/);
     assert.match(enriched.narrative_line, /That puts you #4 of 200 globally/);
+    assert.deepEqual(enriched.fact_label.slots, ["all_six", "night_rank"]);
   });
 
   it("bustout_hero weaves arc + caught bustout + rank", () => {
@@ -356,6 +363,7 @@ describe("show_recap composer (#985)", () => {
       show_score: 30,
       global_rank: 1,
       global_total_pickers: 11,
+      showDate: "2026-10-07",
     });
     assert.equal(enriched.narrative_branch, "bustout_hero");
     assert.match(enriched.narrative_line, /Set 1 opened with Carini/);
@@ -365,6 +373,12 @@ describe("show_recap composer (#985)", () => {
     );
     assert.match(enriched.narrative_line, /That puts you #1 of 11 globally/);
     assert.doesNotMatch(enriched.narrative_line, /Wrong One/);
+    assert.deepEqual(enriched.fact_label, {
+      map: "show_recap",
+      branch: "bustout_hero",
+      slots: ["bustout_caught", "night_rank"],
+      showDate: "2026-10-07",
+    });
   });
 
   it("soft-fails to highlight wrappers when context is missing", () => {

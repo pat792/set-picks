@@ -10,6 +10,8 @@ const {
   recipientAllowsChannel,
 } = require("./commsDelivery");
 const { getTriggerSpec } = require("./commsCatalog");
+const { buildShowRecapEnrichment } = require("./showRecapNarrativeCore");
+const { buildTourRecapPayload } = require("./tourRecapCore");
 
 const fakeAdmin = {
   firestore: { FieldValue: { serverTimestamp: () => "ts" } },
@@ -387,6 +389,127 @@ test("tour_recap prefs_off and existing dedup skip send (#510)", async () => {
   });
   assert.equal(deduped.skips.deduped, 1);
   assert.equal(inApp.calls.length, 0);
+});
+
+test("delivery log copies a known fact label and drops an id that is not on the map", async () => {
+  const db = makeFakeDb();
+  const inApp = recordingWorker("inApp", { ok: true });
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "show_recap",
+    recipients: [
+      {
+        uid: "u1",
+        userData: {},
+        vars: { showDate: "2026-10-07" },
+        payload: {
+          handle: "Pat",
+          show_date: "2026-10-07",
+          fact_label: {
+            map: "show_recap",
+            branch: "cold",
+            slots: ["none_hit", "night_rank", "not_a_slot"],
+            showDate: "2026-10-07",
+            tourId: "should-not-copy",
+          },
+        },
+      },
+    ],
+    workers: { inApp },
+    dryRun: false,
+    logger: { info() {}, warn() {}, error() {} },
+    sendGa4Delivered: async () => ({ sent: true }),
+  });
+
+  assert.deepEqual(db._writes[0].data.fact_label, {
+    map: "show_recap",
+    branch: "cold",
+    slots: ["none_hit", "night_rank"],
+    showDate: "2026-10-07",
+  });
+  assert.deepEqual(inApp.calls[0].rendered.inApp.payload.fact_label.slots, [
+    "none_hit",
+    "night_rank",
+  ]);
+});
+
+test("dry-run show_recap and tour_recap carry fact_label, and a blank narrative still sends", async () => {
+  const db = makeFakeDb();
+  const inApp = recordingWorker("inApp", { ok: true, skipReason: "dry_run" });
+  const night = buildShowRecapEnrichment({
+    showLevel: {},
+    userPicks: null,
+    actualSetlist: null,
+    showDate: "2026-10-07",
+  });
+  const nightSummary = await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "show_recap",
+    recipients: [
+      {
+        uid: "u1",
+        userData: {},
+        vars: { showDate: "2026-10-07" },
+        payload: {
+          handle: "Pat",
+          show_date: "2026-10-07",
+          ...night,
+          narrative_line: "",
+        },
+      },
+    ],
+    workers: { inApp },
+    dryRun: true,
+    logger: { info() {}, warn() {}, error() {} },
+  });
+  assert.equal(nightSummary.results[0].status, "would_deliver");
+  assert.equal(db._writes.length, 0);
+  assert.equal(inApp.calls[0].rendered.inApp.payload.narrative_line, "");
+  assert.equal(inApp.calls[0].rendered.inApp.payload.fact_label.map, "show_recap");
+  assert.equal(inApp.calls[0].rendered.inApp.payload.fact_label.branch, "cold");
+  assert.deepEqual(inApp.calls[0].rendered.inApp.payload.fact_label.slots, []);
+  assert.equal(inApp.calls[0].rendered.inApp.payload.fact_label.showDate, "2026-10-07");
+
+  const wrapInApp = recordingWorker("inApp", { ok: true, skipReason: "dry_run" });
+  const wrap = buildTourRecapPayload({
+    handle: "Pat",
+    rank: 4,
+    points: 80,
+    wins: 1,
+    showsPlayed: 6,
+    participantCount: 17,
+    tourId: "2026 Fall Tour",
+    tourName: "2026 Fall Tour",
+    showCount: 8,
+    podium: { rows: [], honorableMentions: [] },
+  });
+  const wrapSummary = await deliverCommsTrigger({
+    db: makeFakeDb(),
+    admin: fakeAdmin,
+    triggerId: "tour_recap",
+    recipients: [
+      {
+        uid: "u1",
+        userData: {},
+        vars: { tourId: "2026 Fall Tour" },
+        payload: wrap,
+      },
+    ],
+    workers: { inApp: wrapInApp },
+    dryRun: true,
+    logger: { info() {}, warn() {}, error() {} },
+  });
+  assert.equal(wrapSummary.results[0].status, "would_deliver");
+  assert.equal(wrapSummary.results[0].dedupId, "tour_recap:2026 Fall Tour:u1");
+  assert.deepEqual(wrapInApp.calls[0].rendered.inApp.payload.fact_label, {
+    map: "tour_recap",
+    branch: "top5",
+    slots: ["rank", "opening_fallback"],
+    tourId: "2026 Fall Tour",
+  });
 });
 
 test("unknown trigger returns an error summary", async () => {

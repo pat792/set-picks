@@ -64,7 +64,7 @@ All collections live in the default `(default)` Firestore database for project `
 | `readAt` | Timestamp? | **v1.70.2+ (#1015):** Null until the user closes the message after opening it (Collapse, switch to another row, or collapse Inbox). Opening alone does not set `readAt`, so Unopened rows stay expanded while reading. |
 | `archivedAt` | Timestamp? | **v1.67.0+ (#513 / #770)** Set when the owner archives the message. Unread bell count excludes archived. |
 | `createdAt` | Timestamp | |
-| `payload` | map | Template-specific variables |
+| `payload` | map | Template-specific variables. `show_recap`, the morning `tour_rankings_daily` night paragraph, and `tour_recap` may include `payload.fact_label` (**#1082**): `{ map: "show_recap" \| "tour_recap", branch?, slots: string[], showDate?, tourId? }`. `slots` are filled ids from the message map. Unknown ids are not written. Absence of a fact omits that slot and does not drop the send. |
 
 **Client write surface (v1.67.0 / #513):** owners may update `readAt` and/or `archivedAt` only (payload / `templateId` / `createdAt` stay server-owned). Owners may **hard-delete** their own inbox docs. Clients cannot create inbox docs — Admin SDK / Cloud Functions only.
 
@@ -92,7 +92,7 @@ Stores per-user, per-show slot picks and computed scores.
 
 ### 1.7 `fcm_notification_log/{dedupId}`
 
-Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). Presence of a doc = trigger already delivered; delete to allow re-send. After a successful email send (**v1.74.0 / #512 Slice A**) the doc may also include `resendEmailId` and `campaignId` for join with `comms_email_engagement`.
+Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). Presence of a doc = trigger already delivered; delete to allow re-send. After a successful email send (**v1.74.0 / #512 Slice A**) the doc may also include `resendEmailId` and `campaignId` for join with `comms_email_engagement`. When the send carried `payload.fact_label` (**#1082**), the same object is copied onto this row so an open can be joined to the branch and filled slots.
 
 Also hosts the per-user daily email fatigue cap (#453): doc ID `email_cap:{uid}:{day}` (`day` = `YYYY-MM-DD` in `America/Los_Angeles`), `{ kind: "email_daily_cap", count, cap, lastTriggerId, lastEmailSentAt }`. Written transactionally by `commsEmailDailyCap.js`. `account_welcome` is exempt and never creates one of these docs. Not a new collection — same server-only rules entry as the dedup docs above.
 
