@@ -92,13 +92,13 @@ Stores per-user, per-show slot picks and computed scores.
 
 ### 1.7 `fcm_notification_log/{dedupId}`
 
-Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). Presence of a doc = trigger already delivered; delete to allow re-send. After a successful email send (**v1.74.0 / #512 Slice A**) the doc may also include `resendEmailId` and `campaignId` for join with `comms_email_engagement`.
+Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). A `/` in an interpolated value is stored as `-` so the id stays one path segment. Presence of a doc = trigger already delivered; delete to allow re-send. After a successful email send (**v1.74.0 / #512 Slice A**) the doc may also include `resendEmailId` and `campaignId` for join with `comms_email_engagement`.
 
 Also hosts the per-user daily email fatigue cap (#453): doc ID `email_cap:{uid}:{day}` (`day` = `YYYY-MM-DD` in `America/Los_Angeles`), `{ kind: "email_daily_cap", count, cap, lastTriggerId, lastEmailSentAt }`. Written transactionally by `commsEmailDailyCap.js`. `account_welcome` is exempt and never creates one of these docs. Not a new collection — same server-only rules entry as the dedup docs above.
 
 ### 1.7.1 `comms_tour_recap_state/{tourId}` (**v1.74.2 / #1033**)
 
-Tour-level once-ever gate for production `tour_recap`. Document ID is the calendar tour key (e.g. `2026 Summer Tour`). Written only by Admin SDK (`deliverPendingTourRecaps` or `functions/scripts/seedTourRecapState.js`). Clients have no access.
+Tour-level once-ever gate for production `tour_recap`. Document ID is the calendar tour key (e.g. `2026 Summer Tour`). A `/` in the key is stored as `-` so the id stays one Firestore path segment (`2026/2027 NYE Run` → `2026-2027 NYE Run`). Keys that are already a legal id are unchanged. Written only by Admin SDK (`deliverPendingTourRecaps` or `functions/scripts/seedTourRecapState.js`). Clients have no access. The 8am scanner reads this collection only for tours whose finale is already past and inside the 14-day lookback, plus Sphere archive labels.
 
 | Field | Type | Notes |
 |-------|------|-------|
@@ -407,9 +407,9 @@ Automated comms delivery triggered by Firestore writes, post-rollup hooks, live-
 | `commsOnPickWrite` | `picks_confirmed` | `picks/{pickId}` create with non-empty picks |
 | Post-rollup hook | `show_recap`, `tour_engagement_reminder` | `rollupScoresForShow` completion. Last night of a tour is still night `show_recap` only. |
 | Live-scoring hook | `score_first_points`, `score_leader` | `recomputeLiveScoresForShow` |
-| `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (T-10/T-5/T-3/T-1). Push and in-app on every beat. Email on T-5 and T-1 only, and only when the opener card is empty (`picks_secured` false). Fall Tour 2026 (`first_show_date` `2026-10-02`) skips the T-1 email for everyone. |
-| `scheduledTourRankingsDailyComms` | `tour_rankings_daily`, `tour_recap` | Daily 8am PT cron. Rankings = morning-after show, **skipped** when that show is a tour finale (`tour_recap` day). `tour_recap` = first tick after that tour’s final show date while inside a **14-day lookback** and `comms_tour_recap_state/{tourId}` is not terminal (dedup `tour_recap:{tourId}:{uid}`); successful fan-out writes `status: sent` (once-ever). Sphere calendar labels (`/\bsphere\b/i`) write `skipped_archive` (#1033). |
-| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min; venue-local show day **T-3h–lock** (window tracks per-show lock from ticket-time+20 or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+) |
+| `scheduledTourCountdownComms` | `tour_countdown` | Daily 9am PT cron (300s; T-10/T-5/T-3/T-1). Push and in-app on every beat. Email on T-5 and T-1 only, and only when the opener card is empty (`picks_secured` false). Fall Tour 2026 (`first_show_date` `2026-10-02`) skips the T-1 email for everyone. A tour whose first show has an invalid IANA `timeZone` is skipped. |
+| `scheduledTourRankingsDailyComms` | `tour_rankings_daily`, `tour_recap` | Daily 8am PT cron (300s). Rankings = morning-after show, **skipped** when that show is a tour finale (`tour_recap` day). A failure in the tour-recap step does not cancel rankings on any other morning. A show whose `timeZone` is not a valid IANA name is skipped. `tour_recap` = first tick after that tour’s final show date while inside a **14-day lookback** and `comms_tour_recap_state/{tourId}` is not terminal (dedup `tour_recap:{tourId}:{uid}`); successful fan-out writes `status: sent` (once-ever). One tour’s failure does not stop another tour in the same tick. Sphere calendar labels (`/\bsphere\b/i`) write `skipped_archive` (#1033). |
+| `scheduledPicksLockReminder` | `picks_lock_reminder` | Every 15 min (300s); venue-local show day **T-3h–lock** (window tracks per-show lock from ticket-time+20 or 19:30 fallback); **not** gated by `COMMS_EVENT_ADAPTERS_ENABLED` (v1.19.0+). A show with an invalid IANA `timeZone` is skipped. |
 
 Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/replay: `runCommsTrigger` (§2.2).
 
