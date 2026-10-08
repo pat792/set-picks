@@ -17,6 +17,7 @@ import { usePickRecommendations } from './usePickRecommendations';
 export function useMakePicksOdds({ selectedDate, artifact: artifactProp } = {}) {
   const { artifact: fetchedArtifact } = usePickRecommendations({
     enabled: artifactProp === undefined,
+    selectedDate,
   });
   const artifact = artifactProp !== undefined ? artifactProp : fetchedArtifact;
 
