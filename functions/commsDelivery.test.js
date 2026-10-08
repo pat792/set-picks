@@ -512,6 +512,29 @@ test("dry-run show_recap and tour_recap carry fact_label, and a blank narrative 
   });
 });
 
+test("deliverCommsTrigger continues after one recipient throws", async () => {
+  const db = makeFakeDb();
+  const email = recordingWorker("email", (ctx) => {
+    if (ctx.uid === "u1") throw new Error("token lookup failed");
+    return { ok: true };
+  });
+  const summary = await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "account_welcome",
+    recipients: [
+      { uid: "u1", userData: { email: "u1@example.com" } },
+      { uid: "u2", userData: { email: "u2@example.com" } },
+    ],
+    workers: { email },
+    dryRun: false,
+    logger: { info() {}, warn() {}, error() {} },
+  });
+  assert.equal(summary.delivered, 1);
+  assert.equal(summary.skips.recipient_error, 1);
+  assert.deepEqual(email.calls.map((ctx) => ctx.uid), ["u1", "u2"]);
+});
+
 test("unknown trigger returns an error summary", async () => {
   const summary = await deliverCommsTrigger({
     db: makeFakeDb(),
