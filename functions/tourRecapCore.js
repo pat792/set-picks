@@ -7,6 +7,8 @@
 
 "use strict";
 
+const { buildTourRecapFactLabel } = require("./commsFactLabel");
+
 /**
  * @param {string[]} tourDates
  * @param {string} showDate
@@ -61,6 +63,11 @@ function buildTourRecapPayload(input) {
   const tourName = input.tourName || input.tourId || "this tour";
   const showCount = Number(input.showCount) || 0;
   const participantCount = Number(input.participantCount) || 0;
+  const opening_paras = [
+    `${tourName} is officially in the books.`,
+    `Calling setlists is an inexact science on a good day, and a ${showCount}-show run kept everyone honest. Despite the curveballs, ${participantCount} of you stepped up to lay down your picks.`,
+    "Before the next run, here is the final tape.",
+  ];
   return {
     handle: input.handle || "Picker",
     rank: input.rank,
@@ -73,17 +80,22 @@ function buildTourRecapPayload(input) {
     show_count: showCount,
     headline: `${tourName}: Setlist Pick'em Wrap-Up`,
     podium: input.podium,
-    opening_paras: [
-      `${tourName} is officially in the books.`,
-      `Calling setlists is an inexact science on a good day, and a ${showCount}-show run kept everyone honest. Despite the curveballs, ${participantCount} of you stepped up to lay down your picks.`,
-      "Before the next run, here is the final tape.",
-    ],
+    opening_paras,
     closing_lines: [
       "Thank you to everyone who submitted picks and made this run a success. Setlist Pick'em will be back for the next stretch of shows.",
       "See you on the next run.",
     ],
     result_section_label: "Your final result",
     push_title: "Tour recap is in",
+    fact_label: buildTourRecapFactLabel({
+      rank: input.rank,
+      points: input.points,
+      wins: input.wins,
+      showsPlayed: input.showsPlayed,
+      showCount,
+      tourId: input.tourId,
+      openingParas: opening_paras,
+    }),
   };
 }
 

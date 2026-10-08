@@ -14,6 +14,7 @@ const {
   SCORING_RULES,
 } = require("./scoringCore");
 const { formatBustoutSongGap } = require("./commsShowContextCore");
+const { buildShowRecapFactLabel } = require("./commsFactLabel");
 
 const SLOT_RESULT_KEYS = {
   s1o: "opener_result",
@@ -463,6 +464,7 @@ function buildNarrativePersonalLine(p) {
  *   pool_name?: string | null,
  *   pool_rank?: number | null,
  *   pool_total_pickers?: number | null,
+ *   showDate?: string | null,
  * }} input
  */
 function buildShowRecapEnrichment({
@@ -477,6 +479,7 @@ function buildShowRecapEnrichment({
   pool_name = null,
   pool_rank = null,
   pool_total_pickers = null,
+  showDate = null,
 } = {}) {
   const bustoutEntries = Array.isArray(showLevel.bustout_entries)
     ? showLevel.bustout_entries
@@ -487,31 +490,38 @@ function buildShowRecapEnrichment({
     ...scorecard,
     show_score,
   });
+  const narrativeInput = {
+    narrative_branch,
+    user_hit_bustout: scorecard.user_hit_bustout,
+    user_bustout_hits: scorecard.user_bustout_hits,
+    slot_hits,
+    correct_picks_count: scorecard.correct_picks_count,
+    total_picks_count: scorecard.total_picks_count,
+    setlist_highlight: showLevel.setlist_highlight,
+    set_flow_summary: showLevel.set_flow_summary,
+    opener_title: showLevel.opener_title,
+    encore_title: showLevel.encore_title,
+    bustout_titles: showLevel.bustout_titles,
+    bustout_entries: bustoutEntries,
+    show_score,
+    global_rank,
+    global_total_pickers,
+    pool_name,
+    pool_rank,
+    pool_total_pickers,
+  };
   return {
     ...showLevel,
     ...publicScorecard,
     narrative_branch,
     top_scorer_handle: top_scorer_handle || null,
     top_score: top_score ?? null,
-    narrative_line: composeShowRecapNarrative({
-      narrative_branch,
-      user_hit_bustout: scorecard.user_hit_bustout,
-      user_bustout_hits: scorecard.user_bustout_hits,
-      slot_hits,
-      correct_picks_count: scorecard.correct_picks_count,
-      total_picks_count: scorecard.total_picks_count,
-      setlist_highlight: showLevel.setlist_highlight,
-      set_flow_summary: showLevel.set_flow_summary,
-      opener_title: showLevel.opener_title,
-      encore_title: showLevel.encore_title,
-      bustout_titles: showLevel.bustout_titles,
-      bustout_entries: bustoutEntries,
-      show_score,
-      global_rank,
-      global_total_pickers,
-      pool_name,
-      pool_rank,
-      pool_total_pickers,
+    narrative_line: composeShowRecapNarrative(narrativeInput),
+    fact_label: buildShowRecapFactLabel({
+      branch: narrative_branch,
+      card: composeCardSentence(narrativeInput),
+      rankSentence: composeRelativeRankSentence(narrativeInput),
+      showDate,
     }),
   };
 }

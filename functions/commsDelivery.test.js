@@ -389,6 +389,50 @@ test("tour_recap prefs_off and existing dedup skip send (#510)", async () => {
   assert.equal(inApp.calls.length, 0);
 });
 
+test("delivery log copies a known fact label and drops an id that is not on the map", async () => {
+  const db = makeFakeDb();
+  const inApp = recordingWorker("inApp", { ok: true });
+
+  await deliverCommsTrigger({
+    db,
+    admin: fakeAdmin,
+    triggerId: "show_recap",
+    recipients: [
+      {
+        uid: "u1",
+        userData: {},
+        vars: { showDate: "2026-10-07" },
+        payload: {
+          handle: "Pat",
+          show_date: "2026-10-07",
+          fact_label: {
+            map: "show_recap",
+            branch: "cold",
+            slots: ["none_hit", "night_rank", "not_a_slot"],
+            showDate: "2026-10-07",
+            tourId: "should-not-copy",
+          },
+        },
+      },
+    ],
+    workers: { inApp },
+    dryRun: false,
+    logger: { info() {}, warn() {}, error() {} },
+    sendGa4Delivered: async () => ({ sent: true }),
+  });
+
+  assert.deepEqual(db._writes[0].data.fact_label, {
+    map: "show_recap",
+    branch: "cold",
+    slots: ["none_hit", "night_rank"],
+    showDate: "2026-10-07",
+  });
+  assert.deepEqual(inApp.calls[0].rendered.inApp.payload.fact_label.slots, [
+    "none_hit",
+    "night_rank",
+  ]);
+});
+
 test("unknown trigger returns an error summary", async () => {
   const summary = await deliverCommsTrigger({
     db: makeFakeDb(),

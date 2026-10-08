@@ -8,6 +8,14 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.78.0] — 2026-10-08
+
+### Added
+- **Recap sends record which facts they spoke** — each night recap and each tour wrap stores its branch and the filled fact-slot ids on the inbox message and the delivery log. The morning email’s night paragraph uses the night label. An id that is not on the message map is dropped. A missing fact omits that slot and does not hold the send. The sentences are unchanged. (#1082)
+- **Fact shelf and message maps** — `docs/comms-triggers/COMMS_FACT_INVENTORY.md` lists facts the app already knows. The night map and the tour-wrap map say which of those facts each recap may speak, and the slot ids the label stores.
+
+---
+
 ## [1.77.2] — 2026-10-08
 
 ### Fixed
