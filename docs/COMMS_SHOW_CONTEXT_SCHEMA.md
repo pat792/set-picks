@@ -19,14 +19,18 @@ Standalone collection (same rationale as `rollup_audit`): do not nest on
 | `tourKey` | string \| null | From `show_calendar.showDatesByTour` |
 | `opener_title` | string \| null | Slot / set1 first |
 | `encore_title` | string \| null | Slot / encore first |
-| `bustout_titles` | string[] | From `official_setlists.bustouts` |
-| `bustout_entries` | `{ title, gap }[]` | Bustouts with Phish.net pre-show gap when rows available |
+| `bustout_titles` | string[] | Bustout titles that are also in that night’s official setlist |
+| `bustout_entries` | `{ title, gap }[]` | Those bustouts, with Phish.net pre-show gap when rows available |
 | `tour_debut_titles` | string[] | Tonight titles not seen earlier this tour |
-| `set_flow_summary` | string \| null | Short S1/S2/E structure line |
+| `tour_debuts_trusted` | boolean | False on the first show of a tour, when the debut list is just the set |
+| `set_songs` | map | `{ set1, set2, encore }` title lists |
+| `song_gaps` | map | Pre-show gap by normalized title |
+| `last_played` | map | `title → YYYY-MM-DD` from `public_tour_stats` for this night. Refreshed on each ensure |
+| `set_flow_summary` | string \| null | One sentence per set: length, highlight, encore titles |
 | `setlist_highlight` | string \| null | One-liner for push / Tonight. Bustouts: `Bustout: Song - a/an N show gap.` or `Bustouts: A - …; B - ….` (#780) |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut`, `multi_encore` |
 | `set_counts` | map | `{ set1, set2, encore }` lengths |
-| `schemaVersion` | number | `2` (was `1`; bump forces rebuild via `ensureCommsShowContext`) |
+| `schemaVersion` | number | `3` (was `2`; bump forces rebuild via `ensureCommsShowContext`) |
 | `updatedAt` | timestamp | Server write time |
 
 ## Write hooks

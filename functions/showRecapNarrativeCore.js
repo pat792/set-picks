@@ -13,7 +13,7 @@ const {
   calculateSlotScore,
   SCORING_RULES,
 } = require("./scoringCore");
-const { formatBustoutSongGap } = require("./commsShowContextCore");
+const { formatBustoutSongGap, composeNightSetFlow } = require("./commsShowContextCore");
 const { buildShowRecapFactLabel } = require("./commsFactLabel");
 
 const SLOT_RESULT_KEYS = {
@@ -46,23 +46,6 @@ function markFromSlotScore(slotScore) {
  * @param {string[]} items
  * @returns {string}
  */
-function joinProse(items) {
-  if (!items.length) return "";
-  if (items.length === 1) return items[0];
-  if (items.length === 2) return `${items[0]} and ${items[1]}`;
-  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
-}
-
-/**
- * @param {string[]} labels
- * @returns {string}
- */
-function formatHitList(labels) {
-  if (labels.length === 1) return `the ${labels[0]}`;
-  if (labels.length === 2) return `the ${labels[0]} and ${labels[1]}`;
-  return joinProse(labels);
-}
-
 /**
  * @param {unknown} value
  * @returns {string}
@@ -79,16 +62,6 @@ function ensurePeriod(value) {
   const t = String(value || "").trim();
   if (!t) return "";
   return /[.!?]$/.test(t) ? t : `${t}.`;
-}
-
-/**
- * @param {string} value
- * @returns {string}
- */
-function capitalizeSentence(value) {
-  const t = String(value || "").trim();
-  if (!t) return "";
-  return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
 /**
@@ -137,11 +110,27 @@ function buildUserShowScorecard(userPicks, actualSetlist, bustoutEntries = []) {
     const guessNorm = String(guess ?? "")
       .trim()
       .toLowerCase();
+    let exact = false;
+    if (slotScore > 0) {
+      if (fieldId === "wild") {
+        exact = true;
+      } else if (fieldId === "enc") {
+        const enc = String(actualSetlist?.enc || "").trim().toLowerCase();
+        const encoreSongs = Array.isArray(actualSetlist?.encoreSongs)
+          ? actualSetlist.encoreSongs.map((title) => String(title).trim().toLowerCase())
+          : [];
+        exact = guessNorm === enc || encoreSongs.includes(guessNorm);
+      } else {
+        exact = guessNorm === String(actualSetlist?.[fieldId] || "").trim().toLowerCase();
+      }
+    }
     slot_hits.push({
       fieldId,
       label: SLOT_PROSE[fieldId] || fieldId,
       title: hasGuess ? String(guess).trim() : null,
       hit: slotScore > 0,
+      exact,
+      inSetlist: slotScore > 0 && !exact,
       submitted: Boolean(hasGuess),
     });
     if (guessNorm && slotScore > 0 && bustouts.includes(guessNorm)) {
@@ -253,50 +242,6 @@ function composeArcSentence(p) {
 }
 
 /**
- * Show-context bustout sticker (labeled). Empty when the night had no bustout.
- * @param {Record<string, unknown>} p
- * @returns {string}
- */
-function labeledBustoutContext(p) {
-  const highlight = trimText(p.setlist_highlight);
-  if (/^Bustouts?:/i.test(highlight)) return highlight.replace(/\.$/, "");
-  const entries = Array.isArray(p.bustout_entries) ? p.bustout_entries : [];
-  const gap = formatBustoutSongGap(entries);
-  if (gap) {
-    const label = entries.length > 1 ? "Bustouts" : "Bustout";
-    return `${label}: ${gap}`;
-  }
-  const titles = Array.isArray(p.bustout_titles)
-    ? p.bustout_titles.filter((t) => typeof t === "string" && t.trim())
-    : [];
-  if (titles.length) {
-    const label = titles.length > 1 ? "Bustouts" : "Bustout";
-    return `${label}: ${titles.join("; ")}`;
-  }
-  return "";
-}
-
-/**
- * @param {Record<string, unknown>} p
- * @returns {string}
- */
-function hitCountClause(p) {
-  const n = p.correct_picks_count;
-  const total = p.total_picks_count != null ? p.total_picks_count : 6;
-  if (typeof n === "number") return `${n} of ${total}`;
-  return "";
-}
-
-/**
- * @param {Record<string, unknown>} p
- * @returns {{ fieldId: string, label: string, title: string | null, hit: boolean, submitted: boolean }[]}
- */
-function submittedHits(p) {
-  const slots = Array.isArray(p.slot_hits) ? p.slot_hits : [];
-  return slots.filter((s) => s && s.submitted && s.hit);
-}
-
-/**
  * @param {Record<string, unknown>} p
  * @returns {boolean}
  */
@@ -306,82 +251,215 @@ function hasBoardFacts(p) {
 }
 
 /**
- * Your card — which of *their* slots hit; bustout they caught or missed.
- * Does not name unpicked songs unless the clause is clearly show-context.
+ * Titles the official set actually played. Null when the payload has no set.
+ * @param {Record<string, unknown>} p
+ * @returns {Set<string> | null}
+ */
+function playedTitleKeys(p) {
+  const songs = p.set_songs;
+  if (songs && typeof songs === "object") {
+    const titles = []
+      .concat(songs.set1 || [], songs.set2 || [], songs.encore || [])
+      .map((title) => String(title).trim().toLowerCase())
+      .filter(Boolean);
+    if (titles.length) return new Set(titles);
+  }
+  const official = p.actualSetlist && p.actualSetlist.officialSetlist;
+  if (Array.isArray(official) && official.length) {
+    return new Set(official.map((title) => String(title).trim().toLowerCase()).filter(Boolean));
+  }
+  return null;
+}
+
+/**
+ * @param {unknown} title
+ * @param {Set<string> | null} played
+ */
+function titleWasPlayed(title, played) {
+  if (!played) return true;
+  return played.has(String(title ?? "").trim().toLowerCase());
+}
+
+/**
+ * @param {unknown} gap
+ * @returns {string}
+ */
+function caughtGapDash(gap) {
+  const n = Number(gap);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  const abs = Math.trunc(n);
+  const s = String(abs);
+  const article = s === "11" || s === "18" || s.startsWith("8") ? "an" : "a";
+  return ` — ${article} ${abs} show gap —`;
+}
+
+/**
+ * @param {string} title
+ * @param {unknown} gap
+ * @returns {string}
+ */
+function missedBustoutSentence(title, gap) {
+  const n = Number(gap);
+  if (!Number.isFinite(n) || n <= 0) return `${title} stayed off your board.`;
+  const abs = Math.trunc(n);
+  const s = String(abs);
+  const article = s === "11" || s === "18" || s.startsWith("8") ? "an" : "a";
+  return `${title} (${article} ${abs} show gap) stayed off your board.`;
+}
+
+/**
+ * @param {string[]} labels
+ * @returns {string}
+ */
+function joinSlotLabels(labels) {
+  const named = labels.filter(Boolean).map((label) => `the ${label}`);
+  if (named.length <= 1) return named[0] || "";
+  if (named.length === 2) return `${named[0]} and ${named[1]}`;
+  return `${named.slice(0, -1).join(", ")}, and ${named[named.length - 1]}`;
+}
+
+/**
+ * First true player slot from the night map. A caught bustout wins over a
+ * named slot so the song and gap are spoken once, on the player line.
+ * @param {Record<string, unknown>} p
+ * @returns {{ text: string, slot: string | null, omitTitles: string[] }}
+ */
+function composePlayerFacts(p) {
+  const empty = { text: "", slot: null, omitTitles: [] };
+  if (!hasBoardFacts(p)) return empty;
+  const slots = Array.isArray(p.slot_hits) ? p.slot_hits : [];
+  const total = typeof p.total_picks_count === "number" ? p.total_picks_count : 6;
+  const correct =
+    typeof p.correct_picks_count === "number" ? p.correct_picks_count : null;
+  if (correct != null && total > 0 && correct === total) {
+    return { text: "You hit all six.", slot: "all_six", omitTitles: [] };
+  }
+  if (correct === 0) {
+    return { text: "None of your six landed.", slot: "none_hit", omitTitles: [] };
+  }
+
+  const played = playedTitleKeys(p);
+  const userHits = (Array.isArray(p.user_bustout_hits) ? p.user_bustout_hits : []).filter(
+    (hit) => hit && hit.title && titleWasPlayed(hit.title, played),
+  );
+  if (p.user_hit_bustout && userHits.length) {
+    const hit = userHits[0];
+    const slot = slots.find(
+      (row) =>
+        row &&
+        row.title &&
+        String(row.title).trim().toLowerCase() === String(hit.title).trim().toLowerCase(),
+    );
+    const where = slot && slot.label ? ` on your ${slot.label}` : "";
+    const gap = caughtGapDash(hit.gap);
+    const text = gap
+      ? `You caught ${hit.title}${gap}${where}.`
+      : `You caught ${hit.title}${where}.`;
+    return { text, slot: "bustout_caught", omitTitles: [String(hit.title)] };
+  }
+
+  const exact = slots.filter(
+    (row) => row && row.hit && row.exact !== false && row.inSetlist !== true && row.label,
+  );
+  if (exact.length) {
+    const debuts =
+      p.tour_debuts_trusted === true
+        ? new Set(
+            (Array.isArray(p.tour_debut_titles) ? p.tour_debut_titles : []).map((title) =>
+              String(title).trim().toLowerCase(),
+            ),
+          )
+        : new Set();
+    const onlyDebuts =
+      debuts.size > 0 &&
+      exact.every((row) => debuts.has(String(row.title || "").trim().toLowerCase()));
+    if (onlyDebuts) {
+      const names = exact.map((row) => row.title).filter(Boolean);
+      const verb = names.length === 1 ? "was" : "were";
+      const where = names.length === 1 ? `, and it was your ${exact[0].label}` : "";
+      return {
+        text: `${names.join(" and ")} ${verb} new to the tour${where}.`,
+        slot: "tour_debut",
+        omitTitles: names.map(String),
+      };
+    }
+    return {
+      text: `You hit ${joinSlotLabels(exact.map((row) => row.label))}.`,
+      slot: "named_slots",
+      omitTitles: [],
+    };
+  }
+
+  const wrong = slots.filter(
+    (row) =>
+      row &&
+      row.hit &&
+      (row.exact === false || row.inSetlist === true) &&
+      row.title &&
+      row.label,
+  );
+  if (wrong.length) {
+    const row = wrong[0];
+    return {
+      text: `${row.title} was in the show, just not your ${row.label}.`,
+      slot: "wrong_slot",
+      omitTitles: [],
+    };
+  }
+
+  const missed = (Array.isArray(p.bustout_entries) ? p.bustout_entries : []).filter(
+    (entry) => entry && entry.title && titleWasPlayed(entry.title, played),
+  );
+  if (missed.length && !p.user_hit_bustout) {
+    const entry = missed[0];
+    return {
+      text: missedBustoutSentence(String(entry.title), entry.gap),
+      slot: "bustout_missed",
+      omitTitles: [String(entry.title)],
+    };
+  }
+
+  return empty;
+}
+
+/**
+ * Set-by-set flow when the payload has the night's songs. Empty otherwise,
+ * and the saved arc sentence is used instead.
+ * @param {Record<string, unknown>} p
+ * @param {string[]} omitTitles
+ * @returns {{ text: string, slots: string[] }}
+ */
+function nightFlowFromPayload(p, omitTitles) {
+  const songs = p.set_songs;
+  if (!songs || typeof songs !== "object") return { text: "", slots: [] };
+  const groups = {
+    set1: Array.isArray(songs.set1) ? songs.set1 : [],
+    set2: Array.isArray(songs.set2) ? songs.set2 : [],
+    encore: Array.isArray(songs.encore) ? songs.encore : [],
+  };
+  if (!groups.set1.length && !groups.set2.length && !groups.encore.length) {
+    return { text: "", slots: [] };
+  }
+  return composeNightSetFlow({
+    groups,
+    songGaps: p.song_gaps && typeof p.song_gaps === "object" ? p.song_gaps : {},
+    bustoutTitles: Array.isArray(p.bustout_titles) ? p.bustout_titles : [],
+    tourDebutTitles: Array.isArray(p.tour_debut_titles) ? p.tour_debut_titles : [],
+    debutsTrusted: p.tour_debuts_trusted === true,
+    lastPlayed: p.last_played && typeof p.last_played === "object" ? p.last_played : {},
+    omitTitles,
+    opener: typeof p.opener_title === "string" ? p.opener_title : "",
+    venue: typeof p.venue_name === "string" ? p.venue_name : "",
+  });
+}
+
+/**
+ * Your card — one player fact. Stock wrappers stay on the legacy line.
  * @param {Record<string, unknown>} p
  * @returns {string}
  */
 function composeCardSentence(p) {
-  if (!hasBoardFacts(p)) return "";
-
-  const hits = submittedHits(p);
-  const hitLabels = hits.map((s) => s.label);
-  const count = hitCountClause(p);
-  const total = typeof p.total_picks_count === "number" ? p.total_picks_count : 6;
-  const correct = typeof p.correct_picks_count === "number" ? p.correct_picks_count : null;
-  const bustoutCtx = labeledBustoutContext(p);
-  const userHits = Array.isArray(p.user_bustout_hits) ? p.user_bustout_hits : [];
-  const caughtGap = formatBustoutSongGap(userHits);
-  const bustoutSlot = hits.find((s) =>
-    userHits.some(
-      (h) =>
-        h?.title &&
-        s.title &&
-        String(h.title).toLowerCase() === String(s.title).toLowerCase(),
-    ),
-  );
-  const missedBustout = Boolean(bustoutCtx) && !p.user_hit_bustout;
-
-  if (p.narrative_branch === "bustout_hero") {
-    let caught = "You caught a bustout";
-    if (caughtGap) caught += ` — ${caughtGap}`;
-    else if (bustoutCtx) {
-      caught += ` — ${bustoutCtx.replace(/^Bustouts?:\s*/i, "")}`;
-    }
-    if (bustoutSlot) caught += ` on your ${bustoutSlot.label}`;
-    if (count) caught += ` (${count})`;
-    return ensurePeriod(caught);
-  }
-
-  let board;
-  if (correct === 0) {
-    board = "none of your six landed";
-  } else if (correct != null && correct === total) {
-    board = "you hit all six";
-  } else if (hitLabels.length) {
-    board = `you hit ${formatHitList(hitLabels)}`;
-  } else if (count) {
-    board = `you had ${count} hitting`;
-  } else {
-    board = "";
-  }
-
-  const countSuffix =
-    count && correct != null && correct > 0 && correct < total ? ` (${count})` : "";
-
-  if (p.narrative_branch === "hot_night") {
-    const lead = board
-      ? `Strong night — ${board}${countSuffix}`
-      : "Strong night — your board landed";
-    if (missedBustout) return `${lead}; ${bustoutCtx} stayed off your board.`;
-    return ensurePeriod(lead);
-  }
-
-  if (p.narrative_branch === "cold") {
-    const lead = board ? `Tough board — ${board}${countSuffix}` : "Tough board";
-    if (missedBustout) {
-      return `${lead}; still a night to remember: ${ensurePeriod(bustoutCtx)}`;
-    }
-    return ensurePeriod(lead);
-  }
-
-  // mixed
-  if (board && missedBustout) {
-    return `${capitalizeSentence(board)}${countSuffix}; ${bustoutCtx} stayed off your board.`;
-  }
-  if (board) return ensurePeriod(`${capitalizeSentence(board)}${countSuffix}`);
-  if (bustoutCtx) return ensurePeriod(bustoutCtx);
-  return "";
+  return composePlayerFacts(p).text;
 }
 
 /**
@@ -432,10 +510,11 @@ function composeRelativeRankSentence(p) {
  */
 function composeShowRecapNarrative(p) {
   const input = p && typeof p === "object" ? p : {};
-  const arc = composeArcSentence(input);
-  const card = composeCardSentence(input);
+  const player = composePlayerFacts(input);
+  const flow = nightFlowFromPayload(input, player.omitTitles);
+  const arc = flow.text || composeArcSentence(input);
   const rank = composeRelativeRankSentence(input);
-  const parts = [arc, card, rank].filter(Boolean);
+  const parts = [arc, player.text, rank].filter(Boolean);
   if (parts.length) return parts.join(" ");
   return buildLegacyNarrativeLine(input);
 }
@@ -503,6 +582,13 @@ function buildShowRecapEnrichment({
     encore_title: showLevel.encore_title,
     bustout_titles: showLevel.bustout_titles,
     bustout_entries: bustoutEntries,
+    tour_debut_titles: showLevel.tour_debut_titles,
+    tour_debuts_trusted: showLevel.tour_debuts_trusted === true,
+    set_songs: showLevel.set_songs,
+    song_gaps: showLevel.song_gaps,
+    last_played: showLevel.last_played,
+    venue_name: showLevel.venue_name,
+    actualSetlist,
     show_score,
     global_rank,
     global_total_pickers,
@@ -510,6 +596,13 @@ function buildShowRecapEnrichment({
     pool_rank,
     pool_total_pickers,
   };
+  const player = composePlayerFacts(narrativeInput);
+  const flow = nightFlowFromPayload(narrativeInput, player.omitTitles);
+  const rankSentence = composeRelativeRankSentence(narrativeInput);
+  /** @type {string[]} */
+  const slots = [...flow.slots];
+  if (player.slot) slots.push(player.slot);
+  if (rankSentence) slots.push("night_rank");
   return {
     ...showLevel,
     ...publicScorecard,
@@ -519,8 +612,7 @@ function buildShowRecapEnrichment({
     narrative_line: composeShowRecapNarrative(narrativeInput),
     fact_label: buildShowRecapFactLabel({
       branch: narrative_branch,
-      card: composeCardSentence(narrativeInput),
-      rankSentence: composeRelativeRankSentence(narrativeInput),
+      slots,
       showDate,
     }),
   };

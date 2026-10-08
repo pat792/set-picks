@@ -176,21 +176,35 @@ export function runNarrativeLineChecklist(narrativeLine, ctx, branch, opts = {})
   const requireComposerBeats = opts.requireComposerBeats === true;
 
   if (branch === "bustout_hero") {
-    const ok = /You caught a bustout/i.test(line);
+    const ok = /You caught /i.test(line);
     checks.push({
       id: "bustout_hero_prefix",
       ok,
       detail: ok
-        ? "bustout_hero names You caught a bustout"
+        ? "bustout_hero names the caught song"
         : `unexpected bustout_hero line: "${line.slice(0, 80)}"`,
     });
   }
 
   if (bustoutCount > 0 && branch !== "bustout_hero" && highlight) {
-    // Cold/hot/mixed must retain the labeled highlight when present.
+    // The night map speaks a missed bustout in the set line, or yields it
+    // when an earlier player slot is the sentence. The legacy sticker still counts.
+    const titles = []
+      .concat((ctx.bustout_entries || []).map((entry) => entry?.title))
+      .concat(ctx.bustout_titles || [])
+      .filter((title) => typeof title === "string" && title.trim());
+    const namesSong = titles.some((title) =>
+      line.toLowerCase().includes(title.trim().toLowerCase()),
+    );
+    const yielded =
+      /none of your six|you hit all six|you hit the |was in the show, just not your/i.test(
+        line,
+      );
     const retains =
       line.includes("Bustout:") ||
       line.includes("Bustouts:") ||
+      namesSong ||
+      yielded ||
       (looksLikeBustoutHighlight(highlight) && line.includes(highlight));
     checks.push({
       id: "wrapper_keeps_label",
@@ -219,7 +233,7 @@ export function runNarrativeLineChecklist(narrativeLine, ctx, branch, opts = {})
       /\d+ of \d+/.test(line) ||
       /you hit /i.test(line) ||
       /none of your six/i.test(line) ||
-      /You caught a bustout/i.test(line) ||
+      /you caught /i.test(line) ||
       /Tough board/i.test(line) ||
       /Strong night/i.test(line);
     checks.push({

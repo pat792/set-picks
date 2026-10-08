@@ -12,6 +12,41 @@ const {
 } = require("./commsShowContextCore");
 const { tourDatesForKey } = require("./tourRankingsDailyCore");
 const { resolveTourKeyForDate } = require("./rollupSeasonAggregates");
+const { tourLabelToSlug } = require("./aggregateTourSetlistStats.cjs");
+
+/**
+ * Last-played dates from the public tour table for songs played on this night.
+ * The song catalog can already say last night. This map is the date from before the show.
+ * Missing doc or a failed read returns {}.
+ *
+ * @param {FirebaseFirestore.Firestore} db
+ * @param {string | null | undefined} tourKey
+ * @param {string} showDate
+ * @returns {Promise<Record<string, string>>}
+ */
+async function loadLastPlayedByTitle(db, tourKey, showDate) {
+  if (!db || !tourKey || !showDate) return {};
+  try {
+    const snap = await db.collection("public_tour_stats").doc(tourLabelToSlug(tourKey)).get();
+    if (!snap.exists) return {};
+    const data = snap.data() || {};
+    const rows = []
+      .concat(Array.isArray(data.bustouts) ? data.bustouts : [])
+      .concat(Array.isArray(data.gapHighlights) ? data.gapHighlights : []);
+    /** @type {Record<string, string>} */
+    const map = {};
+    for (const row of rows) {
+      if (!row || row.showDate !== showDate) continue;
+      const title = String(row.title || "").trim().toLowerCase();
+      const date = row.lastPlayed;
+      if (!title || typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      map[title] = date;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
 
 /**
  * Load prior tour setlist docs (exclusive of showDate).
@@ -93,12 +128,14 @@ async function writeCommsShowContext({
     ? await loadPriorSetlistDocs(db, debutPriorDates)
     : [];
 
+  const lastPlayedByTitle = await loadLastPlayedByTitle(db, tourKey, showDate);
   const context = buildCommsShowContext({
     showDate,
     setlistDoc: setlist,
     priorTourSetlistDocs: priorDocs,
     tourKey,
     phishnetRows,
+    lastPlayedByTitle,
   });
 
   const ref = db.collection("comms_show_context").doc(showDate);
@@ -134,7 +171,8 @@ async function loadCommsShowContext(db, showDate) {
 
 /**
  * Ensure context exists; rebuild if missing or schema behind current.
- * v2 rebuilds truncated-prior tour-debut mistakes (schema 1 / no version).
+ * A current doc still refreshes last-played dates so the morning email can
+ * pick up the tour table after the night-of push.
  */
 async function ensureCommsShowContext(params) {
   const existing = await loadCommsShowContext(params.db, params.showDate);
@@ -143,6 +181,17 @@ async function ensureCommsShowContext(params) {
     existing?.setlist_highlight &&
     version >= COMMS_SHOW_CONTEXT_SCHEMA_VERSION
   ) {
+    const fresh = await loadLastPlayedByTitle(params.db, existing.tourKey, params.showDate);
+    const prev = existing.last_played && typeof existing.last_played === "object"
+      ? existing.last_played
+      : {};
+    if (JSON.stringify(fresh) !== JSON.stringify(prev) && Object.keys(fresh).length) {
+      await params.db.collection("comms_show_context").doc(params.showDate).set(
+        { last_played: fresh },
+        { merge: true },
+      );
+      return { ...existing, last_played: fresh };
+    }
     return existing;
   }
   return writeCommsShowContext(params);
