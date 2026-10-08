@@ -257,10 +257,16 @@ test("buildTourRecapPayload uses tour metadata, not a Sphere live id", () => {
   assert.equal(payload.tour_name, "Summer Tour 2026");
   assert.match(payload.headline, /Summer Tour 2026/);
   assert.equal(payload.show_count, 8);
+  assert.equal(
+    payload.personal_line,
+    "You finished #2 of 12 with 90 points and 1 nightly win, playing 8 of 8 shows.",
+  );
+  assert.equal(payload.personal_clause, "");
+  assert.match(payload.opening_paras[1], /inexact science/);
   assert.deepEqual(payload.fact_label, {
     map: "tour_recap",
     branch: "top5",
-    slots: ["rank", "opening_fallback"],
+    slots: ["rank", "points", "nightly_wins", "shows_played", "opening_fallback"],
     tourId: "Summer Tour 2026",
   });
   assert.doesNotMatch(JSON.stringify(payload), /sphere-2026-inaugural/);

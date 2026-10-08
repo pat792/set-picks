@@ -2,8 +2,8 @@
 
 | Field | Value |
 |--------|--------|
-| **Status** | draft / live runtime in `tourRecap.js` |
-| **Date** | 2026-09-07 |
+| **Status** | live runtime. Copy follows the tour-wrap fact map (#1084). |
+| **Date** | 2026-10-08 |
 | **Trigger** | `tour_recap` (#510) |
 | **Template ID** | `tour-recap` |
 | **Implementation** | `src/features/tour-recap/model/tourRecap.js` |
@@ -25,7 +25,13 @@ Night `show_recap` is a different trigger. This file is the reusable tour wrap-u
 
 {{tour_name}} is officially in the books.
 
-Calling setlists is an inexact science on a good day, and a {{show_count}}-show run kept everyone honest. Despite the curveballs, {{participantCount}} of you stepped up to lay down your picks.
+Then the first fact that exists:
+
+1. The rarest hit of the run — song and gap. A title counts only when that exact title was in that night’s official setlist.
+2. How often the tour lead changed hands.
+3. The last venue after N shows.
+
+If none of those exist, keep: “Calling setlists is an inexact science on a good day, and a {{show_count}}-show run kept everyone honest. Despite the curveballs, {{participantCount}} of you stepped up to lay down your picks.”
 
 Before the next run, here is the final tape.
 
@@ -39,38 +45,29 @@ Computed from tour standings at send time (top 3 + two honorable mentions). Do n
 
 ## Your final result (personalized)
 
-**Function:** `getTourRecapPersonalParagraph`  
-**Placeholders:** `{{rank}}`, `{{points}}`, `{{wins}}`, `{{showsPlayed}}`, `{{participantCount}}`, `{{showCount}}`, `{{tourName}}`
+The rank band (`champion`, `top5`, `top10`, `full_run`, `partial`, `fallback`) is still stored on the send. It does not choose a flavor sentence.
 
-### Branch: champion (rank 1)
+You finished #{{rank}} of {{participantCount}} with {{points}} points and {{wins}} nightly wins, playing {{showsPlayed}} of {{showCount}} shows.
 
-You are the Champion. You navigated {{tourName}} better than anyone else, taking the #1 overall spot with {{points}} points and {{wins}} nightly wins. Soak it in, take a victory lap, and get ready to defend your title on the next tour.
+When the fact exists, add:
 
-### Branch: top 5 (rank 2–5)
+- Your best night was {{date}} with {{score}} points.
+- You caught {{songs}}. Skip a song already named in the personal sentence below.
+- You sat out {{count}} shows. Say this only when the count is greater than zero.
 
-You finished in the Top 5. Coming in at #{{rank}} overall, you were right in the thick of the title hunt until the very last note. You were just one or two wildcard hits away from taking the whole thing down. We'll see you in the top tier next tour.
+Then one sentence, the first that is true:
 
-### Branch: top 10 (rank 6–10)
+1. You caught {{song}} — a {{gap}} show gap — on {{date}}.
+2. You took the lead on {{date}}. Or: You lost the lead on {{date}}.
+3. This is your highest tour point total. Or: This is the most nightly wins you've had on a tour. Only when another tour on the account is already lower. A one-tour account does not get this sentence.
 
-You finished in the Top 10. You locked in a very respectable #{{rank}} finish out of {{participantCount}} players. Staying in the top half of the leaderboard over a {{showCount}}-show run takes consistency. Adjust your strategy, study the stats, and the Top 5 is yours next time.
-
-### Branch: full-run outside top 10
-
-You finished at #{{rank}}. You played all {{showCount}} shows—which is a massive achievement in itself—but the curveballs kept you just outside the top 10 this time around. Wipe the slate clean and get ready to climb the boards on the next run.
-
-### Branch: partial attendance
-
-You finished at #{{rank}}. You hopped into the tour for {{showsPlayed}} shows this run, dropping some great picks along the way. To climb the leaderboard next tour, make sure your picks are locked in for every single show. We'll see you on the next run!
-
-### Fallback
-
-You finished at #{{rank}}. Thanks for playing—see you on the next run.
+If none of those are true, the rank paragraph stands alone.
 
 ---
 
 ## Email (abbreviated)
 
-Teaser + finish line + primary CTA **View Recap** → `/dashboard/profile/notifications` (Messages inbox). Full narrative stays in-app.
+Teaser + finish line + at most the one personal sentence above. Primary CTA **View Recap** → `/dashboard/profile/notifications` (Messages inbox). The rank paragraph, best night, caught songs, and shows sat out stay in-app.
 
 ---
 

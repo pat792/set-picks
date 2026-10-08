@@ -43,6 +43,7 @@ function SectionHeading({ icon: Icon, label, id }) {
  *   podium?: object,
  *   openingParas?: string[],
  *   closingLines?: string[],
+ *   personalLine?: string,
  *   edition?: object,
  *   onCtaClick?: (cta: { label: string, href?: string }) => void,
  * }} props
@@ -70,6 +71,7 @@ export default function TourRecapInApp(props) {
     showCount,
     tourName,
     edition,
+    personalLine: props.personalLine,
   });
   const vars = { participantCount, showCount, tourName };
   const opening = (edition.openingParas || []).map((p) => interpolateTourRecapCopy(p, vars));

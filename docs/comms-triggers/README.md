@@ -18,6 +18,7 @@ This directory is the **canonical home** for triggered, templated communications
 | [COMMS_FACT_INVENTORY.md](./COMMS_FACT_INVENTORY.md) | Living shelf of facts comms may speak: show, personal / global / band stats, and game (lead changes, margins, crowd pulse) |
 | [SHOW_RECAP_FACT_INVENTORY.md](./SHOW_RECAP_FACT_INVENTORY.md) | Night-paragraph message map: which shelf facts that paragraph says today and next (#1083) |
 | [TOUR_RECAP_FACT_INVENTORY.md](./TOUR_RECAP_FACT_INVENTORY.md) | End-of-tour wrap message map: shared opening and one personal sentence (#1084) |
+| [TOUR_RECAP_SAMPLE.md](./TOUR_RECAP_SAMPLE.md) | Fixture preview of the wrap. Nothing sent. |
 | [STANDINGS_FACT_INVENTORY.md](./STANDINGS_FACT_INVENTORY.md) | Morning standings map: entered, stayed in, or left the top 5, and took or lost the lead (#1102) |
 | [SHOW_RECAP_SAMPLE_2026-10-07.md](./SHOW_RECAP_SAMPLE_2026-10-07.md) | Read-only Richmond preview: live morning email next to the inventory paragraph. Nothing sent. |
 | [optimize_for.md](./optimize_for.md) | Scheduled goal rotation + override for Optimize kickoffs (#778) |

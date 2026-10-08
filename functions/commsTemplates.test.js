@@ -223,6 +223,17 @@ test("tour-recap push and email are rank-aware teasers without Sphere live IDs",
   });
   assert.match(mid.push.body, /#8/);
   assert.equal(mid.email.ctaLabel, "View Recap");
+
+  const withClause = await renderCommsTemplate("tour-recap", {
+    handle: "Pat",
+    rank: 2,
+    points: 90,
+    wins: 1,
+    tour_name: "Sample Tour",
+    personal_clause: "You took the lead on 2026-07-02.",
+  });
+  assert.match(withClause.email.text, /You took the lead on 2026-07-02/);
+  assert.doesNotMatch(withClause.push.body, /took the lead/);
 });
 
 test("show-recap push surfaces score + rank when present", async () => {

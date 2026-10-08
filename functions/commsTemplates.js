@@ -546,12 +546,14 @@ const BUILDERS = {
               wins != null ? ` and ${wins} nightly wins` : ""
             }.`
           : "Your personalized tour recap is ready.";
+    const clause = typeof p.personal_clause === "string" ? p.personal_clause.trim() : "";
     const assembled = assembleServiceEmail(
       [
         `${handle}, ${tourName} is wrapped.`,
         teaser,
+        clause,
         "The full podium, honorable mentions, and your personalized recap are waiting in Messages.",
-      ],
+      ].filter(Boolean),
       { ctaUrl: MESSAGES_CTA_URL }
     );
     return {

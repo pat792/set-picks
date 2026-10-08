@@ -41,6 +41,9 @@ const {
   isFinalShowOfTour,
   buildTourRecapPodium,
   buildTourRecapPayload,
+  closingVenueForTour,
+  deriveSharedWrapFacts,
+  derivePlayerWrapFacts,
 } = require("./tourRecapCore");
 const {
   readTourRecapState,
@@ -593,6 +596,21 @@ async function deliverTourRecapIfFinalShow({
   const participantCount = leaders.length;
   const showCount = tourDates.length;
   const tourName = tourKey;
+  let setlists = [];
+  try {
+    setlists = await loadOfficialSetlistsForDates(db, tourDates);
+  } catch (err) {
+    logger?.warn?.("deliverTourRecapIfFinalShow: setlist read failed", {
+      tourKey,
+      message: err?.message || String(err),
+    });
+  }
+  const shared = deriveSharedWrapFacts({
+    setlists,
+    picksByDate,
+    showCount,
+    closingVenue: closingVenueForTour(showDatesByTour, tourKey),
+  });
 
   /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
   const recipients = [];
@@ -616,6 +634,19 @@ async function deliverTourRecapIfFinalShow({
         tourName,
         showCount,
         podium,
+        shared,
+        player: derivePlayerWrapFacts({
+          uid: row.uid,
+          picksByDate,
+          setlists,
+          shared,
+          seasonStats: userData.seasonStats,
+          tourKey,
+          points: row.totalPoints,
+          wins: row.wins,
+          showsPlayed: row.shows,
+          showCount,
+        }),
       }),
       vars: { uid: row.uid, tourId: tourKey },
     });
@@ -974,6 +1005,25 @@ async function loadPicksByDates(db, dates) {
   }
 
   return dates.map((date) => ({ date, picks: byDate.get(date) || [] }));
+}
+
+/**
+ * Official setlists for the wrap. A failed read is the caller's problem;
+ * a missing night is an empty doc so that night drops out of the facts.
+ *
+ * @param {import("firebase-admin").firestore.Firestore} db
+ * @param {string[]} dates
+ * @returns {Promise<Array<{ date: string, doc: Record<string, unknown> | null }>>}
+ */
+async function loadOfficialSetlistsForDates(db, dates) {
+  /** @type {Array<{ date: string, doc: Record<string, unknown> | null }>} */
+  const out = [];
+  for (const date of dates) {
+    // eslint-disable-next-line no-await-in-loop
+    const snap = await db.collection("official_setlists").doc(date).get();
+    out.push({ date, doc: snap.exists ? snap.data() || null : null });
+  }
+  return out;
 }
 
 /**

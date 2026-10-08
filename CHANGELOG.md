@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.81.0] — 2026-10-08
+
+### Changed
+- **Tour wrap** — the end-of-tour note opens with the rarest song that was actually played, otherwise how often the lead changed hands, otherwise the closing venue. The rank paragraph states finish, field size, points, nightly wins, and shows played. When those facts exist it adds the best night, bustouts they caught, and shows they sat out. One more sentence names a rare song they picked, a night they took or lost the lead, or a points or wins mark already stored on another tour. Email carries that one sentence. Push stays the rank tease. A bustout title that was not in that night’s setlist is left out. A missing fact drops its clause. The send still goes. (#1084)
+
+---
+
 ## [1.80.0] — 2026-10-08
 
 ### Changed

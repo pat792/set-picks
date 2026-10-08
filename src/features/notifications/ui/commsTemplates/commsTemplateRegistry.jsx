@@ -825,6 +825,8 @@ export const COMMS_TEMPLATE_REGISTRY = {
         tourName: typeof p.tour_name === 'string' ? p.tour_name : PREVIEW_TOUR_EDITION.tourName,
         headline: typeof p.headline === 'string' ? p.headline : PREVIEW_TOUR_EDITION.headline,
         podium: p.podium && typeof p.podium === 'object' ? p.podium : PREVIEW_TOUR_EDITION.podium,
+        openingParas: Array.isArray(p.opening_paras) ? p.opening_paras : undefined,
+        personalLine: typeof p.personal_line === 'string' ? p.personal_line : undefined,
         edition: PREVIEW_TOUR_EDITION,
       };
     },
