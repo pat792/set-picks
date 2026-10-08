@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.79.0] — 2026-10-08
+
+### Changed
+- **Morning standings paragraph** — the line after the spot count says whether this player took the lead, stayed in the lead, climbed into the top 5, was already in the top 5, lost the lead but stayed in the top 5, or fell out of the top 5. A move that stays outside the top 5 keeps the rank sentence. A missing yesterday rank does not claim a crossing. (#1102)
+
+---
+
 ## [1.78.0] — 2026-10-08
 
 ### Added

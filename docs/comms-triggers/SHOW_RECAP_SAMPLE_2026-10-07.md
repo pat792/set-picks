@@ -40,7 +40,7 @@ Inventory paragraph from the same facts:
 
 What changed: the parenthesized set-1 count and the bare “Set 2 added 6” became one shape per set. Both encore songs are named. “Tough board / still a night to remember” dropped because “none of your six landed” is a real player fact. The bustout sticker did not move into set 1, because its title is not a song in that set.
 
-Standings paragraph, unchanged:
+Standings paragraph. They were #2 and slipped to #3, so they were already in the top 5:
 
 > After last night's show you slipped 1 spot. Still in the top 5 — ranked #3 of 17 with 55 points. Next up: 2026-10-09 — VyStar Veterans Memorial Arena, Jacksonville, FL.
 
@@ -58,6 +58,6 @@ Inventory paragraph from the same facts:
 
 The map’s player rule keeps the first true fact. Exact slots are ahead of a wrong-slot song, so Ruby Waves is not spoken. The live line calls that closer a hit.
 
-Standings paragraph, unchanged:
+Standings paragraph. They were #8 and climbed to #5, so they entered the top 5:
 
-> After last night's show you climbed 3 spots. Still in the top 5 — ranked #5 of 17 with 50 points. Next up: 2026-10-09 — VyStar Veterans Memorial Arena, Jacksonville, FL.
+> After last night's show you climbed 3 spots. You climbed into the top 5 — ranked #5 of 17 with 50 points. Next up: 2026-10-09 — VyStar Veterans Memorial Arena, Jacksonville, FL.

@@ -35,6 +35,86 @@ function normalizePlace(value) {
 }
 
 /**
+ * Lead, top 5 (2–5), or the field (6+).
+ * @param {number | null} rank
+ * @returns {'leader' | 'top5' | 'field' | null}
+ */
+function rankBand(rank) {
+  if (rank == null || !Number.isFinite(rank)) return null;
+  if (rank === 1) return 'leader';
+  if (rank >= 2 && rank <= 5) return 'top5';
+  if (rank >= 6) return 'field';
+  return null;
+}
+
+/**
+ * Yesterday's rank from today's rank and the spot count.
+ * @param {number | null} currentRank
+ * @param {unknown} rankChange
+ * @returns {number | null}
+ */
+function priorRankFromChange(currentRank, rankChange) {
+  if (currentRank == null || !Number.isFinite(currentRank)) return null;
+  if (rankChange === 'held') return currentRank;
+  if (typeof rankChange === 'string' && rankChange.startsWith('up ')) {
+    const n = Number(rankChange.slice(3));
+    return Number.isFinite(n) ? currentRank + n : null;
+  }
+  if (typeof rankChange === 'string' && rankChange.startsWith('down ')) {
+    const n = Number(rankChange.slice(5));
+    return Number.isFinite(n) ? currentRank - n : null;
+  }
+  return null;
+}
+
+/**
+ * Second standings sentence. Keep in sync with tourRankingsDailyCore.js.
+ * @param {{
+ *   tourRank: number | null,
+ *   priorRank: number | null,
+ *   ofTotal: string,
+ *   ptsClause: string,
+ *   tiedParen: string,
+ *   tourStanding: string,
+ * }} input
+ * @returns {string | null}
+ */
+function standingsBandSentence(input) {
+  const current = rankBand(input.tourRank);
+  const prior = rankBand(input.priorRank);
+  const ranked =
+    input.tourRank != null
+      ? `ranked #${input.tourRank}${input.ofTotal}${input.ptsClause}`
+      : '';
+  if (current === 'leader' && (prior === 'top5' || prior === 'field')) {
+    return `You took the lead${input.ptsClause}${input.tiedParen}.`;
+  }
+  if (current === 'leader') {
+    return `You're leading the tour${input.ptsClause}${input.tiedParen}.`;
+  }
+  if (current === 'top5' && prior === 'leader') {
+    return `Out of the lead, still in the top 5 — ${ranked}.`;
+  }
+  if (current === 'top5' && prior === 'field') {
+    return `You climbed into the top 5 — ${ranked}.`;
+  }
+  if (current === 'top5' && prior === 'top5') {
+    return `Still in the top 5 — ${ranked}.`;
+  }
+  if (current === 'top5') {
+    return ranked ? `In the top 5 — ${ranked}.` : `In the top 5${input.ptsClause}.`;
+  }
+  if (current === 'field' && (prior === 'leader' || prior === 'top5')) {
+    return `You fell out of the top 5 — ${ranked}.`;
+  }
+  if (current === 'field') {
+    const standing = input.tourStanding;
+    return `${standing.charAt(0).toUpperCase()}${standing.slice(1)}.`;
+  }
+  return null;
+}
+
+/**
  * @param {string} nextVenue
  * @param {string[]} currentLabels
  * @returns {boolean}
@@ -145,28 +225,15 @@ export function buildTourRankingsDailyParagraphs(p, opts = {}) {
       );
     }
 
-    const tier =
-      p.tour_tier === 'leader' || p.tour_tier === 'top5'
-        ? p.tour_tier
-        : tourRank === 1
-          ? 'leader'
-          : tourRank != null && tourRank >= 2 && tourRank <= 5
-            ? 'top5'
-            : null;
-
-    if (tier === 'leader') {
-      paras.push(`You're leading the tour${ptsClause}${tiedParen}.`);
-    } else if (tier === 'top5') {
-      paras.push(
-        tourRank != null
-          ? `Still in the top 5 — ranked #${tourRank}${ofTotal}${ptsClause}.`
-          : `Still in the top 5${ptsClause}.`
-      );
-    } else if (tourRank != null) {
-      paras.push(
-        `${tourStanding.charAt(0).toUpperCase()}${tourStanding.slice(1)}.`
-      );
-    }
+    const bandLine = standingsBandSentence({
+      tourRank,
+      priorRank: priorRankFromChange(tourRank, p.rank_change),
+      ofTotal,
+      ptsClause,
+      tiedParen,
+      tourStanding,
+    });
+    if (bandLine) paras.push(bandLine);
   }
 
   if (p.next_show_date || p.next_show_venue) {
