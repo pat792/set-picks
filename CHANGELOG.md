@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.81.1] — 2026-10-08
+
+### Added
+- **Fact shelf** — the annual wrap’s shared summary may later tell everyone which songs the room picked most, and which of those landed most often and least often. Those year numbers are not facts a message can say yet. A hit means the song was in the setlist. A small number of picks is not a rate. (#1111)
+
+---
+
 ## [1.81.0] — 2026-10-08
 
 ### Changed

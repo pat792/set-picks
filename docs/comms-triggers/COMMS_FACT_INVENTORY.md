@@ -84,6 +84,19 @@ Phish’s own numbers. A night sentence uses these when it names a song. They ar
 | Lead margin while a show is in progress | `score_leader` payload `lead_margin` | The “you’re in first” note, during the show |
 | Crowd pulse: share of cards that named a song, top songs the room picked, how many different songs the room picked | Computed from that night’s picks (`crowdNightCardSummary`). Shown on Standings. | Not said in any message. Speak only after picks lock. A lock reminder goes out before lock and does not get these. |
 
+## Under consideration
+
+These are not facts yet. A message must not say them until a row in the tables above names where the number lives.
+
+The annual wrap’s shared summary ([#1111](https://github.com/pat792/set-picks/issues/1111)) may include crowd pulse for the whole field. The same block would go in every copy. The personal section stays about that player.
+
+| Idea | What it would say | What we know today |
+|------|-------------------|--------------------|
+| Most picked | Songs the room named most often across the year | One night already has this: the top songs and the share of cards. A year total is not stored. |
+| Highest hit rate | Songs the room picked that landed most often | A hit means the song was in the setlist. That is not the same as “most picked.” Not stored as one year number. |
+| Lowest hit rate | Songs the room picked that landed least often | Same. A small number of picks should not be called a rate. |
+| Other room rates | Further crowd pulse in that family | Only after the number is real and the same for everyone. |
+
 ## How to add a fact
 
 1. Add one row in the category above in the same change that teaches the app the fact. Name where it lives.
