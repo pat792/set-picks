@@ -8,8 +8,11 @@ const {
   buildCommsShowContext,
   showLevelPayloadFields,
   priorDatesForTourDebutLookup,
+  lifetimePlaysForTitles,
   COMMS_SHOW_CONTEXT_SCHEMA_VERSION,
 } = require("./commsShowContextCore");
+const { loadSongCatalogSongs } = require("./songCatalogSource");
+const { PHISH_SONGS } = require("./phishSongs");
 const { tourDatesForKey } = require("./tourRankingsDailyCore");
 const { resolveTourKeyForDate } = require("./rollupSeasonAggregates");
 const { tourLabelToSlug } = require("./aggregateTourSetlistStats.cjs");
@@ -129,6 +132,8 @@ async function writeCommsShowContext({
     : [];
 
   const lastPlayedByTitle = await loadLastPlayedByTitle(db, tourKey, showDate);
+  const playedTitles = Array.isArray(setlist.officialSetlist) ? setlist.officialSetlist : [];
+  const lifetimePlaysByTitle = await loadLifetimePlaysByTitle(playedTitles, logger);
   const context = buildCommsShowContext({
     showDate,
     setlistDoc: setlist,
@@ -136,6 +141,7 @@ async function writeCommsShowContext({
     tourKey,
     phishnetRows,
     lastPlayedByTitle,
+    lifetimePlaysByTitle,
   });
 
   const ref = db.collection("comms_show_context").doc(showDate);
@@ -185,16 +191,49 @@ async function ensureCommsShowContext(params) {
     const prev = existing.last_played && typeof existing.last_played === "object"
       ? existing.last_played
       : {};
+    /** @type {Record<string, unknown>} */
+    const patch = {};
     if (JSON.stringify(fresh) !== JSON.stringify(prev) && Object.keys(fresh).length) {
-      await params.db.collection("comms_show_context").doc(params.showDate).set(
-        { last_played: fresh },
-        { merge: true },
-      );
-      return { ...existing, last_played: fresh };
+      patch.last_played = fresh;
+    }
+    const songs = existing.set_songs && typeof existing.set_songs === "object" ? existing.set_songs : {};
+    const played = []
+      .concat(songs.set1 || [], songs.set2 || [], songs.encore || [])
+      .filter((title) => typeof title === "string" && title.trim());
+    const plays = await loadLifetimePlaysByTitle(played, params.logger);
+    const prevPlays = existing.lifetime_plays && typeof existing.lifetime_plays === "object"
+      ? existing.lifetime_plays
+      : {};
+    if (JSON.stringify(plays) !== JSON.stringify(prevPlays) && Object.keys(plays).length) {
+      patch.lifetime_plays = plays;
+    }
+    if (Object.keys(patch).length) {
+      await params.db.collection("comms_show_context").doc(params.showDate).set(patch, { merge: true });
+      return { ...existing, ...patch };
     }
     return existing;
   }
   return writeCommsShowContext(params);
+}
+
+/**
+ * Lifetime play counts for the songs in one night. A failed catalog read returns {}.
+ * @param {string[]} titles
+ * @param {{ warn?: Function } | undefined} logger
+ * @returns {Promise<Record<string, number>>}
+ */
+async function loadLifetimePlaysByTitle(titles, logger) {
+  const wanted = (titles || []).filter((title) => typeof title === "string" && title.trim());
+  if (!wanted.length) return {};
+  try {
+    const songs = await loadSongCatalogSongs({ fallbackSongs: PHISH_SONGS, logger });
+    return lifetimePlaysForTitles(songs, wanted);
+  } catch (e) {
+    logger?.warn?.("loadLifetimePlaysByTitle failed", {
+      msg: e instanceof Error ? e.message : String(e),
+    });
+    return {};
+  }
 }
 
 module.exports = {

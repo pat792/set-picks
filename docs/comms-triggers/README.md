@@ -17,6 +17,7 @@ This directory is the **canonical home** for triggered, templated communications
 | [SHOW_RECAP_COMPOSER.md](./SHOW_RECAP_COMPOSER.md) | Night `show_recap` composer — arc + your card + relative rank (#985) |
 | [COMMS_FACT_INVENTORY.md](./COMMS_FACT_INVENTORY.md) | Living shelf of facts comms may speak: show, personal / global / band stats, and game (lead changes, margins, crowd pulse) |
 | [SHOW_RECAP_FACT_INVENTORY.md](./SHOW_RECAP_FACT_INVENTORY.md) | Night-paragraph message map: which shelf facts that paragraph says today and next (#1083) |
+| [SHOW_RECAP_HIGHLIGHT_ADDENDUM.md](./SHOW_RECAP_HIGHLIGHT_ADDENDUM.md) | Gap wording for the night highlight: rarity, return, or heavy rotation (#1105) |
 | [TOUR_RECAP_FACT_INVENTORY.md](./TOUR_RECAP_FACT_INVENTORY.md) | End-of-tour wrap message map: shared opening and one personal sentence (#1084) |
 | [STANDINGS_FACT_INVENTORY.md](./STANDINGS_FACT_INVENTORY.md) | Morning standings map: entered, stayed in, or left the top 5, and took or lost the lead (#1102) |
 | [SHOW_RECAP_SAMPLE_2026-10-07.md](./SHOW_RECAP_SAMPLE_2026-10-07.md) | Read-only Richmond preview: live morning email next to the inventory paragraph. Nothing sent. |

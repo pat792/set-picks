@@ -61,7 +61,7 @@ This is the shelf. A row means we can look the fact up at send time. It does not
 Same shape for each set. Speak a slot only when that fact is true. Put the rare song in the set where it was played.
 
 1. **Length.** “An 8-song first set.”
-2. **Highlight in that set.** The bustout in that set, otherwise the highest pre-show gap in that set. “highlighted by {song}, a {gap} show gap, last played on {date}.” The date is `lastPlayed` on that bustout or high-gap row. The title has to be a song in that set. A shorter or older title is not the same song.
+2. **Highlight in that set.** A bustout still uses “highlighted by {song}.” A gap of 20–29 says “featured a relative rarity of late.” A gap of 11–19 says “saw the return of {song}.” A set whose gaps are all 10 or fewer says “featured heavy rotation songs,” and names the song with the most lifetime plays when that count is known. The wording is [SHOW_RECAP_HIGHLIGHT_ADDENDUM.md](./SHOW_RECAP_HIGHLIGHT_ADDENDUM.md). The title has to be a song in that set. A shorter or older title is not the same song.
 3. **Tour debut in that set,** when there is no bustout and no high gap.
 4. **Encore titles.** Every encore song, not only the first. “The encore featured {Song A} and {Song B}.”
 

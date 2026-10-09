@@ -161,6 +161,7 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 | `set_songs` | map | `{ set1, set2, encore }` title lists (**v1.79.0**) |
 | `song_gaps` | map | Pre-show gap by normalized title (**v1.79.0**) |
 | `last_played` | map | Title → `YYYY-MM-DD` from the public tour table for this night (**v1.79.0**) |
+| `lifetime_plays` | map | Title → lifetime play count for songs in that night, from the song catalog `total` (**v1.80.1**). Used when a set’s gaps are all 10 or fewer. A missing count drops the song name. |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
 | `schemaVersion` | number | `3` (**v1.79.0**; rebuilds the night paragraph). Was `2` in v1.72.2. |
 

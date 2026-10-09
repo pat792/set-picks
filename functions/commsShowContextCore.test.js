@@ -10,7 +10,9 @@ const assert = require("node:assert/strict");
 const {
   COMMS_SHOW_CONTEXT_SCHEMA_VERSION,
   buildCommsShowContext,
+  composeNightSetFlow,
   composeSetlistHighlight,
+  lifetimePlaysForTitles,
   tourDebutTitles,
   priorDatesForTourDebutLookup,
   groupOfficialSetlistBySet,
@@ -180,6 +182,78 @@ describe("buildCommsShowContext", () => {
     assert.ok(ctx.show_moment_tags.includes("bustout"));
     assert.ok(ctx.tour_debut_titles.includes("Wolfman's"));
     assert.equal(ctx.bustout_entries[0].gap, 87);
+  });
+});
+
+describe("gap bands (#1105)", () => {
+  it("uses rarity, return, and rotation instead of highlighted", () => {
+    const flow = composeNightSetFlow({
+      groups: {
+        set1: ["Hey Stranger", "Gumbo"],
+        set2: ["Meatstick", "Farmhouse"],
+        encore: ["The Lizards", "Julius"],
+      },
+      songGaps: {
+        "hey stranger": 23,
+        gumbo: 4,
+        meatstick: 18,
+        farmhouse: 2,
+      },
+      lastPlayed: {
+        "hey stranger": "2026-07-10",
+        meatstick: "2026-07-17",
+      },
+      lifetimePlays: { gumbo: 100, "hey stranger": 40, meatstick: 80, farmhouse: 200 },
+    });
+    assert.equal(
+      flow.text,
+      "A 2-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 2026-07-10. A 2-song second set saw the return of Meatstick after an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius.",
+    );
+  });
+
+  it("names the crowd favorite when every gap is 10 or fewer", () => {
+    const flow = composeNightSetFlow({
+      groups: { set1: ["Tube", "Llama", "Gumbo"] },
+      songGaps: { tube: 2, llama: 10, gumbo: 4 },
+      lifetimePlays: { tube: 90, llama: 400, gumbo: 400 },
+    });
+    assert.equal(
+      flow.text,
+      "A 3-song first set featured heavy rotation songs, with crowd favorite Llama.",
+    );
+  });
+
+  it("drops the favorite name when no lifetime count is known", () => {
+    const flow = composeNightSetFlow({
+      groups: { set1: ["Tube", "Llama"] },
+      songGaps: { tube: 2, llama: 4 },
+    });
+    assert.equal(flow.text, "A 2-song first set featured heavy rotation songs.");
+  });
+
+  it("does not call a set rotation when a gap is missing, and keeps a tour debut", () => {
+    const flow = composeNightSetFlow({
+      groups: { set1: ["Tube", "New One"] },
+      songGaps: { tube: 2 },
+      tourDebutTitles: ["New One"],
+      debutsTrusted: true,
+    });
+    assert.match(flow.text, /highlighted by New One, new to this tour/);
+    assert.doesNotMatch(flow.text, /heavy rotation/);
+  });
+
+  it("reads catalog totals only for the songs in the night", () => {
+    assert.deepEqual(
+      lifetimePlaysForTitles(
+        [
+          { name: "Llama", total: "400" },
+          { name: "Tube", total: "0" },
+          { name: "Ghost", total: "90" },
+        ],
+        ["Llama", "Tube"],
+      ),
+      { llama: 400 },
+    );
   });
 });
 
@@ -446,7 +520,7 @@ describe("show_recap composer (#985)", () => {
     assert.doesNotMatch(ctx.set_flow_summary, /The Curtain(?! With)/);
     assert.match(
       ctx.set_flow_summary,
-      /A 3-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10/,
+      /A 3-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 2026-07-10/,
     );
     assert.match(ctx.set_flow_summary, /A 2-song encore featured The Lizards and Julius/);
   });
