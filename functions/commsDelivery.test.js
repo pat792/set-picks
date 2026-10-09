@@ -507,7 +507,7 @@ test("dry-run show_recap and tour_recap carry fact_label, and a blank narrative 
   assert.deepEqual(wrapInApp.calls[0].rendered.inApp.payload.fact_label, {
     map: "tour_recap",
     branch: "top5",
-    slots: ["rank", "opening_fallback"],
+    slots: ["rank", "points", "nightly_wins", "shows_played", "opening_fallback"],
     tourId: "2026 Fall Tour",
   });
 });

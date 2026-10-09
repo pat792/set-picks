@@ -47,7 +47,7 @@ test("tour champion label states rank, points, and nightly wins, not the flavor 
   assert.deepEqual(label, {
     map: "tour_recap",
     branch: "champion",
-    slots: ["rank", "points", "nightly_wins", "opening_fallback"],
+    slots: ["rank", "points", "nightly_wins", "shows_played", "opening_fallback"],
     tourId: "2026 Fall Tour",
   });
 });

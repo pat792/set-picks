@@ -175,6 +175,9 @@ function buildShowRecapFactLabel(input = {}) {
  * Facts the current tour-wrap sentences already state. Flavor lines are not ids.
  * Rank-band copy lives in `src/features/tour-recap/model/tourRecap.js`.
  *
+ * The composer passes the slot ids its sentences spoke. Callers that only
+ * have the rank numbers fall back to those numbers plus the fallback opening.
+ *
  * @param {{
  *   rank?: number,
  *   points?: number,
@@ -183,6 +186,7 @@ function buildShowRecapFactLabel(input = {}) {
  *   showCount?: number,
  *   tourId?: string | null,
  *   openingParas?: unknown,
+ *   slots?: string[],
  * }} input
  */
 function buildTourRecapFactLabel(input = {}) {
@@ -191,22 +195,27 @@ function buildTourRecapFactLabel(input = {}) {
     showsPlayed: input.showsPlayed,
     showCount: input.showCount,
   });
+  const tourId = keepTourId(input.tourId);
+  if (Array.isArray(input.slots)) {
+    return {
+      map: "tour_recap",
+      branch,
+      slots: keepSlots(input.slots, TOUR_SLOTS),
+      ...(tourId ? { tourId } : {}),
+    };
+  }
   /** @type {string[]} */
   const slots = [];
   if (Number.isFinite(Number(input.rank))) slots.push("rank");
-  if (branch === "champion" && Number.isFinite(Number(input.points))) slots.push("points");
-  if (branch === "champion" && Number.isFinite(Number(input.wins))) slots.push("nightly_wins");
-  if (
-    (branch === "full_run" || branch === "partial") &&
-    Number.isFinite(Number(input.showsPlayed))
-  ) {
+  if (Number.isFinite(Number(input.points))) slots.push("points");
+  if (Number.isFinite(Number(input.wins))) slots.push("nightly_wins");
+  if (Number.isFinite(Number(input.showsPlayed)) && Number(input.showCount) > 0) {
     slots.push("shows_played");
   }
   const paras = Array.isArray(input.openingParas) ? input.openingParas : [];
   if (paras.some((line) => typeof line === "string" && /inexact science/i.test(line))) {
     slots.push("opening_fallback");
   }
-  const tourId = keepTourId(input.tourId);
   return {
     map: "tour_recap",
     branch,

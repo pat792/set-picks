@@ -223,6 +223,37 @@ test("tour-recap push and email are rank-aware teasers without Sphere live IDs",
   });
   assert.match(mid.push.body, /#8/);
   assert.equal(mid.email.ctaLabel, "View Recap");
+
+  const withClause = await renderCommsTemplate("tour-recap", {
+    handle: "Pat",
+    rank: 2,
+    points: 90,
+    wins: 1,
+    tour_name: "Sample Tour",
+    personal_clause: "You took the lead on 2026-07-02.",
+  });
+  assert.match(withClause.email.text, /You took the lead on 2026-07-02/);
+  assert.doesNotMatch(withClause.push.body, /took the lead/);
+
+  const withBoard = await renderCommsTemplate("tour-recap", {
+    handle: "Pat",
+    rank: 4,
+    points: 70,
+    wins: 1,
+    tour_name: "Sample Tour",
+    personal_clause: "You sat out 1 show.",
+    email_board: [
+      { rank: 1, handle: "Rivertranced", points: 420, wins: 6, nights: 18, avg: ".310" },
+      { rank: 2, handle: "Ada", points: 390, wins: 4, nights: 18, avg: ".280" },
+    ],
+  });
+  assert.match(withBoard.email.text, /A huge congrats to our tour winner, Rivertranced/);
+  assert.match(withBoard.email.text, /Rank {2}Handle/);
+  assert.match(withBoard.email.text, /You sat out 1 show/);
+  assert.match(withBoard.email.text, /The full recap is in the app/);
+  assert.match(withBoard.email.boardHtml, /<table/);
+  assert.match(withBoard.email.boardHtml, /Rivertranced/);
+  assert.doesNotMatch(withBoard.email.text, /waiting in Messages/);
 });
 
 test("show-recap push surfaces score + rank when present", async () => {

@@ -38,14 +38,16 @@ describe('getTourRecapPersonalParagraph', () => {
       wins: 3,
       showsPlayed: 8,
     });
-    expect(t).toContain('Champion');
+    expect(t).toContain('#1');
     expect(t).toContain('180');
-    expect(t).toContain('3');
+    expect(t).toContain('3 nightly wins');
+    expect(t).toContain('8 of 8');
     expect(t).toContain('Sample Tour');
     expect(t).not.toMatch(/Sphere/i);
+    expect(t).not.toMatch(/wildcard/i);
   });
 
-  it('returns top 5 copy for rank 3', () => {
+  it('states rank 3 as a finish, not a wildcard chase', () => {
     const t = getTourRecapPersonalParagraph({
       ...previewCtx,
       rank: 3,
@@ -53,11 +55,13 @@ describe('getTourRecapPersonalParagraph', () => {
       wins: 1,
       showsPlayed: 8,
     });
-    expect(t).toContain('Top 5');
     expect(t).toContain('#3');
+    expect(t).toContain('1 nightly win');
+    expect(t).not.toMatch(/wildcard/i);
+    expect(t).not.toMatch(/Top 5/);
   });
 
-  it('returns top 10 copy for rank 7', () => {
+  it('states rank 7 with the field size', () => {
     const t = getTourRecapPersonalParagraph({
       ...previewCtx,
       rank: 7,
@@ -65,11 +69,12 @@ describe('getTourRecapPersonalParagraph', () => {
       wins: 0,
       showsPlayed: 8,
     });
-    expect(t).toContain('Top 10');
     expect(t).toContain('#7');
+    expect(t).toContain('of 24');
+    expect(t).not.toMatch(/Top 10/);
   });
 
-  it('rank 11 all shows uses full-tour outside-top-10 copy', () => {
+  it('rank 11 who played every show says 8 of 8', () => {
     const t = getTourRecapPersonalParagraph({
       ...previewCtx,
       rank: 11,
@@ -78,10 +83,10 @@ describe('getTourRecapPersonalParagraph', () => {
       showsPlayed: 8,
     });
     expect(t).toContain('#11');
-    expect(t).toContain('all 8 shows');
+    expect(t).toContain('8 of 8');
   });
 
-  it('rank 11 partial tour uses attendance copy', () => {
+  it('rank 11 who sat some out says how many shows they played', () => {
     const t = getTourRecapPersonalParagraph({
       ...previewCtx,
       rank: 11,
@@ -89,7 +94,20 @@ describe('getTourRecapPersonalParagraph', () => {
       wins: 0,
       showsPlayed: 4,
     });
-    expect(t).toContain('4 shows');
+    expect(t).toContain('4 of 8');
+  });
+
+  it('uses the sentence the send already wrote', () => {
+    const t = getTourRecapPersonalParagraph({
+      ...previewCtx,
+      rank: 2,
+      points: 90,
+      wins: 1,
+      showsPlayed: 8,
+      personalLine: 'You finished #2 of 12 with 90 points and 1 nightly win, playing 8 of 8 shows. You took the lead on 2026-07-02.',
+    });
+    expect(t).toContain('You took the lead on 2026-07-02');
+    expect(t).not.toContain('Sample Tour');
   });
 });
 
@@ -129,7 +147,8 @@ describe('buildTourRecapEmailPlainText', () => {
     expect(body).toContain('THE PODIUM');
     expect(body).toContain('ChampionPat');
     expect(body).toContain('YOUR FINAL RESULT');
-    expect(body).toContain('Top 5');
+    expect(body).toContain('#2');
+    expect(body).not.toMatch(/wildcard hits/i);
     expect(body).not.toMatch(/sphere-2026-inaugural/i);
     expect(body).not.toMatch(/Rivertranced/);
   });

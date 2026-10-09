@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, Globe2, Trophy } from 'lucide-react';
+import { BarChart3, Globe2, Medal, Trophy } from 'lucide-react';
 
 import {
   getTourRecapPersonalParagraph,
@@ -13,6 +13,34 @@ export const TOUR_RECAP_INAPP_CTA = Object.freeze({
   label: 'View tour standings',
   href: '/dashboard/standings?view=tour',
 });
+
+/** Icon, then a place label, then the handle. */
+const PODIUM_PLACES = [
+  { label: 'Tour Winner', iconClass: 'text-[#F5C451]' },
+  { label: 'Runner-up', iconClass: 'text-[#D5D8DE]' },
+  { label: 'Third Place', iconClass: 'text-[#D4894C]' },
+];
+
+const HONORABLE_MEDAL_CLASS = 'text-teal-300';
+
+function PlaceMark({ icon: Icon, className }) {
+  return (
+    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center">
+      <Icon className={`h-5 w-5 ${className}`} aria-hidden />
+    </span>
+  );
+}
+
+function honorablePlaceLabel(index) {
+  const place = index + 4;
+  const mod100 = place % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${place}th`;
+  const mod10 = place % 10;
+  if (mod10 === 1) return `${place}st`;
+  if (mod10 === 2) return `${place}nd`;
+  if (mod10 === 3) return `${place}rd`;
+  return `${place}th`;
+}
 
 function SectionHeading({ icon: Icon, label, id }) {
   return (
@@ -43,6 +71,7 @@ function SectionHeading({ icon: Icon, label, id }) {
  *   podium?: object,
  *   openingParas?: string[],
  *   closingLines?: string[],
+ *   personalLine?: string,
  *   edition?: object,
  *   onCtaClick?: (cta: { label: string, href?: string }) => void,
  * }} props
@@ -70,6 +99,7 @@ export default function TourRecapInApp(props) {
     showCount,
     tourName,
     edition,
+    personalLine: props.personalLine,
   });
   const vars = { participantCount, showCount, tourName };
   const opening = (edition.openingParas || []).map((p) => interpolateTourRecapCopy(p, vars));
@@ -100,20 +130,32 @@ export default function TourRecapInApp(props) {
         </p>
       ) : null}
       <p>The race for the top was incredibly tight down the stretch:</p>
-      <ol className="list-decimal space-y-2 pl-5 text-white">
-        {(podium?.rows || []).map((row, i) => (
-          <li key={row.handle}>
-            {i === 0 ? '1st' : i === 1 ? '2nd' : '3rd'}: {row.handle} ({row.points} Pts, {row.wins} Wins)
-          </li>
-        ))}
-      </ol>
+      <ul className="space-y-2 text-white">
+        {(podium?.rows || []).map((row, i) => {
+          const place = PODIUM_PLACES[i] || PODIUM_PLACES[PODIUM_PLACES.length - 1];
+          return (
+            <li key={row.handle} className="flex items-start gap-2">
+              <PlaceMark icon={Trophy} className={place.iconClass} />
+              <span>
+                {place.label}: {row.handle} ({row.points} Pts, {row.wins} Wins)
+              </span>
+            </li>
+          );
+        })}
+      </ul>
       {podium?.honorableMentions?.length ? (
         <div>
           <p className="mb-2 text-content-secondary">Honorable mentions</p>
-          <ul className="list-disc space-y-2 pl-5">
-            {podium.honorableMentions.map((h) => (
-              <li key={h.handle}>
-                <span className="text-white">{h.handle}</span> — {h.note}
+          <ul className="space-y-2">
+            {podium.honorableMentions.map((h, i) => (
+              <li key={h.handle} className="flex items-start gap-2">
+                <PlaceMark icon={Medal} className={HONORABLE_MEDAL_CLASS} />
+                <span>
+                  <span className="text-white">
+                    {honorablePlaceLabel(i)}: {h.handle}
+                  </span>
+                  {h.note ? ` — ${h.note}` : ''}
+                </span>
               </li>
             ))}
           </ul>
