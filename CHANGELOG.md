@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.81.5] — 2026-10-09
+
+### Changed
+- **Song date columns** — catalog last-played is zero-padded `MM/DD/YY` (`07/19/24`). Tour stats this-tour dates are `MM/DD` and prior-play dates are `MM/DD/YY`. Year stays off this-tour dates. The column tracks are unchanged because slashes are the same length as the old hyphens. (#1123)
+
+---
+
 ## [1.81.4] — 2026-10-09
 
 ### Changed
