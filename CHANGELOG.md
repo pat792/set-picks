@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.81.4] — 2026-10-09
+
+### Changed
+- **Show labels** — the tour date select, standings header, pool hub active show, picks scorecard, share text, and the too-early prior-show label print `MM/DD/YY`. `<option value>` stays `YYYY-MM-DD`. Pool archive spelled dates stay spelled. (#1122)
+
+---
+
 ## [1.81.3] — 2026-10-09
 
 ### Changed
