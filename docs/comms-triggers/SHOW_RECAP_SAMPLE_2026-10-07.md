@@ -36,7 +36,7 @@ Live email, night paragraph:
 
 Writer paragraph from the same facts:
 
-> An 8-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set, highlighted by Meatstick, an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. None of your six landed. That lands you #10 of 13 globally.
+> An 8-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set saw the return of Meatstick after an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. None of your six landed. That lands you #10 of 13 globally.
 
 What changed: each set is one sentence, with its length and its rarest song. Both encore songs are named, with the encore length. “Tough board / still a night to remember” dropped because “none of your six landed” is a real player fact. The bustout sticker did not move into set 1, because its title is not a song in that set.
 
@@ -54,7 +54,7 @@ Their card: Kill Devil Falls was the set 2 opener (exact). Loving Cup was the wi
 
 Writer paragraph from the same facts:
 
-> An 8-song first set, highlighted by Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set, highlighted by Meatstick, an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. You hit the set 2 opener and the wildcard. That puts you #1 of 13 globally.
+> An 8-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set saw the return of Meatstick after an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. You hit the set 2 opener and the wildcard. That puts you #1 of 13 globally.
 
 The map’s player rule keeps the first true fact. Exact slots are ahead of a wrong-slot song, so Ruby Waves is not spoken. The live line calls that closer a hit.
 

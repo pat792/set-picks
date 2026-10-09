@@ -15,6 +15,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.80.1] — 2026-10-08
+
+### Changed
+- **Night recap highlight** — a gap of 20–29 is “a relative rarity of late,” and a gap of 11–19 is “the return of” that song. A set whose gaps are all 10 or fewer “featured heavy rotation songs,” and names the song with the most lifetime plays when that count is known. A bustout still uses “highlighted by.” A missing count drops the name. A missing gap does not claim the set was all rotation. (#1105)
+
+---
+
 ## [1.80.0] — 2026-10-08
 
 ### Changed

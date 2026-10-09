@@ -257,8 +257,42 @@ function lastPlayedForTitle(title, lastPlayed) {
 }
 
 /**
- * One highlight for a set: longest-gap bustout, else longest high gap (10–29),
- * else a trusted tour debut. Songs in `omitTitles` are skipped.
+ * Highest lifetime play count in this set. An earlier song wins a tie.
+ * @param {string[]} songs
+ * @param {Record<string, unknown> | null | undefined} lifetimePlays
+ * @returns {string}
+ */
+function crowdFavoriteTitle(songs, lifetimePlays) {
+  if (!lifetimePlays || typeof lifetimePlays !== "object") return "";
+  let bestTitle = "";
+  let best = -1;
+  for (const title of songs) {
+    const n = Number(lifetimePlays[titleKey(title)]);
+    if (!Number.isFinite(n) || n <= 0 || n <= best) continue;
+    best = n;
+    bestTitle = title;
+  }
+  return bestTitle;
+}
+
+/**
+ * Every song has a known gap, and none is above 10.
+ * @param {string[]} songs
+ * @param {Record<string, unknown> | null | undefined} songGaps
+ * @returns {boolean}
+ */
+function allGapsAtMostTen(songs, songGaps) {
+  if (!songs.length) return false;
+  return songs.every((title) => {
+    const gap = gapForTitle(title, songGaps);
+    return gap != null && gap <= 10;
+  });
+}
+
+/**
+ * One song for a set. A bustout stays a bustout. A gap of 20–29 is a rarity,
+ * 11–19 is a return, and a set whose gaps are all 10 or fewer is rotation.
+ * A trusted tour debut is the next fact. Songs in `omitTitles` are skipped.
  *
  * @param {string[]} songs
  * @param {{
@@ -267,8 +301,9 @@ function lastPlayedForTitle(title, lastPlayed) {
  *   tourDebutTitles?: string[],
  *   debutsTrusted?: boolean,
  *   omitTitles?: string[],
+ *   lifetimePlays?: Record<string, unknown>,
  * }} opts
- * @returns {{ title: string, kind: "gap" | "debut", gap: number | null } | null}
+ * @returns {{ title: string, kind: "bustout" | "rarity" | "return" | "rotation" | "debut", gap: number | null } | null}
  */
 function pickSetHighlight(songs, opts) {
   const omit = new Set((opts.omitTitles || []).map(titleKey));
@@ -285,11 +320,23 @@ function pickSetHighlight(songs, opts) {
   );
   bustouts.sort((a, b) => (b.gap || 0) - (a.gap || 0));
   if (bustouts.length) {
-    return { title: bustouts[0].title, kind: "gap", gap: bustouts[0].gap };
+    return { title: bustouts[0].title, kind: "bustout", gap: bustouts[0].gap };
   }
-  const high = ranked.filter((row) => row.gap != null && row.gap >= 10 && row.gap < 30);
-  high.sort((a, b) => (b.gap || 0) - (a.gap || 0));
-  if (high.length) return { title: high[0].title, kind: "gap", gap: high[0].gap };
+  const withGap = ranked.filter((row) => row.gap != null).slice().sort((a, b) => b.gap - a.gap);
+  const longest = withGap[0];
+  if (longest && longest.gap >= 20 && longest.gap < 30) {
+    return { title: longest.title, kind: "rarity", gap: longest.gap };
+  }
+  if (longest && longest.gap >= 11 && longest.gap < 20) {
+    return { title: longest.title, kind: "return", gap: longest.gap };
+  }
+  if (allGapsAtMostTen(list, opts.songGaps)) {
+    return {
+      title: crowdFavoriteTitle(list, opts.lifetimePlays),
+      kind: "rotation",
+      gap: null,
+    };
+  }
   if (opts.debutsTrusted) {
     const debuts = new Set((opts.tourDebutTitles || []).map(titleKey));
     const debut = list.find((title) => debuts.has(titleKey(title)));
@@ -299,7 +346,28 @@ function pickSetHighlight(songs, opts) {
 }
 
 /**
- * @param {{ title: string, kind: "gap" | "debut", gap: number | null }} hit
+ * Lifetime play counts for the titles in one night. Catalog `total` is a string.
+ * @param {Array<{ name?: string, total?: unknown }>} songs
+ * @param {string[]} titles
+ * @returns {Record<string, number>}
+ */
+function lifetimePlaysForTitles(songs, titles) {
+  const wanted = new Set((titles || []).map(titleKey).filter(Boolean));
+  /** @type {Record<string, number>} */
+  const map = {};
+  if (!wanted.size) return map;
+  for (const song of songs || []) {
+    const key = titleKey(song?.name);
+    if (!wanted.has(key) || map[key] != null) continue;
+    const n = Number(song?.total);
+    if (!Number.isFinite(n) || n <= 0) continue;
+    map[key] = Math.trunc(n);
+  }
+  return map;
+}
+
+/**
+ * @param {{ title: string, kind: "bustout" | "rarity" | "return" | "rotation" | "debut", gap: number | null }} hit
  * @param {Record<string, unknown> | null | undefined} lastPlayed
  * @returns {string}
  */
@@ -307,10 +375,21 @@ function highlightClause(hit, lastPlayed) {
   if (hit.kind === "debut") {
     return `, highlighted by ${hit.title}, new to this tour`;
   }
-  if (hit.gap == null) return `, highlighted by ${hit.title}`;
+  if (hit.kind === "rotation") {
+    return hit.title
+      ? ` featured heavy rotation songs, with crowd favorite ${hit.title}`
+      : " featured heavy rotation songs";
+  }
+  if (hit.kind === "bustout" && hit.gap == null) return `, highlighted by ${hit.title}`;
   const article = indefiniteArticleForGap(hit.gap);
-  const date = hit.gap >= 10 ? lastPlayedForTitle(hit.title, lastPlayed) : "";
+  const date = hit.gap != null && hit.gap >= 10 ? lastPlayedForTitle(hit.title, lastPlayed) : "";
   const dateBit = date ? `, last played on ${date}` : "";
+  if (hit.kind === "rarity") {
+    return ` featured a relative rarity of late: ${hit.title}, ${article} ${hit.gap} show gap${dateBit}`;
+  }
+  if (hit.kind === "return") {
+    return ` saw the return of ${hit.title} after ${article} ${hit.gap} show gap${dateBit}`;
+  }
   return `, highlighted by ${hit.title}, ${article} ${hit.gap} show gap${dateBit}`;
 }
 
@@ -356,6 +435,7 @@ function composeNightSetFlow(input) {
     tourDebutTitles: input.tourDebutTitles,
     debutsTrusted: input.debutsTrusted === true,
     omitTitles: input.omitTitles,
+    lifetimePlays: input.lifetimePlays,
   };
 
   /**
@@ -487,6 +567,8 @@ function buildCommsShowContext({
   phishnetRows = null,
   /** @type {Record<string, string> | null} */
   lastPlayedByTitle = null,
+  /** @type {Record<string, number> | null} */
+  lifetimePlaysByTitle = null,
 }) {
   const slotMap =
     setlistDoc?.setlist && typeof setlistDoc.setlist === "object"
@@ -549,6 +631,7 @@ function buildCommsShowContext({
     tourDebutTitles: tourDebuts,
     debutsTrusted: priorHasSongs,
     lastPlayed,
+    lifetimePlays: lifetimePlaysByTitle,
     opener: openerTitle,
   });
   const set_flow_summary = nightFlow.text || composeSetFlowSummary(groups, openerTitle, encoreTitle);
@@ -581,6 +664,8 @@ function buildCommsShowContext({
     },
     song_gaps: songGaps,
     last_played: lastPlayed,
+    lifetime_plays:
+      lifetimePlaysByTitle && typeof lifetimePlaysByTitle === "object" ? lifetimePlaysByTitle : {},
     set_flow_summary: set_flow_summary || null,
     setlist_highlight: setlist_highlight || null,
     show_moment_tags,
@@ -624,6 +709,10 @@ function showLevelPayloadFields(context) {
       context.last_played && typeof context.last_played === "object"
         ? context.last_played
         : {},
+    lifetime_plays:
+      context.lifetime_plays && typeof context.lifetime_plays === "object"
+        ? context.lifetime_plays
+        : {},
     opener_title: context.opener_title || null,
     encore_title: context.encore_title || null,
     show_moment_tags: Array.isArray(context.show_moment_tags)
@@ -644,6 +733,7 @@ module.exports = {
   priorDatesForTourDebutLookup,
   composeSetFlowSummary,
   composeNightSetFlow,
+  lifetimePlaysForTitles,
   composeSetlistHighlight,
   deriveShowMomentTags,
   buildCommsShowContext,
