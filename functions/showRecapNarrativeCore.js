@@ -447,6 +447,7 @@ function nightFlowFromPayload(p, omitTitles) {
     tourDebutTitles: Array.isArray(p.tour_debut_titles) ? p.tour_debut_titles : [],
     debutsTrusted: p.tour_debuts_trusted === true,
     lastPlayed: p.last_played && typeof p.last_played === "object" ? p.last_played : {},
+    lifetimePlays: p.lifetime_plays && typeof p.lifetime_plays === "object" ? p.lifetime_plays : {},
     omitTitles,
     opener: typeof p.opener_title === "string" ? p.opener_title : "",
     venue: typeof p.venue_name === "string" ? p.venue_name : "",

@@ -26,6 +26,7 @@ Standalone collection (same rationale as `rollup_audit`): do not nest on
 | `set_songs` | map | `{ set1, set2, encore }` title lists |
 | `song_gaps` | map | Pre-show gap by normalized title |
 | `last_played` | map | `title → YYYY-MM-DD` from `public_tour_stats` for this night. Refreshed on each ensure |
+| `lifetime_plays` | map | `title → number` from the song catalog `total` for songs in that night. Refreshed on each ensure. A missing count drops the crowd-favorite name |
 | `set_flow_summary` | string \| null | One sentence per set: length, highlight, encore titles |
 | `setlist_highlight` | string \| null | One-liner for push / Tonight. Bustouts: `Bustout: Song - a/an N show gap.` or `Bustouts: A - …; B - ….` (#780) |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut`, `multi_encore` |
