@@ -33,6 +33,70 @@ function handleOf(p) {
   return h || "Picker";
 }
 
+function escapeEmailHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Top-5 grid for the tour wrap email. Columns match the almost-end board.
+ * @param {unknown} board
+ * @returns {string}
+ */
+function tourRecapBoardHtml(board) {
+  const rows = Array.isArray(board) ? board : [];
+  if (!rows.length) return "";
+  const th =
+    "padding:10px 6px;border-bottom:2px solid #1a1a2e;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;";
+  const td = "padding:10px 6px;border-bottom:1px solid #eeeeee;font-size:16px;color:#1a1a2e;";
+  const headers = ["Rank", "Handle", "Pts", "Wins", "Nights", "Avg"];
+  const head = headers
+    .map(
+      (label, i) =>
+        `<th align="${i < 2 ? "left" : "right"}" style="${th}">${label}</th>`,
+    )
+    .join("");
+  const body = rows
+    .map((row) => {
+      const cells = [
+        row.rank,
+        row.handle,
+        row.points,
+        row.wins,
+        row.nights,
+        row.avg || "—",
+      ];
+      return `<tr>${cells
+        .map((cell, i) => {
+          const align = i >= 2 ? "text-align:right;" : "";
+          const weight = i === 1 ? "font-weight:700;" : "";
+          return `<td style="${td}${align}${weight}">${escapeEmailHtml(cell)}</td>`;
+        })
+        .join("")}</tr>`;
+    })
+    .join("");
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 20px 0;"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+/**
+ * @param {unknown} board
+ * @returns {string}
+ */
+function tourRecapBoardText(board) {
+  const rows = Array.isArray(board) ? board : [];
+  if (!rows.length) return "";
+  const lines = ["Rank  Handle  Pts  Wins  Nights  Avg"];
+  for (const row of rows) {
+    lines.push(
+      `${row.rank}  ${row.handle}  ${row.points}  ${row.wins}  ${row.nights}  ${row.avg || "—"}`,
+    );
+  }
+  return lines.join("\n");
+}
+
 /**
  * Readable night scorecard sentence (words around variables, not a comma list).
  * e.g. present: "You scored 70 points and are now ranked #4 of 200 globally, with 3 of 6 picks hitting."
@@ -547,13 +611,25 @@ const BUILDERS = {
             }.`
           : "Your personalized tour recap is ready.";
     const clause = typeof p.personal_clause === "string" ? p.personal_clause.trim() : "";
+    const board = Array.isArray(p.email_board) ? p.email_board : [];
+    const winner = board[0] && typeof board[0].handle === "string" ? board[0].handle.trim() : "";
+    const boardText = tourRecapBoardText(board);
     const assembled = assembleServiceEmail(
-      [
-        `${handle}, ${tourName} is wrapped.`,
-        teaser,
-        clause,
-        "The full podium, honorable mentions, and your personalized recap are waiting in Messages.",
-      ].filter(Boolean),
+      board.length
+        ? [
+            winner ? `A huge congrats to our tour winner, ${winner}.` : `${handle}, ${tourName} is wrapped.`,
+            "",
+            boardText,
+            "",
+            clause,
+            "The full recap is in the app.",
+          ].filter((line) => line !== undefined)
+        : [
+            `${handle}, ${tourName} is wrapped.`,
+            teaser,
+            clause,
+            "The full podium, honorable mentions, and your personalized recap are waiting in Messages.",
+          ].filter(Boolean),
       { ctaUrl: MESSAGES_CTA_URL }
     );
     return {
@@ -578,6 +654,7 @@ const BUILDERS = {
         signOff: assembled.signOff,
         ctaUrl: MESSAGES_CTA_URL,
         ctaLabel: TOUR_RECAP_EMAIL_CTA_LABEL,
+        boardHtml: tourRecapBoardHtml(board),
       },
     };
   },

@@ -29,26 +29,105 @@ function isFinalShowOfTour(tourDates, showDate) {
 }
 
 /**
+ * @param {{ handle?: string, totalPoints?: number, wins?: number, shows?: number }} row
+ * @returns {{ handle: string, note: string }}
+ */
+function honorableMention(row) {
+  const pts = typeof row.totalPoints === "number" ? row.totalPoints : 0;
+  const shows = typeof row.shows === "number" ? row.shows : 0;
+  const wins = typeof row.wins === "number" ? row.wins : 0;
+  const winBit = wins > 0 ? `, ${wins} nightly win${wins === 1 ? "" : "s"}` : "";
+  return {
+    handle: row.handle || "Anonymous",
+    note: `${pts} pts across ${shows} show${shows === 1 ? "" : "s"}${winBit}.`,
+  };
+}
+
+/**
+ * @param {Array<{ handle?: string, totalPoints?: number }>} group
+ * @returns {string}
+ */
+function joinedHandles(group) {
+  const names = group.map((row) => row.handle || "Anonymous");
+  if (names.length <= 1) return names[0] || "Anonymous";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+/**
+ * Top 3, then 4th, then 5th. Anyone level with 5th on points is named in that last mention.
+ *
  * @param {Array<{ handle: string, totalPoints: number, wins: number, shows: number }>} leaders
  * @returns {{ rows: Array<{ handle: string, points: number, wins: number }>, honorableMentions: Array<{ handle: string, note: string }> }}
  */
 function buildTourRecapPodium(leaders) {
-  const rows = (Array.isArray(leaders) ? leaders : []).slice(0, 3).map((row) => ({
+  const list = Array.isArray(leaders) ? leaders : [];
+  const rows = list.slice(0, 3).map((row) => ({
     handle: row.handle || "Anonymous",
     points: typeof row.totalPoints === "number" ? row.totalPoints : 0,
     wins: typeof row.wins === "number" ? row.wins : 0,
   }));
-  const honorableMentions = (Array.isArray(leaders) ? leaders : []).slice(3, 5).map((row) => {
-    const pts = typeof row.totalPoints === "number" ? row.totalPoints : 0;
-    const shows = typeof row.shows === "number" ? row.shows : 0;
-    const wins = typeof row.wins === "number" ? row.wins : 0;
-    const winBit = wins > 0 ? `, ${wins} nightly win${wins === 1 ? "" : "s"}` : "";
+  /** @type {Array<{ handle: string, note: string }>} */
+  const honorableMentions = [];
+  if (list[3]) honorableMentions.push(honorableMention(list[3]));
+  if (list[4]) {
+    const pts = typeof list[4].totalPoints === "number" ? list[4].totalPoints : 0;
+    const tied = [list[4]];
+    for (let i = 5; i < list.length; i += 1) {
+      const nextPts = typeof list[i].totalPoints === "number" ? list[i].totalPoints : 0;
+      if (nextPts !== pts) break;
+      tied.push(list[i]);
+    }
+    if (tied.length === 1) {
+      honorableMentions.push(honorableMention(tied[0]));
+    } else {
+      honorableMentions.push({
+        handle: joinedHandles(tied),
+        note: `tied at ${pts} pts.`,
+      });
+    }
+  }
+  return { rows, honorableMentions };
+}
+
+/**
+ * Picking average, same ratio as the almost-end board: correct slots ÷ (nights × 6).
+ * @param {number} correctSlots
+ * @param {number} shows
+ * @returns {string}
+ */
+function formatPickingAvg(correctSlots, shows) {
+  const denom = shows * 6;
+  if (!Number.isFinite(correctSlots) || !Number.isFinite(denom) || denom <= 0) return "";
+  const s = Math.max(0, Math.min(1, correctSlots / denom)).toFixed(3);
+  return s.startsWith("0") ? s.slice(1) : s;
+}
+
+/**
+ * Five rows for the email grid. A points tie keeps the shared rank. Avg is blank when the count is missing.
+ *
+ * @param {Array<{ handle?: string, totalPoints?: number, wins?: number, shows?: number, correctSlots?: number }>} leaders
+ * @returns {Array<{ rank: number, handle: string, points: number, wins: number, nights: number, avg: string }>}
+ */
+function buildTourRecapEmailBoard(leaders) {
+  const list = (Array.isArray(leaders) ? leaders : []).slice(0, 5);
+  let rank = 0;
+  let prevPoints = null;
+  return list.map((row, i) => {
+    const points = typeof row.totalPoints === "number" ? row.totalPoints : 0;
+    if (prevPoints === null || points < prevPoints) rank = i + 1;
+    prevPoints = points;
+    const nights = typeof row.shows === "number" ? row.shows : 0;
+    const correct = Number(row.correctSlots);
     return {
+      rank,
       handle: row.handle || "Anonymous",
-      note: `${pts} pts across ${shows} show${shows === 1 ? "" : "s"}${winBit}.`,
+      points,
+      wins: typeof row.wins === "number" ? row.wins : 0,
+      nights,
+      avg: formatPickingAvg(correct, nights),
     };
   });
-  return { rows, honorableMentions };
 }
 
 /**
@@ -463,6 +542,7 @@ function composeWrapCopy(input, shared, player) {
  *   tourName: string,
  *   showCount: number,
  *   podium: ReturnType<typeof buildTourRecapPodium>,
+ *   emailBoard?: ReturnType<typeof buildTourRecapEmailBoard>,
  *   shared?: ReturnType<typeof deriveSharedWrapFacts> | null,
  *   player?: ReturnType<typeof derivePlayerWrapFacts> | null,
  * }} input
@@ -484,6 +564,7 @@ function buildTourRecapPayload(input) {
     show_count: showCount,
     headline: `${tourName}: Setlist Pick'em Wrap-Up`,
     podium: input.podium,
+    email_board: Array.isArray(input.emailBoard) ? input.emailBoard : [],
     opening_paras: copy.opening_paras,
     personal_line: copy.personal_line,
     personal_clause: copy.personal_clause,
@@ -508,6 +589,7 @@ function buildTourRecapPayload(input) {
 module.exports = {
   isFinalShowOfTour,
   buildTourRecapPodium,
+  buildTourRecapEmailBoard,
   buildTourRecapPayload,
   closingVenueForTour,
   deriveSharedWrapFacts,

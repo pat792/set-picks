@@ -432,6 +432,19 @@ test("buildBrandedEmailHtml strips invite appendix lines from HTML body", () => 
   assert.match(html, /invite card/);
 });
 
+test("buildBrandedEmailHtml swaps the tour-wrap text grid for the HTML table", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "A huge congrats to our tour winner, Ada.\n\nRank  Handle  Pts  Wins  Nights  Avg\n1  Ada  10  1  2  .500\n\nYou took the lead.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    boardHtml: "<table><tr><td>Ada</td></tr></table>",
+  });
+  assert.match(html, /<table><tr><td>Ada<\/td><\/tr><\/table>/);
+  assert.doesNotMatch(html, /Rank {2}Handle/);
+  assert.match(html, /You took the lead/);
+});
+
 test("buildBrandedEmailHtml escapes body text to avoid HTML injection", () => {
   const html = buildBrandedEmailHtml({
     siteUrl: "https://www.setlistpickem.com",

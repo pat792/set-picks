@@ -25,7 +25,15 @@ In-app:
 
 You finished #2 of 3 with 50 points and 1 nightly win, playing 3 of 3 shows. Your best night was 2026-07-01 with 30 points. You caught Ghost. You caught Tweezer — a 200 show gap — on 2026-07-01.
 
-Email adds one sentence after the rank tease: “You caught Tweezer — a 200 show gap — on 2026-07-01.” Tweezer is not also listed as a caught bustout. Ghost still is. Push stays the rank tease.
+The in-app board is Tour Winner, Runner-up, and Third Place, then 4th and 5th. If 6th is tied with 5th on points, that last line names both.
+
+Email:
+
+A huge congrats to our tour winner, {the first row’s handle}.
+
+Then the top 5 grid: Rank, Handle, Pts, Wins, Nights, Avg.
+
+Then one sentence: “You caught Tweezer — a 200 show gap — on 2026-07-01.” Tweezer is not also listed as a caught bustout. Ghost still is. The full recap stays in the app. Push stays the rank tease.
 
 ## Bea — took the lead, caught no rare hit
 

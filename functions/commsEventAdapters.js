@@ -40,6 +40,7 @@ const { persistableActualSetlistFromOfficialDoc } = require("./scoringCore");
 const {
   isFinalShowOfTour,
   buildTourRecapPodium,
+  buildTourRecapEmailBoard,
   buildTourRecapPayload,
   closingVenueForTour,
   deriveSharedWrapFacts,
@@ -592,7 +593,24 @@ async function deliverTourRecapIfFinalShow({
   }
 
   const ranked = assignDisplayRanks(leaders);
-  const podium = buildTourRecapPodium(leaders);
+  /** @type {Array<Record<string, unknown> & { userData: Record<string, unknown> }>} */
+  const enriched = [];
+  for (const row of leaders) {
+    // eslint-disable-next-line no-await-in-loop
+    const userSnap = await db.collection("users").doc(row.uid).get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const season = userData.seasonStats && typeof userData.seasonStats === "object"
+      ? userData.seasonStats[tourKey]
+      : null;
+    const correctSlots = Number(season?.correctSlots);
+    enriched.push({
+      ...row,
+      correctSlots: Number.isFinite(correctSlots) ? correctSlots : null,
+      userData,
+    });
+  }
+  const podium = buildTourRecapPodium(enriched);
+  const emailBoard = buildTourRecapEmailBoard(enriched);
   const participantCount = leaders.length;
   const showCount = tourDates.length;
   const tourName = tourKey;
@@ -614,12 +632,10 @@ async function deliverTourRecapIfFinalShow({
 
   /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
   const recipients = [];
-  for (const row of leaders) {
+  for (const row of enriched) {
     const info = ranked.get(row.uid);
     const rank = info?.rank ?? recipients.length + 1;
-    // eslint-disable-next-line no-await-in-loop
-    const userSnap = await db.collection("users").doc(row.uid).get();
-    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const userData = row.userData || {};
     recipients.push({
       uid: row.uid,
       userData,
@@ -634,6 +650,7 @@ async function deliverTourRecapIfFinalShow({
         tourName,
         showCount,
         podium,
+        emailBoard,
         shared,
         player: derivePlayerWrapFacts({
           uid: row.uid,

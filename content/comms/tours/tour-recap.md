@@ -65,9 +65,9 @@ If none of those are true, the rank paragraph stands alone.
 
 ---
 
-## Email (abbreviated)
+## Email
 
-Teaser + finish line + at most the one personal sentence above. Primary CTA **View Recap** → `/dashboard/profile/notifications` (Messages inbox). The rank paragraph, best night, caught songs, and shows sat out stay in-app.
+Congrats to the tour winner by handle, then the top 5 grid (Rank, Handle, Pts, Wins, Nights, Avg), then at most the one personal sentence above. Primary CTA **View Recap** → `/dashboard/profile/notifications` (Messages inbox). The rank paragraph, best night, caught songs, and shows sat out stay in-app. The in-app board uses Tour Winner, Runner-up, Third Place, then 4th and 5th.
 
 ---
 

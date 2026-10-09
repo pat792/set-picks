@@ -21,6 +21,7 @@ const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
 const {
   isFinalShowOfTour,
   buildTourRecapPodium,
+  buildTourRecapEmailBoard,
   buildTourRecapPayload,
 } = require("./tourRecapCore");
 
@@ -238,6 +239,29 @@ test("buildTourRecapPodium takes top 3 plus two honorable mentions", () => {
   assert.equal(podium.honorableMentions.length, 2);
   assert.match(podium.honorableMentions[0].note, /70 pts/);
   assert.match(podium.honorableMentions[1].note, /4 shows/);
+});
+
+test("buildTourRecapPodium names a points tie in the last honorable mention", () => {
+  const leaders = [
+    { handle: "A", totalPoints: 100, wins: 3, shows: 8, correctSlots: 24 },
+    { handle: "B", totalPoints: 90, wins: 2, shows: 8 },
+    { handle: "C", totalPoints: 80, wins: 1, shows: 8 },
+    { handle: "D", totalPoints: 70, wins: 1, shows: 7 },
+    { handle: "E", totalPoints: 60, wins: 0, shows: 4 },
+    { handle: "F", totalPoints: 60, wins: 0, shows: 4 },
+    { handle: "G", totalPoints: 40, wins: 0, shows: 2 },
+  ];
+  const podium = buildTourRecapPodium(leaders);
+  assert.equal(podium.honorableMentions.length, 2);
+  assert.equal(podium.honorableMentions[0].handle, "D");
+  assert.equal(podium.honorableMentions[1].handle, "E and F");
+  assert.match(podium.honorableMentions[1].note, /tied at 60 pts/);
+  const board = buildTourRecapEmailBoard(leaders);
+  assert.equal(board.length, 5);
+  assert.equal(board[0].rank, 1);
+  assert.equal(board[0].avg, ".500");
+  assert.equal(board[4].handle, "E");
+  assert.equal(board[4].avg, "");
 });
 
 test("buildTourRecapPayload uses tour metadata, not a Sphere live id", () => {
