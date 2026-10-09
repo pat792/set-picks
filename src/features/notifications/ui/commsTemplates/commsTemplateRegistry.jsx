@@ -66,18 +66,6 @@ function appendCityIfNeeded(venue, city) {
   return `${venue}, ${city}`;
 }
 
-function venueLine(payload, { dateKey = 'show_date', venueKey = 'venue_name', cityKey = 'venue_city' } = {}) {
-  const venue = typeof payload?.[venueKey] === 'string' ? payload[venueKey].trim() : '';
-  const city =
-    cityKey && cityKey !== '__none' && typeof payload?.[cityKey] === 'string'
-      ? payload[cityKey].trim()
-      : '';
-  const place = appendCityIfNeeded(venue, city);
-  const date = typeof payload?.[dateKey] === 'string' ? payload[dateKey].trim() : '';
-  if (date && place) return `${date} — ${place}`;
-  return place || date || '';
-}
-
 function placeLine(payload, { venueKey = 'venue_name', cityKey = 'venue_city' } = {}) {
   const venue = typeof payload?.[venueKey] === 'string' ? payload[venueKey].trim() : '';
   const city =
@@ -87,11 +75,27 @@ function placeLine(payload, { venueKey = 'venue_name', cityKey = 'venue_city' } 
   return appendCityIfNeeded(venue, city);
 }
 
-function tourStandingsEyebrow(showDate) {
+function fanDateBadge(showDate) {
   const formatted = formatFanShowDate(typeof showDate === 'string' ? showDate : '');
-  return typeof formatted === 'string' && /^\d{2}\/\d{2}\/\d{2}$/.test(formatted)
-    ? `${formatted} · Tour standings`
-    : 'Tour standings';
+  return typeof formatted === 'string' && /^\d{2}\/\d{2}\/\d{2}$/.test(formatted) ? formatted : '';
+}
+
+function speechDate(value) {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  if (!raw) return '';
+  return fanDateBadge(raw) || raw;
+}
+
+function datedPlace(payload, { dateKey = 'show_date', venueKey = 'venue_name', cityKey = 'venue_city' } = {}) {
+  const place = placeLine(payload, { venueKey, cityKey });
+  const date = speechDate(payload?.[dateKey]);
+  if (date && place) return `${date} — ${place}`;
+  return place || date || '';
+}
+
+function eyebrowWithDate(showDate, label) {
+  const badge = fanDateBadge(showDate);
+  return badge ? `${badge} · ${label}` : label;
 }
 
 const PICKS_HREF = '/dashboard/picks';
@@ -123,7 +127,7 @@ function tourCountdownIsConfirmation(p) {
  */
 function tourCountdownCloser(p) {
   const days = Number(p?.days_remaining);
-  const date = typeof p?.first_show_date === 'string' ? p.first_show_date.trim() : '';
+  const date = speechDate(p?.first_show_date);
   const showtime = date ? `showtime on ${date}` : 'showtime';
   if (tourCountdownIsConfirmation(p)) {
     if (days === 5) return `Your opener picks are in. You can edit them up to ${showtime}.`;
@@ -185,7 +189,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
       paragraphs: [
         "Joining the community means you get to track every show of every tour. Invite friends to play in a Private Pool, or just stick with competing against all who play a given night. We are so excited you're here, and hope you'll spread the word.",
         p.next_show_date
-          ? `Your next chance to play: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
+          ? `Your next chance to play: ${datedPlace(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
           : 'Head to the dashboard, make your first set of picks, and you’re on the board.',
       ],
       cta: { label: 'Make your first picks', href: '/dashboard/picks' },
@@ -223,8 +227,8 @@ export const COMMS_TEMPLATE_REGISTRY = {
         title: p.tour_name ? `${p.tour_name} is almost here` : 'The next tour is almost here',
         paragraphs: [
           `${handleOf(p)}, the run kicks off ${dayLabel}.`,
-          venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })
-            ? `First show: ${venueLine(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })}.`
+          datedPlace(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })
+            ? `First show: ${datedPlace(p, { dateKey: 'first_show_date', venueKey: 'first_show_venue', cityKey: 'first_show_city' })}.`
             : 'The first show is coming up.',
           tourCountdownCloser(p),
         ],
@@ -332,10 +336,10 @@ export const COMMS_TEMPLATE_REGISTRY = {
       return {
         icon: CheckCircle2,
         accentClassName: 'text-emerald-300',
-        eyebrow: 'Picks locked',
+        eyebrow: eyebrowWithDate(p.show_date, 'Picks locked'),
         title: "You're locked in",
         paragraphs: [
-          `${handleOf(p)}, your picks for ${venueLine(p) || 'the show'} are confirmed.`,
+          `${handleOf(p)}, your picks for ${placeLine(p) || 'the show'} are confirmed.`,
           'Sit back — we’ll score them live as the setlist comes in.',
         ],
         stats: picks.map(([label, value]) => ({ label, value })),
@@ -433,10 +437,10 @@ export const COMMS_TEMPLATE_REGISTRY = {
       return {
         icon: BarChart3,
         accentClassName: 'text-teal-400',
-        eyebrow: 'Show recap',
+        eyebrow: eyebrowWithDate(p.show_date, 'Show recap'),
         title: p.venue_name ? `Recap: ${p.venue_name}` : 'Your show recap',
         paragraphs: [
-          `${handleOf(p)}, here's how your picks for ${venueLine(p) || 'the show'} graded out.`,
+          `${handleOf(p)}, here's how your picks for ${placeLine(p) || 'the show'} graded out.`,
           narrative ||
             (p.correct_picks_count != null && p.total_picks_count != null
               ? `You nailed ${p.correct_picks_count} of ${p.total_picks_count} picks.`
@@ -519,7 +523,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
       return {
         icon: TrendingUp,
         accentClassName: 'text-sky-300',
-        eyebrow: tourStandingsEyebrow(p.show_date),
+        eyebrow: eyebrowWithDate(p.show_date, 'Tour standings'),
         title: 'Where you stand on tour',
         paragraphs,
         stats: [
@@ -688,10 +692,10 @@ export const COMMS_TEMPLATE_REGISTRY = {
       return {
         icon: AlarmClock,
         accentClassName: 'text-rose-300',
-        eyebrow: 'Picks lock soon',
+        eyebrow: eyebrowWithDate(p.show_date, 'Picks lock soon'),
         title: `${timeToLock} until picks lock`,
         paragraphs: [
-          `${handleOf(p)}, lock in your picks${venueLine(p) ? ` for ${venueLine(p)}` : ''}.`,
+          `${handleOf(p)}, lock in your picks${placeLine(p) ? ` for ${placeLine(p)}` : ''}.`,
           isPicksSecured(p)
             ? 'Your picks are on the board — open them any time before lock to tweak.'
             : "You haven't locked picks yet. Don't get shut out of the night.",
@@ -744,7 +748,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           ? `There ${p.shows_remaining === 1 ? 'is' : 'are'} ${p.shows_remaining} show${p.shows_remaining === 1 ? '' : 's'} left this tour — every night is a chance to climb.`
           : 'There’s a whole tour ahead — every night is a chance to climb.',
         p.next_show_date
-          ? `Next up: ${venueLine(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
+          ? `Next up: ${datedPlace(p, { dateKey: 'next_show_date', venueKey: 'next_show_venue', cityKey: '__none' })}.`
           : '',
       ].filter(Boolean),
       cta: isPicksSecured(p)

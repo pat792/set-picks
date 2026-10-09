@@ -110,9 +110,9 @@ test("tour countdown closer and CTA branch on picks and days remaining", async (
     1: "Have your card filled before they walk on.",
   };
   const secured = {
-    5: "Your opener picks are in. You can edit them up to showtime on 2026-10-02.",
-    3: "Your card for show 1 is already in. Edit it any time before showtime on 2026-10-02.",
-    1: "You're locked in for the opener. You can still change your card up to showtime on 2026-10-02.",
+    5: "Your opener picks are in. You can edit them up to showtime on 10/02/26.",
+    3: "Your card for show 1 is already in. Edit it any time before showtime on 10/02/26.",
+    1: "You're locked in for the opener. You can still change your card up to showtime on 10/02/26.",
   };
   const seen = new Set();
   for (const [days, closer] of Object.entries(open)) {
@@ -411,6 +411,42 @@ test("tour-rankings-daily Richmond fixture uses a venue sentence, preheader, and
   assert.equal(out.push.title, "Where you stand on tour");
 });
 
+test("other comms drop storage dates from sentences (#1124)", async () => {
+  const recap = await renderCommsTemplate("show-recap", {
+    handle: "Rivertranced",
+    show_date: "2026-10-07",
+    venue_name: "Allianz Amphitheater at Riverfront",
+    venue_city: "Richmond, VA",
+  });
+  assert.match(
+    recap.email.text,
+    /here's how your picks for Allianz Amphitheater at Riverfront, Richmond, VA graded out/,
+  );
+  assert.doesNotMatch(recap.email.text, /2026-10-07/);
+  assert.doesNotMatch(recap.email.text, /last night/);
+
+  const confirmed = await renderCommsTemplate("picks-confirmed", {
+    handle: "Rivertranced",
+    show_date: "2026-10-07",
+    venue_name: "MSG",
+    venue_city: "New York, NY",
+  });
+  assert.match(confirmed.email.text, /your picks for MSG, New York, NY are confirmed/);
+  assert.doesNotMatch(confirmed.email.text, /2026-10-07/);
+
+  const lock = await renderCommsTemplate("picks-lock-reminder", {
+    handle: "HotDogBilly",
+    show_date: "2026-10-07",
+    venue_name: "MSG",
+    venue_city: "New York, NY",
+    time_to_lock: "3 hours",
+  });
+  assert.match(lock.email.text, /for MSG\./);
+  assert.doesNotMatch(lock.email.text.split("Open the app:")[0], /2026-10-07/);
+  assert.match(lock.email.ctaUrl, /showDate=2026-10-07/);
+  assert.equal(lock.email.header?.eyebrow, "10/07/26 · Picks lock soon");
+});
+
 test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {
   const out = await renderCommsTemplate("tour-countdown", {
     handle: "ArmenianMan",
@@ -424,7 +460,8 @@ test("tour-countdown email uses picks CTA and avoids duplicate city in venue lin
   assert.equal(out.email.ctaLabel, "Make Your Picks");
   assert.equal(out.email.ctaUrl, "https://www.setlistpickem.com/dashboard/picks");
   assert.equal(out.email.signOff, "See you on tour!");
-  assert.match(out.email.text, /First show: 2026-07-07 — Kohl Center, Madison, WI\./);
+  assert.match(out.email.text, /First show: 07\/07\/26 — Kohl Center, Madison, WI\./);
+  assert.doesNotMatch(out.email.text, /2026-07-07/);
   assert.doesNotMatch(out.email.text, /Madison, WI, Madison, WI/);
   assert.doesNotMatch(out.email.text, /Manage which updates/i);
 });

@@ -25,6 +25,17 @@ function formatFanShowDate(value) {
   return `${match[2]}/${match[3]}/${String(year).slice(-2)}`;
 }
 
+/**
+ * `MM/DD/YY` when `value` is a storage date, otherwise empty.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function fanDateBadge(value) {
+  const formatted = formatFanShowDate(typeof value === 'string' ? value : '');
+  return typeof formatted === 'string' && /^\d{2}\/\d{2}\/\d{2}$/.test(formatted) ? formatted : '';
+}
+
 module.exports = {
   formatFanShowDate,
+  fanDateBadge,
 };
