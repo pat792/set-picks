@@ -19,6 +19,7 @@ const {
   buildInviteSharePlainTextLines,
 } = require("./comms/inviteShareBlock.cjs");
 const { resolveCommsEmailHeader } = require("./comms/emailCommsHeader.cjs");
+const { formatFanShowDate } = require("./fanShowDate.cjs");
 
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
@@ -216,6 +217,31 @@ function venueLine(payload, { dateKey = "show_date", venueKey = "venue_name", ci
   const date = typeof payload?.[dateKey] === "string" ? payload[dateKey].trim() : "";
   if (date && place) return `${date} — ${place}`;
   return place || date || "";
+}
+
+/**
+ * Venue and city only. The morning recap sentence names the room, not the storage date.
+ *
+ * @param {Record<string, unknown>} payload
+ * @param {{ venueKey?: string, cityKey?: string }} [opts]
+ * @returns {string}
+ */
+function placeLine(payload, { venueKey = "venue_name", cityKey = "venue_city" } = {}) {
+  const venue = typeof payload?.[venueKey] === "string" ? payload[venueKey].trim() : "";
+  const city =
+    cityKey && cityKey !== "__none" && typeof payload?.[cityKey] === "string"
+      ? payload[cityKey].trim()
+      : "";
+  return appendCityIfNeeded(venue, city);
+}
+
+/**
+ * @param {unknown} showDate
+ * @returns {string} `MM/DD/YY`, or empty when the value is not a storage date.
+ */
+function fanDateBadge(showDate) {
+  const formatted = formatFanShowDate(typeof showDate === "string" ? showDate : "");
+  return typeof formatted === "string" && /^\d{2}\/\d{2}\/\d{2}$/.test(formatted) ? formatted : "";
 }
 
 /** Warm default close — avoid repeating the brand name (logo + legal footer cover identity). */
@@ -503,7 +529,10 @@ const BUILDERS = {
 
   "tour-rankings-daily": (p) => {
     const handle = handleOf(p);
-    const venue = venueLine(p) || "the show";
+    const place = placeLine(p);
+    const venue = place || "the show";
+    const dateBadge = fanDateBadge(p.show_date);
+    const preheader = dateBadge && place ? `${dateBadge} · ${place}` : dateBadge || place || "";
     const narrative =
       (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
@@ -560,6 +589,7 @@ const BUILDERS = {
         ctaUrl: PICKS_CTA_URL,
         ctaLabel: "Make picks for next show",
         inviteBlockHtml: buildInviteShareHtmlBlock(inviteFields),
+        ...(preheader ? { preheader } : {}),
       },
     };
   },

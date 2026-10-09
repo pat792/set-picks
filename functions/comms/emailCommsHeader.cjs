@@ -1,5 +1,7 @@
 'use strict';
 
+const { formatFanShowDate } = require('../fanShowDate.cjs');
+
 /**
  * In-app style email header (eyebrow + icon + title) — mirrors
  * `CommsTemplateBody` / `commsTemplateRegistry` without Lucide (email-safe emoji).
@@ -61,13 +63,21 @@ function resolveCommsEmailHeader(templateId, p = {}) {
         accentColor: ACCENT_AMBER,
       };
     }
-    case 'tour-rankings-daily':
+    case 'tour-rankings-daily': {
+      const formatted = formatFanShowDate(
+        typeof p.show_date === 'string' ? p.show_date : ''
+      );
+      const dateBadge =
+        typeof formatted === 'string' && /^\d{2}\/\d{2}\/\d{2}$/.test(formatted)
+          ? formatted
+          : '';
       return {
         icon: '📈',
-        eyebrow: 'Tour standings',
+        eyebrow: dateBadge ? `${dateBadge} · Tour standings` : 'Tour standings',
         title: 'Where you stand on tour',
         accentColor: ACCENT_TEAL,
       };
+    }
     case 'tour-recap': {
       const tourName =
         typeof p.tour_name === 'string' && p.tour_name.trim()

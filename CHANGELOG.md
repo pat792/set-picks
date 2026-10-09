@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.81.3] — 2026-10-09
+
+### Changed
+- **Morning recap** — the last-night sentence names the venue and city. The date moves to the email preheader (`10/07/26 · {venue}, {city}`) and the email and in-app eyebrow (`10/07/26 · Tour standings`). Next up, back at, and last played use `MM/DD/YY`. Debut and late-joiner lines drop the storage date. `show_date` on the payload stays `YYYY-MM-DD`. Subject and push are unchanged. (#1121)
+
+---
+
 ## [1.81.2] — 2026-10-09
 
 ### Fixed

@@ -27,6 +27,32 @@ export function ymdInTimeZone(date = new Date(), timeZone) {
   }).format(date);
 }
 
+/**
+ * Fan-facing numeric show date. Storage stays `YYYY-MM-DD`.
+ * Keep in sync with `functions/fanShowDate.cjs`.
+ * Invalid input returns the original value.
+ *
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+export function formatFanShowDate(value) {
+  if (typeof value !== 'string') return value;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return value;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const utc = new Date(Date.UTC(year, month - 1, day));
+  if (
+    utc.getUTCFullYear() !== year ||
+    utc.getUTCMonth() !== month - 1 ||
+    utc.getUTCDate() !== day
+  ) {
+    return value;
+  }
+  return `${match[2]}/${match[3]}/${String(year).slice(-2)}`;
+}
+
 export function formatShowLabel(dateStr) {
   const date = toDateSafe(`${dateStr}T12:00:00`);
   if (!date) return dateStr;
