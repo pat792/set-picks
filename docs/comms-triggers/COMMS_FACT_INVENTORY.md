@@ -6,7 +6,7 @@
 
 Living shelf of facts the app already knows. A message may speak a fact only when it is true for that night, that player, or that tour. Missing facts drop out. No model writes the sentence.
 
-This file answers “what can we say?” A message map answers “what does this communication say?” The night paragraph map is [SHOW_RECAP_FACT_INVENTORY.md](./SHOW_RECAP_FACT_INVENTORY.md) ([#1083](https://github.com/pat792/set-picks/issues/1083)). The tour wrap map is [TOUR_RECAP_FACT_INVENTORY.md](./TOUR_RECAP_FACT_INVENTORY.md) ([#1084](https://github.com/pat792/set-picks/issues/1084)). Add a fact here before a message starts saying it. The morning email’s standings paragraph (“you climbed,” “next up”) has no map yet.
+This file answers “what can we say?” A message map answers “what does this communication say?” The night paragraph map is [SHOW_RECAP_FACT_INVENTORY.md](./SHOW_RECAP_FACT_INVENTORY.md) ([#1083](https://github.com/pat792/set-picks/issues/1083)). The tour wrap map is [TOUR_RECAP_FACT_INVENTORY.md](./TOUR_RECAP_FACT_INVENTORY.md) ([#1084](https://github.com/pat792/set-picks/issues/1084)). Add a fact here before a message starts saying it. The morning standings paragraph has its own map: [STANDINGS_FACT_INVENTORY.md](./STANDINGS_FACT_INVENTORY.md) ([#1102](https://github.com/pat792/set-picks/issues/1102)).
 
 ## Categories
 

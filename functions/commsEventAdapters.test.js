@@ -21,6 +21,7 @@ const { isCommsEventAdaptersEnabled } = require("./commsAdapterRuntime");
 const {
   isFinalShowOfTour,
   buildTourRecapPodium,
+  buildTourRecapEmailBoard,
   buildTourRecapPayload,
 } = require("./tourRecapCore");
 
@@ -240,6 +241,29 @@ test("buildTourRecapPodium takes top 3 plus two honorable mentions", () => {
   assert.match(podium.honorableMentions[1].note, /4 shows/);
 });
 
+test("buildTourRecapPodium names a points tie in the last honorable mention", () => {
+  const leaders = [
+    { handle: "A", totalPoints: 100, wins: 3, shows: 8, correctSlots: 24 },
+    { handle: "B", totalPoints: 90, wins: 2, shows: 8 },
+    { handle: "C", totalPoints: 80, wins: 1, shows: 8 },
+    { handle: "D", totalPoints: 70, wins: 1, shows: 7 },
+    { handle: "E", totalPoints: 60, wins: 0, shows: 4 },
+    { handle: "F", totalPoints: 60, wins: 0, shows: 4 },
+    { handle: "G", totalPoints: 40, wins: 0, shows: 2 },
+  ];
+  const podium = buildTourRecapPodium(leaders);
+  assert.equal(podium.honorableMentions.length, 2);
+  assert.equal(podium.honorableMentions[0].handle, "D");
+  assert.equal(podium.honorableMentions[1].handle, "E and F");
+  assert.match(podium.honorableMentions[1].note, /tied at 60 pts/);
+  const board = buildTourRecapEmailBoard(leaders);
+  assert.equal(board.length, 5);
+  assert.equal(board[0].rank, 1);
+  assert.equal(board[0].avg, ".500");
+  assert.equal(board[4].handle, "E");
+  assert.equal(board[4].avg, "");
+});
+
 test("buildTourRecapPayload uses tour metadata, not a Sphere live id", () => {
   const payload = buildTourRecapPayload({
     handle: "Pat",
@@ -257,10 +281,16 @@ test("buildTourRecapPayload uses tour metadata, not a Sphere live id", () => {
   assert.equal(payload.tour_name, "Summer Tour 2026");
   assert.match(payload.headline, /Summer Tour 2026/);
   assert.equal(payload.show_count, 8);
+  assert.equal(
+    payload.personal_line,
+    "You finished #2 of 12 with 90 points and 1 nightly win, playing 8 of 8 shows.",
+  );
+  assert.equal(payload.personal_clause, "");
+  assert.match(payload.opening_paras[1], /inexact science/);
   assert.deepEqual(payload.fact_label, {
     map: "tour_recap",
     branch: "top5",
-    slots: ["rank", "opening_fallback"],
+    slots: ["rank", "points", "nightly_wins", "shows_played", "opening_fallback"],
     tourId: "Summer Tour 2026",
   });
   assert.doesNotMatch(JSON.stringify(payload), /sphere-2026-inaugural/);

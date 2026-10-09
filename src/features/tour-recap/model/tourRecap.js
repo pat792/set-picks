@@ -60,19 +60,34 @@ export const PREVIEW_TOUR_EDITION = {
   },
 };
 
-const DEFAULT_PERSONAL_BY_BRANCH = {
-  champion:
-    'You are the Champion. You navigated {{tourName}} better than anyone else, taking the #1 overall spot with {{points}} points and {{wins}} nightly wins. Soak it in, take a victory lap, and get ready to defend your title on the next tour.',
-  top5:
-    'You finished in the Top 5. Coming in at #{{rank}} overall, you were right in the thick of the title hunt until the very last note. You were just one or two wildcard hits away from taking the whole thing down. We\'ll see you in the top tier next tour.',
-  top10:
-    'You finished in the Top 10. You locked in a very respectable #{{rank}} finish out of {{participantCount}} players. Staying in the top half of the leaderboard over a {{showCount}}-show run takes consistency. Adjust your strategy, study the stats, and the Top 5 is yours next time.',
-  full_run:
-    'You finished at #{{rank}}. You played all {{showCount}} shows—which is a massive achievement in itself—but the curveballs kept you just outside the top 10 this time around. Wipe the slate clean and get ready to climb the boards on the next run.',
-  partial:
-    'You finished at #{{rank}}. You hopped into the tour for {{showsPlayed}} shows this run, dropping some great picks along the way. To climb the leaderboard next tour, make sure your picks are locked in for every single show. We\'ll see you on the next run!',
-  fallback: 'You finished at #{{rank}}. Thanks for playing—see you on the next run.',
-};
+/**
+ * Rank paragraph used when a stored message has no server `personal_line`.
+ * Editions that still carry their own `personalByBranch` (Sphere archive) keep that copy.
+ *
+ * @param {{
+ *   rank: number,
+ *   points: number,
+ *   wins: number,
+ *   showsPlayed: number,
+ *   participantCount: number,
+ *   showCount: number,
+ *   tourName: string,
+ * }} ctx
+ */
+function factualFinishSentence(ctx) {
+  const of = Number.isFinite(ctx.participantCount) && ctx.participantCount > 0
+    ? ` of ${ctx.participantCount}`
+    : '';
+  const on = ctx.tourName ? ` on ${ctx.tourName}` : '';
+  const points = Number.isFinite(ctx.points) ? ` with ${ctx.points} points` : '';
+  const wins = Number.isFinite(ctx.wins)
+    ? ` and ${ctx.wins} nightly ${ctx.wins === 1 ? 'win' : 'wins'}`
+    : '';
+  const shows = Number.isFinite(ctx.showsPlayed) && Number.isFinite(ctx.showCount) && ctx.showCount > 0
+    ? `, playing ${ctx.showsPlayed} of ${ctx.showCount} shows`
+    : '';
+  return `You finished #${ctx.rank}${of}${on}${points}${wins}${shows}.`;
+}
 
 /**
  * @param {string} template
@@ -158,12 +173,15 @@ export function resolveTourRecapEdition(edition, payload = {}) {
       (typeof payload.push_title === 'string' && payload.push_title.trim()) ||
       base.pushTitle ||
       'Tour recap is in',
-    personalByBranch: base.personalByBranch || DEFAULT_PERSONAL_BY_BRANCH,
+    personalByBranch: base.personalByBranch || null,
   };
 }
 
 /**
  * Personalized “your final result” copy (in-app + long email).
+ *
+ * A stored `personalLine` is the send. Editions with their own branch copy
+ * (the Sphere archive) keep that copy. Everyone else gets the rank facts.
  *
  * @param {{
  *   rank: number,
@@ -174,10 +192,18 @@ export function resolveTourRecapEdition(edition, payload = {}) {
  *   showCount?: number,
  *   tourName?: string,
  *   edition?: object,
+ *   personalLine?: string,
+ *   personal_line?: string,
  * }} ctx
  * @returns {string}
  */
 export function getTourRecapPersonalParagraph(ctx) {
+  const explicit =
+    (typeof ctx.personalLine === 'string' && ctx.personalLine.trim()) ||
+    (typeof ctx.personal_line === 'string' && ctx.personal_line.trim()) ||
+    '';
+  if (explicit) return explicit;
+
   const edition = resolveTourRecapEdition(ctx.edition, ctx);
   const r = Number(ctx.rank);
   const pts = Number(ctx.points);
@@ -186,10 +212,21 @@ export function getTourRecapPersonalParagraph(ctx) {
   const participantCount = Number(ctx.participantCount ?? edition.participantCount);
   const showCount = Number(ctx.showCount ?? edition.showCount);
   const tourName = ctx.tourName || edition.tourName;
-  const branch = resolveTourRecapRankBranch({ rank: r, showsPlayed: played, showCount });
-  const templates = edition.personalByBranch || DEFAULT_PERSONAL_BY_BRANCH;
-  const template = templates[branch] || DEFAULT_PERSONAL_BY_BRANCH.fallback;
-  return interpolateTourRecapCopy(template, {
+  const ownTemplates = ctx.edition && ctx.edition.personalByBranch;
+  if (ownTemplates) {
+    const branch = resolveTourRecapRankBranch({ rank: r, showsPlayed: played, showCount });
+    const template = ownTemplates[branch] || ownTemplates.fallback || '';
+    return interpolateTourRecapCopy(template, {
+      rank: r,
+      points: pts,
+      wins: w,
+      showsPlayed: played,
+      participantCount,
+      showCount,
+      tourName,
+    });
+  }
+  return factualFinishSentence({
     rank: r,
     points: pts,
     wins: w,
