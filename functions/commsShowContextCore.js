@@ -152,7 +152,7 @@ function priorDatesForTourDebutLookup(priorDates) {
 }
 
 /** Persisted `comms_show_context.schemaVersion` (bump when rebuild-on-read is required). */
-const COMMS_SHOW_CONTEXT_SCHEMA_VERSION = 2;
+const COMMS_SHOW_CONTEXT_SCHEMA_VERSION = 3;
 
 /**
  * @param {{ set1: string[], set2: string[], encore: string[] }} groups
@@ -222,6 +222,257 @@ function indefiniteArticleForGap(n) {
   const s = String(abs);
   if (s === "11" || s === "18" || s.startsWith("8")) return "an";
   return "a";
+}
+
+/**
+ * @param {unknown} title
+ * @returns {string}
+ */
+function titleKey(title) {
+  return String(title ?? "").trim().toLowerCase();
+}
+
+/**
+ * @param {unknown} title
+ * @param {Record<string, unknown> | null | undefined} songGaps
+ * @returns {number | null}
+ */
+function gapForTitle(title, songGaps) {
+  if (!songGaps || typeof songGaps !== "object") return null;
+  const key = titleKey(title);
+  const raw = songGaps[key] ?? songGaps[String(title ?? "").trim()];
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : null;
+}
+
+/**
+ * @param {unknown} title
+ * @param {Record<string, unknown> | null | undefined} lastPlayed
+ * @returns {string}
+ */
+function lastPlayedForTitle(title, lastPlayed) {
+  if (!lastPlayed || typeof lastPlayed !== "object") return "";
+  const raw = lastPlayed[titleKey(title)];
+  return typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : "";
+}
+
+/**
+ * Highest lifetime play count in this set. An earlier song wins a tie.
+ * @param {string[]} songs
+ * @param {Record<string, unknown> | null | undefined} lifetimePlays
+ * @returns {string}
+ */
+function crowdFavoriteTitle(songs, lifetimePlays) {
+  if (!lifetimePlays || typeof lifetimePlays !== "object") return "";
+  let bestTitle = "";
+  let best = -1;
+  for (const title of songs) {
+    const n = Number(lifetimePlays[titleKey(title)]);
+    if (!Number.isFinite(n) || n <= 0 || n <= best) continue;
+    best = n;
+    bestTitle = title;
+  }
+  return bestTitle;
+}
+
+/**
+ * Every song has a known gap, and none is above 10.
+ * @param {string[]} songs
+ * @param {Record<string, unknown> | null | undefined} songGaps
+ * @returns {boolean}
+ */
+function allGapsAtMostTen(songs, songGaps) {
+  if (!songs.length) return false;
+  return songs.every((title) => {
+    const gap = gapForTitle(title, songGaps);
+    return gap != null && gap <= 10;
+  });
+}
+
+/**
+ * One song for a set. A bustout stays a bustout. A gap of 20–29 is a rarity,
+ * 11–19 is a return, and a set whose gaps are all 10 or fewer is rotation.
+ * A trusted tour debut is the next fact. Songs in `omitTitles` are skipped.
+ *
+ * @param {string[]} songs
+ * @param {{
+ *   songGaps?: Record<string, unknown>,
+ *   bustoutTitles?: string[],
+ *   tourDebutTitles?: string[],
+ *   debutsTrusted?: boolean,
+ *   omitTitles?: string[],
+ *   lifetimePlays?: Record<string, unknown>,
+ * }} opts
+ * @returns {{ title: string, kind: "bustout" | "rarity" | "return" | "rotation" | "debut", gap: number | null } | null}
+ */
+function pickSetHighlight(songs, opts) {
+  const omit = new Set((opts.omitTitles || []).map(titleKey));
+  const list = (songs || []).filter((title) => title && !omit.has(titleKey(title)));
+  if (!list.length) return null;
+  const bustoutKeys = new Set((opts.bustoutTitles || []).map(titleKey));
+  const ranked = list.map((title) => ({
+    title,
+    gap: gapForTitle(title, opts.songGaps),
+    bustout: bustoutKeys.has(titleKey(title)),
+  }));
+  const bustouts = ranked.filter(
+    (row) => row.bustout || (row.gap != null && row.gap >= 30),
+  );
+  bustouts.sort((a, b) => (b.gap || 0) - (a.gap || 0));
+  if (bustouts.length) {
+    return { title: bustouts[0].title, kind: "bustout", gap: bustouts[0].gap };
+  }
+  const withGap = ranked.filter((row) => row.gap != null).slice().sort((a, b) => b.gap - a.gap);
+  const longest = withGap[0];
+  if (longest && longest.gap >= 20 && longest.gap < 30) {
+    return { title: longest.title, kind: "rarity", gap: longest.gap };
+  }
+  if (longest && longest.gap >= 11 && longest.gap < 20) {
+    return { title: longest.title, kind: "return", gap: longest.gap };
+  }
+  if (allGapsAtMostTen(list, opts.songGaps)) {
+    return {
+      title: crowdFavoriteTitle(list, opts.lifetimePlays),
+      kind: "rotation",
+      gap: null,
+    };
+  }
+  if (opts.debutsTrusted) {
+    const debuts = new Set((opts.tourDebutTitles || []).map(titleKey));
+    const debut = list.find((title) => debuts.has(titleKey(title)));
+    if (debut) return { title: debut, kind: "debut", gap: null };
+  }
+  return null;
+}
+
+/**
+ * Lifetime play counts for the titles in one night. Catalog `total` is a string.
+ * @param {Array<{ name?: string, total?: unknown }>} songs
+ * @param {string[]} titles
+ * @returns {Record<string, number>}
+ */
+function lifetimePlaysForTitles(songs, titles) {
+  const wanted = new Set((titles || []).map(titleKey).filter(Boolean));
+  /** @type {Record<string, number>} */
+  const map = {};
+  if (!wanted.size) return map;
+  for (const song of songs || []) {
+    const key = titleKey(song?.name);
+    if (!wanted.has(key) || map[key] != null) continue;
+    const n = Number(song?.total);
+    if (!Number.isFinite(n) || n <= 0) continue;
+    map[key] = Math.trunc(n);
+  }
+  return map;
+}
+
+/**
+ * @param {{ title: string, kind: "bustout" | "rarity" | "return" | "rotation" | "debut", gap: number | null }} hit
+ * @param {Record<string, unknown> | null | undefined} lastPlayed
+ * @returns {string}
+ */
+function highlightClause(hit, lastPlayed) {
+  if (hit.kind === "debut") {
+    return `, highlighted by ${hit.title}, new to this tour`;
+  }
+  if (hit.kind === "rotation") {
+    return hit.title
+      ? ` featured heavy rotation songs, with crowd favorite ${hit.title}`
+      : " featured heavy rotation songs";
+  }
+  if (hit.kind === "bustout" && hit.gap == null) return `, highlighted by ${hit.title}`;
+  const article = indefiniteArticleForGap(hit.gap);
+  const date = hit.gap != null && hit.gap >= 10 ? lastPlayedForTitle(hit.title, lastPlayed) : "";
+  const dateBit = date ? `, last played on ${date}` : "";
+  if (hit.kind === "rarity") {
+    return ` featured a relative rarity of late: ${hit.title}, ${article} ${hit.gap} show gap${dateBit}`;
+  }
+  if (hit.kind === "return") {
+    return ` saw the return of ${hit.title} after ${article} ${hit.gap} show gap${dateBit}`;
+  }
+  return `, highlighted by ${hit.title}, ${article} ${hit.gap} show gap${dateBit}`;
+}
+
+/**
+ * @param {string[]} titles
+ * @returns {string}
+ */
+function joinTitles(titles) {
+  if (titles.length <= 1) return titles[0] || "";
+  if (titles.length === 2) return `${titles[0]} and ${titles[1]}`;
+  return `${titles.slice(0, -1).join(", ")}, and ${titles[titles.length - 1]}`;
+}
+
+/**
+ * One sentence per set from the night map. A bustout title that is not in
+ * `groups` cannot be chosen. `omitTitles` drops a song the player line already claimed.
+ *
+ * @param {{
+ *   groups: { set1?: string[], set2?: string[], encore?: string[] },
+ *   songGaps?: Record<string, unknown>,
+ *   bustoutTitles?: string[],
+ *   tourDebutTitles?: string[],
+ *   debutsTrusted?: boolean,
+ *   lastPlayed?: Record<string, unknown>,
+ *   omitTitles?: string[],
+ *   opener?: string,
+ *   venue?: string,
+ * }} input
+ * @returns {{ text: string, slots: string[] }}
+ */
+function composeNightSetFlow(input) {
+  const groups = input.groups || {};
+  const set1 = Array.isArray(groups.set1) ? groups.set1.filter(Boolean) : [];
+  const set2 = Array.isArray(groups.set2) ? groups.set2.filter(Boolean) : [];
+  const encore = Array.isArray(groups.encore) ? groups.encore.filter(Boolean) : [];
+  /** @type {string[]} */
+  const parts = [];
+  /** @type {string[]} */
+  const slots = [];
+  const shared = {
+    songGaps: input.songGaps,
+    bustoutTitles: input.bustoutTitles,
+    tourDebutTitles: input.tourDebutTitles,
+    debutsTrusted: input.debutsTrusted === true,
+    omitTitles: input.omitTitles,
+    lifetimePlays: input.lifetimePlays,
+  };
+
+  /**
+   * @param {string[]} songs
+   * @param {string} label
+   * @param {string} lengthId
+   * @param {string | null} highlightId
+   * @param {string} openerFallback
+   */
+  function pushSet(songs, label, lengthId, highlightId, openerFallback) {
+    if (!songs.length) return;
+    const article = indefiniteArticleForGap(songs.length) === "an" ? "An" : "A";
+    const hit = pickSetHighlight(songs, shared);
+    let extra = "";
+    if (hit && highlightId) {
+      extra = highlightClause(hit, input.lastPlayed);
+      slots.push(highlightId);
+    } else if (openerFallback) {
+      extra = `, opened with ${openerFallback}`;
+    } else if (input.venue && !slots.includes("venue_fallback")) {
+      extra = ` at ${input.venue}`;
+      slots.push("venue_fallback");
+    }
+    parts.push(`${article} ${songs.length}-song ${label}${extra}.`);
+    slots.push(lengthId);
+  }
+
+  pushSet(set1, "first set", "set1_length", "set1_highlight", trimTitle(input.opener));
+  pushSet(set2, "second set", "set2_length", "set2_highlight", "");
+  if (encore.length) {
+    const article = indefiniteArticleForGap(encore.length) === "an" ? "An" : "A";
+    parts.push(
+      `${article} ${encore.length}-song encore featured ${joinTitles(encore)}.`,
+    );
+    slots.push("encore_length", "encore_titles");
+  }
+  return { text: parts.join(" "), slots };
 }
 
 /**
@@ -314,6 +565,10 @@ function buildCommsShowContext({
   bustoutEntries = null,
   /** @type {{ title: string, gap?: number | null }[] | null} */
   phishnetRows = null,
+  /** @type {Record<string, string> | null} */
+  lastPlayedByTitle = null,
+  /** @type {Record<string, number> | null} */
+  lifetimePlaysByTitle = null,
 }) {
   const slotMap =
     setlistDoc?.setlist && typeof setlistDoc.setlist === "object"
@@ -334,7 +589,12 @@ function buildCommsShowContext({
     trimTitle(normalizedDoc.enc) ||
     (groups.encore[0] ? groups.encore[0] : "");
 
-  const bustoutTitles = bustoutTitlesFromDoc(normalizedDoc);
+  const playedKeys = new Set(
+    [...groups.set1, ...groups.set2, ...groups.encore].map(titleKey),
+  );
+  const bustoutTitles = bustoutTitlesFromDoc(normalizedDoc).filter((title) =>
+    playedKeys.has(titleKey(title)),
+  );
   /** @type {{ title: string, gap: number | null }[]} */
   let entries = Array.isArray(bustoutEntries) ? bustoutEntries.filter((e) => e?.title) : [];
   if (!entries.length && Array.isArray(phishnetRows)) {
@@ -343,14 +603,38 @@ function buildCommsShowContext({
   if (!entries.length && bustoutTitles.length) {
     entries = bustoutTitles.map((title) => ({ title, gap: null }));
   }
-  // Prefer titles from entries when present
+  entries = entries.filter((entry) => playedKeys.has(titleKey(entry.title)));
   const titlesFromEntries = entries.map((e) => e.title);
   const resolvedBustoutTitles = titlesFromEntries.length
     ? titlesFromEntries
     : bustoutTitles;
 
   const tourDebuts = tourDebutTitles(normalizedDoc, priorTourSetlistDocs);
-  const set_flow_summary = composeSetFlowSummary(groups, openerTitle, encoreTitle);
+  const priorHasSongs = (priorTourSetlistDocs || []).some(
+    (doc) => tonightTitles(doc).length > 0,
+  );
+  const songGaps = {
+    ...(normalizedDoc.songGaps && typeof normalizedDoc.songGaps === "object"
+      ? normalizedDoc.songGaps
+      : {}),
+  };
+  for (const entry of entries) {
+    const key = titleKey(entry.title);
+    if (songGaps[key] == null && entry.gap != null) songGaps[key] = entry.gap;
+  }
+  const lastPlayed =
+    lastPlayedByTitle && typeof lastPlayedByTitle === "object" ? lastPlayedByTitle : {};
+  const nightFlow = composeNightSetFlow({
+    groups,
+    songGaps,
+    bustoutTitles: resolvedBustoutTitles,
+    tourDebutTitles: tourDebuts,
+    debutsTrusted: priorHasSongs,
+    lastPlayed,
+    lifetimePlays: lifetimePlaysByTitle,
+    opener: openerTitle,
+  });
+  const set_flow_summary = nightFlow.text || composeSetFlowSummary(groups, openerTitle, encoreTitle);
   const setlist_highlight = composeSetlistHighlight({
     bustoutTitles: resolvedBustoutTitles,
     bustoutEntries: entries,
@@ -372,6 +656,16 @@ function buildCommsShowContext({
     bustout_titles: resolvedBustoutTitles,
     bustout_entries: entries,
     tour_debut_titles: tourDebuts,
+    tour_debuts_trusted: priorHasSongs,
+    set_songs: {
+      set1: groups.set1,
+      set2: groups.set2,
+      encore: groups.encore,
+    },
+    song_gaps: songGaps,
+    last_played: lastPlayed,
+    lifetime_plays:
+      lifetimePlaysByTitle && typeof lifetimePlaysByTitle === "object" ? lifetimePlaysByTitle : {},
     set_flow_summary: set_flow_summary || null,
     setlist_highlight: setlist_highlight || null,
     show_moment_tags,
@@ -402,6 +696,23 @@ function showLevelPayloadFields(context) {
     tour_debut_titles: Array.isArray(context.tour_debut_titles)
       ? context.tour_debut_titles
       : [],
+    tour_debuts_trusted: context.tour_debuts_trusted === true,
+    set_songs:
+      context.set_songs && typeof context.set_songs === "object"
+        ? context.set_songs
+        : null,
+    song_gaps:
+      context.song_gaps && typeof context.song_gaps === "object"
+        ? context.song_gaps
+        : {},
+    last_played:
+      context.last_played && typeof context.last_played === "object"
+        ? context.last_played
+        : {},
+    lifetime_plays:
+      context.lifetime_plays && typeof context.lifetime_plays === "object"
+        ? context.lifetime_plays
+        : {},
     opener_title: context.opener_title || null,
     encore_title: context.encore_title || null,
     show_moment_tags: Array.isArray(context.show_moment_tags)
@@ -421,6 +732,8 @@ module.exports = {
   tourDebutTitles,
   priorDatesForTourDebutLookup,
   composeSetFlowSummary,
+  composeNightSetFlow,
+  lifetimePlaysForTitles,
   composeSetlistHighlight,
   deriveShowMomentTags,
   buildCommsShowContext,

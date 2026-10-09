@@ -1,10 +1,10 @@
 # show_recap composer — arc + your card + relative rank
 
-**Status:** implemented  
-**Date:** 2026-09-04  
-**Issue:** #985  
-**Parents:** #573 (Optimize L3) · predecessor #572 (spine shipped)  
-**Live tape:** Dick’s 2026-09-04–06 (composer only — do not rebuild ingest)
+**Status:** night map shipped  
+**Date:** 2026-10-08  
+**Issue:** #1083 (sentences) · #985 (composer)  
+**Parents:** #1081 · #573 (Optimize L3) · predecessor #572 (spine shipped)  
+**Map:** `SHOW_RECAP_FACT_INVENTORY.md`
 
 Night `show_recap` ≠ tour `tour_recap` (#510).
 
@@ -12,7 +12,7 @@ Night `show_recap` ≠ tour `tour_recap` (#510).
 
 ## Intent
 
-Nightly variables already pull themselves. Recaps still read as a **scorecard + shared bustout sticker**. The composer turns one short paragraph into a fan reporting the night **through this player’s game night**.
+The night paragraph follows the night map: one line per set, one player line, and the rank. It reports the night through this player’s game night.
 
 Not a new ingest pipeline. Not LLM essays. Not per-send PM approval — approve the composer once; every send stays automatic.
 
@@ -20,13 +20,13 @@ Not a new ingest pipeline. Not LLM essays. Not per-send PM approval — approve 
 
 Every `narrative_line` / inbox Tonight / morning night-para must do all three **when facts exist**:
 
-1. **Arc** — `set_flow_summary` + opener/encore titles (not only `setlist_highlight`)
-2. **Your card** — which of *their* slots hit; bustout they caught or missed. Do not name songs they did not pick unless the line is clearly show-context
-3. **Relative night** — weave global (and pool when present) rank into the voice (`#184 of 210` or percentile from existing fields). No new ingest. Tour `rank_change` stays on the morning email
+1. **Arc** — one sentence per set from the night map (length, then the highlight, then every encore title). The saved `set_flow_summary` is that paragraph. Opener and venue are fallbacks.
+2. **Your card** — the first player slot that is true. A caught bustout is spoken here and left out of the set highlight. A title that was not in the official setlist is not a bustout.
+3. **Relative night** — weave global (and pool when present) rank into the voice (`#184 of 210`). Tour `rank_change` stays on the morning email’s standings paragraph.
 
 Push stays a short tease. `buildShowScorecardSentence` folds when the composer already weaves `#rank`, so rank is not a trailing dump.
 
-Soft-fail to today’s scorecard + highlight wrappers if context is missing.
+When the night’s songs are missing, the paragraph falls back to the saved arc and the older highlight wrapper. A missing fact drops its clause. The send still goes.
 
 ## Branches
 

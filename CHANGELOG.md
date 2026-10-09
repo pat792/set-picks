@@ -8,6 +8,35 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.80.1] — 2026-10-08
+
+### Changed
+- **Night recap highlight** — a gap of 20–29 is “a relative rarity of late,” and a gap of 11–19 is “the return of” that song. A set whose gaps are all 10 or fewer “featured heavy rotation songs,” and names the song with the most lifetime plays when that count is known. A bustout still uses “highlighted by.” A missing count drops the name. A missing gap does not claim the set was all rotation. (#1105)
+
+---
+
+## [1.80.0] — 2026-10-08
+
+### Changed
+- **Morning standings paragraph** — the line after the spot count says whether this player took the lead, stayed in the lead, climbed into the top 5, was already in the top 5, lost the lead but stayed in the top 5, or fell out of the top 5. A move that stays outside the top 5 keeps the rank sentence. A missing yesterday rank does not claim a crossing. (#1102)
+
+---
+
+## [1.79.0] — 2026-10-08
+
+### Changed
+- **Night recap paragraph** — the show recap and the morning email’s night paragraph speak one sentence per set (length, then the rarest song in that set and when it was last played, then every encore title) and one player line. Stock “tough board / strong night” wording is used only when no player fact exists. A bustout is spoken only when that exact title is in the official setlist, and only once. A missing fact drops its clause. The send still goes. The tour-standings paragraph is unchanged. (#1083)
+
+---
+
+## [1.78.0] — 2026-10-08
+
+### Added
+- **Recap sends record which facts they spoke** — each night recap and each tour wrap stores its branch and the filled fact-slot ids on the inbox message and the delivery log. The morning email’s night paragraph uses the night label. An id that is not on the message map is dropped. A missing fact omits that slot and does not hold the send. The sentences are unchanged. (#1082)
+- **Fact shelf and message maps** — `docs/comms-triggers/COMMS_FACT_INVENTORY.md` lists facts the app already knows. The night map and the tour-wrap map say which of those facts each recap may speak, and the slot ids the label stores.
+
+---
+
 ## [1.77.2] — 2026-10-08
 
 ### Fixed
