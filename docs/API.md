@@ -428,6 +428,14 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 
 **v1.73.0 (#985):** Night `show_recap` (and the morning `tour_rankings_daily` night-para) compose `narrative_line` from set-flow arc + the player’s card + night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight wrappers. Existing payload fields only.
 
+**v1.81.3 (#1121):** Morning `tour_rankings_daily` speech drops the storage date from the last-night sentence (venue and city only). Email preheader is `MM/DD/YY · {venue}, {city}`. Email and in-app eyebrow is `MM/DD/YY · Tour standings`. Next up, back at, and last played use `MM/DD/YY`. Payload `show_date` stays `YYYY-MM-DD`. Subject and push are unchanged. A deployed `scheduledTourRankingsDailyComms` revision is what the 8:00 AM Pacific run sends.
+
+**v1.81.4 (#1122):** Visible show labels (tour date select, standings header, pool hub, picks scorecard, share text) use `MM/DD/YY`. Select values and stored `show.date` stay `YYYY-MM-DD`. Pool archive keeps `formatShowLabel` spelled dates.
+
+**v1.81.5 (#1123):** Catalog last-played and tour-stats prior-play columns use `MM/DD/YY`. This-tour tour-stats dates use `MM/DD` (no year). Stored dates stay `YYYY-MM-DD`.
+
+**v1.81.6 (#1124):** Show recap, picks confirmed, and lock-reminder sentences name the venue and city. Their eyebrows carry `MM/DD/YY`. Tour countdown and other future-show lines use `MM/DD/YY`. Payload `show_date` stays `YYYY-MM-DD`.
+
 ### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
 
 | Export | Method | Auth | Description |
