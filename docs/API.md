@@ -430,6 +430,8 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 
 **v1.81.3 (#1121):** Morning `tour_rankings_daily` speech drops the storage date from the last-night sentence (venue and city only). Email preheader is `MM/DD/YY · {venue}, {city}`. Email and in-app eyebrow is `MM/DD/YY · Tour standings`. Next up, back at, and last played use `MM/DD/YY`. Payload `show_date` stays `YYYY-MM-DD`. Subject and push are unchanged. A deployed `scheduledTourRankingsDailyComms` revision is what the 8:00 AM Pacific run sends.
 
+**v1.81.4 (#1122):** Visible show labels (tour date select, standings header, pool hub, picks scorecard, share text) use `MM/DD/YY`. Select values and stored `show.date` stay `YYYY-MM-DD`. Pool archive keeps `formatShowLabel` spelled dates.
+
 ### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
 
 | Export | Method | Auth | Description |
