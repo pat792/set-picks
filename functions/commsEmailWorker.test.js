@@ -353,6 +353,20 @@ test("stripEmojiFromSubject keeps plain subjects and strips pictographs", () => 
   assert.equal(stripEmojiFromSubject("Tour standings ✨"), "Tour standings");
 });
 
+test("buildBrandedEmailHtml hides the preheader and escapes it", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "Body para.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/picks",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/account",
+    preheader: "10/07/26 · Allianz <Amphitheater>",
+  });
+  assert.match(
+    html,
+    /<body[^>]*>\s*<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">10\/07\/26 · Allianz &lt;Amphitheater&gt;<\/div>/,
+  );
+});
+
 test("buildBrandedEmailHtml renders in-app style header when provided", () => {
   const html = buildBrandedEmailHtml({
     siteUrl: "https://www.setlistpickem.com",
@@ -430,6 +444,19 @@ test("buildBrandedEmailHtml strips invite appendix lines from HTML body", () => 
   assert.doesNotMatch(html, /Open Standings:/);
   assert.doesNotMatch(html, /utm_source=email/);
   assert.match(html, /invite card/);
+});
+
+test("buildBrandedEmailHtml swaps the tour-wrap text grid for the HTML table", () => {
+  const html = buildBrandedEmailHtml({
+    siteUrl: "https://www.setlistpickem.com",
+    bodyText: "A huge congrats to our tour winner, Ada.\n\nRank  Handle  Pts  Wins  Nights  Avg\n1  Ada  10  1  2  .500\n\nYou took the lead.",
+    ctaUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    settingsUrl: "https://www.setlistpickem.com/dashboard/profile/notifications",
+    boardHtml: "<table><tr><td>Ada</td></tr></table>",
+  });
+  assert.match(html, /<table><tr><td>Ada<\/td><\/tr><\/table>/);
+  assert.doesNotMatch(html, /Rank {2}Handle/);
+  assert.match(html, /You took the lead/);
 });
 
 test("buildBrandedEmailHtml escapes body text to avoid HTML injection", () => {

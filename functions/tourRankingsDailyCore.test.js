@@ -196,6 +196,32 @@ test("payload: late joiner mid-tour", () => {
   assert.equal(payload.tour_rank, 2);
 });
 
+test("copy: band crossings", () => {
+  const base = {
+    handle: "Pat",
+    venue_city: "Richmond, VA",
+    total_tour_pickers: 17,
+    tour_points: 50,
+  };
+  const line = (tour_rank, rank_change) =>
+    buildTourRankingsDailyParagraphs({ ...base, tour_rank, rank_change }).join(" ");
+
+  assert.match(line(5, "up 3"), /You climbed into the top 5 — ranked #5 of 17 with 50 points/);
+  assert.doesNotMatch(line(5, "up 3"), /Still in the top 5/);
+  assert.match(line(3, "up 2"), /Still in the top 5 — ranked #3 of 17 with 50 points/);
+  assert.match(line(4, "held"), /Still in the top 5 — ranked #4/);
+  assert.match(line(7, "down 3"), /You fell out of the top 5 — ranked #7 of 17 with 50 points/);
+  assert.match(line(6, "down 5"), /You fell out of the top 5/);
+  assert.match(line(8, "down 2"), /You're ranked #8 of 17 on tour with 50 points/);
+  assert.doesNotMatch(line(8, "down 2"), /fell out of the top 5/);
+  assert.match(line(1, "up 2"), /You took the lead with 50 points/);
+  assert.match(line(1, "held"), /You're leading the tour with 50 points/);
+  assert.match(line(3, "down 2"), /Out of the lead, still in the top 5 — ranked #3 of 17 with 50 points/);
+  const unknown = buildTourRankingsDailyParagraphs({ ...base, tour_rank: 3 }).join(" ");
+  assert.match(unknown, /In the top 5 — ranked #3 of 17 with 50 points/);
+  assert.doesNotMatch(unknown, /Still in the top 5|climbed into|fell out/);
+});
+
 test("copy: slipped does not say held", () => {
   const paras = buildTourRankingsDailyParagraphs({
     handle: "ArmenianMan",
@@ -221,7 +247,8 @@ test("copy: debut leads with You're on the board", () => {
     is_debut: true,
   });
   assert.equal(paras[0], "You're on the board!");
-  assert.match(paras[1], /2026-07-07 — Kohl Center/);
+  assert.match(paras[1], /after Kohl Center, Madison, WI you're ranked/);
+  assert.doesNotMatch(paras[1], /2026-07-07/);
   assert.match(paras[1], /ranked #1 of 11 on tour with 10 points/);
   assert.match(paras.join(" "), /Night one sets the tour leaderboard/);
 });
@@ -260,7 +287,8 @@ test("copy: combined email prose avoids repeating venue/city and uses same-venue
 
   const text = paras.join(" ");
   assert.match(text, /After last night's show you climbed 2 spots\./);
-  assert.match(text, /Back at MSG 2026-07-20\./);
+  assert.match(text, /Back at MSG 07\/20\/26\./);
+  assert.doesNotMatch(text, /2026-07-20/);
   assert.doesNotMatch(text, /After New York, NY/);
   assert.doesNotMatch(text, /2026-07-19 — MSG/);
 });

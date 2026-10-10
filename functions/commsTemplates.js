@@ -19,6 +19,7 @@ const {
   buildInviteSharePlainTextLines,
 } = require("./comms/inviteShareBlock.cjs");
 const { resolveCommsEmailHeader } = require("./comms/emailCommsHeader.cjs");
+const { fanDateBadge } = require("./fanShowDate.cjs");
 
 const SITE_URL = "https://www.setlistpickem.com";
 const APP_CTA_URL = `${SITE_URL}/dashboard`;
@@ -31,6 +32,70 @@ const TOUR_RECAP_EMAIL_CTA_LABEL = "View Recap";
 function handleOf(p) {
   const h = p && typeof p.handle === "string" ? p.handle.trim() : "";
   return h || "Picker";
+}
+
+function escapeEmailHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Top-5 grid for the tour wrap email. Columns match the almost-end board.
+ * @param {unknown} board
+ * @returns {string}
+ */
+function tourRecapBoardHtml(board) {
+  const rows = Array.isArray(board) ? board : [];
+  if (!rows.length) return "";
+  const th =
+    "padding:10px 6px;border-bottom:2px solid #1a1a2e;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;";
+  const td = "padding:10px 6px;border-bottom:1px solid #eeeeee;font-size:16px;color:#1a1a2e;";
+  const headers = ["Rank", "Handle", "Pts", "Wins", "Nights", "Avg"];
+  const head = headers
+    .map(
+      (label, i) =>
+        `<th align="${i < 2 ? "left" : "right"}" style="${th}">${label}</th>`,
+    )
+    .join("");
+  const body = rows
+    .map((row) => {
+      const cells = [
+        row.rank,
+        row.handle,
+        row.points,
+        row.wins,
+        row.nights,
+        row.avg || "—",
+      ];
+      return `<tr>${cells
+        .map((cell, i) => {
+          const align = i >= 2 ? "text-align:right;" : "";
+          const weight = i === 1 ? "font-weight:700;" : "";
+          return `<td style="${td}${align}${weight}">${escapeEmailHtml(cell)}</td>`;
+        })
+        .join("")}</tr>`;
+    })
+    .join("");
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 20px 0;"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+/**
+ * @param {unknown} board
+ * @returns {string}
+ */
+function tourRecapBoardText(board) {
+  const rows = Array.isArray(board) ? board : [];
+  if (!rows.length) return "";
+  const lines = ["Rank  Handle  Pts  Wins  Nights  Avg"];
+  for (const row of rows) {
+    lines.push(
+      `${row.rank}  ${row.handle}  ${row.points}  ${row.wins}  ${row.nights}  ${row.avg || "—"}`,
+    );
+  }
+  return lines.join("\n");
 }
 
 /**
@@ -142,14 +207,48 @@ function appendCityIfNeeded(venue, city) {
  * @param {{ dateKey?: string, venueKey?: string, cityKey?: string }} [opts]
  * @returns {string}
  */
-function venueLine(payload, { dateKey = "show_date", venueKey = "venue_name", cityKey = "venue_city" } = {}) {
+/**
+ * Venue and city only. A sentence about this night names the room, not the storage date.
+ *
+ * @param {Record<string, unknown>} payload
+ * @param {{ venueKey?: string, cityKey?: string }} [opts]
+ * @returns {string}
+ */
+function placeLine(payload, { venueKey = "venue_name", cityKey = "venue_city" } = {}) {
   const venue = typeof payload?.[venueKey] === "string" ? payload[venueKey].trim() : "";
   const city =
     cityKey && cityKey !== "__none" && typeof payload?.[cityKey] === "string"
       ? payload[cityKey].trim()
       : "";
-  const place = appendCityIfNeeded(venue, city);
-  const date = typeof payload?.[dateKey] === "string" ? payload[dateKey].trim() : "";
+  return appendCityIfNeeded(venue, city);
+}
+
+/**
+ * @param {unknown} showDate
+ * @returns {string} `MM/DD/YY`, or empty when the value is not a storage date.
+ */
+/**
+ * Storage dates become `MM/DD/YY`. Other strings stay, so a freeform label is not dropped.
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+function speechDate(value) {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return "";
+  return fanDateBadge(raw) || raw;
+}
+
+/**
+ * Compact label for a show that is not "this night": `MM/DD/YY — place`.
+ *
+ * @param {Record<string, unknown>} payload
+ * @param {{ dateKey?: string, venueKey?: string, cityKey?: string }} [opts]
+ * @returns {string}
+ */
+function datedPlace(payload, { dateKey = "show_date", venueKey = "venue_name", cityKey = "venue_city" } = {}) {
+  const place = placeLine(payload, { venueKey, cityKey });
+  const date = speechDate(payload?.[dateKey]);
   if (date && place) return `${date} — ${place}`;
   return place || date || "";
 }
@@ -206,7 +305,7 @@ function tourCountdownDeliveryPlan(recipients) {
  */
 function tourCountdownCloser(p) {
   const days = Number(p?.days_remaining);
-  const date = typeof p?.first_show_date === "string" ? p.first_show_date.trim() : "";
+  const date = speechDate(p?.first_show_date);
   const showtime = date ? `showtime on ${date}` : "showtime";
   if (tourCountdownIsConfirmation(p)) {
     if (days === 5) return `Your opener picks are in. You can edit them up to ${showtime}.`;
@@ -262,9 +361,12 @@ function assembleServiceEmail(bodyLines, { signOff = DEFAULT_EMAIL_SIGN_OFF, cta
 /** @type {Record<string, (payload: Record<string, any>) => { push: {title:string,body:string}, email: {subject:string,text:string} }>} */
 const BUILDERS = {
   "account-welcome": (p) => {
-    const nextShowLine = p.next_show_date
-      ? `Your next chance to play: ${p.next_show_date}${p.next_show_venue ? ` at ${p.next_show_venue}` : ""}.`
-      : "";
+    const nextShow = datedPlace(p, {
+      dateKey: "next_show_date",
+      venueKey: "next_show_venue",
+      cityKey: "__none",
+    });
+    const nextShowLine = nextShow ? `Your next chance to play: ${nextShow}.` : "";
     const assembled = assembleServiceEmail(
       [
         `Welcome, ${handleOf(p)}!`,
@@ -296,7 +398,7 @@ const BUILDERS = {
     const days = Number(p.days_remaining);
     const when =
       days === 0 ? "today" : days === 1 ? "tomorrow" : Number.isFinite(days) ? `in ${days} days` : "soon";
-    const firstShow = venueLine(p, {
+    const firstShow = datedPlace(p, {
       dateKey: "first_show_date",
       venueKey: "first_show_venue",
       cityKey: "first_show_city",
@@ -330,7 +432,7 @@ const BUILDERS = {
   "picks-confirmed": (p) => {
     const assembled = assembleServiceEmail(
       [
-        `${handleOf(p)}, your picks for ${p.show_date || ""}${p.venue_name ? ` at ${p.venue_name}` : ""} are confirmed.`,
+        `${handleOf(p)}, your picks for ${placeLine(p) || "the show"} are confirmed.`,
         "We'll score them live as the setlist comes in.",
       ],
       { signOff: "Good luck tonight!" }
@@ -338,7 +440,7 @@ const BUILDERS = {
     return {
       push: {
         title: "You're locked in",
-        body: `Picks for ${p.venue_name || p.show_date || "the show"} are confirmed. We'll score them live.`,
+        body: `Picks for ${placeLine(p) || "the show"} are confirmed. We'll score them live.`,
       },
       email: {
         subject: "Your picks are locked in",
@@ -399,7 +501,7 @@ const BUILDERS = {
 
   "show-recap": (p) => {
     const handle = handleOf(p);
-    const where = `${p.show_date || "the show"}${p.venue_name ? ` at ${p.venue_name}` : ""}`;
+    const where = placeLine(p) || "the show";
     const narrative =
       (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
@@ -439,7 +541,10 @@ const BUILDERS = {
 
   "tour-rankings-daily": (p) => {
     const handle = handleOf(p);
-    const venue = venueLine(p) || "the show";
+    const place = placeLine(p);
+    const venue = place || "the show";
+    const dateBadge = fanDateBadge(p.show_date);
+    const preheader = dateBadge && place ? `${dateBadge} · ${place}` : dateBadge || place || "";
     const narrative =
       (typeof p.narrative_line === "string" && p.narrative_line.trim()) ||
       (typeof p.setlist_highlight === "string" && p.setlist_highlight.trim()) ||
@@ -496,6 +601,7 @@ const BUILDERS = {
         ctaUrl: PICKS_CTA_URL,
         ctaLabel: "Make picks for next show",
         inviteBlockHtml: buildInviteShareHtmlBlock(inviteFields),
+        ...(preheader ? { preheader } : {}),
       },
     };
   },
@@ -546,12 +652,26 @@ const BUILDERS = {
               wins != null ? ` and ${wins} nightly wins` : ""
             }.`
           : "Your personalized tour recap is ready.";
+    const clause = typeof p.personal_clause === "string" ? p.personal_clause.trim() : "";
+    const board = Array.isArray(p.email_board) ? p.email_board : [];
+    const winner = board[0] && typeof board[0].handle === "string" ? board[0].handle.trim() : "";
+    const boardText = tourRecapBoardText(board);
     const assembled = assembleServiceEmail(
-      [
-        `${handle}, ${tourName} is wrapped.`,
-        teaser,
-        "The full podium, honorable mentions, and your personalized recap are waiting in Messages.",
-      ],
+      board.length
+        ? [
+            winner ? `A huge congrats to our tour winner, ${winner}.` : `${handle}, ${tourName} is wrapped.`,
+            "",
+            boardText,
+            "",
+            clause,
+            "The full recap is in the app.",
+          ].filter((line) => line !== undefined)
+        : [
+            `${handle}, ${tourName} is wrapped.`,
+            teaser,
+            clause,
+            "The full podium, honorable mentions, and your personalized recap are waiting in Messages.",
+          ].filter(Boolean),
       { ctaUrl: MESSAGES_CTA_URL }
     );
     return {
@@ -576,6 +696,7 @@ const BUILDERS = {
         signOff: assembled.signOff,
         ctaUrl: MESSAGES_CTA_URL,
         ctaLabel: TOUR_RECAP_EMAIL_CTA_LABEL,
+        boardHtml: tourRecapBoardHtml(board),
       },
     };
   },

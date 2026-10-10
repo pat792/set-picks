@@ -64,7 +64,7 @@ All collections live in the default `(default)` Firestore database for project `
 | `readAt` | Timestamp? | **v1.70.2+ (#1015):** Null until the user closes the message after opening it (Collapse, switch to another row, or collapse Inbox). Opening alone does not set `readAt`, so Unopened rows stay expanded while reading. |
 | `archivedAt` | Timestamp? | **v1.67.0+ (#513 / #770)** Set when the owner archives the message. Unread bell count excludes archived. |
 | `createdAt` | Timestamp | |
-| `payload` | map | Template-specific variables |
+| `payload` | map | Template-specific variables. `show_recap`, the morning `tour_rankings_daily` night paragraph, and `tour_recap` may include `payload.fact_label` (**#1082**): `{ map: "show_recap" \| "tour_recap", branch?, slots: string[], showDate?, tourId? }`. `slots` are filled ids from the message map. Unknown ids are not written. Absence of a fact omits that slot and does not drop the send. `tour_recap` may also include `personal_line` (the in-app rank paragraph plus at most one personal sentence), `personal_clause` (that one sentence, for the email), and `email_board` (up to five rows: rank, handle, points, wins, nights, avg). Push stays the rank tease. (**#1084**) |
 
 **Client write surface (v1.67.0 / #513):** owners may update `readAt` and/or `archivedAt` only (payload / `templateId` / `createdAt` stay server-owned). Owners may **hard-delete** their own inbox docs. Clients cannot create inbox docs — Admin SDK / Cloud Functions only.
 
@@ -92,7 +92,7 @@ Stores per-user, per-show slot picks and computed scores.
 
 ### 1.7 `fcm_notification_log/{dedupId}`
 
-Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). A `/` in an interpolated value is stored as `-` so the id stays one path segment. Presence of a doc = trigger already delivered; delete to allow re-send. After a successful email send (**v1.74.0 / #512 Slice A**) the doc may also include `resendEmailId` and `campaignId` for join with `comms_email_engagement`.
+Deduplication log shared by all comms channels. Document ID is the `dedupKey` from the trigger spec (e.g. `welcome:{uid}`). A `/` in an interpolated value is stored as `-` so the id stays one path segment. Presence of a doc = trigger already delivered; delete to allow re-send. After a successful email send (**v1.74.0 / #512 Slice A**) the doc may also include `resendEmailId` and `campaignId` for join with `comms_email_engagement`. When the send carried `payload.fact_label` (**#1082**), the same object is copied onto this row so an open can be joined to the branch and filled slots.
 
 Also hosts the per-user daily email fatigue cap (#453): doc ID `email_cap:{uid}:{day}` (`day` = `YYYY-MM-DD` in `America/Los_Angeles`), `{ kind: "email_daily_cap", count, cap, lastTriggerId, lastEmailSentAt }`. Written transactionally by `commsEmailDailyCap.js`. `account_welcome` is exempt and never creates one of these docs. Not a new collection — same server-only rules entry as the dedup docs above.
 
@@ -154,11 +154,16 @@ Server-written night-of narrative artifact for `show_recap` / `tour_rankings_dai
 | Field | Type | Notes |
 |-------|------|-------|
 | `setlist_highlight` | string? | One-liner bustout/debut sticker. Bustout nights: `Bustout: Song - a/an N show gap.` (singular) or `Bustouts: …; ….` (plural, `;`-separated) (#780). Inbox Tonight / morning night-para prefer composed `narrative_line` (#985). |
-| `set_flow_summary` | string? | Short S1/S2/E structure |
-| `bustout_titles` | string[] | From official setlist bustouts |
+| `set_flow_summary` | string? | One sentence per set: length, then the highlight, then every encore title |
+| `bustout_titles` | string[] | Bustout titles that are also in that night’s official setlist |
 | `tour_debut_titles` | string[] | New-to-tour titles tonight |
+| `tour_debuts_trusted` | boolean | False on the first show of a tour (**v1.79.0**) |
+| `set_songs` | map | `{ set1, set2, encore }` title lists (**v1.79.0**) |
+| `song_gaps` | map | Pre-show gap by normalized title (**v1.79.0**) |
+| `last_played` | map | Title → `YYYY-MM-DD` from the public tour table for this night (**v1.79.0**) |
+| `lifetime_plays` | map | Title → lifetime play count for songs in that night, from the song catalog `total` (**v1.80.1**). Used when a set’s gaps are all 10 or fewer. A missing count drops the song name. |
 | `show_moment_tags` | string[] | e.g. `bustout`, `tour_debut` |
-| `schemaVersion` | number | `2` (**v1.72.2**; rebuilds when prior lookback / debut math changes) |
+| `schemaVersion` | number | `3` (**v1.79.0**; rebuilds the night paragraph). Was `2` in v1.72.2. |
 
 ### 1.12 `official_setlists/{showDate}`
 
@@ -422,6 +427,14 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 **v1.71.1:** Email CTA **View Recap** → `/dashboard/profile/notifications`. In-app `TourRecapInApp` CTA **View tour standings** → `/dashboard/standings?view=tour`.
 
 **v1.73.0 (#985):** Night `show_recap` (and the morning `tour_rankings_daily` night-para) compose `narrative_line` from set-flow arc + the player’s card + night rank when those facts exist. Push stays a short tease. Soft-fails to the #572 highlight wrappers. Existing payload fields only.
+
+**v1.81.3 (#1121):** Morning `tour_rankings_daily` speech drops the storage date from the last-night sentence (venue and city only). Email preheader is `MM/DD/YY · {venue}, {city}`. Email and in-app eyebrow is `MM/DD/YY · Tour standings`. Next up, back at, and last played use `MM/DD/YY`. Payload `show_date` stays `YYYY-MM-DD`. Subject and push are unchanged. A deployed `scheduledTourRankingsDailyComms` revision is what the 8:00 AM Pacific run sends.
+
+**v1.81.4 (#1122):** Visible show labels (tour date select, standings header, pool hub, picks scorecard, share text) use `MM/DD/YY`. Select values and stored `show.date` stay `YYYY-MM-DD`. Pool archive keeps `formatShowLabel` spelled dates.
+
+**v1.81.5 (#1123):** Catalog last-played and tour-stats prior-play columns use `MM/DD/YY`. This-tour tour-stats dates use `MM/DD` (no year). Stored dates stay `YYYY-MM-DD`.
+
+**v1.81.6 (#1124):** Show recap, picks confirmed, and lock-reminder sentences name the venue and city. Their eyebrows carry `MM/DD/YY`. Tour countdown and other future-show lines use `MM/DD/YY`. Payload `show_date` stays `YYYY-MM-DD`.
 
 ### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
 

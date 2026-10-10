@@ -38,7 +38,7 @@ describe("showRecapNarrativeQa", () => {
 
   it("flags cold wrapper that drops Bustout label", () => {
     const checks = runNarrativeLineChecklist(
-      "Tough board. Still a night to remember: Melt the Guns - a 2051 show gap",
+      "Tough board. Still a night to remember.",
       FIXTURE_FENWAY_LABELED,
       "cold",
     );

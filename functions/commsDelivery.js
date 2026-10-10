@@ -19,6 +19,7 @@ const { renderCommsTemplate } = require("./commsTemplates");
 const { deliverCommsInbox } = require("./commsInboxWorker");
 const { deliverCommsPush } = require("./commsPushWorker");
 const { sendCommsDeliveredEvent } = require("./commsGa4Measurement");
+const { sanitizeFactLabel } = require("./commsFactLabel");
 
 const DEDUP_COLLECTION = "fcm_notification_log";
 const DEFAULT_FATIGUE_CAP = 2; // max comms per user per delivery run (FRAMEWORK §OPTIMIZE)
@@ -113,7 +114,11 @@ async function deliverOneCommsRecipient({
     }
   }
 
-  const rendered = await renderCommsTemplate(spec.templateId, recipient.payload || {});
+  const factLabel = sanitizeFactLabel(recipient.payload?.fact_label);
+  const payload = { ...(recipient.payload || {}) };
+  if (factLabel) payload.fact_label = factLabel;
+  else delete payload.fact_label;
+  const rendered = await renderCommsTemplate(spec.templateId, payload);
 
   const campaignId =
     typeof vars.campaignId === "string" && vars.campaignId.trim()
@@ -197,6 +202,7 @@ async function deliverOneCommsRecipient({
         decidedAt: admin.firestore.FieldValue.serverTimestamp(),
         ...(campaignId ? { campaignId } : {}),
         ...(resendEmailId ? { resendEmailId } : {}),
+        ...(factLabel ? { fact_label: factLabel } : {}),
       },
       { merge: true }
     );

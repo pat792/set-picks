@@ -187,7 +187,7 @@ function stripHtmlOnlyEmailLines(text, { signOff } = {}) {
  * @param {{ signOff?: string }} [opts]
  * @returns {string} HTML fragment
  */
-function bodyTextToHtmlParagraphs(text, { signOff } = {}) {
+function bodyTextToHtmlParagraphs(text, { signOff, boardHtml } = {}) {
   const stripped = stripHtmlOnlyEmailLines(text, { signOff });
   const blocks = stripped
     .split(/\n\s*\n/)
@@ -202,10 +202,10 @@ function bodyTextToHtmlParagraphs(text, { signOff } = {}) {
     .filter(Boolean);
   if (!blocks.length) return "";
   return blocks
-    .map(
-      (block) =>
-        `<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#1a1a2e;">${escapeHtml(block)}</p>`,
-    )
+    .map((block) => {
+      if (boardHtml && block.startsWith("Rank  Handle")) return boardHtml;
+      return `<p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#1a1a2e;">${escapeHtml(block)}</p>`;
+    })
     .join("\n");
 }
 
@@ -272,21 +272,26 @@ function rewritePlainTextCtaUrl(text, rawCtaUrl, trackedCtaUrl) {
  *   wordmarkSrc?: string,
  *   inviteBlockHtml?: string,
  *   header?: { icon?: string, eyebrow?: string, title?: string, accentColor?: string } | null,
+ *   preheader?: string,
  * }} opts
  * @returns {string}
  */
-function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabel, signOff, wordmarkSrc, inviteBlockHtml, header }) {
+function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabel, signOff, wordmarkSrc, inviteBlockHtml, header, boardHtml, preheader }) {
   const buttonLabel = typeof ctaLabel === "string" && ctaLabel.trim() ? ctaLabel.trim() : "Open Setlist Pick'em";
   const signOffLine = typeof signOff === "string" ? signOff.trim() : "";
   const base = (siteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
   const wordmarkHeroHtml = buildEmailWordmarkHeroHtml(base, { wordmarkSrc });
-  const paragraphs = bodyTextToHtmlParagraphs(bodyText, { signOff: signOffLine });
+  const paragraphs = bodyTextToHtmlParagraphs(bodyText, { signOff: signOffLine, boardHtml });
   const headerHtml = buildCommsEmailHeaderHtml(header);
   const signOffHtml = signOffLine
     ? `<p style="margin:0 0 20px 0;font-size:15px;line-height:1.5;color:#64748b;font-style:italic;">${escapeHtml(signOffLine)}</p>`
     : "";
   const inviteHtml =
     typeof inviteBlockHtml === "string" && inviteBlockHtml.trim() ? inviteBlockHtml.trim() : "";
+  const preheaderText = typeof preheader === "string" ? preheader.trim() : "";
+  const preheaderHtml = preheaderText
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${escapeHtml(preheaderText)}</div>`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -297,6 +302,7 @@ function buildBrandedEmailHtml({ siteUrl, bodyText, ctaUrl, settingsUrl, ctaLabe
     <title>Setlist Pick'em</title>
   </head>
   <body style="margin:0;padding:0;background-color:#0b0b14;-webkit-text-size-adjust:100%;">
+    ${preheaderHtml}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0b14;padding:24px 12px;">
       <tr>
         <td align="center">
@@ -456,6 +462,8 @@ function createCommsEmailWorker({
           signOff: rendered.email.signOff,
           inviteBlockHtml: rendered.email.inviteBlockHtml,
           header: rendered.email.header,
+          boardHtml: rendered.email.boardHtml,
+          preheader: rendered.email.preheader,
         });
     const html = usesPreRenderedHtml ? rendered.email.html : shell.html;
     const idempotencyKey = forceResend

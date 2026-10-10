@@ -8,10 +8,88 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
-## [1.77.3] — 2026-10-08
+## [1.81.7] — 2026-10-10
 
 ### Fixed
 - **Morning comms no longer die on one bad calendar value** — a `/` in a tour name is stored as `-` in the wrap-state doc and the shared already-sent id. The 8:00 AM job skips future and long-finished tours while deciding on a wrap. If that wrap step throws, the daily recap still runs (a real finale morning still skips it). One failed recipient does not stop the rest of a send. A show with an invalid timezone is skipped. The lock reminder, countdown, and 8:00 AM job allow 300 seconds. Email, in-app, and phone rules are unchanged. (#1096)
+
+---
+
+## [1.81.6] — 2026-10-09
+
+### Changed
+- **Other comms** — show recap, picks confirmed, and the lock reminder name the venue and city. The short date sits on the eyebrow. Night-of copy does not say "last night". Tour countdown, welcome, and next-show lines use `MM/DD/YY`. Payload `show_date` stays `YYYY-MM-DD`. (#1124)
+
+---
+
+## [1.81.5] — 2026-10-09
+
+### Changed
+- **Song date columns** — catalog last-played is zero-padded `MM/DD/YY` (`07/19/24`). Tour stats this-tour dates are `MM/DD` and prior-play dates are `MM/DD/YY`. Year stays off this-tour dates. The column tracks are unchanged because slashes are the same length as the old hyphens. (#1123)
+
+---
+
+## [1.81.4] — 2026-10-09
+
+### Changed
+- **Show labels** — the tour date select, standings header, pool hub active show, picks scorecard, share text, and the too-early prior-show label print `MM/DD/YY`. `<option value>` stays `YYYY-MM-DD`. Pool archive spelled dates stay spelled. (#1122)
+
+---
+
+## [1.81.3] — 2026-10-09
+
+### Changed
+- **Morning recap** — the last-night sentence names the venue and city. The date moves to the email preheader (`10/07/26 · {venue}, {city}`) and the email and in-app eyebrow (`10/07/26 · Tour standings`). Next up, back at, and last played use `MM/DD/YY`. Debut and late-joiner lines drop the storage date. `show_date` on the payload stays `YYYY-MM-DD`. Subject and push are unchanged. (#1121)
+
+---
+
+## [1.81.2] — 2026-10-09
+
+### Fixed
+- **Huntsville Saturday postponed to Monday** — the emergency show-calendar fallback and the picks-lock time seed use October 12 at The Orion Amphitheater (7:00pm, doors 5:30pm) instead of October 10. Sunday, October 11, stays. The daily Phish.net sync already drops October 10 (`exclude_from_stats`) and adds October 12; Phish.com has not published a Monday date page, so the seed keeps the lock at 7:20pm Central until that page exists.
+
+---
+
+## [1.81.1] — 2026-10-08
+
+### Added
+- **Fact shelf** — the annual wrap’s shared summary may later tell everyone which songs the room picked most, and which of those landed most often and least often. Those year numbers are not facts a message can say yet. A hit means the song was in the setlist. A small number of picks is not a rate. (#1111)
+
+---
+
+## [1.81.0] — 2026-10-08
+
+### Changed
+- **Tour wrap** — the end-of-tour note opens with the rarest song that was actually played, otherwise how often the lead changed hands, otherwise the closing venue. The rank paragraph states finish, field size, points, nightly wins, and shows played. When those facts exist it adds the best night, bustouts they caught, and shows they sat out. One more sentence names a rare song they picked, a night they took or lost the lead, or a points or wins mark already stored on another tour. The email congratulates the tour winner, shows the top 5 as a Rank / Handle / Pts / Wins / Nights / Avg grid, and adds that one sentence. The in-app board marks Tour Winner, Runner-up, and Third Place with trophies, and 4th and 5th with medals. A points tie with 5th is named in that last mention. Push stays the rank tease. A bustout title that was not in that night’s setlist is left out. A missing fact drops its clause. The send still goes. (#1084)
+
+---
+
+## [1.80.1] — 2026-10-08
+
+### Changed
+- **Night recap highlight** — a gap of 20–29 is “a relative rarity of late,” and a gap of 11–19 is “the return of” that song. A set whose gaps are all 10 or fewer “featured heavy rotation songs,” and names the song with the most lifetime plays when that count is known. A bustout still uses “highlighted by.” A missing count drops the name. A missing gap does not claim the set was all rotation. (#1105)
+
+---
+
+## [1.80.0] — 2026-10-08
+
+### Changed
+- **Morning standings paragraph** — the line after the spot count says whether this player took the lead, stayed in the lead, climbed into the top 5, was already in the top 5, lost the lead but stayed in the top 5, or fell out of the top 5. A move that stays outside the top 5 keeps the rank sentence. A missing yesterday rank does not claim a crossing. (#1102)
+
+---
+
+## [1.79.0] — 2026-10-08
+
+### Changed
+- **Night recap paragraph** — the show recap and the morning email’s night paragraph speak one sentence per set (length, then the rarest song in that set and when it was last played, then every encore title) and one player line. Stock “tough board / strong night” wording is used only when no player fact exists. A bustout is spoken only when that exact title is in the official setlist, and only once. A missing fact drops its clause. The send still goes. The tour-standings paragraph is unchanged. (#1083)
+
+---
+
+## [1.78.0] — 2026-10-08
+
+### Added
+- **Recap sends record which facts they spoke** — each night recap and each tour wrap stores its branch and the filled fact-slot ids on the inbox message and the delivery log. The morning email’s night paragraph uses the night label. An id that is not on the message map is dropped. A missing fact omits that slot and does not hold the send. The sentences are unchanged. (#1082)
+- **Fact shelf and message maps** — `docs/comms-triggers/COMMS_FACT_INVENTORY.md` lists facts the app already knows. The night map and the tour-wrap map say which of those facts each recap may speak, and the slot ids the label stores.
 
 ---
 

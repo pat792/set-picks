@@ -41,7 +41,11 @@ const { persistableActualSetlistFromOfficialDoc } = require("./scoringCore");
 const {
   isFinalShowOfTour,
   buildTourRecapPodium,
+  buildTourRecapEmailBoard,
   buildTourRecapPayload,
+  closingVenueForTour,
+  deriveSharedWrapFacts,
+  derivePlayerWrapFacts,
 } = require("./tourRecapCore");
 const {
   readTourRecapState,
@@ -496,6 +500,7 @@ async function deliverPostRollupComms({
       top_score: topScore,
       global_rank: rankInfo.rank,
       global_total_pickers: rankInfo.total,
+      showDate,
     });
 
     recapRecipients.push({
@@ -590,19 +595,49 @@ async function deliverTourRecapIfFinalShow({
   }
 
   const ranked = assignDisplayRanks(leaders);
-  const podium = buildTourRecapPodium(leaders);
-  const participantCount = leaders.length;
-  const showCount = tourDates.length;
-  const tourName = tourKey;
-
-  /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
-  const recipients = [];
+  /** @type {Array<Record<string, unknown> & { userData: Record<string, unknown> }>} */
+  const enriched = [];
   for (const row of leaders) {
-    const info = ranked.get(row.uid);
-    const rank = info?.rank ?? recipients.length + 1;
     // eslint-disable-next-line no-await-in-loop
     const userSnap = await db.collection("users").doc(row.uid).get();
     const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const season = userData.seasonStats && typeof userData.seasonStats === "object"
+      ? userData.seasonStats[tourKey]
+      : null;
+    const correctSlots = Number(season?.correctSlots);
+    enriched.push({
+      ...row,
+      correctSlots: Number.isFinite(correctSlots) ? correctSlots : null,
+      userData,
+    });
+  }
+  const podium = buildTourRecapPodium(enriched);
+  const emailBoard = buildTourRecapEmailBoard(enriched);
+  const participantCount = leaders.length;
+  const showCount = tourDates.length;
+  const tourName = tourKey;
+  let setlists = [];
+  try {
+    setlists = await loadOfficialSetlistsForDates(db, tourDates);
+  } catch (err) {
+    logger?.warn?.("deliverTourRecapIfFinalShow: setlist read failed", {
+      tourKey,
+      message: err?.message || String(err),
+    });
+  }
+  const shared = deriveSharedWrapFacts({
+    setlists,
+    picksByDate,
+    showCount,
+    closingVenue: closingVenueForTour(showDatesByTour, tourKey),
+  });
+
+  /** @type {Array<{ uid: string, userData?: object, payload: object, vars: object }>} */
+  const recipients = [];
+  for (const row of enriched) {
+    const info = ranked.get(row.uid);
+    const rank = info?.rank ?? recipients.length + 1;
+    const userData = row.userData || {};
     recipients.push({
       uid: row.uid,
       userData,
@@ -617,6 +652,20 @@ async function deliverTourRecapIfFinalShow({
         tourName,
         showCount,
         podium,
+        emailBoard,
+        shared,
+        player: derivePlayerWrapFacts({
+          uid: row.uid,
+          picksByDate,
+          setlists,
+          shared,
+          seasonStats: userData.seasonStats,
+          tourKey,
+          points: row.totalPoints,
+          wins: row.wins,
+          showsPlayed: row.shows,
+          showCount,
+        }),
       }),
       vars: { uid: row.uid, tourId: tourKey },
     });
@@ -988,6 +1037,25 @@ async function loadPicksByDates(db, dates) {
 }
 
 /**
+ * Official setlists for the wrap. A failed read is the caller's problem;
+ * a missing night is an empty doc so that night drops out of the facts.
+ *
+ * @param {import("firebase-admin").firestore.Firestore} db
+ * @param {string[]} dates
+ * @returns {Promise<Array<{ date: string, doc: Record<string, unknown> | null }>>}
+ */
+async function loadOfficialSetlistsForDates(db, dates) {
+  /** @type {Array<{ date: string, doc: Record<string, unknown> | null }>} */
+  const out = [];
+  for (const date of dates) {
+    // eslint-disable-next-line no-await-in-loop
+    const snap = await db.collection("official_setlists").doc(date).get();
+    out.push({ date, doc: snap.exists ? snap.data() || null : null });
+  }
+  return out;
+}
+
+/**
  * Morning-after tour rankings (#440 / #544) — overall tour leaderboard + rank_change.
  *
  * Audience: users with graded picks for last night. Tour rank is among the full
@@ -1141,6 +1209,7 @@ async function runScheduledTourRankingsDaily({
           show_score: rankInfo?.score ?? null,
           global_rank: rankInfo?.rank ?? null,
           global_total_pickers: rankInfo?.total ?? null,
+          showDate,
         });
         const payload = {
           ...buildTourRankingsDailyPayloadFields({
