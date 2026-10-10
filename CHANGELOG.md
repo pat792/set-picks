@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.81.6] — 2026-10-09
+
+### Changed
+- **Other comms** — show recap, picks confirmed, and the lock reminder name the venue and city. The short date sits on the eyebrow. Night-of copy does not say "last night". Tour countdown, welcome, and next-show lines use `MM/DD/YY`. Payload `show_date` stays `YYYY-MM-DD`. (#1124)
+
+---
+
 ## [1.81.5] — 2026-10-09
 
 ### Changed
