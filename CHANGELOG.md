@@ -8,6 +8,13 @@ Public API is declared in [`docs/API.md`](docs/API.md).
 
 ---
 
+## [1.81.7] — 2026-10-10
+
+### Fixed
+- **Morning comms no longer die on one bad calendar value** — a `/` in a tour name is stored as `-` in the wrap-state doc and the shared already-sent id. The 8:00 AM job skips future and long-finished tours while deciding on a wrap. If that wrap step throws, the daily recap still runs (a real finale morning still skips it). One failed recipient does not stop the rest of a send. A show with an invalid timezone is skipped. The lock reminder, countdown, and 8:00 AM job allow 300 seconds. Email, in-app, and phone rules are unchanged. (#1096)
+
+---
+
 ## [1.81.6] — 2026-10-09
 
 ### Changed
