@@ -11,6 +11,7 @@
  *
  *   node scripts/replay-tour-rankings-daily.mjs --show-date 2026-10-09
  *   node scripts/replay-tour-rankings-daily.mjs --show-date 2026-10-09 --confirm
+ *   node scripts/replay-tour-rankings-daily.mjs --show-date 2026-10-09 --exclude-email pat@road2media.com --confirm
  *
  * Requires GCP_CLIENT_EMAIL and GCP_PRIVATE_KEY (env or .env).
  */
@@ -55,13 +56,19 @@ function readFirebaseWebConfig() {
 function parseArgs(argv) {
   let showDate = "";
   let confirm = false;
+  /** @type {string[]} */
+  const excludeEmails = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
     if (a === "--show-date") showDate = argv[++i] || "";
     else if (a === "--confirm") confirm = true;
-    else if (a === "--help" || a === "-h") {
+    else if (a === "--exclude-email") {
+      const email = (argv[++i] || "").trim().toLowerCase();
+      if (!email) throw new Error("--exclude-email requires an address");
+      excludeEmails.push(email);
+    } else if (a === "--help" || a === "-h") {
       console.log(
-        "Usage: replay-tour-rankings-daily --show-date YYYY-MM-DD [--confirm]",
+        "Usage: replay-tour-rankings-daily --show-date YYYY-MM-DD [--exclude-email addr] [--confirm]",
       );
       process.exit(0);
     } else {
@@ -71,7 +78,7 @@ function parseArgs(argv) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(showDate)) {
     throw new Error("--show-date YYYY-MM-DD is required");
   }
-  return { showDate, confirm };
+  return { showDate, confirm, excludeEmails };
 }
 
 /**
@@ -127,7 +134,7 @@ async function callRunCommsTrigger(projectId, idToken, payload) {
 }
 
 async function main() {
-  const { showDate, confirm } = parseArgs(process.argv.slice(2));
+  const { showDate, confirm, excludeEmails } = parseArgs(process.argv.slice(2));
   const envFile = loadEnvFile();
   const clientEmail = process.env.GCP_CLIENT_EMAIL || envFile.GCP_CLIENT_EMAIL;
   const privateKeyRaw = process.env.GCP_PRIVATE_KEY || envFile.GCP_PRIVATE_KEY;
@@ -179,10 +186,28 @@ async function main() {
       `No graded pickers for ${showDate}. Collected dates: ${showDates.join(", ") || "none"}`,
     );
   }
-  const forShow = recipients.filter((r) => r.vars.showDate === showDate);
+  let forShow = recipients.filter((r) => r.vars.showDate === showDate);
   if (forShow.length !== recipients.length) {
     console.log(`→ sending ${forShow.length} for ${showDate}; ignoring other dates`);
   }
+  if (excludeEmails.length > 0) {
+    const excludedUids = new Set();
+    for (const email of excludeEmails) {
+      // eslint-disable-next-line no-await-in-loop
+      const user = await admin.auth().getUserByEmail(email);
+      excludedUids.add(user.uid);
+    }
+    const before = forShow.length;
+    forShow = forShow.filter((r) => !excludedUids.has(r.uid));
+    const removed = before - forShow.length;
+    if (removed < excludeEmails.length) {
+      throw new Error(
+        `--exclude-email matched ${removed} of ${excludeEmails.length} address(es) in this audience`,
+      );
+    }
+    console.log(`→ excluded ${removed} already-sent account(s); ${forShow.length} remaining`);
+  }
+  if (forShow.length === 0) throw new Error(`No remaining recipients for ${showDate}`);
 
   const idToken = await mintIdToken(admin, apiKey);
   const totals = { processed: 0, delivered: 0, skipped: 0, email: 0, inApp: 0, push: 0 };
