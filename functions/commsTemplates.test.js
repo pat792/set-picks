@@ -11,6 +11,9 @@ const {
 } = require("./commsTemplates");
 const { TRIGGER_SPECS } = require("./commsCatalog");
 
+// Registers the fan-date helper locks in this suite.
+require("./fanShowDate.test.js");
+
 test("every catalog template renders push + email + inApp payloads", async () => {
   for (const spec of Object.values(TRIGGER_SPECS)) {
     const payload =
@@ -310,7 +313,8 @@ test("tour-rankings-daily email folds in show_recap's night-of content (#451)", 
   assert.match(out.email.text, /#3/, "tour rank");
   assert.match(out.email.text, /210/, "tour points");
   assert.match(out.email.text, /climbed 2 spots/, "rank change rendered as climbed");
-  assert.match(out.email.text, /2026-07-19/, "next show date");
+  assert.match(out.email.text, /07\/19\/26/, "next show date");
+  assert.doesNotMatch(out.email.text, /2026-07-19/);
   assert.match(out.push.body, /up 2/, "push keeps catalog rank_change token");
   assert.match(out.email.text, /Want to invite friends to join the community/);
   assert.match(out.email.text, /forward this email to a friend/i);
@@ -366,12 +370,45 @@ test("tour-rankings-daily email dedupes venue/location and same-venue next up (#
   });
 
   assert.equal(out.email.subject, "Your show recap + tour standings");
-  assert.match(out.email.text, /last night at 2026-07-19 — MSG, New York, NY went/);
+  assert.match(out.email.text, /last night at MSG, New York, NY went/);
+  assert.doesNotMatch(out.email.text, /2026-07-19/);
   assert.match(out.email.text, /After last night's show you climbed 2 spots\./);
-  assert.match(out.email.text, /Back at MSG 2026-07-20\./);
+  assert.match(out.email.text, /Back at MSG 07\/20\/26\./);
+  assert.equal(out.email.preheader, "07/19/26 · MSG, New York, NY");
+  assert.equal(out.email.header?.eyebrow, "07/19/26 · Tour standings");
   assert.equal((out.email.text.match(/New York, NY/g) || []).length, 1);
   assert.doesNotMatch(out.email.text, /After New York, NY/);
-  assert.doesNotMatch(out.email.text, /Next up: 2026-07-20 — MSG/);
+  assert.doesNotMatch(out.email.text, /Next up: 07\/20\/26 — MSG/);
+});
+
+test("tour-rankings-daily Richmond fixture uses a venue sentence, preheader, and date eyebrow (#1121)", async () => {
+  const out = await renderCommsTemplate("tour-rankings-daily", {
+    handle: "Rivertranced",
+    show_date: "2026-10-07",
+    venue_name: "Allianz Amphitheater at Riverfront",
+    venue_city: "Richmond, VA",
+    next_show_date: "2026-10-09",
+    next_show_venue: "VyStar Veterans Memorial Arena, Jacksonville, FL",
+    narrative_line: "last played on 07/10/26",
+  });
+
+  assert.match(
+    out.email.text,
+    /Rivertranced, here's how last night at Allianz Amphitheater at Riverfront, Richmond, VA went\./,
+  );
+  assert.doesNotMatch(out.email.text, /2026-10-07/);
+  assert.equal(
+    out.email.preheader,
+    "10/07/26 · Allianz Amphitheater at Riverfront, Richmond, VA",
+  );
+  assert.equal(out.email.header?.eyebrow, "10/07/26 · Tour standings");
+  assert.equal(out.email.header?.title, "Where you stand on tour");
+  assert.equal(out.email.subject, "Your show recap + tour standings");
+  assert.match(
+    out.email.text,
+    /Next up: 10\/09\/26 — VyStar Veterans Memorial Arena, Jacksonville, FL\./,
+  );
+  assert.equal(out.push.title, "Where you stand on tour");
 });
 
 test("tour-countdown email uses picks CTA and avoids duplicate city in venue line", async () => {

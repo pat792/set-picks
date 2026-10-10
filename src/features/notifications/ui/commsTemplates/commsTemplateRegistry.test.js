@@ -216,9 +216,29 @@ describe('comms template registry', () => {
     const text = paragraphs.join(' ');
 
     expect(text).toContain("After last night's show you climbed 2 spots.");
-    expect(text).toContain('Back at MSG 2026-07-20.');
+    expect(text).toContain('Back at MSG 07/20/26.');
+    expect(text).not.toContain('2026-07-20');
     expect(text).not.toContain('After New York, NY');
     expect(text).not.toContain('Next up: 2026-07-20 — MSG');
+  });
+
+  it('morning recap in-app names the venue and badges the date (#1121)', () => {
+    const view = getCommsTemplateEntry('tour-rankings-daily').build({
+      handle: 'Rivertranced',
+      show_date: '2026-10-07',
+      venue_name: 'Allianz Amphitheater at Riverfront',
+      venue_city: 'Richmond, VA',
+      tour_rank: 4,
+      total_tour_pickers: 20,
+      tour_points: 40,
+      rank_change: 'held',
+    });
+    expect(view.eyebrow).toBe('10/07/26 · Tour standings');
+    expect(view.title).toBe('Where you stand on tour');
+    expect(view.paragraphs[0]).toBe(
+      "Rivertranced, here's how last night at Allianz Amphitheater at Riverfront, Richmond, VA went.",
+    );
+    expect(view.paragraphs.join(' ')).not.toContain('2026-10-07');
   });
 
   it('maps templateId → catalog triggerId', () => {

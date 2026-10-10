@@ -33,6 +33,7 @@ import {
   TourRecapInApp,
 } from '../../../tour-recap';
 import { buildTourRankingsDailyParagraphs } from '../../model/tourRankingsDailyCopy';
+import { formatFanShowDate } from '../../../../shared/utils/dateUtils';
 
 const FALLBACK_HANDLE = 'Picker';
 
@@ -75,6 +76,22 @@ function venueLine(payload, { dateKey = 'show_date', venueKey = 'venue_name', ci
   const date = typeof payload?.[dateKey] === 'string' ? payload[dateKey].trim() : '';
   if (date && place) return `${date} — ${place}`;
   return place || date || '';
+}
+
+function placeLine(payload, { venueKey = 'venue_name', cityKey = 'venue_city' } = {}) {
+  const venue = typeof payload?.[venueKey] === 'string' ? payload[venueKey].trim() : '';
+  const city =
+    cityKey && cityKey !== '__none' && typeof payload?.[cityKey] === 'string'
+      ? payload[cityKey].trim()
+      : '';
+  return appendCityIfNeeded(venue, city);
+}
+
+function tourStandingsEyebrow(showDate) {
+  const formatted = formatFanShowDate(typeof showDate === 'string' ? showDate : '');
+  return typeof formatted === 'string' && /^\d{2}\/\d{2}\/\d{2}$/.test(formatted)
+    ? `${formatted} · Tour standings`
+    : 'Tour standings';
 }
 
 const PICKS_HREF = '/dashboard/picks';
@@ -460,7 +477,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           total_picks_count: 6,
           narrative_branch: 'cold_board',
           narrative_line:
-            'An 8-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set saw the return of Meatstick after an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. None of your six landed. That lands you #10 of 13 globally.',
+            'An 8-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 07/10/26. A 6-song second set saw the return of Meatstick after an 18 show gap, last played on 07/17/26. A 2-song encore featured The Lizards and Julius. None of your six landed. That lands you #10 of 13 globally.',
         },
       },
       {
@@ -476,7 +493,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
           total_picks_count: 6,
           narrative_branch: 'mixed_board',
           narrative_line:
-            'An 8-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 2026-07-10. A 6-song second set saw the return of Meatstick after an 18 show gap, last played on 2026-07-17. A 2-song encore featured The Lizards and Julius. You hit the set 2 opener and the wildcard. That puts you #1 of 13 globally.',
+            'An 8-song first set featured a relative rarity of late: Hey Stranger, a 23 show gap, last played on 07/10/26. A 6-song second set saw the return of Meatstick after an 18 show gap, last played on 07/17/26. A 2-song encore featured The Lizards and Julius. You hit the set 2 opener and the wildcard. That puts you #1 of 13 globally.',
         },
       },
     ],
@@ -486,7 +503,9 @@ export const COMMS_TEMPLATE_REGISTRY = {
     triggerId: 'tour_rankings_daily',
     displayName: 'Tour rankings',
     build: (p) => {
-      const paragraphs = buildTourRankingsDailyParagraphs(p);
+      const place = placeLine(p) || 'the show';
+      const nightLead = `${handleOf(p)}, here's how last night at ${place} went.`;
+      const paragraphs = [nightLead, ...buildTourRankingsDailyParagraphs(p)];
       const tourRankLabel =
         p.tour_rank != null
           ? p.tour_rank_tied
@@ -500,7 +519,7 @@ export const COMMS_TEMPLATE_REGISTRY = {
       return {
         icon: TrendingUp,
         accentClassName: 'text-sky-300',
-        eyebrow: 'Tour standings',
+        eyebrow: tourStandingsEyebrow(p.show_date),
         title: 'Where you stand on tour',
         paragraphs,
         stats: [
