@@ -432,6 +432,8 @@ Trigger specs and channels: `docs/comms-triggers/catalog.json`. Admin canary/rep
 
 **v1.81.4 (#1122):** Visible show labels (tour date select, standings header, pool hub, picks scorecard, share text) use `MM/DD/YY`. Select values and stored `show.date` stay `YYYY-MM-DD`. Pool archive keeps `formatShowLabel` spelled dates.
 
+**v1.81.5 (#1123):** Catalog last-played and tour-stats prior-play columns use `MM/DD/YY`. This-tour tour-stats dates use `MM/DD` (no year). Stored dates stay `YYYY-MM-DD`.
+
 ### 2.5 Comms email deliverability HTTP endpoints (v1.7.1+)
 
 | Export | Method | Auth | Description |

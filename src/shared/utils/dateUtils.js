@@ -53,6 +53,22 @@ export function formatFanShowDate(value) {
   return `${match[2]}/${match[3]}/${String(year).slice(-2)}`;
 }
 
+/**
+ * This-tour column: month and day only. Year comes from the tour.
+ * Derived from {@link formatFanShowDate}. Non-dates return a trimmed string.
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function formatFanShowMonthDay(value) {
+  if (typeof value !== 'string') return '';
+  const formatted = formatFanShowDate(value);
+  if (typeof formatted === 'string' && /^\d{2}\/\d{2}\/\d{2}$/.test(formatted)) {
+    return formatted.slice(0, 5);
+  }
+  return value.trim();
+}
+
 export function formatShowLabel(dateStr) {
   const date = toDateSafe(`${dateStr}T12:00:00`);
   if (!date) return dateStr;
